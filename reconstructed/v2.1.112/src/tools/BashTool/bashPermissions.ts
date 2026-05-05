@@ -14,7 +14,14 @@ import {
   splitCommand_DEPRECATED,
 } from '../../utils/bash/commands.js'
 import { tryParseShellCommand } from '../../utils/bash/shellQuote.js'
-import type { SimpleCommand } from '../../utils/bash/ast.js'
+import {
+  checkSemantics,
+  nodeTypeId,
+  parseForSecurityFromAst,
+  type ParseForSecurityResult,
+  type SimpleCommand,
+} from '../../utils/bash/ast.js'
+import { parseCommandRaw } from '../../utils/bash/parser.js'
 import { getCwd } from '../../utils/cwd.js'
 import { logForDebugging } from '../../utils/debug.js'
 import { isEnvTruthy } from '../../utils/envUtils.js'
@@ -1271,13 +1278,11 @@ export async function bashToolHasPermission(
 ): Promise<PermissionResult> {
   let appState = context.getAppState()
 
-  // v112: directly awaits parseCommandRaw equivalent; no shadow mode branching
-  // TODO(lift): gt6 at byte ~9918304 — parseCommandRaw or equivalent
-  // TODO(lift): dt6 at byte ~9918447 — parseForSecurity or equivalent (v88: parseForSecurityFromAst)
-  const astRoot = await parseCommandRawV112(input.command)
-  let astResult = astRoot
-    ? parseForSecurityV112(input.command, astRoot)
-    : { kind: 'parse-unavailable' as const }
+  // v112: directly awaits parseCommandRaw; no shadow mode branching.
+  const astRoot = await parseCommandRaw(input.command)
+  const astResult: ParseForSecurityResult = astRoot
+    ? parseForSecurityFromAst(input.command, astRoot)
+    : { kind: 'parse-unavailable' }
 
   if (astResult.kind === 'too-complex') {
     const earlyExit = checkEarlyExitDeny(input, appState.toolPermissionContext)
@@ -1289,7 +1294,9 @@ export async function bashToolHasPermission(
       bashMissKind: 'too-complex',
     } as PermissionDecisionReason
     logEvent('tengu_bash_ast_too_complex', {
-      nodeTypeId: nodeTypeIdV112((astResult as { nodeType: unknown }).nodeType),
+      nodeTypeId: nodeTypeId(
+        astResult.kind === 'too-complex' ? astResult.nodeType : undefined,
+      ),
     })
     return {
       behavior: 'ask',
@@ -1304,8 +1311,8 @@ export async function bashToolHasPermission(
   let astCommands: SimpleCommand[] | undefined
 
   if (astResult.kind === 'simple') {
-    const commands = (astResult as { commands: SimpleCommand[] }).commands
-    const sem = checkSemanticsV112(commands)
+    const commands = astResult.commands
+    const sem = checkSemantics(commands)
     if (!sem.ok) {
       const earlyExit = checkSemanticsDeny(
         input,
@@ -1886,42 +1893,6 @@ function tryParseShellCommandTokens(command: string): string[] {
   }
   // fallback: split by whitespace
   return command.trim().split(/\s+/).filter(Boolean)
-}
-
-/**
- * v112: parseCommandRaw equivalent (gt6). Returns AST root or null.
- * TODO(lift): gt6 at byte ~9918304 — async parseCommandRaw or parseCommandRawCached.
- */
-async function parseCommandRawV112(command: string): Promise<unknown | null> {
-  // Deferred to a later pass; returns null to use legacy path
-  return null
-}
-
-/**
- * v112: parseForSecurity equivalent (dt6). Analyzes AST root.
- * TODO(lift): dt6 at byte ~9918447 — parseForSecurityFromAst equivalent.
- */
-function parseForSecurityV112(
-  command: string,
-  astRoot: unknown,
-): { kind: 'parse-unavailable' | 'too-complex' | 'simple'; commands?: SimpleCommand[]; reason?: string; nodeType?: unknown } {
-  return { kind: 'parse-unavailable' }
-}
-
-/**
- * v112: checkSemantics equivalent. Returns { ok, reason }.
- * TODO(lift): VP4 at byte ~9919705 — checkSemantics from ast.ts.
- */
-function checkSemanticsV112(commands: SimpleCommand[]): { ok: boolean; reason: string; kind?: string } {
-  return { ok: true, reason: '' }
-}
-
-/**
- * v112: nodeTypeId equivalent (WP4).
- * TODO(lift): WP4 at byte ~9918382 — nodeTypeId from ast.ts.
- */
-function nodeTypeIdV112(nodeType: unknown): unknown {
-  return nodeType
 }
 
 /**

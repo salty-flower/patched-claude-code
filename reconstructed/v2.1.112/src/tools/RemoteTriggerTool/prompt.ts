@@ -10,6 +10,6 @@ Actions:
 - get: GET /v1/code/triggers/{trigger_id}
 - create: POST /v1/code/triggers (requires body)
 - update: POST /v1/code/triggers/{trigger_id} (requires body, partial update)
-- run: POST /v1/code/triggers/{trigger_id}/run
+- run: POST /v1/code/triggers/{trigger_id}/run (optional body)
 
 The response is the raw JSON from the API.`

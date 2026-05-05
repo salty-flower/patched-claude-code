@@ -1,0 +1,51 @@
+const NO_VALUE = Symbol('NO_VALUE')
+
+// Run all generators concurrently up to a concurrency cap, yielding values as they come in
+export async function* all<A>(
+  generators: AsyncGenerator<A, void>[],
+  concurrencyCap = Infinity,
+): AsyncGenerator<A, void> {
+  const next = (generator: AsyncGenerator<A, void>) => {
+    const promise: Promise<QueuedGenerator<A>> = generator
+      .next()
+      .then(({ done, value }) => ({
+        done,
+        value,
+        generator,
+        promise,
+      }))
+    return promise
+  }
+  const waiting = [...generators]
+  const promises = new Set<Promise<QueuedGenerator<A>>>()
+
+  // Start initial batch up to concurrency cap
+  while (promises.size < concurrencyCap && waiting.length > 0) {
+    const gen = waiting.shift()!
+    promises.add(next(gen))
+  }
+
+  while (promises.size > 0) {
+    const { done, value, generator, promise } = await Promise.race(promises)
+    promises.delete(promise)
+
+    if (!done) {
+      promises.add(next(generator))
+      // TODO: Clean this up
+      if (value !== undefined) {
+        yield value
+      }
+    } else if (waiting.length > 0) {
+      // Start a new generator when one finishes
+      const nextGen = waiting.shift()!
+      promises.add(next(nextGen))
+    }
+  }
+}
+
+type QueuedGenerator<A> = {
+  done: boolean | void
+  value: A | void
+  generator: AsyncGenerator<A, void>
+  promise: Promise<QueuedGenerator<A>>
+}

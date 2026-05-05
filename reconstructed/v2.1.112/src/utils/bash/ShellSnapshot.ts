@@ -12,7 +12,14 @@ import {
   hasEmbeddedSearchTools,
 } from '../embeddedTools.js'
 import { getClaudeConfigHomeDir } from '../envUtils.js'
-import { pathExists } from '../file.js'
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await stat(filePath)
+    return true
+  } catch {
+    return false
+  }
+}
 import { getFsImplementation } from '../fsOperations.js'
 import { logError } from '../log.js'
 import { getPlatform } from '../platform.js'

@@ -3,9 +3,22 @@ import { logError } from 'src/utils/log.js'
 import { callIdeRpc } from '../services/mcp/client.js'
 import type { MCPServerConnection } from '../services/mcp/types.js'
 import { ClaudeError } from '../utils/errors.js'
-import { normalizePathForComparison, pathsEqual } from '../utils/file.js'
+import { normalize } from 'path'
+import { getPlatform } from '../utils/platform.js'
 import { getConnectedIdeClient } from '../utils/ide.js'
 import { jsonParse } from '../utils/slowOperations.js'
+
+function normalizePathForComparison(filePath: string): string {
+  let normalized = normalize(filePath)
+  if (getPlatform() === 'windows') {
+    normalized = normalized.replace(/\//g, '\\').toLowerCase()
+  }
+  return normalized
+}
+
+function pathsEqual(path1: string, path2: string): boolean {
+  return normalizePathForComparison(path1) === normalizePathForComparison(path2)
+}
 
 class DiagnosticsTrackingError extends ClaudeError {}
 

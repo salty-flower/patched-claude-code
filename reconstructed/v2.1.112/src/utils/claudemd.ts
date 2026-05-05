@@ -34,6 +34,7 @@ import {
   extname,
   isAbsolute,
   join,
+  normalize,
   parse,
   relative,
   sep,
@@ -57,7 +58,15 @@ import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { getErrnoCode } from './errors.js'
-import { normalizePathForComparison } from './file.js'
+import { getPlatform } from './platform.js'
+
+function normalizePathForComparison(filePath: string): string {
+  let normalized = normalize(filePath)
+  if (getPlatform() === 'windows') {
+    normalized = normalized.replace(/\//g, '\\').toLowerCase()
+  }
+  return normalized
+}
 import { cacheKeys, type FileStateCache } from './fileStateCache.js'
 import {
   parseFrontmatter,

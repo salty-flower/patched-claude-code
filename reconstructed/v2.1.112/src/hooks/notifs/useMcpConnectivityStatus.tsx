@@ -10,7 +10,6 @@ type Props = {
 };
 const EMPTY_MCP_CLIENTS: MCPServerConnection[] = [];
 export function useMcpConnectivityStatus(t0) {
-  const $ = new Array(4).fill(void 0);
   const {
     mcpClients: t1
   } = t0;
@@ -18,59 +17,46 @@ export function useMcpConnectivityStatus(t0) {
   const {
     addNotification
   } = useNotifications();
-  let t2;
-  let t3;
-  if ($[0] !== addNotification || $[1] !== mcpClients) {
-    t2 = () => {
-      if (getIsRemoteMode()) {
-        return;
-      }
-      const failedLocalClients = mcpClients.filter(_temp);
-      const failedClaudeAiClients = mcpClients.filter(_temp2);
-      const needsAuthLocalServers = mcpClients.filter(_temp3);
-      const needsAuthClaudeAiServers = mcpClients.filter(_temp4);
-      if (failedLocalClients.length === 0 && failedClaudeAiClients.length === 0 && needsAuthLocalServers.length === 0 && needsAuthClaudeAiServers.length === 0) {
-        return;
-      }
-      if (failedLocalClients.length > 0) {
-        addNotification({
-          key: "mcp-failed",
-          jsx: <><Text color="error">{failedLocalClients.length} MCP{" "}{failedLocalClients.length === 1 ? "server" : "servers"} failed</Text><Text dimColor={true}> · /mcp</Text></>,
-          priority: "medium"
-        });
-      }
-      if (failedClaudeAiClients.length > 0) {
-        addNotification({
-          key: "mcp-claudeai-failed",
-          jsx: <><Text color="error">{failedClaudeAiClients.length} claude.ai{" "}{failedClaudeAiClients.length === 1 ? "connector" : "connectors"}{" "}unavailable</Text><Text dimColor={true}> · /mcp</Text></>,
-          priority: "medium"
-        });
-      }
-      if (needsAuthLocalServers.length > 0) {
-        addNotification({
-          key: "mcp-needs-auth",
-          jsx: <><Text color="warning">{needsAuthLocalServers.length} MCP{" "}{needsAuthLocalServers.length === 1 ? "server needs" : "servers need"}{" "}auth</Text><Text dimColor={true}> · /mcp</Text></>,
-          priority: "medium"
-        });
-      }
-      if (needsAuthClaudeAiServers.length > 0) {
-        addNotification({
-          key: "mcp-claudeai-needs-auth",
-          jsx: <><Text color="warning">{needsAuthClaudeAiServers.length} claude.ai{" "}{needsAuthClaudeAiServers.length === 1 ? "connector needs" : "connectors need"}{" "}auth</Text><Text dimColor={true}> · /mcp</Text></>,
-          priority: "medium"
-        });
-      }
-    };
-    t3 = [addNotification, mcpClients];
-    $[0] = addNotification;
-    $[1] = mcpClients;
-    $[2] = t2;
-    $[3] = t3;
-  } else {
-    t2 = $[2];
-    t3 = $[3];
-  }
-  useEffect(t2, t3);
+  useEffect(() => {
+    if (getIsRemoteMode()) {
+      return;
+    }
+    const failedLocalClients = mcpClients.filter(_temp);
+    const failedClaudeAiClients = mcpClients.filter(_temp2);
+    const needsAuthLocalServers = mcpClients.filter(_temp3);
+    const needsAuthClaudeAiServers = mcpClients.filter(_temp4);
+    if (failedLocalClients.length === 0 && failedClaudeAiClients.length === 0 && needsAuthLocalServers.length === 0 && needsAuthClaudeAiServers.length === 0) {
+      return;
+    }
+    if (failedLocalClients.length > 0) {
+      addNotification({
+        key: "mcp-failed",
+        jsx: <><Text color="error">{failedLocalClients.length} MCP{" "}{failedLocalClients.length === 1 ? "server" : "servers"} failed</Text><Text dimColor={true}> · /mcp</Text></>,
+        priority: "medium"
+      });
+    }
+    if (failedClaudeAiClients.length > 0) {
+      addNotification({
+        key: "mcp-claudeai-failed",
+        jsx: <><Text color="error">{failedClaudeAiClients.length} claude.ai{" "}{failedClaudeAiClients.length === 1 ? "connector" : "connectors"}{" "}unavailable</Text><Text dimColor={true}> · /mcp</Text></>,
+        priority: "medium"
+      });
+    }
+    if (needsAuthLocalServers.length > 0) {
+      addNotification({
+        key: "mcp-needs-auth",
+        jsx: <><Text color="warning">{needsAuthLocalServers.length} MCP{" "}{needsAuthLocalServers.length === 1 ? "server needs" : "servers need"}{" "}auth</Text><Text dimColor={true}> · /mcp</Text></>,
+        priority: "medium"
+      });
+    }
+    if (needsAuthClaudeAiServers.length > 0) {
+      addNotification({
+        key: "mcp-claudeai-needs-auth",
+        jsx: <><Text color="warning">{needsAuthClaudeAiServers.length} claude.ai{" "}{needsAuthClaudeAiServers.length === 1 ? "connector needs" : "connectors need"}{" "}auth</Text><Text dimColor={true}> · /mcp</Text></>,
+        priority: "medium"
+      });
+    }
+  }, [addNotification, mcpClients]);
 }
 function _temp4(client_2) {
   return client_2.type === "needs-auth" && client_2.config.type === "claudeai-proxy" && hasClaudeAiMcpEverConnected(client_2.name);

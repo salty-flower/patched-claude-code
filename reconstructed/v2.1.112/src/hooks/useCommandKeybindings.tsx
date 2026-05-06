@@ -34,7 +34,6 @@ const NOOP_HELPERS: PromptInputHelpers = {
  * the corresponding slash command (e.g., "command:commit" submits "/commit").
  */
 export function CommandKeybindingHandlers(t0) {
-  const $ = new Array(8).fill(void 0);
   const {
     onSubmit,
     isActive: t1
@@ -42,38 +41,19 @@ export function CommandKeybindingHandlers(t0) {
   const isActive = t1 === undefined ? true : t1;
   const keybindingContext = useOptionalKeybindingContext();
   const isModalOverlayActive = useIsModalOverlayActive();
-  let t2;
-  bb0: {
-    if (!keybindingContext) {
-      let t3;
-      if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
-        t3 = new Set();
-        $[0] = t3;
-      } else {
-        t3 = $[0];
+  let commandActions;
+  if (!keybindingContext) {
+    commandActions = new Set();
+  } else {
+    commandActions = new Set();
+    for (const binding of keybindingContext.bindings) {
+      if (binding.action?.startsWith("command:")) {
+        commandActions.add(binding.action);
       }
-      t2 = t3;
-      break bb0;
     }
-    let actions;
-    if ($[1] !== keybindingContext.bindings) {
-      actions = new Set();
-      for (const binding of keybindingContext.bindings) {
-        if (binding.action?.startsWith("command:")) {
-          actions.add(binding.action);
-        }
-      }
-      $[1] = keybindingContext.bindings;
-      $[2] = actions;
-    } else {
-      actions = $[2];
-    }
-    t2 = actions;
   }
-  const commandActions = t2;
-  let map;
-  if ($[3] !== commandActions || $[4] !== onSubmit) {
-    map = {};
+  const handlers = useMemo(() => {
+    const map: Record<string, () => void> = {};
     for (const action of commandActions) {
       const commandName = action.slice(8);
       map[action] = () => {
@@ -82,25 +62,12 @@ export function CommandKeybindingHandlers(t0) {
         });
       };
     }
-    $[3] = commandActions;
-    $[4] = onSubmit;
-    $[5] = map;
-  } else {
-    map = $[5];
-  }
-  const handlers = map;
-  const t3 = isActive && !isModalOverlayActive;
-  let t4;
-  if ($[6] !== t3) {
-    t4 = {
-      context: "Chat",
-      isActive: t3
-    };
-    $[6] = t3;
-    $[7] = t4;
-  } else {
-    t4 = $[7];
-  }
-  useKeybindings(handlers, t4);
+    return map;
+  }, [commandActions, onSubmit]);
+  const keybindingOptions = {
+    context: "Chat",
+    isActive: isActive && !isModalOverlayActive
+  };
+  useKeybindings(handlers, keybindingOptions);
   return null;
 }

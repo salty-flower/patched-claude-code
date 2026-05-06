@@ -21,7 +21,6 @@ type UseClaudeCodeHintRecommendationResult = {
   handleResponse: (response: 'yes' | 'no' | 'disable') => void;
 };
 export function useClaudeCodeHintRecommendation() {
-  const $ = new Array(11).fill(void 0);
   const pendingHint = React.useSyncExternalStore(subscribeToPendingHint, getPendingHintSnapshot);
   const {
     addNotification
@@ -31,97 +30,65 @@ export function useClaudeCodeHintRecommendation() {
     clearRecommendation,
     tryResolve
   } = usePluginRecommendationBase();
-  let t0;
-  let t1;
-  if ($[0] !== pendingHint || $[1] !== tryResolve) {
-    t0 = () => {
-      if (!pendingHint) {
-        return;
+  React.useEffect(() => {
+    if (!pendingHint) {
+      return;
+    }
+    tryResolve(async () => {
+      const resolved = await resolvePluginHint(pendingHint);
+      if (resolved) {
+        logForDebugging(`[useClaudeCodeHintRecommendation] surfacing ${resolved.pluginId} from ${resolved.sourceCommand}`);
+        markShownThisSession();
       }
-      tryResolve(async () => {
-        const resolved = await resolvePluginHint(pendingHint);
-        if (resolved) {
-          logForDebugging(`[useClaudeCodeHintRecommendation] surfacing ${resolved.pluginId} from ${resolved.sourceCommand}`);
-          markShownThisSession();
-        }
-        if (getPendingHintSnapshot() === pendingHint) {
-          clearPendingHint();
-        }
-        return resolved;
-      });
-    };
-    t1 = [pendingHint, tryResolve];
-    $[0] = pendingHint;
-    $[1] = tryResolve;
-    $[2] = t0;
-    $[3] = t1;
-  } else {
-    t0 = $[2];
-    t1 = $[3];
-  }
-  React.useEffect(t0, t1);
-  let t2;
-  if ($[4] !== addNotification || $[5] !== clearRecommendation || $[6] !== recommendation) {
-    t2 = response => {
-      if (!recommendation) {
-        return;
+      if (getPendingHintSnapshot() === pendingHint) {
+        clearPendingHint();
       }
-      markHintPluginShown(recommendation.pluginId);
-      logEvent("tengu_plugin_hint_response", {
-        _PROTO_plugin_name: recommendation.pluginName as AnalyticsMetadata_I_VERIFIED_THIS_IS_PII_TAGGED,
-        _PROTO_marketplace_name: recommendation.marketplaceName as AnalyticsMetadata_I_VERIFIED_THIS_IS_PII_TAGGED,
-        response: response as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
-      });
-      bb15: switch (response) {
-        case "yes":
-          {
-            const {
+      return resolved;
+    });
+  }, [pendingHint, tryResolve]);
+  const handleResponse = React.useCallback(response => {
+    if (!recommendation) {
+      return;
+    }
+    markHintPluginShown(recommendation.pluginId);
+    logEvent("tengu_plugin_hint_response", {
+      _PROTO_plugin_name: recommendation.pluginName as AnalyticsMetadata_I_VERIFIED_THIS_IS_PII_TAGGED,
+      _PROTO_marketplace_name: recommendation.marketplaceName as AnalyticsMetadata_I_VERIFIED_THIS_IS_PII_TAGGED,
+      response: response as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
+    });
+    bb15: switch (response) {
+      case "yes":
+        {
+          const {
+            pluginId,
+            pluginName,
+            marketplaceName
+          } = recommendation;
+          installPluginAndNotify(pluginId, pluginName, "hint-plugin", addNotification, async pluginData => {
+            const result = await installPluginFromMarketplace({
               pluginId,
-              pluginName,
-              marketplaceName
-            } = recommendation;
-            installPluginAndNotify(pluginId, pluginName, "hint-plugin", addNotification, async pluginData => {
-              const result = await installPluginFromMarketplace({
-                pluginId,
-                entry: pluginData.entry,
-                marketplaceName,
-                scope: "user",
-                trigger: "hint"
-              });
-              if (!result.success) {
-                throw new Error(result.error);
-              }
+              entry: pluginData.entry,
+              marketplaceName,
+              scope: "user",
+              trigger: "hint"
             });
-            break bb15;
-          }
-        case "disable":
-          {
-            disableHintRecommendations();
-            break bb15;
-          }
-        case "no":
-      }
-      clearRecommendation();
-    };
-    $[4] = addNotification;
-    $[5] = clearRecommendation;
-    $[6] = recommendation;
-    $[7] = t2;
-  } else {
-    t2 = $[7];
-  }
-  const handleResponse = t2;
-  let t3;
-  if ($[8] !== handleResponse || $[9] !== recommendation) {
-    t3 = {
-      recommendation,
-      handleResponse
-    };
-    $[8] = handleResponse;
-    $[9] = recommendation;
-    $[10] = t3;
-  } else {
-    t3 = $[10];
-  }
-  return t3;
+            if (!result.success) {
+              throw new Error(result.error);
+            }
+          });
+          break bb15;
+        }
+      case "disable":
+        {
+          disableHintRecommendations();
+          break bb15;
+        }
+      case "no":
+    }
+    clearRecommendation();
+  }, [addNotification, clearRecommendation, recommendation]);
+  return {
+    recommendation,
+    handleResponse
+  };
 }

@@ -1,0 +1,109 @@
+import React from 'react';
+import { useTerminalSize } from '../../hooks/useTerminalSize.js';
+import { stringWidth } from '../../ink/stringWidth.js';
+import { Ansi, Text } from '../../ink.js';
+import type { Theme } from '../../utils/theme.js';
+
+type DividerProps = {
+  /**
+   * Width of the divider in characters.
+   * Defaults to terminal width.
+   */
+  width?: number;
+
+  /**
+   * Theme color for the divider.
+   * If not provided, dimColor is used.
+   */
+  color?: keyof Theme;
+
+  /**
+   * Character to use for the divider line.
+   * @default '─'
+   */
+  char?: string;
+
+  /**
+   * Padding to subtract from the width (e.g., for indentation).
+   * @default 0
+   */
+  padding?: number;
+
+  /**
+   * Title shown in the middle of the divider.
+   * May contain ANSI codes (e.g., chalk-styled text).
+   *
+   * @example
+   * // ─────────── Title ───────────
+   * <Divider title="Title" />
+   */
+  title?: string;
+
+  /**
+   * Horizontal alignment of the title.
+   * @default 'center'
+   */
+  titleAlign?: 'center' | 'start';
+};
+
+/**
+ * A horizontal divider line.
+ *
+ * @example
+ * // Full-width dimmed divider
+ * <Divider />
+ *
+ * @example
+ * // Colored divider
+ * <Divider color="suggestion" />
+ *
+ * @example
+ * // Fixed width
+ * <Divider width={40} />
+ *
+ * @example
+ * // Full width minus padding (for indented content)
+ * <Divider padding={4} />
+ *
+ * @example
+ * // With centered title
+ * <Divider title="3 new messages" />
+ */
+export function Divider({
+  width,
+  color,
+  char = '─',
+  padding = 0,
+  title,
+  titleAlign = 'center',
+}: DividerProps): React.ReactNode {
+  const { columns: terminalWidth } = useTerminalSize()
+  const effectiveWidth = Math.max(0, (width ?? terminalWidth) - padding)
+
+  if (title) {
+    const titleWidth = stringWidth(title) + 2 // +2 for spaces around title
+    const sideWidth = Math.max(0, effectiveWidth - titleWidth)
+    const leftWidth =
+      titleAlign === 'start' ? Math.min(4, sideWidth) : Math.floor(sideWidth / 2)
+    const rightWidth = sideWidth - leftWidth
+    const dimmed = !color
+
+    return (
+      <Text color={color} dimColor={dimmed}>
+        {char.repeat(leftWidth)}{' '}
+        <Text dimColor>
+          <Ansi>{title}</Ansi>
+        </Text>{' '}
+        {char.repeat(rightWidth)}
+      </Text>
+    )
+  }
+
+  const dimmed = !color
+
+  return (
+    <Text color={color} dimColor={dimmed}>
+      {char.repeat(effectiveWidth)}
+    </Text>
+  )
+}

@@ -22,36 +22,9 @@ export const COMMON_VALUE_PARAMS = [
   '-outvariable',
   '-outbuffer',
   '-pipelinevariable',
-  '-ea',
-  '-wa',
-  '-infa',
-  '-proga',
 ]
 
 export const COMMON_PARAMETERS: ReadonlySet<string> = new Set([
   ...COMMON_SWITCHES,
   ...COMMON_VALUE_PARAMS,
-])
-
-// Action parameter full names and their short aliases (v112: added for
-// tab-completion / alias-aware validation in readOnlyValidation.ts).
-export const ACTION_PARAMS = [
-  '-erroraction',
-  '-warningaction',
-  '-informationaction',
-  '-progressaction',
-]
-
-export const ACTION_ALIASES = ['-ea', '-wa', '-infa', '-proga']
-
-// Valid values for -*Action parameters (case-insensitive in PS).
-export const ACTION_VALUES: ReadonlySet<string> = new Set([
-  'silentlycontinue',
-  '0',
-  'stop',
-  '1',
-  'continue',
-  '2',
-  'ignore',
-  '4',
 ])

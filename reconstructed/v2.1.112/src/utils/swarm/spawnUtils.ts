@@ -53,8 +53,6 @@ export function buildInheritedCliFlags(options?: {
     flags.push('--dangerously-skip-permissions')
   } else if (permissionMode === 'acceptEdits') {
     flags.push('--permission-mode acceptEdits')
-  } else if (permissionMode === 'auto') {
-    flags.push('--permission-mode auto')
   }
 
   // Propagate --model if explicitly set via CLI
@@ -101,17 +99,6 @@ const TEAMMATE_ENV_VARS = [
   'CLAUDE_CODE_USE_BEDROCK',
   'CLAUDE_CODE_USE_VERTEX',
   'CLAUDE_CODE_USE_FOUNDRY',
-  // Anthropic AWS provider
-  'CLAUDE_CODE_USE_ANTHROPIC_AWS',
-  'CLAUDE_CODE_USE_MANTLE',
-  'ANTHROPIC_AWS_WORKSPACE_ID',
-  'ANTHROPIC_AWS_BASE_URL',
-  'ANTHROPIC_AWS_API_KEY',
-  'CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH',
-  'AWS_BEARER_TOKEN_BEDROCK',
-  'ANTHROPIC_BEDROCK_MANTLE_BASE_URL',
-  'CLAUDE_CODE_SKIP_MANTLE_AUTH',
-  'AWS_REGION',
   // Custom API endpoint
   'ANTHROPIC_BASE_URL',
   // Config directory override

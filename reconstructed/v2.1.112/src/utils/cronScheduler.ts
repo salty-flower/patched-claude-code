@@ -27,6 +27,7 @@ import {
   hasCronTasksSync,
   jitteredNextCronRunMs,
   markCronTasksFired,
+  oneShotJitteredNextCronRunMs,
   readCronTasks,
   removeCronTasks,
 } from './cronTasks.js'
@@ -124,12 +125,6 @@ type CronSchedulerOptions = {
    * non-permanent tasks in the same scheduled_tasks.json are untouched.
    */
   filter?: (t: CronTask) => boolean
-  /**
-   * v112: When provided, returns additional tasks to merge into the schedule.
-   * Used by daemon callers to inject tasks from external sources. Called
-   * once per load() cycle. Errors are logged and ignored (returns empty list).
-   */
-  getExtraTasks?: () => Promise<CronTask[]> | CronTask[]
 }
 
 export type CronScheduler = {
@@ -158,7 +153,6 @@ export function createCronScheduler(
     getJitterConfig,
     isKilled,
     filter,
-    getExtraTasks,
   } = options
   const lockOpts = dir || lockIdentity ? { dir, lockIdentity } : undefined
 
@@ -166,8 +160,6 @@ export function createCronScheduler(
   // here — they can be added/removed mid-session with no file event, so
   // check() reads them fresh from bootstrap state on every tick instead.
   let tasks: CronTask[] = []
-  // v112: extra tasks from getExtraTasks
-  let extraTasks: CronTask[] = []
   // Per-task next-fire times (epoch ms).
   const nextFireAt = new Map<string, number>()
   // Ids we've already enqueued a "missed task" prompt for — prevents
@@ -186,18 +178,8 @@ export function createCronScheduler(
 
   async function load(initial: boolean) {
     const next = await readCronTasks(dir)
-    // v112: merge extra tasks from getExtraTasks
-    const extra = getExtraTasks
-      ? await getExtraTasks().catch((err: unknown) => {
-          logForDebugging(
-            `[ScheduledTasks] getExtraTasks failed: ${err}`,
-          )
-          return []
-        })
-      : []
     if (stopped) return
     tasks = next
-    extraTasks = extra
 
     // Only surface missed tasks on initial load. Chokidar-triggered
     // reloads leave overdue tasks to check() (which anchors from createdAt
@@ -303,7 +285,6 @@ export function createCronScheduler(
       logForDebugging(
         `[ScheduledTasks] firing ${t.id}${t.recurring ? ' (recurring)' : ''}`,
       )
-      // v112: adds loop-default-sentinel logging
       logEvent('tengu_scheduled_task_fire', {
         recurring: t.recurring ?? false,
         taskId:
@@ -395,9 +376,6 @@ export function createCronScheduler(
     if (dir === undefined) {
       for (const t of getSessionCronTasks()) process(t, true)
     }
-
-    // v112: process extra tasks from getExtraTasks
-    for (const t of extraTasks) process(t, true)
 
     if (seen.size === 0) {
       // No live tasks this tick — clear the whole schedule so
@@ -499,10 +477,9 @@ export function createCronScheduler(
       )
       // Auto-enable when scheduled_tasks.json has entries. CronCreateTool
       // also sets this when a task is created mid-session.
-      // v112: also auto-enable when getExtraTasks is provided
       if (
         !getScheduledTasksEnabled() &&
-        (assistantMode || getExtraTasks !== undefined || hasCronTasksSync())
+        (assistantMode || hasCronTasksSync())
       ) {
         setScheduledTasksEnabled(true)
       }

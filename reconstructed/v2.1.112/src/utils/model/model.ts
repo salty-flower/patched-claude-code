@@ -42,8 +42,7 @@ export function isNonCustomOpusModel(model: ModelName): boolean {
     model === getModelStrings().opus40 ||
     model === getModelStrings().opus41 ||
     model === getModelStrings().opus45 ||
-    model === getModelStrings().opus46 ||
-    model === getModelStrings().opus47
+    model === getModelStrings().opus46
   )
 }
 
@@ -113,7 +112,7 @@ export function getDefaultOpusModel(): ModelName {
   if (getAPIProvider() !== 'firstParty') {
     return getModelStrings().opus46
   }
-  return getModelStrings().opus47
+  return getModelStrings().opus46
 }
 
 // @[MODEL LAUNCH]: Update the default Sonnet model (3P providers may lag so keep defaults unchanged).
@@ -121,9 +120,9 @@ export function getDefaultSonnetModel(): ModelName {
   if (process.env.ANTHROPIC_DEFAULT_SONNET_MODEL) {
     return process.env.ANTHROPIC_DEFAULT_SONNET_MODEL
   }
-  // Default to Sonnet 4.6 for 3P since they may not have 4.6 yet
+  // Default to Sonnet 4.5 for 3P since they may not have 4.6 yet
   if (getAPIProvider() !== 'firstParty') {
-    return getModelStrings().sonnet46
+    return getModelStrings().sonnet45
   }
   return getModelStrings().sonnet46
 }
@@ -219,9 +218,6 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
   name = name.toLowerCase()
   // Special cases for Claude 4+ models to differentiate versions
   // Order matters: check more specific versions first (4-5 before 4)
-  if (name.includes('claude-opus-4-7')) {
-    return 'claude-opus-4-7'
-  }
   if (name.includes('claude-opus-4-6')) {
     return 'claude-opus-4-6'
   }
@@ -352,10 +348,6 @@ export function renderModelSetting(setting: ModelName | ModelAlias): string {
  */
 export function getPublicModelDisplayName(model: ModelName): string | null {
   switch (model) {
-    case getModelStrings().opus47:
-      return 'Opus 4.7'
-    case getModelStrings().opus47 + '[1m]':
-      return 'Opus 4.7 (1M context)'
     case getModelStrings().opus46:
       return 'Opus 4.6'
     case getModelStrings().opus46 + '[1m]':
@@ -584,9 +576,6 @@ export function getMarketingNameForModel(modelId: string): string | undefined {
   const has1m = modelId.toLowerCase().includes('[1m]')
   const canonical = getCanonicalName(modelId)
 
-  if (canonical.includes('claude-opus-4-7')) {
-    return has1m ? 'Opus 4.7 (with 1M context)' : 'Opus 4.7'
-  }
   if (canonical.includes('claude-opus-4-6')) {
     return has1m ? 'Opus 4.6 (with 1M context)' : 'Opus 4.6'
   }
@@ -627,7 +616,3 @@ export function getMarketingNameForModel(modelId: string): string | undefined {
 export function normalizeModelStringForAPI(model: string): string {
   return model.replace(/\[(1|2)m\]/gi, '')
 }
-
-// TODO(lift): getAntModelOverrideConfig at byte ~2451601
-// TODO(lift): resolveAntModel at byte ~2452530
-// TODO(lift): getResumeCompactModel at byte ~2452855

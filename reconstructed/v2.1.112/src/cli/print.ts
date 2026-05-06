@@ -355,7 +355,7 @@ import { isExtractModeActive } from '../memdir/paths.js'
 
 // Dead code elimination: conditional imports
 /* eslint-disable @typescript-eslint/no-require-imports */
-const coordinatorModeModule = feature('COORDINATOR_MODE')
+const coordinatorModeModule = true
   ? (require('../coordinator/coordinatorMode.js') as typeof import('../coordinator/coordinatorMode.js'))
   : null
 const proactiveModule =
@@ -4915,7 +4915,7 @@ async function loadInitialMessages(
       )
       if (result) {
         // Match coordinator mode to the resumed session's mode
-        if (feature('COORDINATOR_MODE') && coordinatorModeModule) {
+        if (true && coordinatorModeModule) {
           const warning = coordinatorModeModule.matchSessionMode(result.mode)
           if (warning) {
             process.stderr.write(warning + '\n')
@@ -4964,7 +4964,7 @@ async function loadInitialMessages(
         )
 
         // Write mode entry for the resumed session
-        if (feature('COORDINATOR_MODE') && coordinatorModeModule) {
+        if (true && coordinatorModeModule) {
           saveMode(
             coordinatorModeModule.isCoordinatorMode()
               ? 'coordinator'
@@ -5120,7 +5120,7 @@ async function loadInitialMessages(
       }
 
       // Match coordinator mode to the resumed session's mode
-      if (feature('COORDINATOR_MODE') && coordinatorModeModule) {
+      if (true && coordinatorModeModule) {
         const warning = coordinatorModeModule.matchSessionMode(result.mode)
         if (warning) {
           process.stderr.write(warning + '\n')
@@ -5164,7 +5164,7 @@ async function loadInitialMessages(
       )
 
       // Write mode entry for the resumed session
-      if (feature('COORDINATOR_MODE') && coordinatorModeModule) {
+      if (true && coordinatorModeModule) {
         saveMode(
           coordinatorModeModule.isCoordinatorMode() ? 'coordinator' : 'normal',
         )

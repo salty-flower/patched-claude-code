@@ -11,8 +11,7 @@ type TruncatedMessage = {
 
 /**
  * Determines whether the input text should be truncated. If so, it adds a
- * truncated text placeholder and returns the new text to display and separate
- * placeholder content if applicable.
+ * truncated text placeholder and neturns
  *
  * @param text The input text
  * @param nextPasteId The reference id to use

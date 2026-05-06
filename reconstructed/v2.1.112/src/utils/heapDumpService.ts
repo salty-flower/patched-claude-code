@@ -20,14 +20,12 @@ import { toError } from './errors.js'
 import { getDesktopPath } from './file.js'
 import { getFsImplementation } from './fsOperations.js'
 import { logError } from './log.js'
-import { getPlatform } from './platform.js'
 import { jsonStringify } from './slowOperations.js'
 
 export type HeapDumpResult = {
   success: boolean
   heapPath?: string
   diagPath?: string
-  diagnostics?: MemoryDiagnostics
   error?: string
 }
 
@@ -78,8 +76,6 @@ export type MemoryDiagnostics = {
     recommendation: string
   }
   smapsRollup?: string // Linux only - detailed memory breakdown
-  /** Bun-only: object type counts from bun:jsc heapStats(). */
-  objectTypeCounts?: Record<string, number>
   platform: string
   nodeVersion: string
   ccVersion: string
@@ -128,18 +124,6 @@ export async function captureMemoryDiagnostics(
     smapsRollup = await readFile('/proc/self/smaps_rollup', 'utf8')
   } catch {
     // Not on Linux or no access - this is fine
-  }
-
-  // Bun-only: capture object-type counts from bun:jsc for richer leak triage.
-  // Falls through silently on Node and on older Bun without bun:jsc.
-  let objectTypeCounts: Record<string, number> | undefined
-  if (typeof Bun !== 'undefined') {
-    try {
-      const { heapStats: bunHeapStats } = await import('bun:jsc')
-      objectTypeCounts = bunHeapStats().objectTypeCounts
-    } catch {
-      // bun:jsc not available
-    }
   }
 
   // Calculate native memory (RSS - heap) and growth rate
@@ -206,8 +190,7 @@ export async function captureMemoryDiagnostics(
       available: space.space_available_size,
     })),
     resourceUsage: {
-      // macOS reports maxRSS already in bytes, Linux reports in KB.
-      maxRSS: resourceUsage.maxRSS * (getPlatform() === 'macos' ? 1 : 1024),
+      maxRSS: resourceUsage.maxRSS * 1024, // Convert KB to bytes
       userCPUTime: resourceUsage.userCPUTime,
       systemCPUTime: resourceUsage.systemCPUTime,
     },
@@ -222,7 +205,6 @@ export async function captureMemoryDiagnostics(
           : 'No obvious leak indicators. Check heap snapshot for retained objects.',
     },
     smapsRollup,
-    objectTypeCounts,
     platform: process.platform,
     nodeVersion: process.version,
     ccVersion: MACRO.VERSION,
@@ -281,7 +263,7 @@ export async function performHeapDump(
       success: true,
     })
 
-    return { success: true, heapPath, diagPath, diagnostics }
+    return { success: true, heapPath, diagPath }
   } catch (err) {
     const error = toError(err)
     logError(error)

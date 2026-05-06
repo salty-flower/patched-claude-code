@@ -22,12 +22,28 @@ export function capitalize(str: string): string {
 }
 
 /**
+ * Returns the singular or plural form of a word based on count.
+ * Replaces the inline `word${n === 1 ? '' : 's'}` idiom.
+ *
+ * @example plural(1, 'file') → 'file'
+ * @example plural(3, 'file') → 'files'
+ * @example plural(2, 'entry', 'entries') → 'entries'
+ */
+export function plural(
+  n: number,
+  word: string,
+  pluralWord = word + 's',
+): string {
+  return n === 1 ? word : pluralWord
+}
+
+/**
  * Returns the first line of a string without allocating a split array.
  * Used for shebang detection in diff rendering.
  */
-export function firstLineOf(s: string, char: string = '\n'): string {
-  const idx = s.indexOf(char)
-  return idx === -1 ? s : s.slice(0, idx)
+export function firstLineOf(s: string): string {
+  const nl = s.indexOf('\n')
+  return nl === -1 ? s : s.slice(0, nl)
 }
 
 /**
@@ -57,6 +73,14 @@ export function normalizeFullWidthDigits(input: string): string {
   return input.replace(/[０-９]/g, ch =>
     String.fromCharCode(ch.charCodeAt(0) - 0xfee0),
   )
+}
+
+/**
+ * Normalize full-width (zenkaku) space to half-width space.
+ * Useful for accepting input from Japanese/CJK IMEs (U+3000 → U+0020).
+ */
+export function normalizeFullWidthSpace(input: string): string {
+  return input.replace(/\u3000/g, ' ')
 }
 
 // Keep in-memory accumulation modest to avoid blowing up RSS.

@@ -12,12 +12,6 @@ import type {
 import { normalizeMessagesForAPI } from './messages.js'
 import { jsonStringify } from './slowOperations.js'
 
-// TODO(lift): ToolSearchTool registration at byte ~5033493 — new in v112.
-// The minified shows fd8 = P1(async(q,K)=>{...}) with zvK/YvK schemas,
-// deferred tool search via EjY, and renderToolResult mapping. This is
-// a new decl not present in v88's contextAnalysis.ts; likely moved from
-// another file or newly added in v112.
-
 type TokenStats = {
   toolRequests: Map<string, number>
   toolResults: Map<string, number>

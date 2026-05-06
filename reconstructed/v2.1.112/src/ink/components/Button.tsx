@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React, { type Ref, useCallback, useEffect, useRef, useState } from 'react';
 import type { Except } from 'type-fest';
 import type { DOMElement } from '../dom.js';
@@ -37,7 +36,7 @@ export type Props = Except<Styles, 'textWrap'> & {
   children: ((state: ButtonState) => React.ReactNode) | React.ReactNode;
 };
 function Button(t0) {
-  const $ = _c(30);
+  const $ = new Array(30).fill(void 0);
   let autoFocus;
   let children;
   let onAction;

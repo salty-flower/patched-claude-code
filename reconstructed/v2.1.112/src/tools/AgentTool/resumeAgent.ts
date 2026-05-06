@@ -39,7 +39,6 @@ export type ResumeAgentResult = {
   description: string
   outputFile: string
 }
-
 export async function resumeAgentBackground({
   agentId,
   prompt,
@@ -55,10 +54,10 @@ export async function resumeAgentBackground({
 }): Promise<ResumeAgentResult> {
   const startTime = Date.now()
   const appState = toolUseContext.getAppState()
-  // v112: taskRegistry is now surfaced directly on toolUseContext
-  const { taskRegistry } = toolUseContext as unknown as {
-    taskRegistry: unknown
-  }
+  // In-process teammates get a no-op setAppState; setAppStateForTasks
+  // reaches the root store so task registration/progress/kill stay visible.
+  const rootSetAppState =
+    toolUseContext.setAppStateForTasks ?? toolUseContext.setAppState
   const permissionMode = appState.toolPermissionContext.mode
 
   const [transcript, meta] = await Promise.all([
@@ -127,11 +126,11 @@ export async function resumeAgentBackground({
       const additionalWorkingDirectories = Array.from(
         appState.toolPermissionContext.additionalWorkingDirectories.keys(),
       )
-      // v112: getSystemPrompt no longer takes mcpClients as 4th argument
       const defaultSystemPrompt = await getSystemPrompt(
         toolUseContext.options.tools,
         toolUseContext.options.mainLoopModel,
         additionalWorkingDirectories,
+        toolUseContext.options.mcpClients,
       )
       forkParentSystemPrompt = buildEffectiveSystemPrompt({
         mainThreadAgentDefinition,
@@ -148,6 +147,7 @@ export async function resumeAgentBackground({
     }
   }
 
+  // Resolve model for analytics metadata (runAgent resolves its own internally)
   const resolvedAgentModel = getAgentModel(
     selectedAgent.model,
     toolUseContext.options.mainLoopModel,
@@ -159,23 +159,9 @@ export async function resumeAgentBackground({
     ...appState.toolPermissionContext,
     mode: selectedAgent.permissionMode ?? 'acceptEdits',
   }
-
-  // v112: filter replacement/virtual tools from parent pool, then concat with mcp tools.
-  // TODO [v112 byte range ~9238300]: yJ predicate not resolved; likely isReplacementTool
-  // or similar — identifies tools from the parent's pool that should be forwarded.
-  const supplementalTools = toolUseContext.options.tools.filter(
-    _t => false, // TODO: replace with actual yJ predicate
-  )
   const workerTools = isResumedFork
     ? toolUseContext.options.tools
-    : assembleToolPool(
-        workerPermissionContext,
-        // v112: concat supplemental tools with mcp tools; skipReplFilter=true
-        (toolUseContext.getAppState().mcp.tools as unknown[]).concat(
-          supplementalTools,
-        ) as Parameters<typeof assembleToolPool>[1],
-        // TODO [v112]: assembleToolPool signature now takes options as 3rd arg
-      )
+    : assembleToolPool(workerPermissionContext, appState.mcp.tools)
 
   const runAgentParams: Parameters<typeof runAgent>[0] = {
     agentDefinition: selectedAgent,
@@ -191,35 +177,31 @@ export async function resumeAgentBackground({
       isBuiltInAgent(selectedAgent),
     ),
     model: undefined,
+    // Fork resume: pass parent's system prompt (cache-identical prefix).
+    // Non-fork: undefined → runAgent recomputes under wrapWithCwd so
+    // getCwd() sees resumedWorktreePath.
     override: isResumedFork
       ? { systemPrompt: forkParentSystemPrompt }
       : undefined,
     availableTools: workerTools,
+    // Transcript already contains the parent context slice from the
+    // original fork. Re-supplying it would cause duplicate tool_use IDs.
     forkContextMessages: undefined,
     ...(isResumedFork && { useExactTools: true }),
+    // Re-persist so metadata survives runAgent's writeAgentMetadata overwrite
     worktreePath: resumedWorktreePath,
     description: meta?.description,
     contentReplacementState: resumedReplacementState,
   }
 
   // Skip name-registry write — original entry persists from the initial spawn
-  // v112: registerAsyncAgent now takes taskRegistry + cwd instead of setAppState
-  const agentBackgroundTask = (registerAsyncAgent as unknown as (opts: {
-    agentId: string
-    description: string
-    prompt: string
-    selectedAgent: AgentDefinition
-    taskRegistry: unknown
-    toolUseId: string | undefined
-    cwd: string | undefined
-  }) => { agentId: string; abortController?: AbortController })({
+  const agentBackgroundTask = registerAsyncAgent({
     agentId,
     description: uiDescription,
     prompt,
     selectedAgent,
-    taskRegistry,
+    setAppState: rootSetAppState,
     toolUseId: toolUseContext.toolUseId,
-    cwd: resumedWorktreePath,
   })
 
   const metadata = {
@@ -242,22 +224,12 @@ export async function resumeAgentBackground({
     invocationEmitted: false,
   }
 
-  // v112: runWithCwdOverride now handles undefined cwd (executes fn() directly).
-  // Previously a wrapWithCwd closure was used for this conditional; v112 inlines it.
+  const wrapWithCwd = <T>(fn: () => T): T =>
+    resumedWorktreePath ? runWithCwdOverride(resumedWorktreePath, fn) : fn()
+
   void runWithAgentContext(asyncAgentContext, () =>
-    runWithCwdOverride(resumedWorktreePath as string, () =>
-      (runAsyncAgentLifecycle as unknown as (opts: {
-        taskId: string
-        abortController: AbortController
-        makeStream: (p: unknown) => AsyncGenerator<unknown>
-        metadata: unknown
-        description: string
-        toolUseContext: ToolUseContext
-        taskRegistry: unknown
-        agentIdForCleanup: string
-        enableSummarization: boolean
-        getWorktreeResult: () => Promise<{ worktreePath?: string }>
-      }) => Promise<void>)({
+    wrapWithCwd(() =>
+      runAsyncAgentLifecycle({
         taskId: agentBackgroundTask.agentId,
         abortController: agentBackgroundTask.abortController!,
         makeStream: onCacheSafeParams =>
@@ -273,7 +245,7 @@ export async function resumeAgentBackground({
         metadata,
         description: uiDescription,
         toolUseContext,
-        taskRegistry,
+        rootSetAppState,
         agentIdForCleanup: agentId,
         enableSummarization:
           isCoordinatorMode() ||

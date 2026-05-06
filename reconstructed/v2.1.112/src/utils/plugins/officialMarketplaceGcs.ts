@@ -137,76 +137,11 @@ export async function fetchOfficialMarketplaceFromGcs(
     }
     await writeFile(join(staging, '.gcs-sha'), sha)
 
-    // v112: Atomic swap changed from rm+rename to a backup-based approach
-    // for safer recovery on crash. Creates `.backup`, moves old install to
-    // backup, moves staging to installLocation, then cleans up backup.
-    // If the final rename fails, attempts to restore from backup.
-    const backup = `${installLocation}.backup`
-    await rm(backup, { recursive: true, force: true }).catch(() => {})
-
-    let hasBackup = false
-    try {
-      await rename(installLocation, backup)
-      hasBackup = true
-    } catch (e) {
-      if (getErrnoCode(e) !== 'ENOENT') {
-        // If rename fails for a reason other than "old dir doesn't exist",
-        // try to recover: if there's no .claude-plugin/marketplace.json in
-        // the old dir, it's stale/corrupted — rm it and retry the rename.
-        const manifestPath = join(
-          installLocation,
-          '.claude-plugin',
-          'marketplace.json',
-        )
-        const manifestExists = await stat(manifestPath)
-          .then(() => true, () => false)
-        if (!manifestExists) {
-          await rm(installLocation, { recursive: true, force: true }).catch(
-            () => {},
-          )
-          await rename(backup, installLocation).catch(() => {})
-        }
-      }
-    }
-
-    try {
-      await rm(backup, { recursive: true, force: true })
-    } catch (e) {
-      throw new Error(
-        `Failed to clean up stale marketplace backup directory. Please manually delete the directory at ${backup} and try again.\n\nTechnical details: ${errorMessage(e)}`,
-      )
-    }
-
-    try {
-      await rename(installLocation, backup)
-      hasBackup = true
-      logForDebugging(
-        `Found stale marketplace directory at ${installLocation}, moving aside to allow re-clone`,
-        { level: 'warn' },
-      )
-    } catch (e) {
-      if (getErrnoCode(e) !== 'ENOENT') {
-        throw new Error(
-          `Failed to clean up existing marketplace directory. Please manually delete the directory at ${installLocation} and try again.\n\nTechnical details: ${errorMessage(e)}`,
-        )
-      }
-    }
-
-    try {
-      await rename(staging, installLocation)
-    } catch (e) {
-      // If staging -> installLocation fails and we have a backup, try to
-      // restore the old install so the user isn't left with nothing.
-      if (hasBackup) {
-        await rename(backup, installLocation).catch(() => {})
-      }
-      throw e
-    }
-
-    // Clean up backup on success
-    if (hasBackup) {
-      await rm(backup, { recursive: true, force: true }).catch(() => {})
-    }
+    // Atomic swap: rm old, rename staging. Brief window where installLocation
+    // doesn't exist — acceptable for a background refresh (caller retries next
+    // startup if it crashes here).
+    await rm(installLocation, { recursive: true, force: true })
+    await rename(staging, installLocation)
 
     outcome = 'updated'
     return sha
@@ -232,14 +167,6 @@ export async function fetchOfficialMarketplaceFromGcs(
       ...(errKind && { error_kind: errKind as SafeString }),
     })
   }
-}
-
-// v112: Added stat helper for the backup-recovery path
-async function stat(path: string): Promise<
-  { isFile(): boolean; isDirectory(): boolean } | undefined
-> {
-  const fs = await import('../fsOperations.js').then(m => m.getFsImplementation())
-  return fs.stat(path).catch(() => undefined)
 }
 
 // Bounded set of errno codes we report by name. Anything else buckets as

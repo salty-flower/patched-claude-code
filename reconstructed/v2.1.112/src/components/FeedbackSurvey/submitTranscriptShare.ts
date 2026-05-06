@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { readFile, stat } from 'fs/promises'
 import type { Message } from '../../types/message.js'
-import { isPolicyAllowed } from '../../services/policyLimits/index.js'
 import { checkAndRefreshOAuthTokenIfNeeded } from '../../utils/auth.js'
 import { logForDebugging } from '../../utils/debug.js'
 import { errorMessage } from '../../utils/errors.js'
@@ -15,8 +14,6 @@ import {
 } from '../../utils/sessionStorage.js'
 import { jsonStringify } from '../../utils/slowOperations.js'
 import { redactSensitiveInfo } from '../Feedback.js'
-
-// TODO(lift): redaction helpers at byte ~12535870
 
 type TranscriptShareResult = {
   success: boolean
@@ -34,10 +31,6 @@ export async function submitTranscriptShare(
   trigger: TranscriptShareTrigger,
   appearanceId: string,
 ): Promise<TranscriptShareResult> {
-  if (!isPolicyAllowed('allow_product_feedback')) {
-    return { success: false }
-  }
-
   try {
     logForDebugging('Collecting transcript for sharing', { level: 'info' })
 
@@ -64,19 +57,6 @@ export async function submitTranscriptShare(
       // File may not exist
     }
 
-    // Process raw transcript for safe sharing
-    const processedRawTranscript = rawTranscriptJsonl
-      ?.split('\n')
-      .map((line) => {
-        if (!line) return line
-        try {
-          return jsonStringify(redactSensitiveInfo(JSON.parse(line)))
-        } catch {
-          return redactSensitiveInfo(line)
-        }
-      })
-      .join('\n')
-
     const data = {
       trigger,
       version: MACRO.VERSION,
@@ -86,7 +66,7 @@ export async function submitTranscriptShare(
         Object.keys(subagentTranscripts).length > 0
           ? subagentTranscripts
           : undefined,
-      rawTranscriptJsonl: processedRawTranscript,
+      rawTranscriptJsonl,
     }
 
     const content = redactSensitiveInfo(jsonStringify(data))

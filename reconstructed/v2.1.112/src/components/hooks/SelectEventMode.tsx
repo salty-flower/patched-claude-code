@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 /**
  * SelectEventMode is the entrypoint of the Hooks config menu, where the user
  * sees the list of available hook events.
@@ -25,7 +24,7 @@ type Props = {
   onCancel: () => void;
 };
 export function SelectEventMode(t0) {
-  const $ = _c(23);
+  const $ = new Array(23).fill(void 0);
   const {
     hookEventMetadata,
     hooksByEvent,

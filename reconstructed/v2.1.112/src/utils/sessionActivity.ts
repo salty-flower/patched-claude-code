@@ -11,6 +11,7 @@
  * Diagnostic logging always fires to help diagnose idle gaps.
  */
 
+import { registerCleanup } from './cleanupRegistry.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
 import { isEnvTruthy } from './envUtils.js'
 
@@ -27,10 +28,7 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null
 let cleanupRegistered = false
 
 function startHeartbeatTimer(): void {
-  if (idleTimer !== null) {
-    clearTimeout(idleTimer)
-    idleTimer = null
-  }
+  clearIdleTimer()
   heartbeatTimer = setInterval(() => {
     logForDiagnosticsNoPII('debug', 'session_keepalive_heartbeat', {
       refcount,
@@ -42,10 +40,7 @@ function startHeartbeatTimer(): void {
 }
 
 function startIdleTimer(): void {
-  if (idleTimer !== null) {
-    clearTimeout(idleTimer)
-    idleTimer = null
-  }
+  clearIdleTimer()
   if (activityCallback === null) {
     return
   }
@@ -55,10 +50,39 @@ function startIdleTimer(): void {
   }, SESSION_ACTIVITY_INTERVAL_MS)
 }
 
+function clearIdleTimer(): void {
+  if (idleTimer !== null) {
+    clearTimeout(idleTimer)
+    idleTimer = null
+  }
+}
+
+export function registerSessionActivityCallback(cb: () => void): void {
+  activityCallback = cb
+  // Restart timer if work is already in progress (e.g. reconnect during streaming)
+  if (refcount > 0 && heartbeatTimer === null) {
+    startHeartbeatTimer()
+  }
+}
+
+export function unregisterSessionActivityCallback(): void {
+  activityCallback = null
+  // Stop timer if the callback is removed
+  if (heartbeatTimer !== null) {
+    clearInterval(heartbeatTimer)
+    heartbeatTimer = null
+  }
+  clearIdleTimer()
+}
+
 export function sendSessionActivitySignal(): void {
   if (isEnvTruthy(process.env.CLAUDE_CODE_REMOTE_SEND_KEEPALIVES)) {
     activityCallback?.()
   }
+}
+
+export function isSessionActivityTrackingActive(): boolean {
+  return activityCallback !== null
 }
 
 /**
@@ -76,17 +100,17 @@ export function startSessionActivity(reason: SessionActivityReason): void {
   }
   if (!cleanupRegistered) {
     cleanupRegistered = true
-    // TODO(lift): eq at byte ~9933622 (registerCleanup)
-    // registerCleanup(async () => {
-    //   logForDiagnosticsNoPII('info', 'session_activity_at_shutdown', {
-    //     refcount,
-    //     active: Object.fromEntries(activeReasons),
-    //     oldest_activity_ms:
-    //       refcount > 0 && oldestActivityStartedAt !== null
-    //         ? Date.now() - oldestActivityStartedAt
-    //         : null,
-    //   })
-    // })
+    registerCleanup(async () => {
+      logForDiagnosticsNoPII('info', 'session_activity_at_shutdown', {
+        refcount,
+        active: Object.fromEntries(activeReasons),
+        // Only meaningful while work is in-flight; stale otherwise.
+        oldest_activity_ms:
+          refcount > 0 && oldestActivityStartedAt !== null
+            ? Date.now() - oldestActivityStartedAt
+            : null,
+      })
+    })
   }
 }
 

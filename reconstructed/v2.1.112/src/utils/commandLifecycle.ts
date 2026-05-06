@@ -19,8 +19,3 @@ export function notifyCommandLifecycle(
 ): void {
   listener?.(uuid, state)
 }
-
-// TODO(lift): v112_min for this file contains only a multi-file IIFE
-// (cross-file boundary artifact) — the setCommandLifecycleListener /
-// notifyCommandLifecycle decls have no v112 match in this chunk's region.
-// They may have been moved to another module or inlined elsewhere.

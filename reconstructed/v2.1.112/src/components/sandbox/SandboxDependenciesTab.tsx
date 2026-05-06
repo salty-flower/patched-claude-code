@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Box, Text } from '../../ink.js';
 import { getPlatform } from '../../utils/platform.js';
@@ -7,7 +6,7 @@ type Props = {
   depCheck: SandboxDependencyCheck;
 };
 export function SandboxDependenciesTab(t0) {
-  const $ = _c(24);
+  const $ = new Array(24).fill(void 0);
   const {
     depCheck
   } = t0;

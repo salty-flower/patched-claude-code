@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import chalk from 'chalk';
 import type { UUID } from 'crypto';
 import figures from 'figures';
@@ -37,7 +36,7 @@ function resumeHelpMessage(result: ResumeResult): string {
   }
 }
 function ResumeError(t0) {
-  const $ = _c(10);
+  const $ = new Array(10).fill(void 0);
   const {
     message,
     args,

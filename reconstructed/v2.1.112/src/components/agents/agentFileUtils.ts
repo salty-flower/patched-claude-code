@@ -46,7 +46,7 @@ export function formatAgentAsMarkdown(
   const memoryLine = memory ? `\nmemory: ${memory}` : ''
 
   return `---
-name: "${agentType}"
+name: ${agentType}
 description: "${escapedWhenToUse}"${toolsLine}${modelLine}${effortLine}${colorLine}${memoryLine}
 ---
 

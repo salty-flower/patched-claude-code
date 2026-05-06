@@ -149,7 +149,6 @@ export function modelSupportsStructuredOutputs(model: string): boolean {
   return (
     canonical.includes('claude-sonnet-4-6') ||
     canonical.includes('claude-sonnet-4-5') ||
-    canonical.includes('claude-opus-4-7') ||
     canonical.includes('claude-opus-4-1') ||
     canonical.includes('claude-opus-4-5') ||
     canonical.includes('claude-opus-4-6') ||
@@ -202,7 +201,7 @@ export function modelSupportsAutoMode(model: string): boolean {
  */
 export function getToolSearchBetaHeader(): string {
   const provider = getAPIProvider()
-  if (provider === 'vertex' || provider === 'bedrock' || provider === 'mantle') {
+  if (provider === 'vertex' || provider === 'bedrock') {
     return TOOL_SEARCH_BETA_HEADER_3P
   }
   return TOOL_SEARCH_BETA_HEADER_1P
@@ -214,9 +213,8 @@ export function getToolSearchBetaHeader(): string {
  * and may not be supported by proxies or other providers.
  */
 export function shouldIncludeFirstPartyOnlyBetas(): boolean {
-  const provider = getAPIProvider()
   return (
-    (provider === 'firstParty' || provider === 'anthropicAws' || provider === 'foundry') &&
+    (getAPIProvider() === 'firstParty' || getAPIProvider() === 'foundry') &&
     !isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS)
   )
 }
@@ -227,9 +225,8 @@ export function shouldIncludeFirstPartyOnlyBetas(): boolean {
  * treatment data is firstParty-only.
  */
 export function shouldUseGlobalCacheScope(): boolean {
-  const provider = getAPIProvider()
   return (
-    (provider === 'firstParty' || provider === 'anthropicAws') &&
+    getAPIProvider() === 'firstParty' &&
     !isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS)
   )
 }

@@ -11,10 +11,6 @@
  * 2. Creating linked AbortController
  * 3. Registering InProcessTeammateTaskState in AppState
  * 4. Returning spawn result for backend
- *
- * In v112, this module was refactored to use a TaskRegistry abstraction
- * instead of direct setAppState manipulation. The killInProcessTeammate
- * function was moved here from inProcessRunner.ts.
  */
 
 import sample from 'lodash-es/sample.js'
@@ -35,6 +31,7 @@ import { emitTaskTerminatedSdk } from '../sdkEventQueue.js'
 import { evictTaskOutput } from '../task/diskOutput.js'
 import {
   evictTerminalTask,
+  registerTask,
   STOPPED_DISPLAY_MS,
 } from '../task/framework.js'
 import { createTeammateContext } from '../teammateContext.js'
@@ -49,25 +46,11 @@ type SetAppStateFn = (updater: (prev: AppState) => AppState) => void
 
 /**
  * Minimal context required for spawning an in-process teammate.
- * In v112, this was simplified to use taskRegistry instead of setAppState.
+ * This is a subset of ToolUseContext - only what spawnInProcessTeammate actually uses.
  */
 export type SpawnContext = {
   setAppState: SetAppStateFn
   toolUseId?: string
-  getAppState: () => AppState
-  /**
-   * Task registry abstraction introduced in v112.
-   * Provides register(task) and evictTerminal(taskId) methods
-   * to decouple task lifecycle from direct AppState manipulation.
-   */
-  taskRegistry: {
-    register: (task: InProcessTeammateTaskState) => void
-    evictTerminal: (taskId: string) => void
-    update: (
-      taskId: string,
-      updater: (task: InProcessTeammateTaskState) => InProcessTeammateTaskState,
-    ) => boolean
-  }
 }
 
 /**
@@ -107,30 +90,6 @@ export type InProcessSpawnOutput = {
 }
 
 /**
- * Derives the permission mode for a teammate based on the leader's context.
- * In v112, this logic was extracted from spawnInProcessTeammate to handle
- * the case where the leader is in plan mode but the teammate should not be.
- */
-function deriveTeammatePermissionMode(
-  leaderPermissionMode: PermissionMode | undefined,
-  planModeRequired: boolean,
-): PermissionMode {
-  if (planModeRequired) {
-    return 'plan'
-  }
-  // If the leader is in bypass mode, the teammate inherits 'default' instead
-  // so they still get tool-specific permission dialogs rather than auto-allow.
-  if (leaderPermissionMode === 'bypassPermissions') {
-    return 'default'
-  }
-  return leaderPermissionMode ?? 'default'
-}
-
-// TODO(lift): import PermissionMode type at byte ~5877666
-// The v112 minified references Y0z(K.getAppState().toolPermissionContext.mode, O)
-// which maps to deriveTeammatePermissionMode above.
-
-/**
  * Spawns an in-process teammate.
  *
  * Creates the teammate's context, registers the task in AppState, and returns
@@ -147,7 +106,7 @@ export async function spawnInProcessTeammate(
   context: SpawnContext,
 ): Promise<InProcessSpawnOutput> {
   const { name, teamName, prompt, color, planModeRequired, model } = config
-  const { setAppState, taskRegistry, getAppState, toolUseId } = context
+  const { setAppState } = context
 
   // Generate deterministic agent ID
   const agentId = formatAgentId(name, teamName)
@@ -195,20 +154,12 @@ export async function spawnInProcessTeammate(
     // Create task state
     const description = `${name}: ${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}`
 
-    // In v112, permissionMode is derived from the leader's current context
-    // rather than being hardcoded based on planModeRequired alone.
-    const currentAppState = getAppState()
-    const permissionMode = deriveTeammatePermissionMode(
-      currentAppState.toolPermissionContext?.mode,
-      planModeRequired,
-    )
-
     const taskState: InProcessTeammateTaskState = {
       ...createTaskStateBase(
         taskId,
         'in_process_teammate',
         description,
-        toolUseId,
+        context.toolUseId,
       ),
       type: 'in_process_teammate',
       status: 'running',
@@ -219,7 +170,7 @@ export async function spawnInProcessTeammate(
       awaitingPlanApproval: false,
       spinnerVerb: sample(getSpinnerVerbs()),
       pastTenseVerb: sample(TURN_COMPLETION_VERBS),
-      permissionMode,
+      permissionMode: planModeRequired ? 'plan' : 'default',
       isIdle: false,
       shutdownRequested: false,
       lastReportedToolCount: 0,
@@ -236,8 +187,8 @@ export async function spawnInProcessTeammate(
     })
     taskState.unregisterCleanup = unregisterCleanup
 
-    // Register task in AppState via taskRegistry (v112 abstraction)
-    taskRegistry.register(taskState)
+    // Register task in AppState
+    registerTask(taskState, setAppState)
 
     logForDebugging(
       `[spawnInProcessTeammate] Registered ${agentId} in AppState`,
@@ -267,20 +218,15 @@ export async function spawnInProcessTeammate(
 /**
  * Kills an in-process teammate by aborting its controller.
  *
- * In v112, this was moved from inProcessRunner.ts to here and refactored
- * to use the TaskRegistry abstraction. Instead of direct setAppState
- * manipulation for teamContext.teammates, it uses taskRegistry.update()
- * for the task state and setAppState for teamContext cleanup.
+ * Note: This is the implementation called by InProcessBackend.kill().
  *
  * @param taskId - Task ID of the teammate to kill
  * @param setAppState - AppState setter
- * @param taskRegistry - Task registry for task state updates
  * @returns true if killed successfully
  */
 export function killInProcessTeammate(
   taskId: string,
   setAppState: SetAppStateFn,
-  taskRegistry: SpawnContext['taskRegistry'],
 ): boolean {
   let killed = false
   let teamName: string | null = null
@@ -288,67 +234,69 @@ export function killInProcessTeammate(
   let toolUseId: string | undefined
   let description: string | undefined
 
-  // In v112, task state update uses taskRegistry.update() which returns
-  // whether the update was applied (task existed and was running).
-  const wasUpdated = taskRegistry.update(taskId, (task) => {
-    if (task.status !== 'running') {
-      return task
+  setAppState((prev: AppState) => {
+    const task = prev.tasks[taskId]
+    if (!task || task.type !== 'in_process_teammate') {
+      return prev
+    }
+
+    const teammateTask = task as InProcessTeammateTaskState
+
+    if (teammateTask.status !== 'running') {
+      return prev
     }
 
     // Capture identity for cleanup after state update
-    teamName = task.identity.teamName
-    agentId = task.identity.agentId
-    toolUseId = task.toolUseId
-    description = task.description
+    teamName = teammateTask.identity.teamName
+    agentId = teammateTask.identity.agentId
+    toolUseId = teammateTask.toolUseId
+    description = teammateTask.description
 
     // Abort the controller to stop execution
-    task.abortController?.abort()
+    teammateTask.abortController?.abort()
 
     // Call cleanup handler
-    task.unregisterCleanup?.()
+    teammateTask.unregisterCleanup?.()
 
-    // Call pending idle callbacks to unblock any waiters (e.g., engine.waitForIdle)
-    task.onIdleCallbacks?.forEach((cb) => cb())
-
+    // Update task state and remove from teamContext.teammates
     killed = true
 
+    // Call pending idle callbacks to unblock any waiters (e.g., engine.waitForIdle)
+    teammateTask.onIdleCallbacks?.forEach(cb => cb())
+
+    // Remove from teamContext.teammates using the agentId
+    let updatedTeamContext = prev.teamContext
+    if (prev.teamContext && prev.teamContext.teammates && agentId) {
+      const { [agentId]: _, ...remainingTeammates } = prev.teamContext.teammates
+      updatedTeamContext = {
+        ...prev.teamContext,
+        teammates: remainingTeammates,
+      }
+    }
+
     return {
-      ...task,
-      status: 'killed' as const,
-      notified: true,
-      endTime: Date.now(),
-      onIdleCallbacks: [], // Clear callbacks to prevent stale references
-      messages: task.messages?.length
-        ? [task.messages.at(-1)!]
-        : undefined,
-      pendingUserMessages: [],
-      inProgressToolUseIDs: undefined,
-      abortController: undefined,
-      unregisterCleanup: undefined,
-      currentWorkAbortController: undefined,
+      ...prev,
+      teamContext: updatedTeamContext,
+      tasks: {
+        ...prev.tasks,
+        [taskId]: {
+          ...teammateTask,
+          status: 'killed' as const,
+          notified: true,
+          endTime: Date.now(),
+          onIdleCallbacks: [], // Clear callbacks to prevent stale references
+          messages: teammateTask.messages?.length
+            ? [teammateTask.messages[teammateTask.messages.length - 1]!]
+            : undefined,
+          pendingUserMessages: [],
+          inProgressToolUseIDs: undefined,
+          abortController: undefined,
+          unregisterCleanup: undefined,
+          currentWorkAbortController: undefined,
+        },
+      },
     }
   })
-
-  if (!wasUpdated) {
-    return false
-  }
-
-  // Remove from teamContext.teammates using setAppState (separate from taskRegistry)
-  if (agentId) {
-    setAppState((prev) => {
-      if (!prev.teamContext?.teammates?.[agentId!]) {
-        return prev
-      }
-      const { [agentId]: _, ...remainingTeammates } = prev.teamContext.teammates
-      return {
-        ...prev,
-        teamContext: {
-          ...prev.teamContext,
-          teammates: remainingTeammates,
-        },
-      }
-    })
-  }
 
   // Remove from team file (outside state updater to avoid file I/O in callback)
   if (teamName && agentId) {
@@ -366,7 +314,7 @@ export function killInProcessTeammate(
       summary: description,
     })
     setTimeout(
-      () => taskRegistry.evictTerminal(taskId),
+      evictTerminalTask.bind(null, taskId, setAppState),
       STOPPED_DISPLAY_MS,
     )
   }

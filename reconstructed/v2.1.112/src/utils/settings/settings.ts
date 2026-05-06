@@ -520,18 +520,6 @@ export function updateSettingsForSource(
     return { error }
   }
 
-  // v2.1.112: emit a settings-change event so that reactive listeners
-  // (useSettingsChange, print.ts subscribe) re-read fresh state.
-  // TODO(lift): RX8.emit(source) at byte ~1092534
-  try {
-    // Cross-chunk: emit via the change detector's reactive channel.
-    // Stubbed until the change-detector chunk is fully lifted.
-  } catch (err) {
-    for (const e of err instanceof AggregateError ? err.errors : [err]) {
-      logError(e)
-    }
-  }
-
   return { error: null }
 }
 
@@ -586,7 +574,7 @@ export function getManagedSettingsKeysForLogging(
       'ask',
       'defaultMode',
       'disableBypassPermissionsMode',
-      'disableAutoMode',
+      ...(feature('TRANSCRIPT_CLASSIFIER') ? ['disableAutoMode'] : []),
       'additionalDirectories',
     ]),
     sandbox: new Set([
@@ -904,33 +892,22 @@ export function hasSkipDangerousModePermissionPrompt(): boolean {
  * Returns true if any trusted settings source has accepted the auto
  * mode opt-in dialog. projectSettings is intentionally excluded —
  * a malicious project could otherwise auto-bypass the dialog (RCE risk).
- *
- * v2.1.112: Added fast-path for policySettings with defaultMode=auto.
- * If the managed policy explicitly sets permissions.defaultMode to "auto",
- * that implies consent and short-circuits the check.
  */
 export function hasAutoModeOptIn(): boolean {
-  // Fast path: policy defaultMode=auto implies consent
-  if (
-    getSettingsForSource('policySettings')?.permissions?.defaultMode === 'auto'
-  ) {
+  if (feature('TRANSCRIPT_CLASSIFIER')) {
+    const user = getSettingsForSource('userSettings')?.skipAutoPermissionPrompt
+    const local =
+      getSettingsForSource('localSettings')?.skipAutoPermissionPrompt
+    const flag = getSettingsForSource('flagSettings')?.skipAutoPermissionPrompt
+    const policy =
+      getSettingsForSource('policySettings')?.skipAutoPermissionPrompt
+    const result = !!(user || local || flag || policy)
     logForDebugging(
-      '[auto-mode] hasAutoModeOptIn=true policy defaultMode=auto implies consent',
+      `[auto-mode] hasAutoModeOptIn=${result} skipAutoPermissionPrompt: user=${user} local=${local} flag=${flag} policy=${policy}`,
     )
-    return true
+    return result
   }
-
-  const user = getSettingsForSource('userSettings')?.skipAutoPermissionPrompt
-  const local =
-    getSettingsForSource('localSettings')?.skipAutoPermissionPrompt
-  const flag = getSettingsForSource('flagSettings')?.skipAutoPermissionPrompt
-  const policy =
-    getSettingsForSource('policySettings')?.skipAutoPermissionPrompt
-  const result = !!(user || local || flag || policy)
-  logForDebugging(
-    `[auto-mode] hasAutoModeOptIn=${result} skipAutoPermissionPrompt: user=${user} local=${local} flag=${flag} policy=${policy}`,
-  )
-  return result
+  return false
 }
 
 /**
@@ -939,64 +916,68 @@ export function hasAutoModeOptIn(): boolean {
  * projectSettings is excluded so a malicious project can't control this.
  */
 export function getUseAutoModeDuringPlan(): boolean {
-  return (
-    getSettingsForSource('policySettings')?.useAutoModeDuringPlan !== false &&
-    getSettingsForSource('flagSettings')?.useAutoModeDuringPlan !== false &&
-    getSettingsForSource('userSettings')?.useAutoModeDuringPlan !== false &&
-    getSettingsForSource('localSettings')?.useAutoModeDuringPlan !== false
-  )
+  if (feature('TRANSCRIPT_CLASSIFIER')) {
+    return (
+      getSettingsForSource('policySettings')?.useAutoModeDuringPlan !== false &&
+      getSettingsForSource('flagSettings')?.useAutoModeDuringPlan !== false &&
+      getSettingsForSource('userSettings')?.useAutoModeDuringPlan !== false &&
+      getSettingsForSource('localSettings')?.useAutoModeDuringPlan !== false
+    )
+  }
+  return true
 }
 
 /**
  * Returns the merged autoMode config from trusted settings sources.
+ * Only available when TRANSCRIPT_CLASSIFIER is active; returns undefined otherwise.
  * projectSettings is intentionally excluded — a malicious project could
  * otherwise inject classifier allow/deny rules (RCE risk).
- *
- * v2.1.112: Removed the TRANSCRIPT_CLASSIFIER feature gate and the ant-only
- * deny→soft_deny mapping. The deny field is no longer supported; only
- * allow, soft_deny, and environment are collected.
  */
 export function getAutoModeConfig():
   | { allow?: string[]; soft_deny?: string[]; environment?: string[] }
   | undefined {
-  const schema = z.object({
-    allow: z.array(z.string()).optional(),
-    soft_deny: z.array(z.string()).optional(),
-    deny: z.array(z.string()).optional(),
-    environment: z.array(z.string()).optional(),
-  })
+  if (feature('TRANSCRIPT_CLASSIFIER')) {
+    const schema = z.object({
+      allow: z.array(z.string()).optional(),
+      soft_deny: z.array(z.string()).optional(),
+      deny: z.array(z.string()).optional(),
+      environment: z.array(z.string()).optional(),
+    })
 
-  const allow: string[] = []
-  const soft_deny: string[] = []
-  const environment: string[] = []
+    const allow: string[] = []
+    const soft_deny: string[] = []
+    const environment: string[] = []
 
-  for (const source of [
-    'userSettings',
-    'localSettings',
-    'flagSettings',
-    'policySettings',
-  ] as const) {
-    const settings = getSettingsForSource(source)
-    if (!settings) continue
-    const result = schema.safeParse(
-      (settings as Record<string, unknown>).autoMode,
-    )
-    if (result.success) {
-      if (result.data.allow) allow.push(...result.data.allow)
-      if (result.data.soft_deny) soft_deny.push(...result.data.soft_deny)
-      if (result.data.environment)
-        environment.push(...result.data.environment)
+    for (const source of [
+      'userSettings',
+      'localSettings',
+      'flagSettings',
+      'policySettings',
+    ] as const) {
+      const settings = getSettingsForSource(source)
+      if (!settings) continue
+      const result = schema.safeParse(
+        (settings as Record<string, unknown>).autoMode,
+      )
+      if (result.success) {
+        if (result.data.allow) allow.push(...result.data.allow)
+        if (result.data.soft_deny) soft_deny.push(...result.data.soft_deny)
+        if (process.env.USER_TYPE === 'ant') {
+          if (result.data.deny) soft_deny.push(...result.data.deny)
+        }
+        if (result.data.environment)
+          environment.push(...result.data.environment)
+      }
+    }
+
+    if (allow.length > 0 || soft_deny.length > 0 || environment.length > 0) {
+      return {
+        ...(allow.length > 0 && { allow }),
+        ...(soft_deny.length > 0 && { soft_deny }),
+        ...(environment.length > 0 && { environment }),
+      }
     }
   }
-
-  if (allow.length > 0 || soft_deny.length > 0 || environment.length > 0) {
-    return {
-      ...(allow.length > 0 && { allow }),
-      ...(soft_deny.length > 0 && { soft_deny }),
-      ...(environment.length > 0 && { environment }),
-    }
-  }
-
   return undefined
 }
 

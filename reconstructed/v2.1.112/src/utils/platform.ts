@@ -148,18 +148,3 @@ export async function detectVcs(dir?: string): Promise<string[]> {
 
   return [...detected]
 }
-
-/**
- * Returns the macOS major version number (e.g., 15 for macOS 15.x Sequoia).
- * Returns undefined on non-macOS platforms.
- */
-export const getDarwinMajorVersion = memoize((): number | undefined => {
-  if (process.platform !== 'darwin') {
-    return undefined
-  }
-  const match = osRelease().match(/^(\d+)\./)
-  if (!match || !match[1]) {
-    return undefined
-  }
-  return parseInt(match[1], 10) - 9
-})

@@ -36,24 +36,20 @@ export function parsePluginArgs(args?: string): ParsedCommand {
       }
 
       // Check if it's in format plugin@marketplace
-      // Use lastIndexOf to handle scoped npm packages like @scope/name@marketplace
-      const atIndex = target.lastIndexOf('@')
-      if (atIndex > 0) {
-        const plugin = target.slice(0, atIndex)
-        const marketplace = target.slice(atIndex + 1)
+      if (target.includes('@')) {
+        const [plugin, marketplace] = target.split('@')
         return { type: 'install', plugin, marketplace }
       }
 
       // Check if the target looks like a marketplace (URL or path)
-      // Scoped npm packages (starting with @) are treated as plugin names
-      if (
-        !target.startsWith('@') &&
-        (target.startsWith('http://') ||
-          target.startsWith('https://') ||
-          target.startsWith('file://') ||
-          target.includes('/') ||
-          target.includes('\\'))
-      ) {
+      const isMarketplace =
+        target.startsWith('http://') ||
+        target.startsWith('https://') ||
+        target.startsWith('file://') ||
+        target.includes('/') ||
+        target.includes('\\')
+
+      if (isMarketplace) {
         // This is a marketplace URL/path, no plugin specified
         return { type: 'install', marketplace: target }
       }

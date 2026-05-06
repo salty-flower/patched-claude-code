@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import sample from 'lodash-es/sample.js';
 import React from 'react';
 import { gracefulShutdown } from '../utils/gracefulShutdown.js';
@@ -11,17 +10,11 @@ type Props = {
   onDone: (message?: string) => void;
   onCancel?: () => void;
   showWorktree: boolean;
-  // TODO(lift): backgroundItems at byte ~11480440
-  backgroundItems?: Array<{
-    label: string;
-    value: string;
-  }>;
 };
 export function ExitFlow(t0) {
-  const $ = _c(11);
+  const $ = new Array(5).fill(void 0);
   const {
     showWorktree,
-    backgroundItems,
     onDone,
     onCancel
   } = t0;
@@ -49,37 +42,6 @@ export function ExitFlow(t0) {
     }
     return t2;
   }
-  if (backgroundItems && backgroundItems.length > 0) {
-    let t2;
-    if ($[5] !== onExit) {
-      t2 = () => void onExit();
-      $[5] = onExit;
-      $[6] = t2;
-    } else {
-      t2 = $[6];
-    }
-    const handleBackgroundExit = t2;
-    const handleCancel = onCancel ?? _temp;
-    let t3;
-    if ($[7] !== backgroundItems || $[8] !== handleBackgroundExit || $[9] !== handleCancel) {
-      t3 = <BackgroundItemsDialog items={backgroundItems} onExit={handleBackgroundExit} onCancel={handleCancel} />;
-      $[7] = backgroundItems;
-      $[8] = handleBackgroundExit;
-      $[9] = handleCancel;
-      $[10] = t3;
-    } else {
-      t3 = $[10];
-    }
-    return t3;
-  }
   return null;
 }
-function _temp() {}
-// TODO(lift): BackgroundItemsDialog at byte ~11480440
-function BackgroundItemsDialog(_props: {
-  items: Array<{ label: string; value: string }>;
-  onExit: () => void;
-  onCancel: () => void;
-}): React.ReactNode {
-  return null;
-}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJzYW1wbGUiLCJSZWFjdCIsImdyYWNlZnVsU2h1dGRvd24iLCJXb3JrdHJlZUV4aXREaWFsb2ciLCJHT09EQllFX01FU1NBR0VTIiwiZ2V0UmFuZG9tR29vZGJ5ZU1lc3NhZ2UiLCJQcm9wcyIsIm9uRG9uZSIsIm1lc3NhZ2UiLCJvbkNhbmNlbCIsInNob3dXb3JrdHJlZSIsIkV4aXRGbG93IiwidDAiLCIkIiwiX2MiLCJ0MSIsIm9uRXhpdCIsInJlc3VsdE1lc3NhZ2UiLCJ0MiJdLCJzb3VyY2VzIjpbIkV4aXRGbG93LnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgc2FtcGxlIGZyb20gJ2xvZGFzaC1lcy9zYW1wbGUuanMnXG5pbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnXG5pbXBvcnQgeyBncmFjZWZ1bFNodXRkb3duIH0gZnJvbSAnLi4vdXRpbHMvZ3JhY2VmdWxTaHV0ZG93bi5qcydcbmltcG9ydCB7IFdvcmt0cmVlRXhpdERpYWxvZyB9IGZyb20gJy4vV29ya3RyZWVFeGl0RGlhbG9nLmpzJ1xuXG5jb25zdCBHT09EQllFX01FU1NBR0VTID0gWydHb29kYnllIScsICdTZWUgeWEhJywgJ0J5ZSEnLCAnQ2F0Y2ggeW91IGxhdGVyISddXG5cbmZ1bmN0aW9uIGdldFJhbmRvbUdvb2RieWVNZXNzYWdlKCk6IHN0cmluZyB7XG4gIHJldHVybiBzYW1wbGUoR09PREJZRV9NRVNTQUdFUykgPz8gJ0dvb2RieWUhJ1xufVxuXG50eXBlIFByb3BzID0ge1xuICBvbkRvbmU6IChtZXNzYWdlPzogc3RyaW5nKSA9PiB2b2lkXG4gIG9uQ2FuY2VsPzogKCkgPT4gdm9pZFxuICBzaG93V29ya3RyZWU6IGJvb2xlYW5cbn1cblxuZXhwb3J0IGZ1bmN0aW9uIEV4aXRGbG93KHtcbiAgc2hvd1dvcmt0cmVlLFxuICBvbkRvbmUsXG4gIG9uQ2FuY2VsLFxufTogUHJvcHMpOiBSZWFjdC5SZWFjdE5vZGUge1xuICBhc3luYyBmdW5jdGlvbiBvbkV4aXQocmVzdWx0TWVzc2FnZT86IHN0cmluZykge1xuICAgIG9uRG9uZShyZXN1bHRNZXNzYWdlID8/IGdldFJhbmRvbUdvb2RieWVNZXNzYWdlKCkpXG4gICAgYXdhaXQgZ3JhY2VmdWxTaHV0ZG93bigwLCAncHJvbXB0X2lucHV0X2V4aXQnKVxuICB9XG5cbiAgaWYgKHNob3dXb3JrdHJlZSkge1xuICAgIHJldHVybiA8V29ya3RyZWVFeGl0RGlhbG9nIG9uRG9uZT17b25FeGl0fSBvbkNhbmNlbD17b25DYW5jZWx9IC8+XG4gIH1cblxuICByZXR1cm4gbnVsbFxufVxuIl0sIm1hcHBpbmdzIjoiO0FBQUEsT0FBT0EsTUFBTSxNQUFNLHFCQUFxQjtBQUN4QyxPQUFPQyxLQUFLLE1BQU0sT0FBTztBQUN6QixTQUFTQyxnQkFBZ0IsUUFBUSw4QkFBOEI7QUFDL0QsU0FBU0Msa0JBQWtCLFFBQVEseUJBQXlCO0FBRTVELE1BQU1DLGdCQUFnQixHQUFHLENBQUMsVUFBVSxFQUFFLFNBQVMsRUFBRSxNQUFNLEVBQUUsa0JBQWtCLENBQUM7QUFFNUUsU0FBU0MsdUJBQXVCQSxDQUFBLENBQUUsRUFBRSxNQUFNLENBQUM7RUFDekMsT0FBT0wsTUFBTSxDQUFDSSxnQkFBZ0IsQ0FBQyxJQUFJLFVBQVU7QUFDL0M7QUFFQSxLQUFLRSxLQUFLLEdBQUc7RUFDWEMsTUFBTSxFQUFFLENBQUNDLE9BQWdCLENBQVIsRUFBRSxNQUFNLEVBQUUsR0FBRyxJQUFJO0VBQ2xDQyxRQUFRLENBQUMsRUFBRSxHQUFHLEdBQUcsSUFBSTtFQUNyQkMsWUFBWSxFQUFFLE9BQU87QUFDdkIsQ0FBQztBQUVELE9BQU8sU0FBQUMsU0FBQUMsRUFBQTtFQUFBLE1BQUFDLENBQUEsR0FBQUMsRUFBQTtFQUFrQjtJQUFBSixZQUFBO0lBQUFILE1BQUE7SUFBQUU7RUFBQSxJQUFBRyxFQUlqQjtFQUFBLElBQUFHLEVBQUE7RUFBQSxJQUFBRixDQUFBLFFBQUFOLE1BQUE7SUFDTlEsRUFBQSxrQkFBQUMsT0FBQUMsYUFBQTtNQUNFVixNQUFNLENBQUNVLGFBQTBDLElBQXpCWix1QkFBdUIsQ0FBQyxDQUFDLENBQUM7TUFDbEQsTUFBTUgsZ0JBQWdCLENBQUMsQ0FBQyxFQUFFLG1CQUFtQixDQUFDO0lBQUEsQ0FDL0M7SUFBQVcsQ0FBQSxNQUFBTixNQUFBO0lBQUFNLENBQUEsTUFBQUUsRUFBQTtFQUFBO0lBQUFBLEVBQUEsR0FBQUYsQ0FBQTtFQUFBO0VBSEQsTUFBQUcsTUFBQSxHQUFBRCxFQUdDO0VBRUQsSUFBSUwsWUFBWTtJQUFBLElBQUFRLEVBQUE7SUFBQSxJQUFBTCxDQUFBLFFBQUFKLFFBQUEsSUFBQUksQ0FBQSxRQUFBRyxNQUFBO01BQ1BFLEVBQUEsSUFBQyxrQkFBa0IsQ0FBU0YsTUFBTSxDQUFOQSxPQUFLLENBQUMsQ0FBWVAsUUFBUSxDQUFSQSxTQUFPLENBQUMsR0FBSTtNQUFBSSxDQUFBLE1BQUFKLFFBQUE7TUFBQUksQ0FBQSxNQUFBRyxNQUFBO01BQUFILENBQUEsTUFBQUssRUFBQTtJQUFBO01BQUFBLEVBQUEsR0FBQUwsQ0FBQTtJQUFBO0lBQUEsT0FBMURLLEVBQTBEO0VBQUE7RUFDbEUsT0FFTSxJQUFJO0FBQUEiLCJpZ25vcmVMaXN0IjpbXX0=

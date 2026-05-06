@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { Ansi, Box, Text, useAnimationFrame } from '../../ink.js';
 import { segmentTextByHighlights, type TextHighlight } from '../../utils/textHighlighting.js';
@@ -13,7 +12,7 @@ type LinePart = {
   start: number;
 };
 export function HighlightedInput(t0) {
-  const $ = _c(23);
+  const $ = new Array(23).fill(void 0);
   const {
     text,
     highlights

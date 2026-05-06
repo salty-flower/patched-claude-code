@@ -54,8 +54,7 @@ function normalizeGitPathArg(arg: string): string {
     if (c > 0) s = s.slice(c + 1)
   }
   s = s.replace(/^['"]|['"]$/g, '')
-  // v112: uses replaceAll for backtick removal instead of /regex/g
-  s = s.replaceAll('`', '')
+  s = s.replace(/`/g, '')
   // PS provider-qualified path: FileSystem::hooks/pre-commit → hooks/pre-commit
   // Also handles fully-qualified form: Microsoft.PowerShell.Core\FileSystem::path
   s = s.replace(/^(?:[A-Za-z0-9_.]+\\){0,3}FileSystem::/i, '')
@@ -63,8 +62,7 @@ function normalizeGitPathArg(arg: string): string {
   // drive. C:\foo (WITH separator) is absolute and must NOT match — the
   // negative lookahead preserves it.
   s = s.replace(/^[A-Za-z]:(?![/\\])/, '')
-  // v112: uses replaceAll for backslash normalization
-  s = s.replaceAll('\\', '/')
+  s = s.replace(/\\/g, '/')
   // Win32 CreateFileW per-component: iteratively strip trailing spaces,
   // then trailing dots, stopping if the result is `.` or `..` (special).
   // `.. ` → `..`, `.. .` → `..`, `...` → '' → `.`, `hooks .` → `hooks`.
@@ -120,8 +118,7 @@ function resolveEscapingPathToCwdRelative(n: string): string | null {
   const cwdWithSepLower = cwdWithSep.toLowerCase()
   if (absLower === cwdLower) return '.'
   if (!absLower.startsWith(cwdWithSepLower)) return null
-  // v112: uses replaceAll for backslash normalization
-  return abs.slice(cwdWithSep.length).replaceAll('\\', '/').toLowerCase()
+  return abs.slice(cwdWithSep.length).replace(/\\/g, '/').toLowerCase()
 }
 
 function matchesGitInternalPrefix(n: string): boolean {

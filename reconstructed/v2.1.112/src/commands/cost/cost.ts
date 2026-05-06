@@ -15,9 +15,7 @@ export const call: LocalCommandCall = async () => {
         'You are currently using your subscription to power your Claude Code usage'
     }
 
-    // TODO(lift): amber-lark feature flag check at byte ~10502750
     if (process.env.USER_TYPE === 'ant') {
-      // TODO(lift): GS4() overage details at byte ~10502800
       value += `\n\n[ANT-ONLY] Showing cost anyway:\n ${formatTotalCost()}`
     }
     return { type: 'text', value }

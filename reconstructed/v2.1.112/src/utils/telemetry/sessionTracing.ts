@@ -10,8 +10,10 @@
  * - Configure OTEL_TRACES_EXPORTER (console, otlp, etc.)
  */
 
+import { feature } from 'bun:bundle'
 import { context as otelContext, type Span, trace } from '@opentelemetry/api'
 import { AsyncLocalStorage } from 'async_hooks'
+import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import type { AssistantMessage, UserMessage } from '../../types/message.js'
 import { isEnvDefinedFalsy, isEnvTruthy } from '../envUtils.js'
 import { getTelemetryAttributes } from '../telemetryAttributes.js'
@@ -22,7 +24,6 @@ import {
   addBetaToolInputAttributes,
   addBetaToolResultAttributes,
   isBetaTracingEnabled,
-  isAnyTracingEnabled,
   type LLMRequestNewContext,
   truncateContent,
 } from './betaSessionTracing.js'
@@ -123,16 +124,29 @@ function ensureCleanupInterval(): void {
  * Priority: env var override > ant build > GrowthBook gate
  */
 export function isEnhancedTelemetryEnabled(): boolean {
-  const env =
-    process.env.CLAUDE_CODE_ENHANCED_TELEMETRY_BETA ??
-    process.env.ENABLE_ENHANCED_TELEMETRY_BETA
-  if (isEnvTruthy(env)) {
-    return true
-  }
-  if (isEnvDefinedFalsy(env)) {
-    return false
+  if (feature('ENHANCED_TELEMETRY_BETA')) {
+    const env =
+      process.env.CLAUDE_CODE_ENHANCED_TELEMETRY_BETA ??
+      process.env.ENABLE_ENHANCED_TELEMETRY_BETA
+    if (isEnvTruthy(env)) {
+      return true
+    }
+    if (isEnvDefinedFalsy(env)) {
+      return false
+    }
+    return (
+      process.env.USER_TYPE === 'ant' ||
+      getFeatureValue_CACHED_MAY_BE_STALE('enhanced_telemetry_beta', false)
+    )
   }
   return false
+}
+
+/**
+ * Check if any tracing is enabled (either standard enhanced telemetry OR beta tracing)
+ */
+function isAnyTracingEnabled(): boolean {
+  return isEnhancedTelemetryEnabled() || isBetaTracingEnabled()
 }
 
 function getTracer() {
@@ -199,18 +213,9 @@ export function startInteractionSpan(userPrompt: string): Span {
     'interaction.sequence': interactionSequence,
   })
 
-  // TODO(lift): traceparent propagation check at byte ~5904885
-  const traceparentContext =
-    process.env.TRACEPARENT
-      ? trace.propagation.extract(otelContext.active(), {
-          traceparent: process.env.TRACEPARENT,
-          tracestate: process.env.TRACESTATE,
-        })
-      : undefined
-
   const span = tracer.startSpan('claude_code.interaction', {
     attributes,
-  }, traceparentContext)
+  })
 
   // Add experimental attributes (new_context)
   addBetaInteractionAttributes(span, userPrompt)
@@ -300,12 +305,11 @@ export function startLLMRequestSpan(
   }
 
   const tracer = getTracer()
-  const toolCtx = toolContext.getStore()
-  const parentSpanCtx = toolCtx ?? interactionContext.getStore()
+  const parentSpanCtx = interactionContext.getStore()
 
   const attributes = createSpanAttributes('llm_request', {
     model: model,
-    'llm_request.context': toolCtx ? 'tool' : parentSpanCtx ? 'interaction' : 'standalone',
+    'llm_request.context': parentSpanCtx ? 'interaction' : 'standalone',
     speed: fastMode ? 'fast' : 'normal',
   })
 
@@ -370,8 +374,6 @@ export function endLLMRequestSpan(
     requestSetupMs?: number
     /** Timestamps (Date.now()) of each attempt start — used to emit retry sub-spans */
     attemptStartTimes?: number[]
-    /** Request ID for tracing */
-    requestId?: string
   },
 ): void {
   let llmSpanContext: SpanContext | undefined
@@ -388,7 +390,7 @@ export function endLLMRequestSpan(
         const ctx = r.deref()
         return (
           ctx?.attributes['span.type'] === 'llm_request' ||
-          ctx?.attributes.model
+          ctx?.attributes['model']
         )
       })
       ?.deref()
@@ -446,8 +448,6 @@ export function endLLMRequestSpan(
       endAttributes['attempt'] = metadata.attempt
     if (metadata.hasToolCall !== undefined)
       endAttributes['response.has_tool_call'] = metadata.hasToolCall
-    if (metadata.requestId !== undefined)
-      endAttributes['request_id'] = metadata.requestId
     if (metadata.ttftMs !== undefined)
       endAttributes['ttft_ms'] = metadata.ttftMs
 
@@ -456,14 +456,6 @@ export function endLLMRequestSpan(
   }
 
   llmSpanContext.span.setAttributes(endAttributes)
-
-  if (metadata?.success === false) {
-    llmSpanContext.span.setStatus({
-      code: trace.SpanStatusCode.ERROR,
-      message: metadata.error,
-    })
-  }
-
   llmSpanContext.span.end()
 
   const spanId = getSpanId(llmSpanContext.span)
@@ -500,7 +492,7 @@ export function startToolSpan(
   }
 
   const tracer = getTracer()
-  const parentSpanCtx = toolContext.getStore() ?? interactionContext.getStore()
+  const parentSpanCtx = interactionContext.getStore()
 
   const attributes = createSpanAttributes('tool', {
     tool_name: toolName,
@@ -689,14 +681,6 @@ export function endToolExecutionSpan(metadata?: {
   }
 
   executionSpanContext.span.setAttributes(attributes)
-
-  if (metadata?.success === false) {
-    executionSpanContext.span.setStatus({
-      code: trace.SpanStatusCode.ERROR,
-      message: metadata.error,
-    })
-  }
-
   executionSpanContext.span.end()
 
   const spanId = getSpanId(executionSpanContext.span)
@@ -704,25 +688,12 @@ export function endToolExecutionSpan(metadata?: {
   strongSpans.delete(spanId)
 }
 
-export function endToolSpan(
-  span?: Span,
-  toolResult?: string,
-  resultTokens?: number,
-): void {
-  let toolSpanContext: SpanContext | undefined
-
-  if (span) {
-    const spanId = getSpanId(span)
-    toolSpanContext = activeSpans.get(spanId)?.deref()
-  } else {
-    toolSpanContext = toolContext.getStore()
-  }
+export function endToolSpan(toolResult?: string, resultTokens?: number): void {
+  const toolSpanContext = toolContext.getStore()
 
   if (!toolSpanContext) {
     return
   }
-
-  const isActiveToolSpan = toolContext.getStore() === toolSpanContext
 
   // End Perfetto span
   if (toolSpanContext.perfettoSpanId) {
@@ -735,11 +706,9 @@ export function endToolSpan(
   if (!isAnyTracingEnabled()) {
     const spanId = getSpanId(toolSpanContext.span)
     activeSpans.delete(spanId)
-    strongSpans.delete(spanId)
-    toolSpanContext.ended = true
-    if (isActiveToolSpan) {
-      toolContext.enterWith(undefined)
-    }
+    // Same reasoning as interactionContext above: clear so subsequent async
+    // work doesn't hold a stale reference to the ended tool span.
+    toolContext.enterWith(undefined)
     return
   }
 
@@ -760,14 +729,10 @@ export function endToolSpan(
 
   toolSpanContext.span.setAttributes(endAttributes)
   toolSpanContext.span.end()
-  toolSpanContext.ended = true
 
   const spanId = getSpanId(toolSpanContext.span)
   activeSpans.delete(spanId)
-  strongSpans.delete(spanId)
-  if (isActiveToolSpan) {
-    toolContext.enterWith(undefined)
-  }
+  toolContext.enterWith(undefined)
 }
 
 function isToolContentLoggingEnabled(): boolean {
@@ -808,6 +773,63 @@ export function addToolContentEvent(
   }
 
   currentSpanCtx.span.addEvent(eventName, processedAttributes)
+}
+
+export function getCurrentSpan(): Span | null {
+  if (!isAnyTracingEnabled()) {
+    return null
+  }
+
+  return (
+    toolContext.getStore()?.span ?? interactionContext.getStore()?.span ?? null
+  )
+}
+
+export async function executeInSpan<T>(
+  spanName: string,
+  fn: (span: Span) => Promise<T>,
+  attributes?: Record<string, string | number | boolean>,
+): Promise<T> {
+  if (!isAnyTracingEnabled()) {
+    return fn(trace.getActiveSpan() || getTracer().startSpan('dummy'))
+  }
+
+  const tracer = getTracer()
+  const parentSpanCtx = toolContext.getStore() ?? interactionContext.getStore()
+
+  const finalAttributes = createSpanAttributes('tool', {
+    ...attributes,
+  })
+
+  const ctx = parentSpanCtx
+    ? trace.setSpan(otelContext.active(), parentSpanCtx.span)
+    : otelContext.active()
+  const span = tracer.startSpan(spanName, { attributes: finalAttributes }, ctx)
+
+  const spanId = getSpanId(span)
+  const spanContextObj: SpanContext = {
+    span,
+    startTime: Date.now(),
+    attributes: finalAttributes,
+  }
+  activeSpans.set(spanId, new WeakRef(spanContextObj))
+  strongSpans.set(spanId, spanContextObj)
+
+  try {
+    const result = await fn(span)
+    span.end()
+    activeSpans.delete(spanId)
+    strongSpans.delete(spanId)
+    return result
+  } catch (error) {
+    if (error instanceof Error) {
+      span.recordException(error)
+    }
+    span.end()
+    activeSpans.delete(spanId)
+    strongSpans.delete(spanId)
+    throw error
+  }
 }
 
 /**
@@ -899,14 +921,6 @@ export function endHookSpan(
   }
 
   spanContext.span.setAttributes(endAttributes)
-
-  if (metadata && (metadata.numNonBlockingError ?? 0) > 0) {
-    spanContext.span.setStatus({
-      code: trace.SpanStatusCode.ERROR,
-      message: `${metadata.numNonBlockingError} hook(s) failed`,
-    })
-  }
-
   spanContext.span.end()
   activeSpans.delete(spanId)
   strongSpans.delete(spanId)

@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { Box, Text } from '../../ink.js';
 import { Select } from '../CustomSelect/select.js';
@@ -16,217 +15,74 @@ export function LspRecommendationMenu({
   fileExtension,
   onResponse
 }: Props): React.ReactNode {
-  const $ = _c(36);
   // Use ref to avoid timer reset when onResponse changes
   const onResponseRef = React.useRef(onResponse);
-  let t0;
-  if ($[0] !== onResponse) {
-    t0 = () => {
-      onResponseRef.current = onResponse;
-    };
-    $[0] = onResponse;
-    $[1] = t0;
-  } else {
-    t0 = $[1];
+  onResponseRef.current = onResponse;
+
+  // 30-second auto-dismiss timer - counts as ignored (no)
+  React.useEffect(() => {
+    const timeoutId = setTimeout(ref => ref.current('no'), AUTO_DISMISS_MS, onResponseRef);
+    return () => clearTimeout(timeoutId);
+  }, []);
+  function onSelect(value: string): void {
+    switch (value) {
+      case 'yes':
+        onResponse('yes');
+        break;
+      case 'no':
+        onResponse('no');
+        break;
+      case 'never':
+        onResponse('never');
+        break;
+      case 'disable':
+        onResponse('disable');
+        break;
+    }
   }
-  React.useEffect(t0);
-  let t1;
-  let t2;
-  if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
-    t1 = () => {
-      const timeoutId = setTimeout(ref => ref.current('no'), AUTO_DISMISS_MS, onResponseRef);
-      return () => clearTimeout(timeoutId);
-    };
-    t2 = [];
-    $[2] = t1;
-    $[3] = t2;
-  } else {
-    t1 = $[2];
-    t2 = $[3];
-  }
-  React.useEffect(t1, t2);
-  let t3;
-  if ($[4] !== onResponse) {
-    t3 = function onSelect(value: string): void {
-      q: switch (value) {
-        case 'yes': {
-          onResponse('yes');
-          break q;
-        }
-        case 'no': {
-          onResponse('no');
-          break q;
-        }
-        case 'never': {
-          onResponse('never');
-          break q;
-        }
-        case 'disable':
-          onResponse('disable');
-      }
-    };
-    $[4] = onResponse;
-    $[5] = t3;
-  } else {
-    t3 = $[5];
-  }
-  const onSelect = t3;
-  let t4;
-  if ($[6] !== pluginName) {
-    t4 = {
-      label: <Text>
-            Yes, install <Text bold>{pluginName}</Text>
-          </Text>,
-      value: 'yes'
-    };
-    $[6] = pluginName;
-    $[7] = t4;
-  } else {
-    t4 = $[7];
-  }
-  let t5;
-  if ($[8] === Symbol.for("react.memo_cache_sentinel")) {
-    t5 = {
-      label: 'No, not now',
-      value: 'no'
-    };
-    $[8] = t5;
-  } else {
-    t5 = $[8];
-  }
-  let t6;
-  if ($[9] !== pluginName) {
-    t6 = {
-      label: <Text>
-            Never for <Text bold>{pluginName}</Text>
-          </Text>,
-      value: 'never'
-    };
-    $[9] = pluginName;
-    $[10] = t6;
-  } else {
-    t6 = $[10];
-  }
-  let t7;
-  if ($[11] === Symbol.for("react.memo_cache_sentinel")) {
-    t7 = {
-      label: 'Disable all LSP recommendations',
-      value: 'disable'
-    };
-    $[11] = t7;
-  } else {
-    t7 = $[11];
-  }
-  let t8;
-  if ($[12] !== t4 || $[13] !== t6) {
-    t8 = [t4, t5, t6, t7];
-    $[12] = t4;
-    $[13] = t6;
-    $[14] = t8;
-  } else {
-    t8 = $[14];
-  }
-  const options = t8;
-  let t9;
-  if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
-    t9 = <Box marginBottom={1}>
+  const options = [{
+    label: <Text>
+          Yes, install <Text bold>{pluginName}</Text>
+        </Text>,
+    value: 'yes'
+  }, {
+    label: 'No, not now',
+    value: 'no'
+  }, {
+    label: <Text>
+          Never for <Text bold>{pluginName}</Text>
+        </Text>,
+    value: 'never'
+  }, {
+    label: 'Disable all LSP recommendations',
+    value: 'disable'
+  }];
+  return <PermissionDialog title="LSP Plugin Recommendation">
+      <Box flexDirection="column" paddingX={2} paddingY={1}>
+        <Box marginBottom={1}>
           <Text dimColor>
             LSP provides code intelligence like go-to-definition and error
             checking
           </Text>
-        </Box>;
-    $[15] = t9;
-  } else {
-    t9 = $[15];
-  }
-  let t10;
-  if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
-    t10 = <Text dimColor>Plugin:</Text>;
-    $[16] = t10;
-  } else {
-    t10 = $[16];
-  }
-  let t11;
-  if ($[17] !== pluginName) {
-    t11 = <Box>{t10}<Text> {pluginName}</Text></Box>;
-    $[17] = pluginName;
-    $[18] = t11;
-  } else {
-    t11 = $[18];
-  }
-  let t12;
-  if ($[19] !== pluginDescription) {
-    t12 = pluginDescription && <Box>
-            <Text dimColor>{pluginDescription}</Text>
-          </Box>;
-    $[19] = pluginDescription;
-    $[20] = t12;
-  } else {
-    t12 = $[20];
-  }
-  let t13;
-  if ($[21] === Symbol.for("react.memo_cache_sentinel")) {
-    t13 = <Text dimColor>Triggered by:</Text>;
-    $[21] = t13;
-  } else {
-    t13 = $[21];
-  }
-  let t14;
-  if ($[22] !== fileExtension) {
-    t14 = <Box>{t13}<Text> {fileExtension} files</Text></Box>;
-    $[22] = fileExtension;
-    $[23] = t14;
-  } else {
-    t14 = $[23];
-  }
-  let t15;
-  if ($[24] === Symbol.for("react.memo_cache_sentinel")) {
-    t15 = <Box marginTop={1}>
-          <Text>Would you like to install this LSP plugin?</Text>
-        </Box>;
-    $[24] = t15;
-  } else {
-    t15 = $[24];
-  }
-  let t16;
-  if ($[25] !== onResponse) {
-    t16 = () => onResponse('no');
-    $[25] = onResponse;
-    $[26] = t16;
-  } else {
-    t16 = $[26];
-  }
-  let t17;
-  if ($[27] !== onSelect || $[28] !== options || $[29] !== t16) {
-    t17 = <Box>
-          <Select options={options} onChange={onSelect} onCancel={t16} />
-        </Box>;
-    $[27] = onSelect;
-    $[28] = options;
-    $[29] = t16;
-    $[30] = t17;
-  } else {
-    t17 = $[30];
-  }
-  let t18;
-  if ($[31] !== t11 || $[32] !== t12 || $[33] !== t14 || $[34] !== t17) {
-    t18 = <PermissionDialog title="LSP Plugin Recommendation">
-        <Box flexDirection="column" paddingX={2} paddingY={1}>
-          {t9}
-          {t11}
-          {t12}
-          {t14}
-          {t15}
-          {t17}
         </Box>
-      </PermissionDialog>;
-    $[31] = t11;
-    $[32] = t12;
-    $[33] = t14;
-    $[34] = t17;
-    $[35] = t18;
-  } else {
-    t18 = $[35];
-  }
-  return t18;
+        <Box>
+          <Text dimColor>Plugin:</Text>
+          <Text> {pluginName}</Text>
+        </Box>
+        {pluginDescription && <Box>
+            <Text dimColor>{pluginDescription}</Text>
+          </Box>}
+        <Box>
+          <Text dimColor>Triggered by:</Text>
+          <Text> {fileExtension} files</Text>
+        </Box>
+        <Box marginTop={1}>
+          <Text>Would you like to install this LSP plugin?</Text>
+        </Box>
+        <Box>
+          <Select options={options} onChange={onSelect} onCancel={() => onResponse('no')} />
+        </Box>
+      </Box>
+    </PermissionDialog>;
 }
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJSZWFjdCIsIkJveCIsIlRleHQiLCJTZWxlY3QiLCJQZXJtaXNzaW9uRGlhbG9nIiwiUHJvcHMiLCJwbHVnaW5OYW1lIiwicGx1Z2luRGVzY3JpcHRpb24iLCJmaWxlRXh0ZW5zaW9uIiwib25SZXNwb25zZSIsInJlc3BvbnNlIiwiQVVUT19ESVNNSVNTX01TIiwiTHNwUmVjb21tZW5kYXRpb25NZW51IiwiUmVhY3ROb2RlIiwib25SZXNwb25zZVJlZiIsInVzZVJlZiIsImN1cnJlbnQiLCJ1c2VFZmZlY3QiLCJ0aW1lb3V0SWQiLCJzZXRUaW1lb3V0IiwicmVmIiwiY2xlYXJUaW1lb3V0Iiwib25TZWxlY3QiLCJ2YWx1ZSIsIm9wdGlvbnMiLCJsYWJlbCJdLCJzb3VyY2VzIjpbIkxzcFJlY29tbWVuZGF0aW9uTWVudS50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0ICogYXMgUmVhY3QgZnJvbSAncmVhY3QnXG5pbXBvcnQgeyBCb3gsIFRleHQgfSBmcm9tICcuLi8uLi9pbmsuanMnXG5pbXBvcnQgeyBTZWxlY3QgfSBmcm9tICcuLi9DdXN0b21TZWxlY3Qvc2VsZWN0LmpzJ1xuaW1wb3J0IHsgUGVybWlzc2lvbkRpYWxvZyB9IGZyb20gJy4uL3Blcm1pc3Npb25zL1Blcm1pc3Npb25EaWFsb2cuanMnXG5cbnR5cGUgUHJvcHMgPSB7XG4gIHBsdWdpbk5hbWU6IHN0cmluZ1xuICBwbHVnaW5EZXNjcmlwdGlvbj86IHN0cmluZ1xuICBmaWxlRXh0ZW5zaW9uOiBzdHJpbmdcbiAgb25SZXNwb25zZTogKHJlc3BvbnNlOiAneWVzJyB8ICdubycgfCAnbmV2ZXInIHwgJ2Rpc2FibGUnKSA9PiB2b2lkXG59XG5cbmNvbnN0IEFVVE9fRElTTUlTU19NUyA9IDMwXzAwMFxuXG5leHBvcnQgZnVuY3Rpb24gTHNwUmVjb21tZW5kYXRpb25NZW51KHtcbiAgcGx1Z2luTmFtZSxcbiAgcGx1Z2luRGVzY3JpcHRpb24sXG4gIGZpbGVFeHRlbnNpb24sXG4gIG9uUmVzcG9uc2UsXG59OiBQcm9wcyk6IFJlYWN0LlJlYWN0Tm9kZSB7XG4gIC8vIFVzZSByZWYgdG8gYXZvaWQgdGltZXIgcmVzZXQgd2hlbiBvblJlc3BvbnNlIGNoYW5nZXNcbiAgY29uc3Qgb25SZXNwb25zZVJlZiA9IFJlYWN0LnVzZVJlZihvblJlc3BvbnNlKVxuICBvblJlc3BvbnNlUmVmLmN1cnJlbnQgPSBvblJlc3BvbnNlXG5cbiAgLy8gMzAtc2Vjb25kIGF1dG8tZGlzbWlzcyB0aW1lciAtIGNvdW50cyBhcyBpZ25vcmVkIChubylcbiAgUmVhY3QudXNlRWZmZWN0KCgpID0+IHtcbiAgICBjb25zdCB0aW1lb3V0SWQgPSBzZXRUaW1lb3V0KFxuICAgICAgcmVmID0+IHJlZi5jdXJyZW50KCdubycpLFxuICAgICAgQVVUT19ESVNNSVNTX01TLFxuICAgICAgb25SZXNwb25zZVJlZixcbiAgICApXG4gICAgcmV0dXJuICgpID0+IGNsZWFyVGltZW91dCh0aW1lb3V0SWQpXG4gIH0sIFtdKVxuXG4gIGZ1bmN0aW9uIG9uU2VsZWN0KHZhbHVlOiBzdHJpbmcpOiB2b2lkIHtcbiAgICBzd2l0Y2ggKHZhbHVlKSB7XG4gICAgICBjYXNlICd5ZXMnOlxuICAgICAgICBvblJlc3BvbnNlKCd5ZXMnKVxuICAgICAgICBicmVha1xuICAgICAgY2FzZSAnbm8nOlxuICAgICAgICBvblJlc3BvbnNlKCdubycpXG4gICAgICAgIGJyZWFrXG4gICAgICBjYXNlICduZXZlcic6XG4gICAgICAgIG9uUmVzcG9uc2UoJ25ldmVyJylcbiAgICAgICAgYnJlYWtcbiAgICAgIGNhc2UgJ2Rpc2FibGUnOlxuICAgICAgICBvblJlc3BvbnNlKCdkaXNhYmxlJylcbiAgICAgICAgYnJlYWtcbiAgICB9XG4gIH1cblxuICBjb25zdCBvcHRpb25zID0gW1xuICAgIHtcbiAgICAgIGxhYmVsOiAoXG4gICAgICAgIDxUZXh0PlxuICAgICAgICAgIFllcywgaW5zdGFsbCA8VGV4dCBib2xkPntwbHVnaW5OYW1lfTwvVGV4dD5cbiAgICAgICAgPC9UZXh0PlxuICAgICAgKSxcbiAgICAgIHZhbHVlOiAneWVzJyxcbiAgICB9LFxuICAgIHtcbiAgICAgIGxhYmVsOiAnTm8sIG5vdCBub3cnLFxuICAgICAgdmFsdWU6ICdubycsXG4gICAgfSxcbiAgICB7XG4gICAgICBsYWJlbDogKFxuICAgICAgICA8VGV4dD5cbiAgICAgICAgICBOZXZlciBmb3IgPFRleHQgYm9sZD57cGx1Z2luTmFtZX08L1RleHQ+XG4gICAgICAgIDwvVGV4dD5cbiAgICAgICksXG4gICAgICB2YWx1ZTogJ25ldmVyJyxcbiAgICB9LFxuICAgIHtcbiAgICAgIGxhYmVsOiAnRGlzYWJsZSBhbGwgTFNQIHJlY29tbWVuZGF0aW9ucycsXG4gICAgICB2YWx1ZTogJ2Rpc2FibGUnLFxuICAgIH0sXG4gIF1cblxuICByZXR1cm4gKFxuICAgIDxQZXJtaXNzaW9uRGlhbG9nIHRpdGxlPVwiTFNQIFBsdWdpbiBSZWNvbW1lbmRhdGlvblwiPlxuICAgICAgPEJveCBmbGV4RGlyZWN0aW9uPVwiY29sdW1uXCIgcGFkZGluZ1g9ezJ9IHBhZGRpbmdZPXsxfT5cbiAgICAgICAgPEJveCBtYXJnaW5Cb3R0b209ezF9PlxuICAgICAgICAgIDxUZXh0IGRpbUNvbG9yPlxuICAgICAgICAgICAgTFNQIHByb3ZpZGVzIGNvZGUgaW50ZWxsaWdlbmNlIGxpa2UgZ28tdG8tZGVmaW5pdGlvbiBhbmQgZXJyb3JcbiAgICAgICAgICAgIGNoZWNraW5nXG4gICAgICAgICAgPC9UZXh0PlxuICAgICAgICA8L0JveD5cbiAgICAgICAgPEJveD5cbiAgICAgICAgICA8VGV4dCBkaW1Db2xvcj5QbHVnaW46PC9UZXh0PlxuICAgICAgICAgIDxUZXh0PiB7cGx1Z2luTmFtZX08L1RleHQ+XG4gICAgICAgIDwvQm94PlxuICAgICAgICB7cGx1Z2luRGVzY3JpcHRpb24gJiYgKFxuICAgICAgICAgIDxCb3g+XG4gICAgICAgICAgICA8VGV4dCBkaW1Db2xvcj57cGx1Z2luRGVzY3JpcHRpb259PC9UZXh0PlxuICAgICAgICAgIDwvQm94PlxuICAgICAgICApfVxuICAgICAgICA8Qm94PlxuICAgICAgICAgIDxUZXh0IGRpbUNvbG9yPlRyaWdnZXJlZCBieTo8L1RleHQ+XG4gICAgICAgICAgPFRleHQ+IHtmaWxlRXh0ZW5zaW9ufSBmaWxlczwvVGV4dD5cbiAgICAgICAgPC9Cb3g+XG4gICAgICAgIDxCb3ggbWFyZ2luVG9wPXsxfT5cbiAgICAgICAgICA8VGV4dD5Xb3VsZCB5b3UgbGlrZSB0byBpbnN0YWxsIHRoaXMgTFNQIHBsdWdpbj88L1RleHQ+XG4gICAgICAgIDwvQm94PlxuICAgICAgICA8Qm94PlxuICAgICAgICAgIDxTZWxlY3RcbiAgICAgICAgICAgIG9wdGlvbnM9e29wdGlvbnN9XG4gICAgICAgICAgICBvbkNoYW5nZT17b25TZWxlY3R9XG4gICAgICAgICAgICBvbkNhbmNlbD17KCkgPT4gb25SZXNwb25zZSgnbm8nKX1cbiAgICAgICAgICAvPlxuICAgICAgICA8L0JveD5cbiAgICAgIDwvQm94PlxuICAgIDwvUGVybWlzc2lvbkRpYWxvZz5cbiAgKVxufVxuIl0sIm1hcHBpbmdzIjoiQUFBQSxPQUFPLEtBQUtBLEtBQUssTUFBTSxPQUFPO0FBQzlCLFNBQVNDLEdBQUcsRUFBRUMsSUFBSSxRQUFRLGNBQWM7QUFDeEMsU0FBU0MsTUFBTSxRQUFRLDJCQUEyQjtBQUNsRCxTQUFTQyxnQkFBZ0IsUUFBUSxvQ0FBb0M7QUFFckUsS0FBS0MsS0FBSyxHQUFHO0VBQ1hDLFVBQVUsRUFBRSxNQUFNO0VBQ2xCQyxpQkFBaUIsQ0FBQyxFQUFFLE1BQU07RUFDMUJDLGFBQWEsRUFBRSxNQUFNO0VBQ3JCQyxVQUFVLEVBQUUsQ0FBQ0MsUUFBUSxFQUFFLEtBQUssR0FBRyxJQUFJLEdBQUcsT0FBTyxHQUFHLFNBQVMsRUFBRSxHQUFHLElBQUk7QUFDcEUsQ0FBQztBQUVELE1BQU1DLGVBQWUsR0FBRyxNQUFNO0FBRTlCLE9BQU8sU0FBU0MscUJBQXFCQSxDQUFDO0VBQ3BDTixVQUFVO0VBQ1ZD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

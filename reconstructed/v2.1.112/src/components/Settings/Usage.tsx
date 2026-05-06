@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { extraUsage as extraUsageCommand } from 'src/commands/extra-usage/index.js';
@@ -23,7 +22,7 @@ type LimitBarProps = {
   extraSubtext?: string;
 };
 function LimitBar(t0) {
-  const $ = _c(34);
+  const $ = new Array(34).fill(void 0);
   const {
     title,
     limit,
@@ -269,7 +268,7 @@ type ExtraUsageSectionProps = {
 };
 const EXTRA_USAGE_SECTION_TITLE = 'Extra usage';
 function ExtraUsageSection(t0) {
-  const $ = _c(20);
+  const $ = new Array(20).fill(void 0);
   const {
     extraUsage,
     maxWidth

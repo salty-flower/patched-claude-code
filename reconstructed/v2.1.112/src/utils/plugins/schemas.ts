@@ -107,20 +107,6 @@ export function isBlockedOfficialName(name: string): boolean {
 export const OFFICIAL_GITHUB_ORG = 'anthropics'
 
 /**
- * Allowed URL schemes for git-source validation.
- * Prevents arbitrary protocol injection in git URLs.
- */
-const ALLOWED_GIT_URL_SCHEMES = new Set([
-  'https:',
-  'http:',
-  'git:',
-  'git+https:',
-  'git+http:',
-  'git+ssh:',
-  'ssh:',
-])
-
-/**
  * Validate that a marketplace with a reserved name comes from the official source.
  *
  * Reserved names (in ALLOWED_OFFICIAL_MARKETPLACE_NAMES) can only be used by
@@ -145,10 +131,7 @@ export function validateOfficialNameSource(
   if (source.source === 'github') {
     // Verify the repo is from the official org
     const repo = source.repo || ''
-    if (
-      !repo.toLowerCase().startsWith(`${OFFICIAL_GITHUB_ORG}/`) ||
-      repo.split('/').includes('..')
-    ) {
+    if (!repo.toLowerCase().startsWith(`${OFFICIAL_GITHUB_ORG}/`)) {
       return `The name '${name}' is reserved for official Anthropic marketplaces. Only repositories from 'github.com/${OFFICIAL_GITHUB_ORG}/' can use this name.`
     }
     return null // Valid: reserved name from official GitHub source
@@ -156,7 +139,13 @@ export function validateOfficialNameSource(
 
   // Check for git URL source type
   if (source.source === 'git' && source.url) {
-    if (isOfficialGitUrl(source.url)) {
+    const url = source.url.toLowerCase()
+    // Check for HTTPS URL format: https://github.com/anthropics/...
+    // or SSH format: git@github.com:anthropics/...
+    const isHttpsAnthropics = url.includes('github.com/anthropics/')
+    const isSshAnthropics = url.includes('git@github.com:anthropics/')
+
+    if (isHttpsAnthropics || isSshAnthropics) {
       return null // Valid: reserved name from official git URL
     }
 
@@ -165,26 +154,6 @@ export function validateOfficialNameSource(
 
   // Reserved names must come from GitHub (either 'github' or 'git' source)
   return `The name '${name}' is reserved for official Anthropic marketplaces and can only be used with GitHub sources from the '${OFFICIAL_GITHUB_ORG}' organization.`
-}
-
-/**
- * Check whether a git URL points at the official Anthropic GitHub org.
- * Validates scheme against allowlist, then checks host/path.
- */
-function isOfficialGitUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url)
-    if (!ALLOWED_GIT_URL_SCHEMES.has(parsed.protocol)) {
-      return false
-    }
-    const host = parsed.hostname.toLowerCase()
-    const path = parsed.pathname.toLowerCase()
-    return host === 'github.com' && path.startsWith(`/${OFFICIAL_GITHUB_ORG}/`)
-  } catch {
-    // SSH-style URLs like git@github.com:anthropics/...
-    const lower = url.toLowerCase()
-    return lower.includes('git@github.com:anthropics/')
-  }
 }
 
 /**
@@ -851,80 +820,6 @@ const PluginManifestLspServerSchema = lazySchema(() =>
 )
 
 /**
- * Schema for background monitor declarations in plugin manifest.
- *
- * Monitors are persistent shell commands that run for the session lifetime,
- * emitting each stdout line as a <task_notification> event.
- */
-const PluginManifestMonitorSchema = lazySchema(() =>
-  z.strictObject({
-    name: z
-      .string()
-      .min(1)
-      .describe(
-        'Identifier for this monitor, unique within the plugin. Used to dedupe so re-arming (plugin reload, repeat skill invoke) does not spawn duplicates.',
-      ),
-    command: z
-      .string()
-      .min(1)
-      .describe(
-        'Shell command to run as a persistent background monitor. Each stdout line is delivered to the model as a <task_notification> event; the process runs for the session lifetime. ${CLAUDE_PLUGIN_ROOT}, ${CLAUDE_PLUGIN_DATA}, ${user_config.*}, and ${ENV_VAR} are substituted. Runs in the session cwd — prefix with `cd "${CLAUDE_PLUGIN_ROOT}" && ` if the script needs its own directory.',
-      ),
-    description: z
-      .string()
-      .min(1)
-      .describe(
-        'Short human-readable description of what is being monitored (shown in task panel and notification summary).',
-      ),
-    when: z
-      .union([
-        z.literal('always'),
-        z
-          .string()
-          .startsWith('on-skill-invoke:')
-          .refine(s => s.length > 16, {
-            message: 'on-skill-invoke: must specify a skill name',
-          }),
-      ])
-      .default('always')
-      .describe(
-        'Arm trigger. "always" arms at session start and on plugin reload. "on-skill-invoke:<skill>" arms the first time that skill is dispatched (via Skill tool or slash command).',
-      ),
-  }),
-)
-
-/**
- * Schema for the monitors array (with unique-name validation).
- */
-const PluginMonitorsArraySchema = lazySchema(() =>
-  z
-    .array(PluginManifestMonitorSchema())
-    .refine(
-      monitors => new Set(monitors.map(m => m.name)).size === monitors.length,
-      { message: 'Monitor names must be unique within a plugin' },
-    ),
-)
-
-/**
- * Schema for additional monitor definitions in plugin manifest.
- *
- * Allows plugins to declare background watch scripts that the host arms as
- * persistent Monitor tasks (unsandboxed, same trust tier as hooks).
- */
-const PluginManifestMonitorsSchema = lazySchema(() =>
-  z.object({
-    monitors: z.union([
-      RelativeJSONPath().describe(
-        'Path to a JSON file containing the monitors array, relative to the plugin root',
-      ),
-      PluginMonitorsArraySchema().describe(
-        'Background watch scripts the host arms as persistent Monitor tasks (unsandboxed, same trust tier as hooks) so plugins need not instruct the model to arm them. When omitted, monitors/monitors.json at the plugin root is loaded if present.',
-      ),
-    ]),
-  }),
-)
-
-/**
  * Schema for npm package names
  *
  * Validates npm package names including scoped packages.
@@ -966,7 +861,7 @@ const PluginManifestSettingsSchema = lazySchema(() =>
       .optional()
       .describe(
         'Settings to merge when plugin is enabled. ' +
-          'Only keys in PLUGIN_SETTINGS_KEYS (pluginSettingsKeys.ts) are kept',
+          'Only allowlisted keys are kept (currently: agent)',
       ),
   }),
 )
@@ -997,7 +892,6 @@ export const PluginManifestSchema = lazySchema(() =>
     ...PluginManifestChannelsSchema().partial().shape,
     ...PluginManifestMcpServerSchema().partial().shape,
     ...PluginManifestLspServerSchema().partial().shape,
-    ...PluginManifestMonitorsSchema().partial().shape,
     ...PluginManifestSettingsSchema().partial().shape,
     ...PluginManifestUserConfigSchema().partial().shape,
   }),
@@ -1132,7 +1026,7 @@ export const MarketplaceSourceSchema = lazySchema(() =>
           .describe(
             'Marketplace name. Must match the extraKnownMarketplaces key (enforced); ' +
               'the synthetic manifest is written under this name. Same validation ' +
-              'as PluginMarketplaceSchema plus reserved-name rejection — ' +
+              'as PluginMarketplaceSchema plus reserved-name rejection \u2014 ' +
               'validateOfficialNameSource runs after the disk write, too late to clean up.',
           ),
         plugins: z
@@ -1174,15 +1068,7 @@ export const PluginSourceSchema = lazySchema(() =>
       .object({
         source: z.literal('npm'),
         package: NpmPackageNameSchema()
-          .or(
-            z.string().refine(
-              s =>
-                /^(?:file|https?|git(?:\+https?|\+ssh)?|ssh|github|gitlab|bitbucket):/i.test(
-                  s,
-                ) || !s.includes('..'),
-              'Package reference cannot contain ".." path segments',
-            ),
-          )
+          .or(z.string()) // Allow URLs and local paths as well
           .describe(
             'Package name (or url, or local path, or anything else that can be passed to `npm` as a package)',
           ),
@@ -1434,7 +1320,7 @@ export const PluginMarketplaceSchema = lazySchema(() =>
       .array(z.string())
       .optional()
       .describe(
-        "Marketplace names whose plugins may be auto-installed as dependencies. Only the root marketplace's allowlist applies — no transitive trust.",
+        "Marketplace names whose plugins may be auto-installed as dependencies. Only the root marketplace's allowlist applies \u2014 no transitive trust.",
       ),
   }),
 )
@@ -1572,12 +1458,6 @@ export const InstalledPluginSchema = lazySchema(() =>
       .string()
       .optional()
       .describe('Git commit SHA for git-based plugins (for version tracking)'),
-    resolvedVersion: z
-      .string()
-      .optional()
-      .describe(
-        'Tag-derived semver this install resolved to (when fetched via a version constraint). Used by verifyAndDemote in preference to manifest.version, since the upstream may have forgotten to bump plugin.json.',
-      ),
   }),
 )
 
@@ -1658,10 +1538,6 @@ export const PluginInstallationEntrySchema = lazySchema(() =>
       .string()
       .optional()
       .describe('Git commit SHA for git-based plugins'),
-    resolvedVersion: z
-      .string()
-      .optional()
-      .describe('Tag-derived semver this install resolved to'),
   }),
 )
 

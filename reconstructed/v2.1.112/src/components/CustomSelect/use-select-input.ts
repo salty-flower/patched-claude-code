@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useRegisterOverlay } from '../../context/overlayContext.js'
 import type { InputEvent } from '../../ink/events/input-event.js'
+import { useInput } from '../../ink.js'
 import { useKeybindings } from '../../keybindings/useKeybinding.js'
 import {
   normalizeFullWidthDigits,
@@ -8,8 +9,6 @@ import {
 } from '../../utils/stringUtils.js'
 import type { OptionWithDescription } from './select.js'
 import type { SelectState } from './use-select-state.js'
-
-// TODO(lift): oN6 at byte ~4464194 — focusDirection context
 
 export type UseSelectProps<T> = {
   /**
@@ -82,17 +81,6 @@ export type UseSelectProps<T> = {
    * Returns true if image selection was entered (images exist), false otherwise.
    */
   onEnterImageSelection?: () => boolean
-
-  /**
-   * Callback to exit image selection mode.
-   */
-  onExitImageSelection?: () => void
-
-  /**
-   * Whether the select component has Ink focus (for Ink 5 focus management).
-   * @default true
-   */
-  hasInkFocus?: boolean
 }
 
 export const useSelectInput = <T>({
@@ -107,15 +95,10 @@ export const useSelectInput = <T>({
   inputValues,
   imagesSelected = false,
   onEnterImageSelection,
-  onExitImageSelection,
-  hasInkFocus = true,
 }: UseSelectProps<T>) => {
   // Automatically register as an overlay when onCancel is provided.
   // This ensures CancelRequestHandler won't intercept Escape when the select is active.
   useRegisterOverlay('select', !!state.onCancel)
-
-  // TODO(lift): oN6 at byte ~4464194 — focusDirection from ink focus context
-  // const { focusDirection } = useFocusDirection()
 
   // Determine if the focused option is an input type
   const isInInput = useMemo(() => {
@@ -131,9 +114,9 @@ export const useSelectInput = <T>({
 
     if (!isInInput) {
       handlers['select:next'] = () => {
-        const lastOption = options.at(-1)
-        if (lastOption && state.focusedValue === lastOption.value) {
-          if (onDownFromLastItem) {
+        if (onDownFromLastItem) {
+          const lastOption = options[options.length - 1]
+          if (lastOption && state.focusedValue === lastOption.value) {
             onDownFromLastItem()
             return
           }
@@ -141,13 +124,9 @@ export const useSelectInput = <T>({
         state.focusNextOption()
       }
       handlers['select:previous'] = () => {
-        const firstOption = options[0]
-        if (
-          firstOption &&
-          state.focusedValue === firstOption.value &&
-          state.visibleFromIndex === 0
-        ) {
-          if (onUpFromFirstItem) {
+        if (onUpFromFirstItem && state.visibleFromIndex === 0) {
+          const firstOption = options[0]
+          if (firstOption && state.focusedValue === firstOption.value) {
             onUpFromFirstItem()
             return
           }
@@ -182,145 +161,127 @@ export const useSelectInput = <T>({
     onUpFromFirstItem,
     isInInput,
     disableSelection,
-    // TODO(lift): focusDirection dependency at byte ~4464194
   ])
 
   useKeybindings(keybindingHandlers, {
     context: 'Select',
-    isActive: !isDisabled && hasInkFocus,
+    isActive: !isDisabled,
   })
 
-  // v112: handleKeyDown replaces the useInput hook for direct keyboard handling.
-  // This supports Ink 5's focus-managed event system with preventDefault/stopPropagation.
-  const handleKeyDown = (event: InputEvent) => {
-    if (isDisabled) return
+  // Remaining keys that stay as useInput: number keys, pageUp/pageDown, tab, space,
+  // and arrow key navigation when in input mode
+  useInput(
+    (input, key, event: InputEvent) => {
+      const normalizedInput = normalizeFullWidthDigits(input)
+      const focusedOption = options.find(
+        opt => opt.value === state.focusedValue,
+      )
+      const currentIsInInput = focusedOption?.type === 'input'
 
-    // TODO(lift): eH8 at byte ~4464194 — key normalization helper
-    const key = event.key
-    const focusedOption = options.find(
-      opt => opt.value === state.focusedValue,
-    )
-    const currentIsInInput = focusedOption?.type === 'input'
-
-    // Handle Tab key for input mode toggling
-    if (key === 'tab') {
-      event.preventDefault()
-      if (onInputModeToggle && state.focusedValue !== undefined) {
+      // Handle Tab key for input mode toggling
+      if (key.tab && onInputModeToggle && state.focusedValue !== undefined) {
         onInputModeToggle(state.focusedValue)
-      }
-      return
-    }
-
-    if (currentIsInInput) {
-      // When in image selection mode, suppress all input handling so
-      // Attachments keybindings can handle navigation/deletion instead
-      if (imagesSelected) {
-        if (key === 'up') {
-          event.preventDefault()
-          onExitImageSelection?.()
-        }
         return
       }
 
-      // DOWN arrow enters image selection mode if images exist
-      if (key === 'down' && onEnterImageSelection?.()) {
-        event.stopImmediatePropagation()
-        return
-      }
+      if (currentIsInInput) {
+        // When in image selection mode, suppress all input handling so
+        // Attachments keybindings can handle navigation/deletion instead
+        if (imagesSelected) return
 
-      // Arrow keys still navigate the select even while in input mode
-      if (key === 'down' || (event.ctrl && key === 'n')) {
-        const lastOption = options.at(-1)
-        if (lastOption && state.focusedValue === lastOption.value) {
-          if (onDownFromLastItem) {
-            onDownFromLastItem()
-            event.stopImmediatePropagation()
-            return
-          }
-        }
-        state.focusNextOption()
-        event.stopImmediatePropagation()
-        return
-      }
-      if (key === 'up' || (event.ctrl && key === 'p')) {
-        if (onUpFromFirstItem && state.visibleFromIndex === 0) {
-          const firstOption = options[0]
-          if (firstOption && state.focusedValue === firstOption.value) {
-            onUpFromFirstItem()
-            event.stopImmediatePropagation()
-            return
-          }
-        }
-        state.focusPreviousOption()
-        event.stopImmediatePropagation()
-        return
-      }
-
-      // All other keys (including digits) pass through to TextInput.
-      // Digits should type literally into the input rather than select
-      // options — the user has focused a text field and expects typing
-      // to insert characters, not jump to a different option.
-      return
-    }
-
-    if (key === 'pagedown') {
-      event.preventDefault()
-      state.focusNextPage()
-      return
-    }
-
-    if (key === 'pageup') {
-      event.preventDefault()
-      state.focusPreviousPage()
-      return
-    }
-
-    if (disableSelection !== true) {
-      // Space for multi-select toggle
-      if (
-        isMultiSelect &&
-        normalizeFullWidthSpace(key) === ' ' &&
-        state.focusedValue !== undefined
-      ) {
-        const isFocusedOptionDisabled = focusedOption?.disabled === true
-        if (!isFocusedOptionDisabled) {
-          state.selectFocusedOption?.()
-          state.onChange?.(state.focusedValue)
-        }
-        return
-      }
-
-      if (
-        disableSelection !== 'numeric' &&
-        /^[0-9]$/.test(key)
-      ) {
-        event.preventDefault()
-        const index = parseInt(key) - 1
-        if (index >= 0 && index < state.options.length) {
-          const selectedOption = state.options[index]!
-          if (selectedOption.disabled === true) {
-            return
-          }
-          if (selectedOption.type === 'input') {
-            const currentValue = inputValues?.get(selectedOption.value) ?? ''
-            if (currentValue.trim()) {
-              // Pre-filled input: auto-submit (user can Tab to edit instead)
-              state.onChange?.(selectedOption.value)
-              return
-            }
-            if (selectedOption.allowEmptySubmitToCancel) {
-              state.onChange?.(selectedOption.value)
-              return
-            }
-            state.focusOption(selectedOption.value)
-            return
-          }
-          state.onChange?.(selectedOption.value)
+        // DOWN arrow enters image selection mode if images exist
+        if (key.downArrow && onEnterImageSelection?.()) {
+          event.stopImmediatePropagation()
           return
         }
-      }
-    }
-  }
 
-  return { handleKeyDown }
+        // Arrow keys still navigate the select even while in input mode
+        if (key.downArrow || (key.ctrl && input === 'n')) {
+          if (onDownFromLastItem) {
+            const lastOption = options[options.length - 1]
+            if (lastOption && state.focusedValue === lastOption.value) {
+              onDownFromLastItem()
+              event.stopImmediatePropagation()
+              return
+            }
+          }
+          state.focusNextOption()
+          event.stopImmediatePropagation()
+          return
+        }
+        if (key.upArrow || (key.ctrl && input === 'p')) {
+          if (onUpFromFirstItem && state.visibleFromIndex === 0) {
+            const firstOption = options[0]
+            if (firstOption && state.focusedValue === firstOption.value) {
+              onUpFromFirstItem()
+              event.stopImmediatePropagation()
+              return
+            }
+          }
+          state.focusPreviousOption()
+          event.stopImmediatePropagation()
+          return
+        }
+
+        // All other keys (including digits) pass through to TextInput.
+        // Digits should type literally into the input rather than select
+        // options — the user has focused a text field and expects typing
+        // to insert characters, not jump to a different option.
+        return
+      }
+
+      if (key.pageDown) {
+        state.focusNextPage()
+      }
+
+      if (key.pageUp) {
+        state.focusPreviousPage()
+      }
+
+      if (disableSelection !== true) {
+        // Space for multi-select toggle
+        if (
+          isMultiSelect &&
+          normalizeFullWidthSpace(input) === ' ' &&
+          state.focusedValue !== undefined
+        ) {
+          const isFocusedOptionDisabled = focusedOption?.disabled === true
+          if (!isFocusedOptionDisabled) {
+            state.selectFocusedOption?.()
+            state.onChange?.(state.focusedValue)
+          }
+        }
+
+        if (
+          disableSelection !== 'numeric' &&
+          /^[0-9]+$/.test(normalizedInput)
+        ) {
+          const index = parseInt(normalizedInput) - 1
+          if (index >= 0 && index < state.options.length) {
+            const selectedOption = state.options[index]!
+            if (selectedOption.disabled === true) {
+              return
+            }
+            if (selectedOption.type === 'input') {
+              const currentValue = inputValues?.get(selectedOption.value) ?? ''
+              if (currentValue.trim()) {
+                // Pre-filled input: auto-submit (user can Tab to edit instead)
+                state.onChange?.(selectedOption.value)
+                return
+              }
+              if (selectedOption.allowEmptySubmitToCancel) {
+                state.onChange?.(selectedOption.value)
+                return
+              }
+              state.focusOption(selectedOption.value)
+              return
+            }
+            state.onChange?.(selectedOption.value)
+            return
+          }
+        }
+      }
+    },
+    { isActive: !isDisabled },
+  )
 }

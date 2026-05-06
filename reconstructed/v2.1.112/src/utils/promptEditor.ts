@@ -66,10 +66,7 @@ export function editFileInEditor(filePath: string): EditorResult {
   try {
     // Use override command if available, otherwise use the editor as-is
     const editorCommand = EDITOR_OVERRIDES[editor] ?? editor
-    // v112: cross-platform execSync handling with error propagation for
-    // j.error, j.signal, and j.status (see minified xS at ~10553059).
-    // On win32, shell:true is used; elsewhere argv-style spawn.
-    const result = execSync_DEPRECATED(`${editorCommand} "${filePath}"`, {
+    execSync_DEPRECATED(`${editorCommand} "${filePath}"`, {
       stdio: 'inherit',
     })
 

@@ -1,7 +1,6 @@
 import { execa } from 'execa'
-import { getMacOsKeychainStorageServiceName } from './secureStorage/macOsKeychainHelpers.js'
+import { getMacOsKeychainStorageServiceName } from 'src/utils/secureStorage/macOsKeychainHelpers.js'
 
-// v112: maybeRemoveApiKeyFromMacOSKeychainThrows now includes stderr in error message
 export async function maybeRemoveApiKeyFromMacOSKeychainThrows(): Promise<void> {
   if (process.platform === 'darwin') {
     const storageServiceName = getMacOsKeychainStorageServiceName()
@@ -10,11 +9,7 @@ export async function maybeRemoveApiKeyFromMacOSKeychainThrows(): Promise<void> 
       { shell: true, reject: false },
     )
     if (result.exitCode !== 0) {
-      throw new Error(
-        result.stderr
-          ? `Failed to delete keychain entry: ${result.stderr}`
-          : 'Failed to delete keychain entry',
-      )
+      throw new Error('Failed to delete keychain entry')
     }
   }
 }

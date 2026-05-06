@@ -1,12 +1,10 @@
 import type { z } from 'zod/v4'
 import type { ToolPermissionContext } from '../../Tool.js'
 import { splitCommand_DEPRECATED } from '../../utils/bash/commands.js'
-import { stripSafeWrappers } from './bashPermissions.js'
 import type { PermissionResult } from '../../utils/permissions/PermissionResult.js'
 import type { BashTool } from './BashTool.js'
 
-// TODO(lift): ACCEPT_EDITS_ALLOWED_COMMANDS is now a mutable `let` (jkY/Yw6) at byte ~9918304
-let ACCEPT_EDITS_ALLOWED_COMMANDS = [
+const ACCEPT_EDITS_ALLOWED_COMMANDS = [
   'mkdir',
   'touch',
   'rm',
@@ -14,22 +12,20 @@ let ACCEPT_EDITS_ALLOWED_COMMANDS = [
   'mv',
   'cp',
   'sed',
-]
+] as const
 
-function isFilesystemCommand(command: string): boolean {
-  return ACCEPT_EDITS_ALLOWED_COMMANDS.includes(command)
+type FilesystemCommand = (typeof ACCEPT_EDITS_ALLOWED_COMMANDS)[number]
+
+function isFilesystemCommand(command: string): command is FilesystemCommand {
+  return ACCEPT_EDITS_ALLOWED_COMMANDS.includes(command as FilesystemCommand)
 }
 
-/**
- * Validates a single command against the current permission mode.
- * In v112, this first strips safe wrapper commands before extracting the base command.
- */
 function validateCommandForMode(
   cmd: string,
   toolPermissionContext: ToolPermissionContext,
 ): PermissionResult {
-  const stripped = stripSafeWrappers(cmd)
-  const [baseCmd] = stripped.split(/\s+/)
+  const trimmedCmd = cmd.trim()
+  const [baseCmd] = trimmedCmd.split(/\s+/)
 
   if (!baseCmd) {
     return {
@@ -110,4 +106,10 @@ export function checkPermissionMode(
     behavior: 'passthrough',
     message: 'No mode-specific validation required',
   }
+}
+
+export function getAutoAllowedCommands(
+  mode: ToolPermissionContext['mode'],
+): readonly string[] {
+  return mode === 'acceptEdits' ? ACCEPT_EDITS_ALLOWED_COMMANDS : []
 }

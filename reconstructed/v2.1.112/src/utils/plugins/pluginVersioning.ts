@@ -73,7 +73,7 @@ export async function calculatePluginVersion(
       //   4. UTF-8 sha256, first 8 hex chars
       // See api/…/plugins_official_squashfs/job.py _validate_subdir().
       const normPath = source.path
-        .replaceAll('\\', '/')
+        .replace(/\\/g, '/')
         .replace(/^\.\//, '')
         .replace(/\/+$/, '')
       const pathHash = createHash('sha256')

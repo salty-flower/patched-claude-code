@@ -25,6 +25,7 @@
  * - Non-existent files are silently ignored
  */
 
+import { feature } from 'bun:bundle'
 import ignore from 'ignore'
 import memoize from 'lodash-es/memoize.js'
 import { Lexer } from 'marked'
@@ -34,7 +35,6 @@ import {
   extname,
   isAbsolute,
   join,
-  normalize,
   parse,
   relative,
   sep,
@@ -58,15 +58,7 @@ import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { getErrnoCode } from './errors.js'
-import { getPlatform } from './platform.js'
-
-function normalizePathForComparison(filePath: string): string {
-  let normalized = normalize(filePath)
-  if (getPlatform() === 'windows') {
-    normalized = normalized.replace(/\//g, '\\').toLowerCase()
-  }
-  return normalized
-}
+import { normalizePathForComparison } from './file.js'
 import { cacheKeys, type FileStateCache } from './fileStateCache.js'
 import {
   parseFrontmatter,
@@ -85,6 +77,12 @@ import { expandPath } from './path.js'
 import { pathInWorkingPath } from './permissions/filesystem.js'
 import { isSettingSourceEnabled } from './settings/constants.js'
 import { getInitialSettings } from './settings/settings.js'
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+const teamMemPaths = feature('TEAMMEM')
+  ? (require('../memdir/teamMemPaths.js') as typeof import('../memdir/teamMemPaths.js'))
+  : null
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 let hasLoggedInitialLoad = false
 
@@ -341,9 +339,6 @@ function stripHtmlCommentsFromTokens(tokens: ReturnType<Lexer['lex']>): {
  * When includeBasePath is given, @include paths are resolved in the same lex
  * pass and returned alongside the parsed file (so processMemoryFile doesn't
  * need to lex the same content a second time).
- *
- * v112 change: `type === 'TeamMem'` truncation branch removed from parseMemoryFileContent
- * — the minified shows `if(_==="AutoMem")J=eU1(j).content` (no TeamMem branch).
  */
 function parseMemoryFileContent(
   rawContent: string,
@@ -385,7 +380,7 @@ function parseMemoryFileContent(
 
   // Truncate MEMORY.md entrypoints to the line AND byte caps
   let finalContent = strippedContent
-  if (type === 'AutoMem') {
+  if (type === 'AutoMem' || type === 'TeamMem') {
     finalContent = truncateEntrypointContent(strippedContent).content
   }
 
@@ -475,7 +470,7 @@ function extractIncludePathsFromTokens(
       if (!path) continue
 
       // Unescape the spaces in the path
-      path = path.replaceAll('\\ ', ' ')
+      path = path.replace(/\\ /g, ' ')
 
       // Accept @path, @./path, @~/path, or @/path
       if (path) {
@@ -978,19 +973,6 @@ export const getMemoryFiles = memoize(
             conditionalRule: false,
           })),
         )
-
-        // v112 change: also loads CLAUDE.local.md from additional dirs when localSettings enabled
-        if (isSettingSourceEnabled('localSettings')) {
-          const localPath = join(dir, 'CLAUDE.local.md')
-          result.push(
-            ...(await processMemoryFile(
-              localPath,
-              'Local',
-              processedPaths,
-              includeExternal,
-            )),
-          )
-        }
       }
     }
 
@@ -1009,7 +991,20 @@ export const getMemoryFiles = memoize(
       }
     }
 
-    // v112 change: TeamMem block removed entirely — feature('TEAMMEM') gate dropped.
+    // Team memory entrypoint - only if feature is on and file exists
+    if (feature('TEAMMEM') && teamMemPaths!.isTeamMemoryEnabled()) {
+      const { info: teamMemEntry } = await safelyReadMemoryFileAsync(
+        teamMemPaths!.getTeamMemEntrypoint(),
+        'TeamMem',
+      )
+      if (teamMemEntry) {
+        const normalizedPath = normalizePathForComparison(teamMemEntry.path)
+        if (!processedPaths.has(normalizedPath)) {
+          processedPaths.add(normalizedPath)
+          result.push(teamMemEntry)
+        }
+      }
+    }
 
     const totalContentLength = result.reduce(
       (sum, f) => sum + f.content.length,
@@ -1037,6 +1032,9 @@ export const getMemoryFiles = memoize(
         local_count: typeCounts['Local'] ?? 0,
         managed_count: typeCounts['Managed'] ?? 0,
         automem_count: typeCounts['AutoMem'] ?? 0,
+        ...(feature('TEAMMEM')
+          ? { teammem_count: typeCounts['TeamMem'] ?? 0 }
+          : {}),
         duration_ms: Date.now() - startTime,
       })
     }
@@ -1131,14 +1129,8 @@ export function resetGetMemoryFilesCache(
   clearMemoryFileCaches()
 }
 
-/**
- * v112 change: getLargeMemoryFiles now filters to only instruction-type files
- * before applying the size check. Minified: `q.filter((K)=>tD4(K.type)&&K.content.length>Oc)`.
- */
 export function getLargeMemoryFiles(files: MemoryFileInfo[]): MemoryFileInfo[] {
-  return files.filter(
-    f => isInstructionsMemoryType(f.type) && f.content.length > MAX_MEMORY_CHARACTER_COUNT,
-  )
+  return files.filter(f => f.content.length > MAX_MEMORY_CHARACTER_COUNT)
 }
 
 /**
@@ -1146,8 +1138,6 @@ export function getLargeMemoryFiles(files: MemoryFileInfo[]): MemoryFileInfo[] {
  * memory files via attachments, so the MEMORY.md index is no longer injected
  * into the system prompt. Callsites that care about "what's actually in
  * context" (context builder, /context viz) should filter through this.
- *
- * v112 change: only filters AutoMem (not TeamMem — TeamMem removed from v112).
  */
 export function filterInjectedMemoryFiles(
   files: MemoryFileInfo[],
@@ -1157,14 +1147,9 @@ export function filterInjectedMemoryFiles(
     false,
   )
   if (!skipMemoryIndex) return files
-  return files.filter(f => f.type !== 'AutoMem')
+  return files.filter(f => f.type !== 'AutoMem' && f.type !== 'TeamMem')
 }
 
-/**
- * v112 change: TeamMem description and wrapping removed from getClaudeMds.
- * The minified shows no feature('TEAMMEM') check — TeamMem entries fall through
- * to the default description (" (user's private global instructions for all projects)").
- */
 export const getClaudeMds = (
   memoryFiles: MemoryFileInfo[],
   filter?: (type: MemoryType) => boolean,
@@ -1185,12 +1170,20 @@ export const getClaudeMds = (
           ? ' (project instructions, checked into the codebase)'
           : file.type === 'Local'
             ? " (user's private project instructions, not checked in)"
-            : file.type === 'AutoMem'
-              ? " (user's auto-memory, persists across conversations)"
-              : " (user's private global instructions for all projects)"
+            : feature('TEAMMEM') && file.type === 'TeamMem'
+              ? ' (shared team memory, synced across the organization)'
+              : file.type === 'AutoMem'
+                ? " (user's auto-memory, persists across conversations)"
+                : " (user's private global instructions for all projects)"
 
       const content = file.content.trim()
-      memories.push(`Contents of ${file.path}${description}:\n\n${content}`)
+      if (feature('TEAMMEM') && file.type === 'TeamMem') {
+        memories.push(
+          `Contents of ${file.path}${description}:\n\n<team-memory-content source="shared">\n${content}\n</team-memory-content>`,
+        )
+      } else {
+        memories.push(`Contents of ${file.path}${description}:\n\n${content}`)
+      }
     }
   }
 

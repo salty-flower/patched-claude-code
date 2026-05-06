@@ -34,9 +34,11 @@ import {
 const teamMemOps = feature('TEAMMEM')
   ? (require('./teamMemoryOps.js') as typeof import('./teamMemoryOps.js'))
   : null
-// v112: feature('HISTORY_SNIP') gate eliminated; the Snip-tool absorb branch
-// is fully gone from getToolSearchOrReadInfo. The TOOL_SEARCH_TOOL_NAME branch
-// (gated on isFullscreenEnvEnabled()) is what remains for absorbed-silently.
+const SNIP_TOOL_NAME = feature('HISTORY_SNIP')
+  ? (
+      require('../tools/SnipTool/prompt.js') as typeof import('../tools/SnipTool/prompt.js')
+    ).SNIP_TOOL_NAME
+  : null
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 /**
@@ -172,11 +174,13 @@ export function getToolSearchOrReadInfo(
     }
   }
 
-  // Meta-operations absorbed silently: ToolSearch (lazy tool schema loading).
-  // Does not break a collapse group or contribute to its count, but stays
-  // visible in verbose mode.
-  // v112: Snip tool branch removed (feature('HISTORY_SNIP') eliminated).
-  if (isFullscreenEnvEnabled() && toolName === TOOL_SEARCH_TOOL_NAME) {
+  // Meta-operations absorbed silently: Snip (context cleanup) and ToolSearch
+  // (lazy tool schema loading). Neither should break a collapse group or
+  // contribute to its count, but both stay visible in verbose mode.
+  if (
+    (feature('HISTORY_SNIP') && toolName === SNIP_TOOL_NAME) ||
+    (isFullscreenEnvEnabled() && toolName === TOOL_SEARCH_TOOL_NAME)
+  ) {
     return {
       isCollapsible: true,
       isSearch: false,

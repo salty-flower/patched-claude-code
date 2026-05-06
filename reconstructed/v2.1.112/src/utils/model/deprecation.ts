@@ -38,8 +38,6 @@ const DEPRECATED_MODELS: Record<string, DeprecationEntry> = {
       bedrock: 'January 15, 2026',
       vertex: 'January 5, 2026',
       foundry: 'January 5, 2026',
-      anthropicAws: null,
-      mantle: null,
     },
   },
   'claude-3-7-sonnet': {
@@ -49,8 +47,6 @@ const DEPRECATED_MODELS: Record<string, DeprecationEntry> = {
       bedrock: 'April 28, 2026',
       vertex: 'May 11, 2026',
       foundry: 'February 19, 2026',
-      anthropicAws: null,
-      mantle: null,
     },
   },
   'claude-3-5-haiku': {
@@ -60,8 +56,6 @@ const DEPRECATED_MODELS: Record<string, DeprecationEntry> = {
       bedrock: null,
       vertex: null,
       foundry: null,
-      anthropicAws: null,
-      mantle: null,
     },
   },
 }
@@ -103,11 +97,5 @@ export function getModelDeprecationWarning(
     return null
   }
 
-  const date = new Date(info.retirementDate)
-  const isPast =
-    !Number.isNaN(date.getTime()) && date < new Date()
-      ? 'was retired on'
-      : 'will be retired on'
-
-  return `⚠ ${info.modelName} ${isPast} ${info.retirementDate}. Consider switching to a newer model.`
+  return `⚠ ${info.modelName} will be retired on ${info.retirementDate}. Consider switching to a newer model.`
 }

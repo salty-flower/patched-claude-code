@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { stringWidth } from '../../ink/stringWidth.js';
 import { Text, useTheme } from '../../ink.js';
@@ -21,7 +20,7 @@ const ERROR_RED = {
   b: 63
 };
 export function GlimmerMessage(t0) {
-  const $ = _c(75);
+  const $ = new Array(75).fill(void 0);
   const {
     message,
     mode,

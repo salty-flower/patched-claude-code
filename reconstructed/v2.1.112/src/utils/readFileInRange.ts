@@ -104,7 +104,6 @@ export async function readFileInRange(
     const text = await readFile(filePath, { encoding: 'utf8', signal })
     return readFileInRangeFast(
       text,
-      stats.size,
       stats.mtimeMs,
       offset,
       maxLines,
@@ -128,44 +127,15 @@ export async function readFileInRange(
 
 function readFileInRangeFast(
   raw: string,
-  fileSize: number,
   mtimeMs: number,
   offset: number,
   maxLines: number | undefined,
   truncateAtBytes: number | undefined,
 ): ReadFileRangeResult {
-  // Strip BOM.
-  const hasBOM = raw.charCodeAt(0) === 0xfeff
-  if (hasBOM) {
-    fileSize -= 3
-  }
-  const text = hasBOM ? raw.slice(1) : raw
-
-  // Fast path for full-file reads: avoid line-by-line split overhead.
-  if (offset === 0 && maxLines === undefined && truncateAtBytes === undefined) {
-    let normalized = text.includes('\r')
-      ? text.replaceAll('\r\n', '\n')
-      : text
-    if (normalized.endsWith('\r')) {
-      normalized = normalized.slice(0, -1)
-    }
-    let lineCount = 1
-    let pos = normalized.indexOf('\n')
-    while (pos !== -1) {
-      lineCount++
-      pos = normalized.indexOf('\n', pos + 1)
-    }
-    return {
-      content: normalized,
-      lineCount,
-      totalLines: lineCount,
-      totalBytes: fileSize,
-      readBytes: Buffer.byteLength(normalized, 'utf8'),
-      mtimeMs,
-    }
-  }
-
   const endLine = maxLines !== undefined ? offset + maxLines : Infinity
+
+  // Strip BOM.
+  const text = raw.charCodeAt(0) === 0xfeff ? raw.slice(1) : raw
 
   // Split lines, strip \r, select range.
   const selectedLines: string[] = []
@@ -212,18 +182,15 @@ function readFileInRangeFast(
   lineIndex++
 
   const content = selectedLines.join('\n')
-  const result: ReadFileRangeResult = {
+  return {
     content,
     lineCount: selectedLines.length,
     totalLines: lineIndex,
-    totalBytes: fileSize,
+    totalBytes: Buffer.byteLength(text, 'utf8'),
     readBytes: Buffer.byteLength(content, 'utf8'),
     mtimeMs,
+    ...(truncatedByBytes ? { truncatedByBytes: true } : {}),
   }
-  if (truncatedByBytes) {
-    result.truncatedByBytes = true
-  }
-  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -362,18 +329,15 @@ function streamOnEnd(this: StreamState): void {
   const content = this.selectedLines.join('\n')
   const truncated = this.truncatedByBytes
   this.mtimeReady.then(mtimeMs => {
-    const result: ReadFileRangeResult = {
+    this.resolve({
       content,
       lineCount: this.selectedLines.length,
       totalLines: this.currentLineIndex,
       totalBytes: this.totalBytesRead,
       readBytes: Buffer.byteLength(content, 'utf8'),
       mtimeMs,
-    }
-    if (truncated) {
-      result.truncatedByBytes = true
-    }
-    this.resolve(result)
+      ...(truncated ? { truncatedByBytes: true } : {}),
+    })
   })
 }
 

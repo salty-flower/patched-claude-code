@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React, { useCallback, useState } from 'react';
 import { Box, Text } from '../ink.js';
 import { getDisplayPath } from '../utils/file.js';
@@ -13,7 +12,7 @@ type Props = {
   onCancel: () => void;
 };
 export function TeleportRepoMismatchDialog(t0) {
-  const $ = _c(18);
+  const $ = new Array(18).fill(void 0);
   const {
     targetRepo,
     initialPaths,

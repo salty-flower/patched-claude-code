@@ -13,7 +13,6 @@ import { findExecutable } from './findExecutable.js'
 import { logError } from './log.js'
 import { getPlatform } from './platform.js'
 import { countCharInString } from './stringUtils.js'
-import { getCwdState } from './cwdState.js'
 
 const __filename = fileURLToPath(import.meta.url)
 // we use node:path.join instead of node:url.resolve because the former doesn't encode spaces
@@ -140,7 +139,6 @@ function ripGrepRaw(
       signal: abortSignal,
       // Prevent visible console window on Windows (no-op on other platforms)
       windowsHide: true,
-      cwd: getCwdState(),
     })
 
     let stdout = ''
@@ -209,9 +207,6 @@ function ripGrepRaw(
       settled = true
       clearTimeout(timeoutId)
       clearTimeout(killTimeoutId)
-      if (err.code === 'ENOENT' && argv0) {
-        // TODO(lift): tH4 at byte ~4583680 (handleEmbeddedRgNotFound)
-      }
       const error: ExecFileException = err
       callback(error, stdout, stderr)
     })
@@ -231,7 +226,6 @@ function ripGrepRaw(
       signal: abortSignal,
       timeout,
       killSignal: process.platform === 'win32' ? undefined : 'SIGKILL',
-      cwd: getCwdState(),
     },
     callback,
   )
@@ -263,7 +257,6 @@ async function ripGrepFileCount(
       signal: abortSignal,
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'ignore'],
-      cwd: getCwdState(),
     })
 
     let lines = 0
@@ -282,9 +275,6 @@ async function ripGrepFileCount(
     child.on('error', err => {
       if (settled) return
       settled = true
-      if (err.code === 'ENOENT' && argv0) {
-        // TODO(lift): tH4 at byte ~4582540 (handleEmbeddedRgNotFound)
-      }
       reject(err)
     })
   })
@@ -317,7 +307,6 @@ export async function ripGrepStream(
       signal: abortSignal,
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'ignore'],
-      cwd: getCwdState(),
     })
 
     const stripCR = (l: string) => (l.endsWith('\r') ? l.slice(0, -1) : l)
@@ -509,11 +498,7 @@ export const countFilesRoundedRg = memoize(
         args.push('--glob', `!${pattern}`)
       })
 
-      let count: number | null = null
-      {
-        const rgArgs = args
-        count = await ripGrepFileCount(rgArgs, dirPath, abortSignal)
-      }
+      const count = await ripGrepFileCount(args, dirPath, abortSignal)
 
       // Round to nearest power of 10 for privacy
       if (count === 0) return 0
@@ -580,7 +565,6 @@ const testRipgrepOnFirstUse = memoize(async (): Promise<void> => {
       // eslint-disable-next-line custom-rules/require-bun-typeof-guard
       const proc = Bun.spawn([config.command, '--version'], {
         argv0: config.argv0,
-        cwd: getCwdState(),
         stderr: 'ignore',
         stdout: 'pipe',
       })

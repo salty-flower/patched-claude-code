@@ -33,14 +33,6 @@ async function loadOutputStylesFromDirectory(
   return styles
 }
 
-/**
- * Load a single output style from a markdown file.
- *
- * v112 changes:
- * - frontmatter.name is coerced with String() when present
- * - forceForPlugin parsing uses ht6() utility (handles boolean/string/undefined)
- * - new field: keepCodingInstructions (parsed with ht6())
- */
 async function loadOutputStyleFromFile(
   filePath: string,
   pluginName: string,
@@ -58,10 +50,7 @@ async function loadOutputStyleFromFile(
     )
 
     const fileName = basename(filePath, '.md')
-    // v112: coerce name with String() if present
-    const baseStyleName =
-      (frontmatter.name != null ? String(frontmatter.name) : undefined) ||
-      fileName
+    const baseStyleName = (frontmatter.name as string) || fileName
     // Namespace output styles with plugin name, consistent with commands and agents
     const name = `${pluginName}:${baseStyleName}`
     const description =
@@ -71,18 +60,14 @@ async function loadOutputStyleFromFile(
         `Output style from ${pluginName} plugin`,
       )
 
-    // v112: use ht6() utility for parsing tri-state boolean frontmatter values
-    // TODO(lift): ht6 at byte ~9433994
-    const parseTriStateBoolean = (raw: unknown): boolean | undefined => {
-      if (raw === true || raw === 'true') return true
-      if (raw === false || raw === 'false') return false
-      return undefined
-    }
-
-    const forceForPlugin = parseTriStateBoolean(frontmatter['force-for-plugin'])
-    const keepCodingInstructions = parseTriStateBoolean(
-      frontmatter['keep-coding-instructions'],
-    )
+    // Parse forceForPlugin flag (supports both boolean and string values)
+    const forceRaw = frontmatter['force-for-plugin']
+    const forceForPlugin =
+      forceRaw === true || forceRaw === 'true'
+        ? true
+        : forceRaw === false || forceRaw === 'false'
+          ? false
+          : undefined
 
     return {
       name,
@@ -90,7 +75,6 @@ async function loadOutputStyleFromFile(
       prompt: markdownContent.trim(),
       source: 'plugin',
       forceForPlugin,
-      keepCodingInstructions,
     }
   } catch (error) {
     logForDebugging(`Failed to load output style from ${filePath}: ${error}`, {

@@ -23,8 +23,6 @@ import { getPluginsDirectory } from './pluginDirectories.js'
 const ORPHANED_AT_FILENAME = '.orphaned_at'
 
 /** Session-scoped cache. Frozen once computed — only cleared by explicit /reload-plugins. */
-// TODO(lift): v112 uses a module-level container object (EPK) instead of a
-// bare variable. The minified bundle accesses `EPK.cachedExclusions`.
 let cachedExclusions: string[] | null = null
 
 /**
@@ -78,8 +76,7 @@ export async function getGlobExclusionsForPluginCache(
         ? relative(cachePath, versionDir)
         : versionDir
       // ripgrep glob patterns always use forward slashes, even on Windows
-      // v112: changed from replace(/\\/g, '/') to replaceAll("\\", "/")
-      const posixRelative = rel.replaceAll('\\', '/')
+      const posixRelative = rel.replace(/\\/g, '/')
       return `!**/${posixRelative}/**`
     })
     return cachedExclusions

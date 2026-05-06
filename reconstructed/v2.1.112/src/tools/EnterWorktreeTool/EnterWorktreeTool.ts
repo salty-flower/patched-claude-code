@@ -13,43 +13,29 @@ import { setCwd } from '../../utils/Shell.js'
 import { saveWorktreeState } from '../../utils/sessionStorage.js'
 import {
   createWorktreeForSession,
-  enterExistingWorktree,
   getCurrentWorktreeSession,
-  isSubagentWithCwdOverride,
   validateWorktreeSlug,
 } from '../../utils/worktree.js'
 import { ENTER_WORKTREE_TOOL_NAME } from './constants.js'
 import { getEnterWorktreeToolPrompt } from './prompt.js'
 import { renderToolResultMessage, renderToolUseMessage } from './UI.js'
 
-// v112: Input schema expanded with `path` field for entering existing worktrees
 const inputSchema = lazySchema(() =>
-  z
-    .strictObject({
-      name: z
-        .string()
-        .superRefine((s, ctx) => {
-          try {
-            validateWorktreeSlug(s)
-          } catch (e) {
-            ctx.addIssue({ code: 'custom', message: (e as Error).message })
-          }
-        })
-        .optional()
-        .describe(
-          'Optional name for a new worktree. Each "/"-separated segment may contain only letters, digits, dots, underscores, and dashes; max 64 chars total. A random name is generated if not provided. Mutually exclusive with `path`.',
-        ),
-      // v112: new field — enter an existing worktree by path instead of creating one
-      path: z
-        .string()
-        .optional()
-        .describe(
-          'Path to an existing worktree of the current repository to switch into instead of creating a new one. Must appear in `git worktree list` for the current repo. Mutually exclusive with `name`.',
-        ),
-    })
-    .refine(q => !(q.name && q.path), {
-      message: 'Provide at most one of `name` or `path`, not both.',
-    }),
+  z.strictObject({
+    name: z
+      .string()
+      .superRefine((s, ctx) => {
+        try {
+          validateWorktreeSlug(s)
+        } catch (e) {
+          ctx.addIssue({ code: 'custom', message: (e as Error).message })
+        }
+      })
+      .optional()
+      .describe(
+        'Optional name for the worktree. Each "/"-separated segment may contain only letters, digits, dots, underscores, and dashes; max 64 chars total. A random name is generated if not provided.',
+      ),
+  }),
 )
 type InputSchema = ReturnType<typeof inputSchema>
 
@@ -79,59 +65,31 @@ export const EnterWorktreeTool: Tool<InputSchema, Output> = buildTool({
   get outputSchema(): OutputSchema {
     return outputSchema()
   },
-  // v112: userFacingName now takes input arg and returns different strings for create vs enter
-  userFacingName(input?: z.infer<InputSchema>) {
-    return input?.path ? 'Entering worktree' : 'Creating worktree'
+  userFacingName() {
+    return 'Creating worktree'
   },
   shouldDefer: true,
   toAutoClassifierInput(input) {
-    return input.path ?? input.name ?? ''
-  },
-  // v112: new validateInput — guards against subagent cwd override and already-in-worktree
-  async validateInput() {
-    // TODO(lift): isSubagentWithCwdOverride at byte ~9142700 — Sf6() in v112
-    if (isSubagentWithCwdOverride()) {
-      return {
-        result: false,
-        message: `EnterWorktree cannot be called from a subagent with a cwd override (isolation: "worktree" or explicit cwd) — it would mutate the parent session's process-wide working directory. This agent is already isolated in its own working copy.`,
-        errorCode: 1,
-      }
-    }
-    if (getCurrentWorktreeSession()) {
-      return {
-        result: false,
-        message:
-          'Already in a worktree session. Use ExitWorktree to leave it before entering another.',
-        errorCode: 2,
-      }
-    }
-    return { result: true }
+    return input.name ?? ''
   },
   renderToolUseMessage,
   renderToolResultMessage,
   async call(input) {
+    // Validate not already in a worktree created by this session
     if (getCurrentWorktreeSession()) {
       throw new Error('Already in a worktree session')
     }
 
-    let worktreeSession: Awaited<ReturnType<typeof createWorktreeForSession>>
-
-    if (input.path) {
-      // v112: new path — enter an existing worktree
-      // TODO(lift): enterExistingWorktree at byte ~9143800 — T37(I8(), q.path) in v112
-      worktreeSession = await enterExistingWorktree(getSessionId(), input.path)
-    } else {
-      // Resolve to main repo root so worktree creation works from within a worktree
-      const mainRepoRoot = findCanonicalGitRoot(getCwd())
-      if (mainRepoRoot && mainRepoRoot !== getCwd()) {
-        process.chdir(mainRepoRoot)
-        setCwd(mainRepoRoot)
-      }
-      worktreeSession = await createWorktreeForSession(
-        getSessionId(),
-        input.name ?? getPlanSlug(),
-      )
+    // Resolve to main repo root so worktree creation works from within a worktree
+    const mainRepoRoot = findCanonicalGitRoot(getCwd())
+    if (mainRepoRoot && mainRepoRoot !== getCwd()) {
+      process.chdir(mainRepoRoot)
+      setCwd(mainRepoRoot)
     }
+
+    const slug = input.name ?? getPlanSlug()
+
+    const worktreeSession = await createWorktreeForSession(getSessionId(), slug)
 
     process.chdir(worktreeSession.worktreePath)
     setCwd(worktreeSession.worktreePath)
@@ -143,24 +101,19 @@ export const EnterWorktreeTool: Tool<InputSchema, Output> = buildTool({
     clearMemoryFileCaches()
     getPlansDirectory.cache.clear?.()
 
-    // v112: different event names for create vs enter-existing
-    logEvent(
-      input.path ? 'tengu_worktree_entered_existing' : 'tengu_worktree_created',
-      { mid_session: true },
-    )
+    logEvent('tengu_worktree_created', {
+      mid_session: true,
+    })
 
     const branchInfo = worktreeSession.worktreeBranch
       ? ` on branch ${worktreeSession.worktreeBranch}`
       : ''
 
-    // v112: message prefix changes based on path vs create
-    const actionVerb = input.path ? 'Entered' : 'Created'
-
     return {
       data: {
         worktreePath: worktreeSession.worktreePath,
         worktreeBranch: worktreeSession.worktreeBranch,
-        message: `${actionVerb} worktree at ${worktreeSession.worktreePath}${branchInfo}. The session is now working in the worktree. Use ExitWorktree to leave mid-session, or exit the session to be prompted.`,
+        message: `Created worktree at ${worktreeSession.worktreePath}${branchInfo}. The session is now working in the worktree. Use ExitWorktree to leave mid-session, or exit the session to be prompted.`,
       },
     }
   },

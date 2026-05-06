@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import { z } from 'zod/v4'
 import {
   getAllowedChannels,
@@ -53,8 +54,13 @@ export const EnterPlanModeTool: Tool<InputSchema, Output> = buildTool({
   },
   shouldDefer: true,
   isEnabled() {
-    // v112: KAIROS_CHANNELS check collapsed — only getAllowedChannels().length > 0
-    if (getAllowedChannels().length > 0) {
+    // When --channels is active, ExitPlanMode is disabled (its approval
+    // dialog needs the terminal). Disable entry too so plan mode isn't a
+    // trap the model can enter but never leave.
+    if (
+      (feature('KAIROS') || feature('KAIROS_CHANNELS')) &&
+      getAllowedChannels().length > 0
+    ) {
       return false
     }
     return true
@@ -76,14 +82,16 @@ export const EnterPlanModeTool: Tool<InputSchema, Output> = buildTool({
     const appState = context.getAppState()
     handlePlanModeTransition(appState.toolPermissionContext.mode, 'plan')
 
-    // v112: uses setToolPermissionContext instead of setAppState
-    context.setToolPermissionContext((prev: typeof appState.toolPermissionContext) =>
-      applyPermissionUpdate(prepareContextForPlanMode(prev), {
-        type: 'setMode',
-        mode: 'plan',
-        destination: 'session',
-      }),
-    )
+    // Update the permission mode to 'plan'. prepareContextForPlanMode runs
+    // the classifier activation side effects when the user's defaultMode is
+    // 'auto' — see permissionSetup.ts for the full lifecycle.
+    context.setAppState(prev => ({
+      ...prev,
+      toolPermissionContext: applyPermissionUpdate(
+        prepareContextForPlanMode(prev.toolPermissionContext),
+        { type: 'setMode', mode: 'plan', destination: 'session' },
+      ),
+    }))
 
     return {
       data: {

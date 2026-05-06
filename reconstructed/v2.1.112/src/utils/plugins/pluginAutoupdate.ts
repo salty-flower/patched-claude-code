@@ -14,6 +14,7 @@ import { updatePluginOp } from '../../services/plugins/pluginOperations.js'
 import { shouldSkipPluginAutoupdate } from '../config.js'
 import { logForDebugging } from '../debug.js'
 import { errorMessage } from '../errors.js'
+import { logError } from '../log.js'
 import {
   getPendingUpdatesDetails,
   hasPendingUpdates,
@@ -114,17 +115,10 @@ async function updatePlugin(
     try {
       const result = await updatePluginOp(pluginId, scope)
 
-      // v112: updatePluginOp now returns a `skipped` flag in addition to
-      // success/alreadyUpToDate. When skipped, log at info level with the
-      // message rather than treating it as a failure.
-      if (result.success && !result.alreadyUpToDate && !result.skipped) {
+      if (result.success && !result.alreadyUpToDate) {
         wasUpdated = true
         logForDebugging(
           `Plugin autoupdate: updated ${pluginId} from ${result.oldVersion} to ${result.newVersion}`,
-        )
-      } else if (result.skipped) {
-        logForDebugging(
-          `Plugin autoupdate: ${pluginId} ${result.message}`,
         )
       } else if (!result.alreadyUpToDate) {
         logForDebugging(
@@ -206,6 +200,16 @@ export async function updatePluginsForMarketplaces(
 }
 
 /**
+ * Update plugins from marketplaces that have autoUpdate enabled.
+ * Returns the list of plugin IDs that were updated.
+ */
+async function updatePlugins(
+  autoUpdateEnabledMarketplaces: Set<string>,
+): Promise<string[]> {
+  return updatePluginsForMarketplaces(autoUpdateEnabledMarketplaces)
+}
+
+/**
  * Auto-update marketplaces and plugins in the background.
  *
  * This function:
@@ -262,9 +266,7 @@ export function autoUpdateMarketplacesAndPluginsInBackground(): void {
       }
 
       logForDebugging('Plugin autoupdate: checking installed plugins')
-      const updatedPlugins = await updatePluginsForMarketplaces(
-        autoUpdateEnabledMarketplaces,
-      )
+      const updatedPlugins = await updatePlugins(autoUpdateEnabledMarketplaces)
 
       if (updatedPlugins.length > 0) {
         if (pluginUpdateCallback) {
@@ -276,9 +278,7 @@ export function autoUpdateMarketplacesAndPluginsInBackground(): void {
         }
       }
     } catch (error) {
-      logForDebugging(`Plugin autoupdate error: ${errorMessage(error)}`, {
-        level: 'error',
-      })
+      logError(error)
     }
   })()
 }

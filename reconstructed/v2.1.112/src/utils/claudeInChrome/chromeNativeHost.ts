@@ -44,7 +44,6 @@ function log(message: string, ...args: unknown[]): void {
   }
   console.error(`[Claude Chrome Native Host] ${message}`, ...args)
 }
-
 /**
  * Send a message to stdout (Chrome native messaging protocol)
  */
@@ -119,8 +118,16 @@ class ChromeNativeHost {
       const socketDir = getSocketDir()
 
       // Migrate legacy socket: if socket dir path exists as a file/socket, remove it
-      // v112: uses unlink directly (yJ7) — no stat check for !isDirectory() first
-      await unlink(socketDir).catch(() => {})
+      try {
+        const dirStats = await stat(socketDir)
+        if (!dirStats.isDirectory()) {
+          await unlink(socketDir)
+        }
+      } catch {
+        // Doesn't exist, that's fine
+      }
+
+      // Create socket directory with secure permissions
       await mkdir(socketDir, { recursive: true, mode: 0o700 })
 
       // Fix perms if directory already existed

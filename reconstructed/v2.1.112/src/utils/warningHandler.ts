@@ -9,6 +9,7 @@ import { getPlatform } from './platform.js'
 
 // Track warnings to avoid spam — bounded to prevent unbounded memory growth
 export const MAX_WARNING_KEYS = 1000
+const warningCounts = new Map<string, number>()
 
 // Check if running from a build directory (development mode)
 // This is a sync version of the logic in getCurrentInstallationType()
@@ -44,11 +45,25 @@ function isInternalWarning(warning: Error): boolean {
   return INTERNAL_WARNINGS.some(pattern => pattern.test(warningStr))
 }
 
-// v112: initializeWarningHandler rewritten to return {uninstall()} instead of void.
-// Uses a local Map instead of a global warningCounts variable.
-// TODO(lift): verify exact v112 structure at byte ~12739156
+// Store reference to our warning handler so we can detect if it's already installed
+let warningHandler: ((warning: Error) => void) | null = null
 
-export function initializeWarningHandler(): { uninstall(): void } {
+// For testing only - allows resetting the warning handler state
+export function resetWarningHandler(): void {
+  if (warningHandler) {
+    process.removeListener('warning', warningHandler)
+  }
+  warningHandler = null
+  warningCounts.clear()
+}
+
+export function initializeWarningHandler(): void {
+  // Only set up handler once - check if our handler is already installed
+  const currentListeners = process.listeners('warning')
+  if (warningHandler && currentListeners.includes(warningHandler)) {
+    return
+  }
+
   // For external users, remove default Node.js handler to suppress stderr output
   // For internal users, only keep default warnings for development builds
   // Check development mode directly to avoid async call in init
@@ -59,11 +74,8 @@ export function initializeWarningHandler(): { uninstall(): void } {
     process.removeAllListeners('warning')
   }
 
-  // Local warning count map (v112 change: was module-level warningCounts)
-  const warningCounts = new Map<string, number>()
-
-  // Create warning handler
-  const handler = (warning: Error) => {
+  // Create and store our warning handler
+  warningHandler = (warning: Error) => {
     try {
       const warningKey = `${warning.name}: ${warning.message.slice(0, 50)}`
       const count = warningCounts.get(warningKey) || 0
@@ -105,15 +117,5 @@ export function initializeWarningHandler(): { uninstall(): void } {
   }
 
   // Install the warning handler
-  process.on('warning', handler)
-
-  // v112: return uninstall function instead of storing global reference
-  return {
-    uninstall() {
-      process.removeListener('warning', handler)
-    },
-  }
+  process.on('warning', warningHandler)
 }
-
-// v112: resetWarningHandler removed (no longer needed with uninstall pattern)
-// TODO(lift): verify removal at byte ~12737936

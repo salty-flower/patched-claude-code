@@ -1,4 +1,4 @@
-import { realpath, stat } from 'fs/promises'
+import { realpath } from 'fs/promises'
 import { getOriginalCwd } from '../bootstrap/state.js'
 import { getGlobalConfig, saveGlobalConfig } from './config.js'
 import { logForDebugging } from './debug.js'
@@ -6,14 +6,7 @@ import {
   detectCurrentRepository,
   parseGitHubRepository,
 } from './detectRepository.js'
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await stat(filePath)
-    return true
-  } catch {
-    return false
-  }
-}
+import { pathExists } from './file.js'
 import { getRemoteUrlForDir } from './git/gitFilesystem.js'
 import { findGitRoot } from './git.js'
 

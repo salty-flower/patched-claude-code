@@ -79,7 +79,9 @@ function getMaxMcpOutputChars(): number {
 }
 
 function getTruncationMessage(): string {
-  return `\n\n[OUTPUT TRUNCATED - exceeded ${getMaxMcpOutputTokens()} token limit]\n\nThe tool output was truncated. If this MCP server provides pagination or filtering tools, use them to retrieve specific portions of the data. If pagination is not available, inform the user that you are working with truncated output and results may be incomplete.`
+  return `\n\n[OUTPUT TRUNCATED - exceeded ${getMaxMcpOutputTokens()} token limit]
+
+The tool output was truncated. If this MCP server provides pagination or filtering tools, use them to retrieve specific portions of the data. If pagination is not available, inform the user that you are working with truncated output and results may be incomplete.`
 }
 
 function truncateString(content: string, maxChars: number): string {
@@ -195,6 +197,12 @@ export async function truncateMcpContent(
   }
 }
 
-// v112: truncateMcpContentIfNeeded removed. No v112 code imports it.
-// The caller (mcp/client.ts in v88) was refactored and no longer uses
-// this helper.
+export async function truncateMcpContentIfNeeded(
+  content: MCPToolResult,
+): Promise<MCPToolResult> {
+  if (!(await mcpContentNeedsTruncation(content))) {
+    return content
+  }
+
+  return await truncateMcpContent(content)
+}

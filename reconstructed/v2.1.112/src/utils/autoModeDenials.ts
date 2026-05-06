@@ -3,6 +3,8 @@
  * Populated from useCanUseTool.ts, read from RecentDenialsTab.tsx in /permissions.
  */
 
+import { feature } from 'bun:bundle'
+
 export type AutoModeDenial = {
   toolName: string
   /** Human-readable description of the denied command (e.g. bash command string) */
@@ -14,10 +16,8 @@ export type AutoModeDenial = {
 let DENIALS: readonly AutoModeDenial[] = []
 const MAX_DENIALS = 20
 
-// v112: jac=0.545 drift from v88 — feature('TRANSCRIPT_CLASSIFIER') guard dropped.
-// The v112 minified block at byte ~11483022 still pushes to DENIALS but the
-// feature gate is absent. Transcribe conservatively without the gate.
 export function recordAutoModeDenial(denial: AutoModeDenial): void {
+  if (!feature('TRANSCRIPT_CLASSIFIER')) return
   DENIALS = [denial, ...DENIALS.slice(0, MAX_DENIALS - 1)]
 }
 

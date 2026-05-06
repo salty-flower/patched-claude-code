@@ -1,7 +1,3 @@
-// v112: new constant for brief-mode enforcement message (byte ~1043634)
-export const BRIEF_MODE_ENFORCEMENT =
-  'In brief mode you must call SendUserMessage to communicate with the user — text outside it is hidden from their view.'
-
 export const BRIEF_TOOL_NAME = 'SendUserMessage'
 export const LEGACY_BRIEF_TOOL_NAME = 'Brief'
 
@@ -13,12 +9,7 @@ export const BRIEF_TOOL_PROMPT = `Send a message the user will read. Text outsid
 
 \`status\` labels intent: 'normal' when replying to what they just asked; 'proactive' when you're initiating — a scheduled task finished, a blocker surfaced during background work, you need input on something they haven't asked about. Set it honestly; downstream routing uses it.`
 
-// v112: BRIEF_PROACTIVE_SECTION is now lazy-initialized (lazy module pattern)
-let _briefProactiveSection: string | undefined
-
-export function getBriefProactiveSection(): string {
-  if (_briefProactiveSection === undefined) {
-    _briefProactiveSection = `## Talking to the user
+export const BRIEF_PROACTIVE_SECTION = `## Talking to the user
 
 ${BRIEF_TOOL_NAME} is where your replies go. Text outside it is visible if the user expands the detail view, but most won't — assume unread. Anything you want them to actually see goes through ${BRIEF_TOOL_NAME}. The failure mode: the real answer lives in plain text while ${BRIEF_TOOL_NAME} just says "done!" — they see "done!" and miss everything.
 
@@ -29,9 +20,3 @@ If you can answer right away, send the answer. If you need to go look — run a 
 For longer work: ack → work → result. Between those, send a checkpoint when something useful happened — a decision you made, a surprise you hit, a phase boundary. Skip the filler ("running tests...") — a checkpoint earns its place by carrying information.
 
 Keep messages tight — the decision, the file:line, the PR number. Second person always ("your config"), never third.`
-  }
-  return _briefProactiveSection
-}
-
-// v88 backward-compat export (jac=1 decl in v112 that maps to getBriefProactiveSection)
-export const BRIEF_PROACTIVE_SECTION: string = getBriefProactiveSection()

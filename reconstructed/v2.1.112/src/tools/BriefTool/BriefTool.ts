@@ -68,33 +68,60 @@ const KAIROS_BRIEF_REFRESH_MS = 5 * 60 * 1000
 
 /**
  * Entitlement check — is the user ALLOWED to use Brief? Combines build-time
- * flags with runtime GB gate + assistant-mode passthrough.
+ * flags with runtime GB gate + assistant-mode passthrough. No opt-in check
+ * here — this decides whether opt-in should be HONORED, not whether the user
+ * has opted in.
  *
- * v112 change (jac=0.667): The `feature('KAIROS') || feature('KAIROS_BRIEF') ?`
- * ternary guard is removed. The function now directly returns the OR of:
- *   - getKairosActive()
- *   - isEnvTruthy(CLAUDE_CODE_BRIEF)
- *   - getFeatureValue_CACHED_WITH_REFRESH('tengu_kairos_brief', ...)
+ * Build-time OR-gated on KAIROS || KAIROS_BRIEF (same pattern as
+ * PROACTIVE || KAIROS): assistant mode depends on Brief, so KAIROS alone
+ * must bundle it. KAIROS_BRIEF lets Brief ship independently.
  *
- * This means entitlement is always checked at runtime regardless of build-time
- * DCE, simplifying the gate at the cost of always bundling Brief in all builds.
+ * Use this to decide whether `--brief` / `defaultView: 'chat'` / `--tools`
+ * listing should be honored. Use `isBriefEnabled()` to decide whether the
+ * tool is actually active in the current session.
+ *
+ * CLAUDE_CODE_BRIEF env var force-grants entitlement for dev/testing —
+ * bypasses the GB gate so you can test without being enrolled. Still
+ * requires an opt-in action to activate (--brief, defaultView, etc.), but
+ * the env var alone also sets userMsgOptIn via maybeActivateBrief().
  */
 export function isBriefEntitled(): boolean {
-  return (
-    getKairosActive() ||
-    isEnvTruthy(process.env.CLAUDE_CODE_BRIEF) ||
-    getFeatureValue_CACHED_WITH_REFRESH(
-      'tengu_kairos_brief',
-      false,
-      KAIROS_BRIEF_REFRESH_MS,
-    )
-  )
+  // Positive ternary — see docs/feature-gating.md. Negative early-return
+  // would not eliminate the GB gate string from external builds.
+  return feature('KAIROS') || feature('KAIROS_BRIEF')
+    ? getKairosActive() ||
+        isEnvTruthy(process.env.CLAUDE_CODE_BRIEF) ||
+        getFeatureValue_CACHED_WITH_REFRESH(
+          'tengu_kairos_brief',
+          false,
+          KAIROS_BRIEF_REFRESH_MS,
+        )
+    : false
 }
 
 /**
- * Unified activation gate for the Brief tool.
+ * Unified activation gate for the Brief tool. Governs model-facing behavior
+ * as a unit: tool availability, system prompt section (getBriefSection),
+ * tool-deferral bypass (isDeferredTool), and todo-nag suppression.
  *
- * v112: verbatim (jac=1, cos=1). Same logic as v88.
+ * Activation requires explicit opt-in (userMsgOptIn) set by one of:
+ *   - `--brief` CLI flag (maybeActivateBrief in main.tsx)
+ *   - `defaultView: 'chat'` in settings (main.tsx init)
+ *   - `/brief` slash command (brief.ts)
+ *   - `/config` defaultView picker (Config.tsx)
+ *   - SendUserMessage in `--tools` / SDK `tools` option (main.tsx)
+ *   - CLAUDE_CODE_BRIEF env var (maybeActivateBrief — dev/testing bypass)
+ * Assistant mode (kairosActive) bypasses opt-in since its system prompt
+ * hard-codes "you MUST use SendUserMessage" (systemPrompt.md:14).
+ *
+ * The GB gate is re-checked here as a kill-switch AND — flipping
+ * tengu_kairos_brief off mid-session disables the tool on the next 5-min
+ * refresh even for opted-in sessions. No opt-in → always false regardless
+ * of GB (this is the fix for "brief defaults on for enrolled ants").
+ *
+ * Called from Tool.isEnabled() (lazy, post-init), never at module scope.
+ * getKairosActive() and getUserMsgOptIn() are set in main.tsx before any
+ * caller reaches here.
  */
 export function isBriefEnabled(): boolean {
   // Top-level feature() guard is load-bearing for DCE: Bun can constant-fold

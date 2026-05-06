@@ -128,15 +128,15 @@ export function buildDefaultExternalSystemPrompt(): string {
     () => EXTERNAL_PERMISSIONS_TEMPLATE,
   )
     .replace(
-      /<user_allow_rules_to_replace>[\s\S]*?<\/user_allow_rules_to_replace>/,
+      /<user_allow_rules_to_replace>([\s\S]*?)<\/user_allow_rules_to_replace>/,
       (_m, defaults: string) => defaults,
     )
     .replace(
-      /<user_deny_rules_to_replace>[\s\S]*?<\/user_deny_rules_to_replace>/,
+      /<user_deny_rules_to_replace>([\s\S]*?)<\/user_deny_rules_to_replace>/,
       (_m, defaults: string) => defaults,
     )
     .replace(
-      /<user_environment_to_replace>[\s\S]*?<\/user_environment_to_replace>/,
+      /<user_environment_to_replace>([\s\S]*?)<\/user_environment_to_replace>/,
       (_m, defaults: string) => defaults,
     )
 }
@@ -526,15 +526,15 @@ export async function buildYoloSystemPrompt(
 
   return systemPrompt
     .replace(
-      /<user_allow_rules_to_replace>[\s\S]*?<\/user_allow_rules_to_replace>/,
+      /<user_allow_rules_to_replace>([\s\S]*?)<\/user_allow_rules_to_replace>/,
       (_m, defaults: string) => userAllow ?? defaults,
     )
     .replace(
-      /<user_deny_rules_to_replace>[\s\S]*?<\/user_deny_rules_to_replace>/,
+      /<user_deny_rules_to_replace>([\s\S]*?)<\/user_deny_rules_to_replace>/,
       (_m, defaults: string) => userDeny ?? defaults,
     )
     .replace(
-      /<user_environment_to_replace>[\s\S]*?<\/user_environment_to_replace>/,
+      /<user_environment_to_replace>([\s\S]*?)<\/user_environment_to_replace>/,
       (_m, defaults: string) => userEnvironment ?? defaults,
     )
 }
@@ -551,7 +551,8 @@ const XML_S1_SUFFIX = '\nErr on the side of blocking. <block> immediately.'
 /**
  * Stage 2 suffix (xml_s2_t2): appended after the transcript to elicit
  * reasoning. Matches XML_S2_SUFFIXES["t2"] in
- * sandbox/alexg/evals/{cc_report_bpc_eval,tool_denial_bpc_eval}.py.
+ * sandbox/johnh/control/bpc_classifier/classifier.py — the default S2 mode
+ * in sandbox/alexg/evals/{cc_report_bpc_eval,tool_denial_bpc_eval}.py.
  *
  * vs "t" variant: adds explicit reminder to follow classification process
  * and that user confirmation must be explicit (not suggestive/implicit).
@@ -790,7 +791,6 @@ async function classifyYoloActionXml(
         signal,
         ...(mode !== 'fast' && { stop_sequences: ['</block>'] }),
         querySource: 'auto_mode',
-        extraBodyParams: getExtraBodyParams(),
       }
       const stage1Raw = await sideQuery(stage1Opts)
       stage1DurationMs = Date.now() - stage1Start
@@ -877,7 +877,6 @@ async function classifyYoloActionXml(
       maxRetries: getDefaultMaxRetries(),
       signal,
       querySource: 'auto_mode' as const,
-      extraBodyParams: getExtraBodyParams(),
     }
     const stage2Raw = await sideQuery(stage2Opts)
     const stage2DurationMs = Date.now() - stage2Start
@@ -1157,7 +1156,6 @@ export async function classifyYoloAction(
       maxRetries: getDefaultMaxRetries(),
       signal,
       querySource: 'auto_mode' as const,
-      extraBodyParams: getExtraBodyParams(),
     }
     const result = await sideQuery(sideQueryOpts)
     void maybeDumpAutoMode(sideQueryOpts, result, start)
@@ -1494,16 +1492,4 @@ export function formatActionForClassifier(
     role: 'assistant',
     content: [{ type: 'tool_use', name: toolName, input: toolInput }],
   }
-}
-
-/**
- * Return extra body parameters for classifier sideQuery calls.
- * In v112 this is used to pass ant-specific request parameters.
- */
-function getExtraBodyParams(): Record<string, unknown> | undefined {
-  // TODO(lift): getExtraBodyParams at byte ~8368516
-  // The minified shows `extraBodyParams:ct()` being called in both
-  // classifyYoloActionXml and classifyYoloAction. The exact implementation
-  // is not visible in the slice; it likely returns ant-specific params.
-  return undefined
 }

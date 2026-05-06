@@ -69,15 +69,12 @@ export type LoadedPlugin = {
   settings?: Record<string, unknown>
 }
 
-// v112: added 'workflows' and 'routines' to PluginComponent
 export type PluginComponent =
   | 'commands'
   | 'agents'
   | 'skills'
   | 'hooks'
   | 'output-styles'
-  | 'workflows'
-  | 'routines'
 
 /**
  * Discriminated union of plugin error types.
@@ -104,14 +101,6 @@ export type PluginComponent =
 export type PluginError =
   | {
       type: 'path-not-found'
-      source: string
-      plugin?: string
-      path: string
-      component: PluginComponent
-    }
-  | {
-      // v112: new error type — path escapes plugin directory
-      type: 'path-traversal'
       source: string
       plugin?: string
       path: string
@@ -228,6 +217,13 @@ export type PluginError =
       validationError: string
     }
   | {
+      type: 'lsp-config-invalid'
+      source: string
+      plugin: string
+      serverName: string
+      validationError: string
+    }
+  | {
       type: 'lsp-server-start-failed'
       source: string
       plugin: string
@@ -274,15 +270,6 @@ export type PluginError =
       reason: 'not-enabled' | 'not-found'
     }
   | {
-      // v112: new error type — dependency version constraint not satisfied
-      type: 'dependency-version-unsatisfied'
-      source: string
-      plugin: string
-      dependency: string
-      required: string
-      installed?: string
-    }
-  | {
       type: 'plugin-cache-miss'
       source: string
       plugin: string
@@ -311,8 +298,6 @@ export function getPluginErrorMessage(error: PluginError): string {
       return error.error
     case 'path-not-found':
       return `Path not found: ${error.path} (${error.component})`
-    case 'path-traversal':
-      return `Path escapes plugin directory: ${error.path} (${error.component})`
     case 'git-auth-failed':
       return `Git authentication failed (${error.authType}): ${error.gitUrl}`
     case 'git-timeout':
@@ -372,8 +357,6 @@ export function getPluginErrorMessage(error: PluginError): string {
           : 'not found in any configured marketplace'
       return `Dependency "${error.dependency}" is ${hint}`
     }
-    case 'dependency-version-unsatisfied':
-      return `Requires "${error.dependency}" ${error.required}, installed ${error.installed ?? 'version unknown'}`
     case 'plugin-cache-miss':
       return `Plugin "${error.plugin}" not cached at ${error.installPath} — run /plugins to refresh`
   }

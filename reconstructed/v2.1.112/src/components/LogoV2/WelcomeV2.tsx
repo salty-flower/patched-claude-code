@@ -1,10 +1,9 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Box, Text, useTheme } from 'src/ink.js';
 import { env } from '../../utils/env.js';
 const WELCOME_V2_WIDTH = 58;
 export function WelcomeV2() {
-  const $ = _c(35);
+  const $ = new Array(35).fill(void 0);
   const [theme] = useTheme();
   if (env.terminal === "Apple_Terminal") {
     let t0;
@@ -201,7 +200,7 @@ type AppleTerminalWelcomeV2Props = {
   welcomeMessage: string;
 };
 function AppleTerminalWelcomeV2(t0) {
-  const $ = _c(44);
+  const $ = new Array(44).fill(void 0);
   const {
     theme,
     welcomeMessage

@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 // Conditionally require()'d in LogoV2.tsx behind feature('KAIROS') ||
 // feature('KAIROS_CHANNELS'). No feature() guard here — the whole file
 // tree-shakes via the require pattern when both flags are false (see
@@ -16,7 +15,7 @@ import { getClaudeAIOAuthTokens, getSubscriptionType } from '../../utils/auth.js
 import { loadInstalledPluginsV2 } from '../../utils/plugins/installedPluginsManager.js';
 import { getSettingsForSource } from '../../utils/settings/settings.js';
 export function ChannelsNotice() {
-  const $ = _c(32);
+  const $ = new Array(32).fill(void 0);
   const [t0] = useState(_temp);
   const {
     channels,

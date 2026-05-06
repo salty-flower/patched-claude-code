@@ -1,50 +1,41 @@
+import { feature } from 'bun:bundle'
+import { isReplBridgeActive } from '../../bootstrap/state.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import type { Tool } from '../../Tool.js'
+import { AGENT_TOOL_NAME } from '../AgentTool/constants.js'
+
+// Dead code elimination: Brief tool name only needed when KAIROS or KAIROS_BRIEF is on
+/* eslint-disable @typescript-eslint/no-require-imports */
+const BRIEF_TOOL_NAME: string | null =
+  feature('KAIROS') || feature('KAIROS_BRIEF')
+    ? (
+        require('../BriefTool/prompt.js') as typeof import('../BriefTool/prompt.js')
+      ).BRIEF_TOOL_NAME
+    : null
+const SEND_USER_FILE_TOOL_NAME: string | null = feature('KAIROS')
+  ? (
+      require('../SendUserFileTool/prompt.js') as typeof import('../SendUserFileTool/prompt.js')
+    ).SEND_USER_FILE_TOOL_NAME
+  : null
+
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 export { TOOL_SEARCH_TOOL_NAME } from './constants.js'
 
 import { TOOL_SEARCH_TOOL_NAME } from './constants.js'
 
-// v112: BRIEF_TOOL_NAME and SEND_USER_FILE_TOOL_NAME are now imported from their
-// respective modules via a lazy init block (Kc). FORK_SUBAGENT gate is gone.
-// A new ScheduleWakeup gate replaces the SendUserFile gate (T04).
-// The KAIROS/KAIROS_BRIEF feature() checks are replaced with a module-level
-// lazy reference — BRIEF_TOOL_NAME is still never deferred; SCHEDULE_WAKEUP is
-// also not deferred when its loop is in dynamic mode.
-//
-// v112 lazy-init names:
-//   v04 → BRIEF_TOOL_NAME (from BriefTool/prompt.js)
-//   T04 → SCHEDULE_WAKEUP_TOOL_NAME (from ScheduleWakeupTool — new in v112)
-// These are populated by the module init block (Kc).
-
-// TODO(lift): v04 — BRIEF_TOOL_NAME lazy ref at byte ~4955060
-let _BRIEF_TOOL_NAME_V112: string | null = null
-// TODO(lift): T04 — SCHEDULE_WAKEUP_TOOL_NAME lazy ref at byte ~4955283
-let _SCHEDULE_WAKEUP_TOOL_NAME_V112: string | null = null
-
-/**
- * Called by module init to populate lazy tool name references.
- * @internal
- */
-export function _initToolNameRefs_V112(
-  briefToolName: string | null,
-  scheduleWakeupToolName: string | null,
-): void {
-  _BRIEF_TOOL_NAME_V112 = briefToolName
-  _SCHEDULE_WAKEUP_TOOL_NAME_V112 = scheduleWakeupToolName
-}
-
 const PROMPT_HEAD = `Fetches full schema definitions for deferred tools so they can be called.
 
 `
 
-// v112: getToolLocationHint still checks tengu_glacier_2xr flag but the
-// USER_TYPE === 'ant' branch was dropped; now purely flag-driven.
+// Matches isDeferredToolsDeltaEnabled in toolSearch.ts (not imported —
+// toolSearch.ts imports from this file). When enabled: tools announced
+// via system-reminder attachments. When disabled: prepended
+// <available-deferred-tools> block (pre-gate behavior).
 function getToolLocationHint(): string {
-  const deltaEnabled = getFeatureValue_CACHED_MAY_BE_STALE(
-    'tengu_glacier_2xr',
-    false,
-  )
+  const deltaEnabled =
+    process.env.USER_TYPE === 'ant' ||
+    getFeatureValue_CACHED_MAY_BE_STALE('tengu_glacier_2xr', false)
   return deltaEnabled
     ? 'Deferred tools appear by name in <system-reminder> messages.'
     : 'Deferred tools appear by name in <available-deferred-tools> messages.'
@@ -61,47 +52,65 @@ Query forms:
 
 /**
  * Check if a tool should be deferred (requires ToolSearch to load).
+ * A tool is deferred if:
+ * - It's an MCP tool (always deferred - workflow-specific)
+ * - It has shouldDefer: true
  *
- * v112 changes vs v88:
- * - FORK_SUBAGENT gate removed entirely.
- * - KAIROS/KAIROS_BRIEF/isReplBridgeActive gates removed.
- * - BRIEF_TOOL_NAME still never deferred (via lazy module ref v04).
- * - New: SCHEDULE_WAKEUP_TOOL_NAME not deferred when its loop is in
- *   dynamic mode (isLoopDynamicEnabled check via T04 ref).
+ * A tool is NEVER deferred if it has alwaysLoad: true (MCP tools set this via
+ * _meta['anthropic/alwaysLoad']). This check runs first, before any other rule.
  */
 export function isDeferredTool(tool: Tool): boolean {
-  // Explicit opt-out — tool appears in initial prompt with full schema.
+  // Explicit opt-out via _meta['anthropic/alwaysLoad'] — tool appears in the
+  // initial prompt with full schema. Checked first so MCP tools can opt out.
   if (tool.alwaysLoad === true) return false
 
   // MCP tools are always deferred (workflow-specific)
   if (tool.isMcp === true) return true
 
-  // Never defer ToolSearch itself
+  // Never defer ToolSearch itself — the model needs it to load everything else
   if (tool.name === TOOL_SEARCH_TOOL_NAME) return false
 
-  // Brief is the primary communication channel — must be immediately available.
-  if (_BRIEF_TOOL_NAME_V112 && tool.name === _BRIEF_TOOL_NAME_V112) return false
+  // Fork-first experiment: Agent must be available turn 1, not behind ToolSearch.
+  // Lazy require: static import of forkSubagent → coordinatorMode creates a cycle
+  // through constants/tools.ts at module init.
+  if (feature('FORK_SUBAGENT') && tool.name === AGENT_TOOL_NAME) {
+    type ForkMod = typeof import('../AgentTool/forkSubagent.js')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const m = require('../AgentTool/forkSubagent.js') as ForkMod
+    if (m.isForkSubagentEnabled()) return false
+  }
 
-  // ScheduleWakeup (new in v112): not deferred when loop is in dynamic mode.
-  // TODO(lift): T04 isLoopDynamicEnabled check at byte ~4955283 — the minified
-  // guard is `(cR8(),B7(dR8)).isLoopDynamicEnabled()`. When true, tool is NOT
-  // deferred. When false, falls through to shouldDefer check below.
+  // Brief is the primary communication channel whenever the tool is present.
+  // Its prompt contains the text-visibility contract, which the model must
+  // see without a ToolSearch round-trip. No runtime gate needed here: this
+  // tool's isEnabled() IS isBriefEnabled(), so being asked about its deferral
+  // status implies the gate already passed.
   if (
-    _SCHEDULE_WAKEUP_TOOL_NAME_V112 &&
-    tool.name === _SCHEDULE_WAKEUP_TOOL_NAME_V112
+    (feature('KAIROS') || feature('KAIROS_BRIEF')) &&
+    BRIEF_TOOL_NAME &&
+    tool.name === BRIEF_TOOL_NAME
   ) {
-    // TODO(lift): cR8 / dR8 / isLoopDynamicEnabled — schedule wakeup loop
-    // dynamic mode check at byte ~4955200. Stub returns false (always deferred
-    // when schedule wakeup module hasn't been resolved).
-    const isLoopDynamic = false // TODO(lift): wire to actual isLoopDynamicEnabled()
-    if (isLoopDynamic) return false
+    return false
+  }
+
+  // SendUserFile is a file-delivery communication channel (sibling of Brief).
+  // Must be immediately available without a ToolSearch round-trip.
+  if (
+    feature('KAIROS') &&
+    SEND_USER_FILE_TOOL_NAME &&
+    tool.name === SEND_USER_FILE_TOOL_NAME &&
+    isReplBridgeActive()
+  ) {
+    return false
   }
 
   return tool.shouldDefer === true
 }
 
 /**
- * Format one deferred-tool line for the <available-deferred-tools> user message.
+ * Format one deferred-tool line for the <available-deferred-tools> user
+ * message. Search hints (tool.searchHint) are not rendered — the
+ * hints A/B (exp_xenhnnmn0smrx4, stopped Mar 21) showed no benefit.
  */
 export function formatDeferredToolLine(tool: Tool): string {
   return tool.name

@@ -102,35 +102,17 @@ function processChunk(str: string): void {
     }
 
     // Skip escape sequences (arrow keys, function keys, focus events, etc.)
-    // v112: escape-sequence parser is more robust — handles CSI (ESC [),
-    // OSC (ESC ]), DCS (ESC P), PM (ESC ^), APC (ESC _), and SS3 (ESC O).
+    // All escape sequences start with ESC (0x1B) and end with a byte in 0x40-0x7E
     if (code === 27) {
       i++ // Skip the ESC character
-      if (i >= str.length) continue
-      const next = str.charCodeAt(i)
-      if (next === 91) {
-        // CSI: ESC [ … terminating byte 0x40-0x7E
-        i++
-        while (i < str.length && str.charCodeAt(i) < 64) i++
-        if (i < str.length) i++ // skip terminator
-      } else if (next === 93 || next === 80 || next === 88 || next === 94 || next === 95) {
-        // OSC / DCS / SOS / PM / APC — terminated by BEL (7) or ST (ESC \)
-        i++
-        while (i < str.length) {
-          const c = str.charCodeAt(i)
-          if (c === 7) { i++; break }
-          if (c === 27 && i + 1 < str.length && str.charCodeAt(i + 1) === 92) {
-            i += 2; break
-          }
-          i++
-        }
-      } else if (next === 79) {
-        // SS3: ESC O <single byte>
-        i += 2
-      } else if (next !== 27 && next !== -1) {
-        // Other single-byte escapes
+      // Skip until the terminating byte (@ to ~) or end of string
+      while (
+        i < str.length &&
+        !(str.charCodeAt(i) >= 64 && str.charCodeAt(i) <= 126)
+      ) {
         i++
       }
+      if (i < str.length) i++ // Skip the terminating byte
       continue
     }
 

@@ -14,7 +14,6 @@ import {
 } from '../../Tool.js'
 import { logForDebugging } from '../../utils/debug.js'
 import { lazySchema } from '../../utils/lazySchema.js'
-import { count } from '../../utils/array.js'
 import { escapeRegExp } from '../../utils/stringUtils.js'
 import { isToolSearchEnabledOptimistic } from '../../utils/toolSearch.js'
 import { getPrompt, isDeferredTool, TOOL_SEARCH_TOOL_NAME } from './prompt.js'
@@ -128,31 +127,20 @@ function buildSearchResult(
 
 /**
  * Parse tool name into searchable parts.
- * v112 change: MCP tools now use mcpInfo.serverName + mcpInfo.toolName when
- * available (richer structured data vs pure string parsing in v88).
- * Falls back to mcp__ string splitting for tools without mcpInfo.
+ * Handles both MCP tools (mcp__server__action) and regular tools (CamelCase).
  */
 function parseToolName(name: string): {
   parts: string[]
   full: string
   isMcp: boolean
 } {
-  // v112: prefer structured mcpInfo if available on the tool object.
-  // The _vK minified function checks tool.mcpInfo first.
-  // Since parseToolName only receives the name string here, this branch
-  // is handled in searchToolsWithKeywords where we have the Tool object.
-
-  // Check if it's an MCP tool by name prefix
+  // Check if it's an MCP tool
   if (name.startsWith('mcp__')) {
     const withoutPrefix = name.replace(/^mcp__/, '').toLowerCase()
-    // v112: split on both __ and _ (via flatMap + split on [\s_.]+)
-    const parts = withoutPrefix
-      .split('__')
-      .flatMap(p => p.toLowerCase().split(/[\s_.]+/))
-      .filter(Boolean)
+    const parts = withoutPrefix.split('__').flatMap(p => p.split('_'))
     return {
-      parts,
-      full: parts.join(' '),
+      parts: parts.filter(Boolean),
+      full: withoutPrefix.replace(/__/g, ' ').replace(/_/g, ' '),
       isMcp: true,
     }
   }
@@ -160,7 +148,7 @@ function parseToolName(name: string): {
   // Regular tool - split by CamelCase and underscores
   const parts = name
     .replace(/([a-z])([A-Z])/g, '$1 $2') // CamelCase to spaces
-    .replaceAll('_', ' ')
+    .replace(/_/g, ' ')
     .toLowerCase()
     .split(/\s+/)
     .filter(Boolean)
@@ -173,26 +161,8 @@ function parseToolName(name: string): {
 }
 
 /**
- * Parse tool name from a Tool object, using mcpInfo when available.
- * v112 addition: structured MCP info takes priority over string parsing.
- */
-function parseToolObject(tool: Tool): {
-  parts: string[]
-  full: string
-  isMcp: boolean
-} {
-  const mcpInfo = (tool as unknown as { mcpInfo?: { serverName: string; toolName: string } }).mcpInfo
-  if (mcpInfo) {
-    const parts = [mcpInfo.serverName, mcpInfo.toolName]
-      .flatMap(s => s.toLowerCase().split(/[\s_.]+/))
-      .filter(Boolean)
-    return { parts, full: parts.join(' '), isMcp: true }
-  }
-  return parseToolName(tool.name)
-}
-
-/**
  * Pre-compile word-boundary regexes for all search terms.
+ * Called once per search instead of tools×terms×2 times.
  */
 function compileTermPatterns(terms: string[]): Map<string, RegExp> {
   const patterns = new Map<string, RegExp>()
@@ -206,9 +176,12 @@ function compileTermPatterns(terms: string[]): Map<string, RegExp> {
 
 /**
  * Keyword-based search over tool names and descriptions.
- * v112 changes:
- * - parseToolName now uses structured mcpInfo when available.
- * - replaceAll('_', ' ') instead of .replace(/_/g, ' ') in CamelCase split.
+ * Handles both MCP tools (mcp__server__action) and regular tools (CamelCase).
+ *
+ * The model typically queries with:
+ * - Server names when it knows the integration (e.g., "slack", "github")
+ * - Action words when looking for functionality (e.g., "read", "list", "create")
+ * - Tool-specific terms (e.g., "notebook", "shell", "kill")
  */
 async function searchToolsWithKeywords(
   query: string,
@@ -218,6 +191,11 @@ async function searchToolsWithKeywords(
 ): Promise<string[]> {
   const queryLower = query.toLowerCase().trim()
 
+  // Fast path: if query matches a tool name exactly, return it directly.
+  // Handles models using a bare tool name instead of select: prefix (seen
+  // from subagents/post-compaction). Checks deferred first, then falls back
+  // to the full tool set — selecting an already-loaded tool is a harmless
+  // no-op that lets the model proceed without retry churn.
   const exactMatch =
     deferredTools.find(t => t.name.toLowerCase() === queryLower) ??
     tools.find(t => t.name.toLowerCase() === queryLower)
@@ -225,6 +203,8 @@ async function searchToolsWithKeywords(
     return [exactMatch.name]
   }
 
+  // If query looks like an MCP tool prefix (mcp__server), find matching tools.
+  // Handles models searching by server name with mcp__ prefix.
   if (queryLower.startsWith('mcp__') && queryLower.length > 5) {
     const prefixMatches = deferredTools
       .filter(t => t.name.toLowerCase().startsWith(queryLower))
@@ -237,6 +217,7 @@ async function searchToolsWithKeywords(
 
   const queryTerms = queryLower.split(/\s+/).filter(term => term.length > 0)
 
+  // Partition into required (+prefixed) and optional terms
   const requiredTerms: string[] = []
   const optionalTerms: string[] = []
   for (const term of queryTerms) {
@@ -251,11 +232,12 @@ async function searchToolsWithKeywords(
     requiredTerms.length > 0 ? [...requiredTerms, ...optionalTerms] : queryTerms
   const termPatterns = compileTermPatterns(allScoringTerms)
 
+  // Pre-filter to tools matching ALL required terms in name or description
   let candidateTools = deferredTools
   if (requiredTerms.length > 0) {
     const matches = await Promise.all(
       deferredTools.map(async tool => {
-        const parsed = parseToolObject(tool)
+        const parsed = parseToolName(tool.name)
         const description = await getToolDescriptionMemoized(tool.name, tools)
         const descNormalized = description.toLowerCase()
         const hintNormalized = tool.searchHint?.toLowerCase() ?? ''
@@ -276,7 +258,7 @@ async function searchToolsWithKeywords(
 
   const scored = await Promise.all(
     candidateTools.map(async tool => {
-      const parsed = parseToolObject(tool)
+      const parsed = parseToolName(tool.name)
       const description = await getToolDescriptionMemoized(tool.name, tools)
       const descNormalized = description.toLowerCase()
       const hintNormalized = tool.searchHint?.toLowerCase() ?? ''
@@ -285,20 +267,24 @@ async function searchToolsWithKeywords(
       for (const term of allScoringTerms) {
         const pattern = termPatterns.get(term)!
 
+        // Exact part match (high weight for MCP server names, tool name parts)
         if (parsed.parts.includes(term)) {
           score += parsed.isMcp ? 12 : 10
         } else if (parsed.parts.some(part => part.includes(term))) {
           score += parsed.isMcp ? 6 : 5
         }
 
+        // Full name fallback (for edge cases)
         if (parsed.full.includes(term) && score === 0) {
           score += 3
         }
 
+        // searchHint match — curated capability phrase, higher signal than prompt
         if (hintNormalized && pattern.test(hintNormalized)) {
           score += 4
         }
 
+        // Description match - use word boundary to avoid false positives
         if (pattern.test(descNormalized)) {
           score += 2
         }
@@ -345,19 +331,18 @@ export const ToolSearchTool = buildTool({
     const deferredTools = tools.filter(isDeferredTool)
     maybeInvalidateCache(deferredTools)
 
+    // Check for MCP servers still connecting
     function getPendingServerNames(): string[] | undefined {
       const appState = getAppState()
       const pending = appState.mcp.clients.filter(c => c.type === 'pending')
       return pending.length > 0 ? pending.map(s => s.name) : undefined
     }
 
-    // v112 change: logSearchOutcome now includes MCP-specific metrics
-    // (mcpServersConfigured, mcpServersConnected, mcpServersPending, mcpToolsInPool).
+    // Helper to log search outcome
     function logSearchOutcome(
       matches: string[],
       queryType: 'select' | 'keyword',
     ): void {
-      const mcpState = getAppState().mcp
       logEvent('tengu_tool_search_outcome', {
         query:
           query as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
@@ -367,13 +352,14 @@ export const ToolSearchTool = buildTool({
         totalDeferredTools: deferredTools.length,
         maxResults: max_results,
         hasMatches: matches.length > 0,
-        mcpServersConfigured: mcpState.clients.length,
-        mcpServersConnected: count(mcpState.clients, c => c.type === 'connected'),
-        mcpServersPending: count(mcpState.clients, c => c.type === 'pending'),
-        mcpToolsInPool: count(tools, t => !!(t as unknown as { mcpInfo?: unknown }).mcpInfo),
       })
     }
 
+    // Check for select: prefix — direct tool selection.
+    // Supports comma-separated multi-select: `select:A,B,C`.
+    // If a name isn't in the deferred set but IS in the full tool set,
+    // we still return it — the tool is already loaded, so "selecting" it
+    // is a harmless no-op that lets the model proceed without retry churn.
     const selectMatch = query.match(/^select:(.+)$/i)
     if (selectMatch) {
       const requested = selectMatch[1]!
@@ -419,6 +405,7 @@ export const ToolSearchTool = buildTool({
       return buildSearchResult(found, query, deferredTools.length)
     }
 
+    // Keyword search
     const matches = await searchToolsWithKeywords(
       query,
       deferredTools,
@@ -432,6 +419,7 @@ export const ToolSearchTool = buildTool({
 
     logSearchOutcome(matches, 'keyword')
 
+    // Include pending server info when search finds no matches
     if (matches.length === 0) {
       const pendingServers = getPendingServerNames()
       return buildSearchResult(
@@ -448,6 +436,11 @@ export const ToolSearchTool = buildTool({
     return null
   },
   userFacingName: () => '',
+  /**
+   * Returns a tool_result with tool_reference blocks.
+   * This format works on 1P/Foundry. Bedrock/Vertex may not support
+   * client-side tool_reference expansion yet.
+   */
   mapToolResultToToolResultBlockParam(
     content: Output,
     toolUseID: string,

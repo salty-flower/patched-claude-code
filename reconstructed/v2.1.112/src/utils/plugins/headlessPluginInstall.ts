@@ -32,25 +32,15 @@ import {
 } from './zipCache.js'
 import { syncMarketplacesToZipCache } from './zipCacheAdapters.js'
 
-export type HeadlessInstallProgress =
-  | { status: 'installed'; name: string }
-  | { status: 'failed'; name: string; error: string }
-
 /**
  * Install plugins for headless/CCR mode.
  *
  * This is the headless equivalent of performBackgroundPluginInstallations(),
  * but without AppState updates (no UI to update in headless mode).
  *
- * v112 change: accepts optional `progress` callback for reporting install
- * status to callers (used by CCR streaming).
- *
- * @param progress - Optional callback for install progress events
  * @returns true if any plugins were installed (caller should refresh MCP)
  */
-export async function installPluginsForHeadless(
-  progress?: (event: HeadlessInstallProgress) => void,
-): Promise<boolean> {
+export async function installPluginsForHeadless(): Promise<boolean> {
   const zipCacheMode = isPluginZipCacheEnabled()
   logForDebugging(
     `installPluginsForHeadless: starting${zipCacheMode ? ' (zip cache mode)' : ''}`,
@@ -111,12 +101,10 @@ export async function installPluginsForHeadless(
               : undefined,
             onProgress: event => {
               if (event.type === 'installed') {
-                progress?.({ status: 'installed', name: event.name })
                 logForDebugging(
                   `installPluginsForHeadless: installed marketplace ${event.name}`,
                 )
               } else if (event.type === 'failed') {
-                progress?.({ status: 'failed', name: event.name, error: event.error })
                 logForDebugging(
                   `installPluginsForHeadless: failed to install marketplace ${event.name}: ${event.error}`,
                 )

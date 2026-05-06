@@ -76,7 +76,6 @@ export const DANGEROUS_DIRECTORIES = [
   '.vscode',
   '.idea',
   '.claude',
-  '.husky',
 ] as const
 
 /**
@@ -255,19 +254,27 @@ function isSessionPlanFile(absolutePath: string): boolean {
   )
 }
 
-// Check if file is within the session memory directory
-function isSessionMemoryPath(absolutePath: string): boolean {
-  // SECURITY: Normalize to prevent path traversal bypasses via .. segments
-  const normalizedPath = normalize(absolutePath)
-  return normalizedPath.startsWith(getSessionMemoryDir())
-}
-
 /**
  * Returns the session memory directory path for the current session with trailing separator.
  * Path format: {projectDir}/{sessionId}/session-memory/
  */
 export function getSessionMemoryDir(): string {
   return join(getProjectDir(getCwd()), getSessionId(), 'session-memory') + sep
+}
+
+/**
+ * Returns the session memory file path for the current session.
+ * Path format: {projectDir}/{sessionId}/session-memory/summary.md
+ */
+export function getSessionMemoryPath(): string {
+  return join(getSessionMemoryDir(), 'summary.md')
+}
+
+// Check if file is within the session memory directory
+function isSessionMemoryPath(absolutePath: string): boolean {
+  // SECURITY: Normalize to prevent path traversal bypasses via .. segments
+  const normalizedPath = normalize(absolutePath)
+  return normalizedPath.startsWith(getSessionMemoryDir())
 }
 
 /**
@@ -363,11 +370,19 @@ export const getBundledSkillsRoot = memoize(
 )
 
 /**
+ * Returns the project temp directory path with trailing separator.
+ * Path format: /tmp/claude-{uid}/{sanitized-cwd}/
+ */
+export function getProjectTempDir(): string {
+  return join(getClaudeTempDir(), sanitizePath(getOriginalCwd())) + sep
+}
+
+/**
  * Returns the scratchpad directory path for the current session.
- * Path format: /tmp/claude-{uid}/{sessionId}/scratchpad/
+ * Path format: /tmp/claude-{uid}/{sanitized-cwd}/{sessionId}/scratchpad/
  */
 export function getScratchpadDir(): string {
-  return join(getClaudeTempDir(), getSessionId(), 'scratchpad')
+  return join(getProjectTempDir(), getSessionId(), 'scratchpad')
 }
 
 /**
@@ -417,21 +432,14 @@ function isScratchpadPath(absolutePath: string): boolean {
  * - Shell configuration files (to prevent shell startup script manipulation)
  * - UNC paths (to prevent network file access and WebDAV attacks)
  */
-function isDangerousFilePathToAutoEdit(
-  path: string,
-  isRemoteMode?: boolean,
-): boolean {
+function isDangerousFilePathToAutoEdit(path: string): boolean {
   const absolutePath = expandPath(path)
   const pathSegments = absolutePath.split(sep)
   const fileName = pathSegments.at(-1)
 
   // Check for UNC paths (defense-in-depth to catch any patterns that might not be caught by containsVulnerableUncPath)
-  // Block anything starting with \\ or // as these are potentially UNC paths that could access network resources.
-  // In remote mode, safe UNC paths (e.g. WSL paths) are allowed through cH7 check.
-  if (
-    (path.startsWith('\\\\') || path.startsWith('//')) &&
-    !isSafeUncPath(path)
-  ) {
+  // Block anything starting with \\ or // as these are potentially UNC paths that could access network resources
+  if (path.startsWith('\\\\') || path.startsWith('//')) {
     return true
   }
 
@@ -443,30 +451,6 @@ function isDangerousFilePathToAutoEdit(
     for (const dir of DANGEROUS_DIRECTORIES) {
       if (normalizedSegment !== normalizeCaseForComparison(dir)) {
         continue
-      }
-
-      // In remote mode, allow .claude/skills/, .claude/agents/, .claude/commands/
-      // and .claude/scheduled_tasks.json so remote workspaces can use these features.
-      if (dir === '.claude' && isRemoteMode) {
-        const nextSegment = pathSegments[i + 1]
-        const nextSegmentLower = nextSegment
-          ? normalizeCaseForComparison(nextSegment)
-          : undefined
-        if (nextSegmentLower) {
-          if (
-            nextSegmentLower === 'skills' ||
-            nextSegmentLower === 'agents' ||
-            nextSegmentLower === 'commands'
-          ) {
-            break
-          }
-          if (
-            nextSegmentLower === 'scheduled_tasks.json' &&
-            i + 1 === pathSegments.length - 1
-          ) {
-            break
-          }
-        }
       }
 
       // Special case: .claude/worktrees/ is a structural path (where Claude stores
@@ -503,11 +487,6 @@ function isDangerousFilePathToAutoEdit(
   return false
 }
 
-// TODO(lift): isSafeUncPath definition not in this slice; imported from elsewhere.
-function isSafeUncPath(_path: string): boolean {
-  return false
-}
-
 /**
  * Detects suspicious Windows path patterns that could bypass security checks.
  * These patterns include:
@@ -529,7 +508,7 @@ function isSafeUncPath(_path: string): boolean {
  * prefixes to bypass security checks. Therefore, we check for these patterns on
  * all platforms to ensure comprehensive protection. (Note: the ADS colon check
  * is Windows/WSL-only, since colon syntax is only interpreted by the Windows
- * kernel; on Linux/macOS, even when NTFS is mounted, ADS is accessed via xattrs, not colon syntax.)
+ * kernel; on Linux/macOS, NTFS ADS is accessed via xattrs, not colon syntax.)
  *
  * ## Why Detection Instead of Normalization?
  *
@@ -544,7 +523,7 @@ function isSafeUncPath(_path: string): boolean {
  *    and actual file access, creating TOCTOU (Time-Of-Check-Time-Of-Use) vulnerabilities.
  *
  * 3. **Complexity**: Proper normalization requires Windows-specific APIs, handling
- *    multiple edge cases, and dealing with various path formats (UNC, device paths, etc.)
+ *    multiple edge cases, and dealing with various path formats (UNC, device paths, etc.).
  *
  * 4. **Reliability**: Pattern detection is more predictable and doesn't depend on
  *    external system state.
@@ -641,7 +620,6 @@ function hasSuspiciousWindowsPathPattern(path: string): boolean {
 export function checkPathSafetyForAutoEdit(
   path: string,
   precomputedPathsToCheck?: readonly string[],
-  _isRemoteMode?: boolean,
 ):
   | { safe: true }
   | { safe: false; message: string; classifierApprovable: boolean } {
@@ -673,7 +651,7 @@ export function checkPathSafetyForAutoEdit(
 
   // Check for dangerous files on all paths
   for (const pathToCheck of pathsToCheck) {
-    if (isDangerousFilePathToAutoEdit(pathToCheck, _isRemoteMode)) {
+    if (isDangerousFilePathToAutoEdit(pathToCheck)) {
       return {
         safe: false,
         message: `Claude requested permissions to edit ${path} which is a sensitive file.`,
@@ -1046,17 +1024,6 @@ export function matchingRuleForInput(
   return null
 }
 
-// TODO(lift): matchingRuleForInputPaths helper used in v112 checkReadPermissionForTool
-// and checkWritePermissionForTool. Not in this slice; imported from elsewhere.
-function matchingRuleForInputPaths(
-  _paths: readonly string[],
-  _context: ToolPermissionContext,
-  _toolType: 'edit' | 'read',
-  _behavior: 'allow' | 'deny' | 'ask',
-): PermissionRule | null {
-  return null
-}
-
 /**
  * Permission result for read permission for the specified tool & tool input
  */
@@ -1191,10 +1158,12 @@ export function checkReadPermissionForTool(
   }
 
   // 8. Check for allow rules
-  // v112: uses matchingRuleForInputPaths helper to check all paths
-  const allowRule =
-    matchingRuleForInputPaths(pathsToCheck, toolPermissionContext, 'read', 'allow') ??
-    matchingRuleForInput(path, toolPermissionContext, 'read', 'allow')
+  const allowRule = matchingRuleForInput(
+    path,
+    toolPermissionContext,
+    'read',
+    'allow',
+  )
   if (allowRule) {
     return {
       behavior: 'allow',
@@ -1333,11 +1302,7 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
   // 1.7. Check comprehensive safety validations (Windows patterns, Claude config, dangerous files)
   // This MUST come before checking allow rules to prevent users from accidentally granting
   // permission to edit protected files
-  const safetyCheck = checkPathSafetyForAutoEdit(
-    path,
-    pathsToCheck,
-    toolPermissionContext.isRemoteMode,
-  )
+  const safetyCheck = checkPathSafetyForAutoEdit(path, pathsToCheck)
   if (!safetyCheck.safe) {
     // SDK suggestion: if under .claude/skills/{name}/, emit the narrowed
     // session-scoped addRules that step 1.6 will honor on the next call.
@@ -1410,10 +1375,12 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
   }
 
   // 4. Check for allow rules
-  // v112: uses matchingRuleForInputPaths helper to check all paths
-  const allowRule =
-    matchingRuleForInputPaths(pathsToCheck, toolPermissionContext, 'edit', 'allow') ??
-    matchingRuleForInput(path, toolPermissionContext, 'edit', 'allow')
+  const allowRule = matchingRuleForInput(
+    path,
+    toolPermissionContext,
+    'edit',
+    'allow',
+  )
   if (allowRule) {
     return {
       behavior: 'allow',
@@ -1469,23 +1436,14 @@ export function generateSuggestions(
     return suggestions
   }
 
-  // v112: Only suggest setMode:acceptEdits when it would be an upgrade.
-  // In auto mode the classifier already auto-approves edits; in bypassPermissions
+  // Only suggest setMode:acceptEdits when it would be an upgrade. In auto
+  // mode the classifier already auto-approves edits; in bypassPermissions
   // everything is allowed; in acceptEdits it's a no-op. Suggesting it
   // anyway and having the SDK host apply it on "Always allow" silently
   // downgrades auto → acceptEdits, which then prompts for MCP/Bash.
-  // Also, when in plan mode with a prePlanMode that already allows edits
-  // (auto, bypassPermissions, acceptEdits, dontAsk), don't suggest acceptEdits.
-  const isPlanWithUpgradedPreMode =
-    toolPermissionContext.mode === 'plan' &&
-    (toolPermissionContext.prePlanMode === 'auto' ||
-      toolPermissionContext.prePlanMode === 'bypassPermissions' ||
-      toolPermissionContext.prePlanMode === 'acceptEdits' ||
-      toolPermissionContext.prePlanMode === 'dontAsk')
   const shouldSuggestAcceptEdits =
-    (toolPermissionContext.mode === 'default' ||
-      toolPermissionContext.mode === 'plan') &&
-    !isPlanWithUpgradedPreMode
+    toolPermissionContext.mode === 'default' ||
+    toolPermissionContext.mode === 'plan'
 
   if (operationType === 'write' || operationType === 'create') {
     const updates: PermissionUpdate[] = shouldSuggestAcceptEdits
@@ -1514,24 +1472,6 @@ export function generateSuggestions(
     : []
 }
 
-// TODO(lift): isWorkflowScriptFile helper used in v112 checkEditableInternalPath.
-// Not in this slice; imported from elsewhere.
-function isWorkflowScriptFile(_path: string): boolean {
-  return false
-}
-
-// TODO(lift): isFrameSourceFile helper used in v112 checkEditableInternalPath.
-// Not in this slice; imported from elsewhere.
-function isFrameSourceFile(_path: string): boolean {
-  return false
-}
-
-// TODO(lift): isMemoryToggledOff helper used in v112 checkEditable/checkReadable.
-// Not in this slice; imported from elsewhere.
-function isMemoryToggledOff(): boolean {
-  return false
-}
-
 /**
  * Check if a path is an internal path that can be edited without permission.
  * Returns a PermissionResult - either 'allow' if matched, or 'passthrough' to continue checking.
@@ -1556,30 +1496,6 @@ export function checkEditableInternalPath(
     }
   }
 
-  // Workflow script files for current session (v112: new)
-  if (isWorkflowScriptFile(normalizedPath)) {
-    return {
-      behavior: 'allow',
-      updatedInput: input,
-      decisionReason: {
-        type: 'other',
-        reason: 'Workflow script files for current session are allowed for writing',
-      },
-    }
-  }
-
-  // Frame source files for current session (v112: new)
-  if (isFrameSourceFile(normalizedPath)) {
-    return {
-      behavior: 'allow',
-      updatedInput: input,
-      decisionReason: {
-        type: 'other',
-        reason: 'Frame source files for current session are allowed for writing',
-      },
-    }
-  }
-
   // Scratchpad directory for current session
   if (isScratchpadPath(normalizedPath)) {
     return {
@@ -1592,6 +1508,48 @@ export function checkEditableInternalPath(
     }
   }
 
+  // Template job's own directory. Env key hardcoded (vs importing JOB_ENV_KEY
+  // from jobs/state) so tree-shaking eliminates the string from external
+  // builds — spawn.test.ts asserts the string matches. Hijack guard: the env
+  // var value must itself resolve under ~/.claude/jobs/. Symlink guard: every
+  // resolved form of the target (lexical + symlink chain) must fall under some
+  // resolved form of the job dir, so a symlink inside the job dir pointing at
+  // e.g. ~/.ssh/authorized_keys does not get a free write. Resolving both
+  // sides handles the macOS /tmp → /private/tmp case where the config dir
+  // lives under a symlinked root.
+  if (feature('TEMPLATES')) {
+    const jobDir = process.env.CLAUDE_JOB_DIR
+    if (jobDir) {
+      const jobsRoot = join(getClaudeConfigHomeDir(), 'jobs')
+      const jobDirForms = getPathsForPermissionCheck(jobDir).map(normalize)
+      const jobsRootForms = getPathsForPermissionCheck(jobsRoot).map(normalize)
+      // Hijack guard: every resolved form of the job dir must sit under
+      // some resolved form of the jobs root. Resolving both sides handles
+      // the case where ~/.claude is a symlink (e.g. to /data/claude-config).
+      const isUnderJobsRoot = jobDirForms.every(jd =>
+        jobsRootForms.some(jr => jd.startsWith(jr + sep)),
+      )
+      if (isUnderJobsRoot) {
+        const targetForms = getPathsForPermissionCheck(absolutePath)
+        const allInsideJobDir = targetForms.every(p => {
+          const np = normalize(p)
+          return jobDirForms.some(jd => np === jd || np.startsWith(jd + sep))
+        })
+        if (allInsideJobDir) {
+          return {
+            behavior: 'allow',
+            updatedInput: input,
+            decisionReason: {
+              type: 'other',
+              reason:
+                'Job directory files for current job are allowed for writing',
+            },
+          }
+        }
+      }
+    }
+  }
+
   // Agent memory directory (for self-improving agents)
   if (isAgentMemoryPath(normalizedPath)) {
     return {
@@ -1600,19 +1558,6 @@ export function checkEditableInternalPath(
       decisionReason: {
         type: 'other',
         reason: 'Agent memory files are allowed for writing',
-      },
-    }
-  }
-
-  // v112: Memory toggle check - deny if memory is toggled off
-  if (isAutoMemPath(normalizedPath) && isMemoryToggledOff()) {
-    return {
-      behavior: 'deny',
-      message:
-        'Cannot write to memory while it is toggled off. Run /toggle-memory to re-enable automemory.',
-      decisionReason: {
-        type: 'other',
-        reason: 'memory access blocked by /toggle-memory',
       },
     }
   }
@@ -1683,19 +1628,6 @@ export function checkReadableInternalPath(
     }
   }
 
-  // v112: Memory toggle check for reads - deny if memory is toggled off
-  if (isAutoMemPath(normalizedPath) && isMemoryToggledOff()) {
-    return {
-      behavior: 'deny',
-      message:
-        'Cannot read memory while it is toggled off. Run /toggle-memory to re-enable automemory.',
-      decisionReason: {
-        type: 'other',
-        reason: 'memory access blocked by /toggle-memory',
-      },
-    }
-  }
-
   // Project directory (for reading past session memories)
   // Path format: ~/.claude/projects/{sanitized-cwd}/...
   if (isProjectDirPath(normalizedPath)) {
@@ -1753,11 +1685,11 @@ export function checkReadableInternalPath(
     }
   }
 
-  // Project temp directory (/tmp/claude-{uid}/)
-  // v112: Uses getClaudeTempDir directly instead of getProjectTempDir.
-  // This allows reading files from all sessions, not just the current project.
-  const claudeTempDir = getClaudeTempDir()
-  if (normalizedPath.startsWith(claudeTempDir)) {
+  // Project temp directory (/tmp/claude/{sanitized-cwd}/)
+  // Intentionally allows reading files from all sessions in this project, not just the current session.
+  // This enables cross-session file access within the same project's temp space.
+  const projectTempDir = getProjectTempDir()
+  if (normalizedPath.startsWith(projectTempDir)) {
     return {
       behavior: 'allow',
       updatedInput: input,

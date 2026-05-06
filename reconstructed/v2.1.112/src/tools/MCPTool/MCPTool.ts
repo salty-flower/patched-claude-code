@@ -64,41 +64,14 @@ export const MCPTool = buildTool({
   userFacingName: () => 'mcp',
   renderToolUseProgressMessage,
   renderToolResultMessage,
-  // v112: isResultTruncated now handles both string and array content block results
   isResultTruncated(output: Output): boolean {
-    // Cast to unknown since output may actually be a string or array of content blocks
-    const content: unknown = output
-    if (typeof content === 'string') return isOutputLineTruncated(content)
-    if (Array.isArray(content)) {
-      return content.some(
-        (block: unknown) =>
-          typeof block === 'object' &&
-          block !== null &&
-          (block as Record<string, unknown>).type === 'text' &&
-          isOutputLineTruncated((block as Record<string, unknown>).text as string),
-      )
-    }
-    return false
+    return isOutputLineTruncated(output)
   },
   mapToolResultToToolResultBlockParam(content, toolUseID) {
     return {
       tool_use_id: toolUseID,
       type: 'tool_result',
-      // v112: wraps content through serializer (i38) before passing to API
-      // i38 appears to handle both string and structured content block arrays
-      // TODO(lift): i38 at byte ~9673900 — content serializer for MCP results
-      content: serializeMcpContent_V112(content),
+      content,
     }
   },
 } satisfies ToolDef<InputSchema, Output>)
-
-/**
- * v112: stub for i38() — content serializer for MCP tool results.
- * In v88, content was passed through directly. In v112, it goes through a
- * serializer that may convert content block arrays to the appropriate format.
- * TODO(lift): i38 at byte ~9673900
- */
-function serializeMcpContent_V112(content: unknown): unknown {
-  // TODO(lift): i38 at byte ~9673900 — MCP result content serializer
-  return content
-}

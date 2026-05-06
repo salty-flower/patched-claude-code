@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React, { useCallback } from 'react';
 import { logEvent } from 'src/services/analytics/index.js';
 import { Box, Link, Text } from '../ink.js';
@@ -12,7 +11,7 @@ type Props = {
   externalIncludes?: ExternalClaudeMdInclude[];
 };
 export function ClaudeMdExternalIncludesDialog(t0) {
-  const $ = _c(18);
+  const $ = new Array(18).fill(void 0);
   const {
     onDone,
     isStandaloneDialog,

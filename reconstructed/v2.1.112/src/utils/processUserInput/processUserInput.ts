@@ -59,7 +59,6 @@ import {
   replaceUltraplanKeyword,
 } from '../ultraplan/keyword.js'
 import { processTextPrompt } from './processTextPrompt.js'
-
 export type ProcessUserInputContext = ToolUseContext & LocalJSXCommandContext
 
 export type ProcessUserInputBaseResult = {
@@ -101,7 +100,6 @@ export async function processUserInput({
   bridgeOrigin,
   isMeta,
   skipAttachments,
-  shouldQuery,
 }: {
   input: string | Array<ContentBlockParam>
   /**
@@ -139,11 +137,6 @@ export async function processUserInput({
    */
   isMeta?: boolean
   skipAttachments?: boolean
-  /**
-   * v112: When explicitly false, forces shouldQuery=false on the result.
-   * Used by callers that need to suppress querying even on happy path.
-   */
-  shouldQuery?: boolean
 }): Promise<ProcessUserInputBaseResult> {
   const inputString = typeof input === 'string' ? input : null
   // Immediately show the user input prompt while we are still processing the input.
@@ -178,11 +171,6 @@ export async function processUserInput({
   )
   queryCheckpoint('query_process_user_input_base_end')
 
-  // v112: explicit shouldQuery=false override
-  if (shouldQuery === false) {
-    result.shouldQuery = false
-  }
-
   if (!result.shouldQuery) {
     return result
   }
@@ -190,8 +178,6 @@ export async function processUserInput({
   // Execute UserPromptSubmit hooks and handle blocking
   queryCheckpoint('query_hooks_start')
   const inputMessage = getContentText(input) || ''
-
-  let sessionTitle: string | undefined
 
   for await (const hookResult of executeUserPromptSubmitHooks(
     inputMessage,
@@ -237,11 +223,6 @@ export async function processUserInput({
       return result
     }
 
-    // v112: Collect session title from hook result
-    if (hookResult.sessionTitle) {
-      sessionTitle = hookResult.sessionTitle
-    }
-
     // Collect additional contexts
     if (
       hookResult.additionalContexts &&
@@ -250,7 +231,7 @@ export async function processUserInput({
       result.messages.push(
         createAttachmentMessage({
           type: 'hook_additional_context',
-          content: hookResult.additionalContexts,
+          content: hookResult.additionalContexts.map(applyTruncation),
           hookName: 'UserPromptSubmit',
           toolUseID: `hook-${randomUUID()}`,
           hookEvent: 'UserPromptSubmit',
@@ -266,7 +247,13 @@ export async function processUserInput({
             // Skip if there is no content
             break
           }
-          result.messages.push(hookResult.message)
+          result.messages.push({
+            ...hookResult.message,
+            attachment: {
+              ...hookResult.message.attachment,
+              content: applyTruncation(hookResult.message.attachment.content),
+            },
+          })
           break
         default:
           result.messages.push(hookResult.message)
@@ -276,21 +263,20 @@ export async function processUserInput({
   }
   queryCheckpoint('query_hooks_end')
 
-  // v112: Apply session title if set by hook
-  if (sessionTitle) {
-    // TODO(lift): Ma8 at byte ~12490497 — setSessionTitle or similar
-    await setSessionTitle(sessionTitle)
-  }
-
   // Happy path: onQuery will clear userInputOnProcessing via startTransition
   // so it resolves in the same frame as deferredMessages (no flicker gap).
   // Error paths are handled by handlePromptSubmit's finally block.
   return result
 }
 
-// v112: applyTruncation moved out of this file (to shared util).
-// Keeping reference for traceability.
-// TODO(lift): EoK / S$7 at byte ~10110030 — truncation helper now external.
+const MAX_HOOK_OUTPUT_LENGTH = 10000
+
+function applyTruncation(content: string): string {
+  if (content.length > MAX_HOOK_OUTPUT_LENGTH) {
+    return `${content.substring(0, MAX_HOOK_OUTPUT_LENGTH)}… [output truncated - exceeded ${MAX_HOOK_OUTPUT_LENGTH} characters]`
+  }
+  return content
+}
 
 async function processUserInputBase(
   input: string | Array<ContentBlockParam>,
@@ -325,9 +311,6 @@ async function processUserInputBase(
   // where iOS may send `mediaType` instead of `media_type` (mobile-apps#5825).
   let normalizedInput: string | ContentBlockParam[] = input
 
-  // v112: model-aware image resizing limits
-  const imageResizeLimits = getModelImageResizeLimits(context.options.mainLoopModel)
-
   if (typeof input === 'string') {
     inputString = input
   } else if (input.length > 0) {
@@ -335,7 +318,7 @@ async function processUserInputBase(
     const processedBlocks: ContentBlockParam[] = []
     for (const block of input) {
       if (block.type === 'image') {
-        const resized = await maybeResizeAndDownsampleImageBlock(block, imageResizeLimits)
+        const resized = await maybeResizeAndDownsampleImageBlock(block)
         // Collect image metadata for isMeta message
         if (resized.dimensions) {
           const metadataText = createImageMetadataText(resized.dimensions)
@@ -352,7 +335,7 @@ async function processUserInputBase(
     queryCheckpoint('query_image_processing_end')
     // Extract the input string from the last content block if it is text,
     // and keep track of the preceding content blocks
-    const lastBlock = processedBlocks.at(-1)
+    const lastBlock = processedBlocks[processedBlocks.length - 1]
     if (lastBlock?.type === 'text') {
       inputString = lastBlock.text
       precedingInputBlocks = processedBlocks.slice(0, -1)
@@ -374,24 +357,27 @@ async function processUserInputBase(
 
   // Store images to disk so Claude can reference the path in context
   // (for manipulation with CLI tools, uploading to PRs, etc.)
-  // v112: storeImages now takes setAppState as second arg
   const storedImagePaths = pastedContents
-    ? await storeImages(pastedContents, context.setAppState)
+    ? await storeImages(pastedContents)
     : new Map<number, string>()
 
   // Resize pasted images to ensure they fit within API limits (parallel processing)
   queryCheckpoint('query_pasted_image_processing_start')
   const imageProcessingResults = await Promise.all(
     imageContents.map(async pastedImage => {
-      // v112: uses structured resize helper sE instead of inline ImageBlockParam
+      const imageBlock: ImageBlockParam = {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: (pastedImage.mediaType ||
+            'image/png') as Base64ImageSource['media_type'],
+          data: pastedImage.content,
+        },
+      }
       logEvent('tengu_pasted_image_resize_attempt', {
         original_size_bytes: pastedImage.content.length,
       })
-      const resized = await resizePastedImage({
-        data: pastedImage.content,
-        mediaType: pastedImage.mediaType,
-        limits: imageResizeLimits,
-      })
+      const resized = await maybeResizeAndDownsampleImageBlock(imageBlock)
       return {
         resized,
         originalDimensions: pastedImage.dimensions,
@@ -439,13 +425,7 @@ async function processUserInputBase(
   // isBridgeSafeCommand, clear the skip so the gate below opens. If it's a
   // known-but-unsafe command (local-jsx UI or terminal-only), short-circuit
   // with a helpful message rather than letting the model see raw "/config".
-  //
-  // v112: Added command-suggestion fallback for unsafe bridge commands.
-  // When a bridge client sends an unsafe command, we try to find a suggested
-  // replacement (WH7 / getSuggestedCommand) and rewrite the input string.
   let effectiveSkipSlash = skipSlashCommands
-  let effectiveContext = context
-  let effectiveInputString = inputString
   if (bridgeOrigin && inputString !== null && inputString.startsWith('/')) {
     const parsed = parseSlashCommand(inputString)
     const cmd = parsed
@@ -455,30 +435,16 @@ async function processUserInputBase(
       if (isBridgeSafeCommand(cmd)) {
         effectiveSkipSlash = false
       } else {
-        // v112: try to suggest a replacement command for bridge
-        const suggested = getSuggestedCommand(cmd)
-        if (suggested) {
-          effectiveSkipSlash = false
-          effectiveInputString = inputString.replace(/^\/\S+/, `/${suggested.name}`)
-          effectiveContext = {
-            ...context,
-            options: {
-              ...context.options,
-              commands: [suggested, ...context.options.commands],
-            },
-          }
-        } else {
-          const msg = `/${getCommandName(cmd)} isn't available over Remote Control.`
-          return {
-            messages: [
-              createUserMessage({ content: inputString, uuid }),
-              createCommandInputMessage(
-                `<local-command-stdout>${msg}</local-command-stdout>`,
-              ),
-            ],
-            shouldQuery: false,
-            resultText: msg,
-          }
+        const msg = `/${getCommandName(cmd)} isn't available over Remote Control.`
+        return {
+          messages: [
+            createUserMessage({ content: inputString, uuid }),
+            createCommandInputMessage(
+              `<local-command-stdout>${msg}</local-command-stdout>`,
+            ),
+          ],
+          shouldQuery: false,
+          resultText: msg,
         }
       }
     }
@@ -501,23 +467,23 @@ async function processUserInputBase(
   if (
     feature('ULTRAPLAN') &&
     mode === 'prompt' &&
-    !effectiveContext.options.isNonInteractiveSession &&
-    effectiveInputString !== null &&
+    !context.options.isNonInteractiveSession &&
+    inputString !== null &&
     !effectiveSkipSlash &&
-    !effectiveInputString.startsWith('/') &&
-    !effectiveContext.getAppState().ultraplanSessionUrl &&
-    !effectiveContext.getAppState().ultraplanLaunching &&
-    hasUltraplanKeyword(preExpansionInput ?? effectiveInputString)
+    !inputString.startsWith('/') &&
+    !context.getAppState().ultraplanSessionUrl &&
+    !context.getAppState().ultraplanLaunching &&
+    hasUltraplanKeyword(preExpansionInput ?? inputString)
   ) {
     logEvent('tengu_ultraplan_keyword', {})
-    const rewritten = replaceUltraplanKeyword(effectiveInputString).trim()
+    const rewritten = replaceUltraplanKeyword(inputString).trim()
     const { processSlashCommand } = await import('./processSlashCommand.js')
     const slashResult = await processSlashCommand(
       `/ultraplan ${rewritten}`,
       precedingInputBlocks,
       imageContentBlocks,
       [],
-      effectiveContext,
+      context,
       setToolJSX,
       uuid,
       isAlreadyProcessing,
@@ -529,33 +495,33 @@ async function processUserInputBase(
   // For slash commands, attachments will be extracted within getMessagesForSlashCommand
   const shouldExtractAttachments =
     !skipAttachments &&
-    effectiveInputString !== null &&
-    (mode !== 'prompt' || effectiveSkipSlash || !effectiveInputString.startsWith('/'))
+    inputString !== null &&
+    (mode !== 'prompt' || effectiveSkipSlash || !inputString.startsWith('/'))
 
   queryCheckpoint('query_attachment_loading_start')
-  // v112: getAttachmentMessages signature simplified — no querySource param
   const attachmentMessages = shouldExtractAttachments
     ? await toArray(
         getAttachmentMessages(
-          effectiveInputString,
-          effectiveContext,
+          inputString,
+          context,
           ideSelection ?? null,
           [], // queuedCommands - handled by query.ts for mid-turn attachments
           messages,
+          querySource,
         ),
       )
     : []
   queryCheckpoint('query_attachment_loading_end')
 
   // Bash commands
-  if (effectiveInputString !== null && mode === 'bash') {
+  if (inputString !== null && mode === 'bash') {
     const { processBashCommand } = await import('./processBashCommand.js')
     return addImageMetadataMessage(
       await processBashCommand(
-        effectiveInputString,
+        inputString,
         precedingInputBlocks,
         attachmentMessages,
-        effectiveContext,
+        context,
         setToolJSX,
       ),
       imageMetadataTexts,
@@ -565,17 +531,17 @@ async function processUserInputBase(
   // Slash commands
   // Skip for remote bridge messages — input from CCR clients is plain text
   if (
-    effectiveInputString !== null &&
+    inputString !== null &&
     !effectiveSkipSlash &&
-    effectiveInputString.startsWith('/')
+    inputString.startsWith('/')
   ) {
     const { processSlashCommand } = await import('./processSlashCommand.js')
     const slashResult = await processSlashCommand(
-      effectiveInputString,
+      inputString,
       precedingInputBlocks,
       imageContentBlocks,
       attachmentMessages,
-      effectiveContext,
+      context,
       setToolJSX,
       uuid,
       isAlreadyProcessing,
@@ -585,8 +551,8 @@ async function processUserInputBase(
   }
 
   // Log agent mention queries for analysis
-  if (effectiveInputString !== null && mode === 'prompt') {
-    const trimmedInput = effectiveInputString.trim()
+  if (inputString !== null && mode === 'prompt') {
+    const trimmedInput = inputString.trim()
 
     const agentMention = attachmentMessages.find(
       (m): m is AttachmentMessage<AgentMentionAttachment> =>
@@ -608,7 +574,7 @@ async function processUserInputBase(
   }
 
   // Regular user prompt
-  const result = addImageMetadataMessage(
+  return addImageMetadataMessage(
     processTextPrompt(
       normalizedInput,
       imageContentBlocks,
@@ -620,25 +586,6 @@ async function processUserInputBase(
     ),
     imageMetadataTexts,
   )
-
-  // v112: Append thinking-mode system prompt when applicable
-  if (
-    mode === 'prompt' &&
-    !isMeta &&
-    effectiveContext.options.customSystemPrompt === undefined &&
-    effectiveContext.options.thinkingConfig?.type !== 'disabled' &&
-    isThinkingCapableModel(effectiveContext.options.mainLoopModel) &&
-    ideSelection?.some((s) => s.type === 'assistant')
-  ) {
-    result.messages.push(
-      createUserMessage({
-        content: THINKING_MODE_PROMPT,
-        isMeta: true,
-      }),
-    )
-  }
-
-  return result
 }
 
 // Adds image metadata texts as isMeta message to result
@@ -656,12 +603,3 @@ function addImageMetadataMessage(
   }
   return result
 }
-
-// TODO(lift): unresolved cross-chunk symbols from v112 minified bundle
-// - vO / getModelImageResizeLimits at byte ~12485985
-// - sE / resizePastedImage at byte ~12485985
-// - Fq5 / storeImages (v112 takes setAppState) at byte ~12485985
-// - WH7 / getSuggestedCommand at byte ~12485985
-// - Ma8 / setSessionTitle at byte ~12490497
-// - G85 / THINKING_MODE_PROMPT at byte ~12490497
-// - fJ7 / isThinkingCapableModel at byte ~12490497

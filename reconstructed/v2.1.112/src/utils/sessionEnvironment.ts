@@ -97,7 +97,7 @@ export async function getSessionEnvironmentScript(): Promise<string | null> {
     // in the settings.json file so that the resulting env is deterministic
     const hookFiles = files
       .filter(f => HOOK_ENV_REGEX.test(f))
-      .sort(/* TODO(lift): NMz at byte ~5779798 */)
+      .sort(sortHookEnvFiles)
 
     for (const file of hookFiles) {
       const filePath = join(sessionEnvDir, file)
@@ -151,3 +151,16 @@ const HOOK_ENV_PRIORITY: Record<string, number> = {
 }
 const HOOK_ENV_REGEX =
   /^(setup|sessionstart|cwdchanged|filechanged)-hook-(\d+)\.sh$/
+
+function sortHookEnvFiles(a: string, b: string): number {
+  const aMatch = a.match(HOOK_ENV_REGEX)
+  const bMatch = b.match(HOOK_ENV_REGEX)
+  const aType = aMatch?.[1] || ''
+  const bType = bMatch?.[1] || ''
+  if (aType !== bType) {
+    return (HOOK_ENV_PRIORITY[aType] ?? 99) - (HOOK_ENV_PRIORITY[bType] ?? 99)
+  }
+  const aIndex = parseInt(aMatch?.[2] || '0', 10)
+  const bIndex = parseInt(bMatch?.[2] || '0', 10)
+  return aIndex - bIndex
+}

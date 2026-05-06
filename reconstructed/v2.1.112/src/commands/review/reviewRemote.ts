@@ -112,16 +112,29 @@ export async function checkOverageGate(): Promise<OverageGate> {
   }
 }
 
-// TODO(lift): v112 launchRemoteReview has major structural changes at byte ~11113038
-// It now takes an object with mode/prNumber/baseBranch/mergeBaseSha/diffStat
-// and returns { launched, sessionId, sessionUrl, blocks } instead of ContentBlockParam[] | null
+/**
+ * Launch a teleported review session. Returns ContentBlockParam[] describing
+ * the launch outcome for injection into the local conversation (model is then
+ * queried with this content, so it can narrate the launch to the user).
+ *
+ * Returns ContentBlockParam[] with user-facing error messages on recoverable
+ * failures (missing merge-base, empty diff, bundle too large), or null on
+ * other failures so the caller falls through to the local-review prompt.
+ * Reason is captured in analytics.
+ *
+ * Caller must run checkOverageGate() BEFORE calling this function
+ * (ultrareviewCommand.tsx handles the dialog).
+ */
 export async function launchRemoteReview(
   args: string,
   context: ToolUseContext,
   billingNote?: string,
 ): Promise<ContentBlockParam[] | null> {
-  // TODO(lift): v112 refactored to use structured args object at byte ~11113038
   const eligibility = await checkRemoteAgentEligibility()
+  // Synthetic DEFAULT_CODE_REVIEW_ENVIRONMENT_ID works without per-org CCR
+  // setup, so no_remote_environment isn't a blocker. Server-side quota
+  // consume at session creation routes billing: first N zero-rate, then
+  // anthropic:cccr org-service-key (overage-only).
   if (!eligibility.eligible) {
     const blockers = eligibility.errors.filter(
       e => e.type !== 'no_remote_environment',
@@ -148,8 +161,19 @@ export async function launchRemoteReview(
 
   const prNumber = args.trim()
   const isPrNumber = /^\d+$/.test(prNumber)
+  // Synthetic code_review env. Go taggedid.FromUUID(TagEnvironment,
+  // UUID{...,0x02}) encodes with version prefix '01' — NOT Python's
+  // legacy tagged_id() format. Verified in prod.
   const CODE_REVIEW_ENV_ID = 'env_011111111111111111111113'
-
+  // Lite-review bypasses bughunter.go entirely, so it doesn't see the
+  // webhook's bug_hunter_config (different GB project). These env vars are
+  // the only tuning surface — without them, run_hunt.sh's bash defaults
+  // apply (60min, 120s agent timeout), and 120s kills verifiers mid-run
+  // which causes infinite respawn.
+  //
+  // total_wallclock must stay below RemoteAgentTask's 30min poll timeout
+  // with headroom for finalization (~3min synthesis). Per-field guards
+  // match autoDream.ts — GB cache can return stale wrong-type values.
   const raw = getFeatureValue_CACHED_MAY_BE_STALE<Record<
     string,
     unknown
@@ -160,6 +184,9 @@ export async function launchRemoteReview(
     if (n <= 0) return fallback
     return max !== undefined && n > max ? fallback : n
   }
+  // Upper bounds: 27min on wallclock leaves ~3min for finalization under
+  // RemoteAgentTask's 30min poll timeout. If GB is set above that, the
+  // hang we're fixing comes back — fall to the safe default instead.
   const commonEnvVars = {
     BUGHUNTER_DRY_RUN: '1',
     BUGHUNTER_FLEET_SIZE: String(posInt(raw?.fleet_size, 5, 20)),
@@ -170,7 +197,6 @@ export async function launchRemoteReview(
     BUGHUNTER_TOTAL_WALLCLOCK: String(
       posInt(raw?.total_wallclock_minutes, 22, 27),
     ),
-    // TODO(lift): v112 adds BUGHUNTER_MODEL from OlK() at byte ~11113038
     ...(process.env.BUGHUNTER_DEV_BUNDLE_B64 && {
       BUGHUNTER_DEV_BUNDLE_B64: process.env.BUGHUNTER_DEV_BUNDLE_B64,
     }),
@@ -180,12 +206,12 @@ export async function launchRemoteReview(
   let command
   let target
   if (isPrNumber) {
+    // PR mode: refs/pull/N/head via github.com. Orchestrator --pr N.
     const repo = await detectCurrentRepositoryWithHost()
     if (!repo || repo.host !== 'github.com') {
       logEvent('tengu_review_remote_precondition_failed', {})
       return null
     }
-    // TODO(lift): v112 uses CF() with source="ultrareview", tags=["ultrareview"] at byte ~11113038
     session = await teleportToRemote({
       initialMessage: null,
       description: `ultrareview: ${repo.owner}/${repo.name}#${prNumber}`,
@@ -201,7 +227,13 @@ export async function launchRemoteReview(
     command = `/ultrareview ${prNumber}`
     target = `${repo.owner}/${repo.name}#${prNumber}`
   } else {
+    // Branch mode: bundle the working tree, orchestrator diffs against
+    // the fork point. No PR, no existing comments, no dedup.
     const baseBranch = (await getDefaultBranch()) || 'main'
+    // Env-manager's `git remote remove origin` after bundle-clone
+    // deletes refs/remotes/origin/* — the base branch name won't resolve
+    // in the container. Pass the merge-base SHA instead: it's reachable
+    // from HEAD's history so `git diff <sha>` works without a named ref.
     const { stdout: mbOut, code: mbCode } = await execFileNoThrow(
       gitExe(),
       ['merge-base', baseBranch, 'HEAD'],
@@ -218,6 +250,8 @@ export async function launchRemoteReview(
       ]
     }
 
+    // Bail early on empty diffs instead of launching a container that
+    // will just echo "no changes".
     const { stdout: diffStat, code: diffCode } = await execFileNoThrow(
       gitExe(),
       ['diff', '--shortstat', mergeBaseSha],
@@ -233,7 +267,6 @@ export async function launchRemoteReview(
       ]
     }
 
-    // TODO(lift): v112 uses CF() with useBundle, bundleBaseRef, tags, onBundleFail at byte ~11113038
     session = await teleportToRemote({
       initialMessage: null,
       description: `ultrareview: ${baseBranch}`,
@@ -262,7 +295,6 @@ export async function launchRemoteReview(
     logEvent('tengu_review_remote_teleport_failed', {})
     return null
   }
-  // TODO(lift): v112 uses D96() registerRemoteAgentTask at byte ~11113038
   registerRemoteAgentTask({
     remoteTaskType: 'ultrareview',
     session,
@@ -272,7 +304,9 @@ export async function launchRemoteReview(
   })
   logEvent('tengu_review_remote_launched', {})
   const sessionUrl = getRemoteTaskSessionUrl(session.id)
-  // TODO(lift): v112 adds billingNote prefix and diffStat suffix at byte ~11113038
+  // Concise — the tool-output block is visible to the user, so the model
+  // shouldn't echo the same info. Just enough for Claude to acknowledge the
+  // launch without restating the target/URL (both already printed above).
   return [
     {
       type: 'text',

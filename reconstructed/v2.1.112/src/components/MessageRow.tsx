@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import type { Command } from '../commands.js';
 import { Box } from '../ink.js';
@@ -91,7 +90,7 @@ export function hasContentAfterIndex(messages: RenderableMessage[], index: numbe
   return false;
 }
 function MessageRowImpl(t0) {
-  const $ = _c(64);
+  const $ = new Array(64).fill(void 0);
   const {
     message: msg,
     isUserContinuation,

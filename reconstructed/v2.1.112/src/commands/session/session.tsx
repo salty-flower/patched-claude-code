@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import { toString as qrToString } from 'qrcode';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
@@ -12,7 +11,7 @@ type Props = {
   onDone: () => void;
 };
 function SessionInfo(t0) {
-  const $ = _c(19);
+  const $ = new Array(19).fill(void 0);
   const {
     onDone
   } = t0;

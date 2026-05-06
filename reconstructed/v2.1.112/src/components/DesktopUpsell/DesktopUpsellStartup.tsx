@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Box, Text } from '../../ink.js';
@@ -35,7 +34,7 @@ type Props = {
   onDone: () => void;
 };
 export function DesktopUpsellStartup(t0) {
-  const $ = _c(14);
+  const $ = new Array(14).fill(void 0);
   const {
     onDone
   } = t0;

@@ -1,9 +1,8 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { Box, Text } from '../../ink.js';
 import { SandboxManager, shouldAllowManagedSandboxDomainsOnly } from '../../utils/sandbox/sandbox-adapter.js';
 export function SandboxConfigTab() {
-  const $ = _c(3);
+  const $ = new Array(3).fill(void 0);
   const isEnabled = SandboxManager.isSandboxingEnabled();
   let t0;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {

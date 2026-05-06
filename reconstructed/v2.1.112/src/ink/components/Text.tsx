@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { Color, Styles, TextStyles } from '../styles.js';
@@ -112,7 +111,7 @@ const memoizedStylesForWrap: Record<NonNullable<Styles['textWrap']>, Styles> = {
  * This component can display text, and change its style to make it colorful, bold, underline, italic or strikethrough.
  */
 export default function Text(t0) {
-  const $ = _c(29);
+  const $ = new Array(29).fill(void 0);
   const {
     color,
     backgroundColor,

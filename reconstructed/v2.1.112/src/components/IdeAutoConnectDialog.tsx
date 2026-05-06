@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React, { useCallback } from 'react';
 import { Text } from '../ink.js';
 import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js';
@@ -9,7 +8,7 @@ type IdeAutoConnectDialogProps = {
   onComplete: () => void;
 };
 export function IdeAutoConnectDialog(t0) {
-  const $ = _c(9);
+  const $ = new Array(9).fill(void 0);
   const {
     onComplete
   } = t0;
@@ -78,7 +77,7 @@ type IdeDisableAutoConnectDialogProps = {
   onComplete: (disableAutoConnect: boolean) => void;
 };
 export function IdeDisableAutoConnectDialog(t0) {
-  const $ = _c(10);
+  const $ = new Array(10).fill(void 0);
   const {
     onComplete
   } = t0;

@@ -77,7 +77,8 @@ export function shouldAutoEnableClaudeInChrome(): boolean {
   shouldAutoEnable =
     getIsInteractive() &&
     isChromeExtensionInstalled_CACHED_MAY_BE_STALE() &&
-    getFeatureValue_CACHED_MAY_BE_STALE('tengu_chrome_auto_enable', false)
+    (process.env.USER_TYPE === 'ant' ||
+      getFeatureValue_CACHED_MAY_BE_STALE('tengu_chrome_auto_enable', false))
 
   return shouldAutoEnable
 }
@@ -86,11 +87,6 @@ export function shouldAutoEnableClaudeInChrome(): boolean {
  * Setup Claude in Chrome MCP server and tools
  *
  * @returns MCP config and allowed tools, or throws an error if platform is unsupported
- *
- * v112 change: `shouldAutoEnable` no longer checks `process.env.USER_TYPE === 'ant'` —
- * gating is purely via feature flag `tengu_chrome_auto_enable`.
- * installChromeNativeHostManifest: ant-only extra allowed_origins removed; spread is `[...[]`
- * (empty array) confirming the DEV/ANT extension IDs are gone from v112.
  */
 export function setupClaudeInChrome(): {
   mcpConfig: Record<string, ScopedMcpServerConfig>
@@ -200,8 +196,6 @@ export async function installChromeNativeHostManifest(
     throw Error('Claude in Chrome Native Host not supported on this platform')
   }
 
-  // v112 change: ant-only extra allowed_origins (DEV_EXTENSION_ID, ANT_EXTENSION_ID) removed.
-  // The minified spread is `...[])` confirming an empty array.
   const manifest = {
     name: NATIVE_HOST_IDENTIFIER,
     description: 'Claude Code Browser Extension Native Host',
@@ -209,6 +203,12 @@ export async function installChromeNativeHostManifest(
     type: 'stdio',
     allowed_origins: [
       `chrome-extension://fcoeoabgfenejglbffodgkkbkcdhcgfn/`, // PROD_EXTENSION_ID
+      ...(process.env.USER_TYPE === 'ant'
+        ? [
+            'chrome-extension://dihbgbndebgnbjfmelmegjepbnkhlgni/', // DEV_EXTENSION_ID
+            'chrome-extension://dngcpimnedloihjnnfngkgjoidhnaolf/', // ANT_EXTENSION_ID
+          ]
+        : []),
     ],
   }
 
@@ -255,18 +255,13 @@ export async function installChromeNativeHostManifest(
         logForDebugging(
           `[Claude in Chrome] First-time install detected, opening reconnect page in browser`,
         )
-        void openInChrome(CHROME_EXTENSION_RECONNECT_URL).catch(logForDebugging)
+        void openInChrome(CHROME_EXTENSION_RECONNECT_URL)
       } else {
         logForDebugging(
           `[Claude in Chrome] First-time install detected, but extension not installed, skipping reconnect`,
         )
       }
-    }).catch(e =>
-      logForDebugging(
-        `[Claude in Chrome] Failed to check extension installation during manifest install: ${e}`,
-        { level: 'error' },
-      ),
-    )
+    })
   }
 }
 

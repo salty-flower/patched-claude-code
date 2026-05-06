@@ -20,11 +20,6 @@ export type DangerousSettings = {
  * Dangerous env vars are determined by checking against SAFE_ENV_VARS -
  * any env var NOT in SAFE_ENV_VARS is considered dangerous.
  * See managedEnv.ts for the authoritative list and threat categories.
- *
- * v112 changes:
- * - DANGEROUS_SHELL_SETTINGS is now a Set-like structure with command objects
- *   (some entries have { command: string } shape instead of plain string)
- * - SAFE_ENV_VARS expanded with new provider-related env vars
  */
 export function extractDangerousSettings(
   settings: SettingsJson | null | undefined,
@@ -38,23 +33,11 @@ export function extractDangerousSettings(
   }
 
   // Extract dangerous shell settings
-  // v112: DANGEROUS_SHELL_SETTINGS entries may be objects with `command` field
   const shellSettings: Partial<Record<DangerousShellSetting, string>> = {}
   for (const key of DANGEROUS_SHELL_SETTINGS) {
     const value = settings[key]
-    let extractedValue: string | undefined
-    if (typeof value === 'string') {
-      extractedValue = value
-    } else if (
-      value !== null &&
-      typeof value === 'object' &&
-      'command' in value &&
-      typeof (value as Record<string, unknown>).command === 'string'
-    ) {
-      extractedValue = (value as { command: string }).command
-    }
-    if (extractedValue !== undefined && extractedValue.length > 0) {
-      shellSettings[key] = extractedValue
+    if (typeof value === 'string' && value.length > 0) {
+      shellSettings[key] = value
     }
   }
 

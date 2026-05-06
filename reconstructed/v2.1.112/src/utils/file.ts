@@ -33,6 +33,18 @@ export type File = {
   content: string
 }
 
+/**
+ * Check if a path exists asynchronously.
+ */
+export async function pathExists(path: string): Promise<boolean> {
+  try {
+    await stat(path)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export const MAX_OUTPUT_SIZE = 0.25 * 1024 * 1024 // 0.25MB in bytes
 
 export function readFileSafe(filepath: string): string | null {
@@ -77,7 +89,7 @@ export function writeTextContent(
 ): void {
   let toWrite = content
   if (endings === 'CRLF') {
-    // Normalize any existing CRLF to LF first so a replacement that already
+    // Normalize any existing CRLF to LF first so a new_string that already
     // contains \r\n (raw model output) doesn't become \r\r\n after the join.
     toWrite = content.replaceAll('\r\n', '\n').split('\n').join('\r\n')
   }
@@ -201,6 +213,60 @@ export function findSimilarFile(filePath: string): string | undefined {
 export const FILE_NOT_FOUND_CWD_NOTE = 'Note: your current working directory is'
 
 /**
+ * Suggests a corrected path under the current working directory when a file/directory
+ * is not found. Detects the "dropped repo folder" pattern where the model constructs
+ * an absolute path missing the repo directory component.
+ *
+ * Example:
+ *   cwd = /Users/zeeg/src/currentRepo
+ *   requestedPath = /Users/zeeg/src/foobar           (doesn't exist)
+ *   returns        /Users/zeeg/src/currentRepo/foobar (if it exists)
+ *
+ * @param requestedPath - The absolute path that was not found
+ * @returns The corrected path if found under cwd, undefined otherwise
+ */
+export async function suggestPathUnderCwd(
+  requestedPath: string,
+): Promise<string | undefined> {
+  const cwd = getCwd()
+  const cwdParent = dirname(cwd)
+
+  // Resolve symlinks in the requested path's parent directory (e.g., /tmp -> /private/tmp on macOS)
+  // so the prefix comparison works correctly against the cwd (which is already realpath-resolved).
+  let resolvedPath = requestedPath
+  try {
+    const resolvedDir = await realpath(dirname(requestedPath))
+    resolvedPath = join(resolvedDir, basename(requestedPath))
+  } catch {
+    // Parent directory doesn't exist, use the original path
+  }
+
+  // Only check if the requested path is under cwd's parent but not under cwd itself.
+  // When cwdParent is the root directory (e.g., '/'), use it directly as the prefix
+  // to avoid a double-separator '//' that would never match.
+  const cwdParentPrefix = cwdParent === sep ? sep : cwdParent + sep
+  if (
+    !resolvedPath.startsWith(cwdParentPrefix) ||
+    resolvedPath.startsWith(cwd + sep) ||
+    resolvedPath === cwd
+  ) {
+    return undefined
+  }
+
+  // Get the relative path from the parent directory
+  const relFromParent = relative(cwdParent, resolvedPath)
+
+  // Check if the same relative path exists under cwd
+  const correctedPath = join(cwd, relFromParent)
+  try {
+    await stat(correctedPath)
+    return correctedPath
+  } catch {
+    return undefined
+  }
+}
+
+/**
  * Whether to use the compact line-number prefix format (`N\t` instead of
  * `     N→`). The padded-arrow format costs 9 bytes/line overhead; at
  * 1.35B Read calls × 132 lines avg this is 2.18% of fleet uncached input
@@ -216,6 +282,49 @@ export function isCompactLinePrefixEnabled(): boolean {
     'tengu_compact_line_prefix_killswitch',
     false,
   )
+}
+
+/**
+ * Adds cat -n style line numbers to the content.
+ */
+export function addLineNumbers({
+  content,
+  // 1-indexed
+  startLine,
+}: {
+  content: string
+  startLine: number
+}): string {
+  if (!content) {
+    return ''
+  }
+
+  const lines = content.split(/\r?\n/)
+
+  if (isCompactLinePrefixEnabled()) {
+    return lines
+      .map((line, index) => `${index + startLine}\t${line}`)
+      .join('\n')
+  }
+
+  return lines
+    .map((line, index) => {
+      const numStr = String(index + startLine)
+      if (numStr.length >= 6) {
+        return `${numStr}→${line}`
+      }
+      return `${numStr.padStart(6, ' ')}→${line}`
+    })
+    .join('\n')
+}
+
+/**
+ * Inverse of addLineNumbers — strips the `N→` or `N\t` prefix from a single
+ * line. Co-located so format changes here and in addLineNumbers stay in sync.
+ */
+export function stripLineNumberPrefix(line: string): string {
+  const match = line.match(/^\s*\d+[\u2192\t](.*)$/)
+  return match?.[1] ?? line
 }
 
 /**
@@ -446,4 +555,30 @@ export function isFileWithinReadSizeLimit(
     // If we can't stat the file, return false to indicate validation failure
     return false
   }
+}
+
+/**
+ * Normalize a file path for comparison, handling platform differences.
+ * On Windows, normalizes path separators and converts to lowercase for
+ * case-insensitive comparison.
+ */
+export function normalizePathForComparison(filePath: string): string {
+  // Use path.normalize() to clean up redundant separators and resolve . and ..
+  let normalized = normalize(filePath)
+
+  // On Windows, normalize for case-insensitive comparison:
+  // - Convert forward slashes to backslashes (path.normalize only does this on actual Windows)
+  // - Convert to lowercase (Windows paths are case-insensitive)
+  if (getPlatform() === 'windows') {
+    normalized = normalized.replace(/\//g, '\\').toLowerCase()
+  }
+
+  return normalized
+}
+
+/**
+ * Compare two file paths for equality, handling Windows case-insensitivity.
+ */
+export function pathsEqual(path1: string, path2: string): boolean {
+  return normalizePathForComparison(path1) === normalizePathForComparison(path2)
 }

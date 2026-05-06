@@ -228,19 +228,17 @@ export function cronToHuman(cron: string, opts?: { utc?: boolean }): string {
     string,
   ]
 
-  // All wildcards aside from minute: "Every minute" (plain `*`) or "Every N minutes".
+  // Every N minutes: step/N * * * *
+  const everyMinMatch = minute.match(/^\*\/(\d+)$/)
   if (
+    everyMinMatch &&
     hour === '*' &&
     dayOfMonth === '*' &&
     month === '*' &&
     dayOfWeek === '*'
   ) {
-    if (minute === '*') return 'Every minute'
-    const everyMinMatch = minute.match(/^\*\/(\d+)$/)
-    if (everyMinMatch) {
-      const n = parseInt(everyMinMatch[1]!, 10)
-      return n === 1 ? 'Every minute' : `Every ${n} minutes`
-    }
+    const n = parseInt(everyMinMatch[1]!, 10)
+    return n === 1 ? 'Every minute' : `Every ${n} minutes`
   }
 
   // Every hour: 0 * * * *

@@ -2,8 +2,8 @@ import type {
   BetaContentBlock,
   BetaWebSearchTool20250305,
 } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
-import { getAPIProvider } from '../../utils/model/providers.js'
-import type { PermissionResult } from '../../utils/permissions/PermissionResult.js'
+import { getAPIProvider } from 'src/utils/model/providers.js'
+import type { PermissionResult } from 'src/utils/permissions/PermissionResult.js'
 import { z } from 'zod/v4'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import { queryModelWithStreaming } from '../../services/api/claude.js'
@@ -88,6 +88,14 @@ function makeOutputFromSearchResponse(
   query: string,
   durationSeconds: number,
 ): Output {
+  // The result is a sequence of these blocks:
+  // - text to start -- always?
+  // [
+  //    - server_tool_use
+  //    - web_search_tool_result
+  //    - text and citation blocks intermingled
+  //  ]+  (this block repeated for each search)
+
   const results: (SearchResult | string)[] = []
   let textAcc = ''
   let inText = true
@@ -105,12 +113,14 @@ function makeOutputFromSearchResponse(
     }
 
     if (block.type === 'web_search_tool_result') {
+      // Handle error case - content is a WebSearchToolResultError
       if (!Array.isArray(block.content)) {
         const errorMessage = `Web search error: ${block.content.error_code}`
         logError(new Error(errorMessage))
         results.push(errorMessage)
         continue
       }
+      // Success case - add results to our collection
       const hits = block.content.map(r => ({ title: r.title, url: r.url }))
       results.push({
         tool_use_id: block.tool_use_id,
@@ -155,13 +165,12 @@ export const WebSearchTool = buildTool({
     const summary = getToolUseSummary(input)
     return summary ? `Searching for ${summary}` : 'Searching the web'
   },
-  // v112 change (jac=0.992): isEnabled() now also enables for 'anthropicAws' provider.
   isEnabled() {
     const provider = getAPIProvider()
     const model = getMainLoopModel()
 
-    // Enable for firstParty and anthropicAws (new in v112)
-    if (provider === 'firstParty' || provider === 'anthropicAws') {
+    // Enable for firstParty
+    if (provider === 'firstParty') {
       return true
     }
 
@@ -218,6 +227,9 @@ export const WebSearchTool = buildTool({
   renderToolUseProgressMessage,
   renderToolResultMessage,
   extractSearchText() {
+    // renderToolResultMessage shows only "Did N searches in Xs" chrome —
+    // the results[] content never appears on screen. Heuristic would index
+    // string entries in results[] (phantom match). Nothing to search.
     return ''
   },
   async validateInput(input) {
@@ -290,6 +302,7 @@ export const WebSearchTool = buildTool({
         continue
       }
 
+      // Track tool use ID when server_tool_use starts
       if (
         event.type === 'stream_event' &&
         event.event?.type === 'content_block_start'
@@ -298,10 +311,13 @@ export const WebSearchTool = buildTool({
         if (contentBlock && contentBlock.type === 'server_tool_use') {
           currentToolUseId = contentBlock.id
           currentToolUseJson = ''
+          // Note: The ServerToolUseBlock doesn't contain input.query
+          // The actual query comes through input_json_delta events
           continue
         }
       }
 
+      // Accumulate JSON for current tool use
       if (
         currentToolUseId &&
         event.type === 'stream_event' &&
@@ -311,11 +327,14 @@ export const WebSearchTool = buildTool({
         if (delta?.type === 'input_json_delta' && delta.partial_json) {
           currentToolUseJson += delta.partial_json
 
+          // Try to extract query from partial JSON for progress updates
           try {
+            // Look for a complete query field
             const queryMatch = currentToolUseJson.match(
               /"query"\s*:\s*"((?:[^"\\]|\\.)*)"/,
             )
             if (queryMatch && queryMatch[1]) {
+              // The regex properly handles escaped characters
               const query = jsonParse('"' + queryMatch[1] + '"')
 
               if (
@@ -341,12 +360,14 @@ export const WebSearchTool = buildTool({
         }
       }
 
+      // Yield progress when search results come in
       if (
         event.type === 'stream_event' &&
         event.event?.type === 'content_block_start'
       ) {
         const contentBlock = event.event.content_block
         if (contentBlock && contentBlock.type === 'web_search_tool_result') {
+          // Get the actual query that was used for this search
           const toolUseId = contentBlock.tool_use_id
           const actualQuery = toolUseQueries.get(toolUseId) || query
           const content = contentBlock.content
@@ -366,6 +387,7 @@ export const WebSearchTool = buildTool({
       }
     }
 
+    // Process the final result
     const endTime = performance.now()
     const durationSeconds = (endTime - startTime) / 1000
 
@@ -381,13 +403,18 @@ export const WebSearchTool = buildTool({
 
     let formattedOutput = `Web search results for query: "${query}"\n\n`
 
+    // Process the results array - it can contain both string summaries and search result objects.
+    // Guard against null/undefined entries that can appear after JSON round-tripping
+    // (e.g., from compaction or transcript deserialization).
     ;(results ?? []).forEach(result => {
       if (result == null) {
         return
       }
       if (typeof result === 'string') {
+        // Text summary
         formattedOutput += result + '\n\n'
       } else {
+        // Search result with links
         if (result.content?.length > 0) {
           formattedOutput += `Links: ${jsonStringify(result.content)}\n\n`
         } else {

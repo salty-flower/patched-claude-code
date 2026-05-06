@@ -1,7 +1,3 @@
-// v112: jac=0.841, cos=0.999. The second v88 decl [9196846,9197502] has no v112
-// match (boundary artifact from sourcemap slicing). Body is effectively identical
-// to v88 — cos=0.999 confirms only whitespace-level drift.
-
 export function getPrompt(): string {
   return `
 # TeamDelete

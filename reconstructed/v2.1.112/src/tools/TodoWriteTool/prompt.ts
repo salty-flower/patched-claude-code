@@ -1,7 +1,5 @@
 import { FILE_EDIT_TOOL_NAME } from '../FileEditTool/constants.js'
 
-// v112: decl [8345150,8354289] has no v112 match — PROMPT const reconstructed from
-// v88 (jac=1, cos=1 on the DESCRIPTION decl confirms this file is otherwise verbatim).
 export const PROMPT = `Use this tool to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
 It also helps the user understand the progress of the task and overall progress of their requests.
 

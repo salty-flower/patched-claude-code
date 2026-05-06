@@ -11,9 +11,6 @@
 // See test/utils/sandbox/webfetch-preapproved-separation.test.ts for verification
 // that sandbox network restrictions require explicit user permission rules.
 
-// v112: jac=0.926, cos=1. The PREAPPROVED_HOSTS set is identical to v88 per
-// the minified bundle — same domain list, same structure. The jac drift comes
-// from boundary artifacts (decl [8781360,8781376] has no v112 match).
 export const PREAPPROVED_HOSTS = new Set([
   // Anthropic
   'platform.claude.com',

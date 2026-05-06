@@ -306,7 +306,7 @@ function stripBackslashEscapes(path: string): string {
   // Use random salt to prevent injection attacks where path contains literal placeholder
   const salt = randomBytes(8).toString('hex')
   const placeholder = `__DOUBLE_BACKSLASH_${salt}__`
-  const withPlaceholder = path.replaceAll('\\\\', placeholder)
+  const withPlaceholder = path.replace(/\\\\/g, placeholder)
 
   // Remove single backslashes that are shell escapes
   // This handles cases like "name\ \(15\).png" -> "name (15).png"

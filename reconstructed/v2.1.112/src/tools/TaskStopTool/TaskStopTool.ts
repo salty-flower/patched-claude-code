@@ -24,6 +24,8 @@ const outputSchema = lazySchema(() =>
     message: z.string().describe('Status message about the operation'),
     task_id: z.string().describe('The ID of the task that was stopped'),
     task_type: z.string().describe('The type of the task that was stopped'),
+    // Optional: tool outputs are persisted to transcripts and replayed on --resume
+    // without re-validation, so sessions from before this field was added lack it.
     command: z
       .string()
       .optional()
@@ -34,16 +36,14 @@ type OutputSchema = ReturnType<typeof outputSchema>
 
 export type Output = z.infer<OutputSchema>
 
-// jac=0.981 — v112 changes vs v88:
-// - userFacingName: drops `process.env.USER_TYPE === 'ant'` check, always returns 'Stop Task'
-// - call(): uses taskRegistry instead of {getAppState, setAppState}
 export const TaskStopTool = buildTool({
   name: TASK_STOP_TOOL_NAME,
   searchHint: 'kill a running background task',
+  // KillShell is the deprecated name - kept as alias for backward compatibility
+  // with existing transcripts and SDK users
   aliases: ['KillShell'],
   maxResultSizeChars: 100_000,
-  // v112: always 'Stop Task' (v88 returned '' for ant users)
-  userFacingName: () => 'Stop Task',
+  userFacingName: () => (process.env.USER_TYPE === 'ant' ? '' : 'Stop Task'),
   get inputSchema(): InputSchema {
     return inputSchema()
   },
@@ -58,6 +58,7 @@ export const TaskStopTool = buildTool({
     return input.task_id ?? input.shell_id ?? ''
   },
   async validateInput({ task_id, shell_id }, { getAppState }) {
+    // Support both task_id and shell_id (deprecated KillShell compat)
     const id = task_id ?? shell_id
     if (!id) {
       return {
@@ -105,17 +106,16 @@ export const TaskStopTool = buildTool({
   renderToolResultMessage,
   async call(
     { task_id, shell_id },
-    // v112: context has taskRegistry instead of {getAppState, setAppState}
-    { taskRegistry, setAppState, abortController },
+    { getAppState, setAppState, abortController },
   ) {
+    // Support both task_id and shell_id (deprecated KillShell compat)
     const id = task_id ?? shell_id
     if (!id) {
       throw new Error('Missing required parameter: task_id')
     }
 
-    // v112: stopTask takes taskRegistry instead of {getAppState, setAppState}
     const result = await stopTask(id, {
-      taskRegistry,
+      getAppState,
       setAppState,
     })
 

@@ -6,6 +6,7 @@
  * to avoid circular dependencies.
  */
 
+import { feature } from 'bun:bundle'
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs'
 
 // ============================================================================
@@ -29,14 +30,9 @@ export type PermissionMode = InternalPermissionMode
 
 // Runtime validation set: modes that are user-addressable (settings.json
 // defaultMode, --permission-mode CLI flag, conversation recovery).
-// v112: 'auto' is now always included (feature('TRANSCRIPT_CLASSIFIER') gate removed).
 export const INTERNAL_PERMISSION_MODES = [
-  'acceptEdits',
-  'auto',
-  'bypassPermissions',
-  'default',
-  'dontAsk',
-  'plan',
+  ...EXTERNAL_PERMISSION_MODES,
+  ...(feature('TRANSCRIPT_CLASSIFIER') ? (['auto'] as const) : ([] as const)),
 ] as const satisfies readonly PermissionMode[]
 
 export const PERMISSION_MODES = INTERNAL_PERMISSION_MODES

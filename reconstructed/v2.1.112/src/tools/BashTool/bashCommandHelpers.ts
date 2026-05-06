@@ -1,5 +1,8 @@
 import type { z } from 'zod/v4'
-import { splitCommand_DEPRECATED } from '../../utils/bash/commands.js'
+import {
+  isUnsafeCompoundCommand_DEPRECATED,
+  splitCommand_DEPRECATED,
+} from '../../utils/bash/commands.js'
 import {
   buildParsedCommandFromRoot,
   type IParsedCommand,
@@ -10,15 +13,13 @@ import type { PermissionResult } from '../../utils/permissions/PermissionResult.
 import type { PermissionUpdate } from '../../utils/permissions/PermissionUpdateSchema.js'
 import { createPermissionRequestMessage } from '../../utils/permissions/permissions.js'
 import { BashTool } from './BashTool.js'
+import { bashCommandIsSafeAsync_DEPRECATED } from './bashSecurity.js'
 
 export type CommandIdentityCheckers = {
   isNormalizedCdCommand: (command: string) => boolean
   isNormalizedGitCommand: (command: string) => boolean
 }
 
-// v112: segmentedCommandPermissionResult reorders checks — deny first, then
-// multi-cd, then cd+git, then allow.  v88 checked multi-cd before deny.
-// Also adds bashMissKind fields to decisionReason objects.
 async function segmentedCommandPermissionResult(
   input: z.infer<typeof BashTool.inputSchema>,
   segments: string[],
@@ -27,41 +28,7 @@ async function segmentedCommandPermissionResult(
   ) => Promise<PermissionResult>,
   checkers: CommandIdentityCheckers,
 ): Promise<PermissionResult> {
-  const segmentResults = new Map<string, PermissionResult>()
-
-  // Check each segment through the full permission system first
-  for (const segment of segments) {
-    const trimmedSegment = segment.trim()
-    if (!trimmedSegment) continue // Skip empty segments
-
-    const segmentResult = await bashToolHasPermissionFn({
-      ...input,
-      command: trimmedSegment,
-    })
-    segmentResults.set(trimmedSegment, segmentResult)
-  }
-
-  // Check if any segment is denied (after evaluating all) — deny checked FIRST in v112
-  const deniedSegment = Array.from(segmentResults.entries()).find(
-    ([, result]) => result.behavior === 'deny',
-  )
-
-  if (deniedSegment) {
-    const [segmentCommand, segmentResult] = deniedSegment
-    return {
-      behavior: 'deny',
-      message:
-        segmentResult.behavior === 'deny'
-          ? segmentResult.message
-          : `Permission denied for: ${segmentCommand}`,
-      decisionReason: {
-        type: 'subcommandResults',
-        reasons: segmentResults,
-      },
-    }
-  }
-
-  // v112: multi-cd check moved after deny check, gained bashMissKind field
+  // Check for multiple cd commands across all segments
   const cdCommands = segments.filter(segment => {
     const trimmed = segment.trim()
     return checkers.isNormalizedCdCommand(trimmed)
@@ -71,7 +38,6 @@ async function segmentedCommandPermissionResult(
       type: 'other' as const,
       reason:
         'Multiple directory changes in one command require approval for clarity',
-      bashMissKind: 'multi-cd',
     }
     return {
       behavior: 'ask',
@@ -80,7 +46,12 @@ async function segmentedCommandPermissionResult(
     }
   }
 
-  // v112: cd+git cross-segment check; added bashMissKind field
+  // SECURITY: Check for cd+git across pipe segments to prevent bare repo fsmonitor bypass.
+  // When cd and git are in different pipe segments (e.g., "cd sub && echo | git status"),
+  // each segment is checked independently and neither triggers the cd+git check in
+  // bashPermissions.ts. We must detect this cross-segment pattern here.
+  // Each pipe segment can itself be a compound command (e.g., "cd sub && echo"),
+  // so we split each segment into subcommands before checking.
   {
     let hasCd = false
     let hasGit = false
@@ -101,13 +72,46 @@ async function segmentedCommandPermissionResult(
         type: 'other' as const,
         reason:
           'Compound commands with cd and git require approval to prevent bare repository attacks',
-        bashMissKind: 'cd-git-compound',
       }
       return {
         behavior: 'ask',
         decisionReason,
         message: createPermissionRequestMessage(BashTool.name, decisionReason),
       }
+    }
+  }
+
+  const segmentResults = new Map<string, PermissionResult>()
+
+  // Check each segment through the full permission system
+  for (const segment of segments) {
+    const trimmedSegment = segment.trim()
+    if (!trimmedSegment) continue // Skip empty segments
+
+    const segmentResult = await bashToolHasPermissionFn({
+      ...input,
+      command: trimmedSegment,
+    })
+    segmentResults.set(trimmedSegment, segmentResult)
+  }
+
+  // Check if any segment is denied (after evaluating all)
+  const deniedSegment = Array.from(segmentResults.entries()).find(
+    ([, result]) => result.behavior === 'deny',
+  )
+
+  if (deniedSegment) {
+    const [segmentCommand, segmentResult] = deniedSegment
+    return {
+      behavior: 'deny',
+      message:
+        segmentResult.behavior === 'deny'
+          ? segmentResult.message
+          : `Permission denied for: ${segmentCommand}`,
+      decisionReason: {
+        type: 'subcommandResults',
+        reasons: segmentResults,
+      },
     }
   }
 
@@ -200,10 +204,6 @@ export async function checkCommandOperatorPermissions(
 /**
  * Checks if the command has special operators that require behavior beyond
  * simple subcommand checking.
- *
- * v112: the isUnsafeCompound path no longer calls bashCommandIsSafeAsync_DEPRECATED
- * for a more specific message — instead always uses the generic reason. Also adds
- * bashMissKind:"shell-operators" to the decisionReason.
  */
 async function bashToolCheckCommandOperatorPermissions(
   input: z.infer<typeof BashTool.inputSchema>,
@@ -215,27 +215,27 @@ async function bashToolCheckCommandOperatorPermissions(
 ): Promise<PermissionResult> {
   // 1. Check for unsafe compound commands (subshells, command groups).
   const tsAnalysis = parsed.getTreeSitterAnalysis()
-  // v112: isUnsafeCompound check changed — falls back to splitCommand_DEPRECATED
-  // returning >1 subcommands (instead of isUnsafeCompoundCommand_DEPRECATED)
   const isUnsafeCompound = tsAnalysis
     ? tsAnalysis.compoundStructure.hasSubshell ||
       tsAnalysis.compoundStructure.hasCommandGroup
-    : splitCommand_DEPRECATED(input.command).length > 1
-
+    : isUnsafeCompoundCommand_DEPRECATED(input.command)
   if (isUnsafeCompound) {
-    // v112: simplified — no longer calls bashCommandIsSafeAsync for a specific message;
-    // always uses the generic reason; adds bashMissKind field
+    // This command contains an operator like `>` that we don't support as a subcommand separator
+    // Check if bashCommandIsSafe_DEPRECATED has a more specific message
+    const safetyResult = await bashCommandIsSafeAsync_DEPRECATED(input.command)
+
     const decisionReason = {
       type: 'other' as const,
       reason:
-        'This command uses shell operators that require approval for safety',
-      bashMissKind: 'shell-operators',
+        safetyResult.behavior === 'ask' && safetyResult.message
+          ? safetyResult.message
+          : 'This command uses shell operators that require approval for safety',
     }
     return {
       behavior: 'ask',
       message: createPermissionRequestMessage(BashTool.name, decisionReason),
       decisionReason,
-      // This is an unsafe compound command, so we don't want to suggest rules
+      // This is an unsafe compound command, so we don't want to suggest rules since we wont be able to allow it
     }
   }
 

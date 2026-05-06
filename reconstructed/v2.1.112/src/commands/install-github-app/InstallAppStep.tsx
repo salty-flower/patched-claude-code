@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import figures from 'figures';
 import React from 'react';
 import { GITHUB_ACTION_SETUP_DOCS_URL } from '../../constants/github-app.js';
@@ -9,7 +8,7 @@ interface InstallAppStepProps {
   onSubmit: () => void;
 }
 export function InstallAppStep(t0) {
-  const $ = _c(12);
+  const $ = new Array(12).fill(void 0);
   const {
     repoUrl,
     onSubmit

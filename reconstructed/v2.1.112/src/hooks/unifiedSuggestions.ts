@@ -27,15 +27,6 @@ type McpResourceSuggestionSource = {
   name: string
 }
 
-type McpResourceTemplateSuggestionSource = {
-  type: 'mcp_resource_template'
-  displayText: string
-  description: string
-  server: string
-  uriTemplate: string
-  name: string
-}
-
 type AgentSuggestionSource = {
   type: 'agent'
   displayText: string
@@ -47,7 +38,6 @@ type AgentSuggestionSource = {
 type SuggestionSource =
   | FileSuggestionSource
   | McpResourceSuggestionSource
-  | McpResourceTemplateSuggestionSource
   | AgentSuggestionSource
 
 /**
@@ -66,13 +56,6 @@ function createSuggestionFromSource(source: SuggestionSource): SuggestionItem {
         id: `mcp-resource-${source.server}__${source.uri}`,
         displayText: source.displayText,
         description: source.description,
-      }
-    case 'mcp_resource_template':
-      return {
-        id: `mcp-template::${source.server}__${source.uriTemplate}`,
-        displayText: source.displayText,
-        description: source.description,
-        metadata: { partial: true },
       }
     case 'agent':
       return {
@@ -130,7 +113,6 @@ export async function generateUnifiedSuggestions(
   mcpResources: Record<string, ServerResource[]>,
   agents: AgentDefinition[],
   showOnEmpty = false,
-  mcpResourceTemplates: Record<string, ServerResource[]> = {},
 ): Promise<SuggestionItem[]> {
   if (!query && !showOnEmpty) {
     return []
@@ -165,38 +147,14 @@ export async function generateUnifiedSuggestions(
       name: resource.name || resource.uri,
     }))
 
-  const mcpTemplateSources: McpResourceTemplateSuggestionSource[] = Object.values(
-    mcpResourceTemplates,
-  )
-    .flat()
-    .map(resource => ({
-      type: 'mcp_resource_template' as const,
-      displayText: `${resource.server}:${resource.uriTemplate}`,
-      description: truncateDescription(
-        resource.description || resource.name || resource.uriTemplate,
-      ),
-      server: resource.server,
-      uriTemplate: resource.uriTemplate,
-      name: resource.name || resource.uriTemplate,
-    }))
-
   if (!query) {
-    const allSources = [
-      ...fileSources,
-      ...mcpSources,
-      ...mcpTemplateSources,
-      ...agentSources,
-    ]
+    const allSources = [...fileSources, ...mcpSources, ...agentSources]
     return allSources
       .slice(0, MAX_UNIFIED_SUGGESTIONS)
       .map(createSuggestionFromSource)
   }
 
-  const nonFileSources: SuggestionSource[] = [
-    ...mcpSources,
-    ...mcpTemplateSources,
-    ...agentSources,
-  ]
+  const nonFileSources: SuggestionSource[] = [...mcpSources, ...agentSources]
 
   // Score non-file sources with Fuse.js
   // File sources are already scored by Rust/nucleo
@@ -222,17 +180,14 @@ export async function generateUnifiedSuggestions(
         { name: 'server', weight: 1 },
         { name: 'description', weight: 1 },
         { name: 'agentType', weight: 3 },
-        { name: 'uriTemplate', weight: 2 },
       ],
     })
 
     const fuseResults = fuse.search(query, { limit: MAX_UNIFIED_SUGGESTIONS })
     for (const result of fuseResults) {
-      // Boost mcp_resource scores slightly lower (better) than templates
-      const boost = result.item.type === 'mcp_resource' ? 0.15 : 0
       scoredResults.push({
         source: result.item,
-        score: (result.score ?? 0.5) + boost,
+        score: result.score ?? 0.5,
       })
     }
   }

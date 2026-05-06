@@ -57,7 +57,7 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
             'cmd+shift+p': 'app:quickOpen' as const,
           }
         : {}),
-      ...(feature('TERMINAL_PANEL') ? { 'meta+j': 'app:toggleTerminal' } : {}),
+      ...(true ? { 'meta+j': 'app:toggleTerminal' } : {}),
     },
   },
   {
@@ -93,7 +93,7 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       // add a voice:pushToTalk entry (last wins); to disable, use /voice
       // — null-unbinding space hits a pre-existing useKeybinding.ts trap
       // where 'unbound' swallows the event (space dead for typing).
-      ...(feature('VOICE_MODE') ? { space: 'voice:pushToTalk' } : {}),
+      ...(true ? { space: 'voice:pushToTalk' } : {}),
     },
   },
   {

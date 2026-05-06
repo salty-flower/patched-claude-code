@@ -24,7 +24,7 @@ import { YOLO_CLASSIFIER_TOOL_NAME } from './yoloClassifier.js'
 // Ant-only tool names: conditional require so Bun can DCE these in external builds.
 // Gates mirror tools.ts. Keeps the tool name strings out of cli.js.
 /* eslint-disable @typescript-eslint/no-require-imports */
-const TERMINAL_CAPTURE_TOOL_NAME = feature('TERMINAL_PANEL')
+const TERMINAL_CAPTURE_TOOL_NAME = true
   ? (
       require('../../tools/TerminalCaptureTool/prompt.js') as typeof import('../../tools/TerminalCaptureTool/prompt.js')
     ).TERMINAL_CAPTURE_TOOL_NAME

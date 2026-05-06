@@ -45,14 +45,10 @@ const review: Command = {
 // /ultrareview is the ONLY entry point to the remote bughunter path —
 // /review stays purely local. local-jsx type renders the overage permission
 // dialog when free reviews are exhausted.
-// TODO(lift): v112 description is dynamic with s_6(), Au6() at byte ~11147875
 const ultrareview: Command = {
   type: 'local-jsx',
   name: 'ultrareview',
-  get description() {
-    // TODO(lift): v112 uses dynamic s_6() and Au6() for description at byte ~11147875
-    return `~10–20 min · Est. cost TODO(lift): Au6() at byte ~11147875 USD · Finds and verifies bugs in your branch. Runs in Claude Code on the web. See ${CCR_TERMS_URL}`
-  },
+  description: `~10–20 min · Finds and verifies bugs in your branch. Runs in Claude Code on the web. See ${CCR_TERMS_URL}`,
   isEnabled: () => isUltrareviewEnabled(),
   load: () => import('./review/ultrareviewCommand.js'),
 }

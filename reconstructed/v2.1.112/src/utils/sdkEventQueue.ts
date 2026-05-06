@@ -51,7 +51,6 @@ type TaskNotificationSdkEvent = {
     tool_uses: number
     duration_ms: number
   }
-  skip_transcript?: boolean
 }
 
 // Mirrors notifySessionStateChanged. The CCR bridge already receives this
@@ -120,7 +119,6 @@ export function emitTaskTerminatedSdk(
     summary?: string
     outputFile?: string
     usage?: { total_tokens: number; tool_uses: number; duration_ms: number }
-    skipTranscript?: boolean
   },
 ): void {
   enqueueSdkEvent({
@@ -132,6 +130,5 @@ export function emitTaskTerminatedSdk(
     output_file: opts?.outputFile ?? '',
     summary: opts?.summary ?? '',
     usage: opts?.usage,
-    skip_transcript: opts?.skipTranscript,
   })
 }

@@ -37,9 +37,3 @@ export function _resetForTesting(): void {
   autoModeFlagCli = false
   autoModeCircuitBroken = false
 }
-
-// TODO(lift): createAutoModeState at byte ~9088545 — new export in v112 not present in v88.
-// The v112 minified shows this module exports additional symbols (createAutoModeState,
-// _setGlobalAutoModeStateForTesting) that don't exist in v88. These likely create
-// a state object pattern rather than module-level vars.
-// TODO(lift): _setGlobalAutoModeStateForTesting at byte ~9088794 — new export in v112.

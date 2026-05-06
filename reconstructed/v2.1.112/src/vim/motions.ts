@@ -67,13 +67,6 @@ function applySingleMotion(key: string, cursor: Cursor): Cursor {
 }
 
 /**
- * Check if a motion key represents a URL/URI jump (contains "://").
- */
-export function isUrlMotion(key: string): boolean {
-  return key.includes('://')
-}
-
-/**
  * Check if a motion is inclusive (includes character at destination).
  */
 export function isInclusiveMotion(key: string): boolean {

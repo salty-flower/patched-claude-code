@@ -10,13 +10,11 @@ import type { EffortLevel } from 'src/entrypoints/sdk/runtimeTypes.js'
 
 export type { EffortLevel }
 
-// v112: 'xhigh' added as a new effort level (between high and max).
-// 'max' is no longer Opus-4.6-only; description changed accordingly.
 export const EFFORT_LEVELS = [
   'low',
   'medium',
   'high',
-  'xhigh',
+  'max',
 ] as const satisfies readonly EffortLevel[]
 
 export type EffortValue = EffortLevel | number
@@ -32,12 +30,7 @@ export function modelSupportsEffort(model: string): boolean {
     return supported3P
   }
   // Supported by a subset of Claude 4 models
-  // v112: adds opus-4-7 to the allowlist
-  if (
-    m.includes('opus-4-7') ||
-    m.includes('opus-4-6') ||
-    m.includes('sonnet-4-6')
-  ) {
+  if (m.includes('opus-4-6') || m.includes('sonnet-4-6')) {
     return true
   }
   // Exclude any other known legacy models (haiku, older opus/sonnet variants)
@@ -56,27 +49,19 @@ export function modelSupportsEffort(model: string): boolean {
 }
 
 // @[MODEL LAUNCH]: Add the new model to the allowlist if it supports 'max' effort.
-// v112: modelSupportsMaxEffort now checks isMaxSubscriber() (q5) and
-// getDefaultModel() (hv/K5) rather than a direct model-name check.
-// TODO(lift): q5 at byte ~4414037 — isMaxSubscriber() or similar subscriber check.
-// TODO(lift): hv at byte ~4414037 — getDefaultModel() or similar model resolver.
-// TODO(lift): K5 at byte ~4414037 — model name extractor from default model.
-export function modelSupportsMaxEffort(model?: string): boolean {
-  // v112: ant-only path removed from visible minified; the function now
-  // delegates to subscriber/model checks that are unresolved at lift time.
-  // Stub: return false for non-ants, delegate for ants once resolved.
-  if (process.env.USER_TYPE === 'ant') {
-    // TODO(lift): ant model resolution removed from this module in v112.
-    return false
+// Per API docs, 'max' is Opus 4.6 only for public models — other models return an error.
+export function modelSupportsMaxEffort(model: string): boolean {
+  const supported3P = get3PModelCapabilityOverride(model, 'max_effort')
+  if (supported3P !== undefined) {
+    return supported3P
   }
-  const resolvedModel = model ?? getDefaultModel()
-  return resolvedModel.toLowerCase().includes('opus-4-6')
-}
-
-// TODO(lift): getDefaultModel at byte ~4414037 — unresolved import.
-function getDefaultModel(): string {
-  // Stub — should resolve to the user's configured default model.
-  return ''
+  if (model.toLowerCase().includes('opus-4-6')) {
+    return true
+  }
+  if (process.env.USER_TYPE === 'ant' && resolveAntModel(model)) {
+    return true
+  }
+  return false
 }
 
 export function isEffortLevel(value: string): value is EffortLevel {
@@ -106,14 +91,11 @@ export function parseEffortValue(value: unknown): EffortValue | undefined {
  * 'max' is session-scoped for external users (ants can persist it).
  * Write sites call this before saving to settings so the Zod schema
  * (which only accepts string levels) never rejects a write.
- *
- * v112: 'xhigh' is now persistable (like low/medium/high). 'max' remains
- * ant-only persistable.
  */
 export function toPersistableEffort(
   value: EffortValue | undefined,
 ): EffortLevel | undefined {
-  if (value === 'low' || value === 'medium' || value === 'high' || value === 'xhigh') {
+  if (value === 'low' || value === 'medium' || value === 'high') {
     return value
   }
   if (value === 'max' && process.env.USER_TYPE === 'ant') {
@@ -140,10 +122,24 @@ export function getInitialEffortSetting(): EffortLevel | undefined {
  * (project/policy layers would leak into the user's global settings.json)
  * and NOT AppState.effortValue (includes session-scoped sources that
  * deliberately do not write to settings.json).
- *
- * v112: removed — no longer present in v112_min. Callers likely inlined
- * or moved to settings module.
  */
+export function resolvePickerEffortPersistence(
+  picked: EffortLevel | undefined,
+  modelDefault: EffortLevel,
+  priorPersisted: EffortLevel | undefined,
+  toggledInPicker: boolean,
+): EffortLevel | undefined {
+  const hadExplicit = priorPersisted !== undefined || toggledInPicker
+  return hadExplicit || picked !== modelDefault ? picked : undefined
+}
+
+export function getEffortEnvOverride(): EffortValue | null | undefined {
+  const envOverride = process.env.CLAUDE_CODE_EFFORT_LEVEL
+  return envOverride?.toLowerCase() === 'unset' ||
+    envOverride?.toLowerCase() === 'auto'
+    ? null
+    : parseEffortValue(envOverride)
+}
 
 /**
  * Resolve the effort value that will actually be sent to the API for a given
@@ -152,9 +148,6 @@ export function getInitialEffortSetting(): EffortLevel | undefined {
  *
  * Returns undefined when no effort parameter should be sent (env set to
  * 'unset', or no default exists for the model).
- *
- * v112: renamed/minified to wy6 — body is unresolved at lift time.
- * TODO(lift): wy6 at byte ~4415328 — resolveAppliedEffort body.
  */
 export function resolveAppliedEffort(
   model: string,
@@ -177,8 +170,6 @@ export function resolveAppliedEffort(
  * Resolve the effort level to show the user. Wraps resolveAppliedEffort
  * with the 'high' fallback (what the API uses when no effort param is sent).
  * Single source of truth for the status bar and /effort output (CC-1088).
- *
- * v112: renamed/minified to $y6 — body identical to v88 except for xhigh.
  */
 export function getDisplayedEffortLevel(
   model: string,
@@ -193,8 +184,6 @@ export function getDisplayedEffortLevel(
  * Returns empty string if the user hasn't explicitly set an effort value.
  * Delegates to resolveAppliedEffort() so the displayed level matches what
  * the API actually receives (including max→high clamp for non-Opus models).
- *
- * v112: renamed/minified to jy6 — body identical to v88.
  */
 export function getEffortSuffix(
   model: string,
@@ -210,13 +199,6 @@ export function isValidNumericEffort(value: number): boolean {
   return Number.isInteger(value)
 }
 
-/**
- * Convert an effort value (string level or numeric) to a display level.
- *
- * v112: numeric effort branch removed entirely — only string levels remain.
- * The ant-only numeric mapping (≤50 low, ≤85 medium, ≤100 high, else max)
- * was excised. Numeric values now fall through to 'high'.
- */
 export function convertEffortValueToLevel(value: EffortValue): EffortLevel {
   if (typeof value === 'string') {
     // Runtime guard: value may come from remote config (GrowthBook) where
@@ -224,7 +206,12 @@ export function convertEffortValueToLevel(value: EffortValue): EffortLevel {
     // rather than passing them through unchecked.
     return isEffortLevel(value) ? value : 'high'
   }
-  // Numeric effort no longer supported in v112 — always fallback to 'high'.
+  if (process.env.USER_TYPE === 'ant' && typeof value === 'number') {
+    if (value <= 50) return 'low'
+    if (value <= 85) return 'medium'
+    if (value <= 100) return 'high'
+    return 'max'
+  }
   return 'high'
 }
 
@@ -233,8 +220,6 @@ export function convertEffortValueToLevel(value: EffortValue): EffortLevel {
  *
  * @param level The effort level to describe
  * @returns Human-readable description
- *
- * v112: 'xhigh' added. 'max' description no longer mentions Opus 4.6 exclusivity.
  */
 export function getEffortLevelDescription(level: EffortLevel): string {
   switch (level) {
@@ -244,10 +229,8 @@ export function getEffortLevelDescription(level: EffortLevel): string {
       return 'Balanced approach with standard implementation and testing'
     case 'high':
       return 'Comprehensive implementation with extensive testing and documentation'
-    case 'xhigh':
-      return 'Deeper reasoning than high, just below maximum (Opus 4.7 only)'
     case 'max':
-      return 'Maximum capability with deepest reasoning'
+      return 'Maximum capability with deepest reasoning (Opus 4.6 only)'
   }
 }
 
@@ -256,16 +239,16 @@ export function getEffortLevelDescription(level: EffortLevel): string {
  *
  * @param value The effort value to describe
  * @returns Human-readable description
- *
- * v112: removed from v112_min — no longer present. Numeric effort is dead.
- * Kept as a compatibility stub; delegates to getEffortLevelDescription for
- * strings and returns a generic fallback for numbers.
  */
 export function getEffortValueDescription(value: EffortValue): string {
-  if (typeof value === 'number') {
-    return 'Balanced approach with standard implementation and testing'
+  if (process.env.USER_TYPE === 'ant' && typeof value === 'number') {
+    return `[ANT-ONLY] Numeric effort value of ${value}`
   }
-  return getEffortLevelDescription(value)
+
+  if (typeof value === 'string') {
+    return getEffortLevelDescription(value)
+  }
+  return 'Balanced approach with standard implementation and testing'
 }
 
 export type OpusDefaultEffortConfig = {
@@ -297,10 +280,23 @@ export function getDefaultEffortForModel(
   model: string,
 ): EffortValue | undefined {
   if (process.env.USER_TYPE === 'ant') {
-    // v112: ant model override config and resolveAntModel removed from this
-    // module. The ant-specific default-effort logic was either inlined elsewhere
-    // or dropped. Fall through to the public path.
-    // TODO(lift): ant-specific defaults moved out of effort.ts in v112.
+    const config = getAntModelOverrideConfig()
+    const isDefaultModel =
+      config?.defaultModel !== undefined &&
+      model.toLowerCase() === config.defaultModel.toLowerCase()
+    if (isDefaultModel && config?.defaultModelEffortLevel) {
+      return config.defaultModelEffortLevel
+    }
+    const antModel = resolveAntModel(model)
+    if (antModel) {
+      if (antModel.defaultEffortLevel) {
+        return antModel.defaultEffortLevel
+      }
+      if (antModel.defaultEffortValue !== undefined) {
+        return antModel.defaultEffortValue
+      }
+    }
+    // Always default ants to undefined/high
     return undefined
   }
 

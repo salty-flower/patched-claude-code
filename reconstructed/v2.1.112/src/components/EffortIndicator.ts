@@ -32,9 +32,6 @@ export function effortLevelToSymbol(level: EffortLevel): string {
       return EFFORT_MEDIUM
     case 'high':
       return EFFORT_HIGH
-    case 'xhigh':
-      // TODO(lift): xhigh symbol at byte ~10163432
-      return EFFORT_HIGH
     case 'max':
       return EFFORT_MAX
     default:

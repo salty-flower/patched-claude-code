@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import { relative } from 'path'
 import {
   getOriginalCwd,
@@ -26,6 +27,13 @@ import {
 } from './PermissionMode.js'
 import { applyPermissionRulesToPermissionContext } from './permissions.js'
 import { loadAllPermissionRulesFromDisk } from './permissionsLoader.js'
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+const autoModeStateModule = feature('TRANSCRIPT_CLASSIFIER')
+  ? (require('./autoModeState.js') as typeof import('./autoModeState.js'))
+  : null
+
+import { resolve } from 'path'
 import {
   checkSecurityRestrictionGate,
   checkStatsigFeatureGate_CACHED_MAY_BE_STALE,
@@ -42,6 +50,7 @@ import {
 } from '../../services/analytics/index.js'
 import { AGENT_TOOL_NAME } from '../../tools/AgentTool/constants.js'
 import { BASH_TOOL_NAME } from '../../tools/BashTool/toolName.js'
+/* eslint-enable @typescript-eslint/no-require-imports */
 import { POWERSHELL_TOOL_NAME } from '../../tools/PowerShellTool/toolName.js'
 import { getToolsForDefaultPreset, parseToolPreset } from '../../tools.js'
 import {
@@ -71,13 +80,6 @@ import {
   permissionRuleValueFromString,
   permissionRuleValueToString,
 } from './permissionRuleParser.js'
-
-// TODO(lift): autoModeStateModule import path may have changed in v112.
-// In v88 it was a conditional require('./autoModeState.js').
-// In v112 minified init block: DG=(Kn(),B7(Pe)) — different import pattern.
-import type { autoModeState } from './autoModeState.js'
-const autoModeStateModule: typeof autoModeState | null =
-  null as unknown as typeof autoModeState | null
 
 /**
  * Checks if a Bash permission rule is dangerous for auto mode.
@@ -536,7 +538,7 @@ export function stripDangerousPermissionsForAutoMode(
       `Ignoring dangerous permission ${permission.ruleDisplay} from ${permission.sourceDisplay} (bypasses classifier)`,
     )
   }
-  // v112: Rebuild stash from scratch (simpler than v88's merge-with-existing).
+  // Mirror removeDangerousPermissions' source filter so stash == what was actually removed.
   const stripped: ToolPermissionRulesBySource = {}
   for (const perm of dangerousPermissions) {
     if (!isPermissionUpdateDestination(perm.source)) continue
@@ -607,32 +609,32 @@ export function transitionPermissionMode(
     setHasExitedPlanMode(true)
   }
 
-  // v112: feature('TRANSCRIPT_CLASSIFIER') checks removed — auto mode logic
-  // is now always present (gated by isAutoModeGateEnabled instead).
-  if (toMode === 'plan' && fromMode !== 'plan') {
-    return prepareContextForPlanMode(context)
-  }
-
-  // Plan with auto active counts as using the classifier (for the leaving side).
-  // isAutoModeActive() is the authoritative signal — prePlanMode/strippedDangerousRules
-  // are unreliable proxies because auto can be deactivated mid-plan (non-opt-in
-  // entry, transitionPlanAutoMode) while those fields remain set/unset.
-  const fromUsesClassifier =
-    fromMode === 'auto' ||
-    (fromMode === 'plan' &&
-      (autoModeStateModule?.isAutoModeActive() ?? false))
-  const toUsesClassifier = toMode === 'auto' // plan entry handled above
-
-  if (toUsesClassifier && !fromUsesClassifier) {
-    if (!isAutoModeGateEnabled()) {
-      throw new Error('Cannot transition to auto mode: gate is not enabled')
+  if (feature('TRANSCRIPT_CLASSIFIER')) {
+    if (toMode === 'plan' && fromMode !== 'plan') {
+      return prepareContextForPlanMode(context)
     }
-    autoModeStateModule?.setAutoModeActive(true)
-    context = stripDangerousPermissionsForAutoMode(context)
-  } else if (fromUsesClassifier && !toUsesClassifier) {
-    autoModeStateModule?.setAutoModeActive(false)
-    setNeedsAutoModeExitAttachment(true)
-    context = restoreDangerousPermissions(context)
+
+    // Plan with auto active counts as using the classifier (for the leaving side).
+    // isAutoModeActive() is the authoritative signal — prePlanMode/strippedDangerousRules
+    // are unreliable proxies because auto can be deactivated mid-plan (non-opt-in
+    // entry, transitionPlanAutoMode) while those fields remain set/unset.
+    const fromUsesClassifier =
+      fromMode === 'auto' ||
+      (fromMode === 'plan' &&
+        (autoModeStateModule?.isAutoModeActive() ?? false))
+    const toUsesClassifier = toMode === 'auto' // plan entry handled above
+
+    if (toUsesClassifier && !fromUsesClassifier) {
+      if (!isAutoModeGateEnabled()) {
+        throw new Error('Cannot transition to auto mode: gate is not enabled')
+      }
+      autoModeStateModule?.setAutoModeActive(true)
+      context = stripDangerousPermissionsForAutoMode(context)
+    } else if (fromUsesClassifier && !toUsesClassifier) {
+      autoModeStateModule?.setAutoModeActive(false)
+      setNeedsAutoModeExitAttachment(true)
+      context = restoreDangerousPermissions(context)
+    }
   }
 
   // Only spread if there's something to clear (preserves ref equality)
@@ -691,18 +693,6 @@ export function initialPermissionModeFromCLI({
   permissionModeCli: string | undefined
   dangerouslySkipPermissions: boolean | undefined
 }): { mode: PermissionMode; notification?: string } {
-  // v112: Force default mode when CLAUDE_CODE_SUBPROCESS_ENV_SCRUB is set.
-  if (isEnvTruthy(process.env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB)) {
-    const hadIntent = dangerouslySkipPermissions || (permissionModeCli && permissionModeCli !== 'default')
-    const notification =
-      'Permission mode forced to default — CLAUDE_CODE_SUBPROCESS_ENV_SCRUB is set ' +
-      '(allowed_non_write_users hardening). Declare allowedTools explicitly, or set CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=0 to opt out.'
-    if (hadIntent) {
-      process.stderr.write(`⚠ ${notification}\n`)
-    }
-    return { mode: 'default', notification: hadIntent ? notification : undefined }
-  }
-
   const settings = getSettings_DEPRECATED() || {}
 
   // Check GrowthBook gate first - highest precedence
@@ -724,8 +714,9 @@ export function initialPermissionModeFromCLI({
   // AutoModeOptInDialog from showing in showSetupScreens() when auto can't
   // actually be entered. autoModeFlagCli still carries intent through to
   // verifyAutoModeGateAccess, which notifies the user why.
-  const autoModeCircuitBrokenSync =
-    getAutoModeEnabledStateIfCached() === 'disabled'
+  const autoModeCircuitBrokenSync = feature('TRANSCRIPT_CLASSIFIER')
+    ? getAutoModeEnabledStateIfCached() === 'disabled'
+    : false
 
   // Modes in order of priority
   const orderedModes: PermissionMode[] = []
@@ -736,7 +727,7 @@ export function initialPermissionModeFromCLI({
   }
   if (permissionModeCli) {
     const parsedMode = permissionModeFromString(permissionModeCli)
-    if (parsedMode === 'auto') {
+    if (feature('TRANSCRIPT_CLASSIFIER') && parsedMode === 'auto') {
       if (autoModeCircuitBrokenSync) {
         logForDebugging(
           'auto mode circuit breaker active (cached) — falling back to default',
@@ -767,7 +758,7 @@ export function initialPermissionModeFromCLI({
       })
     }
     // auto from settings requires the same gate check as from CLI
-    else if (settingsMode === 'auto') {
+    else if (feature('TRANSCRIPT_CLASSIFIER') && settingsMode === 'auto') {
       if (autoModeCircuitBrokenSync) {
         logForDebugging(
           'auto mode circuit breaker active (cached) — falling back to default',
@@ -812,7 +803,7 @@ export function initialPermissionModeFromCLI({
     result = { mode: 'default', notification }
   }
 
-  if (result.mode === 'auto') {
+  if (feature('TRANSCRIPT_CLASSIFIER') && result.mode === 'auto') {
     autoModeStateModule?.setAutoModeActive(true)
   }
 
@@ -915,15 +906,6 @@ export async function initializeToolPermissionContext({
     const baseToolsSet = new Set(baseToolsResult.map(normalizeLegacyToolName))
     const allToolNames = getToolsForDefaultPreset()
     const toolsToDisallow = allToolNames.filter(tool => !baseToolsSet.has(tool))
-    // v112: If base tools were specified as a preset (not a custom list) and
-    // PowerShell is not in the base set, auto-deny PowerShell on Windows.
-    // This prevents Bash-deny-only configs from leaving PowerShell wide open.
-    if (
-      parseToolPreset(baseToolsCli.join(' ').trim()) === null &&
-      !baseToolsSet.has(POWERSHELL_TOOL_NAME)
-    ) {
-      toolsToDisallow.push(POWERSHELL_TOOL_NAME)
-    }
     parsedDisallowedToolsCli = [...parsedDisallowedToolsCli, ...toolsToDisallow]
   }
 
@@ -963,14 +945,30 @@ export async function initializeToolPermissionContext({
   // Load all permission rules from disk
   const rulesFromDisk = loadAllPermissionRulesFromDisk()
 
-  // v112: Overly broad Bash detection removed from initializeToolPermissionContext.
-  // The detection now happens elsewhere (or was removed as redundant).
-  const overlyBroadBashPermissions: DangerousPermissionInfo[] = []
+  // Ant-only: Detect overly broad shell allow rules for all modes.
+  // Bash(*) or PowerShell(*) are equivalent to YOLO mode for that shell.
+  // Skip in CCR/BYOC where --allowed-tools is the intended pre-approval mechanism.
+  // Variable name kept for return-field compat; contains both shells.
+  let overlyBroadBashPermissions: DangerousPermissionInfo[] = []
+  if (
+    process.env.USER_TYPE === 'ant' &&
+    !isEnvTruthy(process.env.CLAUDE_CODE_REMOTE) &&
+    process.env.CLAUDE_CODE_ENTRYPOINT !== 'local-agent'
+  ) {
+    overlyBroadBashPermissions = [
+      ...findOverlyBroadBashPermissions(rulesFromDisk, parsedAllowedToolsCli),
+      ...findOverlyBroadPowerShellPermissions(
+        rulesFromDisk,
+        parsedAllowedToolsCli,
+      ),
+    ]
+  }
 
+  // Ant-only: Detect dangerous shell permissions for auto mode
   // Dangerous permissions (like Bash(*), Bash(python:*), PowerShell(iex:*)) would auto-allow
   // before the classifier can evaluate them, defeating the purpose of safer YOLO mode
   let dangerousPermissions: DangerousPermissionInfo[] = []
-  if (permissionMode === 'auto') {
+  if (feature('TRANSCRIPT_CLASSIFIER') && permissionMode === 'auto') {
     dangerousPermissions = findDangerousClassifierPermissions(
       rulesFromDisk,
       parsedAllowedToolsCli,
@@ -985,37 +983,34 @@ export async function initializeToolPermissionContext({
       alwaysDenyRules: { cliArg: parsedDisallowedToolsCli },
       alwaysAskRules: {},
       isBypassPermissionsModeAvailable,
-      isAutoModeAvailable: isAutoModeGateEnabled(),
-      isRemoteMode:
-        isEnvTruthy(process.env.CLAUDE_CODE_REMOTE) || false,
+      ...(feature('TRANSCRIPT_CLASSIFIER')
+        ? { isAutoModeAvailable: isAutoModeGateEnabled() }
+        : {}),
     },
     rulesFromDisk,
   )
 
-  // v112: Settings additionalDirectories go to 'localSettings' destination;
-  // CLI --add-dir goes to 'cliArg' destination.
+  // Add directories from settings and --add-dir
   const allAdditionalDirectories = [
-    ...(settings.permissions?.additionalDirectories || []).map(dir => ({
-      dir,
-      destination: 'localSettings' as const,
-    })),
-    ...addDirs.map(dir => ({ dir, destination: 'cliArg' as const })),
+    ...(settings.permissions?.additionalDirectories || []),
+    ...addDirs,
   ]
   // Parallelize fs validation; apply updates serially (cumulative context).
+  // validateDirectoryForWorkspace only reads permissionContext to check if the
+  // dir is already covered — behavioral difference from parallelizing is benign
+  // (two overlapping --add-dirs both succeed instead of one being flagged
+  // alreadyInWorkingDirectory, which was silently skipped anyway).
   const validationResults = await Promise.all(
-    allAdditionalDirectories.map(({ dir, destination }) =>
-      validateDirectoryForWorkspace(dir, toolPermissionContext).then(result => ({
-        result,
-        destination,
-      })),
+    allAdditionalDirectories.map(dir =>
+      validateDirectoryForWorkspace(dir, toolPermissionContext),
     ),
   )
-  for (const { result, destination } of validationResults) {
+  for (const result of validationResults) {
     if (result.resultType === 'success') {
       toolPermissionContext = applyPermissionUpdate(toolPermissionContext, {
         type: 'addDirectories',
         directories: [result.absolutePath],
-        destination,
+        destination: 'cliArg',
       })
     } else if (
       result.resultType !== 'alreadyInWorkingDirectory' &&
@@ -1435,11 +1430,12 @@ export async function checkAndDisableBypassPermissions(
   void gracefulShutdown(1, 'bypass_permissions_disabled')
 }
 
-// v112: Removed feature('TRANSCRIPT_CLASSIFIER') guard — defaultMode auto
-// is now always checked (the feature flag is assumed permanently on).
 export function isDefaultPermissionModeAuto(): boolean {
-  const settings = getSettings_DEPRECATED() || {}
-  return settings.permissions?.defaultMode === 'auto'
+  if (feature('TRANSCRIPT_CLASSIFIER')) {
+    const settings = getSettings_DEPRECATED() || {}
+    return settings.permissions?.defaultMode === 'auto'
+  }
+  return false
 }
 
 /**
@@ -1448,11 +1444,14 @@ export function isDefaultPermissionModeAuto(): boolean {
  * Evaluated at permission-check time so it's reactive to config changes.
  */
 export function shouldPlanUseAutoMode(): boolean {
-  return (
-    hasAutoModeOptIn() &&
-    isAutoModeGateEnabled() &&
-    getUseAutoModeDuringPlan()
-  )
+  if (feature('TRANSCRIPT_CLASSIFIER')) {
+    return (
+      hasAutoModeOptIn() &&
+      isAutoModeGateEnabled() &&
+      getUseAutoModeDuringPlan()
+    )
+  }
+  return false
 }
 
 /**
@@ -1465,28 +1464,27 @@ export function prepareContextForPlanMode(
 ): ToolPermissionContext {
   const currentMode = context.mode
   if (currentMode === 'plan') return context
-
-  // v112: Removed feature('TRANSCRIPT_CLASSIFIER') guard.
-  const planAutoMode = shouldPlanUseAutoMode()
-  if (currentMode === 'auto') {
-    if (planAutoMode) {
-      return { ...context, prePlanMode: 'auto' }
+  if (feature('TRANSCRIPT_CLASSIFIER')) {
+    const planAutoMode = shouldPlanUseAutoMode()
+    if (currentMode === 'auto') {
+      if (planAutoMode) {
+        return { ...context, prePlanMode: 'auto' }
+      }
+      autoModeStateModule?.setAutoModeActive(false)
+      setNeedsAutoModeExitAttachment(true)
+      return {
+        ...restoreDangerousPermissions(context),
+        prePlanMode: 'auto',
+      }
     }
-    autoModeStateModule?.setAutoModeActive(false)
-    setNeedsAutoModeExitAttachment(true)
-    return {
-      ...restoreDangerousPermissions(context),
-      prePlanMode: 'auto',
+    if (planAutoMode && currentMode !== 'bypassPermissions') {
+      autoModeStateModule?.setAutoModeActive(true)
+      return {
+        ...stripDangerousPermissionsForAutoMode(context),
+        prePlanMode: currentMode,
+      }
     }
   }
-  if (planAutoMode && currentMode !== 'bypassPermissions') {
-    autoModeStateModule?.setAutoModeActive(true)
-    return {
-      ...stripDangerousPermissionsForAutoMode(context),
-      prePlanMode: currentMode,
-    }
-  }
-
   logForDebugging(
     `[prepareContextForPlanMode] plain plan entry, prePlanMode=${currentMode}`,
     { level: 'info' },
@@ -1504,7 +1502,7 @@ export function prepareContextForPlanMode(
 export function transitionPlanAutoMode(
   context: ToolPermissionContext,
 ): ToolPermissionContext {
-  // v112: Removed feature('TRANSCRIPT_CLASSIFIER') guard.
+  if (!feature('TRANSCRIPT_CLASSIFIER')) return context
   if (context.mode !== 'plan') return context
   // Mirror prepareContextForPlanMode's entry-time exclusion — never activate
   // auto mid-plan when the user entered from a dangerous mode.

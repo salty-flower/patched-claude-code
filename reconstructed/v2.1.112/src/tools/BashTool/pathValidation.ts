@@ -93,9 +93,7 @@ function checkDangerousRemovalPaths(
         decisionReason: {
           type: 'other',
           reason: `Dangerous ${command} operation on critical path: ${absolutePath}`,
-          // TODO(lift): bashMissKind field at byte ~6994500 — new in v112
-          bashMissKind: 'dangerous-path',
-        } as unknown as { type: 'other'; reason: string },
+        },
         // Don't provide suggestions - we don't want to encourage saving dangerous commands
         suggestions: [],
       }
@@ -141,7 +139,6 @@ function filterOutFlags(args: string[]): string[] {
 }
 
 // Helper: Parse grep/rg style commands (pattern then paths)
-// v112: also extracts `-f`/`--file` path argument when present
 function parsePatternCommand(
   args: string[],
   flagsWithArgs: Set<string>,
@@ -163,20 +160,13 @@ function parsePatternCommand(
     }
 
     if (!afterDoubleDash && arg.startsWith('-')) {
-      const eqIdx = arg.indexOf('=')
-      const flag = eqIdx >= 0 ? arg.slice(0, eqIdx) : arg
+      const flag = arg.split('=')[0]
       // Pattern flags mark that we've found the pattern
       if (flag && ['-e', '--regexp', '-f', '--file'].includes(flag)) {
         patternFound = true
-        // v112: if -f/--file, extract the file path for validation
-        if (flag === '-f' || flag === '--file') {
-          if (eqIdx >= 0) {
-            paths.push(arg.slice(eqIdx + 1))
-          }
-        }
       }
       // Skip next arg if flag needs it
-      if (flag && flagsWithArgs.has(flag) && eqIdx < 0) {
+      if (flag && flagsWithArgs.has(flag) && !arg.includes('=')) {
         i++
       }
       continue
@@ -191,44 +181,6 @@ function parsePatternCommand(
   }
 
   return paths.length > 0 ? paths : defaults
-}
-
-/**
- * Factory that creates a path extractor for commands that have flags taking values.
- * The returned extractor skips flags in `flagsWithArgs` (and their values),
- * then returns the remaining positional arguments as paths.
- * This is used for cut, paste, column which have value-taking flags that are
- * not themselves paths.
- */
-function makeSkipFlagsExtractor(flagsWithArgs: Set<string>): (args: string[]) => string[] {
-  return (args: string[]): string[] => {
-    const paths: string[] = []
-    let afterDoubleDash = false
-
-    for (let i = 0; i < args.length; i++) {
-      const arg = args[i]
-      if (arg === undefined || arg === null) continue
-
-      if (!afterDoubleDash && arg === '--') {
-        afterDoubleDash = true
-        continue
-      }
-
-      if (!afterDoubleDash && arg.startsWith('-')) {
-        const eqIdx = arg.indexOf('=')
-        const flag = eqIdx >= 0 ? arg.slice(0, eqIdx) : arg
-        // Skip next arg if flag needs it
-        if (flag && flagsWithArgs.has(flag) && eqIdx < 0) {
-          i++
-        }
-        continue
-      }
-
-      paths.push(arg)
-    }
-
-    return paths
-  }
 }
 
 /**
@@ -329,77 +281,13 @@ export const PATH_EXTRACTORS: Record<
   sort: filterOutFlags,
   uniq: filterOutFlags,
   wc: filterOutFlags,
-
-  // cut: skip flags that take values (-d/--delimiter, -f/--fields, -b/--bytes, etc.)
-  // v112: uses makeSkipFlagsExtractor factory instead of simple filterOutFlags
-  cut: makeSkipFlagsExtractor(new Set(['-d', '--delimiter', '-f', '--fields', '-b', '--bytes', '-c', '--characters', '--output-delimiter'])),
-
-  // paste: skip delimiter flags
-  // v112: uses makeSkipFlagsExtractor factory
-  paste: makeSkipFlagsExtractor(new Set(['-d', '--delimiters'])),
-
-  // column: skip separator/width flags
-  // v112: uses makeSkipFlagsExtractor factory
-  column: makeSkipFlagsExtractor(new Set(['-s', '--separator', '-o', '--output-separator', '-c', '--output-width'])),
-
+  cut: filterOutFlags,
+  paste: filterOutFlags,
+  column: filterOutFlags,
   file: filterOutFlags,
   stat: filterOutFlags,
   diff: filterOutFlags,
-
-  // awk: v112 adds a proper extractor that handles -F/-v/-e flags and collects file paths
-  awk: args => {
-    const skipFlags = new Set(['-F', '--field-separator', '-v', '--assign', '-e', '--source'])
-    const fileFlags = new Set(['-f', '--file', '-E', '--exec'])
-    const paths: string[] = []
-    let programFound = false
-    let afterDoubleDash = false
-
-    for (let i = 0; i < args.length; i++) {
-      const arg = args[i]
-      if (arg === undefined || arg === null) continue
-
-      if (!afterDoubleDash && arg === '--') {
-        afterDoubleDash = true
-        continue
-      }
-
-      if (!afterDoubleDash && arg.startsWith('-')) {
-        const eqIdx = arg.indexOf('=')
-        const flag = eqIdx >= 0 ? arg.slice(0, eqIdx) : arg
-        if (skipFlags.has(flag)) {
-          if (flag === '-e' || flag === '--source') programFound = true
-          if (eqIdx < 0) i++
-          continue
-        }
-        if (fileFlags.has(flag)) {
-          programFound = true
-          if (eqIdx >= 0) {
-            paths.push(arg.slice(eqIdx + 1))
-          } else {
-            const next = args[i + 1]
-            if (next !== undefined) {
-              paths.push(next)
-              i++
-            }
-          }
-          continue
-        }
-        continue
-      }
-
-      // First non-flag is the program (if not already found via -e/-f)
-      if (!programFound) {
-        programFound = true
-        continue
-      }
-
-      // Rest are file paths
-      paths.push(arg)
-    }
-
-    return paths
-  },
-
+  awk: filterOutFlags,
   strings: filterOutFlags,
   hexdump: filterOutFlags,
   od: filterOutFlags,
@@ -541,14 +429,18 @@ export const PATH_EXTRACTORS: Record<
 
   // jq: filter then file paths (similar to grep)
   // The jq command structure is: jq [flags] filter [files...]
-  // v112: -f/--from-file now extracts the path; --slurpfile/--rawfile skip 2 args (name + path), path is validated
+  // If no files are provided, jq reads from stdin
   jq: args => {
     const paths: string[] = []
     const flagsWithArgs = new Set([
       '-e',
       '--expression',
+      '-f',
+      '--from-file',
       '--arg',
       '--argjson',
+      '--slurpfile',
+      '--rawfile',
       '--args',
       '--jsonargs',
       '-L',
@@ -571,39 +463,13 @@ export const PATH_EXTRACTORS: Record<
       }
 
       if (!afterDoubleDash && arg.startsWith('-')) {
-        const eqIdx = arg.indexOf('=')
-        const flag = eqIdx >= 0 ? arg.slice(0, eqIdx) : arg
+        const flag = arg.split('=')[0]
         // Pattern flags mark that we've found the filter
         if (flag && ['-e', '--expression'].includes(flag)) {
           filterFound = true
         }
-        // -f/--from-file: extracts path for validation
-        if (flag && ['-f', '--from-file'].includes(flag)) {
-          filterFound = true
-          if (eqIdx >= 0) {
-            paths.push(arg.slice(eqIdx + 1))
-          } else {
-            const next = args[i + 1]
-            if (next !== undefined) {
-              paths.push(next)
-              i++
-            }
-          }
-          continue
-        }
-        // --slurpfile/--rawfile: takes NAME FILE — skip name, validate file
-        if (flag && ['--slurpfile', '--rawfile'].includes(flag)) {
-          filterFound = true
-          // arg[i+1] is the name, arg[i+2] is the file path
-          const filePath = args[i + 2]
-          if (filePath !== undefined) {
-            paths.push(filePath)
-          }
-          i += 2
-          continue
-        }
         // Skip next arg if flag needs it
-        if (flag && flagsWithArgs.has(flag) && eqIdx < 0) {
+        if (flag && flagsWithArgs.has(flag) && !arg.includes('=')) {
           i++
         }
         continue
@@ -757,9 +623,7 @@ function validateCommandPaths(
       decisionReason: {
         type: 'other',
         reason: `${command} command with flags requires manual approval`,
-        // TODO(lift): bashMissKind 'flag-validation' at byte ~6995500
-        bashMissKind: 'flag-validation',
-      } as unknown as { type: 'other'; reason: string },
+      },
     }
   }
 
@@ -786,9 +650,7 @@ function validateCommandPaths(
         type: 'other',
         reason:
           'Compound command contains cd with write operation - manual approval required to prevent path resolution bypass',
-        // TODO(lift): bashMissKind 'cd-compound-write' at byte ~6995700
-        bashMissKind: 'cd-compound-write',
-      } as unknown as { type: 'other'; reason: string },
+      },
     }
   }
 
@@ -904,10 +766,7 @@ export function createPathChecker(
         }
       }
 
-      // v112: For write/create operations, only suggest acceptEdits mode if in
-      // 'default' or 'plan' mode, and not when plan mode derives from an auto/bypass/etc prePlanMode
-      // TODO(lift): full plan-mode guard at byte ~6997700 — simplified here to match v88 behavior
-      // for write operations, also suggest enabling accept-edits mode
+      // For write operations, also suggest enabling accept-edits mode
       if (operationType === 'write' || operationType === 'create') {
         suggestions.push({
           type: 'setMode',
@@ -961,9 +820,9 @@ function parseCommandArguments(cmd: string): string[] {
  * Validates a single command for path constraints and shell safety.
  *
  * This function:
- * 1. Strips safe wrapper commands (timeout, nice, etc.)
- * 2. Parses the command arguments
- * 3. Checks if it's a path command (cd, ls, find)
+ * 1. Parses the command arguments
+ * 2. Checks if it's a path command (cd, ls, find)
+ * 3. Validates for shell injection patterns
  * 4. Validates all paths are within allowed directories
  *
  * @param cmd - The command string to validate
@@ -1081,9 +940,7 @@ function validateOutputRedirections(
         type: 'other',
         reason:
           'Compound command contains cd with output redirection - manual approval required to prevent path resolution bypass',
-        // TODO(lift): bashMissKind 'cd-compound-redirect' at byte ~6997200
-        bashMissKind: 'cd-compound-redirect',
-      } as unknown as { type: 'other'; reason: string },
+      },
     }
   }
   for (const { target } of redirections) {
@@ -1176,9 +1033,7 @@ export function checkPathConstraints(
       decisionReason: {
         type: 'other',
         reason: 'Process substitution requires manual approval',
-        // TODO(lift): bashMissKind 'process-substitution' at byte ~6998000
-        bashMissKind: 'process-substitution',
-      } as unknown as { type: 'other'; reason: string },
+      },
     }
   }
 
@@ -1188,37 +1043,20 @@ export function checkPathConstraints(
   // garbled tokens on a successful parse (not a parse failure, so the
   // fail-closed guard doesn't help). The AST already resolved targets
   // correctly and checkSemantics validated them.
-  const {
-    redirections,
-    hasDangerousRedirection,
-    // v112: dangerousRedirectionReason distinguishes network device vs shell expansion
-    // TODO(lift): dangerousRedirectionReason at byte ~6998200
-    dangerousRedirectionReason,
-  } = astRedirects
+  const { redirections, hasDangerousRedirection } = astRedirects
     ? astRedirectsToOutputRedirections(astRedirects)
-    : extractOutputRedirections(input.command) as {
-        redirections: Array<{ target: string; operator: '>' | '>>' }>
-        hasDangerousRedirection: boolean
-        dangerousRedirectionReason?: string
-      }
+    : extractOutputRedirections(input.command)
 
   // SECURITY: If we found a redirection operator with a target containing shell expansion
   // syntax ($VAR or %VAR%), require manual approval since the target can't be safely validated.
-  // v112: also catches /dev/tcp and /dev/udp network device redirections
   if (hasDangerousRedirection) {
-    const isNetworkDevice = dangerousRedirectionReason === 'network_device'
-    const message = isNetworkDevice
-      ? 'Redirect involving /dev/tcp or /dev/udp opens a network connection'
-      : 'Shell expansion syntax in paths requires manual approval'
     return {
       behavior: 'ask',
-      message,
+      message: 'Shell expansion syntax in paths requires manual approval',
       decisionReason: {
         type: 'other',
-        reason: message,
-        // TODO(lift): bashMissKind at byte ~6998300
-        bashMissKind: isNetworkDevice ? 'net-redirect' : 'shell-expansion',
-      } as unknown as { type: 'other'; reason: string },
+        reason: 'Shell expansion syntax in paths requires manual approval',
+      },
     }
   }
   const redirectionResult = validateOutputRedirections(
@@ -1274,24 +1112,13 @@ export function checkPathConstraints(
  * Convert AST-derived Redirect[] to the format expected by
  * validateOutputRedirections. Filters to output-only redirects (excluding
  * fd duplications like 2>&1) and maps operators to '>' | '>>'.
- * v112: also detects /dev/tcp and /dev/udp network device redirections.
  */
 function astRedirectsToOutputRedirections(redirects: Redirect[]): {
   redirections: Array<{ target: string; operator: '>' | '>>' }>
   hasDangerousRedirection: boolean
-  dangerousRedirectionReason?: string
 } {
   const redirections: Array<{ target: string; operator: '>' | '>>' }> = []
-  let hasDangerousRedirection = false
-  let dangerousRedirectionReason: string | undefined
-
   for (const r of redirects) {
-    // v112: /dev/tcp and /dev/udp open network connections — block them
-    if (/^\/dev\/(tcp|udp)\//.test(r.target)) {
-      hasDangerousRedirection = true
-      dangerousRedirectionReason = 'network_device'
-      continue
-    }
     switch (r.op) {
       case '>':
       case '>|':
@@ -1318,8 +1145,8 @@ function astRedirectsToOutputRedirections(redirects: Redirect[]): {
     }
   }
   // AST targets are fully resolved (no shell expansion) — checkSemantics
-  // already validated them. No dangerous redirections are possible (beyond network).
-  return { redirections, hasDangerousRedirection, dangerousRedirectionReason }
+  // already validated them. No dangerous redirections are possible.
+  return { redirections, hasDangerousRedirection: false }
 }
 
 // ───────────────────────────────────────────────────────────────────────────

@@ -49,11 +49,55 @@ export function resolveThemeSetting(setting: ThemeSetting): ThemeName {
 /**
  * Parse an OSC color response data string into a theme.
  *
- * In v112, themeFromOscColor and parseOscRgb were removed from this module.
- * They were moved to systemThemeWatcher.ts or another module that handles
- * the OSC 11 query response directly. This module now only handles the
- * cached theme resolution and $COLORFGBG detection.
+ * Accepts XParseColor formats returned by OSC 10/11 queries:
+ * - `rgb:R/G/B` where each component is 1–4 hex digits (each scaled to
+ *   [0, 16^n - 1] for n digits). This is what xterm, iTerm2, Terminal.app,
+ *   Ghostty, kitty, Alacritty, etc. return.
+ * - `#RRGGBB` / `#RRRRGGGGBBBB` (rare, but cheap to accept).
+ *
+ * Returns undefined for unrecognized formats so callers can fall back.
  */
+export function themeFromOscColor(data: string): SystemTheme | undefined {
+  const rgb = parseOscRgb(data)
+  if (!rgb) return undefined
+  // ITU-R BT.709 relative luminance. Midpoint split: > 0.5 is light.
+  const luminance = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b
+  return luminance > 0.5 ? 'light' : 'dark'
+}
+
+type Rgb = { r: number; g: number; b: number }
+
+function parseOscRgb(data: string): Rgb | undefined {
+  // rgb:RRRR/GGGG/BBBB — each component is 1–4 hex digits.
+  // Some terminals append an alpha component (rgba:…/…/…/…); ignore it.
+  const rgbMatch =
+    /^rgba?:([0-9a-f]{1,4})\/([0-9a-f]{1,4})\/([0-9a-f]{1,4})/i.exec(data)
+  if (rgbMatch) {
+    return {
+      r: hexComponent(rgbMatch[1]!),
+      g: hexComponent(rgbMatch[2]!),
+      b: hexComponent(rgbMatch[3]!),
+    }
+  }
+  // #RRGGBB or #RRRRGGGGBBBB — split into three equal hex runs.
+  const hashMatch = /^#([0-9a-f]+)$/i.exec(data)
+  if (hashMatch && hashMatch[1]!.length % 3 === 0) {
+    const hex = hashMatch[1]!
+    const n = hex.length / 3
+    return {
+      r: hexComponent(hex.slice(0, n)),
+      g: hexComponent(hex.slice(n, 2 * n)),
+      b: hexComponent(hex.slice(2 * n)),
+    }
+  }
+  return undefined
+}
+
+/** Normalize a 1–4 digit hex component to [0, 1]. */
+function hexComponent(hex: string): number {
+  const max = 16 ** hex.length - 1
+  return parseInt(hex, 16) / max
+}
 
 /**
  * Read $COLORFGBG for a synchronous initial guess before the OSC 11

@@ -204,7 +204,6 @@ export function parseSkillFrontmatterFields(
   agent: string | undefined
   effort: EffortValue | undefined
   shell: FrontmatterShell | undefined
-  createdBy: 'dream-proposal' | undefined
 } {
   const validatedDescription = coerceDescriptionToString(
     frontmatter.description,
@@ -235,12 +234,6 @@ export function parseSkillFrontmatterFields(
     )
   }
 
-  const createdBy =
-    frontmatter.created_by === 'dream-proposal' ||
-    frontmatter.improved_by === 'dream-proposal'
-      ? 'dream-proposal'
-      : undefined
-
   return {
     displayName:
       frontmatter.name != null ? String(frontmatter.name) : undefined,
@@ -268,7 +261,6 @@ export function parseSkillFrontmatterFields(
     agent: frontmatter.agent as string | undefined,
     effort,
     shell: parseShellFrontmatter(frontmatter.shell, resolvedName),
-    createdBy,
   }
 }
 
@@ -298,7 +290,6 @@ export function createSkillCommand({
   paths,
   effort,
   shell,
-  createdBy,
 }: {
   skillName: string
   displayName: string | undefined
@@ -322,7 +313,6 @@ export function createSkillCommand({
   paths: string[] | undefined
   effort: EffortValue | undefined
   shell: FrontmatterShell | undefined
-  createdBy: 'dream-proposal' | undefined
 }): Command {
   return {
     type: 'prompt',
@@ -351,7 +341,6 @@ export function createSkillCommand({
     loadedFrom,
     hooks,
     skillRoot: baseDir,
-    createdBy,
     async getPromptForCommand(args, toolUseContext) {
       let finalContent = baseDir
         ? `Base directory for this skill: ${baseDir}\n\n${markdownContent}`

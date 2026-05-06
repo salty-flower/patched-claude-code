@@ -344,16 +344,18 @@ const NON_EDITABLE_MODES = new Set<PromptInputMode>([
   'task-notification',
 ] satisfies Permutations<Exclude<PromptInputMode, EditablePromptInputMode>>)
 
-// v112: isPromptInputModeEditable is referenced by isQueuedCommandEditable (hj6
-// calls i7z) but the function definition is not present in the v112 slice.
-// It likely still exists in this module (the matcher simply didn't align it).
-// Defined locally since we know the exact semantics.
-function isPromptInputModeEditable(
+export function isPromptInputModeEditable(
   mode: PromptInputMode,
 ): mode is EditablePromptInputMode {
   return !NON_EDITABLE_MODES.has(mode)
 }
 
+/**
+ * Whether this queued command can be pulled into the input buffer via UP/ESC.
+ * System-generated commands (proactive ticks, scheduled tasks, plan
+ * verification, channel messages) contain raw XML and must not leak into
+ * the user's input.
+ */
 export function isQueuedCommandEditable(cmd: QueuedCommand): boolean {
   return isPromptInputModeEditable(cmd.mode) && !cmd.isMeta
 }

@@ -13,6 +13,50 @@ import { getGraphemeSegmenter } from '../utils/intl.js'
 
 export type TextObjectRange = { start: number; end: number } | null
 
+/**
+ * Delimiter pairs for text objects.
+ */
+const PAIRS: Record<string, [string, string]> = {
+  '(': ['(', ')'],
+  ')': ['(', ')'],
+  b: ['(', ')'],
+  '[': ['[', ']'],
+  ']': ['[', ']'],
+  '{': ['{', '}'],
+  '}': ['{', '}'],
+  B: ['{', '}'],
+  '<': ['<', '>'],
+  '>': ['<', '>'],
+  '"': ['"', '"'],
+  "'": ["'", "'"],
+  '`': ['`', '`'],
+}
+
+/**
+ * Find a text object at the given position.
+ */
+export function findTextObject(
+  text: string,
+  offset: number,
+  objectType: string,
+  isInner: boolean,
+): TextObjectRange {
+  if (objectType === 'w')
+    return findWordObject(text, offset, isInner, isVimWordChar)
+  if (objectType === 'W')
+    return findWordObject(text, offset, isInner, ch => !isVimWhitespace(ch))
+
+  const pair = PAIRS[objectType]
+  if (pair) {
+    const [open, close] = pair
+    return open === close
+      ? findQuoteObject(text, offset, open, isInner)
+      : findBracketObject(text, offset, open, close, isInner)
+  }
+
+  return null
+}
+
 function findWordObject(
   text: string,
   offset: number,

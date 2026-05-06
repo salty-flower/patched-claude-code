@@ -112,7 +112,7 @@ import {
 const getCoordinatorUserContext: (
   mcpClients: ReadonlyArray<{ name: string }>,
   scratchpadDir?: string,
-) => { [k: string]: string } = feature('COORDINATOR_MODE')
+) => { [k: string]: string } = true
   ? require('./coordinator/coordinatorMode.js').getCoordinatorUserContext
   : () => ({})
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -126,17 +126,6 @@ const snipProjection = feature('HISTORY_SNIP')
   ? (require('./services/compact/snipProjection.js') as typeof import('./services/compact/snipProjection.js'))
   : null
 /* eslint-enable @typescript-eslint/no-require-imports */
-
-// TODO(lift): v112 adds new fields to QueryEngineConfig:
-//   refreshTools?: () => Tools
-//   appendSubagentSystemPrompt?: string
-//   excludeDynamicSections?: boolean
-//   sessionEnvVars?: Map<string, string>
-//   tmuxSocket?: string
-//   deferredToolUse?: DeferredToolUse
-//   onCommandLifecycle?: (event: CommandLifecycleEvent) => void
-//   sessionState?: SessionState
-// See v112_min.js around byte 13436532 for the expanded constructor destructuring.
 
 export type QueryEngineConfig = {
   cwd: string
@@ -199,7 +188,6 @@ export class QueryEngine {
   private permissionDenials: SDKPermissionDenial[]
   private totalUsage: NonNullableUsage
   private hasHandledOrphanedPermission = false
-  // TODO(lift): v112 adds hasHandledDeferredToolResume = false at byte ~13436532
   private readFileState: FileStateCache
   // Turn-scoped skill discovery tracking (feeds was_discovered on
   // tengu_skill_tool_invocation). Must persist across the two
@@ -207,10 +195,7 @@ export class QueryEngine {
   // at the start of each submitMessage to avoid unbounded growth across
   // many turns in SDK mode.
   private discoveredSkillNames = new Set<string>()
-  // TODO(lift): v112 adds discoveredRemoteSkills = new Map() at byte ~13436532
   private loadedNestedMemoryPaths = new Set<string>()
-  // TODO(lift): v112 adds sessionEnvVars, tmuxSocket, memorySelector, bashRerunAliases
-  // at byte ~13436532. These are passed through from config to toolUseContext.
 
   constructor(config: QueryEngineConfig) {
     this.config = config
@@ -254,11 +239,6 @@ export class QueryEngine {
     setCwd(cwd)
     const persistSession = !isSessionPersistenceDisabled()
     const startTime = Date.now()
-
-    // TODO(lift): v112 refactors permission denial tracking at byte ~13436532.
-    // The wrappedCanUseTool is extracted into a standalone `F` helper that
-    // deduplicates by tool_use_id before pushing. The v88 inline lambda
-    // below is functionally equivalent for non-deferred paths.
 
     // Wrap canUseTool to track permission denials
     const wrappedCanUseTool: CanUseToolFn = async (
@@ -352,33 +332,6 @@ export class QueryEngine {
       registerStructuredOutputEnforcement(setAppState, getSessionId())
     }
 
-    // TODO(lift): v112 expands processUserInputContext significantly at byte ~13436532.
-    // New fields added in v112:
-    //   - turnStartIndex: 0
-    //   - onPermissionDenial: F (deduped denial tracker)
-    //   - onCommandLifecycle: this.config.onCommandLifecycle
-    //   - sessionState: this.config.sessionState
-    //   - setToolPermissionContext: (updater) => setAppState(...)
-    //   - taskRegistry: Uk(v, V)  // TODO(lift): task registry helper
-    //   - sessionHooksRegistry: OM6(V)  // TODO(lift): session hooks registry
-    //   - setClassifierApprovals: qF(V)  // TODO(lift): classifier approvals
-    //   - setReplContext: H06(V)  // TODO(lift): repl context setter
-    //   - setWebBrowserSlice: P36(V)  // TODO(lift): web browser slice
-    //   - abortSpeculation: () => gD(V)  // TODO(lift): abort speculation
-    //   - agentLifecycle: YW6(V)  // TODO(lift): agent lifecycle
-    //   - teammateColors: AW6(v, V)  // TODO(lift): teammate colors
-    //   - sessionEnvVars: this.sessionEnvVars
-    //   - tmuxSocket: this.tmuxSocket
-    //   - memorySelector: this.memorySelector
-    //   - bashRerunAliases: this.bashRerunAliases
-    //   - addResponseLength: () => {}
-    //   - resetResponseLength: () => {}
-    //   - getFileHistoryState: () => v().fileHistory
-    //   - applyFileHistoryOp: (op) => { ... }  // uses bX6 helper
-    //   - applyAttributionOp: (op) => { ... }  // uses gu8 helper
-    // The v88 source below is the baseline; v112 adds these without changing
-    // the core flow.
-
     let processUserInputContext: ProcessUserInputContext = {
       messages: this.mutableMessages,
       // Slash commands that mutate the message array (e.g. /force-snip)
@@ -454,12 +407,6 @@ export class QueryEngine {
       }
     }
 
-    // TODO(lift): v112 adds deferredToolUse handling at byte ~13436532.
-    // If this.config.deferredToolUse is set and not yet handled, the engine
-    // resumes the deferred tool via vc4(), yields the result, and may return
-    // early with stop_reason "tool_deferred" or "tool_deferred_unavailable".
-    // Reconstruction deferred until deferredToolUse type is lifted.
-
     const {
       messages: messagesFromUserInput,
       shouldQuery,
@@ -480,22 +427,11 @@ export class QueryEngine {
       querySource: 'sdk',
     })
 
-    // TODO(lift): v112 adds origin propagation at byte ~13436532.
-    // If options?.origin is set, each user message in messagesFromUserInput
-    // gets `msg.origin = options.origin`. This is for tracking message provenance.
-
     // Push new messages, including user input and any attachments
     this.mutableMessages.push(...messagesFromUserInput)
 
     // Update params to reflect updates from processing /slash commands
     const messages = [...this.mutableMessages]
-
-    // TODO(lift): v112 replaces the eager transcript recording below with a
-    // chunked/V6-based approach at byte ~13436532. The v112 engine tracks
-    // `X6` (flush index), `M6` (last compact boundary uuid), `W6` (watermark)
-    // and uses a `V6` helper that slices messages incrementally. The v88
-    // eager `recordTranscript(messages)` is semantically equivalent but less
-    // efficient for large histories.
 
     // Persist the user's message(s) to transcript BEFORE entering the query
     // loop. The for-await below only calls recordTranscript when ask() yields
@@ -595,9 +531,6 @@ export class QueryEngine {
     // ref-tracked plugins. CCR populates the cache via CLAUDE_CODE_SYNC_PLUGIN_INSTALL
     // (headlessPluginInstall) or CLAUDE_CODE_PLUGIN_SEED_DIR before this runs;
     // SDK callers that need fresh source can call /reload-plugins.
-    // TODO(lift): v112 adds plugin error handling at byte ~13436532.
-    // The v112 destructuring is `[T6,{enabled:v6,errors:L6}]` and pluginErrors
-    // are filtered with `eZ4` and mapped with `GH` for the system init message.
     const [skills, { enabled: enabledPlugins }] = await Promise.all([
       getSlashCommandToolSkills(getCwd()),
       loadAllPluginsCacheOnly(),
@@ -682,10 +615,6 @@ export class QueryEngine {
         }
       }
 
-      // TODO(lift): v112 adds fileAttachments and origin to replayed messages
-      // at byte ~13436532. When K?.shouldQuery===!1, replayed user messages
-      // may carry `file_attachments` from the origin options.
-
       yield {
         type: 'result',
         subtype: 'success',
@@ -743,10 +672,6 @@ export class QueryEngine {
       ? countToolCalls(this.mutableMessages, SYNTHETIC_OUTPUT_TOOL_NAME)
       : 0
 
-    // TODO(lift): v112 adds `S=0` (ttft tracking) and `w8={}` (terminal reason
-    // accumulator) at byte ~13436532. The v88 source omits these; they are
-    // only used in the result message fields `terminal_reason` and `ttft_ms`.
-
     for await (const message of query({
       messages,
       systemPrompt,
@@ -765,9 +690,6 @@ export class QueryEngine {
         message.type === 'user' ||
         (message.type === 'system' && message.subtype === 'compact_boundary')
       ) {
-        // TODO(lift): v112 adds ttft tracking at byte ~13436532.
-        // `if(message.type==="assistant"&&!S)S=Date.now()` records time-to-first-token.
-
         // Before writing a compact boundary, flush any in-memory-only
         // messages up through the preservedSegment tail. Attachments and
         // progress are now recorded inline (their switch cases below), but
@@ -814,8 +736,6 @@ export class QueryEngine {
           hasAcknowledgedInitialMessages = true
           for (const msgToAck of messagesToAck) {
             if (msgToAck.type === 'user') {
-              // TODO(lift): v112 adds fileAttachments and origin to replays
-              // at byte ~13436532.
               yield {
                 type: 'user',
                 message: msgToAck.message,
@@ -837,9 +757,6 @@ export class QueryEngine {
       switch (message.type) {
         case 'tombstone':
           // Tombstone messages are control signals for removing messages, skip them
-          // TODO(lift): v112 adds tombstone processing at byte ~13436532.
-          // v112 finds the message by uuid in both Y6 and mutableMessages and
-          // splices it out, adjusting flush indices X6 and W6.
           break
         case 'assistant':
           // Capture stop_reason if already set (synthetic messages). For
@@ -899,7 +816,6 @@ export class QueryEngine {
           }
 
           if (includePartialMessages) {
-            // TODO(lift): v112 adds ttft_ms to stream_event at byte ~13436532.
             yield {
               type: 'stream_event' as const,
               event: message.event,
@@ -918,20 +834,12 @@ export class QueryEngine {
             void recordTranscript(messages)
           }
 
-          // TODO(lift): v112 adds 'relevant_memories' attachment handling
-          // at byte ~13436532. Yields a memory summary message via FJ5 helper.
-
           // Extract structured output from StructuredOutput tool calls
           if (message.attachment.type === 'structured_output') {
             structuredOutputFromTool = message.attachment.data
           }
-          // TODO(lift): v112 adds 'hook_deferred_tool' attachment handling
-          // at byte ~13436532. Tracks deferred tool use for later resumption.
           // Handle max turns reached signal from query.ts
           else if (message.attachment.type === 'max_turns_reached') {
-            // TODO(lift): v112 refactors max_turns handling at byte ~13436532.
-            // The early-return is deferred until after the query loop, using
-            // an `x8` accumulator. This avoids losing trailing attachments.
             if (persistSession) {
               if (
                 isEnvTruthy(process.env.CLAUDE_CODE_EAGER_FLUSH) ||
@@ -969,8 +877,6 @@ export class QueryEngine {
             replayUserMessages &&
             message.attachment.type === 'queued_command'
           ) {
-            // TODO(lift): v112 adds fileAttachments and origin to queued_command
-            // replays at byte ~13436532.
             yield {
               type: 'user',
               message: {
@@ -987,8 +893,6 @@ export class QueryEngine {
           break
         case 'stream_request_start':
           // Don't yield stream request start messages
-          // TODO(lift): v112 yields a status system message for stream_request_start
-          // when includePartialMessages is true: `{type:"system",subtype:"status",status:"requesting",...}`
           break
         case 'system': {
           // Snip boundary: replay on our store to remove zombie messages and
@@ -1027,9 +931,6 @@ export class QueryEngine {
             if (localBoundaryIdx > 0) {
               messages.splice(0, localBoundaryIdx)
             }
-
-            // TODO(lift): v112 resets flush indices X6=Y6.length, W6=Y6.length
-            // at byte ~13436532 after compact boundary splice.
 
             yield {
               type: 'system',
@@ -1147,15 +1048,6 @@ export class QueryEngine {
       }
     }
 
-    // TODO(lift): v112 adds deferred tool result handling after the query loop
-    // at byte ~13436532. If a deferred tool was captured (R6), the engine
-    // yields a success result with stop_reason "tool_deferred" and includes
-    // the deferred_tool_use payload.
-
-    // TODO(lift): v112 adds max_turns deferred result handling at byte ~13436532.
-    // If x8 is set (max_turns_reached captured but deferred), yield the error
-    // result here instead of inside the loop.
-
     // Stop hooks yield progress/attachment messages AFTER the assistant
     // response (via yield* handleStopHooks in query.ts). Since #23537 pushes
     // those to `messages` inline, last(messages) can be a progress/attachment
@@ -1228,8 +1120,6 @@ export class QueryEngine {
     // Extract the text result based on message type
     let textResult = ''
     let isApiError = false
-    // TODO(lift): v112 adds apiErrorStatus tracking at byte ~13436532.
-    // `s6=null` tracks `a6.apiErrorStatus??null` for the result payload.
 
     if (result.type === 'assistant') {
       const lastContent = last(result.message.content)
@@ -1241,10 +1131,6 @@ export class QueryEngine {
       }
       isApiError = Boolean(result.isApiErrorMessage)
     }
-
-    // TODO(lift): v112 adds ttft logging at byte ~13436532.
-    // `if(!G8&&S)d("tengu_sdk_ttft",{ttft_ms:S-m,model:String(k6)})`
-    // Logs time-to-first-token for successful non-error results.
 
     yield {
       type: 'result',
@@ -1261,9 +1147,6 @@ export class QueryEngine {
       modelUsage: getModelUsage(),
       permission_denials: this.permissionDenials,
       structured_output: structuredOutputFromTool,
-      // TODO(lift): v112 adds terminal_reason and api_error_status at byte ~13436532.
-      // terminal_reason: w8.value?.reason,
-      // api_error_status: s6,
       fast_mode_state: getFastModeState(
         mainLoopModel,
         initialAppState.fastMode,
@@ -1363,12 +1246,6 @@ export async function* ask({
   setSDKStatus?: (status: SDKStatus) => void
   orphanedPermission?: OrphanedPermission
 }): AsyncGenerator<SDKMessage, void, unknown> {
-  // TODO(lift): v112 expands ask() parameter list at byte ~11716423.
-  // New parameters: shouldQuery, stopHookActive, fileAttachments, origin,
-  // refreshTools, appendSubagentSystemPrompt, excludeDynamicSections,
-  // sessionEnvVars, tmuxSocket, onCommandLifecycle, sessionState, deferredToolUse.
-  // The v88 signature is the baseline; v112 passes these through to QueryEngineConfig.
-
   const engine = new QueryEngine({
     cwd,
     tools,

@@ -36,6 +36,19 @@ function getImagePath(imageId: number, mediaType: string): string {
 }
 
 /**
+ * Cache the image path immediately (fast, no file I/O).
+ */
+export function cacheImagePath(content: PastedContent): string | null {
+  if (content.type !== 'image') {
+    return null
+  }
+  const imagePath = getImagePath(content.id, content.mediaType || 'image/png')
+  evictOldestIfAtCap()
+  storedImagePaths.set(content.id, imagePath)
+  return imagePath
+}
+
+/**
  * Store an image from pastedContents to disk.
  */
 export async function storeImage(

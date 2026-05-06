@@ -31,7 +31,6 @@ import {
   fetchSingleFileGitDiff,
   type ToolUseDiff,
 } from '../../utils/gitDiff.js'
-import { hasBinaryFileMode } from '../../utils/permissions/filesystem.js' // TODO(lift): gf6 at byte ~8688900 — binary mode check
 import { lazySchema } from '../../utils/lazySchema.js'
 import { logError } from '../../utils/log.js'
 import { expandPath } from '../../utils/path.js'
@@ -41,12 +40,7 @@ import {
 } from '../../utils/permissions/filesystem.js'
 import type { PermissionDecision } from '../../utils/permissions/PermissionResult.js'
 import { matchWildcardPattern } from '../../utils/permissions/shellRuleMatching.js'
-import { normalizeLineEndings } from '../../utils/lineEndings.js' // TODO(lift): XR8 at byte ~8691500 — normalize line endings before write
-import { basename } from 'path'
-import {
-  FILE_CONTENT_CHANGED_ERROR,
-  FILE_NOT_READ_ERROR,
-} from '../FileEditTool/constants.js'
+import { FILE_UNEXPECTEDLY_MODIFIED_ERROR } from '../FileEditTool/constants.js'
 import { gitDiffSchema, hunkSchema } from '../FileEditTool/types.js'
 import { FILE_WRITE_TOOL_NAME, getWriteToolDescription } from './prompt.js'
 import {
@@ -71,7 +65,6 @@ const inputSchema = lazySchema(() =>
 )
 type InputSchema = ReturnType<typeof inputSchema>
 
-// v112: output schema adds `userModified` field
 const outputSchema = lazySchema(() =>
   z.object({
     type: z
@@ -91,13 +84,6 @@ const outputSchema = lazySchema(() =>
         'The original file content before the write (null for new files)',
       ),
     gitDiff: gitDiffSchema().optional(),
-    // v112: new field — true when user edited proposed content in permission dialog
-    userModified: z
-      .boolean()
-      .optional()
-      .describe(
-        'True when the user edited the proposed content in the permission dialog before accepting',
-      ),
   }),
 )
 type OutputSchema = ReturnType<typeof outputSchema>
@@ -130,27 +116,11 @@ export const FileWriteTool = buildTool({
   get outputSchema(): OutputSchema {
     return outputSchema()
   },
-  // v112: new stripForStorage — strips content/originalFile from update results
-  stripForStorage(data) {
-    if (typeof data !== 'object' || data === null) return data
-    const typed = data as Output
-    if (typed.type !== 'update') return data
-    if (typed.content === '' && (typed.originalFile ?? '') === '') return data
-    return { ...typed, content: '', originalFile: null }
-  },
   toAutoClassifierInput(input) {
     return `${input.file_path}: ${input.content}`
   },
   getPath(input): string {
     return input.file_path
-  },
-  // v112: new inputsEquivalent — trims trailing newlines before comparison
-  inputsEquivalent(a, b) {
-    if (a.file_path !== b.file_path) return false
-    if (a.content === b.content) return true
-    return (
-      a.content.replace(/\n+$/, '') === b.content.replace(/\n+$/, '')
-    )
   },
   backfillObservableInput(input) {
     // hooks.mdx documents file_path as absolute; expand so hook allowlists
@@ -174,27 +144,14 @@ export const FileWriteTool = buildTool({
   renderToolUseErrorMessage,
   renderToolResultMessage,
   extractSearchText() {
+    // Transcript render shows either content (create, via HighlightedCode)
+    // or a structured diff (update). The heuristic's 'content' allowlist key
+    // would index the raw content string even in update mode where it's NOT
+    // shown — phantom. Under-count: tool_use already indexes file_path.
     return ''
   },
   async validateInput({ file_path, content }, toolUseContext: ToolUseContext) {
     const fullFilePath = expandPath(file_path)
-
-    // v112: new subagent report block — blocks subagents from writing .md report files
-    if (
-      getFeatureValue_CACHED_MAY_BE_STALE('tengu_sub_nomdrep_q7k', false) &&
-      toolUseContext.agentId &&
-      /^(REPORT|SUMMARY|FINDINGS|ANALYSIS).*\.md$/i.test(basename(fullFilePath))
-    ) {
-      logEvent('tengu_subagent_md_report_blocked', {
-        contentBytes: Buffer.byteLength(content),
-      } as any)
-      return {
-        result: false,
-        message:
-          'Subagents should return findings as text, not write report files. Include this content in your final response instead.',
-        errorCode: 5,
-      }
-    }
 
     // Reject writes to team memory files that contain secrets
     const secretError = checkTeamMemSecrets(fullFilePath, content)
@@ -220,6 +177,8 @@ export const FileWriteTool = buildTool({
     }
 
     // SECURITY: Skip filesystem operations for UNC paths to prevent NTLM credential leaks.
+    // On Windows, fs.existsSync() on UNC paths triggers SMB authentication which could
+    // leak credentials to malicious servers. Let the permission check handle UNC paths.
     if (fullFilePath.startsWith('\\\\') || fullFilePath.startsWith('//')) {
       return { result: true }
     }
@@ -229,14 +188,6 @@ export const FileWriteTool = buildTool({
     try {
       const fileStat = await fs.stat(fullFilePath)
       fileMtimeMs = fileStat.mtimeMs
-      // v112: check for binary file mode (new check added)
-      if (hasBinaryFileMode(fileStat.mode)) {
-        return {
-          result: false,
-          message: 'Cannot write to binary files.',
-          errorCode: 6,
-        }
-      }
     } catch (e) {
       if (isENOENT(e)) {
         return { result: true }
@@ -248,30 +199,22 @@ export const FileWriteTool = buildTool({
     if (!readTimestamp || readTimestamp.isPartialView) {
       return {
         result: false,
-        message: FILE_NOT_READ_ERROR,
+        message:
+          'File has not been read yet. Read it first before writing to it.',
         errorCode: 2,
       }
     }
 
-    if (Math.floor(fileMtimeMs) > readTimestamp.timestamp) {
-      // v112: check if it's a full read and content matches (same as FileEditTool)
-      const isFullRead =
-        (readTimestamp.offset ?? 1) <= 1 && readTimestamp.limit === undefined
-      let contentMatches = false
-      if (isFullRead) {
-        const currentBytes = await fs.readFileBytes(fullFilePath)
-        const currentContent = currentBytes
-          .toString('utf8')
-          .replaceAll('\r\n', '\n')
-        contentMatches = contentMatchesReadState(readTimestamp, currentContent)
-      }
-      if (!contentMatches) {
-        return {
-          result: false,
-          message:
-            'File has been modified since read, either by the user or by a linter. Read it again before attempting to write it.',
-          errorCode: 3,
-        }
+    // Reuse mtime from the stat above — avoids a redundant statSync via
+    // getFileModificationTime. The readTimestamp guard above ensures this
+    // block is always reached when the file exists.
+    const lastWriteTime = Math.floor(fileMtimeMs)
+    if (lastWriteTime > readTimestamp.timestamp) {
+      return {
+        result: false,
+        message:
+          'File has been modified since read, either by the user or by a linter. Read it again before attempting to write it.',
+        errorCode: 3,
       }
     }
 
@@ -279,13 +222,7 @@ export const FileWriteTool = buildTool({
   },
   async call(
     { file_path, content },
-    {
-      readFileState,
-      userModified,
-      getFileHistoryState,
-      applyFileHistoryOp,
-      dynamicSkillDirTriggers,
-    },
+    { readFileState, updateFileHistoryState, dynamicSkillDirTriggers },
     _,
     parentMessage,
   ) {
@@ -296,9 +233,11 @@ export const FileWriteTool = buildTool({
     const cwd = getCwd()
     const newSkillDirs = await discoverSkillDirsForPaths([fullFilePath], cwd)
     if (newSkillDirs.length > 0) {
-      for (const skillDir of newSkillDirs) {
-        dynamicSkillDirTriggers?.add(skillDir)
+      // Store discovered dirs for attachment display
+      for (const dir of newSkillDirs) {
+        dynamicSkillDirTriggers?.add(dir)
       }
+      // Don't await - let skill loading happen in the background
       addSkillDirectories(newSkillDirs).catch(() => {})
     }
 
@@ -307,19 +246,25 @@ export const FileWriteTool = buildTool({
 
     await diagnosticTracker.beforeFileEdited(fullFilePath)
 
+    // Ensure parent directory exists before the atomic read-modify-write section.
+    // Must stay OUTSIDE the critical section below (a yield between the staleness
+    // check and writeTextContent lets concurrent edits interleave), and BEFORE the
+    // write (lazy-mkdir-on-ENOENT would fire a spurious tengu_atomic_write_error
+    // inside writeFileSyncAndFlush_DEPRECATED before ENOENT propagates back).
     await getFsImplementation().mkdir(dir)
-
-    // v112: uses getFileHistoryState/applyFileHistoryOp instead of updateFileHistoryState
     if (fileHistoryEnabled()) {
+      // Backup captures pre-edit content — safe to call before the staleness
+      // check (idempotent v1 backup keyed on content hash; if staleness fails
+      // later we just have an unused backup, not corrupt state).
       await fileHistoryTrackEdit(
-        getFileHistoryState,
-        applyFileHistoryOp,
+        updateFileHistoryState,
         fullFilePath,
         parentMessage.uuid,
       )
     }
 
     // Load current state and confirm no changes since last read.
+    // Please avoid async operations between here and writing to disk to preserve atomicity.
     let meta: ReturnType<typeof readFileSyncWithMetadata> | null
     try {
       meta = readFileSyncWithMetadata(fullFilePath)
@@ -332,14 +277,19 @@ export const FileWriteTool = buildTool({
     }
 
     if (meta !== null) {
+      const lastWriteTime = getFileModificationTime(fullFilePath)
       const lastRead = readFileState.get(fullFilePath)
-      if (!lastRead) throw new Error(FILE_NOT_READ_ERROR)
-      if (getFileModificationTime(fullFilePath) > lastRead.timestamp) {
-        // v112: content-based fallback check for full reads
+      if (!lastRead || lastWriteTime > lastRead.timestamp) {
+        // Timestamp indicates modification, but on Windows timestamps can change
+        // without content changes (cloud sync, antivirus, etc.). For full reads,
+        // compare content as a fallback to avoid false positives.
         const isFullRead =
-          (lastRead.offset ?? 1) <= 1 && lastRead.limit === undefined
-        if (!(isFullRead && contentMatchesReadState(lastRead, meta.content))) {
-          throw new Error(FILE_CONTENT_CHANGED_ERROR)
+          lastRead &&
+          lastRead.offset === undefined &&
+          lastRead.limit === undefined
+        // meta.content is CRLF-normalized — matches readFileState's normalized form.
+        if (!isFullRead || meta.content !== lastRead.content) {
+          throw new Error(FILE_UNEXPECTEDLY_MODIFIED_ERROR)
         }
       }
     }
@@ -347,23 +297,26 @@ export const FileWriteTool = buildTool({
     const enc = meta?.encoding ?? 'utf8'
     const oldContent = meta?.content ?? null
 
-    // v112: normalize line endings before write via XR8 equivalent
-    const normalizedContent = normalizeLineEndings_V112(fullFilePath, content)
-    writeTextContent(fullFilePath, normalizedContent, enc, 'LF')
+    // Write is a full content replacement — the model sent explicit line endings
+    // in `content` and meant them. Do not rewrite them. Previously we preserved
+    // the old file's line endings (or sampled the repo via ripgrep for new
+    // files), which silently corrupted e.g. bash scripts with \r on Linux when
+    // overwriting a CRLF file or when binaries in cwd poisoned the repo sample.
+    writeTextContent(fullFilePath, content, enc, 'LF')
 
     // Notify LSP servers about file modification (didChange) and save (didSave)
     const lspManager = getLspServerManager()
     if (lspManager) {
+      // Clear previously delivered diagnostics so new ones will be shown
       clearDeliveredDiagnosticsForFile(`file://${fullFilePath}`)
-      // v112: calls kI8 (clearDeliveredDiagnosticsForFile) and NI8 before changeFile
-      // (already handled above for kI8; NI8 is a separate notification)
-      // TODO(lift): NI8 at byte ~8692500 — additional LSP notification call
-      lspManager.changeFile(fullFilePath, normalizedContent).catch((err: Error) => {
+      // didChange: Content has been modified
+      lspManager.changeFile(fullFilePath, content).catch((err: Error) => {
         logForDebugging(
           `LSP: Failed to notify server of file change for ${fullFilePath}: ${err.message}`,
         )
         logError(err)
       })
+      // didSave: File has been saved to disk (triggers diagnostics in TypeScript server)
       lspManager.saveFile(fullFilePath).catch((err: Error) => {
         logForDebugging(
           `LSP: Failed to notify server of file save for ${fullFilePath}: ${err.message}`,
@@ -373,11 +326,11 @@ export const FileWriteTool = buildTool({
     }
 
     // Notify VSCode about the file change for diff view
-    notifyVscodeFileUpdated(fullFilePath, oldContent, normalizedContent)
+    notifyVscodeFileUpdated(fullFilePath, oldContent, content)
 
     // Update read timestamp, to invalidate stale writes
     readFileState.set(fullFilePath, {
-      content: normalizedContent,
+      content,
       timestamp: getFileModificationTime(fullFilePath),
       offset: undefined,
       limit: undefined,
@@ -389,7 +342,10 @@ export const FileWriteTool = buildTool({
     }
 
     let gitDiff: ToolUseDiff | undefined
-    if (isEnvTruthy(process.env.CLAUDE_CODE_REMOTE)) {
+    if (
+      isEnvTruthy(process.env.CLAUDE_CODE_REMOTE) &&
+      getFeatureValue_CACHED_MAY_BE_STALE('tengu_quartz_lantern', false)
+    ) {
       const startTime = Date.now()
       const diff = await fetchSingleFileGitDiff(fullFilePath)
       if (diff) gitDiff = diff
@@ -397,7 +353,7 @@ export const FileWriteTool = buildTool({
         isWriteTool: true,
         durationMs: Date.now() - startTime,
         hasDiff: !!diff,
-      } as any)
+      })
     }
 
     if (oldContent) {
@@ -407,7 +363,7 @@ export const FileWriteTool = buildTool({
         edits: [
           {
             old_string: oldContent,
-            new_string: normalizedContent,
+            new_string: content,
             replace_all: false,
           },
         ],
@@ -416,12 +372,12 @@ export const FileWriteTool = buildTool({
       const data = {
         type: 'update' as const,
         filePath: file_path,
-        content: normalizedContent,
+        content,
         structuredPatch: patch,
         originalFile: oldContent,
-        userModified: userModified ?? false,
         ...(gitDiff && { gitDiff }),
       }
+      // Track lines added and removed for file updates, right before yielding result
       countLinesChanged(patch)
 
       logFileOperation({
@@ -431,20 +387,22 @@ export const FileWriteTool = buildTool({
         type: 'update',
       })
 
-      return { data }
+      return {
+        data,
+      }
     }
 
     const data = {
       type: 'create' as const,
       filePath: file_path,
-      content: normalizedContent,
+      content,
       structuredPatch: [],
       originalFile: null,
-      userModified: userModified ?? false,
       ...(gitDiff && { gitDiff }),
     }
 
-    countLinesChanged([], normalizedContent)
+    // For creation of new files, count all lines as additions, right before yielding the result
+    countLinesChanged([], content)
 
     logFileOperation({
       operation: 'write',
@@ -453,64 +411,24 @@ export const FileWriteTool = buildTool({
       type: 'create',
     })
 
-    return { data }
+    return {
+      data,
+    }
   },
-  mapToolResultToToolResultBlockParam({ filePath, type, userModified }, toolUseID) {
-    // v112: appends user-modified suffix and file-state-current note
-    const userModifiedNote = userModified
-      ? ' The user modified your proposed content before accepting it.'
-      : ''
-    // TODO(lift): ok8 / qN6 at byte ~8694000 — file-state-current note appended
-    // when re-read-after-edit feature is enabled and user did NOT modify content.
-    const fileStateSuffix = getFileStateCurrentSuffix_V112(userModified)
+  mapToolResultToToolResultBlockParam({ filePath, type }, toolUseID) {
     switch (type) {
       case 'create':
         return {
           tool_use_id: toolUseID,
           type: 'tool_result',
-          content: `File created successfully at: ${filePath}${userModifiedNote}${fileStateSuffix}`,
+          content: `File created successfully at: ${filePath}`,
         }
       case 'update':
         return {
           tool_use_id: toolUseID,
           type: 'tool_result',
-          content: `The file ${filePath} has been updated successfully.${userModifiedNote}${fileStateSuffix}`,
+          content: `The file ${filePath} has been updated successfully.`,
         }
     }
   },
 } satisfies ToolDef<InputSchema, Output>)
-
-/**
- * Check if a read state entry's content matches a given file content string.
- * Used to determine if a file was truly changed or just had its mtime bumped.
- */
-function contentMatchesReadState(
-  readState: { content?: string },
-  currentContent: string,
-): boolean {
-  return readState.content === currentContent
-}
-
-/**
- * v112: stub for XR8() — normalize line endings before write.
- * In v112, the file content may be transformed before writing (e.g. CRLF normalization).
- * TODO(lift): XR8 at byte ~8691500 — line ending normalizer / content transformer
- */
-function normalizeLineEndings_V112(
-  _filePath: string,
-  content: string,
-): string {
-  // TODO(lift): XR8 at byte ~8691500 — content normalizer before write
-  return content
-}
-
-/**
- * v112: stub for file-state-current note appended to tool_result.
- * Returns ' (file state is current in your context — no need to Read it back)'
- * when the re-read-after-edit feature is enabled and user did not modify content.
- * TODO(lift): qN6/ok8 at byte ~8694000
- */
-function getFileStateCurrentSuffix_V112(userModified?: boolean): string {
-  // TODO(lift): qN6 at byte ~8694000 — isReReadAfterEditEnabled() gate
-  return ''
-}

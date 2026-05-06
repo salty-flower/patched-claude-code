@@ -12,33 +12,20 @@ export type FileState = {
   // Edit/Write must require an explicit Read first. `content` here holds the
   // RAW disk bytes (for getChangedFiles diffing), not what the model saw.
   isPartialView?: boolean
-  // v112: preserve content across empty writes when hash matches
-  keepContent?: boolean
-  contentHash?: string
-  contentLength?: number
 }
 
 // Default max entries for read file state caches
 export const READ_FILE_STATE_CACHE_SIZE = 100
 
 // Default size limit for file state caches (25MB)
+// This prevents unbounded memory growth from large file contents
 const DEFAULT_MAX_CACHE_SIZE_BYTES = 25 * 1024 * 1024
-
-// Threshold for keeping content in cache even when empty
-const KEEP_CONTENT_THRESHOLD_BYTES = 1024 * 1024
-
-function computeContentHash(content: string): string {
-  // TODO(lift): dD4 at byte ~5046909 — actual hash function
-  return String(content.length)
-}
-
-function normalizeKey(key: string): string {
-  return normalize(key)
-}
 
 /**
  * A file state cache that normalizes all path keys before access.
- * v112 adds content hashing and keepContent preservation for empty writes.
+ * This ensures consistent cache hits regardless of whether callers pass
+ * relative vs absolute paths with redundant segments (e.g. /foo/../bar)
+ * or mixed path separators on Windows (/ vs \).
  */
 export class FileStateCache {
   private cache: LRUCache<string, FileState>
@@ -52,47 +39,20 @@ export class FileStateCache {
   }
 
   get(key: string): FileState | undefined {
-    return this.cache.get(normalizeKey(key))
+    return this.cache.get(normalize(key))
   }
 
   set(key: string, value: FileState): this {
-    const normalized = normalizeKey(key)
-    const existing = this.cache.get(normalized)
-    const keepContent = value.keepContent ?? existing?.keepContent
-    const contentHash = value.contentHash ?? computeContentHash(value.content)
-    const contentLength = value.contentLength ?? value.content.length
-
-    // Preserve previous content when keepContent is set, current content is empty,
-    // and the hash matches (indicating a no-op write).
-    const preservedContent =
-      keepContent &&
-      value.content === '' &&
-      contentHash === existing?.contentHash &&
-      existing.content
-        ? existing.content
-        : value.content
-
-    const storedContent =
-      keepContent || Buffer.byteLength(preservedContent) <= KEEP_CONTENT_THRESHOLD_BYTES
-        ? preservedContent
-        : ''
-
-    this.cache.set(normalized, {
-      ...value,
-      keepContent,
-      contentHash,
-      contentLength,
-      content: storedContent,
-    })
+    this.cache.set(normalize(key), value)
     return this
   }
 
   has(key: string): boolean {
-    return this.cache.has(normalizeKey(key))
+    return this.cache.has(normalize(key))
   }
 
   delete(key: string): boolean {
-    return this.cache.delete(normalizeKey(key))
+    return this.cache.delete(normalize(key))
   }
 
   clear(): void {
@@ -134,6 +94,9 @@ export class FileStateCache {
 
 /**
  * Factory function to create a size-limited FileStateCache.
+ * Uses LRUCache's built-in size-based eviction to prevent memory bloat.
+ * Note: Images are not cached (see FileReadTool) so size limit is mainly
+ * for large text files, notebooks, and other editable content.
  */
 export function createFileStateCacheWithSizeLimit(
   maxEntries: number,
@@ -149,14 +112,20 @@ export function cacheToObject(
   return Object.fromEntries(cache.entries())
 }
 
+// Helper function to get all keys from cache (used by several components)
+export function cacheKeys(cache: FileStateCache): string[] {
+  return Array.from(cache.keys())
+}
+
 // Helper function to clone a FileStateCache
+// Preserves size limit configuration from the source cache
 export function cloneFileStateCache(cache: FileStateCache): FileStateCache {
   const cloned = createFileStateCacheWithSizeLimit(cache.max, cache.maxSize)
   cloned.load(cache.dump())
   return cloned
 }
 
-// Merge two file state caches, with more recent entries overriding older ones
+// Merge two file state caches, with more recent entries (by timestamp) overriding older ones
 export function mergeFileStateCaches(
   first: FileStateCache,
   second: FileStateCache,
@@ -164,6 +133,7 @@ export function mergeFileStateCaches(
   const merged = cloneFileStateCache(first)
   for (const [filePath, fileState] of second.entries()) {
     const existing = merged.get(filePath)
+    // Only override if the new entry is more recent
     if (!existing || fileState.timestamp > existing.timestamp) {
       merged.set(filePath, fileState)
     }

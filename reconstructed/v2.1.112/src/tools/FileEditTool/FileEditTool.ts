@@ -73,16 +73,15 @@ import {
   areFileEditsInputsEquivalent,
   findActualString,
   getPatchForEdit,
-  normalizeLineEndings,
   preserveQuoteStyle,
 } from './utils.js'
 
-// V8/Bun string length limit is ~2^30 characters (~1 billion).
+// V8/Bun string length limit is ~2^30 characters (~1 billion). For typical
+// ASCII/Latin-1 files, 1 byte on disk = 1 character, so 1 GiB in stat bytes
+// ≈ 1 billion characters ≈ the runtime string limit. Multi-byte UTF-8 files
+// can be larger on disk per character, but 1 GiB is a safe byte-level guard
+// that prevents OOM without being unnecessarily restrictive.
 const MAX_EDIT_FILE_SIZE = 1024 * 1024 * 1024 // 1 GiB (stat bytes)
-
-// v112: error message for attempting to edit an executable file
-const EXECUTABLE_FILE_EDIT_ERROR =
-  'Cannot edit executable files. This file appears to be a binary or compiled executable.'
 
 export const FileEditTool = buildTool({
   name: FILE_EDIT_TOOL_NAME,
@@ -107,12 +106,6 @@ export const FileEditTool = buildTool({
   get outputSchema() {
     return outputSchema()
   },
-  // v112: new stripForStorage method — clears originalFile to save storage space
-  stripForStorage(data: FileEditOutput) {
-    if (typeof data !== 'object' || data === null) return data
-    if ((data.originalFile ?? '') === '') return data
-    return { ...data, originalFile: '' }
-  },
   toAutoClassifierInput(input) {
     return `${input.file_path}: ${input.new_string}`
   },
@@ -120,6 +113,8 @@ export const FileEditTool = buildTool({
     return input.file_path
   },
   backfillObservableInput(input) {
+    // hooks.mdx documents file_path as absolute; expand so hook allowlists
+    // can't be bypassed via ~ or relative paths.
     if (typeof input.file_path === 'string') {
       input.file_path = expandPath(input.file_path)
     }
@@ -141,6 +136,8 @@ export const FileEditTool = buildTool({
   renderToolUseErrorMessage,
   async validateInput(input: FileEditInput, toolUseContext: ToolUseContext) {
     const { file_path, old_string, new_string, replace_all = false } = input
+    // Use expandPath for consistent path normalization (especially on Windows
+    // where "/" vs "\" can cause readFileState lookup mismatches)
     const fullFilePath = expandPath(file_path)
 
     // Reject edits to team memory files that introduce secrets
@@ -158,6 +155,7 @@ export const FileEditTool = buildTool({
       }
     }
 
+    // Check if path should be ignored based on permission settings
     const appState = toolUseContext.getAppState()
     const denyRule = matchingRuleForInput(
       fullFilePath,
@@ -176,6 +174,8 @@ export const FileEditTool = buildTool({
     }
 
     // SECURITY: Skip filesystem operations for UNC paths to prevent NTLM credential leaks.
+    // On Windows, fs.existsSync() on UNC paths triggers SMB authentication which could
+    // leak credentials to malicious servers. Let the permission check handle UNC paths.
     if (fullFilePath.startsWith('\\\\') || fullFilePath.startsWith('//')) {
       return { result: true }
     }
@@ -184,7 +184,7 @@ export const FileEditTool = buildTool({
 
     // Prevent OOM on multi-GB files.
     try {
-      const { size, mode } = await fs.stat(fullFilePath)
+      const { size } = await fs.stat(fullFilePath)
       if (size > MAX_EDIT_FILE_SIZE) {
         return {
           result: false,
@@ -193,21 +193,15 @@ export const FileEditTool = buildTool({
           errorCode: 10,
         }
       }
-      // v112: new check — reject executable files (gf6(mode) in v112_min)
-      if (isExecutableFile(mode)) {
-        return {
-          result: false,
-          behavior: 'ask',
-          message: EXECUTABLE_FILE_EDIT_ERROR,
-          errorCode: 11,
-        }
-      }
     } catch (e) {
       if (!isENOENT(e)) {
         throw e
       }
     }
 
+    // Read the file as bytes first so we can detect encoding from the buffer
+    // instead of calling detectFileEncoding (which does its own sync readSync
+    // and would fail with a wasted ENOENT when the file doesn't exist).
     let fileContent: string | null
     try {
       const fileBuffer = await fs.readFileBytes(fullFilePath)
@@ -228,9 +222,11 @@ export const FileEditTool = buildTool({
 
     // File doesn't exist
     if (fileContent === null) {
+      // Empty old_string on nonexistent file means new file creation — valid
       if (old_string === '') {
         return { result: true }
       }
+      // Try to find a similar file with a different extension
       const similarFilename = findSimilarFile(fullFilePath)
       const cwdSuggestion = await suggestPathUnderCwd(fullFilePath)
       let message = `File does not exist. ${FILE_NOT_FOUND_CWD_NOTE} ${getCwd()}.`
@@ -251,6 +247,7 @@ export const FileEditTool = buildTool({
 
     // File exists with empty old_string — only valid if file is empty
     if (old_string === '') {
+      // Only reject if the file has content (for file creation attempt)
       if (fileContent.trim() !== '') {
         return {
           result: false,
@@ -259,7 +256,11 @@ export const FileEditTool = buildTool({
           errorCode: 3,
         }
       }
-      return { result: true }
+
+      // Empty file with empty old_string is valid - we're replacing empty with content
+      return {
+        result: true,
+      }
     }
 
     if (fullFilePath.endsWith('.ipynb')) {
@@ -285,15 +286,17 @@ export const FileEditTool = buildTool({
       }
     }
 
+    // Check if file exists and get its last modified time
     if (readTimestamp) {
       const lastWriteTime = getFileModificationTime(fullFilePath)
       if (lastWriteTime > readTimestamp.timestamp) {
-        // v112: isFullRead check uses offset<=1 heuristic (not strict undefined check)
+        // Timestamp indicates modification, but on Windows timestamps can change
+        // without content changes (cloud sync, antivirus, etc.). For full reads,
+        // compare content as a fallback to avoid false positives.
         const isFullRead =
-          (readTimestamp.offset ?? 1) <= 1 &&
-          readTimestamp.limit === undefined &&
-          isContentUnchanged(readTimestamp, fileContent)
-        if (isFullRead) {
+          readTimestamp.offset === undefined &&
+          readTimestamp.limit === undefined
+        if (isFullRead && fileContent === readTimestamp.content) {
           // Content unchanged, safe to proceed
         } else {
           return {
@@ -309,6 +312,7 @@ export const FileEditTool = buildTool({
 
     const file = fileContent
 
+    // Use findActualString to handle quote normalization
     const actualOldString = findActualString(file, old_string)
     if (!actualOldString) {
       return {
@@ -324,6 +328,7 @@ export const FileEditTool = buildTool({
 
     const matches = file.split(actualOldString).length - 1
 
+    // Check if we have multiple matches but replace_all is false
     if (matches > 1 && !replace_all) {
       return {
         result: false,
@@ -337,10 +342,12 @@ export const FileEditTool = buildTool({
       }
     }
 
+    // Additional validation for Claude settings files
     const settingsValidationResult = validateInputForSettingsFileEdit(
       fullFilePath,
       file,
       () => {
+        // Simulate the edit to get the final content using the exact same logic as the tool
         return replace_all
           ? file.replaceAll(actualOldString, new_string)
           : file.replace(actualOldString, new_string)
@@ -382,8 +389,7 @@ export const FileEditTool = buildTool({
     {
       readFileState,
       userModified,
-      getFileHistoryState,
-      applyFileHistoryOp,
+      updateFileHistoryState,
       dynamicSkillDirTriggers,
     },
     _,
@@ -391,9 +397,12 @@ export const FileEditTool = buildTool({
   ) {
     const { file_path, old_string, new_string, replace_all = false } = input
 
+    // 1. Get current state
     const fs = getFsImplementation()
     const absoluteFilePath = expandPath(file_path)
 
+    // Discover skills from this file's path (fire-and-forget, non-blocking)
+    // Skip in simple mode - no skills available
     const cwd = getCwd()
     if (!isEnvTruthy(process.env.CLAUDE_CODE_SIMPLE)) {
       const newSkillDirs = await discoverSkillDirsForPaths(
@@ -401,29 +410,37 @@ export const FileEditTool = buildTool({
         cwd,
       )
       if (newSkillDirs.length > 0) {
+        // Store discovered dirs for attachment display
         for (const dir of newSkillDirs) {
           dynamicSkillDirTriggers?.add(dir)
         }
+        // Don't await - let skill loading happen in the background
         addSkillDirectories(newSkillDirs).catch(() => {})
       }
+
+      // Activate conditional skills whose path patterns match this file
       activateConditionalSkillsForPaths([absoluteFilePath], cwd)
     }
 
     await diagnosticTracker.beforeFileEdited(absoluteFilePath)
 
+    // Ensure parent directory exists before the atomic read-modify-write section.
+    // These awaits must stay OUTSIDE the critical section below — a yield between
+    // the staleness check and writeTextContent lets concurrent edits interleave.
     await fs.mkdir(dirname(absoluteFilePath))
-    // v112: fileHistory API changed from updateFileHistoryState+fileHistoryTrackEdit
-    // to getFileHistoryState+applyFileHistoryOp pair
     if (fileHistoryEnabled()) {
+      // Backup captures pre-edit content — safe to call before the staleness
+      // check (idempotent v1 backup keyed on content hash; if staleness fails
+      // later we just have an unused backup, not corrupt state).
       await fileHistoryTrackEdit(
-        // TODO(lift): v112 uses getFileHistoryState+applyFileHistoryOp (M96 pattern)
-        // instead of updateFileHistoryState. Map to v88 signature for now.
-        applyFileHistoryOp as unknown as Parameters<typeof fileHistoryTrackEdit>[0],
+        updateFileHistoryState,
         absoluteFilePath,
         parentMessage.uuid,
       )
     }
 
+    // 2. Load current state and confirm no changes since last read
+    // Please avoid async operations between here and writing to disk to preserve atomicity
     const {
       content: originalFileContents,
       fileExists,
@@ -432,30 +449,36 @@ export const FileEditTool = buildTool({
     } = readFileForEdit(absoluteFilePath)
 
     if (fileExists) {
-      const lastRead = readFileState.get(absoluteFilePath)
-      if (!lastRead) throw new Error(FILE_UNEXPECTEDLY_MODIFIED_ERROR)
       const lastWriteTime = getFileModificationTime(absoluteFilePath)
-      if (lastWriteTime > lastRead.timestamp) {
-        // v112: isFullRead uses offset<=1 heuristic
+      const lastRead = readFileState.get(absoluteFilePath)
+      if (!lastRead || lastWriteTime > lastRead.timestamp) {
+        // Timestamp indicates modification, but on Windows timestamps can change
+        // without content changes (cloud sync, antivirus, etc.). For full reads,
+        // compare content as a fallback to avoid false positives.
         const isFullRead =
-          (lastRead.offset ?? 1) <= 1 &&
-          lastRead.limit === undefined &&
-          isContentUnchanged(lastRead, originalFileContents)
-        if (!isFullRead) {
+          lastRead &&
+          lastRead.offset === undefined &&
+          lastRead.limit === undefined
+        const contentUnchanged =
+          isFullRead && originalFileContents === lastRead.content
+        if (!contentUnchanged) {
           throw new Error(FILE_UNEXPECTEDLY_MODIFIED_ERROR)
         }
       }
     }
 
+    // 3. Use findActualString to handle quote normalization
     const actualOldString =
       findActualString(originalFileContents, old_string) || old_string
 
+    // Preserve curly quotes in new_string when the file uses them
     const actualNewString = preserveQuoteStyle(
       old_string,
       actualOldString,
       new_string,
     )
 
+    // 4. Generate patch
     const { patch, updatedFile } = getPatchForEdit({
       filePath: absoluteFilePath,
       fileContents: originalFileContents,
@@ -464,33 +487,24 @@ export const FileEditTool = buildTool({
       replaceAll: replace_all,
     })
 
-    // v112: normalizeLineEndings post-processes the updated file (XR8 in v112_min)
-    // If output equals input after normalization the patch may be regenerated
-    const normalizedFile = normalizeLineEndings(absoluteFilePath, updatedFile)
-    const finalPatch =
-      normalizedFile === updatedFile
-        ? patch
-        : getPatchForEdit({
-            filePath: absoluteFilePath,
-            fileContents: originalFileContents,
-            oldString: actualOldString,
-            newString: actualNewString,
-            replaceAll: replace_all,
-          }).patch
+    // 5. Write to disk
+    writeTextContent(absoluteFilePath, updatedFile, encoding, endings)
 
-    writeTextContent(absoluteFilePath, normalizedFile, encoding, endings)
-
+    // Notify LSP servers about file modification (didChange) and save (didSave)
     const lspManager = getLspServerManager()
     if (lspManager) {
+      // Clear previously delivered diagnostics so new ones will be shown
       clearDeliveredDiagnosticsForFile(`file://${absoluteFilePath}`)
+      // didChange: Content has been modified
       lspManager
-        .changeFile(absoluteFilePath, normalizedFile)
+        .changeFile(absoluteFilePath, updatedFile)
         .catch((err: Error) => {
           logForDebugging(
             `LSP: Failed to notify server of file change for ${absoluteFilePath}: ${err.message}`,
           )
           logError(err)
         })
+      // didSave: File has been saved to disk (triggers diagnostics in TypeScript server)
       lspManager.saveFile(absoluteFilePath).catch((err: Error) => {
         logForDebugging(
           `LSP: Failed to notify server of file save for ${absoluteFilePath}: ${err.message}`,
@@ -499,19 +513,22 @@ export const FileEditTool = buildTool({
       })
     }
 
-    notifyVscodeFileUpdated(absoluteFilePath, originalFileContents, normalizedFile)
+    // Notify VSCode about the file change for diff view
+    notifyVscodeFileUpdated(absoluteFilePath, originalFileContents, updatedFile)
 
+    // 6. Update read timestamp, to invalidate stale writes
     readFileState.set(absoluteFilePath, {
-      content: normalizedFile,
+      content: updatedFile,
       timestamp: getFileModificationTime(absoluteFilePath),
       offset: undefined,
       limit: undefined,
     })
 
+    // 7. Log events
     if (absoluteFilePath.endsWith(`${sep}CLAUDE.md`)) {
       logEvent('tengu_write_claudemd', {})
     }
-    countLinesChanged(finalPatch)
+    countLinesChanged(patch)
 
     logFileOperation({
       operation: 'edit',
@@ -526,7 +543,10 @@ export const FileEditTool = buildTool({
     })
 
     let gitDiff: ToolUseDiff | undefined
-    if (isEnvTruthy(process.env.CLAUDE_CODE_REMOTE)) {
+    if (
+      isEnvTruthy(process.env.CLAUDE_CODE_REMOTE) &&
+      getFeatureValue_CACHED_MAY_BE_STALE('tengu_quartz_lantern', false)
+    ) {
       const startTime = Date.now()
       const diff = await fetchSingleFileGitDiff(absoluteFilePath)
       if (diff) gitDiff = diff
@@ -537,17 +557,20 @@ export const FileEditTool = buildTool({
       })
     }
 
+    // 8. Yield result
     const data = {
       filePath: file_path,
       oldString: actualOldString,
       newString: new_string,
       originalFile: originalFileContents,
-      structuredPatch: finalPatch,
+      structuredPatch: patch,
       userModified: userModified ?? false,
       replaceAll: replace_all,
       ...(gitDiff && { gitDiff }),
     }
-    return { data }
+    return {
+      data,
+    }
   },
   mapToolResultToToolResultBlockParam(data: FileEditOutput, toolUseID) {
     const { filePath, userModified, replaceAll } = data
@@ -555,24 +578,18 @@ export const FileEditTool = buildTool({
       ? '.  The user modified your proposed changes before accepting them. '
       : ''
 
-    // v112: adds an optional post-edit note when applicable
-    // TODO(lift): qN6() && !userModified condition at byte ~9823100 (ok8 string)
-    // Likely a "remote" mode note appended to the result message
-    const remoteNote =
-      isEnvTruthy(process.env.CLAUDE_CODE_REMOTE) && !userModified ? '' : ''
-
     if (replaceAll) {
       return {
         tool_use_id: toolUseID,
         type: 'tool_result',
-        content: `The file ${filePath} has been updated${modifiedNote}. All occurrences were successfully replaced.${remoteNote}`,
+        content: `The file ${filePath} has been updated${modifiedNote}. All occurrences were successfully replaced.`,
       }
     }
 
     return {
       tool_use_id: toolUseID,
       type: 'tool_result',
-      content: `The file ${filePath} has been updated successfully${modifiedNote}.${remoteNote}`,
+      content: `The file ${filePath} has been updated successfully${modifiedNote}.`,
     }
   },
 } satisfies ToolDef<ReturnType<typeof inputSchema>, FileEditOutput>)
@@ -605,24 +622,4 @@ function readFileForEdit(absoluteFilePath: string): {
     }
     throw e
   }
-}
-
-/**
- * v112: checks if a file is executable based on its mode bits (gf6 in v112_min)
- * TODO(lift): exact implementation at byte ~9816900 — may check S_IXUSR/S_IXGRP/S_IXOTH
- */
-function isExecutableFile(mode: number): boolean {
-  // Unix execute bits: owner (0o100), group (0o010), other (0o001)
-  return (mode & 0o111) !== 0
-}
-
-/**
- * v112: checks if content is unchanged relative to a read-state entry
- * Used as the Ac() helper in v112_min.
- */
-function isContentUnchanged(
-  readState: { content?: string },
-  currentContent: string,
-): boolean {
-  return readState.content === currentContent
 }

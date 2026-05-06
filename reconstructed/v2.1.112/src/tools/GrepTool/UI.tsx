@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import type { ToolResultBlockParam } from '@anthropic-ai/sdk/resources/index.mjs';
 import React from 'react';
 import { CtrlOToExpand } from '../../components/CtrlOToExpand.js';
@@ -14,7 +13,7 @@ import { extractTag } from '../../utils/messages.js';
 
 // Reusable component for search result summaries
 function SearchResultSummary(t0) {
-  const $ = _c(26);
+  const $ = new Array(26).fill(void 0);
   const {
     count,
     countLabel,

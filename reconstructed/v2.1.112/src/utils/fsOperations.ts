@@ -200,7 +200,7 @@ export function isDuplicatePath(
 /**
  * Resolve the deepest existing ancestor of a path via realpathSync, walking
  * up until it succeeds. Detects dangling symlinks (link entry exists, target
- * doesn't) via readlink and resolves them via readlink.
+ * doesn't) via lstat and resolves them via readlink.
  *
  * Use when the input path may not exist (new file writes) and you need to
  * know where the write would ACTUALLY land after the OS follows symlinks.
@@ -211,9 +211,6 @@ export function isDuplicatePath(
  *
  * Handles: live parent symlinks, dangling file symlinks, dangling parent
  * symlinks. Same core algorithm as teamMemPaths.ts:realpathDeepestExisting.
- *
- * v112 change: uses readlinkSync first instead of lstatSync, which is
- * cheaper when the path IS a symlink (common case for permission checks).
  */
 export function resolveDeepestExistingAncestorSync(
   fs: FsOperations,
@@ -221,18 +218,20 @@ export function resolveDeepestExistingAncestorSync(
 ): string | undefined {
   let dir = absolutePath
   const segments: string[] = []
-  // Walk up using readlinkSync first (cheap when the path is a symlink),
-  // then lstat for non-symlink existing components.
+  // Walk up using lstat (cheap, O(1)) to find the first existing component.
+  // lstat does not follow symlinks, so dangling symlinks are detected here.
+  // Only call realpathSync (expensive, O(depth)) once at the end.
   while (dir !== nodePath.dirname(dir)) {
-    let linkTarget: string | undefined
-    let lstatErr: string | undefined
+    let st: fs.Stats
     try {
-      linkTarget = fs.readlinkSync(dir)
-    } catch (e) {
-      lstatErr = getErrnoCode(e)
+      st = fs.lstatSync(dir)
+    } catch {
+      // lstat failed: truly non-existent. Walk up.
+      segments.unshift(nodePath.basename(dir))
+      dir = nodePath.dirname(dir)
+      continue
     }
-
-    if (linkTarget !== undefined) {
+    if (st.isSymbolicLink()) {
       // Found a symlink (live or dangling). Try realpath first (resolves
       // chained symlinks); fall back to readlink for dangling symlinks.
       try {
@@ -241,23 +240,16 @@ export function resolveDeepestExistingAncestorSync(
           ? resolved
           : nodePath.join(resolved, ...segments)
       } catch {
-        // Dangling: realpath failed but readlink saw the link entry.
-        const absTarget = nodePath.isAbsolute(linkTarget)
-          ? linkTarget
-          : nodePath.resolve(nodePath.dirname(dir), linkTarget)
+        // Dangling: realpath failed but lstat saw the link entry.
+        const target = fs.readlinkSync(dir)
+        const absTarget = nodePath.isAbsolute(target)
+          ? target
+          : nodePath.resolve(nodePath.dirname(dir), target)
         return segments.length === 0
           ? absTarget
           : nodePath.join(absTarget, ...segments)
       }
     }
-
-    if (lstatErr === 'ENOENT') {
-      // lstat failed: truly non-existent. Walk up.
-      segments.unshift(nodePath.basename(dir))
-      dir = nodePath.dirname(dir)
-      continue
-    }
-
     // Existing non-symlink component. One realpath call resolves any
     // symlinks in its ancestors. If none, return undefined (no symlink).
     try {
@@ -292,9 +284,6 @@ export function resolveDeepestExistingAncestorSync(
  *
  * @param path - The path to check (will be converted to absolute)
  * @returns An array of absolute paths to check permissions for
- *
- * v112 change: uses readlinkSync first instead of existsSync+lstatSync,
- * which is cheaper when the path IS a symlink (common case).
  */
 export function getPathsForPermissionCheck(inputPath: string): string[] {
   // Expand tilde notation defensively - tools should do this in getPath(),
@@ -333,33 +322,46 @@ export function getPathsForPermissionCheck(inputPath: string): string[] {
       }
       visited.add(currentPath)
 
-      let linkTarget: string | undefined
-      let readlinkErr: string | undefined
-      try {
-        linkTarget = fsImpl.readlinkSync(currentPath)
-      } catch (e) {
-        readlinkErr = getErrnoCode(e)
-      }
-
-      if (linkTarget === undefined) {
-        // Not a symlink. If the path doesn't exist, resolve symlinks in
-        // ancestors and add the resolved path.
-        if (readlinkErr === 'ENOENT') {
-          if (currentPath === path) {
-            const resolved = resolveDeepestExistingAncestorSync(fsImpl, path)
-            if (resolved !== undefined) {
-              pathSet.add(resolved)
-            }
+      if (!fsImpl.existsSync(currentPath)) {
+        // Path doesn't exist (new file case). existsSync follows symlinks,
+        // so this is also reached for DANGLING symlinks (link entry exists,
+        // target doesn't). Resolve symlinks in the path and its ancestors
+        // so permission checks see the real destination. Without this,
+        // `./data -> /etc/cron.d/` (live parent symlink) or
+        // `./evil.txt -> ~/.ssh/authorized_keys2` (dangling file symlink)
+        // would allow writes that escape the working directory.
+        if (currentPath === path) {
+          const resolved = resolveDeepestExistingAncestorSync(fsImpl, path)
+          if (resolved !== undefined) {
+            pathSet.add(resolved)
           }
         }
         break
       }
 
+      const stats = fsImpl.lstatSync(currentPath)
+
+      // Skip special file types that can cause issues
+      if (
+        stats.isFIFO() ||
+        stats.isSocket() ||
+        stats.isCharacterDevice() ||
+        stats.isBlockDevice()
+      ) {
+        break
+      }
+
+      if (!stats.isSymbolicLink()) {
+        break
+      }
+
       // Get the immediate symlink target
+      const target = fsImpl.readlinkSync(currentPath)
+
       // If target is relative, resolve it relative to the symlink's directory
-      const absoluteTarget = nodePath.isAbsolute(linkTarget)
-        ? linkTarget
-        : nodePath.resolve(nodePath.dirname(currentPath), linkTarget)
+      const absoluteTarget = nodePath.isAbsolute(target)
+        ? target
+        : nodePath.resolve(nodePath.dirname(currentPath), target)
 
       // Add this intermediate target to the set
       pathSet.add(absoluteTarget)

@@ -10,10 +10,9 @@ const web = {
   availability: ['claude-ai'],
   isEnabled: () =>
     getFeatureValue_CACHED_MAY_BE_STALE('tengu_cobalt_lantern', false) &&
-    isPolicyAllowed('allow_remote_sessions') &&
-    isPolicyAllowed('allow_quick_web_setup'),
+    isPolicyAllowed('allow_remote_sessions'),
   get isHidden() {
-    return !isPolicyAllowed('allow_remote_sessions') || !isPolicyAllowed('allow_quick_web_setup')
+    return !isPolicyAllowed('allow_remote_sessions')
   },
   load: () => import('./remote-setup.js'),
 } satisfies Command

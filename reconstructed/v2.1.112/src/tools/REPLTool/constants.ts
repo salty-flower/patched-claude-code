@@ -19,14 +19,14 @@ export const REPL_TOOL_NAME = 'REPL'
  * hides those tools. USER_TYPE is a build-time --define, so the ant-native
  * binary would otherwise force REPL mode on every SDK subprocess regardless
  * of the env the caller passes.
- *
- * v112: isReplModeEnabled simplified — drops the ant+cli check; returns false
- * if CLAUDE_CODE_REPL is falsy, true if CLAUDE_REPL_MODE is truthy, else false.
  */
 export function isReplModeEnabled(): boolean {
   if (isEnvDefinedFalsy(process.env.CLAUDE_CODE_REPL)) return false
   if (isEnvTruthy(process.env.CLAUDE_REPL_MODE)) return true
-  return false
+  return (
+    process.env.USER_TYPE === 'ant' &&
+    process.env.CLAUDE_CODE_ENTRYPOINT === 'cli'
+  )
 }
 
 /**

@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { Text } from 'src/ink.js';
 import type { BackgroundTaskState } from 'src/tasks/types.js';
@@ -15,7 +14,7 @@ type Props = {
   maxActivityWidth?: number;
 };
 export function BackgroundTask(t0) {
-  const $ = _c(92);
+  const $ = new Array(92).fill(void 0);
   const {
     task,
     maxActivityWidth

@@ -41,7 +41,6 @@ export async function loadFigSpec(
     return null
   }
 }
-
 export const getCommandSpec = memoizeWithLRU(
   async (command: string): Promise<CommandSpec | null> => {
     const spec =

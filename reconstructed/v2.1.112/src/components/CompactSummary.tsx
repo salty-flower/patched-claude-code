@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { BLACK_CIRCLE } from '../constants/figures.js';
 import { Box, Text } from '../ink.js';
@@ -12,7 +11,7 @@ type Props = {
   screen: Screen;
 };
 export function CompactSummary(t0) {
-  const $ = _c(24);
+  const $ = new Array(24).fill(void 0);
   const {
     message,
     screen

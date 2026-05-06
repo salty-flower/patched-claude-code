@@ -99,8 +99,6 @@ export async function importGithubToken(
   }
 }
 
-// TODO(lift): isValidJson at byte ~11536055
-
 async function hasExistingEnvironment(): Promise<boolean> {
   try {
     const envs = await fetchEnvironments()
@@ -118,23 +116,24 @@ async function hasExistingEnvironment(): Promise<boolean> {
  * non-fatal — the token import already succeeded, and the web state
  * machine falls back to env-setup on next load.
  */
-// TODO(lift): createDefaultEnvironment changed signature in v112 at byte ~11536841
-export async function createDefaultEnvironment(name: string = 'Default', signal?: AbortSignal): Promise<unknown> {
+export async function createDefaultEnvironment(): Promise<boolean> {
   let accessToken: string, orgUUID: string
   try {
     ;({ accessToken, orgUUID } = await prepareApiRequest())
   } catch {
-    throw new Error('No access token available')
+    return false
   }
 
-  if (!orgUUID) {
-    throw new Error('Unable to get organization UUID')
+  if (await hasExistingEnvironment()) {
+    return true
   }
 
+  // The /private/organizations/{org}/ path rejects CLI OAuth tokens (wrong
+  // auth dep). The public path uses build_flexible_auth — same path
+  // fetchEnvironments() uses. Org is passed via x-organization-uuid header.
   const url = `${getOauthConfig().BASE_API_URL}/v1/environment_providers/cloud/create`
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': CCR_BYOC_BETA_HEADER,
     'x-organization-uuid': orgUUID,
   }
 
@@ -142,7 +141,7 @@ export async function createDefaultEnvironment(name: string = 'Default', signal?
     const response = await axios.post(
       url,
       {
-        name,
+        name: 'Default',
         kind: 'anthropic_cloud',
         description: 'Default - trusted network access',
         config: {
@@ -160,11 +159,11 @@ export async function createDefaultEnvironment(name: string = 'Default', signal?
           },
         },
       },
-      { headers, timeout: 15000, signal },
+      { headers, timeout: 15000, validateStatus: () => true },
     )
-    return response.data
+    return response.status >= 200 && response.status < 300
   } catch {
-    throw new Error('Failed to create default environment')
+    return false
   }
 }
 

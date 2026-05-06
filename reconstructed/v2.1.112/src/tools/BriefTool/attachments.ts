@@ -5,6 +5,7 @@
  * (axios, crypto, auth utils) remains tree-shakeable from non-bridge builds.
  */
 
+import { feature } from 'bun:bundle'
 import { stat } from 'fs/promises'
 
 import type { ValidationResult } from '../../Tool.js'
@@ -69,6 +70,9 @@ export async function resolveAttachments(
   const stated: ResolvedAttachment[] = []
   for (const rawPath of rawPaths) {
     const fullPath = expandPath(rawPath)
+    // Single stat — we need size, so this is the operation, not a guard.
+    // validateInput ran before us, but the file could have moved since
+    // (TOCTOU); if it did, let the error propagate so the model sees it.
     const stats = await stat(fullPath)
     stated.push({
       path: fullPath,
@@ -76,25 +80,31 @@ export async function resolveAttachments(
       isImage: IMAGE_EXTENSION_REGEX.test(fullPath),
     })
   }
-
-  // v112: upload condition now also checks CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE
-  // env var in addition to replBridgeEnabled and CLAUDE_CODE_BRIEF_UPLOAD.
-  // The feature('BRIDGE_MODE') guard is now unconditional (always-on in v112).
-  const shouldUpload =
-    uploadCtx.replBridgeEnabled ||
-    isEnvTruthy(process.env.CLAUDE_CODE_BRIEF_UPLOAD) ||
-    !!process.env.CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE
-
-  const { uploadBriefAttachment } = await import('./upload.js')
-  const uuids = await Promise.all(
-    stated.map(a =>
-      uploadBriefAttachment(a.path, a.size, {
-        replBridgeEnabled: shouldUpload,
-        signal: uploadCtx.signal,
-      }),
-    ),
-  )
-  return stated.map((a, i) =>
-    uuids[i] === undefined ? a : { ...a, file_uuid: uuids[i] },
-  )
+  // Dynamic import inside the feature() guard so upload.ts (axios, crypto,
+  // zod, auth utils, MIME map) is fully eliminated from non-BRIDGE_MODE
+  // builds. A static import would force module-scope evaluation regardless
+  // of the guard inside uploadBriefAttachment — CLAUDE.md: "helpers defined
+  // outside remain in the build even if never called".
+  if (feature('BRIDGE_MODE')) {
+    // Headless/SDK callers never set appState.replBridgeEnabled (only the TTY
+    // REPL does, at main.tsx init). CLAUDE_CODE_BRIEF_UPLOAD lets a host that
+    // runs the CLI as a subprocess opt in — e.g. the cowork desktop bridge,
+    // which already passes CLAUDE_CODE_OAUTH_TOKEN for auth.
+    const shouldUpload =
+      uploadCtx.replBridgeEnabled ||
+      isEnvTruthy(process.env.CLAUDE_CODE_BRIEF_UPLOAD)
+    const { uploadBriefAttachment } = await import('./upload.js')
+    const uuids = await Promise.all(
+      stated.map(a =>
+        uploadBriefAttachment(a.path, a.size, {
+          replBridgeEnabled: shouldUpload,
+          signal: uploadCtx.signal,
+        }),
+      ),
+    )
+    return stated.map((a, i) =>
+      uuids[i] === undefined ? a : { ...a, file_uuid: uuids[i] },
+    )
+  }
+  return stated
 }

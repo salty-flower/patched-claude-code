@@ -13,16 +13,7 @@ import { isVoiceModeEnabled } from '../../voice/voiceModeEnabled.js'
 
 const LANG_HINT_MAX_SHOWS = 2
 
-function parseVoiceModeArg(arg: string): 'hold' | 'tap' | 'off' | 'invalid' | undefined {
-  const mode = arg.trim().toLowerCase()
-  if (mode === 'hold') return 'hold'
-  if (mode === 'tap') return 'tap'
-  if (mode === 'off') return 'off'
-  if (mode === '') return undefined
-  return 'invalid'
-}
-
-export const call: LocalCommandCall = async (args = '') => {
+export const call: LocalCommandCall = async () => {
   // Check auth and kill-switch before allowing voice mode
   if (!isVoiceModeEnabled()) {
     // Differentiate: OAuth-less users get an auth hint, everyone else
@@ -41,24 +32,12 @@ export const call: LocalCommandCall = async (args = '') => {
   }
 
   const currentSettings = getInitialSettings()
-  const currentMode = parseVoiceModeArg(args)
-  const isCurrentlyEnabled = currentSettings.voice?.enabled ?? currentSettings.voiceEnabled === true
-
-  if (currentMode === 'invalid') {
-    return {
-      type: 'text' as const,
-      value: `Unknown mode: "${args.trim()}". Use hold, tap, or off.`,
-    }
-  }
+  const isCurrentlyEnabled = currentSettings.voiceEnabled === true
 
   // Toggle OFF — no checks needed
-  if (currentMode === 'off' || (currentMode === undefined && isCurrentlyEnabled)) {
+  if (isCurrentlyEnabled) {
     const result = updateSettingsForSource('userSettings', {
       voiceEnabled: false,
-      voice: {
-        ...currentSettings.voice,
-        enabled: false,
-      },
     })
     if (result.error) {
       return {
@@ -124,7 +103,7 @@ export const call: LocalCommandCall = async (args = '') => {
     } else if (process.platform === 'linux') {
       guidance = "your system's audio settings"
     } else {
-      guidance = 'System Settings \u2192 Privacy \u0026 Security \u2192 Microphone'
+      guidance = 'System Settings \u2192 Privacy & Security \u2192 Microphone'
     }
     return {
       type: 'text' as const,
@@ -132,20 +111,8 @@ export const call: LocalCommandCall = async (args = '') => {
     }
   }
 
-  // Determine activation mode
-  const mode = currentMode === 'hold' || currentMode === 'tap'
-    ? currentMode
-    : currentSettings.voice?.mode ?? 'hold'
-
   // All checks passed — enable voice
-  const result = updateSettingsForSource('userSettings', {
-    voiceEnabled: true,
-    voice: {
-      ...currentSettings.voice,
-      enabled: true,
-      mode,
-    },
-  })
+  const result = updateSettingsForSource('userSettings', { voiceEnabled: true })
   if (result.error) {
     return {
       type: 'text' as const,
@@ -154,8 +121,7 @@ export const call: LocalCommandCall = async (args = '') => {
     }
   }
   settingsChangeDetector.notifyChange('userSettings')
-  logEvent('tengu_voice_toggled', { enabled: true, tap_mode: mode === 'tap' })
-
+  logEvent('tengu_voice_toggled', { enabled: true })
   const key = getShortcutDisplay('voice:pushToTalk', 'Chat', 'Space')
   const stt = normalizeLanguageForSTT(currentSettings.language)
   const cfg = getGlobalConfig()
@@ -177,10 +143,8 @@ export const call: LocalCommandCall = async (args = '') => {
       voiceLangHintLastLanguage: stt.code,
     }))
   }
-
-  const modeLabel = mode === 'tap' ? 'Tap' : `Hold ${key}`
   return {
     type: 'text' as const,
-    value: `Voice mode enabled. ${modeLabel} to record.${langNote}`,
+    value: `Voice mode enabled. Hold ${key} to record.${langNote}`,
   }
 }

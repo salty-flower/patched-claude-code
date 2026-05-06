@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import figures from 'figures';
 import React, { useMemo } from 'react';
 import type { DiffFile } from '../../hooks/useDiffData.js';
@@ -12,7 +11,7 @@ type Props = {
   selectedIndex: number;
 };
 export function DiffFileList(t0) {
-  const $ = _c(36);
+  const $ = new Array(36).fill(void 0);
   const {
     files,
     selectedIndex
@@ -150,7 +149,7 @@ export function DiffFileList(t0) {
   return t6;
 }
 function FileItem(t0) {
-  const $ = _c(14);
+  const $ = new Array(14).fill(void 0);
   const {
     file,
     isSelected,
@@ -207,7 +206,7 @@ function FileItem(t0) {
   return t6;
 }
 function FileStats(t0) {
-  const $ = _c(20);
+  const $ = new Array(20).fill(void 0);
   const {
     file,
     isSelected

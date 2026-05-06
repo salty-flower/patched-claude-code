@@ -34,8 +34,6 @@ import { loadPluginLspServers } from './lspPluginIntegration.js'
 import { loadPluginMcpServers } from './mcpPluginIntegration.js'
 import { clearPluginCacheExclusions } from './orphanedPluginFilter.js'
 import { loadAllPlugins } from './pluginLoader.js'
-// TODO(lift): To8 at byte ~11417 (plugin refresh event emitter)
-import { pluginRefreshEmitter } from './pluginRefreshEmitter.js'
 
 type SetAppState = (updater: (prev: AppState) => AppState) => void
 
@@ -173,10 +171,6 @@ export async function refreshActivePlugins(
       )
     )
   }, 0)
-
-  // Emit plugin refresh event so downstream subscribers (e.g., monitor
-  // arming) can react to the updated plugin state.
-  pluginRefreshEmitter.emit()
 
   logForDebugging(
     `refreshActivePlugins: ${enabled.length} enabled, ${pluginCommands.length} commands, ${agentDefinitions.allAgents.length} agents, ${hook_count} hooks, ${mcp_count} MCP, ${lsp_count} LSP`,

@@ -26,7 +26,7 @@ const inputSchema = lazySchema(() =>
     body: z
       .record(z.string(), z.unknown())
       .optional()
-      .describe('Required for create and update; optional for run'),
+      .describe('JSON body for create and update'),
   }),
 )
 type InputSchema = ReturnType<typeof inputSchema>
@@ -56,7 +56,6 @@ export const RemoteTriggerTool = buildTool({
   },
   isEnabled() {
     return (
-      !process.env.CLAUDE_CODE_REMOTE &&
       getFeatureValue_CACHED_MAY_BE_STALE('tengu_surreal_dali', false) &&
       isPolicyAllowed('allow_remote_sessions')
     )
@@ -129,8 +128,7 @@ export const RemoteTriggerTool = buildTool({
         if (!trigger_id) throw new Error('run requires trigger_id')
         method = 'POST'
         url = `${base}/${trigger_id}/run`
-        // v112: run merges optional body with trigger_id
-        data = { ...body, trigger_id }
+        data = {}
         break
     }
 

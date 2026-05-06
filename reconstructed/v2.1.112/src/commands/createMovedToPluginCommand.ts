@@ -37,7 +37,6 @@ export function createMovedToPluginCommand({
       return name
     },
     source: 'builtin',
-    disableModelInvocation: false,
     async getPromptForCommand(
       args: string,
       context: ToolUseContext,

@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import Link from './components/Link.js';
 import Text from './components/Text.js';
@@ -30,7 +29,7 @@ type SpanProps = {
  * Memoized to prevent re-renders when parent changes but children string is the same.
  */
 export const Ansi = React.memo(function Ansi(t0) {
-  const $ = _c(12);
+  const $ = new Array(12).fill(void 0);
   const {
     children,
     dimColor
@@ -231,7 +230,7 @@ type BaseTextStyleProps = {
 
 // Wrapper component that handles bold/dim mutual exclusivity for Text
 function StyledText(t0) {
-  const $ = _c(14);
+  const $ = new Array(14).fill(void 0);
   let bold;
   let children;
   let dim;

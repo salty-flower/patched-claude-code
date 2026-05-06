@@ -61,18 +61,6 @@ For example, to get tab context:
 2. Then: Call mcp__claude-in-chrome__tabs_context_mcp`
 
 /**
- * Minimal hint about Claude in Chrome skill availability. This is injected at startup when the extension is installed
- * to guide the model to invoke the skill before using the MCP tools.
- */
-export const CLAUDE_IN_CHROME_SKILL_HINT = `**Browser Automation**: Chrome browser tools are available via the "claude-in-chrome" skill. CRITICAL: Before using any mcp__claude-in-chrome__* tools, invoke the skill by calling the Skill tool with skill: "claude-in-chrome". The skill provides browser automation instructions and enables the tools.`
-
-// NOTE(lift): v112 region.json shows only one v112-matched decl [9561042,9565221] → jac=1,cos=1.
-// The v88 decls for CHROME_TOOL_SEARCH_INSTRUCTIONS [9557665,9561042] and the module-level
-// init [9557633,9557665] have no v112 match. The v112_min shows AC4, OC4, wC4 as the three
-// string constants (BASE_CHROME_PROMPT, CHROME_TOOL_SEARCH_INSTRUCTIONS, CLAUDE_IN_CHROME_SKILL_HINT).
-// CLAUDE_IN_CHROME_SKILL_HINT_WITH_WEBBROWSER is absent from v112 — dropped.
-
-/**
  * Get the base chrome system prompt (without tool search instructions).
  * Tool search instructions are injected separately at request time in claude.ts
  * based on the actual tool search enabled state.
@@ -80,3 +68,16 @@ export const CLAUDE_IN_CHROME_SKILL_HINT = `**Browser Automation**: Chrome brows
 export function getChromeSystemPrompt(): string {
   return BASE_CHROME_PROMPT
 }
+
+/**
+ * Minimal hint about Claude in Chrome skill availability. This is injected at startup when the extension is installed
+ * to guide the model to invoke the skill before using the MCP tools.
+ */
+export const CLAUDE_IN_CHROME_SKILL_HINT = `**Browser Automation**: Chrome browser tools are available via the "claude-in-chrome" skill. CRITICAL: Before using any mcp__claude-in-chrome__* tools, invoke the skill by calling the Skill tool with skill: "claude-in-chrome". The skill provides browser automation instructions and enables the tools.`
+
+/**
+ * Variant when the built-in WebBrowser tool is also available — steer
+ * dev-loop tasks to WebBrowser and reserve the extension for the user's
+ * authenticated Chrome (logged-in sites, OAuth, computer-use).
+ */
+export const CLAUDE_IN_CHROME_SKILL_HINT_WITH_WEBBROWSER = `**Browser Automation**: Use WebBrowser for development (dev servers, JS eval, console, screenshots). Use claude-in-chrome for the user's real Chrome when you need logged-in sessions, OAuth, or computer-use — invoke Skill(skill: "claude-in-chrome") before any mcp__claude-in-chrome__* tool.`

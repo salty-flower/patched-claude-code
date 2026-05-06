@@ -56,9 +56,6 @@ function isSkillFile(filePath: string): boolean {
 
 /**
  * Get command name from file path, handling both regular files and skills
- *
- * v112 change: Windows path separators (\\) are now normalized in namespace
- * building, using split(/[/\\]/) and join(':') instead of split('/').
  */
 function getCommandNameFromFile(
   filePath: string,
@@ -75,11 +72,9 @@ function getCommandNameFromFile(
 
     // Build namespace from parent of skill directory
     const relativePath = parentOfSkillDir.startsWith(baseDir)
-      ? parentOfSkillDir.slice(baseDir.length).replace(/^[\/\\]/, '')
+      ? parentOfSkillDir.slice(baseDir.length).replace(/^\//, '')
       : ''
-    const namespace = relativePath
-      ? relativePath.split(/[\/\\]/).join(':')
-      : ''
+    const namespace = relativePath ? relativePath.split('/').join(':') : ''
 
     return namespace
       ? `${pluginName}:${namespace}:${commandBaseName}`
@@ -91,11 +86,9 @@ function getCommandNameFromFile(
 
     // Build namespace from file directory
     const relativePath = fileDirectory.startsWith(baseDir)
-      ? fileDirectory.slice(baseDir.length).replace(/^[\/\\]/, '')
+      ? fileDirectory.slice(baseDir.length).replace(/^\//, '')
       : ''
-    const namespace = relativePath
-      ? relativePath.split(/[\/\\]/).join(':')
-      : ''
+    const namespace = relativePath ? relativePath.split('/').join(':') : ''
 
     return namespace
       ? `${pluginName}:${namespace}:${commandBaseName}`
@@ -105,9 +98,6 @@ function getCommandNameFromFile(
 
 /**
  * Recursively collects all markdown files from a directory
- *
- * v112 change: content is now passed through Ee() (extractDescriptionFromMarkdown)
- * wrapper during collection.
  */
 async function collectMarkdownFiles(
   dirPath: string,
@@ -224,13 +214,6 @@ async function loadCommandsFromDirectory(
 
 /**
  * Create a Command from a plugin markdown file
- *
- * v112 changes:
- * - frontmatter values are coerced with String() (name, argument-hint, when_to_use, version, agent)
- * - model parsing uses trimmed string check instead of direct pass-through
- * - new fields: context ("fork" support), agent, hooks (with zod validation), skillRoot
- * - getPromptForCommand: shell execution path uses Wc8()/Dc8 for pre-processed content
- *   instead of always awaiting executeShellCommandsInPrompt
  */
 function createPluginCommand(
   commandName: string,
@@ -277,30 +260,21 @@ function createPluginCommand(
       substitutedAllowedTools,
     )
 
-    // v112: coerce frontmatter values with String() where present
-    const argumentHint =
-      frontmatter['argument-hint'] != null
-        ? String(frontmatter['argument-hint'])
-        : undefined
+    const argumentHint = frontmatter['argument-hint'] as string | undefined
     const argumentNames = parseArgumentNames(
       frontmatter.arguments as string | string[] | undefined,
     )
-    const whenToUse =
-      frontmatter.when_to_use != null
-        ? String(frontmatter.when_to_use)
-        : undefined
-    const version =
-      frontmatter.version != null ? String(frontmatter.version) : undefined
-    const displayName =
-      frontmatter.name != null ? String(frontmatter.name) : undefined
+    const whenToUse = frontmatter.when_to_use as string | undefined
+    const version = frontmatter.version as string | undefined
+    const displayName = frontmatter.name as string | undefined
 
-    // v112: model parsing changed — trim and check non-empty before parsing
-    const modelRaw = frontmatter.model
-    let model: ReturnType<typeof parseUserSpecifiedModel> | undefined
-    if (typeof modelRaw === 'string' && modelRaw.trim().length > 0) {
-      const trimmed = modelRaw.trim()
-      model = trimmed === 'inherit' ? undefined : parseUserSpecifiedModel(trimmed)
-    }
+    // Handle model configuration, resolving aliases like 'haiku', 'sonnet', 'opus'
+    const model =
+      frontmatter.model === 'inherit'
+        ? undefined
+        : frontmatter.model
+          ? parseUserSpecifiedModel(frontmatter.model as string)
+          : undefined
 
     const effortRaw = frontmatter['effort']
     const effort =
@@ -323,29 +297,6 @@ function createPluginCommand(
 
     const shell = parseShellFrontmatter(frontmatter.shell, commandName)
 
-    // v112: new fields — context, agent, hooks
-    const context =
-      frontmatter.context === 'fork' ? ('fork' as const) : undefined
-    const agent =
-      frontmatter.agent != null ? String(frontmatter.agent) : undefined
-
-    // v112: hooks validation for skills
-    let hooks: unknown
-    if ((isSkill || config.isSkillMode) && frontmatter.hooks) {
-      // TODO(lift): sN() is a zod schema for hooks validation at byte ~9425891
-      const hooksSchema = /* sN() */ null as unknown as {
-        safeParse: (v: unknown) => { success: boolean; data?: unknown; error?: { message: string } }
-      }
-      const result = hooksSchema.safeParse(frontmatter.hooks)
-      if (result.success) {
-        hooks = result.data
-      } else {
-        logForDebugging(
-          `Invalid hooks in plugin skill '${commandName}': ${result.error?.message}`,
-        )
-      }
-    }
-
     return {
       type: 'prompt',
       name: commandName,
@@ -358,16 +309,11 @@ function createPluginCommand(
       version,
       model,
       effort,
-      context,
-      agent,
       disableModelInvocation,
       userInvocable,
       contentLength: content.length,
       source: 'plugin' as const,
       loadedFrom: isSkill || config.isSkillMode ? 'plugin' : undefined,
-      hooks,
-      skillRoot:
-        (isSkill || config.isSkillMode) && hooks ? pluginPath : undefined,
       pluginInfo: {
         pluginManifest,
         repository: sourceName,
@@ -415,7 +361,7 @@ function createPluginCommand(
           const rawSkillDir = dirname(file.filePath)
           const skillDir =
             process.platform === 'win32'
-              ? rawSkillDir.replaceAll('\\', '/')
+              ? rawSkillDir.replace(/\\/g, '/')
               : rawSkillDir
           finalContent = finalContent.replace(
             /\$\{CLAUDE_SKILL_DIR\}/g,
@@ -429,35 +375,27 @@ function createPluginCommand(
           getSessionId(),
         )
 
-        // v112: shell execution path split — pre-processed content uses Wc8()/Dc8
-        // TODO(lift): Wc8() / Dc8 at byte ~9428221
-        const usePreprocessedShell = false // placeholder
-        if (usePreprocessedShell) {
-          // Pre-processed shell execution (no await)
-          finalContent = finalContent // Dc8(finalContent)
-        } else {
-          finalContent = await executeShellCommandsInPrompt(
-            finalContent,
-            {
-              ...context,
-              getAppState() {
-                const appState = context.getAppState()
-                return {
-                  ...appState,
-                  toolPermissionContext: {
-                    ...appState.toolPermissionContext,
-                    alwaysAllowRules: {
-                      ...appState.toolPermissionContext.alwaysAllowRules,
-                      command: allowedTools,
-                    },
+        finalContent = await executeShellCommandsInPrompt(
+          finalContent,
+          {
+            ...context,
+            getAppState() {
+              const appState = context.getAppState()
+              return {
+                ...appState,
+                toolPermissionContext: {
+                  ...appState.toolPermissionContext,
+                  alwaysAllowRules: {
+                    ...appState.toolPermissionContext.alwaysAllowRules,
+                    command: allowedTools,
                   },
-                }
-              },
+                },
+              }
             },
-            `/${commandName}`,
-            shell,
-          )
-        }
+          },
+          `/${commandName}`,
+          shell,
+        )
 
         return [{ type: 'text', text: finalContent }]
       },
@@ -745,9 +683,6 @@ export function clearPluginCommandCache(): void {
 /**
  * Loads skills from plugin skills directories
  * Skills are directories containing SKILL.md files
- *
- * v112 change: skill names are sanitized by replacing non-alphanumeric chars
- * with hyphens (matching command name sanitization).
  */
 async function loadSkillsFromDirectory(
   skillsPath: string,
@@ -788,10 +723,7 @@ async function loadSkillsFromDirectory(
         directSkillPath,
       )
 
-      // v112: sanitize skill name
-      const skillBaseName = basename(skillsPath)
-      const sanitizedName = skillBaseName.replace(/[^a-zA-Z0-9_-]/g, '-')
-      const skillName = `${pluginName}:${sanitizedName}`
+      const skillName = `${pluginName}:${basename(skillsPath)}`
 
       const file: PluginMarkdownFile = {
         filePath: directSkillPath,
@@ -871,9 +803,7 @@ async function loadSkillsFromDirectory(
           skillFilePath,
         )
 
-        // v112: sanitize skill name
-        const sanitizedEntryName = entry.name.replace(/[^a-zA-Z0-9_-]/g, '-')
-        const skillName = `${pluginName}:${sanitizedEntryName}`
+        const skillName = `${pluginName}:${entry.name}`
 
         const file: PluginMarkdownFile = {
           filePath: skillFilePath,

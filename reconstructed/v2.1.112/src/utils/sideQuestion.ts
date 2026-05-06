@@ -42,9 +42,7 @@ export function findBtwTriggerPositions(text: string): Array<{
 
 export type SideQuestionResult = {
   response: string | null
-  synthetic: boolean
   usage: NonNullableUsage
-  aborted?: boolean
 }
 
 /**
@@ -55,20 +53,9 @@ export type SideQuestionResult = {
 export async function runSideQuestion({
   question,
   cacheSafeParams,
-  parentController,
-  onRetry,
-  threadHistory = true,
 }: {
   question: string
   cacheSafeParams: CacheSafeParams
-  parentController?: AbortController
-  onRetry?: (info: {
-    retryAttempt: number
-    maxRetries: number
-    retryInMs: number
-    status: number
-  }) => void
-  threadHistory?: boolean
 }): Promise<SideQuestionResult> {
   // Wrap the question with instructions to answer without tools
   const wrappedQuestion = `<system-reminder>This is a side question from the user. You must answer this question directly in a single response.
@@ -90,89 +77,28 @@ Simply answer the question with the information you have.</system-reminder>
 
 ${question}`
 
-  const abortController = parentController
-    ? // TODO(lift): deriveAbortController at byte ~10074400
-      parentController
-    : new AbortController()
+  const agentResult = await runForkedAgent({
+    promptMessages: [createUserMessage({ content: wrappedQuestion })],
+    // Do NOT override thinkingConfig — thinking is part of the API cache key,
+    // and diverging from the main thread's config busts the prompt cache.
+    // Adaptive thinking on a quick Q&A has negligible overhead.
+    cacheSafeParams,
+    canUseTool: async () => ({
+      behavior: 'deny' as const,
+      message: 'Side questions cannot use tools',
+      decisionReason: { type: 'other' as const, reason: 'side_question' },
+    }),
+    querySource: 'side_question',
+    forkLabel: 'side_question',
+    maxTurns: 1, // Single turn only - no tool use loops
+    // No future request shares this suffix; skip writing cache entries.
+    skipCacheWrite: true,
+  })
 
-  const historyMessages = threadHistory
-    ? // TODO(lift): sideQuestionHistory at byte ~10074400
-      []
-    : []
-
-  try {
-    const agentResult = await runForkedAgent({
-      promptMessages: [
-        ...historyMessages,
-        createUserMessage({ content: wrappedQuestion }),
-      ],
-      // Do NOT override thinkingConfig — thinking is part of the API cache key,
-      // and diverging from the main thread's config busts the prompt cache.
-      // Adaptive thinking on a quick Q&A has negligible overhead.
-      cacheSafeParams,
-      canUseTool: async () => ({
-        behavior: 'deny' as const,
-        message: 'Side questions cannot use tools',
-        decisionReason: { type: 'other' as const, reason: 'side_question' },
-      }),
-      querySource: 'side_question',
-      forkLabel: 'side_question',
-      maxTurns: 1, // Single turn only - no tool use loops
-      // No future request shares this suffix; skip writing cache entries.
-      skipCacheWrite: true,
-      skipTranscript: true,
-      overrides: {
-        abortController,
-      },
-      onMessage: onRetry
-        ? (msg) => {
-            if (isRetryMessage(msg)) {
-              onRetry({
-                retryAttempt: msg.retryAttempt,
-                maxRetries: msg.maxRetries,
-                retryInMs: msg.retryInMs,
-                status: msg.error.status,
-              })
-            }
-          }
-        : undefined,
-    })
-
-    const { response, synthetic } = extractSideQuestionResponse(
-      agentResult.messages,
-    )
-
-    // TODO(lift): sideQuestionHistory store update at byte ~10074400
-
-    return {
-      response,
-      synthetic,
-      usage: agentResult.totalUsage,
-    }
-  } catch (e) {
-    // TODO(lift): APIUserAbortError check at byte ~10074400
-    if (abortController.signal.aborted) {
-      return {
-        response: null,
-        synthetic: false,
-        usage: { inputTokens: 0, outputTokens: 0 },
-        aborted: true,
-      }
-    }
-    throw e
+  return {
+    response: extractSideQuestionResponse(agentResult.messages),
+    usage: agentResult.totalUsage,
   }
-}
-
-// TODO(lift): isRetryMessage type guard at byte ~10074400
-function isRetryMessage(
-  _msg: Message,
-): _msg is {
-  retryAttempt: number
-  maxRetries: number
-  retryInMs: number
-  error: { status: number }
-} {
-  return false
 }
 
 /**
@@ -196,9 +122,7 @@ function isRetryMessage(
  *   - API error exhausts retries → query yields system api_error + user
  *     interruption, no assistant message at all.
  */
-function extractSideQuestionResponse(
-  messages: Message[],
-): { response: string | null; synthetic: boolean } {
+function extractSideQuestionResponse(messages: Message[]): string | null {
   // Flatten all assistant content blocks across the per-block messages.
   const assistantBlocks = messages.flatMap(m =>
     m.type === 'assistant' ? m.message.content : [],
@@ -207,16 +131,13 @@ function extractSideQuestionResponse(
   if (assistantBlocks.length > 0) {
     // Concatenate all text blocks (there's normally at most one, but be safe).
     const text = extractTextContent(assistantBlocks, '\n\n').trim()
-    if (text) return { response: text, synthetic: false }
+    if (text) return text
 
     // No text — check if the model tried to call a tool despite instructions.
     const toolUse = assistantBlocks.find(b => b.type === 'tool_use')
     if (toolUse) {
       const toolName = 'name' in toolUse ? toolUse.name : 'a tool'
-      return {
-        response: `(The model tried to call ${toolName} instead of answering directly. Try rephrasing or ask in the main conversation.)`,
-        synthetic: true,
-      }
+      return `(The model tried to call ${toolName} instead of answering directly. Try rephrasing or ask in the main conversation.)`
     }
   }
 
@@ -227,11 +148,8 @@ function extractSideQuestionResponse(
       m.type === 'system' && 'subtype' in m && m.subtype === 'api_error',
   )
   if (apiErr) {
-    return {
-      response: `(API error: ${formatAPIError(apiErr.error)})`,
-      synthetic: true,
-    }
+    return `(API error: ${formatAPIError(apiErr.error)})`
   }
 
-  return { response: null, synthetic: false }
+  return null
 }

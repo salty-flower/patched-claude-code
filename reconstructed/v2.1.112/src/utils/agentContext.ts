@@ -23,6 +23,7 @@
 
 import { AsyncLocalStorage } from 'async_hooks'
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../services/analytics/index.js'
+import { isAgentSwarmsEnabled } from './agentSwarmsEnabled.js'
 
 /**
  * Context for subagents (Agent tool agents).
@@ -89,7 +90,6 @@ export type TeammateAgentContext = {
  */
 export type AgentContext = SubagentContext | TeammateAgentContext
 
-// v112: storage variable name changed; initialized in module init block
 const agentContextStorage = new AsyncLocalStorage<AgentContext>()
 
 /**
@@ -101,7 +101,13 @@ export function getAgentContext(): AgentContext | undefined {
   return agentContextStorage.getStore()
 }
 
-// v112: runWithAgentContext removed (not present in v112_min.js)
+/**
+ * Run an async function with the given agent context.
+ * All async operations within the function will have access to this context.
+ */
+export function runWithAgentContext<T>(context: AgentContext, fn: () => T): T {
+  return agentContextStorage.run(context, fn)
+}
 
 /**
  * Type guard to check if context is a SubagentContext.
@@ -112,7 +118,17 @@ export function isSubagentContext(
   return context?.agentType === 'subagent'
 }
 
-// v112: isTeammateAgentContext removed (not present in v112_min.js)
+/**
+ * Type guard to check if context is a TeammateAgentContext.
+ */
+export function isTeammateAgentContext(
+  context: AgentContext | undefined,
+): context is TeammateAgentContext {
+  if (isAgentSwarmsEnabled()) {
+    return context?.agentType === 'teammate'
+  }
+  return false
+}
 
 /**
  * Get the subagent name suitable for analytics logging.

@@ -19,25 +19,6 @@ import { errorMessage } from '../../utils/errors.js'
 import { lazySchema } from '../../utils/lazySchema.js'
 import { logMCPDebug, logMCPError } from '../../utils/log.js'
 import type { PermissionDecision } from '../../utils/permissions/PermissionResult.js'
-// v112-only imports (unresolved — see TODOs below)
-// TODO(lift): buildCallbackUrl (gGY) at byte ~9735800 — constructs the
-//   redirect-callback URL from an authUrl; used in the remote-session branch.
-// TODO(lift): isRemoteSession (pGY) at byte ~9735850 — returns true when
-//   Claude Code is running as a remote server (affects browser redirect UX).
-// TODO(lift): registerOAuthPromise (pl8) at byte ~9734900 — stores the
-//   oauthPromise in a module-level Map keyed by serverName for later
-//   retrieval by the completeAuthentication tool.
-// TODO(lift): completeAuthenticationInputSchema (UFY/ox6) at byte ~10963638 —
-//   z.object({title: z.string()}); this is the inputSchema for the sibling
-//   completeAuthentication pseudo-tool, initialized in a separate thunk.
-
-// v112: three new module-level Maps added to track OAuth state across
-// the auth + callback flow.
-// TODO(lift): bl8, Il8, xl8 at byte ~9734050 (init thunk `me`) —
-//   likely oauthPromiseMap, oauthControllerMap, oauthResolverMap.
-const _oauthPromiseMap = new Map<string, Promise<void>>()
-const _oauthControllerMap = new Map<string, unknown>()
-const _oauthResolverMap = new Map<string, unknown>()
 
 const inputSchema = lazySchema(() => z.object({}))
 type InputSchema = ReturnType<typeof inputSchema>
@@ -64,13 +45,6 @@ function getConfigUrl(config: ScopedMcpServerConfig): string | undefined {
  * are swapped into appState.mcp.tools via the existing prefix-based
  * replacement (useManageMCPConnections.updateServer wipes anything matching
  * mcp__<server>__*, so this pseudo-tool is removed automatically).
- *
- * v112 additions:
- * - OAuth promise is registered in a module-level Map (registerOAuthPromise)
- *   so the completeAuthentication tool can reuse it for the callback URL flow.
- * - AbortController is no longer created; signal is passed as `undefined`.
- * - Remote-session UX: when pGY() is true, the response includes instructions
- *   to paste the full redirect URL and call the completeAuthentication tool.
  */
 export function createMcpAuthTool(
   serverName: string,
@@ -146,23 +120,16 @@ export function createMcpAuthTool(
         resolveAuthUrl = resolve
       })
 
+      const controller = new AbortController()
       const { setAppState } = context
 
-      // v112: AbortController removed — signal is now passed as undefined.
       const oauthPromise = performMCPOAuthFlow(
         serverName,
         sseOrHttpConfig,
         u => resolveAuthUrl?.(u),
-        undefined, // v112: no AbortController (was: controller.signal)
+        controller.signal,
         { skipBrowserOpen: true },
       )
-
-      // v112: register the OAuth promise in the module-level map so the
-      // completeAuthentication tool can retrieve it when the user pastes
-      // the callback URL.
-      // TODO(lift): registerOAuthPromise (pl8) at byte ~9734900
-      // pl8(serverName, oauthPromise)
-      _oauthPromiseMap.set(serverName, oauthPromise as unknown as Promise<void>)
 
       // Background continuation: once OAuth completes, reconnect and swap
       // the real tools into appState. Prefix-based replacement removes this
@@ -213,25 +180,11 @@ export function createMcpAuthTool(
         ])
 
         if (authUrl) {
-          const completeAuthToolName = buildMcpToolName(
-            serverName,
-            'complete_authentication',
-          )
-          // TODO(lift): buildCallbackUrl (gGY) at byte ~9735800
-          // const callbackUrl = buildCallbackUrl(authUrl)
-          // TODO(lift): isRemoteSession (pGY) at byte ~9735850
-          // const isRemote = isRemoteSession()
-          const isRemote = false // TODO: resolve pGY()
-          const callbackUrl = authUrl // TODO: resolve gGY(authUrl)
-          const remoteNote = isRemote
-            ? `\n\nThis session is remote, so after authorizing the browser will try to load \`${callbackUrl}?code=...\` and show a connection error — that's expected. Ask the user to copy the full URL from the browser's address bar and paste it into chat, then call \`${completeAuthToolName}\` with that URL as \`callback_url\`.`
-            : `\n\nIf the browser shows a connection error on the redirect page, ask the user to paste the full URL from the address bar and call \`${completeAuthToolName}\` with it.`
           return {
             data: {
               status: 'auth_url' as const,
               authUrl,
-              message:
-                `Ask the user to open this URL in their browser to authorize the ${serverName} MCP server:\n\n${authUrl}\n\nOnce they complete the flow, the server's tools will become available automatically.${remoteNote}`,
+              message: `Ask the user to open this URL in their browser to authorize the ${serverName} MCP server:\n\n${authUrl}\n\nOnce they complete the flow, the server's tools will become available automatically.`,
             },
           }
         }
@@ -260,17 +213,3 @@ export function createMcpAuthTool(
     },
   } satisfies Tool<InputSchema, McpAuthOutput>
 }
-
-// v112: jac=0.5, cos=0.997 — additional export decl at byte ~10963638.
-// This is a lazySchema for the completeAuthentication tool's input.
-// The matching v88 decl [6695710,6695788] was the inputSchema init.
-// In v112 this thunk (ox6) initializes UFY = lazySchema(() => z.object({title: z.string()})).
-// TODO(lift): completeAuthenticationInputSchema (UFY) at byte ~10963638 —
-//   used by the completeAuthentication pseudo-tool (separate Tool object,
-//   not in this source file's v112 span). The schema accepts `{title: string}`.
-//   Exposing as a named export so the sibling tool can import it.
-export const completeAuthenticationInputSchema = lazySchema(() =>
-  z.object({
-    title: z.string(),
-  }),
-)

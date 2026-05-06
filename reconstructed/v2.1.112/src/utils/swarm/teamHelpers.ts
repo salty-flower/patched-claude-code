@@ -182,28 +182,6 @@ export async function writeTeamFileAsync(
 }
 
 /**
- * Atomically updates a team file using a read-modify-write callback.
- * In v112, setMemberActive was refactored to use this to avoid race conditions.
- * The callback receives the current team file and returns the updated one.
- * If the team file doesn't exist or the callback returns null/undefined, no write occurs.
- */
-export async function updateTeamFile(
-  teamName: string,
-  updater: (teamFile: TeamFile) => TeamFile | null | undefined,
-): Promise<boolean> {
-  const teamFile = await readTeamFileAsync(teamName)
-  if (!teamFile) {
-    return false
-  }
-  const updated = updater(teamFile)
-  if (!updated) {
-    return false
-  }
-  await writeTeamFileAsync(teamName, updated)
-  return true
-}
-
-/**
  * Removes a teammate from the team file by agent ID or name.
  * Used by the leader when processing shutdown approvals.
  */
@@ -469,7 +447,6 @@ export function setMultipleMemberModes(
 /**
  * Sets a team member's active status.
  * Called when a teammate becomes idle (isActive=false) or starts a new turn (isActive=true).
- * In v112, this was refactored to use updateTeamFile for atomic read-modify-write.
  * @param teamName - The name of the team
  * @param memberName - The name of the member to update
  * @param isActive - Whether the member is active (true) or idle (false)
@@ -479,32 +456,32 @@ export async function setMemberActive(
   memberName: string,
   isActive: boolean,
 ): Promise<void> {
-  try {
-    await updateTeamFile(teamName, (teamFile) => {
-      const member = teamFile.members.find(m => m.name === memberName)
-      if (!member) {
-        logForDebugging(
-          `[TeammateTool] Cannot set member active: member ${memberName} not found in team ${teamName}`,
-        )
-        return null
-      }
-
-      // Only write if the value is actually changing
-      if (member.isActive === isActive) {
-        return null
-      }
-
-      member.isActive = isActive
-      logForDebugging(
-        `[TeammateTool] Set member ${memberName} in team ${teamName} to ${isActive ? 'active' : 'idle'}`,
-      )
-      return teamFile
-    })
-  } catch (error) {
+  const teamFile = await readTeamFileAsync(teamName)
+  if (!teamFile) {
     logForDebugging(
-      `[TeammateTool] Cannot set member active: ${errorMessage(error)}`,
+      `[TeammateTool] Cannot set member active: team ${teamName} not found`,
     )
+    return
   }
+
+  const member = teamFile.members.find(m => m.name === memberName)
+  if (!member) {
+    logForDebugging(
+      `[TeammateTool] Cannot set member active: member ${memberName} not found in team ${teamName}`,
+    )
+    return
+  }
+
+  // Only write if the value is actually changing
+  if (member.isActive === isActive) {
+    return
+  }
+
+  member.isActive = isActive
+  await writeTeamFileAsync(teamName, teamFile)
+  logForDebugging(
+    `[TeammateTool] Set member ${memberName} in team ${teamName} to ${isActive ? 'active' : 'idle'}`,
+  )
 }
 
 /**

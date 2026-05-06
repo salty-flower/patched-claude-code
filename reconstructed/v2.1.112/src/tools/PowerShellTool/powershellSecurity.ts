@@ -560,7 +560,7 @@ function checkStartProcess(
     // for a bare 'runas' token.
     if (
       psExeHasParamAbbreviation(cmd, '-Verb', '-v') &&
-      cmd.args.some(z => z.toLowerCase() === 'runas')
+      cmd.args.some(a => a.toLowerCase() === 'runas')
     ) {
       return {
         behavior: 'ask',
@@ -595,9 +595,9 @@ function checkStartProcess(
       }
     }
     if (
-      cmd.args.some(z => {
+      cmd.args.some(a => {
         // Strip backticks before matching (bug #14 / review nit #2)
-        const clean = z.replaceAll('`', '')
+        const clean = a.replace(/`/g, '')
         return /^[-\u2013\u2014\u2015/]v[a-z]*:['"` ]*runas['"` ]*$/i.test(
           clean,
         )

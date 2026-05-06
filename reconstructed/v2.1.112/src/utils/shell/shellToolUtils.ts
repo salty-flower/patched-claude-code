@@ -15,12 +15,8 @@ export const SHELL_TOOL_NAMES: string[] = [BASH_TOOL_NAME, POWERSHELL_TOOL_NAME]
  * consistent across all paths that invoke PowerShellTool.call().
  */
 export function isPowerShellToolEnabled(): boolean {
-  const envValue = process.env.CLAUDE_CODE_USE_POWERSHELL_TOOL
-  if (getPlatform() !== 'windows') {
-    return isEnvTruthy(envValue)
-  }
-  if (isEnvTruthy(envValue)) return true
-  if (isEnvDefinedFalsy(envValue)) return false
-  // TODO(lift): tengu_cobalt_ridge feature flag at byte ~4957999
-  return false
+  if (getPlatform() !== 'windows') return false
+  return process.env.USER_TYPE === 'ant'
+    ? !isEnvDefinedFalsy(process.env.CLAUDE_CODE_USE_POWERSHELL_TOOL)
+    : isEnvTruthy(process.env.CLAUDE_CODE_USE_POWERSHELL_TOOL)
 }

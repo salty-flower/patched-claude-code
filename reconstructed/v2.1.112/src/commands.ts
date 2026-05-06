@@ -77,7 +77,7 @@ const remoteControlServerCommand =
   feature('DAEMON') && feature('BRIDGE_MODE')
     ? require('./commands/remoteControlServer/index.js').default
     : null
-const voiceCommand = feature('VOICE_MODE')
+const voiceCommand = true
   ? require('./commands/voice/index.js').default
   : null
 const forceSnip = feature('HISTORY_SNIP')
@@ -194,7 +194,6 @@ const usageReport: Command = {
   contentLength: 0,
   progressMessage: 'analyzing your sessions',
   source: 'builtin',
-  disableModelInvocation: true,
   async getPromptForCommand(args, context) {
     const real = (await import('./commands/insights.js')).default
     if (real.type !== 'prompt') throw new Error('unreachable')
@@ -372,7 +371,9 @@ async function getSkills(cwd: string): Promise<{
         return []
       }),
     ])
+    // Bundled skills are registered synchronously at startup
     const bundledSkills = getBundledSkills()
+    // Built-in plugin skills come from enabled built-in plugins
     const builtinPluginSkills = getBuiltinPluginSkillCommands()
     logForDebugging(
       `getSkills returning: ${skillDirCommands.length} skill dir commands, ${pluginSkills.length} plugin skills, ${bundledSkills.length} bundled skills, ${builtinPluginSkills.length} builtin plugin skills`,
@@ -384,6 +385,7 @@ async function getSkills(cwd: string): Promise<{
       builtinPluginSkills,
     }
   } catch (err) {
+    // This should never happen since we catch at the Promise level, but defensive
     logError(toError(err))
     logForDebugging('Unexpected error in getSkills, returning empty')
     return {
@@ -403,6 +405,15 @@ const getWorkflowCommands = feature('WORKFLOW_SCRIPTS')
   : null
 /* eslint-enable @typescript-eslint/no-require-imports */
 
+/**
+ * Filters commands by their declared `availability` (auth/provider requirement).
+ * Commands without `availability` are treated as universal.
+ * This runs before `isEnabled()` so that provider-gated commands are hidden
+ * regardless of feature-flag state.
+ *
+ * Not memoized — auth state can change mid-session (e.g. after /login),
+ * so this must be re-evaluated on every getCommands() call.
+ */
 export function meetsAvailabilityRequirement(cmd: Command): boolean {
   if (!cmd.availability) return true
   for (const a of cmd.availability) {
@@ -411,6 +422,9 @@ export function meetsAvailabilityRequirement(cmd: Command): boolean {
         if (isClaudeAISubscriber()) return true
         break
       case 'console':
+        // Console API key user = direct 1P API customer (not 3P, not claude.ai).
+        // Excludes 3P (Bedrock/Vertex/Foundry) who don't set ANTHROPIC_BASE_URL
+        // and gateway users who proxy through a custom base URL.
         if (
           !isClaudeAISubscriber() &&
           !isUsing3PServices() &&
@@ -428,6 +442,10 @@ export function meetsAvailabilityRequirement(cmd: Command): boolean {
   return false
 }
 
+/**
+ * Loads all command sources (skills, plugins, workflows). Memoized by cwd
+ * because loading is expensive (disk I/O, dynamic imports).
+ */
 const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
   const [
     { skillDirCommands, pluginSkills, bundledSkills, builtinPluginSkills },
@@ -450,11 +468,18 @@ const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
   ]
 })
 
+/**
+ * Returns commands available to the current user. The expensive loading is
+ * memoized, but availability and isEnabled checks run fresh every call so
+ * auth changes (e.g. /login) take effect immediately.
+ */
 export async function getCommands(cwd: string): Promise<Command[]> {
   const allCommands = await loadAllCommands(cwd)
 
+  // Get dynamic skills discovered during file operations
   const dynamicSkills = getDynamicSkills()
 
+  // Build base commands without dynamic skills
   const baseCommands = allCommands.filter(
     _ => meetsAvailabilityRequirement(_) && isCommandEnabled(_),
   )
@@ -463,6 +488,7 @@ export async function getCommands(cwd: string): Promise<Command[]> {
     return baseCommands
   }
 
+  // Dedupe dynamic skills - only add if not already present
   const baseCommandNames = new Set(baseCommands.map(c => c.name))
   const uniqueDynamicSkills = dynamicSkills.filter(
     s =>
@@ -475,6 +501,7 @@ export async function getCommands(cwd: string): Promise<Command[]> {
     return baseCommands
   }
 
+  // Insert dynamic skills after plugin skills but before built-in commands
   const builtInNames = new Set(COMMANDS().map(c => c.name))
   const insertIndex = baseCommands.findIndex(c => builtInNames.has(c.name))
 
@@ -489,10 +516,18 @@ export async function getCommands(cwd: string): Promise<Command[]> {
   ]
 }
 
+/**
+ * Clears only the memoization caches for commands, WITHOUT clearing skill caches.
+ * Use this when dynamic skills are added to invalidate cached command lists.
+ */
 export function clearCommandMemoizationCaches(): void {
   loadAllCommands.cache?.clear?.()
   getSkillToolCommands.cache?.clear?.()
   getSlashCommandToolSkills.cache?.clear?.()
+  // getSkillIndex in skillSearch/localSearch.ts is a separate memoization layer
+  // built ON TOP of getSkillToolCommands/getCommands. Clearing only the inner
+  // caches is a no-op for the outer — lodash memoize returns the cached result
+  // without ever reaching the cleared inners. Must clear it explicitly.
   clearSkillIndexCache?.()
 }
 
@@ -503,6 +538,12 @@ export function clearCommandsCache(): void {
   clearSkillCaches()
 }
 
+/**
+ * Filter AppState.mcp.commands to MCP-provided skills (prompt-type,
+ * model-invocable, loaded from MCP). These live outside getCommands() so
+ * callers that need MCP skills in their skill index thread them through
+ * separately.
+ */
 export function getMcpSkillCommands(
   mcpCommands: readonly Command[],
 ): readonly Command[] {
@@ -517,6 +558,8 @@ export function getMcpSkillCommands(
   return []
 }
 
+// SkillTool shows ALL prompt-based commands that the model can invoke
+// This includes both skills (from /skills/) and commands (from /commands/)
 export const getSkillToolCommands = memoize(
   async (cwd: string): Promise<Command[]> => {
     const allCommands = await getCommands(cwd)
@@ -525,6 +568,9 @@ export const getSkillToolCommands = memoize(
         cmd.type === 'prompt' &&
         !cmd.disableModelInvocation &&
         cmd.source !== 'builtin' &&
+        // Always include skills from /skills/ dirs, bundled skills, and legacy /commands/ entries
+        // (they all get an auto-derived description from the first line if frontmatter is missing).
+        // Plugin/MCP commands still require an explicit description to appear in the listing.
         (cmd.loadedFrom === 'bundled' ||
           cmd.loadedFrom === 'skills' ||
           cmd.loadedFrom === 'commands_DEPRECATED' ||
@@ -534,6 +580,9 @@ export const getSkillToolCommands = memoize(
   },
 )
 
+// Filters commands to include only skills. Skills are commands that provide
+// specialized capabilities for the model to use. They are identified by
+// loadedFrom being 'skills', 'plugin', or 'bundled', or having disableModelInvocation set.
 export const getSlashCommandToolSkills = memoize(
   async (cwd: string): Promise<Command[]> => {
     try {
@@ -550,49 +599,88 @@ export const getSlashCommandToolSkills = memoize(
       )
     } catch (error) {
       logError(toError(error))
+      // Return empty array rather than throwing - skills are non-critical
+      // This prevents skill loading failures from breaking the entire system
       logForDebugging('Returning empty skills array due to load failure')
       return []
     }
   },
 )
 
+/**
+ * Commands that are safe to use in remote mode (--remote).
+ * These only affect local TUI state and don't depend on local filesystem,
+ * git, shell, IDE, MCP, or other local execution context.
+ *
+ * Used in two places:
+ * 1. Pre-filtering commands in main.tsx before REPL renders (prevents race with CCR init)
+ * 2. Preserving local-only commands in REPL's handleRemoteInit after CCR filters
+ */
 export const REMOTE_SAFE_COMMANDS: Set<Command> = new Set([
-  session,
-  exit,
-  clear,
-  help,
-  theme,
-  color,
-  vim,
-  cost,
-  usage,
-  copy,
-  btw,
-  feedback,
-  plan,
-  keybindings,
-  statusline,
-  stickers,
-  mobile,
+  session, // Shows QR code / URL for remote session
+  exit, // Exit the TUI
+  clear, // Clear screen
+  help, // Show help
+  theme, // Change terminal theme
+  color, // Change agent color
+  vim, // Toggle vim mode
+  cost, // Show session cost (local cost tracking)
+  usage, // Show usage info
+  copy, // Copy last message
+  btw, // Quick note
+  feedback, // Send feedback
+  plan, // Plan mode toggle
+  keybindings, // Keybinding management
+  statusline, // Status line toggle
+  stickers, // Stickers
+  mobile, // Mobile QR code
 ])
 
+/**
+ * Builtin commands of type 'local' that ARE safe to execute when received
+ * over the Remote Control bridge. These produce text output that streams
+ * back to the mobile/web client and have no terminal-only side effects.
+ *
+ * 'local-jsx' commands are blocked by type (they render Ink UI) and
+ * 'prompt' commands are allowed by type (they expand to text sent to the
+ * model) — this set only gates 'local' commands.
+ *
+ * When adding a new 'local' command that should work from mobile, add it
+ * here. Default is blocked.
+ */
 export const BRIDGE_SAFE_COMMANDS: Set<Command> = new Set(
   [
-    compact,
-    clear,
-    cost,
-    summary,
-    releaseNotes,
-    files,
+    compact, // Shrink context — useful mid-session from a phone
+    clear, // Wipe transcript
+    cost, // Show session cost
+    summary, // Summarize conversation
+    releaseNotes, // Show changelog
+    files, // List tracked files
   ].filter((c): c is Command => c !== null),
 )
 
+/**
+ * Whether a slash command is safe to execute when its input arrived over the
+ * Remote Control bridge (mobile/web client).
+ *
+ * PR #19134 blanket-blocked all slash commands from bridge inbound because
+ * `/model` from iOS was popping the local Ink picker. This predicate relaxes
+ * that with an explicit allowlist: 'prompt' commands (skills) expand to text
+ * and are safe by construction; 'local' commands need an explicit opt-in via
+ * BRIDGE_SAFE_COMMANDS; 'local-jsx' commands render Ink UI and stay blocked.
+ */
 export function isBridgeSafeCommand(cmd: Command): boolean {
   if (cmd.type === 'local-jsx') return false
   if (cmd.type === 'prompt') return true
   return BRIDGE_SAFE_COMMANDS.has(cmd)
 }
 
+/**
+ * Filter commands to only include those safe for remote mode.
+ * Used to pre-filter commands when rendering the REPL in --remote mode,
+ * preventing local-only commands from being briefly available before
+ * the CCR init message arrives.
+ */
 export function filterCommandsForRemoteMode(commands: Command[]): Command[] {
   return commands.filter(cmd => REMOTE_SAFE_COMMANDS.has(cmd))
 }
@@ -630,6 +718,13 @@ export function getCommand(commandName: string, commands: Command[]): Command {
   return command
 }
 
+/**
+ * Formats a command's description with its source annotation for user-facing UI.
+ * Use this in typeahead, help screens, and other places where users need to see
+ * where a command comes from.
+ *
+ * For model-facing prompts (like SkillTool), use cmd.description directly.
+ */
 export function formatDescriptionWithSource(cmd: Command): string {
   if (cmd.type !== 'prompt') {
     return cmd.description

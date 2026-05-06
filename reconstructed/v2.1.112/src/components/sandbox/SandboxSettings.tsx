@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Box, color, Link, Text, useTheme } from '../../ink.js';
 import { useKeybindings } from '../../keybindings/useKeybinding.js';
@@ -20,7 +19,7 @@ type Props = {
 };
 type SandboxMode = 'auto-allow' | 'regular' | 'disabled';
 export function SandboxSettings(t0) {
-  const $ = _c(34);
+  const $ = new Array(34).fill(void 0);
   const {
     onComplete,
     depCheck
@@ -220,7 +219,7 @@ export function SandboxSettings(t0) {
   return t17;
 }
 function SandboxModeTab(t0) {
-  const $ = _c(16);
+  const $ = new Array(16).fill(void 0);
   const {
     showSocketWarning,
     options,

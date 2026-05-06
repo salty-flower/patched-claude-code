@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import { randomBytes } from 'crypto'
 import { unwatchFile, watchFile } from 'fs'
 import memoize from 'lodash-es/memoize.js'
@@ -30,11 +31,21 @@ import { normalizePathForConfigKey } from './path.js'
 import { getEssentialTrafficOnlyReason } from './privacyLevel.js'
 import { getManagedFilePath } from './settings/managedPath.js'
 import type { ThemeSetting } from './theme.js'
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+const teamMemPaths = feature('TEAMMEM')
+  ? (require('../memdir/teamMemPaths.js') as typeof import('../memdir/teamMemPaths.js'))
+  : null
+const ccrAutoConnect = feature('CCR_AUTO_CONNECT')
+  ? (require('../bridge/bridgeEnabled.js') as typeof import('../bridge/bridgeEnabled.js'))
+  : null
+
+/* eslint-enable @typescript-eslint/no-require-imports */
 import type { ImageDimensions } from './imageResizer.js'
 import type { ModelOption } from './model/modelOptions.js'
 import { jsonParse, jsonStringify } from './slowOperations.js'
 
-// Re-entrancy guard: prevents getConfig -> logEvent -> getGlobalConfig -> getConfig
+// Re-entrancy guard: prevents getConfig → logEvent → getGlobalConfig → getConfig
 // infinite recursion when the config file is corrupted. logEvent's sampling check
 // reads GrowthBook features from the global config, which calls getConfig again.
 let insideGetConfig = false
@@ -221,9 +232,7 @@ export type GlobalConfig = {
   bypassPermissionsModeAccepted?: boolean
   hasUsedBackslashReturn?: boolean
   autoCompactEnabled: boolean // Controls whether auto-compact is enabled
-  autoScrollEnabled: boolean // Controls whether auto-scroll is enabled
   showTurnDuration: boolean // Controls whether to show turn duration message (e.g., "Cooked for 1m 6s")
-  externalEditorContext: boolean // Controls whether external editor context is enabled
   /**
    * @deprecated Use settings.env instead.
    */
@@ -422,10 +431,10 @@ export type GlobalConfig = {
   // Sonnet 4.5 1m migration tracking
   sonnet1m45MigrationComplete?: boolean
 
-  // Opus 4.0/4.1 -> current Opus migration (shows one-time notif)
+  // Opus 4.0/4.1 → current Opus migration (shows one-time notif)
   legacyOpusMigrationTimestamp?: number
 
-  // Sonnet 4.5 -> 4.6 migration (pro/max/team premium)
+  // Sonnet 4.5 → 4.6 migration (pro/max/team premium)
   sonnet45To46MigrationTimestamp?: number
 
   // Cached statsig gate values
@@ -453,7 +462,7 @@ export type GlobalConfig = {
   copyFullResponse: boolean // Whether /copy always copies the full response instead of showing the picker
 
   // Fullscreen in-app text selection behavior
-  copyOnSelect?: boolean // Auto-copy to clipboard on mouse-up (undefined -> true; lets cmd+c "work" via no-op)
+  copyOnSelect?: boolean // Auto-copy to clipboard on mouse-up (undefined → true; lets cmd+c "work" via no-op)
 
   // GitHub repo path mapping for teleport directory switching
   // Key: "owner/repo" (lowercase), Value: array of absolute paths where repo is cloned
@@ -547,14 +556,6 @@ export type GlobalConfig = {
   // Speculation configuration (ant-only)
   speculationEnabled?: boolean // Whether speculation is enabled (default: true)
 
-  // Brief transcript mode (v112)
-  briefTranscript?: boolean
-
-  // Unpin Opus 4.7 launch effort (v112)
-  unpinOpus47LaunchEffort?: boolean
-
-  // Loop auto-enabled tracking (v112)
-  loopAutoEnabled?: boolean
 
   // Client data for server-side experiments (fetched during bootstrap).
   clientDataCache?: Record<string, unknown> | null
@@ -572,7 +573,7 @@ export type GlobalConfig = {
 
   // Version of the last-applied migration set. When equal to
   // CURRENT_MIGRATION_VERSION, runMigrations() skips all sync migrations
-  // (avoiding 11x saveGlobalConfig lock+re-read on every startup).
+  // (avoiding 11× saveGlobalConfig lock+re-read on every startup).
   migrationVersion?: number
 }
 
@@ -591,9 +592,7 @@ function createDefaultGlobalConfig(): GlobalConfig {
     verbose: false,
     editorMode: 'normal',
     autoCompactEnabled: true,
-    autoScrollEnabled: true,
     showTurnDuration: true,
-    externalEditorContext: false,
     hasSeenTasksHint: false,
     hasUsedStash: false,
     hasUsedBackgroundTask: false,
@@ -610,7 +609,6 @@ function createDefaultGlobalConfig(): GlobalConfig {
     btwUseCount: 0,
     todoFeatureEnabled: true,
     showExpandedTodos: false,
-    briefTranscript: false,
     messageIdleNotifThresholdMs: 60000,
     autoConnectIde: false,
     autoInstallIdeExtension: true,
@@ -621,7 +619,6 @@ function createDefaultGlobalConfig(): GlobalConfig {
     cachedGrowthBookFeatures: {},
     respectGitignore: true,
     copyFullResponse: false,
-    unpinOpus47LaunchEffort: false,
   }
 }
 
@@ -639,15 +636,12 @@ export const GLOBAL_CONFIG_KEYS = [
   'editorMode',
   'hasUsedBackslashReturn',
   'autoCompactEnabled',
-  'autoScrollEnabled',
   'showTurnDuration',
-  'externalEditorContext',
   'diffTool',
   'env',
   'tipsHistory',
   'todoFeatureEnabled',
   'showExpandedTodos',
-  'briefTranscript',
   'messageIdleNotifThresholdMs',
   'autoConnectIde',
   'autoInstallIdeExtension',
@@ -669,7 +663,6 @@ export const GLOBAL_CONFIG_KEYS = [
   'prStatusFooterEnabled',
   'remoteControlAtStartup',
   'remoteDialogSeen',
-  'loopAutoEnabled',
 ] as const
 
 export type GlobalConfigKey = (typeof GLOBAL_CONFIG_KEYS)[number]
@@ -702,7 +695,7 @@ export function resetTrustDialogAcceptedCacheForTesting(): void {
 }
 
 export function checkHasTrustDialogAccepted(): boolean {
-  // Trust only transitions false->true during a session (never the reverse),
+  // Trust only transitions false→true during a session (never the reverse),
   // so once true we can latch it. false is not cached — it gets re-checked
   // on every call so that trust dialog acceptance is picked up mid-session.
   // (lodash memoize doesn't fit here because it would also cache false.)
@@ -1063,7 +1056,7 @@ export function getGlobalConfig(): GlobalConfig {
 
   // Slow path: startup load. Sync I/O here is acceptable because it runs
   // exactly once, before any UI is rendered. Stat before read so any race
-  // self-corrects (old mtime + new content -> watcher re-reads next tick).
+  // self-corrects (old mtime + new content → watcher re-reads next tick).
   configCacheMisses++
   try {
     let stats: { mtimeMs: number; size: number } | null = null
@@ -1095,11 +1088,15 @@ export function getGlobalConfig(): GlobalConfig {
 /**
  * Returns the effective value of remoteControlAtStartup. Precedence:
  *   1. User's explicit config value (always wins — honors opt-out)
- *   2. false (Remote Control must be explicitly opted into)
+ *   2. CCR auto-connect default (ant-only build, GrowthBook-gated)
+ *   3. false (Remote Control must be explicitly opted into)
  */
 export function getRemoteControlAtStartup(): boolean {
   const explicit = getGlobalConfig().remoteControlAtStartup
   if (explicit !== undefined) return explicit
+  if (feature('CCR_AUTO_CONNECT')) {
+    if (ccrAutoConnect?.getCcrAutoConnectDefault()) return true
+  }
   return false
 }
 
@@ -1477,7 +1474,7 @@ function getConfig<A>(
         { level: 'error' },
       )
 
-      // Guard: logEvent -> shouldSampleEvent -> getGlobalConfig -> getConfig
+      // Guard: logEvent → shouldSampleEvent → getGlobalConfig → getConfig
       // causes infinite recursion when the config file is corrupted, because
       // the sampling check reads a GrowthBook feature from global config.
       // Only log analytics on the outermost call.
@@ -1729,13 +1726,16 @@ export function formatAutoUpdaterDisabledReason(
     case 'development':
       return 'development build'
     case 'env':
-      return `set by env: ${reason.envVar}`
+      return `${reason.envVar} set`
     case 'config':
       return 'config'
   }
 }
 
 export function getAutoUpdaterDisabledReason(): AutoUpdaterDisabledReason | null {
+  if (process.env.NODE_ENV === 'development') {
+    return { type: 'development' }
+  }
   if (isEnvTruthy(process.env.DISABLE_AUTOUPDATER)) {
     return { type: 'env', envVar: 'DISABLE_AUTOUPDATER' }
   }
@@ -1791,6 +1791,11 @@ export function getMemoryPath(memoryType: MemoryType): string {
     case 'AutoMem':
       return getAutoMemEntrypoint()
   }
+  // TeamMem is only a valid MemoryType when feature('TEAMMEM') is true
+  if (feature('TEAMMEM')) {
+    return teamMemPaths!.getTeamMemEntrypoint()
+  }
+  return '' // unreachable in external builds where TeamMem is not in MemoryType
 }
 
 export function getManagedClaudeRulesDir(): string {

@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import { open } from 'fs/promises'
 import { basename, dirname, join, sep } from 'path'
 import type { ModelUsage } from 'src/entrypoints/agentSdkTypes.js'
@@ -79,6 +80,10 @@ export type ClaudeCodeStats = {
 
   // Speculation time saved
   totalSpeculationTimeSavedMs: number
+
+  // Shot stats (ant-only, gated by SHOT_STATS feature flag)
+  shotDistribution?: { [shotCount: number]: number }
+  oneShotRate?: number
 }
 
 /**
@@ -92,6 +97,7 @@ type ProcessedStats = {
   hourCounts: { [hour: number]: number }
   totalMessages: number
   totalSpeculationTimeSavedMs: number
+  shotDistribution?: { [shotCount: number]: number }
 }
 
 /**
@@ -122,6 +128,11 @@ async function processSessionFiles(
   let totalMessages = 0
   let totalSpeculationTimeSavedMs = 0
   const modelUsageAgg: { [modelName: string]: ModelUsage } = {}
+  const shotDistributionMap = feature('SHOT_STATS')
+    ? new Map<number, number>()
+    : undefined
+  // Track parent sessions that already recorded a shot count (dedup across subagents)
+  const sessionsWithShotCount = new Set<string>()
 
   // Process session files in parallel batches for better performance
   const BATCH_SIZE = 20
@@ -196,6 +207,26 @@ async function processSessionFiles(
       // Subagent transcripts mark all messages as sidechain. We still want
       // their token usage counted, but not as separate sessions.
       const isSubagentFile = sessionFile.includes(`${sep}subagents${sep}`)
+
+      // Extract shot count from PR attribution in gh pr create calls (ant-only)
+      // This must run before the sidechain filter since subagent transcripts
+      // mark all messages as sidechain
+      if (feature('SHOT_STATS') && shotDistributionMap) {
+        const parentSessionId = isSubagentFile
+          ? basename(dirname(dirname(sessionFile)))
+          : sessionId
+
+        if (!sessionsWithShotCount.has(parentSessionId)) {
+          const shotCount = extractShotCountFromMessages(messages)
+          if (shotCount !== null) {
+            sessionsWithShotCount.add(parentSessionId)
+            shotDistributionMap.set(
+              shotCount,
+              (shotDistributionMap.get(shotCount) || 0) + 1,
+            )
+          }
+        }
+      }
 
       // Filter out sidechain messages for session metadata (duration, counts).
       // For subagent files, use all messages since they're all sidechain.
@@ -330,6 +361,9 @@ async function processSessionFiles(
     hourCounts: Object.fromEntries(hourCounts),
     totalMessages,
     totalSpeculationTimeSavedMs,
+    ...(feature('SHOT_STATS') && shotDistributionMap
+      ? { shotDistribution: Object.fromEntries(shotDistributionMap) }
+      : {}),
   }
 }
 
@@ -556,7 +590,7 @@ function cacheToStats(
     cache.totalSpeculationTimeSavedMs +
     (todayStats?.totalSpeculationTimeSavedMs || 0)
 
-  return {
+  const result: ClaudeCodeStats = {
     totalSessions,
     totalMessages,
     totalDays,
@@ -572,6 +606,31 @@ function cacheToStats(
     peakActivityHour,
     totalSpeculationTimeSavedMs,
   }
+
+  if (feature('SHOT_STATS')) {
+    const shotDistribution: { [shotCount: number]: number } = {
+      ...(cache.shotDistribution || {}),
+    }
+    if (todayStats?.shotDistribution) {
+      for (const [count, sessions] of Object.entries(
+        todayStats.shotDistribution,
+      )) {
+        const key = parseInt(count, 10)
+        shotDistribution[key] = (shotDistribution[key] || 0) + sessions
+      }
+    }
+    result.shotDistribution = shotDistribution
+    const totalWithShots = Object.values(shotDistribution).reduce(
+      (sum, n) => sum + n,
+      0,
+    )
+    result.oneShotRate =
+      totalWithShots > 0
+        ? Math.round(((shotDistribution[1] || 0) / totalWithShots) * 100)
+        : 0
+  }
+
+  return result
 }
 
 /**
@@ -750,7 +809,7 @@ function processedStatsToClaudeCodeStats(
         ) + 1
       : 0
 
-  return {
+  const result: ClaudeCodeStats = {
     totalSessions: stats.sessionStats.length,
     totalMessages: stats.totalMessages,
     totalDays,
@@ -766,6 +825,20 @@ function processedStatsToClaudeCodeStats(
     peakActivityHour,
     totalSpeculationTimeSavedMs: stats.totalSpeculationTimeSavedMs,
   }
+
+  if (feature('SHOT_STATS') && stats.shotDistribution) {
+    result.shotDistribution = stats.shotDistribution
+    const totalWithShots = Object.values(stats.shotDistribution).reduce(
+      (sum, n) => sum + n,
+      0,
+    )
+    result.oneShotRate =
+      totalWithShots > 0
+        ? Math.round(((stats.shotDistribution[1] || 0) / totalWithShots) * 100)
+        : 0
+  }
+
+  return result
 }
 
 /**

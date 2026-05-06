@@ -169,14 +169,7 @@ export async function createBashShellProvider(
       // Source session environment variables captured from session start hooks
       const sessionEnvScript = await getSessionEnvironmentScript()
       if (sessionEnvScript) {
-        commandParts.push(`${sessionEnvScript}\n:`)
-      }
-
-      // Remote environment: add BUN_OPTIONS for smol mode
-      if (process.env.CLAUDE_CODE_REMOTE) {
-        commandParts.push(
-          'export BUN_OPTIONS="--smol${BUN_OPTIONS:+ $BUN_OPTIONS}"',
-        )
+        commandParts.push(sessionEnvScript)
       }
 
       // Disable extended glob patterns for security (after sourcing user config to override)
@@ -214,8 +207,6 @@ export async function createBashShellProvider(
 
     async getEnvironmentOverrides(
       command: string,
-      sessionEnvVars?: Map<string, string>,
-      tmuxEnv?: { getTmuxEnv: () => string | null },
     ): Promise<Record<string, string>> {
       // TMUX SOCKET ISOLATION (DEFERRED):
       // We initialize Claude's tmux socket ONLY AFTER the Tmux tool has been used
@@ -233,7 +224,7 @@ export async function createBashShellProvider(
       ) {
         await ensureSocketInitialized()
       }
-      const claudeTmuxEnv = tmuxEnv?.getTmuxEnv() ?? getClaudeTmuxEnv()
+      const claudeTmuxEnv = getClaudeTmuxEnv()
       const env: Record<string, string> = {}
       // CRITICAL: Override TMUX to isolate ALL tmux commands to Claude's socket.
       // This is NOT the user's TMUX value - it points to Claude's isolated socket.
@@ -241,8 +232,6 @@ export async function createBashShellProvider(
       if (claudeTmuxEnv) {
         env.TMUX = claudeTmuxEnv
       }
-      // Set BUN_INSTALL and execPath for remote environments
-      env.BUN_INSTALL = process.execPath
       if (currentSandboxTmpDir) {
         let posixTmpDir = currentSandboxTmpDir
         if (getPlatform() === 'windows') {
@@ -257,8 +246,7 @@ export async function createBashShellProvider(
         env.TMPPREFIX = posixJoin(posixTmpDir, 'zsh')
       }
       // Apply session env vars set via /env (child processes only, not the REPL)
-      const envVars = sessionEnvVars ?? getSessionEnvVars()
-      for (const [key, value] of envVars) {
+      for (const [key, value] of getSessionEnvVars()) {
         env[key] = value
       }
       return env

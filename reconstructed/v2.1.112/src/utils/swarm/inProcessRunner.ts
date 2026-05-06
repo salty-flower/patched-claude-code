@@ -901,11 +901,6 @@ export async function runInProcessTeammate(
   } = config
   const { setAppState } = toolUseContext
 
-  // In v112, the toolUseContext now includes a taskRegistry with update/evictTerminal
-  // methods. The killInProcessTeammate function was moved to spawnInProcess.ts and
-  // uses this registry instead of direct setAppState manipulation.
-  const taskRegistry = toolUseContext.taskRegistry
-
   logForDebugging(
     `[inProcessRunner] Starting agent loop for ${identity.agentId}`,
   )
@@ -1092,57 +1087,42 @@ export async function runInProcessTeammate(
           onCompactProgress: undefined,
           setStreamMode: undefined,
         }
-        try {
-          const compactedSummary = await compactConversation(
-            allMessages,
-            isolatedContext,
-            {
-              systemPrompt: asSystemPrompt([]),
-              userContext: {},
-              systemContext: {},
-              toolUseContext: isolatedContext,
-              forkContextMessages: [],
-            },
-            true, // suppressFollowUpQuestions
-            undefined, // customInstructions
-            true, // isAutoCompact
-          )
-          contextMessages = buildPostCompactMessages(compactedSummary)
-          // Reset microcompact state since full compact replaces all
-          // messages — old tool IDs are no longer relevant
-          resetMicrocompactState()
-          // Reset content replacement state — compact replaces all messages
-          // so old tool_use_ids are gone. Stale Map entries are harmless
-          // (UUID keys never match) but accumulate memory over long runs.
-          if (teammateReplacementState) {
-            teammateReplacementState = createContentReplacementState()
-          }
-          // Update allMessages in place with compacted version
-          allMessages.length = 0
-          allMessages.push(...contextMessages)
-
-          // Mirror compaction into task.messages — otherwise the AppState
-          // mirror grows unbounded (500 turns = 500+ messages, 10-50MB).
-          // Replace with the compacted messages, matching allMessages.
-          updateTaskState(
-            taskId,
-            task => ({ ...task, messages: [...contextMessages, userMessage] }),
-            setAppState,
-          )
-        } catch (error) {
-          // In v112, compaction can be blocked by a PreCompact hook.
-          // When that happens, log and continue uncompacted rather than failing.
-          if (
-            error instanceof Error &&
-            error.message.startsWith('PreCompact hook blocked compaction')
-          ) {
-            logForDebugging(
-              `[inProcessRunner] ${identity.agentId} compaction blocked by PreCompact hook; continuing uncompacted`,
-            )
-          } else {
-            throw error
-          }
+        const compactedSummary = await compactConversation(
+          allMessages,
+          isolatedContext,
+          {
+            systemPrompt: asSystemPrompt([]),
+            userContext: {},
+            systemContext: {},
+            toolUseContext: isolatedContext,
+            forkContextMessages: [],
+          },
+          true, // suppressFollowUpQuestions
+          undefined, // customInstructions
+          true, // isAutoCompact
+        )
+        contextMessages = buildPostCompactMessages(compactedSummary)
+        // Reset microcompact state since full compact replaces all
+        // messages — old tool IDs are no longer relevant
+        resetMicrocompactState()
+        // Reset content replacement state — compact replaces all messages
+        // so old tool_use_ids are gone. Stale Map entries are harmless
+        // (UUID keys never match) but accumulate memory over long runs.
+        if (teammateReplacementState) {
+          teammateReplacementState = createContentReplacementState()
         }
+        // Update allMessages in place with compacted version
+        allMessages.length = 0
+        allMessages.push(...contextMessages)
+
+        // Mirror compaction into task.messages — otherwise the AppState
+        // mirror grows unbounded (500 turns = 500+ messages, 10-50MB).
+        // Replace with the compacted messages, matching allMessages.
+        updateTaskState(
+          taskId,
+          task => ({ ...task, messages: [...contextMessages, userMessage] }),
+          setAppState,
+        )
       }
 
       // Pass previous messages as context to preserve conversation history
@@ -1192,7 +1172,6 @@ export async function runInProcessTeammate(
           // In-process teammates are async but run in the same process as the leader,
           // so they CAN show permission prompts (unlike true background agents).
           // Use currentWorkAbortController so Escape stops this turn only, not the teammate.
-          // In v112, isTeammate: true was added to runAgent() for teammate-specific behavior.
           for await (const message of runAgent({
             agentDefinition: iterationAgentDefinition,
             promptMessages,
@@ -1221,7 +1200,6 @@ export async function runInProcessTeammate(
             availableTools: toolUseContext.options.tools,
             allowedTools,
             contentReplacementState: teammateReplacementState,
-            isTeammate: true,
           })) {
             // Check lifecycle abort first (kills whole teammate)
             if (abortController.signal.aborted) {
@@ -1395,7 +1373,6 @@ export async function runInProcessTeammate(
             waitResult.originalMessage,
           )
           // Add shutdown request to task.messages for transcript display
-          // In v112, appendTeammateMessage now takes taskRegistry instead of setAppState
           appendTeammateMessage(
             taskId,
             createUserMessage({ content: currentPrompt }),
@@ -1472,13 +1449,8 @@ export async function runInProcessTeammate(
       setAppState,
     )
     void evictTaskOutput(taskId)
-    // In v112, evictTerminalTask is called via taskRegistry.evictTerminal(taskId)
-    // if available, otherwise falls back to the direct function.
-    if (taskRegistry) {
-      taskRegistry.evictTerminal(taskId)
-    } else {
-      evictTerminalTask(taskId, setAppState)
-    }
+    // Eagerly evict task from AppState since it's been consumed
+    evictTerminalTask(taskId, setAppState)
     // notified:true pre-set → no XML notification → print.ts won't emit
     // the SDK task_notification. Close the task_started bookend directly.
     if (!alreadyTerminal) {
@@ -1530,12 +1502,8 @@ export async function runInProcessTeammate(
       setAppState,
     )
     void evictTaskOutput(taskId)
-    // In v112, evictTerminalTask is called via taskRegistry.evictTerminal(taskId)
-    if (taskRegistry) {
-      taskRegistry.evictTerminal(taskId)
-    } else {
-      evictTerminalTask(taskId, setAppState)
-    }
+    // Eagerly evict task from AppState since it's been consumed
+    evictTerminalTask(taskId, setAppState)
     // notified:true pre-set → no XML notification → close SDK bookend directly.
     if (!alreadyTerminal) {
       emitTaskTerminatedSdk(taskId, 'failed', {

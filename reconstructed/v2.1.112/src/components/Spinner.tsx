@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { Box, Text } from '../ink.js';
 import * as React from 'react';
@@ -314,7 +313,7 @@ type BriefSpinnerProps = {
   overrideMessage?: string | null;
 };
 function BriefSpinner(t0) {
-  const $ = _c(31);
+  const $ = new Array(31).fill(void 0);
   const {
     mode,
     overrideMessage
@@ -449,7 +448,7 @@ function _temp4() {
   return sample(getSpinnerVerbs()) ?? "Working";
 }
 export function BriefIdleStatus() {
-  const $ = _c(9);
+  const $ = new Array(9).fill(void 0);
   const connStatus = useAppState(_temp7);
   const runningCount = useAppState(_temp8);
   const {
@@ -505,7 +504,7 @@ function _temp7(s) {
   return s.remoteConnectionStatus;
 }
 export function Spinner() {
-  const $ = _c(8);
+  const $ = new Array(8).fill(void 0);
   const settings = useSettings();
   const reducedMotion = settings.prefersReducedMotion ?? false;
   const [ref, time] = useAnimationFrame(reducedMotion ? null : 120);

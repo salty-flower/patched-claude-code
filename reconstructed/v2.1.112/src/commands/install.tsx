@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import React, { useEffect, useState } from 'react';
@@ -51,7 +50,7 @@ function getInstallationPath(): string {
   return '~/.local/bin/claude';
 }
 function SetupNotes(t0) {
-  const $ = _c(5);
+  const $ = new Array(5).fill(void 0);
   const {
     messages
   } = t0;

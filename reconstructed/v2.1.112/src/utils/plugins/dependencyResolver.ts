@@ -17,8 +17,6 @@ import { getSettingsForSource } from '../settings/settings.js'
 import { parsePluginIdentifier } from './pluginIdentifier.js'
 import type { PluginId } from './schemas.js'
 
-// TODO(lift): qx (semver) at byte ~5088084
-
 /**
  * Synthetic marketplace sentinel for `--plugin-dir` plugins (pluginLoader.ts
  * sets `source = "{name}@inline"`). Not a real marketplace — bare deps from
@@ -173,11 +171,6 @@ export async function resolveDependencyClosure(
  *
  * Does NOT mutate input. Returns the set of plugin IDs (sources) to demote.
  *
- * v112 change: added version-constraint checking via depConstraints. If a
- * dependency has a version constraint and the resolved/installed version
- * doesn't satisfy it, the plugin is demoted with reason
- * 'dependency-version-unsatisfied'.
- *
  * @param plugins All loaded plugins (enabled + disabled)
  * @returns Set of pluginIds to demote, plus errors for `/doctor`
  */
@@ -187,8 +180,6 @@ export function verifyAndDemote(plugins: readonly LoadedPlugin[]): {
 } {
   const known = new Set(plugins.map(p => p.source))
   const enabled = new Set(plugins.filter(p => p.enabled).map(p => p.source))
-  // v112: build a source -> plugin map for version constraint lookups
-  const sourceToPlugin = new Map(plugins.map(p => [p.source, p]))
   // Name-only indexes for bare deps from --plugin-dir (@inline) plugins:
   // the real marketplace is unknown, so match "B" against any enabled "B@*".
   // enabledByName is a multiset: if B@epic AND B@other are both enabled,
@@ -215,9 +206,12 @@ export function verifyAndDemote(plugins: readonly LoadedPlugin[]): {
         const satisfied = isBare
           ? (enabledByName.get(dep) ?? 0) > 0
           : enabled.has(dep)
-        let error: PluginError | undefined
         if (!satisfied) {
-          error = {
+          enabled.delete(p.source)
+          const count = enabledByName.get(p.name) ?? 0
+          if (count <= 1) enabledByName.delete(p.name)
+          else enabledByName.set(p.name, count - 1)
+          errors.push({
             type: 'dependency-unsatisfied',
             source: p.source,
             plugin: p.name,
@@ -225,39 +219,7 @@ export function verifyAndDemote(plugins: readonly LoadedPlugin[]): {
             reason: (isBare ? knownByName.has(dep) : known.has(dep))
               ? 'not-enabled'
               : 'not-found',
-          }
-        } else if (!isBare) {
-          // v112: check version constraints
-          const constraint = p.depConstraints?.get(rawDep)?.version
-          if (constraint !== undefined) {
-            const depPlugin = sourceToPlugin.get(dep)
-            const installedVersion =
-              depPlugin?.resolvedVersion ?? depPlugin?.manifest.version
-            // TODO(lift): qx (semver) at byte ~5088084
-            // qx.valid(Z) ?? qx.coerce(Z)?.version
-            // qx.satisfies(G, W)
-            const coercedVersion = installedVersion
-            if (
-              coercedVersion === undefined ||
-              !semverSatisfies(coercedVersion, constraint)
-            ) {
-              error = {
-                type: 'dependency-version-unsatisfied',
-                source: p.source,
-                plugin: p.name,
-                dependency: dep,
-                required: constraint,
-                installed: installedVersion,
-              }
-            }
-          }
-        }
-        if (error) {
-          enabled.delete(p.source)
-          const count = enabledByName.get(p.name) ?? 0
-          if (count <= 1) enabledByName.delete(p.name)
-          else enabledByName.set(p.name, count - 1)
-          errors.push(error)
+          })
           changed = true
           break
         }
@@ -269,12 +231,6 @@ export function verifyAndDemote(plugins: readonly LoadedPlugin[]): {
     plugins.filter(p => p.enabled && !enabled.has(p.source)).map(p => p.source),
   )
   return { demoted, errors }
-}
-
-// TODO(lift): semver helper wrapper for qx at byte ~5088084
-function semverSatisfies(version: string, range: string): boolean {
-  // Placeholder: v112 uses qx (semver) for version validation
-  return true
 }
 
 /**
@@ -327,20 +283,13 @@ export function getEnabledPluginIdsForScope(
 }
 
 /**
- * Format the "(+ N dependencies: name1, name2, …)" suffix for install success
- * messages. v112 change: includes the names of installed deps up to a cap.
+ * Format the "(+ N dependencies)" suffix for install success messages.
  * Returns empty string when `installedDeps` is empty.
  */
 export function formatDependencyCountSuffix(installedDeps: string[]): string {
   if (installedDeps.length === 0) return ''
   const n = installedDeps.length
-  const maxShow = 5
-  const names = installedDeps.map(d => parsePluginIdentifier(d).name)
-  const nameList =
-    names.length <= maxShow
-      ? names.join(', ')
-      : `${names.slice(0, maxShow).join(', ')}, …`
-  return ` (+ ${n} ${n === 1 ? 'dependency' : 'dependencies'}: ${nameList})`
+  return ` (+ ${n} ${n === 1 ? 'dependency' : 'dependencies'})`
 }
 
 /**

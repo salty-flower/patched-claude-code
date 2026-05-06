@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import { relative } from 'path';
 import React from 'react';
 import { Box, Text } from '../ink.js';
@@ -15,7 +14,7 @@ type DiagnosticsDisplayProps = {
   verbose: boolean;
 };
 export function DiagnosticsDisplay(t0) {
-  const $ = _c(14);
+  const $ = new Array(14).fill(void 0);
   const {
     attachment,
     verbose

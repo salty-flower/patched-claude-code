@@ -32,6 +32,7 @@ import { renameRecordingForSession } from './asciicast.js'
 import { clearMemoryFileCaches } from './claudemd.js'
 import {
   type AttributionState,
+  attributionRestoreStateFromLog,
   restoreAttributionStateFromSnapshots,
 } from './commitAttribution.js'
 import { updateSessionName } from './concurrentSessions.js'
@@ -48,6 +49,7 @@ import {
   recordContentReplacement,
   resetSessionFilePointer,
   restoreSessionMetadata,
+  saveMode,
   saveWorktreeState,
 } from './sessionStorage.js'
 import { isTodoV2Enabled } from './tasks.js'
@@ -111,10 +113,9 @@ export function restoreSessionStateFromLog(
     result.attributionSnapshots &&
     result.attributionSnapshots.length > 0
   ) {
-    // TODO(lift): _YA at byte ~12512820 (attributionRestoreStateFromLog)
-    // attributionRestoreStateFromLog(result.attributionSnapshots, newState => {
-    //   setAppState(prev => ({ ...prev, attribution: newState }))
-    // })
+    attributionRestoreStateFromLog(result.attributionSnapshots, newState => {
+      setAppState(prev => ({ ...prev, attribution: newState }))
+    })
   }
 
   // Restore context-collapse commit log + staged snapshot. Must run before
@@ -253,7 +254,7 @@ export async function refreshAgentDefinitionsForModeSwitch(
   cliAgents: AgentDefinition[],
   currentAgentDefinitions: AgentDefinitionsResult,
 ): Promise<AgentDefinitionsResult> {
-  if (!feature('COORDINATOR_MODE') || !modeWasSwitched) {
+  if (!true || !modeWasSwitched) {
     return currentAgentDefinitions
   }
 
@@ -424,7 +425,7 @@ export async function processResumedConversation(
 ): Promise<ProcessedResume> {
   // Match coordinator/normal mode to the resumed session
   let modeWarning: string | undefined
-  if (feature('COORDINATOR_MODE')) {
+  if (true) {
     modeWarning = context.modeApi?.matchSessionMode(result.mode)
     if (modeWarning) {
       result.messages.push(createSystemMessage(modeWarning, 'warning'))
@@ -510,7 +511,7 @@ export async function processResumedConversation(
     )
 
   // Persist the current mode so future resumes know what mode this session was in
-  if (feature('COORDINATOR_MODE')) {
+  if (true) {
     saveMode(context.modeApi?.isCoordinatorMode() ? 'coordinator' : 'normal')
   }
 

@@ -283,8 +283,9 @@ export function formatToken(
 // is unambiguous — bare #NNN was removed because it guessed the current repo
 // and was wrong whenever the assistant discussed a different one.
 // Owner segment disallows dots (GitHub usernames are alphanumerics + hyphens
-// only) so hostnames like docs.github.io/guide#42 don't false-positive. Lookbehind
-// is avoided — it defeats YARR JIT in JSC.
+// only) so hostnames like docs.github.io/guide#42 don't false-positive. Repo
+// segment allows dots (e.g. cc.kurs.web). Lookbehind is avoided — it defeats
+// YARR JIT in JSC.
 const ISSUE_REF_PATTERN =
   /(^|[^\w./-])([A-Za-z0-9][\w-]*\/[A-Za-z0-9][\w.-]*)#(\d+)\b/g
 

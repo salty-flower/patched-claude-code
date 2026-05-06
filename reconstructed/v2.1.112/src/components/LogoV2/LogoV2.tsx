@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import * as React from 'react';
 import { Box, Text, color } from '../../ink.js';
@@ -45,7 +44,7 @@ import { useMainLoopModel } from '../../hooks/useMainLoopModel.js';
 import { renderModelSetting } from '../../utils/model/model.js';
 const LEFT_PANEL_MAX_WIDTH = 50;
 export function LogoV2() {
-  const $ = _c(94);
+  const $ = new Array(94).fill(void 0);
   const activities = getRecentActivitySync();
   const username = getGlobalConfig().oauthAccount?.displayName ?? "";
   const {

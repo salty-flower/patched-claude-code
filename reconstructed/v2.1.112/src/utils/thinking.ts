@@ -92,11 +92,21 @@ export function modelSupportsThinking(model: string): boolean {
   if (supported3P !== undefined) {
     return supported3P
   }
+  if (process.env.USER_TYPE === 'ant') {
+    if (resolveAntModel(model.toLowerCase())) {
+      return true
+    }
+  }
   // IMPORTANT: Do not change thinking support without notifying the model
   // launch DRI and research. This can greatly affect model quality and bashing.
   const canonical = getCanonicalName(model)
-  // v112: removed provider check and ant-specific resolveAntModel branch
-  return !canonical.includes('claude-3-')
+  const provider = getAPIProvider()
+  // 1P and Foundry: all Claude 4+ models (including Haiku 4.5)
+  if (provider === 'foundry' || provider === 'firstParty') {
+    return !canonical.includes('claude-3-')
+  }
+  // 3P (Bedrock/Vertex): only Opus 4+ and Sonnet 4+
+  return canonical.includes('sonnet-4') || canonical.includes('opus-4')
 }
 
 // @[MODEL LAUNCH]: Add the new model to the allowlist if it supports adaptive thinking.
@@ -107,12 +117,7 @@ export function modelSupportsAdaptiveThinking(model: string): boolean {
   }
   const canonical = getCanonicalName(model)
   // Supported by a subset of Claude 4 models
-  // v112: added opus-4-7 to the allowlist
-  if (
-    canonical.includes('opus-4-7') ||
-    canonical.includes('opus-4-6') ||
-    canonical.includes('sonnet-4-6')
-  ) {
+  if (canonical.includes('opus-4-6') || canonical.includes('sonnet-4-6')) {
     return true
   }
   // Exclude any other known legacy models (allowlist above catches 4-6 variants first)
@@ -131,8 +136,9 @@ export function modelSupportsAdaptiveThinking(model: string): boolean {
   // enabled for model testing. DO NOT default to false for first party, otherwise
   // we may silently degrade model quality.
 
-  // v112: default changed from provider-based to calling a function
-  // TODO(lift): verify the exact v112 default expression at byte ~4721524
+  // Default to true for unknown model strings on 1P and Foundry (because Foundry
+  // is a proxy). Do not default to true for other 3P as they have different formats
+  // for their model strings.
   const provider = getAPIProvider()
   return provider === 'firstParty' || provider === 'foundry'
 }

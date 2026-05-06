@@ -109,10 +109,15 @@ function getLogWriter(path: string): JsonlWriter {
 }
 
 function appendToLog(path: string, message: object): void {
+  if (process.env.USER_TYPE !== 'ant') {
+    return
+  }
+
   const messageWithTimestamp = {
     timestamp: new Date().toISOString(),
     ...message,
     cwd: getFsImplementation().cwd(),
+    userType: process.env.USER_TYPE,
     sessionId: getSessionId(),
     version: MACRO.VERSION,
   }

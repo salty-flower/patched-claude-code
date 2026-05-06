@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import { feature } from 'bun:bundle';
 import * as React from 'react';
 import { getAllowedChannels, getQuestionPreviewFormat } from 'src/bootstrap/state.js';
@@ -81,7 +80,7 @@ export type Question = z.infer<ReturnType<typeof questionSchema>>;
 export type QuestionOption = z.infer<ReturnType<typeof questionOptionSchema>>;
 export type Output = z.infer<OutputSchema>;
 function AskUserQuestionResultMessage(t0) {
-  const $ = _c(3);
+  const $ = new Array(3).fill(void 0);
   const {
     answers
   } = t0;

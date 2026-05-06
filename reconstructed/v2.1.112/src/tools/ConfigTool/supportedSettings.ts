@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import { getRemoteControlAtStartup } from '../../utils/config.js'
 import {
   EDITOR_MODES,
@@ -6,7 +7,7 @@ import {
 } from '../../utils/configConstants.js'
 import { getModelOptions } from '../../utils/model/modelOptions.js'
 import { validateModel } from '../../utils/model/validateModel.js'
-import { THEME_NAMES } from '../../utils/theme.js'
+import { THEME_NAMES, THEME_SETTINGS } from '../../utils/theme.js'
 
 /** AppState keys that can be synced for immediate UI effect */
 type SyncableAppStateKey = 'verbose' | 'mainLoopModel' | 'thinkingEnabled'
@@ -25,21 +26,12 @@ type SettingConfig = {
   formatOnRead?: (v: unknown) => unknown
 }
 
-// v112: SUPPORTED_SETTINGS is now a lazy-module-initialized variable (y37 lazy block)
-// The object is materially identical to v88 but with additions:
-// - autoScrollEnabled: new setting for fullscreen auto-scroll
-// - tui: new setting for terminal UI renderer (fullscreen vs default)
-// - VOICE_MODE gate is always-false in v112 (build constant)
-// - BRIDGE_MODE voiceEnabled is included unconditionally (feature baked in)
-// - KAIROS notifications dropped taskCompleteNotifEnabled (only inputNeeded + agentPush remain)
-// - permissions.defaultMode: 'auto' always included (TRANSCRIPT_CLASSIFIER always on)
 export const SUPPORTED_SETTINGS: Record<string, SettingConfig> = {
   theme: {
     source: 'global',
     type: 'string',
     description: 'Color theme for the UI',
-    // v112: uses THEME_NAMES directly (AUTO_THEME feature is not present)
-    options: THEME_NAMES,
+    options: feature('AUTO_THEME') ? THEME_SETTINGS : THEME_NAMES,
   },
   editorMode: {
     source: 'global',
@@ -63,12 +55,6 @@ export const SUPPORTED_SETTINGS: Record<string, SettingConfig> = {
     source: 'global',
     type: 'boolean',
     description: 'Auto-compact when context is full',
-  },
-  // v112: new setting
-  autoScrollEnabled: {
-    source: 'global',
-    type: 'boolean',
-    description: 'Auto-scroll conversation to bottom (fullscreen mode only)',
   },
   autoMemoryEnabled: {
     source: 'settings',
@@ -128,8 +114,9 @@ export const SUPPORTED_SETTINGS: Record<string, SettingConfig> = {
     source: 'settings',
     type: 'string',
     description: 'Default permission mode for tool usage',
-    // v112: 'auto' is always included (TRANSCRIPT_CLASSIFIER always on in v112)
-    options: ['default', 'plan', 'acceptEdits', 'dontAsk', 'auto'],
+    options: feature('TRANSCRIPT_CLASSIFIER')
+      ? ['default', 'plan', 'acceptEdits', 'dontAsk', 'auto']
+      : ['default', 'plan', 'acceptEdits', 'dontAsk'],
   },
   language: {
     source: 'settings',
@@ -144,42 +131,58 @@ export const SUPPORTED_SETTINGS: Record<string, SettingConfig> = {
       'How to spawn teammates: "tmux" for traditional tmux, "in-process" for same process, "auto" to choose automatically',
     options: TEAMMATE_MODES,
   },
-  // v112: new setting for TUI renderer selection
-  tui: {
-    source: 'settings',
-    type: 'string',
-    description:
-      'Terminal UI renderer: "fullscreen" for flicker-free alt-screen rendering, "default" for the classic renderer',
-    options: ['default', 'fullscreen'],
-  },
-  // v112: VOICE_MODE feature is baked off (false) at build time — no ant-only block
-  // v112: voiceEnabled is always included (feature('BRIDGE_MODE') always on)
-  voiceEnabled: {
-    source: 'settings' as const,
-    type: 'boolean' as const,
-    description: 'Enable voice dictation (hold-to-talk)',
-  },
-  // v112: remoteControlAtStartup always present (BRIDGE_MODE always on)
-  remoteControlAtStartup: {
-    source: 'global' as const,
-    type: 'boolean' as const,
-    description:
-      'Enable Remote Control for all sessions (true | false | default)',
-    formatOnRead: () => getRemoteControlAtStartup(),
-  },
-  // v112: KAIROS notifications — taskCompleteNotifEnabled removed, only inputNeeded + agentPush
-  inputNeededNotifEnabled: {
-    source: 'global' as const,
-    type: 'boolean' as const,
-    description:
-      'Push to your mobile device when a permission prompt or question is waiting (requires Remote Control)',
-  },
-  agentPushNotifEnabled: {
-    source: 'global' as const,
-    type: 'boolean' as const,
-    description:
-      'Allow Claude to push to your mobile device when it deems it appropriate (requires Remote Control)',
-  },
+  ...(process.env.USER_TYPE === 'ant'
+    ? {
+        classifierPermissionsEnabled: {
+          source: 'settings' as const,
+          type: 'boolean' as const,
+          description:
+            'Enable AI-based classification for Bash(prompt:...) permission rules',
+        },
+      }
+    : {}),
+  ...(true
+    ? {
+        voiceEnabled: {
+          source: 'settings' as const,
+          type: 'boolean' as const,
+          description: 'Enable voice dictation (hold-to-talk)',
+        },
+      }
+    : {}),
+  ...(feature('BRIDGE_MODE')
+    ? {
+        remoteControlAtStartup: {
+          source: 'global' as const,
+          type: 'boolean' as const,
+          description:
+            'Enable Remote Control for all sessions (true | false | default)',
+          formatOnRead: () => getRemoteControlAtStartup(),
+        },
+      }
+    : {}),
+  ...(feature('KAIROS') || feature('KAIROS_PUSH_NOTIFICATION')
+    ? {
+        taskCompleteNotifEnabled: {
+          source: 'global' as const,
+          type: 'boolean' as const,
+          description:
+            'Push to your mobile device when idle after Claude finishes (requires Remote Control)',
+        },
+        inputNeededNotifEnabled: {
+          source: 'global' as const,
+          type: 'boolean' as const,
+          description:
+            'Push to your mobile device when a permission prompt or question is waiting (requires Remote Control)',
+        },
+        agentPushNotifEnabled: {
+          source: 'global' as const,
+          type: 'boolean' as const,
+          description:
+            'Allow Claude to push to your mobile device when it deems it appropriate (requires Remote Control)',
+        },
+      }
+    : {}),
 }
 
 export function isSupported(key: string): boolean {

@@ -85,37 +85,26 @@ export function hasWildcards(pattern: string): boolean {
  *
  * @param pattern - The permission rule pattern with wildcards
  * @param command - The command to match against
- * @param caseInsensitive - Whether to match case-insensitively
- * @param collapseWhitespace - Whether to collapse multiple whitespace chars to a single space before matching
  * @returns true if the command matches the pattern
  */
 export function matchWildcardPattern(
   pattern: string,
   command: string,
   caseInsensitive = false,
-  collapseWhitespace = false,
 ): boolean {
   // Trim leading/trailing whitespace from pattern
   const trimmedPattern = pattern.trim()
-
-  // Optionally collapse whitespace in both pattern and command
-  const normalizedPattern = collapseWhitespace
-    ? trimmedPattern.replace(/[ \t]+/g, ' ')
-    : trimmedPattern
-  const normalizedCommand = collapseWhitespace
-    ? command.replace(/[ \t]+/g, ' ')
-    : command
 
   // Process the pattern to handle escape sequences: \* and \\
   let processed = ''
   let i = 0
 
-  while (i < normalizedPattern.length) {
-    const char = normalizedPattern[i]
+  while (i < trimmedPattern.length) {
+    const char = trimmedPattern[i]
 
     // Handle escape sequences
-    if (char === '\\' && i + 1 < normalizedPattern.length) {
-      const nextChar = normalizedPattern[i + 1]
+    if (char === '\\' && i + 1 < trimmedPattern.length) {
+      const nextChar = trimmedPattern[i + 1]
       if (nextChar === '*') {
         // \* -> literal asterisk placeholder
         processed += ESCAPED_STAR_PLACEHOLDER
@@ -137,7 +126,7 @@ export function matchWildcardPattern(
   const escaped = processed.replace(/[.+?^${}()|[\]\\'"]/g, '\\$&')
 
   // Convert unescaped * to .* for wildcard matching
-  const withWildcards = escaped.replaceAll('*', '.*')
+  const withWildcards = escaped.replace(/\*/g, '.*')
 
   // Convert placeholders back to escaped regex literals
   let regexPattern = withWildcards
@@ -161,7 +150,7 @@ export function matchWildcardPattern(
   const flags = 's' + (caseInsensitive ? 'i' : '')
   const regex = new RegExp(`^${regexPattern}$`, flags)
 
-  return regex.test(normalizedCommand)
+  return regex.test(command)
 }
 
 /**
@@ -229,7 +218,7 @@ export function suggestionForPrefix(
       rules: [
         {
           toolName,
-          ruleContent: `${prefix} *`,
+          ruleContent: `${prefix}:*`,
         },
       ],
       behavior: 'allow',

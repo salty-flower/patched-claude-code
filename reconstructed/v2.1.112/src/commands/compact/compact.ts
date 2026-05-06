@@ -129,11 +129,9 @@ export const call: LocalCommandCall = async (args, context) => {
       throw new Error(ERROR_MESSAGE_NOT_ENOUGH_MESSAGES)
     } else if (hasExactErrorMessage(error, ERROR_MESSAGE_INCOMPLETE_RESPONSE)) {
       throw new Error(ERROR_MESSAGE_INCOMPLETE_RESPONSE)
-    } else if (error instanceof be) {
-      throw error
     } else {
       logError(error)
-      throw new Error(`Error during compaction: ${error instanceof Error ? error.message : String(error)}`, { cause: error })
+      throw new Error(`Error during compaction: ${error}`)
     }
   }
 }
@@ -154,13 +152,7 @@ async function compactViaReactive(
   })
   context.setSDKStatus?.('compacting')
 
-  const startTime = performance.now()
-  let error: string | undefined
-  let postTokens: number | undefined
-
   try {
-    const preTokens = getMessagesTokenCount(messages)
-
     // Hooks and cache-param build are independent — run concurrently.
     // getCacheSharingParams walks all tools to build the system prompt;
     // pre-compact hooks spawn subprocesses. Neither depends on the other.
@@ -171,14 +163,13 @@ async function compactViaReactive(
       ),
       getCacheSharingParams(context, messages),
     ])
-    // TODO(lift): ec8 telemetry call at byte ~10134950
     const mergedInstructions = mergeHookInstructions(
       customInstructions,
       hookResult.newCustomInstructions,
     )
 
     context.setStreamMode?.('requesting')
-    context.resetResponseLength?.()
+    context.setResponseLength?.(() => 0)
     context.onCompactProgress?.({ type: 'compact_start' })
 
     const outcome = await reactive.reactiveCompactOnPromptTooLong(
@@ -197,18 +188,10 @@ async function compactViaReactive(
         case 'aborted':
           throw new Error(ERROR_MESSAGE_USER_ABORT)
         case 'exhausted':
-          throw new be('Compaction failed · conversation could not be reduced below the context limit')
-        case 'media_unstrippable':
-          throw new be('Compaction failed · attached media exceeds size limits')
         case 'error':
-          throw new be(`Error during compaction: ${outcome.detail || 'unknown error'}`)
+        case 'media_unstrippable':
+          throw new Error(ERROR_MESSAGE_INCOMPLETE_RESPONSE)
       }
-    }
-
-    // Extract post-compact token count from boundary marker if available
-    const boundaryMarker = outcome.result.boundaryMarker
-    if (boundaryMarker?.subtype === 'compact_boundary' && 'compactMetadata' in boundaryMarker) {
-      postTokens = boundaryMarker.compactMetadata.postTokens
     }
 
     // Mirrors the post-success cleanup in tryReactiveCompact, minus
@@ -236,18 +219,11 @@ async function compactViaReactive(
       },
       displayText: buildDisplayText(context, combinedMessage),
     }
-  } catch (err) {
-    error = err instanceof Error ? err.message : 'reactive compaction failed'
-    throw err
   } finally {
     context.setStreamMode?.('requesting')
-    context.resetResponseLength?.()
+    context.setResponseLength?.(() => 0)
     context.onCompactProgress?.({ type: 'compact_end' })
-    // TODO(lift): aK6 telemetry call at byte ~10138000
-    context.setSDKStatus?.(null, {
-      compactResult: error ? 'failed' : 'success',
-      ...(error && { compactError: error }),
-    })
+    context.setSDKStatus?.(null)
   }
 }
 
@@ -309,5 +285,3 @@ async function getCacheSharingParams(
     forkContextMessages,
   }
 }
-
-// TODO(lift): getMessagesTokenCount helper at byte ~10134900

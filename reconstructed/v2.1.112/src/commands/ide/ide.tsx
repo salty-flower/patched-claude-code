@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import chalk from 'chalk';
 import * as path from 'path';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -23,7 +22,7 @@ type IDEScreenProps = {
   onSelect: (ide?: DetectedIDEInfo) => void;
 };
 function IDEScreen(t0) {
-  const $ = _c(39);
+  const $ = new Array(39).fill(void 0);
   const {
     availableIDEs,
     unavailableIDEs,
@@ -225,7 +224,7 @@ type IDEOpenSelectionProps = {
   }) => void;
 };
 function IDEOpenSelection(t0) {
-  const $ = _c(18);
+  const $ = new Array(18).fill(void 0);
   const {
     availableIDEs,
     onSelectIDE,
@@ -314,7 +313,7 @@ function _temp4(ide_0) {
   };
 }
 function RunningIDESelector(t0) {
-  const $ = _c(15);
+  const $ = new Array(15).fill(void 0);
   const {
     runningIDEs,
     onSelectIDE,
@@ -393,7 +392,7 @@ function _temp5(ide) {
   };
 }
 function InstallOnMount(t0) {
-  const $ = _c(4);
+  const $ = new Array(4).fill(void 0);
   const {
     ide,
     onInstall

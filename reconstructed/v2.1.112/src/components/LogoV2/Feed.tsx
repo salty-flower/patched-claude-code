@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { stringWidth } from '../../ink/stringWidth.js';
 import { Box, Text } from '../../ink.js';
@@ -49,7 +48,7 @@ export function calculateFeedWidth(config: FeedConfig): number {
   return maxWidth;
 }
 export function Feed(t0) {
-  const $ = _c(15);
+  const $ = new Array(15).fill(void 0);
   const {
     config,
     actualWidth

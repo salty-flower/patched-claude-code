@@ -14,11 +14,6 @@ import { shouldMaintainProjectWorkingDir } from '../../utils/envUtils.js'
 import { maybeResizeAndDownsampleImageBuffer } from '../../utils/imageResizer.js'
 import { getMaxOutputLength } from '../../utils/shell/outputLimits.js'
 import { countCharInString, plural } from '../../utils/stringUtils.js'
-
-// v112: iU8 constant (value=25) — purpose unclear from context; possibly
-// a max-images-per-request cap or similar. TODO(lift): iU8 at byte ~8732818
-export const MAX_IMAGES_PER_REQUEST = 25
-
 /**
  * Strips leading and trailing lines that contain only whitespace/newlines.
  * Unlike trim(), this preserves whitespace within content lines and only removes
@@ -27,20 +22,24 @@ export const MAX_IMAGES_PER_REQUEST = 25
 export function stripEmptyLines(content: string): string {
   const lines = content.split('\n')
 
+  // Find the first non-empty line
   let startIndex = 0
   while (startIndex < lines.length && lines[startIndex]?.trim() === '') {
     startIndex++
   }
 
+  // Find the last non-empty line
   let endIndex = lines.length - 1
   while (endIndex >= 0 && lines[endIndex]?.trim() === '') {
     endIndex--
   }
 
+  // If all lines are empty, return empty string
   if (startIndex > endIndex) {
     return ''
   }
 
+  // Return the slice with non-empty lines
   return lines.slice(startIndex, endIndex + 1).join('\n')
 }
 
@@ -97,18 +96,21 @@ export function buildImageToolResult(
 const MAX_IMAGE_FILE_SIZE = 20 * 1024 * 1024
 
 /**
- * Resize image output from a shell tool.
+ * Resize image output from a shell tool. stdout is capped at
+ * getMaxOutputLength() when read back from the shell output file — if the
+ * full output spilled to disk, re-read it from there, since truncated base64
+ * would decode to a corrupt image that either throws here or gets rejected by
+ * the API. Caps dimensions too: compressImageBuffer only checks byte size, so
+ * a small-but-high-DPI PNG (e.g. matplotlib at dpi=300) sails through at full
+ * resolution and poisons many-image requests (CC-304).
  *
- * v112: gains an additional `options` parameter forwarded to
- * maybeResizeAndDownsampleImageBuffer (byte ~8731535 area, jac=1, cos=1 — verbatim
- * except for the new arg).
+ * Returns the re-encoded data URI on success, or null if the source didn't
+ * parse as a data URI (caller decides whether to flip isImage).
  */
 export async function resizeShellImageOutput(
   stdout: string,
   outputFilePath: string | undefined,
   outputFileSize: number | undefined,
-  // TODO(lift): additional options param forwarded to maybeResizeAndDownsampleImageBuffer at byte ~8731535
-  options?: unknown,
 ): Promise<string | null> {
   let source = stdout
   if (outputFilePath) {
@@ -124,7 +126,6 @@ export async function resizeShellImageOutput(
     buf,
     buf.length,
     ext,
-    options as any,
   )
   return `data:image/${resized.mediaType};base64,${resized.buffer.toString('base64')}`
 }
@@ -174,9 +175,13 @@ export function resetCwdIfOutsideProject(
   const shouldMaintain = shouldMaintainProjectWorkingDir()
   if (
     shouldMaintain ||
+    // Fast path: originalCwd is unconditionally in allWorkingDirectories
+    // (filesystem.ts), so when cwd hasn't moved, pathInAllowedWorkingPath is
+    // trivially true — skip its syscalls for the no-cd common case.
     (cwd !== originalCwd &&
       !pathInAllowedWorkingPath(cwd, toolPermissionContext))
   ) {
+    // Reset to original directory if maintaining project dir OR outside allowed working directory
     setCwd(originalCwd)
     if (!shouldMaintain) {
       logEvent('tengu_bash_tool_reset_to_original_dir', {})
@@ -200,6 +205,7 @@ export function createContentSummary(content: ContentBlockParam[]): string {
       imageCount++
     } else if (block.type === 'text' && 'text' in block) {
       textCount++
+      // Include first 200 chars of text blocks for context
       const preview = block.text.slice(0, 200)
       parts.push(preview + (block.text.length > 200 ? '...' : ''))
     }

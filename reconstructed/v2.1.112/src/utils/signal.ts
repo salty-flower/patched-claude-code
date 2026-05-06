@@ -34,19 +34,7 @@ export function createSignal<Args extends unknown[] = []>(): Signal<Args> {
       }
     },
     emit(...args) {
-      const errors: unknown[] = []
-      for (const listener of listeners) {
-        try {
-          listener(...args)
-        } catch (e) {
-          ;(errors as unknown[]).push(e)
-        }
-      }
-      if (errors.length > 0) {
-        throw errors.length === 1
-          ? errors[0]
-          : new AggregateError(errors, 'Signal listener(s) threw')
-      }
+      for (const listener of listeners) listener(...args)
     },
     clear() {
       listeners.clear()

@@ -24,14 +24,7 @@ import { getGlobalConfig } from './config.js'
 import { logForDebugging } from './debug.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { getErrnoCode, isENOENT } from './errors.js'
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await stat(filePath)
-    return true
-  } catch {
-    return false
-  }
-}
+import { pathExists } from './file.js'
 import { logError } from './log.js'
 import { recordFileHistorySnapshot } from './sessionStorage.js'
 
@@ -84,132 +77,6 @@ function fileHistoryEnabledSdk(): boolean {
   )
 }
 
-type TrackAction = {
-  kind: 'track'
-  filePath: string
-  trackingPath: string
-  backup: FileHistoryBackup
-  messageId: UUID
-  isAddingFile: boolean
-}
-
-type SnapshotAction = {
-  kind: 'snapshot'
-  messageId: UUID
-  trackedFileBackups: Record<string, FileHistoryBackup>
-}
-
-type FileHistoryAction = TrackAction | SnapshotAction
-
-/**
- * Pure reducer for file history state. Replaces the imperative
- * updateFileHistoryState pattern in v112.
- */
-export function fileHistoryReducer(
-  state: FileHistoryState,
-  action: FileHistoryAction,
-): FileHistoryState {
-  switch (action.kind) {
-    case 'track': {
-      try {
-        const mostRecent = state.snapshots.at(-1)
-        if (!mostRecent || mostRecent.trackedFileBackups[action.trackingPath]) {
-          return state
-        }
-        const updatedTrackedFiles = state.trackedFiles.has(action.trackingPath)
-          ? state.trackedFiles
-          : new Set(state.trackedFiles).add(action.trackingPath)
-        const updatedMostRecentSnapshot = {
-          ...mostRecent,
-          trackedFileBackups: {
-            ...mostRecent.trackedFileBackups,
-            [action.trackingPath]: action.backup,
-          },
-        }
-        const updatedState: FileHistoryState = {
-          ...state,
-          snapshots: (() => {
-            const copy = state.snapshots.slice()
-            copy[copy.length - 1] = updatedMostRecentSnapshot
-            return copy
-          })(),
-          trackedFiles: updatedTrackedFiles,
-        }
-        maybeDumpStateForDebug(updatedState)
-        void recordFileHistorySnapshot(
-          action.messageId,
-          updatedMostRecentSnapshot,
-          true,
-        ).catch(error => {
-          logError(new Error(`FileHistory: Failed to record snapshot: ${error}`))
-        })
-        logEvent('tengu_file_history_track_edit_success', {
-          isNewFile: action.isAddingFile,
-          version: action.backup.version,
-        })
-        logForDebugging(
-          `FileHistory: Tracked file modification for ${action.filePath}`,
-        )
-        return updatedState
-      } catch (error) {
-        logError(error)
-        logEvent('tengu_file_history_track_edit_failed', {})
-        return state
-      }
-    }
-    case 'snapshot': {
-      try {
-        const trackedFileBackups = { ...action.trackedFileBackups }
-        const lastSnapshot = state.snapshots.at(-1)
-        if (lastSnapshot) {
-          for (const trackingPath of state.trackedFiles) {
-            if (trackingPath in trackedFileBackups) continue
-            const inherited = lastSnapshot.trackedFileBackups[trackingPath]
-            if (inherited) trackedFileBackups[trackingPath] = inherited
-          }
-        }
-        const newSnapshot: FileHistorySnapshot = {
-          messageId: action.messageId,
-          trackedFileBackups,
-          timestamp: new Date(),
-        }
-        const allSnapshots = [...state.snapshots, newSnapshot]
-        const updatedState: FileHistoryState = {
-          ...state,
-          snapshots:
-            allSnapshots.length > MAX_SNAPSHOTS
-              ? allSnapshots.slice(-MAX_SNAPSHOTS)
-              : allSnapshots,
-          snapshotSequence: (state.snapshotSequence ?? 0) + 1,
-        }
-        maybeDumpStateForDebug(updatedState)
-        void notifyVscodeSnapshotFilesUpdated(state, updatedState).catch(
-          logError,
-        )
-        void recordFileHistorySnapshot(
-          action.messageId,
-          newSnapshot,
-          false,
-        ).catch(error => {
-          logError(new Error(`FileHistory: Failed to record snapshot: ${error}`))
-        })
-        logForDebugging(
-          `FileHistory: Added snapshot for ${action.messageId}, tracking ${state.trackedFiles.size} files`,
-        )
-        logEvent('tengu_file_history_snapshot_success', {
-          trackedFilesCount: state.trackedFiles.size,
-          snapshotCount: updatedState.snapshots.length,
-        })
-        return updatedState
-      } catch (error) {
-        logError(error)
-        logEvent('tengu_file_history_snapshot_failed', {})
-        return state
-      }
-    }
-  }
-}
-
 /**
  * Tracks a file edit (and add) by creating a backup of its current contents (if necessary).
  *
@@ -229,6 +96,9 @@ export async function fileHistoryTrackEdit(
 
   const trackingPath = maybeShortenFilePath(filePath)
 
+  // Phase 1: check if backup is needed. Speculative writes would overwrite
+  // the deterministic {hash}@v1 backup on every repeat call — a second
+  // trackEdit after an edit would corrupt v1 with post-edit content.
   let captured: FileHistoryState | undefined
   updateFileHistoryState(state => {
     captured = state
@@ -242,9 +112,12 @@ export async function fileHistoryTrackEdit(
     return
   }
   if (mostRecent.trackedFileBackups[trackingPath]) {
+    // Already tracked in the most recent snapshot; next makeSnapshot will
+    // re-check mtime and re-backup if changed. Do not touch v1 backup.
     return
   }
 
+  // Phase 2: async backup.
   let backup: FileHistoryBackup
   try {
     backup = await createBackup(filePath, 1)
@@ -255,16 +128,68 @@ export async function fileHistoryTrackEdit(
   }
   const isAddingFile = backup.backupFileName === null
 
-  updateFileHistoryState((state: FileHistoryState) =>
-    fileHistoryReducer(state, {
-      kind: 'track',
-      filePath,
-      trackingPath,
-      backup,
-      messageId,
-      isAddingFile,
-    }),
-  )
+  // Phase 3: commit. Re-check tracked (another trackEdit may have raced).
+  updateFileHistoryState((state: FileHistoryState) => {
+    try {
+      const mostRecentSnapshot = state.snapshots.at(-1)
+      if (
+        !mostRecentSnapshot ||
+        mostRecentSnapshot.trackedFileBackups[trackingPath]
+      ) {
+        return state
+      }
+
+      // This file has not already been tracked in the most recent snapshot, so we
+      // need to retroactively track a backup there.
+      const updatedTrackedFiles = state.trackedFiles.has(trackingPath)
+        ? state.trackedFiles
+        : new Set(state.trackedFiles).add(trackingPath)
+
+      // Shallow-spread is sufficient: backup values are never mutated after
+      // insertion, so we only need fresh top-level + trackedFileBackups refs
+      // for React change detection. A deep clone would copy every existing
+      // backup's Date/string fields — O(n) cost to add one entry.
+      const updatedMostRecentSnapshot = {
+        ...mostRecentSnapshot,
+        trackedFileBackups: {
+          ...mostRecentSnapshot.trackedFileBackups,
+          [trackingPath]: backup,
+        },
+      }
+
+      const updatedState = {
+        ...state,
+        snapshots: (() => {
+          const copy = state.snapshots.slice()
+          copy[copy.length - 1] = updatedMostRecentSnapshot
+          return copy
+        })(),
+        trackedFiles: updatedTrackedFiles,
+      }
+      maybeDumpStateForDebug(updatedState)
+
+      // Record a snapshot update since it has changed.
+      void recordFileHistorySnapshot(
+        messageId,
+        updatedMostRecentSnapshot,
+        true, // isSnapshotUpdate
+      ).catch(error => {
+        logError(new Error(`FileHistory: Failed to record snapshot: ${error}`))
+      })
+
+      logEvent('tengu_file_history_track_edit_success', {
+        isNewFile: isAddingFile,
+        version: backup.version,
+      })
+      logForDebugging(`FileHistory: Tracked file modification for ${filePath}`)
+
+      return updatedState
+    } catch (error) {
+      logError(error)
+      logEvent('tengu_file_history_track_edit_failed', {})
+      return state
+    }
+  })
 }
 
 /**
@@ -280,13 +205,19 @@ export async function fileHistoryMakeSnapshot(
     return undefined
   }
 
+  // Phase 1: capture current state with a no-op updater so we know which
+  // files to back up. Returning the same reference keeps this a true no-op
+  // for any wrapper that honors same-ref returns (src/CLAUDE.md wrapper
+  // rule). Wrappers that unconditionally spread will trigger one extra
+  // re-render; acceptable for a once-per-turn call.
   let captured: FileHistoryState | undefined
   updateFileHistoryState(state => {
     captured = state
     return state
   })
-  if (!captured) return
+  if (!captured) return // updateFileHistoryState was a no-op stub (e.g. mcp.ts)
 
+  // Phase 2: do all IO async, outside the updater.
   const trackedFileBackups: Record<string, FileHistoryBackup> = {}
   const mostRecentSnapshot = captured.snapshots.at(-1)
   if (mostRecentSnapshot) {
@@ -299,6 +230,7 @@ export async function fileHistoryMakeSnapshot(
             mostRecentSnapshot.trackedFileBackups[trackingPath]
           const nextVersion = latestBackup ? latestBackup.version + 1 : 1
 
+          // Stat the file once; ENOENT means the tracked file was deleted.
           let fileStats: Stats | undefined
           try {
             fileStats = await stat(filePath)
@@ -308,7 +240,7 @@ export async function fileHistoryMakeSnapshot(
 
           if (!fileStats) {
             trackedFileBackups[trackingPath] = {
-              backupFileName: null,
+              backupFileName: null, // Use null to denote missing tracked file
               version: nextVersion,
               backupTime: new Date(),
             }
@@ -321,6 +253,7 @@ export async function fileHistoryMakeSnapshot(
             return
           }
 
+          // File exists - check if it needs to be backed up
           if (
             latestBackup &&
             latestBackup.backupFileName !== null &&
@@ -330,10 +263,12 @@ export async function fileHistoryMakeSnapshot(
               fileStats,
             ))
           ) {
+            // File hasn't been modified since the latest version, reuse it
             trackedFileBackups[trackingPath] = latestBackup
             return
           }
 
+          // File is newer than the latest backup, create a new backup
           trackedFileBackups[trackingPath] = await createBackup(
             filePath,
             nextVersion,
@@ -346,13 +281,64 @@ export async function fileHistoryMakeSnapshot(
     )
   }
 
-  updateFileHistoryState((state: FileHistoryState) =>
-    fileHistoryReducer(state, {
-      kind: 'snapshot',
-      messageId,
-      trackedFileBackups,
-    }),
-  )
+  // Phase 3: commit the new snapshot to state. Read state.trackedFiles FRESH
+  // — if fileHistoryTrackEdit added a file during phase 2's async window, it
+  // wrote the backup to state.snapshots[-1].trackedFileBackups. Inherit those
+  // so the new snapshot covers every currently-tracked file.
+  updateFileHistoryState((state: FileHistoryState) => {
+    try {
+      const lastSnapshot = state.snapshots.at(-1)
+      if (lastSnapshot) {
+        for (const trackingPath of state.trackedFiles) {
+          if (trackingPath in trackedFileBackups) continue
+          const inherited = lastSnapshot.trackedFileBackups[trackingPath]
+          if (inherited) trackedFileBackups[trackingPath] = inherited
+        }
+      }
+      const now = new Date()
+      const newSnapshot: FileHistorySnapshot = {
+        messageId,
+        trackedFileBackups,
+        timestamp: now,
+      }
+
+      const allSnapshots = [...state.snapshots, newSnapshot]
+      const updatedState: FileHistoryState = {
+        ...state,
+        snapshots:
+          allSnapshots.length > MAX_SNAPSHOTS
+            ? allSnapshots.slice(-MAX_SNAPSHOTS)
+            : allSnapshots,
+        snapshotSequence: (state.snapshotSequence ?? 0) + 1,
+      }
+      maybeDumpStateForDebug(updatedState)
+
+      void notifyVscodeSnapshotFilesUpdated(state, updatedState).catch(logError)
+
+      // Record the file history snapshot to session storage for resume support
+      void recordFileHistorySnapshot(
+        messageId,
+        newSnapshot,
+        false, // isSnapshotUpdate
+      ).catch(error => {
+        logError(new Error(`FileHistory: Failed to record snapshot: ${error}`))
+      })
+
+      logForDebugging(
+        `FileHistory: Added snapshot for ${messageId}, tracking ${state.trackedFiles.size} files`,
+      )
+      logEvent('tengu_file_history_snapshot_success', {
+        trackedFilesCount: state.trackedFiles.size,
+        snapshotCount: updatedState.snapshots.length,
+      })
+
+      return updatedState
+    } catch (error) {
+      logError(error)
+      logEvent('tengu_file_history_snapshot_failed', {})
+      return state
+    }
+  })
 }
 
 /**
@@ -368,6 +354,8 @@ export async function fileHistoryRewind(
     return
   }
 
+  // Rewind is a pure filesystem side-effect and does not mutate
+  // FileHistoryState. Capture state with a no-op updater, then do IO async.
   let captured: FileHistoryState | undefined
   updateFileHistoryState(state => {
     captured = state
@@ -450,6 +438,7 @@ export async function fileHistoryGetDiffStats(
           : getBackupFileNameFirstVersion(trackingPath, state)
 
         if (backupFileName === undefined) {
+          // Error resolving the backup, so don't touch the file
           logError(
             new Error('FileHistory: Error finding the backup file to apply'),
           )
@@ -467,6 +456,8 @@ export async function fileHistoryGetDiffStats(
           return { filePath, stats }
         }
         if (backupFileName === null && (await pathExists(filePath))) {
+          // Zero-byte file created after snapshot: counts as changed even
+          // though diffLines reports 0/0.
           return { filePath, stats }
         }
         return null
@@ -527,6 +518,7 @@ export async function fileHistoryHasAnyChanges(
         continue
       }
       if (backupFileName === null) {
+        // Backup says file did not exist; probe via stat (operate-then-catch).
         if (await pathExists(filePath)) return true
         continue
       }
@@ -557,6 +549,7 @@ async function applySnapshot(
         : getBackupFileNameFirstVersion(trackingPath, state)
 
       if (backupFileName === undefined) {
+        // Error resolving the backup, so don't touch the file
         logError(
           new Error('FileHistory: Error finding the backup file to apply'),
         )
@@ -567,16 +560,19 @@ async function applySnapshot(
       }
 
       if (backupFileName === null) {
+        // File did not exist at the target version; delete it if present.
         try {
           await unlink(filePath)
           logForDebugging(`FileHistory: [Rewind] Deleted ${filePath}`)
           filesChanged.push(filePath)
         } catch (e: unknown) {
           if (!isENOENT(e)) throw e
+          // Already absent; nothing to do.
         }
         continue
       }
 
+      // File should exist at a specific version. Restore only if it differs.
       if (await checkOriginFileChanged(filePath, backupFileName)) {
         await restoreBackup(filePath, backupFileName)
         logForDebugging(
@@ -631,6 +627,7 @@ export async function checkOriginFileChanged(
       ])
       return originalContent !== backupContent
     } catch {
+      // File deleted between stat and read -> treat as changed.
       return true
     }
   })
@@ -645,13 +642,16 @@ function compareStatsAndContent<T extends boolean | Promise<boolean>>(
   backupStats: Stats | null,
   compareContent: () => T,
 ): T | boolean {
+  // One exists, one missing -> changed
   if ((originalStats === null) !== (backupStats === null)) {
     return true
   }
+  // Both missing -> no change
   if (originalStats === null || backupStats === null) {
     return false
   }
 
+  // Check file stats like permission and file size
   if (
     originalStats.mode !== backupStats.mode ||
     originalStats.size !== backupStats.size
@@ -659,10 +659,15 @@ function compareStatsAndContent<T extends boolean | Promise<boolean>>(
     return true
   }
 
+  // This is an optimization that depends on the correct setting of the modified
+  // time. If the original file's modified time was before the backup time, then
+  // we can skip the file content comparison.
   if (originalStats.mtimeMs < backupStats.mtimeMs) {
     return false
   }
 
+  // Use the more expensive file content comparison. The callback handles its
+  // own read errors — a try/catch here is dead for async callbacks anyway.
   return compareContent()
 }
 
@@ -696,6 +701,7 @@ async function computeDiffStatsForFile(
 
     filesChanged.push(originalFile)
 
+    // Compute the diff
     const changes = diffLines(originalContent ?? '', backupContent ?? '')
     changes.forEach(c => {
       if (c.added) {
@@ -750,6 +756,10 @@ async function createBackup(
   const backupFileName = getBackupFileName(filePath, version)
   const backupPath = resolveBackupPath(backupFileName)
 
+  // Stat first: if the source is missing, record a null backup and skip the
+  // copy. Separates "source missing" from "backup dir missing" cleanly —
+  // sharing a catch for both meant a file deleted between copyFile-success
+  // and stat would leave an orphaned backup with a null state record.
   let srcStats: Stats
   try {
     srcStats = await stat(filePath)
@@ -760,6 +770,10 @@ async function createBackup(
     throw e
   }
 
+  // copyFile preserves content and avoids reading the whole file into the JS
+  // heap (which the previous readFileSync+writeFileSync pipeline did, OOMing
+  // on large tracked files). Lazy mkdir: 99% of calls hit the fast path
+  // (directory already exists); on ENOENT, mkdir then retry.
   try {
     await copyFile(filePath, backupPath)
   } catch (e: unknown) {
@@ -768,6 +782,7 @@ async function createBackup(
     await copyFile(filePath, backupPath)
   }
 
+  // Preserve file permissions on the backup.
   await chmod(backupPath, srcStats.mode)
 
   logEvent('tengu_file_history_backup_file_created', {
@@ -792,6 +807,8 @@ async function restoreBackup(
 ): Promise<void> {
   const backupPath = resolveBackupPath(backupFileName)
 
+  // Stat first: if the backup is missing, log and bail before attempting
+  // the copy. Separates "backup missing" from "destination dir missing".
   let backupStats: Stats
   try {
     backupStats = await stat(backupPath)
@@ -806,6 +823,7 @@ async function restoreBackup(
     throw e
   }
 
+  // Lazy mkdir: 99% of calls hit the fast path (destination dir exists).
   try {
     await copyFile(backupPath, filePath)
   } catch (e: unknown) {
@@ -814,6 +832,7 @@ async function restoreBackup(
     await copyFile(backupPath, filePath)
   }
 
+  // Restore the file permissions
   await chmod(filePath, backupStats.mode)
 }
 
@@ -832,9 +851,13 @@ function getBackupFileNameFirstVersion(
   for (const snapshot of state.snapshots) {
     const backup = snapshot.trackedFileBackups[trackingPath]
     if (backup !== undefined && backup.version === 1) {
+      // This can be either a file name or null, with null meaning the file
+      // did not exist in the first version.
       return backup.backupFileName
     }
   }
+
+  // The undefined means there was an error resolving the first version.
   return undefined
 }
 
@@ -869,7 +892,10 @@ export function fileHistoryRestoreStateFromLog(
   if (!fileHistoryEnabled()) {
     return
   }
+  // Make a copy of the snapshots as we migrate from absolute path to
+  // shortened relative tracking path.
   const snapshots: FileHistorySnapshot[] = []
+  // Rebuild the tracked files from the snapshots
   const trackedFiles = new Set<string>()
   for (const snapshot of fileHistorySnapshots) {
     const trackedFileBackups: Record<string, FileHistoryBackup> = {}
@@ -880,12 +906,12 @@ export function fileHistoryRestoreStateFromLog(
     }
     snapshots.push({
       ...snapshot,
-      trackedFileBackups,
+      trackedFileBackups: trackedFileBackups,
     })
   }
   onUpdateState({
-    snapshots,
-    trackedFiles,
+    snapshots: snapshots,
+    trackedFiles: trackedFiles,
     snapshotSequence: snapshots.length,
   })
 }
@@ -902,7 +928,7 @@ export async function copyFileHistoryForResume(log: LogOption): Promise<void> {
   if (!fileHistorySnapshots || log.messages.length === 0) {
     return
   }
-  const lastMessage = log.messages.at(-1)
+  const lastMessage = log.messages[log.messages.length - 1]
   const previousSessionId = lastMessage?.sessionId
   if (!previousSessionId) {
     logError(
@@ -922,6 +948,8 @@ export async function copyFileHistoryForResume(log: LogOption): Promise<void> {
   }
 
   try {
+    // All backups share the same directory: {configDir}/file-history/{sessionId}/
+    // Create it once upfront instead of once per backup file
     const newBackupDir = join(
       getClaudeConfigHomeDir(),
       'file-history',
@@ -929,6 +957,8 @@ export async function copyFileHistoryForResume(log: LogOption): Promise<void> {
     )
     await mkdir(newBackupDir, { recursive: true })
 
+    // Migrate all backup files from the previous session to current session.
+    // Process all snapshots in parallel; within each snapshot, links also run in parallel.
     let failedSnapshots = 0
     await Promise.allSettled(
       fileHistorySnapshots.map(async snapshot => {
@@ -950,6 +980,7 @@ export async function copyFileHistoryForResume(log: LogOption): Promise<void> {
             } catch (e: unknown) {
               const code = getErrnoCode(e)
               if (code === 'EEXIST') {
+                // Already migrated, skip
                 return
               }
               if (code === 'ENOENT') {
@@ -965,6 +996,7 @@ export async function copyFileHistoryForResume(log: LogOption): Promise<void> {
                   `FileHistory: Error hard linking backup file from previous session`,
                 ),
               )
+              // Fallback to copy if hard link fails
               try {
                 await copyFile(oldBackupPath, newBackupPath)
               } catch (copyErr) {
@@ -985,11 +1017,12 @@ export async function copyFileHistoryForResume(log: LogOption): Promise<void> {
 
         const copyFailed = results.some(r => r.status === 'rejected')
 
+        // Record the snapshot only if we have successfully migrated the backup files
         if (!copyFailed) {
           void recordFileHistorySnapshot(
             snapshot.messageId,
             snapshot,
-            false,
+            false, // isSnapshotUpdate
           ).catch(_ => {
             logError(
               new Error(`FileHistory: Failed to record copy backup snapshot`),
@@ -1034,6 +1067,7 @@ async function notifyVscodeSnapshotFilesUpdated(
     const oldBackup = oldSnapshot?.trackedFileBackups[trackingPath]
     const newBackup = newSnapshot.trackedFileBackups[trackingPath]
 
+    // Skip if both backups reference the same version (no change)
     if (
       oldBackup?.backupFileName === newBackup?.backupFileName &&
       oldBackup?.version === newBackup?.version
@@ -1041,18 +1075,22 @@ async function notifyVscodeSnapshotFilesUpdated(
       continue
     }
 
+    // Get old content from the previous backup
     let oldContent: string | null = null
     if (oldBackup?.backupFileName) {
       const backupPath = resolveBackupPath(oldBackup.backupFileName)
       oldContent = await readFileAsyncOrNull(backupPath)
     }
 
+    // Get new content from the new backup or current file
     let newContent: string | null = null
     if (newBackup?.backupFileName) {
       const backupPath = resolveBackupPath(newBackup.backupFileName)
       newContent = await readFileAsyncOrNull(backupPath)
     }
+    // If newBackup?.backupFileName === null, the file was deleted; newContent stays null.
 
+    // Only notify if content actually changed
     if (oldContent !== newContent) {
       notifyVscodeFileUpdated(filePath, oldContent, newContent)
     }

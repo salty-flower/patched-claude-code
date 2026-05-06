@@ -52,8 +52,3 @@ export function toTaggedId(tag: string, uuid: string): string {
   const n = uuidToBigInt(uuid)
   return `${tag}_${VERSION}${base58Encode(n)}`
 }
-
-// TODO(lift): sanitizeForDisplay at byte ~905366
-// v112 minified shows a new function AP(q) that sanitizes names for display
-// by replacing non-alphanumeric with hyphens and truncating with a hash suffix.
-// The exact MAX_DISPLAY_NAME_LENGTH (CY1) and hash function (tQ5) are unresolved.

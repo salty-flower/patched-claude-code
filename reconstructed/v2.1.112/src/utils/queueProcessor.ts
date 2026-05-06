@@ -85,3 +85,11 @@ export function processQueueIfReady({
   void executeInput(commands)
   return { processed: true }
 }
+
+/**
+ * Checks if the queue has pending commands.
+ * Use this to determine if queue processing should be triggered.
+ */
+export function hasQueuedCommands(): boolean {
+  return hasCommandsInQueue()
+}

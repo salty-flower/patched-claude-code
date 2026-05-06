@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import { useEffect, useRef } from 'react'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
@@ -37,7 +38,7 @@ function permissionResultToLog(permissionResult: PermissionResult): string {
         rules.length > 0
           ? rules.map(r => permissionRuleValueToString(r)).join(', ')
           : 'none'
-      return `ask: ${permissionResult.message},
+      return `ask: ${permissionResult.message}, 
 suggestions: ${suggestions}
 reason: ${decisionReasonToString(permissionResult.decisionReason)}`
     }
@@ -63,7 +64,10 @@ function decisionReasonToString(
   if (!decisionReason) {
     return 'No decision reason'
   }
-  if (decisionReason.type === 'classifier') {
+  if (
+    (feature('BASH_CLASSIFIER') || feature('TRANSCRIPT_CLASSIFIER')) &&
+    decisionReason.type === 'classifier'
+  ) {
     return `Classifier: ${decisionReason.classifier}, Reason: ${decisionReason.reason}`
   }
   switch (decisionReason.type) {

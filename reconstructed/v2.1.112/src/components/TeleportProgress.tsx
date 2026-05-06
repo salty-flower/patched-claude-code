@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import figures from 'figures';
 import * as React from 'react';
 import { useState } from 'react';
@@ -28,7 +27,7 @@ const STEPS: {
   label: 'Checking out branch'
 }];
 export function TeleportProgress(t0) {
-  const $ = _c(16);
+  const $ = new Array(16).fill(void 0);
   const {
     currentStep,
     sessionId

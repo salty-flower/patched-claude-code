@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import type { Anthropic } from '@anthropic-ai/sdk'
 import {
   getSystemPrompt,
@@ -6,7 +7,7 @@ import {
 import { microcompactMessages } from 'src/services/compact/microCompact.js'
 import { getSdkBetas } from '../bootstrap/state.js'
 import { getCommandName } from '../commands.js'
-import { getSystemContext, getUserContext } from '../context.js'
+import { getSystemContext } from '../context.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'
 import {
   AUTOCOMPACT_BUFFER_TOKENS,
@@ -61,7 +62,6 @@ import { buildEffectiveSystemPrompt } from './systemPrompt.js'
 import type { Theme } from './theme.js'
 import { getCurrentUsage } from './tokens.js'
 
-// v112: category names are module-level constants
 const RESERVED_CATEGORY_NAME = 'Autocompact buffer'
 const MANUAL_COMPACT_BUFFER_NAME = 'Compact buffer'
 
@@ -192,8 +192,6 @@ export interface ContextData {
   readonly totalTokens: number
   readonly maxTokens: number
   readonly rawMaxTokens: number
-  /** v112: source of the autocompact threshold (e.g. 'env', 'settings') */
-  readonly autocompactSource?: string
   readonly percentage: number
   readonly gridRows: GridSquare[][]
   readonly model: string
@@ -217,10 +215,6 @@ export interface ContextData {
     attachmentTokens: number
     assistantMessageTokens: number
     userMessageTokens: number
-    /** v112: tokens from redirected context (e.g. tool call context passed via system prompt) */
-    redirectedContextTokens: number
-    /** v112: unattributed tokens (message total minus individually tracked categories) */
-    unattributedTokens: number
     toolCallsByType: Array<{
       name: string
       callTokens: number
@@ -275,26 +269,14 @@ function extractSectionName(content: string): string {
   return firstLine.length > 40 ? firstLine.slice(0, 40) + '…' : firstLine
 }
 
-/**
- * v112: countSystemTokens gains redirectedContextTokens output and
- * excludeDynamicSections parameter. When excludeDynamicSections is true,
- * system context values are included in redirected tokens rather than
- * the main system prompt token bucket. Also handles customSystemPrompt via getUserContext.
- */
 async function countSystemTokens(
   effectiveSystemPrompt: readonly string[],
-  excludeDynamicSections: boolean,
-  customSystemPrompt?: string,
 ): Promise<{
   systemPromptTokens: number
   systemPromptSections: SystemPromptSectionDetail[]
-  redirectedContextTokens: number
 }> {
   // Get system context (gitStatus, etc.) which is always included
   const systemContext = await getSystemContext()
-
-  // v112: when not excluding dynamic sections, system context is included normally
-  const contextForNamed = excludeDynamicSections ? {} : systemContext
 
   // Build named entries: system prompt parts + system context values
   // Skip empty strings and the global-cache boundary marker
@@ -305,28 +287,13 @@ async function countSystemTokens(
           content.length > 0 && content !== SYSTEM_PROMPT_DYNAMIC_BOUNDARY,
       )
       .map(content => ({ name: extractSectionName(content), content })),
-    ...Object.entries(contextForNamed)
+    ...Object.entries(systemContext)
       .filter(([, content]) => content.length > 0)
       .map(([name, content]) => ({ name, content })),
   ]
 
-  // v112: when excludeDynamicSections is true, count redirected context tokens separately
-  let redirectedContextTokens = 0
-  if (excludeDynamicSections) {
-    const userCtx = await getUserContext(customSystemPrompt)
-    const allCtxValues = [
-      ...Object.values(systemContext),
-      ...Object.values(userCtx),
-    ].filter(v => v.length > 0)
-    const combined = allCtxValues.join('\n')
-    if (combined.length > 0) {
-      redirectedContextTokens =
-        (await countTokensWithFallback([{ role: 'user', content: combined }], [])) || 0
-    }
-  }
-
   if (namedEntries.length < 1) {
-    return { systemPromptTokens: 0, systemPromptSections: [], redirectedContextTokens }
+    return { systemPromptTokens: 0, systemPromptSections: [] }
   }
 
   const systemTokenCounts = await Promise.all(
@@ -347,7 +314,7 @@ async function countSystemTokens(
     0,
   )
 
-  return { systemPromptTokens, systemPromptSections, redirectedContextTokens }
+  return { systemPromptTokens, systemPromptSections }
 }
 
 async function countMemoryFileTokens(): Promise<{
@@ -441,8 +408,31 @@ async function countBuiltInToolTokens(
         )
       : 0
 
-  // v112: systemToolDetails always empty (ant-only breakdown removed)
-  const systemToolDetails: SystemToolDetail[] = []
+  // Build per-tool breakdown for always-loaded tools (ant-only, proportional
+  // split of the bulk count based on rough schema size estimation). Excludes
+  // SkillTool since its tokens are shown in the separate Skills category.
+  let systemToolDetails: SystemToolDetail[] = []
+  if (process.env.USER_TYPE === 'ant') {
+    const toolsForBreakdown = alwaysLoadedTools.filter(
+      t => !toolMatchesName(t, SKILL_TOOL_NAME),
+    )
+    if (toolsForBreakdown.length > 0) {
+      const estimates = toolsForBreakdown.map(t =>
+        roughTokenCountEstimation(jsonStringify(t.inputSchema ?? {})),
+      )
+      const estimateTotal = estimates.reduce((s, e) => s + e, 0) || 1
+      const distributable = Math.max(
+        0,
+        alwaysLoadedTokens - TOOL_TOKEN_COUNT_OVERHEAD,
+      )
+      systemToolDetails = toolsForBreakdown
+        .map((t, i) => ({
+          name: t.name,
+          tokens: Math.round((estimates[i]! / estimateTotal) * distributable),
+        }))
+        .sort((a, b) => b.tokens - a.tokens)
+    }
+  }
 
   // Count deferred builtin tools individually for details
   const deferredBuiltinDetails: DeferredBuiltinTool[] = []
@@ -925,12 +915,6 @@ async function approximateMessageTokens(
   return breakdown
 }
 
-/**
- * v112: analyzeContextUsage signature change:
- * - gains `contextWindowOverride` parameter (when context window is overridden via env/settings)
- * - gains `excludeDynamicSections` parameter
- * - originalMessages kept as last optional param
- */
 export async function analyzeContextUsage(
   messages: Message[],
   model: string,
@@ -942,34 +926,16 @@ export async function analyzeContextUsage(
   mainThreadAgentDefinition?: AgentDefinition,
   /** Original messages before microcompact, used to extract API usage */
   originalMessages?: Message[],
-  /** v112: when true, dynamic sections are excluded from system prompt token count */
-  excludeDynamicSections?: boolean,
 ): Promise<ContextData> {
   const runtimeModel = getRuntimeMainLoopModel({
     permissionMode: (await getToolPermissionContext()).mode,
     mainLoopModel: model,
   })
-
-  // v112: context window comes from getContextWindowForModel which may return source info
-  // TODO(lift): Jn at byte ~9642653 — getContextWindowForModel returns {window, source}
-  const contextWindowResult = getContextWindowForModel(runtimeModel, getSdkBetas())
-  // Handle both old (number) and new ({window, source}) return shapes
-  const contextWindow =
-    typeof contextWindowResult === 'object' && contextWindowResult !== null && 'window' in contextWindowResult
-      ? (contextWindowResult as { window: number; source: string }).window
-      : (contextWindowResult as number)
-  const autocompactSource =
-    typeof contextWindowResult === 'object' && contextWindowResult !== null && 'source' in contextWindowResult
-      ? (contextWindowResult as { window: number; source: string }).source
-      : undefined
+  // Get context window size
+  const contextWindow = getContextWindowForModel(runtimeModel, getSdkBetas())
 
   // Build the effective system prompt using the shared utility
-  const defaultSystemPrompt = await getSystemPrompt(
-    tools,
-    runtimeModel,
-    undefined,
-    { excludeDynamicSections },
-  )
+  const defaultSystemPrompt = await getSystemPrompt(tools, runtimeModel)
   const effectiveSystemPrompt = buildEffectiveSystemPrompt({
     mainThreadAgentDefinition,
     toolUseContext: toolUseContext ?? {
@@ -982,7 +948,7 @@ export async function analyzeContextUsage(
 
   // Critical operations that should not fail due to skills
   const [
-    { systemPromptTokens, systemPromptSections, redirectedContextTokens },
+    { systemPromptTokens, systemPromptSections },
     { claudeMdTokens, memoryFileDetails },
     {
       builtInToolTokens,
@@ -995,11 +961,7 @@ export async function analyzeContextUsage(
     { slashCommandTokens, commandInfo },
     messageBreakdown,
   ] = await Promise.all([
-    countSystemTokens(
-      effectiveSystemPrompt,
-      excludeDynamicSections ?? false,
-      toolUseContext?.options.customSystemPrompt,
-    ),
+    countSystemTokens(effectiveSystemPrompt),
     countMemoryFileTokens(),
     countBuiltInToolTokens(
       tools,
@@ -1034,8 +996,7 @@ export async function analyzeContextUsage(
     0,
   )
 
-  // v112: message tokens now includes redirectedContextTokens
-  const messageTokens = messageBreakdown.totalTokens + redirectedContextTokens
+  const messageTokens = messageBreakdown.totalTokens
 
   // Check if autocompact is enabled and calculate threshold
   const isAutoCompact = isAutoCompactEnabled()
@@ -1056,11 +1017,14 @@ export async function analyzeContextUsage(
   }
 
   // Built-in tools right after system prompt (skills shown separately below)
-  // v112: always uses "System tools" label (ant-only label removed)
+  // Ant users get a per-tool breakdown via systemToolDetails
   const systemToolsTokens = builtInToolTokens - skillFrontmatterTokens
   if (systemToolsTokens > 0) {
     cats.push({
-      name: 'System tools',
+      name:
+        process.env.USER_TYPE === 'ant'
+          ? '[ANT-ONLY] System tools'
+          : 'System tools',
       tokens: systemToolsTokens,
       color: 'inactive',
     })
@@ -1123,34 +1087,7 @@ export async function analyzeContextUsage(
     })
   }
 
-  // Extract API usage from original messages (if provided)
-  const apiUsage = getCurrentUsage(originalMessages ?? messages)
-
-  // v112: API usage based message token adjustment
-  // When API usage is available, reconcile estimated message tokens with API total
-  if (apiUsage !== null) {
-    const nonMsgTokens = cats.reduce(
-      (sum, cat) => sum + (cat.isDeferred ? 0 : cat.tokens),
-      0,
-    )
-    const apiTotal =
-      apiUsage.input_tokens +
-      apiUsage.cache_creation_input_tokens +
-      apiUsage.cache_read_input_tokens
-    // Clamp message estimate: don't exceed what fits after non-message tokens
-    const maxMsgTokens = contextWindow - nonMsgTokens - (autoCompactThreshold !== undefined ? contextWindow - autoCompactThreshold : MANUAL_COMPACT_BUFFER_TOKENS)
-    const adjustedMsgTokens = Math.max(
-      messageTokens,
-      Math.min(apiTotal - nonMsgTokens, maxMsgTokens),
-    )
-    if (adjustedMsgTokens > 0) {
-      cats.push({
-        name: 'Messages',
-        tokens: adjustedMsgTokens,
-        color: 'purple_FOR_SUBAGENTS_ONLY',
-      })
-    }
-  } else if (messageTokens !== null && messageTokens > 0) {
+  if (messageTokens !== null && messageTokens > 0) {
     cats.push({
       name: 'Messages',
       tokens: messageTokens,
@@ -1165,23 +1102,45 @@ export async function analyzeContextUsage(
     0,
   )
 
-  // v112: reserved buffer logic simplified; feature() guards removed.
-  // TODO(lift): bx at byte ~9648684 — isContextCollapseEnabled equivalent check
+  // Reserved space after messages (not counted in actualUsage shown to user).
+  // Under reactive-only mode (cobalt_raccoon), proactive autocompact never
+  // fires and the reserved buffer is a lie — skip it entirely and let Free
+  // space fill the grid. feature() guard keeps the flag string out of
+  // external builds. Same for context-collapse (marble_origami) — collapse
+  // owns the threshold ladder and autocompact is suppressed in
+  // shouldAutoCompact, so the 33k buffer shown here would be a lie too.
   let reservedTokens = 0
-  let reservedCategoryName: string | undefined
-  if (isAutoCompact && autoCompactThreshold !== undefined) {
+  let skipReservedBuffer = false
+  if (feature('REACTIVE_COMPACT')) {
+    if (getFeatureValue_CACHED_MAY_BE_STALE('tengu_cobalt_raccoon', false)) {
+      skipReservedBuffer = true
+    }
+  }
+  if (feature('CONTEXT_COLLAPSE')) {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const { isContextCollapseEnabled } =
+      require('../services/contextCollapse/index.js') as typeof import('../services/contextCollapse/index.js')
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    if (isContextCollapseEnabled()) {
+      skipReservedBuffer = true
+    }
+  }
+  if (skipReservedBuffer) {
+    // No buffer category pushed — reactive compaction is transparent and
+    // doesn't need a visible reservation in the grid.
+  } else if (isAutoCompact && autoCompactThreshold !== undefined) {
     // Autocompact buffer (from effective context)
     reservedTokens = contextWindow - autoCompactThreshold
-    reservedCategoryName = RESERVED_CATEGORY_NAME
+    cats.push({
+      name: RESERVED_CATEGORY_NAME,
+      tokens: reservedTokens,
+      color: 'inactive',
+    })
   } else if (!isAutoCompact) {
     // Compact buffer reserve (3k from actual context limit)
     reservedTokens = MANUAL_COMPACT_BUFFER_TOKENS
-    reservedCategoryName = MANUAL_COMPACT_BUFFER_NAME
-  }
-
-  if (reservedCategoryName && reservedTokens > 0) {
     cats.push({
-      name: reservedCategoryName,
+      name: MANUAL_COMPACT_BUFFER_NAME,
       tokens: reservedTokens,
       color: 'inactive',
     })
@@ -1199,6 +1158,10 @@ export async function analyzeContextUsage(
   // Total for display (everything except free space)
   const totalIncludingReserved = actualUsage
 
+  // Extract API usage from original messages (if provided) to match status line
+  // This uses the same source of truth as the status line for consistency
+  const apiUsage = getCurrentUsage(originalMessages ?? messages)
+
   // When API usage is available, use it for total to match status line calculation
   // Status line uses: input_tokens + cache_creation_input_tokens + cache_read_input_tokens
   const totalFromAPI = apiUsage
@@ -1209,18 +1172,6 @@ export async function analyzeContextUsage(
 
   // Use API total if available, otherwise fall back to estimated total
   const finalTotalTokens = totalFromAPI ?? totalIncludingReserved
-
-  // v112: unattributed tokens calculation
-  const unattributedTokens = Math.max(
-    0,
-    messageTokens -
-      messageBreakdown.toolCallTokens -
-      messageBreakdown.toolResultTokens -
-      messageBreakdown.attachmentTokens -
-      messageBreakdown.assistantMessageTokens -
-      messageBreakdown.userMessageTokens -
-      redirectedContextTokens,
-  )
 
   // Pre-calculate grid based on model context window and terminal width
   // For narrow screens (< 80 cols), use 5x5 for 200k models, 5x10 for 1M+ models
@@ -1238,6 +1189,7 @@ export async function analyzeContextUsage(
   const TOTAL_SQUARES = GRID_WIDTH * GRID_HEIGHT
 
   // Filter out deferred categories - they don't take up actual context space
+  // (e.g., MCP tools when tool search is enabled)
   const nonDeferredCats = cats.filter(cat => !cat.isDeferred)
 
   // Calculate squares per category (use rawEffectiveMax for visualization to show full context)
@@ -1384,8 +1336,6 @@ export async function analyzeContextUsage(
     attachmentTokens: messageBreakdown.attachmentTokens,
     assistantMessageTokens: messageBreakdown.assistantMessageTokens,
     userMessageTokens: messageBreakdown.userMessageTokens,
-    redirectedContextTokens,
-    unattributedTokens,
     toolCallsByType: toolsByTypeArray,
     attachmentsByType: attachmentsByTypeArray,
   }
@@ -1395,16 +1345,17 @@ export async function analyzeContextUsage(
     totalTokens: finalTotalTokens,
     maxTokens: contextWindow,
     rawMaxTokens: contextWindow,
-    autocompactSource,
     percentage: Math.round((finalTotalTokens / contextWindow) * 100),
     gridRows,
     model: runtimeModel,
     memoryFiles: memoryFileDetails,
     mcpTools: mcpToolDetails,
-    // v112: always undefined (ant-only breakdown removed)
-    deferredBuiltinTools: undefined,
-    systemTools: undefined,
-    systemPromptSections: undefined,
+    deferredBuiltinTools:
+      process.env.USER_TYPE === 'ant' ? deferredBuiltinDetails : undefined,
+    systemTools:
+      process.env.USER_TYPE === 'ant' ? systemToolDetails : undefined,
+    systemPromptSections:
+      process.env.USER_TYPE === 'ant' ? systemPromptSections : undefined,
     agents: agentDetails,
     slashCommands:
       slashCommandTokens > 0

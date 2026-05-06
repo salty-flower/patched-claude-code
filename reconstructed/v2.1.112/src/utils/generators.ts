@@ -1,5 +1,33 @@
 const NO_VALUE = Symbol('NO_VALUE')
 
+export async function lastX<A>(as: AsyncGenerator<A>): Promise<A> {
+  let lastValue: A | typeof NO_VALUE = NO_VALUE
+  for await (const a of as) {
+    lastValue = a
+  }
+  if (lastValue === NO_VALUE) {
+    throw new Error('No items in generator')
+  }
+  return lastValue
+}
+
+export async function returnValue<A>(
+  as: AsyncGenerator<unknown, A>,
+): Promise<A> {
+  let e
+  do {
+    e = await as.next()
+  } while (!e.done)
+  return e.value
+}
+
+type QueuedGenerator<A> = {
+  done: boolean | void
+  value: A | void
+  generator: AsyncGenerator<A, void>
+  promise: Promise<QueuedGenerator<A>>
+}
+
 // Run all generators concurrently up to a concurrency cap, yielding values as they come in
 export async function* all<A>(
   generators: AsyncGenerator<A, void>[],
@@ -43,9 +71,18 @@ export async function* all<A>(
   }
 }
 
-type QueuedGenerator<A> = {
-  done: boolean | void
-  value: A | void
-  generator: AsyncGenerator<A, void>
-  promise: Promise<QueuedGenerator<A>>
+export async function toArray<A>(
+  generator: AsyncGenerator<A, void>,
+): Promise<A[]> {
+  const result: A[] = []
+  for await (const a of generator) {
+    result.push(a)
+  }
+  return result
+}
+
+export async function* fromArray<T>(values: T[]): AsyncGenerator<T, void> {
+  for (const value of values) {
+    yield value
+  }
 }

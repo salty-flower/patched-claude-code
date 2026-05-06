@@ -1,9 +1,7 @@
 import { isAgentSwarmsEnabled } from '../../utils/agentSwarmsEnabled.js'
 
-// jac=1, cos=1 — verbatim from v88
 export const DESCRIPTION = 'Create a new task in the task list'
 
-// jac=0.979, cos=1 — nearly identical; v112 uses z4() instead of isAgentSwarmsEnabled()
 export function getPrompt(): string {
   const teammateContext = isAgentSwarmsEnabled()
     ? ' and potentially assigned to teammates'

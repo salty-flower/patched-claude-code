@@ -47,33 +47,22 @@ export function applySettingsChange(
       updatedRules,
     )
 
-    // Sync additionalDirectories from settings to permission context
-    newContext = syncPermissionRulesFromDisk(
-      newContext,
-      updatedRules,
-      prev.settings.permissions?.additionalDirectories,
-      newSettings.permissions?.additionalDirectories,
-    )
+    // Ant-only: re-strip overly broad Bash allow rules after settings sync
+    if (
+      process.env.USER_TYPE === 'ant' &&
+      process.env.CLAUDE_CODE_ENTRYPOINT !== 'local-agent'
+    ) {
+      const overlyBroad = findOverlyBroadBashPermissions(updatedRules, [])
+      if (overlyBroad.length > 0) {
+        newContext = removeDangerousPermissions(newContext, overlyBroad)
+      }
+    }
 
     if (
       newContext.isBypassPermissionsModeAvailable &&
       isBypassPermissionsModeDisabled()
     ) {
       newContext = createDisabledBypassPermissionsContext(newContext)
-    }
-
-    // v2.1.112: strippedDangerousRules is now preserved across settings changes
-    // instead of being re-computed each time. The dangerous-rules set is
-    // derived from the static $v (SETTING_SOURCES) array.
-    if (newContext.strippedDangerousRules !== undefined) {
-      const allowedSources = new Set(['userSettings', 'projectSettings', 'localSettings', 'flagSettings', 'policySettings'])
-      const preserved: Record<string, string[] | undefined> = {}
-      for (const [key, value] of Object.entries(newContext.strippedDangerousRules)) {
-        if (value && !allowedSources.has(key)) {
-          preserved[key] = [...value]
-        }
-      }
-      newContext = { ...newContext, strippedDangerousRules: preserved }
     }
 
     newContext = transitionPlanAutoMode(newContext)
@@ -85,18 +74,6 @@ export function applySettingsChange(
     const prevEffort = prev.settings.effortLevel
     const newEffort = newSettings.effortLevel
     const effortChanged = prevEffort !== newEffort
-
-    // v2.1.112: unpin the Opus 4.7 launch effort flag when effort changes
-    // so that subsequent settings changes don't force the launch value.
-    if (effortChanged) {
-      setAppState(innerPrev =>
-        innerPrev.unpinOpus47LaunchEffort
-          ? innerPrev
-          : { ...innerPrev, unpinOpus47LaunchEffort: true },
-      )
-    }
-
-    const newAwaySummaryEnabled = getAwaySummaryEnabled()
 
     return {
       ...prev,
@@ -110,15 +87,6 @@ export function applySettingsChange(
       ...(effortChanged && newEffort !== undefined
         ? { effortValue: newEffort }
         : {}),
-      ...(prev.awaySummaryEnabled !== newAwaySummaryEnabled
-        ? { awaySummaryEnabled: newAwaySummaryEnabled }
-        : {}),
     }
   })
-}
-
-// TODO(lift): getAwaySummaryEnabled at byte ~6988254
-function getAwaySummaryEnabled(): boolean {
-  // Cross-chunk re-export; body lives elsewhere in v112 bundle.
-  throw new Error('TODO(lift): getAwaySummaryEnabled not yet implemented')
 }

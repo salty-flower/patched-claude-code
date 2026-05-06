@@ -4,7 +4,7 @@
  * user input, external data) go inside `<tag>${here}</tag>`.
  */
 export function escapeXml(s: string): string {
-  return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 /**
@@ -12,5 +12,5 @@ export function escapeXml(s: string): string {
  * `<tag attr="${here}">`. Escapes quotes in addition to `& < >`.
  */
 export function escapeXmlAttr(s: string): string {
-  return escapeXml(s).replaceAll('"', '&quot;').replaceAll("'", '&apos;')
+  return escapeXml(s).replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 }

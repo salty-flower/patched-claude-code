@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import { relative } from 'path'
 import { getCwd } from 'src/utils/cwd.js'
@@ -48,12 +49,32 @@ import {
 } from './sessionStorage.js'
 import type { ContentReplacementRecord } from './toolResultStorage.js'
 
+// Dead code elimination: ant-only tool names are conditionally required so
+// their strings don't leak into external builds. Static imports always bundle.
+/* eslint-disable @typescript-eslint/no-require-imports */
+const BRIEF_TOOL_NAME: string | null =
+  feature('KAIROS') || feature('KAIROS_BRIEF')
+    ? (
+        require('../tools/BriefTool/prompt.js') as typeof import('../tools/BriefTool/prompt.js')
+      ).BRIEF_TOOL_NAME
+    : null
+const LEGACY_BRIEF_TOOL_NAME: string | null =
+  feature('KAIROS') || feature('KAIROS_BRIEF')
+    ? (
+        require('../tools/BriefTool/prompt.js') as typeof import('../tools/BriefTool/prompt.js')
+      ).LEGACY_BRIEF_TOOL_NAME
+    : null
+const SEND_USER_FILE_TOOL_NAME: string | null = feature('KAIROS')
+  ? (
+      require('../tools/SendUserFileTool/prompt.js') as typeof import('../tools/SendUserFileTool/prompt.js')
+    ).SEND_USER_FILE_TOOL_NAME
+  : null
+/* eslint-enable @typescript-eslint/no-require-imports */
+
 /**
- * Transforms legacy attachment types to current types for backward compatibility.
- * v112: filters out unknown attachment types entirely (returns null) rather than
- * backfilling displayPath. The `Q1Y` set in v112_min gates the null-return path.
+ * Transforms legacy attachment types to current types for backward compatibility
  */
-function migrateLegacyAttachmentTypes(message: Message): Message | null {
+function migrateLegacyAttachmentTypes(message: Message): Message {
   if (message.type !== 'attachment') {
     return message
   }
@@ -61,11 +82,7 @@ function migrateLegacyAttachmentTypes(message: Message): Message | null {
   const attachment = message.attachment as {
     type: string
     [key: string]: unknown
-  }
-
-  // v112: unknown types are dropped entirely
-  // TODO(lift): Q1Y at byte ~8399643 — set of known attachment types
-  // if (UNKNOWN_ATTACHMENT_TYPES.has(attachment.type)) return null
+  } // Handle legacy types not in current type system
 
   // Transform legacy attachment types
   if (attachment.type === 'new_file') {
@@ -76,7 +93,7 @@ function migrateLegacyAttachmentTypes(message: Message): Message | null {
         type: 'file',
         displayPath: relative(getCwd(), attachment.filename as string),
       },
-    } as SerializedMessage
+    } as SerializedMessage // Cast entire message since we know the structure is correct
   }
 
   if (attachment.type === 'new_directory') {
@@ -87,7 +104,28 @@ function migrateLegacyAttachmentTypes(message: Message): Message | null {
         type: 'directory',
         displayPath: relative(getCwd(), attachment.path as string),
       },
-    } as SerializedMessage
+    } as SerializedMessage // Cast entire message since we know the structure is correct
+  }
+
+  // Backfill displayPath for attachments from old sessions
+  if (!('displayPath' in attachment)) {
+    const path =
+      'filename' in attachment
+        ? (attachment.filename as string)
+        : 'path' in attachment
+          ? (attachment.path as string)
+          : 'skillDir' in attachment
+            ? (attachment.skillDir as string)
+            : undefined
+    if (path) {
+      return {
+        ...message,
+        attachment: {
+          ...attachment,
+          displayPath: relative(getCwd(), path),
+        },
+      } as Message
+    }
   }
 
   return message
@@ -125,15 +163,15 @@ export function deserializeMessages(serializedMessages: Message[]): Message[] {
  */
 export function deserializeMessagesWithInterruptDetection(
   serializedMessages: Message[],
-  deferredToolUseSize?: { size: number },
 ): DeserializeResult {
   try {
     // Transform legacy attachment types before processing
-    const migratedMessages = serializedMessages
-      .map(migrateLegacyAttachmentTypes)
-      .filter((m): m is Message => m !== null)
+    const migratedMessages = serializedMessages.map(
+      migrateLegacyAttachmentTypes,
+    )
 
     // Strip invalid permissionMode values from deserialized user messages.
+    // The field is unvalidated JSON from disk and may contain modes from a different build.
     const validModes = new Set<string>(PERMISSION_MODES)
     for (const msg of migratedMessages) {
       if (
@@ -150,19 +188,24 @@ export function deserializeMessagesWithInterruptDetection(
       migratedMessages,
     ) as NormalizedMessage[]
 
-    // Filter out orphaned thinking-only assistant messages
+    // Filter out orphaned thinking-only assistant messages that can cause API errors
+    // during resume. These occur when streaming yields separate messages per content
+    // block and interleaved user messages prevent proper merging by message.id.
     const filteredThinking = filterOrphanedThinkingOnlyMessages(
       filteredToolUses,
     ) as NormalizedMessage[]
 
-    // Filter out assistant messages with only whitespace text content
+    // Filter out assistant messages with only whitespace text content.
+    // This can happen when model outputs "\n\n" before thinking, user cancels mid-stream.
     const filteredMessages = filterWhitespaceOnlyAssistantMessages(
       filteredThinking,
     ) as NormalizedMessage[]
 
     const internalState = detectTurnInterruption(filteredMessages)
 
-    // Transform mid-turn interruptions into interrupted_prompt
+    // Transform mid-turn interruptions into interrupted_prompt by appending
+    // a synthetic continuation message. This unifies both interruption kinds
+    // so the consumer only needs to handle interrupted_prompt.
     let turnInterruptionState: TurnInterruptionState
     if (internalState.kind === 'interrupted_turn') {
       const [continuationMessage] = normalizeMessages([
@@ -180,7 +223,11 @@ export function deserializeMessagesWithInterruptDetection(
       turnInterruptionState = internalState
     }
 
-    // Append synthetic assistant sentinel after last user message
+    // Append a synthetic assistant sentinel after the last user message so
+    // the conversation is API-valid if no resume action is taken. Skip past
+    // trailing system/progress messages and insert right after the user
+    // message so removeInterruptedMessage's splice(idx, 2) removes the
+    // correct pair.
     const lastRelevantIdx = filteredMessages.findLastIndex(
       m => m.type !== 'system' && m.type !== 'progress',
     )
@@ -213,7 +260,14 @@ type InternalInterruptionState =
   | { kind: 'interrupted_turn' }
 
 /**
- * Determines whether the conversation was interrupted mid-turn.
+ * Determines whether the conversation was interrupted mid-turn based on the
+ * last message after filtering. An assistant as last message (after filtering
+ * unresolved tool_uses) is treated as a completed turn because stop_reason is
+ * always null on persisted messages in the streaming path.
+ *
+ * System and progress messages are skipped when finding the last turn-relevant
+ * message — they are bookkeeping artifacts that should not mask a genuine
+ * interruption. Attachments are kept as part of the turn.
  */
 function detectTurnInterruption(
   messages: NormalizedMessage[],
@@ -222,6 +276,11 @@ function detectTurnInterruption(
     return { kind: 'none' }
   }
 
+  // Find the last turn-relevant message, skipping system/progress and
+  // synthetic API error assistants. Error assistants are already filtered
+  // before API send (normalizeMessagesForAPI) — skipping them here lets
+  // auto-resume fire after retry exhaustion instead of reading the error as
+  // a completed turn.
   const lastMessageIdx = messages.findLastIndex(
     m =>
       m.type !== 'system' &&
@@ -236,6 +295,11 @@ function detectTurnInterruption(
   }
 
   if (lastMessage.type === 'assistant') {
+    // In the streaming path, stop_reason is always null on persisted messages
+    // because messages are recorded at content_block_stop time, before
+    // message_delta delivers the stop_reason. After filterUnresolvedToolUses
+    // has removed assistant messages with unmatched tool_uses, an assistant as
+    // the last message means the turn most likely completed normally.
     return { kind: 'none' }
   }
 
@@ -244,15 +308,24 @@ function detectTurnInterruption(
       return { kind: 'none' }
     }
     if (isToolUseResultMessage(lastMessage)) {
+      // Brief mode (#20467) drops the trailing assistant text block, so a
+      // completed brief-mode turn legitimately ends on SendUserMessage's
+      // tool_result. Without this check, resume misclassifies every
+      // brief-mode session as interrupted mid-turn and injects a phantom
+      // "Continue from where you left off." before the user's real next
+      // prompt. Look back one step for the originating tool_use.
       if (isTerminalToolResult(lastMessage, messages, lastMessageIdx)) {
         return { kind: 'none' }
       }
       return { kind: 'interrupted_turn' }
     }
+    // Plain text user prompt — CC hadn't started responding
     return { kind: 'interrupted_prompt', message: lastMessage }
   }
 
   if (lastMessage.type === 'attachment') {
+    // Attachments are part of the user turn — the user provided context but
+    // the assistant never responded.
     return { kind: 'interrupted_turn' }
   }
 
@@ -260,9 +333,17 @@ function detectTurnInterruption(
 }
 
 /**
- * Is this tool_result the output of a tool that legitimately terminates a turn?
- * v112: BRIEF_TOOL_NAME / LEGACY_BRIEF_TOOL_NAME / SEND_USER_FILE_TOOL_NAME
- * constants are inlined or resolved differently; the minified shows F1Y, g1Y, U1Y.
+ * Is this tool_result the output of a tool that legitimately terminates a
+ * turn? SendUserMessage is the canonical case: in brief mode, calling it is
+ * the turn's final act — there is no follow-up assistant text (#20467
+ * removed it). A transcript ending here means the turn COMPLETED, not that
+ * it was killed mid-tool.
+ *
+ * Walks back to find the assistant tool_use that this result belongs to and
+ * checks its name. The matching tool_use is typically the immediately
+ * preceding relevant message (filterUnresolvedToolUses has already dropped
+ * unpaired ones), but we walk just in case system/progress noise is
+ * interleaved.
  */
 function isTerminalToolResult(
   result: NormalizedUserMessage,
@@ -280,8 +361,11 @@ function isTerminalToolResult(
     if (msg.type !== 'assistant') continue
     for (const b of msg.message.content) {
       if (b.type === 'tool_use' && b.id === toolUseId) {
-        // TODO(lift): F1Y, g1Y, U1Y at byte ~8401841 — brief tool name constants
-        return false // stub — actual names unresolved
+        return (
+          b.name === BRIEF_TOOL_NAME ||
+          b.name === LEGACY_BRIEF_TOOL_NAME ||
+          b.name === SEND_USER_FILE_TOOL_NAME
+        )
       }
     }
   }
@@ -290,6 +374,10 @@ function isTerminalToolResult(
 
 /**
  * Restores skill state from invoked_skills attachments in messages.
+ * This ensures that skills are preserved across resume after compaction.
+ * Without this, if another compaction happens after resume, the skills would be lost
+ * because STATE.invokedSkills would be empty.
+ * @internal Exported for testing - use loadConversationForResume instead
  */
 export function restoreSkillStateFromMessages(messages: Message[]): void {
   for (const message of messages) {
@@ -299,10 +387,15 @@ export function restoreSkillStateFromMessages(messages: Message[]): void {
     if (message.attachment.type === 'invoked_skills') {
       for (const skill of message.attachment.skills) {
         if (skill.name && skill.path && skill.content) {
+          // Resume only happens for the main session, so agentId is null
           addInvokedSkill(skill.name, skill.path, skill.content, null)
         }
       }
     }
+    // A prior process already injected the skills-available reminder — it's
+    // in the transcript the model is about to see. sentSkillNames is
+    // process-local, so without this every resume re-announces the same
+    // ~600 tokens. Fire-once latch; consumed on the first attachment pass.
     if (message.attachment.type === 'skill_listing') {
       suppressNextSkillListing()
     }
@@ -310,7 +403,15 @@ export function restoreSkillStateFromMessages(messages: Message[]): void {
 }
 
 /**
- * Chain-walk a transcript jsonl by path.
+ * Chain-walk a transcript jsonl by path.  Same sequence loadFullLog
+ * runs internally — loadTranscriptFile → find newest non-sidechain
+ * leaf → buildConversationChain → removeExtraFields — just starting
+ * from an arbitrary path instead of the sid-derived one.
+ *
+ * leafUuids is populated by loadTranscriptFile as "uuids that no
+ * other message's parentUuid points at" — the chain tips.  There can
+ * be several (sidechains, orphans); newest non-sidechain is the main
+ * conversation's end.
  */
 export async function loadMessagesFromJsonlPath(path: string): Promise<{
   messages: SerializedMessage[]
@@ -331,19 +432,26 @@ export async function loadMessagesFromJsonlPath(path: string): Promise<{
   const chain = buildConversationChain(byUuid, tip)
   return {
     messages: removeExtraFields(chain),
+    // Leaf's sessionId — forked sessions copy chain[0] from the source
+    // transcript, so the root retains the source session's ID. Matches
+    // loadFullLog's mostRecentLeaf.sessionId.
     sessionId: tip.sessionId as UUID | undefined,
   }
 }
 
-// TODO(lift): z77 at byte ~8403205 — deferred tool use resolver from fullPath
-
 /**
  * Loads a conversation for resume from various sources.
- * v112 changes:
- *  - BG_SESSIONS live-session skip removed (skip set always empty)
- *  - copyFileHistoryForResume and copyPlanForResume no longer called
- *  - Returns `deferredToolUse` and `permissionMode` fields
- *  - checkResumeConsistency no longer called explicitly
+ * This is the centralized function for loading and deserializing conversations.
+ *
+ * @param source - The source to load from:
+ *   - undefined: load most recent conversation
+ *   - string: session ID to load
+ *   - LogOption: already loaded conversation
+ * @param sourceJsonlFile - Alternate: path to a transcript jsonl.
+ *   Used when --resume receives a .jsonl path (cli/print.ts routes
+ *   on suffix), typically for cross-directory resume where the
+ *   transcript lives outside the current project dir.
+ * @returns Object containing the deserialized messages and the original log, or null if not found
  */
 export async function loadConversationForResume(
   source: string | LogOption | undefined,
@@ -357,6 +465,7 @@ export async function loadConversationForResume(
   contextCollapseCommits?: ContextCollapseCommitEntry[]
   contextCollapseSnapshot?: ContextCollapseSnapshotEntry
   sessionId: UUID | undefined
+  // Session metadata for restoring agent context
   agentName?: string
   agentColor?: string
   agentSetting?: string
@@ -367,9 +476,8 @@ export async function loadConversationForResume(
   prNumber?: number
   prUrl?: string
   prRepository?: string
+  // Full path to the session file (for cross-directory resume)
   fullPath?: string
-  deferredToolUse?: unknown
-  permissionMode?: string
 } | null> {
   try {
     let log: LogOption | null = null
@@ -377,20 +485,44 @@ export async function loadConversationForResume(
     let sessionId: UUID | undefined
 
     if (source === undefined) {
-      // v112: live-session skip (BG_SESSIONS) removed — always empty skip set
-      const logs = await loadMessageLogs()
-      log = logs.find(l => {
-        const id = getSessionIdFromLog(l)
-        return !id // skip only has session IDs, but set is always empty in v112
-      }) ?? null
+      // --continue: most recent session, skipping live --bg/daemon sessions
+      // that are actively writing their own transcript.
+      const logsPromise = loadMessageLogs()
+      let skip = new Set<string>()
+      if (feature('BG_SESSIONS')) {
+        try {
+          const { listAllLiveSessions } = await import('./udsClient.js')
+          const live = await listAllLiveSessions()
+          skip = new Set(
+            live.flatMap(s =>
+              s.kind && s.kind !== 'interactive' && s.sessionId
+                ? [s.sessionId]
+                : [],
+            ),
+          )
+        } catch {
+          // UDS unavailable — treat all sessions as continuable
+        }
+      }
+      const logs = await logsPromise
+      log =
+        logs.find(l => {
+          const id = getSessionIdFromLog(l)
+          return !id || !skip.has(id)
+        }) ?? null
     } else if (sourceJsonlFile) {
+      // --resume with a .jsonl path (cli/print.ts routes on suffix).
+      // Same chain walk as the sid branch below — only the starting
+      // path differs.
       const loaded = await loadMessagesFromJsonlPath(sourceJsonlFile)
       messages = loaded.messages
       sessionId = loaded.sessionId
     } else if (typeof source === 'string') {
+      // Load specific session by ID
       log = await getLastSessionLog(source as UUID)
       sessionId = source as UUID
     } else {
+      // Already have a LogOption
       log = source
     }
 
@@ -399,32 +531,41 @@ export async function loadConversationForResume(
     }
 
     if (log) {
+      // Load full messages for lite logs
       if (isLiteLog(log)) {
         log = await loadFullLog(log)
       }
 
+      // Determine sessionId first so we can pass it to copy functions
       if (!sessionId) {
         sessionId = getSessionIdFromLog(log) as UUID
       }
+      // Pass the original session ID to ensure the plan slug is associated with
+      // the session we're resuming, not the temporary session ID before resume
+      if (sessionId) {
+        await copyPlanForResume(log, asSessionId(sessionId))
+      }
 
-      // v112: copyPlanForResume and copyFileHistoryForResume no longer called
+      // Copy file history for resume
+      void copyFileHistoryForResume(log)
 
       messages = log.messages
-      // v112: checkResumeConsistency no longer called
+      checkResumeConsistency(messages)
     }
 
+    // Restore skill state from invoked_skills attachments before deserialization.
+    // This ensures skills survive multiple compaction cycles after resume.
     restoreSkillStateFromMessages(messages!)
 
+    // Deserialize messages to handle unresolved tool uses and ensure proper format
     const deserialized = deserializeMessagesWithInterruptDetection(messages!)
     messages = deserialized.messages
 
+    // Process session start hooks for resume
     const hookMessages = await processSessionStartHooks('resume', { sessionId })
-    messages.push(...hookMessages)
 
-    // v112: deferredToolUse resolved from fullPath via z77
-    const fullPath = log?.fullPath ?? sourceJsonlFile
-    // TODO(lift): z77 at byte ~8403205 — deferred tool use lookup
-    const deferredToolUse = undefined
+    // Append hook messages to the conversation
+    messages.push(...hookMessages)
 
     return {
       messages,
@@ -435,6 +576,7 @@ export async function loadConversationForResume(
       contextCollapseCommits: log?.contextCollapseCommits,
       contextCollapseSnapshot: log?.contextCollapseSnapshot,
       sessionId,
+      // Include session metadata for restoring agent context on resume
       agentName: log?.agentName,
       agentColor: log?.agentColor,
       agentSetting: log?.agentSetting,
@@ -445,9 +587,8 @@ export async function loadConversationForResume(
       prNumber: log?.prNumber,
       prUrl: log?.prUrl,
       prRepository: log?.prRepository,
-      fullPath,
-      deferredToolUse,
-      permissionMode: log?.permissionMode,
+      // Include full path for cross-directory resume
+      fullPath: log?.fullPath,
     }
   } catch (error) {
     logError(error as Error)

@@ -18,6 +18,7 @@ import { join, resolve } from 'path'
 import { waitForScrollIdle } from '../../bootstrap/state.js'
 import { registerCleanup } from '../cleanupRegistry.js'
 import { getCwd } from '../cwd.js'
+import { findGitRoot } from '../git.js'
 import { parseGitConfigValue } from './gitConfigParser.js'
 
 // ---------------------------------------------------------------------------
@@ -35,8 +36,6 @@ export function clearResolveGitDirCache(): void {
  * Resolve the actual .git directory for a repo.
  * Handles worktrees/submodules where .git is a file containing `gitdir: <path>`.
  * Memoized per startPath.
- *
- * v112 change: resolves the startPath before looking up the cache key.
  */
 export async function resolveGitDir(
   startPath?: string,
@@ -340,11 +339,6 @@ class GitFileWatcher {
   private branchRefPath: string | null = null
   private cache = new Map<string, CacheEntry<unknown>>()
 
-  // v112 additions: per-repo branch tracking for multi-repo workspaces
-  private repoBranches = new Map<string, string | null>()
-  private repoGitDirs = new Map<string, string>()
-  private repoBranchListeners: Array<() => void> = []
-
   async ensureStarted(): Promise<void> {
     if (this.initialized) {
       return
@@ -490,67 +484,10 @@ class GitFileWatcher {
     return value
   }
 
-  // v112 additions: per-repo branch tracking
-
-  /**
-   * Add a repo path to the watcher so its branch can be tracked independently.
-   * Used by multi-repo workspace features.
-   */
-  async addRepo(repoPath: string): Promise<void> {
-    if (this.repoGitDirs.has(repoPath)) {
-      return
-    }
-    const gitDir = await resolveGitDir(repoPath)
-    if (!gitDir) {
-      return
-    }
-    this.repoGitDirs.set(repoPath, gitDir)
-    this.watchPath(join(gitDir, 'HEAD'), () => {
-      this.repoBranches.delete(repoPath)
-      for (const listener of this.repoBranchListeners) {
-        listener()
-      }
-    })
-  }
-
-  /**
-   * Register a callback that fires when any watched repo's branch changes.
-   * Returns an unsubscribe function.
-   */
-  onRepoBranchChange(callback: () => void): () => void {
-    this.repoBranchListeners.push(callback)
-    return () => {
-      const idx = this.repoBranchListeners.indexOf(callback)
-      if (idx !== -1) {
-        this.repoBranchListeners.splice(idx, 1)
-      }
-    }
-  }
-
-  /**
-   * Get the current branch name for a previously-added repo.
-   */
-  async getBranchForRepo(repoPath: string): Promise<string | undefined> {
-    if (this.repoBranches.has(repoPath)) {
-      return this.repoBranches.get(repoPath) ?? undefined
-    }
-    const gitDir = this.repoGitDirs.get(repoPath)
-    if (!gitDir) {
-      return undefined
-    }
-    const head = await readGitHead(gitDir)
-    const branch = head?.type === 'branch' ? head.name : null
-    this.repoBranches.set(repoPath, branch)
-    return branch ?? undefined
-  }
-
   /** Reset all state. Stops file watchers. For testing only. */
   reset(): void {
     this.stopWatching()
     this.cache.clear()
-    this.repoBranches.clear()
-    this.repoGitDirs.clear()
-    this.repoBranchListeners = []
     this.initialized = false
     this.initPromise = null
     this.gitDir = null
@@ -592,27 +529,13 @@ async function computeRemoteUrl(): Promise<string | null> {
   if (!gitDir) {
     return null
   }
-  // v112: try pushurl first, then url
-  const url = await parseGitConfigValue(gitDir, 'remote', 'origin', 'pushurl')
+  const url = await parseGitConfigValue(gitDir, 'remote', 'origin', 'url')
   if (url) {
     return url
-  }
-  const fallback = await parseGitConfigValue(gitDir, 'remote', 'origin', 'url')
-  if (fallback) {
-    return fallback
   }
   // In worktrees, the config with remote URLs is in the common dir
   const commonDir = await getCommonDir(gitDir)
   if (commonDir && commonDir !== gitDir) {
-    const commonUrl = await parseGitConfigValue(
-      commonDir,
-      'remote',
-      'origin',
-      'pushurl',
-    )
-    if (commonUrl) {
-      return commonUrl
-    }
     return parseGitConfigValue(commonDir, 'remote', 'origin', 'url')
   }
   return null
@@ -718,33 +641,19 @@ export async function readWorktreeHeadSha(
 
 /**
  * Read the remote origin URL for an arbitrary directory via .git/config.
- * v112: tries pushurl first, then url.
  */
 export async function getRemoteUrlForDir(cwd: string): Promise<string | null> {
   const gitDir = await resolveGitDir(cwd)
   if (!gitDir) {
     return null
   }
-  const url = await parseGitConfigValue(gitDir, 'remote', 'origin', 'pushurl')
+  const url = await parseGitConfigValue(gitDir, 'remote', 'origin', 'url')
   if (url) {
     return url
-  }
-  const fallback = await parseGitConfigValue(gitDir, 'remote', 'origin', 'url')
-  if (fallback) {
-    return fallback
   }
   // In worktrees, the config with remote URLs is in the common dir
   const commonDir = await getCommonDir(gitDir)
   if (commonDir && commonDir !== gitDir) {
-    const commonUrl = await parseGitConfigValue(
-      commonDir,
-      'remote',
-      'origin',
-      'pushurl',
-    )
-    if (commonUrl) {
-      return commonUrl
-    }
     return parseGitConfigValue(commonDir, 'remote', 'origin', 'url')
   }
   return null

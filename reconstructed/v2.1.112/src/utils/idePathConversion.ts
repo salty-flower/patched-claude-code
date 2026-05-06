@@ -50,7 +50,7 @@ export class WindowsToWSLConverter implements IDEPathConverter {
     } catch {
       // If wslpath fails, fall back to manual conversion
       return windowsPath
-        .replaceAll('\\\\', '/') // Convert backslashes to forward slashes
+        .replace(/\\/g, '/') // Convert backslashes to forward slashes
         .replace(/^([A-Z]):/i, (_, letter) => `/mnt/${letter.toLowerCase()}`)
     }
   }

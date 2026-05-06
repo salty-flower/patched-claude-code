@@ -27,6 +27,7 @@ import {
   parseUserSpecifiedModel,
 } from './model/model.js'
 import { getAPIProvider } from './model/providers.js'
+import { isEssentialTrafficOnly } from './privacyLevel.js'
 import {
   getInitialSettings,
   getSettingsForSource,
@@ -35,9 +36,6 @@ import {
 import { createSignal } from './signal.js'
 
 export function isFastModeEnabled(): boolean {
-  if (getAPIProvider() !== 'firstParty') {
-    return false
-  }
   return !isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_FAST_MODE)
 }
 
@@ -111,10 +109,9 @@ export function getFastModeUnavailableReason(): string | null {
     }
   }
 
-  // Only available for 1P (not Bedrock/Vertex/Foundry/Claude Platform on AWS)
+  // Only available for 1P (not Bedrock/Vertex/Foundry)
   if (getAPIProvider() !== 'firstParty') {
-    const reason =
-      'Fast mode is not available on Bedrock, Vertex, Foundry, or Claude Platform on AWS'
+    const reason = 'Fast mode is not available on Bedrock, Vertex, or Foundry'
     logForDebugging(`Fast mode unavailable: ${reason}`)
     return reason
   }
@@ -399,13 +396,20 @@ export function resolveFastModeStatusFromCache(): void {
   if (orgStatus.status !== 'pending') {
     return
   }
+  const isAnt = process.env.USER_TYPE === 'ant'
   const cachedEnabled = getGlobalConfig().penguinModeOrgEnabled === true
-  orgStatus = cachedEnabled
-    ? { status: 'enabled' }
-    : { status: 'disabled', reason: 'unknown' }
+  orgStatus =
+    isAnt || cachedEnabled
+      ? { status: 'enabled' }
+      : { status: 'disabled', reason: 'unknown' }
 }
 
 export async function prefetchFastModeStatus(): Promise<void> {
+  // Skip network requests if nonessential traffic is disabled
+  if (isEssentialTrafficOnly()) {
+    return
+  }
+
   if (!isFastModeEnabled()) {
     return
   }
@@ -424,10 +428,12 @@ export async function prefetchFastModeStatus(): Promise<void> {
   const hasUsableOAuth =
     getClaudeAIOAuthTokens()?.accessToken && hasProfileScope()
   if (!hasUsableOAuth && !apiKey) {
+    const isAnt = process.env.USER_TYPE === 'ant'
     const cachedEnabled = getGlobalConfig().penguinModeOrgEnabled === true
-    orgStatus = cachedEnabled
-      ? { status: 'enabled' }
-      : { status: 'disabled', reason: 'preference' }
+    orgStatus =
+      isAnt || cachedEnabled
+        ? { status: 'enabled' }
+        : { status: 'disabled', reason: 'preference' }
     return
   }
 
@@ -502,12 +508,15 @@ export async function prefetchFastModeStatus(): Promise<void> {
         `Org fast mode: ${status.enabled ? 'enabled' : `disabled (${status.disabled_reason ?? 'preference'})`}`,
       )
     } catch (err) {
-      // On failure: fall back to the cached penguinModeOrgEnabled value;
+      // On failure: ants default to enabled (don't block internal users).
+      // External users: fall back to the cached penguinModeOrgEnabled value;
       // if no positive cache, disable with network_error reason.
+      const isAnt = process.env.USER_TYPE === 'ant'
       const cachedEnabled = getGlobalConfig().penguinModeOrgEnabled === true
-      orgStatus = cachedEnabled
-        ? { status: 'enabled' }
-        : { status: 'disabled', reason: 'network_error' }
+      orgStatus =
+        isAnt || cachedEnabled
+          ? { status: 'enabled' }
+          : { status: 'disabled', reason: 'network_error' }
       logForDebugging(
         `Failed to fetch org fast mode status, defaulting to ${orgStatus.status === 'enabled' ? 'enabled (cached)' : 'disabled (network_error)'}: ${err}`,
         { level: 'error' },

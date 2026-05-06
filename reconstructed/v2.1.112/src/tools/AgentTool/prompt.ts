@@ -18,6 +18,7 @@ function getToolsDescription(agent: AgentDefinition): string {
   const hasDenylist = disallowedTools && disallowedTools.length > 0
 
   if (hasAllowlist && hasDenylist) {
+    // Both defined: filter allowlist by denylist to match runtime behavior
     const denySet = new Set(disallowedTools)
     const effectiveTools = tools.filter(t => !denySet.has(t))
     if (effectiveTools.length === 0) {
@@ -25,15 +26,19 @@ function getToolsDescription(agent: AgentDefinition): string {
     }
     return effectiveTools.join(', ')
   } else if (hasAllowlist) {
+    // Allowlist only: show the specific tools available
     return tools.join(', ')
   } else if (hasDenylist) {
+    // Denylist only: show "All tools except X, Y, Z"
     return `All tools except ${disallowedTools.join(', ')}`
   }
+  // No restrictions
   return 'All tools'
 }
 
 /**
- * Format one agent line for the agent_listing_delta attachment message.
+ * Format one agent line for the agent_listing_delta attachment message:
+ * `- type: whenToUse (Tools: ...)`.
  */
 export function formatAgentLine(agent: AgentDefinition): string {
   const toolsDescription = getToolsDescription(agent)
@@ -42,7 +47,12 @@ export function formatAgentLine(agent: AgentDefinition): string {
 
 /**
  * Whether the agent list should be injected as an attachment message instead
- * of embedded in the tool description.
+ * of embedded in the tool description. When true, getPrompt() returns a static
+ * description and attachments.ts emits an agent_listing_delta attachment.
+ *
+ * The dynamic agent list was ~10.2% of fleet cache_creation tokens: MCP async
+ * connect, /reload-plugins, or permission-mode changes mutate the list →
+ * description changes → full tool-schema cache bust.
  *
  * Override with CLAUDE_CODE_AGENT_LIST_IN_MESSAGES=true/false for testing.
  */
@@ -53,17 +63,18 @@ export function shouldInjectAgentListInMessages(): boolean {
   return getFeatureValue_CACHED_MAY_BE_STALE('tengu_agent_list_attach', false)
 }
 
-// TODO [v112_min decl 9240753-9251307 has no match]: getPrompt body reconstructed
-// from v88 source; prompt text or structural changes in v112 may differ.
 export async function getPrompt(
   agentDefinitions: AgentDefinition[],
   isCoordinator?: boolean,
   allowedAgentTypes?: string[],
 ): Promise<string> {
+  // Filter agents by allowed types when Agent(x,y) restricts which agents can be spawned
   const effectiveAgents = allowedAgentTypes
     ? agentDefinitions.filter(a => allowedAgentTypes.includes(a.agentType))
     : agentDefinitions
 
+  // Fork subagent feature: when enabled, insert the "When to fork" section
+  // (fork semantics, directive-style prompts) and swap in fork-aware examples.
   const forkEnabled = isForkSubagentEnabled()
 
   const whenToForkSection = forkEnabled
@@ -176,6 +187,10 @@ assistant: "I'm going to use the ${AGENT_TOOL_NAME} tool to launch the greeting-
 </example>
 `
 
+  // When the gate is on, the agent list lives in an agent_listing_delta
+  // attachment (see attachments.ts) instead of inline here. This keeps the
+  // tool description static across MCP/plugin/permission changes so the
+  // tools-block prompt cache doesn't bust every time an agent loads.
   const listViaAttachment = shouldInjectAgentListInMessages()
 
   const agentListSection = listViaAttachment
@@ -183,6 +198,7 @@ assistant: "I'm going to use the ${AGENT_TOOL_NAME} tool to launch the greeting-
     : `Available agent types and the tools they have access to:
 ${effectiveAgents.map(agent => formatAgentLine(agent)).join('\n')}`
 
+  // Shared core prompt used by both coordinator and non-coordinator modes
   const shared = `Launch a new agent to handle complex, multi-step tasks autonomously.
 
 The ${AGENT_TOOL_NAME} tool launches specialized agents (subprocesses) that autonomously handle complex tasks. Each agent type has specific capabilities and tools available to it.
@@ -195,14 +211,21 @@ ${
     : `When using the ${AGENT_TOOL_NAME} tool, specify a subagent_type parameter to select which agent type to use. If omitted, the general-purpose agent is used.`
 }`
 
+  // Coordinator mode gets the slim prompt -- the coordinator system prompt
+  // already covers usage notes, examples, and when-not-to-use guidance.
   if (isCoordinator) {
     return shared
   }
 
+  // Ant-native builds alias find/grep to embedded bfs/ugrep and remove the
+  // dedicated Glob/Grep tools, so point at find via Bash instead.
   const embedded = hasEmbeddedSearchTools()
   const fileSearchHint = embedded
     ? '`find` via the Bash tool'
     : `the ${GLOB_TOOL_NAME} tool`
+  // The "class Foo" example is about content search. Non-embedded stays Glob
+  // (original intent: find-the-file-containing). Embedded gets grep because
+  // find -name doesn't look at file contents.
   const contentSearchHint = embedded
     ? '`grep` via the Bash tool'
     : `the ${GLOB_TOOL_NAME} tool`
@@ -216,18 +239,23 @@ When NOT to use the ${AGENT_TOOL_NAME} tool:
 - Other tasks that are not related to the agent descriptions above
 `
 
+  // When listing via attachment, the "launch multiple agents" note is in the
+  // attachment message (conditioned on subscription there). When inline, keep
+  // the existing per-call getSubscriptionType() check.
   const concurrencyNote =
     !listViaAttachment && getSubscriptionType() !== 'pro'
       ? `
 - Launch multiple agents concurrently whenever possible, to maximize performance; to do that, use a single message with multiple tool uses`
       : ''
 
+  // Non-coordinator gets the full prompt with all sections
   return `${shared}
 ${whenNotToUseSection}
 
 Usage notes:
 - Always include a short description (3-5 words) summarizing what the agent will do${concurrencyNote}
 - When the agent is done, it will return a single message back to you. The result returned by the agent is not visible to the user. To show the user the result, you should send a text message back to the user with a concise summary of the result.${
+    // eslint-disable-next-line custom-rules/no-process-env-top-level
     !isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_BACKGROUND_TASKS) &&
     !isInProcessTeammate() &&
     !forkEnabled
@@ -242,6 +270,10 @@ Usage notes:
 - If the agent description mentions that it should be used proactively, then you should try your best to use it without the user having to ask for it first. Use your judgement.
 - If the user specifies that they want you to run agents "in parallel", you MUST send a single message with multiple ${AGENT_TOOL_NAME} tool use content blocks. For example, if you need to launch both a build-validator agent and a test-runner agent in parallel, send a single message with both tool calls.
 - You can optionally set \`isolation: "worktree"\` to run the agent in a temporary git worktree, giving it an isolated copy of the repository. The worktree is automatically cleaned up if the agent makes no changes; if changes are made, the worktree path and branch are returned in the result.${
+    process.env.USER_TYPE === 'ant'
+      ? `\n- You can set \`isolation: "remote"\` to run the agent in a remote CCR environment. This is always a background task; you'll be notified when it completes. Use for long-running tasks that need a fresh sandbox.`
+      : ''
+  }${
     isInProcessTeammate()
       ? `
 - The run_in_background, name, team_name, and mode parameters are not available in this context. Only synchronous subagents are supported.`

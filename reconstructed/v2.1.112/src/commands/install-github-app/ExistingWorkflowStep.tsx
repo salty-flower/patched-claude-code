@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Select } from 'src/components/CustomSelect/index.js';
 import { Box, Text } from '../../ink.js';
@@ -7,7 +6,7 @@ interface ExistingWorkflowStepProps {
   onSelectAction: (action: 'update' | 'skip' | 'exit') => void;
 }
 export function ExistingWorkflowStep(t0) {
-  const $ = _c(16);
+  const $ = new Array(16).fill(void 0);
   const {
     repoName,
     onSelectAction

@@ -132,7 +132,6 @@ export function isMemoryFileAccess(
   if (
     filePath &&
     (isAutoMemFile(filePath) ||
-      // TODO(lift): vSK at byte ~9875433 (teamMemPaths.isTeamMemFile)
       (feature('TEAMMEM') && teamMemPaths!.isTeamMemFile(filePath)))
   ) {
     return true
@@ -199,12 +198,10 @@ async function handleSessionFileAccess(
         break
       case FILE_EDIT_TOOL_NAME:
         logEvent('tengu_team_mem_file_edit', { ...subagentProps })
-        // TODO(lift): GSK at byte ~9876300 (teamMemWatcher.notifyTeamMemoryWrite)
         teamMemWatcher?.notifyTeamMemoryWrite()
         break
       case FILE_WRITE_TOOL_NAME:
         logEvent('tengu_team_mem_file_write', { ...subagentProps })
-        // TODO(lift): GSK at byte ~9876300 (teamMemWatcher.notifyTeamMemoryWrite)
         teamMemWatcher?.notifyTeamMemoryWrite()
         break
     }

@@ -393,6 +393,87 @@ function saveInstalledPluginsV2(data: InstalledPluginsFileV2): void {
   }
 }
 
+/**
+ * Add or update a plugin installation entry at a specific scope.
+ * Used for V2 format where each plugin has an array of installations.
+ *
+ * @param pluginId - Plugin ID in "plugin@marketplace" format
+ * @param scope - Installation scope (managed/user/project/local)
+ * @param installPath - Path to versioned plugin directory
+ * @param metadata - Additional installation metadata
+ * @param projectPath - Project path (required for project/local scopes)
+ */
+export function addPluginInstallation(
+  pluginId: string,
+  scope: PersistableScope,
+  installPath: string,
+  metadata: Partial<PluginInstallationEntry>,
+  projectPath?: string,
+): void {
+  const data = loadInstalledPluginsFromDisk()
+
+  // Get or create array for this plugin
+  const installations = data.plugins[pluginId] || []
+
+  // Find existing entry for this scope+projectPath
+  const existingIndex = installations.findIndex(
+    entry => entry.scope === scope && entry.projectPath === projectPath,
+  )
+
+  const newEntry: PluginInstallationEntry = {
+    scope,
+    installPath,
+    version: metadata.version,
+    installedAt: metadata.installedAt || new Date().toISOString(),
+    lastUpdated: new Date().toISOString(),
+    gitCommitSha: metadata.gitCommitSha,
+    ...(projectPath && { projectPath }),
+  }
+
+  if (existingIndex >= 0) {
+    installations[existingIndex] = newEntry
+    logForDebugging(`Updated installation for ${pluginId} at scope ${scope}`)
+  } else {
+    installations.push(newEntry)
+    logForDebugging(`Added installation for ${pluginId} at scope ${scope}`)
+  }
+
+  data.plugins[pluginId] = installations
+  saveInstalledPluginsV2(data)
+}
+
+/**
+ * Remove a plugin installation entry from a specific scope.
+ *
+ * @param pluginId - Plugin ID in "plugin@marketplace" format
+ * @param scope - Installation scope to remove
+ * @param projectPath - Project path (for project/local scopes)
+ */
+export function removePluginInstallation(
+  pluginId: string,
+  scope: PersistableScope,
+  projectPath?: string,
+): void {
+  const data = loadInstalledPluginsFromDisk()
+  const installations = data.plugins[pluginId]
+
+  if (!installations) {
+    return
+  }
+
+  data.plugins[pluginId] = installations.filter(
+    entry => !(entry.scope === scope && entry.projectPath === projectPath),
+  )
+
+  // Remove plugin entirely if no installations left
+  if (data.plugins[pluginId].length === 0) {
+    delete data.plugins[pluginId]
+  }
+
+  saveInstalledPluginsV2(data)
+  logForDebugging(`Removed installation for ${pluginId} at scope ${scope}`)
+}
+
 // =============================================================================
 // In-Memory vs Disk State Management (for non-in-place updates)
 // =============================================================================
@@ -447,9 +528,6 @@ export function loadInstalledPluginsFromDisk(): InstalledPluginsFileV2 {
  * Used by background updater to record new version on disk while session
  * continues using the old version.
  *
- * v112 change: deletes resolvedVersion when updating path (the new version
- * is authoritative, any previous resolvedVersion is stale).
- *
  * @param pluginId - Plugin ID in "plugin@marketplace" format
  * @param scope - Installation scope
  * @param projectPath - Project path (for project/local scopes)
@@ -481,8 +559,6 @@ export function updateInstallationPathOnDisk(
   if (entry) {
     entry.installPath = newPath
     entry.version = newVersion
-    // v112: clear resolvedVersion on path update
-    delete (entry as PluginInstallationEntry & { resolvedVersion?: string }).resolvedVersion
     entry.lastUpdated = new Date().toISOString()
     if (gitCommitSha !== undefined) {
       entry.gitCommitSha = gitCommitSha
@@ -790,9 +866,6 @@ export function isPluginGloballyInstalled(pluginId: string): boolean {
  *
  * Implements double-write: updates both V1 and V2 files.
  *
- * v112 change: includes resolvedVersion in the entry if present on the
- * input metadata.
- *
  * @param pluginId - Plugin ID in "plugin@marketplace" format
  * @param metadata - Installation metadata
  * @param scope - Installation scope (defaults to 'user' for backward compatibility)
@@ -812,7 +885,6 @@ export function addInstalledPlugin(
     installedAt: metadata.installedAt,
     lastUpdated: metadata.lastUpdated,
     gitCommitSha: metadata.gitCommitSha,
-    ...(metadata.resolvedVersion && { resolvedVersion: metadata.resolvedVersion }),
     ...(projectPath && { projectPath }),
   }
 
@@ -885,6 +957,11 @@ export function removeInstalledPlugin(
  *
  * @param installPath - Absolute path to the plugin's cache directory
  */
+/**
+ * Export getGitCommitSha for use by pluginInstallationHelpers
+ */
+export { getGitCommitSha }
+
 export function deletePluginCache(installPath: string): void {
   const fs = getFsImplementation()
 
@@ -967,81 +1044,40 @@ function getPluginVersionFromManifest(
  *
  * Being present in enabledPlugins (whether true or false) indicates the plugin
  * has been installed. The enabled/disabled state remains in settings.json.
- *
- * v112 change: heavily rewritten to:
- * 1. Handle managed-scope plugins from policySettings
- * 2. Clean up orphaned managed entries (no longer policy-required)
- * 3. Collapse multi-entry plugins to single managed entry when appropriate
- * 4. Deduplicate entries by scope+projectPath
  */
 export async function migrateFromEnabledPlugins(): Promise<void> {
-  // Build the set of managed plugins from policySettings
-  const managedPluginIds = new Set(
-    Object.entries(getSettingsForSource('policySettings')?.enabledPlugins || {})
-      .filter(([id, value]) => id.includes('@') && value === true)
-      .map(([id]) => id),
-  )
+  // Use merged settings for shouldSkipSync check
+  const settings = getSettings_DEPRECATED()
+  const enabledPlugins = settings.enabledPlugins || {}
 
-  const projectPath = getCwd()
-
-  // Build a map of pluginId → {scope, projectPath} from all settings sources
-  const pluginScopeFromSettings = new Map<
-    string,
-    {
-      scope: 'user' | 'project' | 'local' | 'managed'
-      projectPath: string | undefined
-    }
-  >()
-
-  for (const source of [
-    'userSettings',
-    'projectSettings',
-    'localSettings',
-  ] as EditableSettingSource[]) {
-    const sourceSettings = getSettingsForSource(source)
-    const sourceEnabledPlugins = sourceSettings?.enabledPlugins || {}
-    for (const pluginId of Object.keys(sourceEnabledPlugins)) {
-      if (!pluginId.includes('@')) continue
-      const scope = settingSourceToScope(source)
-      pluginScopeFromSettings.set(pluginId, {
-        scope,
-        projectPath: scope === 'user' ? undefined : projectPath,
-      })
-    }
-  }
-
-  // Add managed plugins
-  for (const pluginId of managedPluginIds) {
-    pluginScopeFromSettings.set(pluginId, {
-      scope: 'managed',
-      projectPath: undefined,
-    })
+  // No plugins in settings = nothing to sync
+  if (Object.keys(enabledPlugins).length === 0) {
+    return
   }
 
   // Check if main file exists and has V2 format
   const rawFileData = readInstalledPluginsFileRaw()
   const fileExists = rawFileData !== null
+  const isV2Format = fileExists && rawFileData?.version === 2
 
-  // v112: early skip check is more comprehensive — also checks managed entries
-  if (fileExists && rawFileData?.version === 2 && rawFileData) {
-    const existingData = InstalledPluginsFileSchemaV2().safeParse(rawFileData.data)
+  // If file exists with V2 format, check if we can skip the expensive migration
+  if (isV2Format && rawFileData) {
+    // Check if all plugins from settings already exist
+    // (The expensive getPluginById/getGitCommitSha only runs for missing plugins)
+    const existingData = InstalledPluginsFileSchemaV2().safeParse(
+      rawFileData.data,
+    )
+
     if (existingData?.success) {
       const plugins = existingData.data.plugins
-      const allPluginsExist = [...pluginScopeFromSettings.keys()].every(id => {
-        const installations = plugins[id]
-        if (!installations || installations.length === 0) return false
-        if (managedPluginIds.has(id)) {
-          return installations.length === 1 && installations[0]?.scope === 'managed'
-        }
-        return true
-      })
-      // Also check no stale managed entries exist
-      const noStaleManaged = Object.entries(plugins).every(
-        ([id, installations]) =>
-          managedPluginIds.has(id) ||
-          !installations.some(i => i.scope === 'managed'),
-      )
-      if (allPluginsExist && noStaleManaged) {
+      const allPluginsExist = Object.keys(enabledPlugins)
+        .filter(id => id.includes('@'))
+        .every(id => {
+          const installations = plugins[id]
+          return installations && installations.length > 0
+        })
+
+      if (allPluginsExist) {
         logForDebugging('All plugins already exist, skipping migration')
         return
       }
@@ -1055,36 +1091,55 @@ export async function migrateFromEnabledPlugins(): Promise<void> {
   )
 
   const now = new Date().toISOString()
+  const projectPath = getCwd()
 
-  // Start with existing data (or start empty if no file exists)
-  let v2Plugins: InstalledPluginsMapV2 = {}
-  if (fileExists) {
-    v2Plugins = { ...loadInstalledPluginsV2().plugins }
-  }
+  // Step 1: Build a map of pluginId -> scope from all settings.json files
+  // Settings.json is the source of truth for scope
+  const pluginScopeFromSettings = new Map<
+    string,
+    {
+      scope: 'user' | 'project' | 'local'
+      projectPath: string | undefined
+    }
+  >()
 
-  let updatedCount = 0
-  let addedCount = 0
+  // Iterate through each editable settings source (order matters: user first)
+  const settingSources: EditableSettingSource[] = [
+    'userSettings',
+    'projectSettings',
+    'localSettings',
+  ]
 
-  // v112: Clean up orphaned managed entries first
-  for (const [pluginId, installations] of Object.entries(v2Plugins)) {
-    if (managedPluginIds.has(pluginId)) continue
-    if (!pluginScopeFromSettings.has(pluginId)) continue
+  for (const source of settingSources) {
+    const sourceSettings = getSettingsForSource(source)
+    const sourceEnabledPlugins = sourceSettings?.enabledPlugins || {}
 
-    const nonManaged = installations.filter(i => i.scope !== 'managed')
-    if (nonManaged.length === 0) {
-      delete v2Plugins[pluginId]
-      updatedCount++
-      logForDebugging(
-        `Dropped orphaned managed entry for ${pluginId} (no longer policy-required)`,
-      )
-    } else if (nonManaged.length < installations.length) {
-      v2Plugins[pluginId] = nonManaged
-      updatedCount++
-      logForDebugging(
-        `Dropped orphaned managed entry for ${pluginId} (no longer policy-required)`,
-      )
+    for (const pluginId of Object.keys(sourceEnabledPlugins)) {
+      // Skip non-standard plugin IDs
+      if (!pluginId.includes('@')) continue
+
+      // Settings.json is source of truth - always update scope
+      // Use the most specific scope (last one wins: local > project > user)
+      const scope = settingSourceToScope(source)
+      pluginScopeFromSettings.set(pluginId, {
+        scope,
+        projectPath: scope === 'user' ? undefined : projectPath,
+      })
     }
   }
+
+  // Step 2: Start with existing data (or start empty if no file exists)
+  let v2Plugins: InstalledPluginsMapV2 = {}
+
+  if (fileExists) {
+    // File exists - load existing data
+    const existingData = loadInstalledPluginsV2()
+    v2Plugins = { ...existingData.plugins }
+  }
+
+  // Step 3: Update V2 scopes based on settings.json (settings is source of truth)
+  let updatedCount = 0
+  let addedCount = 0
 
   for (const [pluginId, scopeInfo] of pluginScopeFromSettings) {
     const existingInstallations = v2Plugins[pluginId]
@@ -1092,7 +1147,6 @@ export async function migrateFromEnabledPlugins(): Promise<void> {
     if (existingInstallations && existingInstallations.length > 0) {
       // Plugin exists in V2 - update scope if different (settings is source of truth)
       const existingEntry = existingInstallations[0]
-      let changed = false
       if (
         existingEntry &&
         (existingEntry.scope !== scopeInfo.scope ||
@@ -1105,41 +1159,11 @@ export async function migrateFromEnabledPlugins(): Promise<void> {
           delete existingEntry.projectPath
         }
         existingEntry.lastUpdated = now
-        changed = true
+        updatedCount++
         logForDebugging(
           `Updated ${pluginId} scope to ${scopeInfo.scope} (settings.json is source of truth)`,
         )
       }
-
-      // v112: collapse multi-entry managed plugins to single entry
-      if (scopeInfo.scope === 'managed') {
-        if (existingInstallations.length > 1) {
-          logForDebugging(
-            `Collapsed ${pluginId} to single managed entry (was ${existingInstallations.length})`,
-          )
-          v2Plugins[pluginId] = existingInstallations.slice(0, 1)
-          changed = true
-        }
-      } else if (existingInstallations.length > 1) {
-        // v112: deduplicate non-managed entries by scope+projectPath
-        const seen = new Set<string>()
-        const deduped = existingInstallations.filter(i => {
-          if (i.scope === 'managed') return false
-          const key = `${i.scope}|${i.projectPath ?? ''}`
-          if (seen.has(key)) return false
-          seen.add(key)
-          return true
-        })
-        if (deduped.length < existingInstallations.length) {
-          logForDebugging(
-            `Cleaned ${pluginId} (${existingInstallations.length}→${deduped.length}: stripped stale managed and/or dedupes)`,
-          )
-          v2Plugins[pluginId] = deduped
-          changed = true
-        }
-      }
-
-      if (changed) updatedCount++
     } else {
       // Plugin not in V2 - try to add it by looking up in marketplace
       const { name: pluginName, marketplace } = parsePluginIdentifier(pluginId)
@@ -1175,6 +1199,12 @@ export async function migrateFromEnabledPlugins(): Promise<void> {
           const sanitizedName = pluginName.replace(/[^a-zA-Z0-9-_]/g, '-')
           const pluginCachePath = join(cachePath, sanitizedName)
 
+          // Read the cache directory directly — readdir is the first real
+          // operation, not a pre-check. Its ENOENT tells us the cache
+          // doesn't exist; its result gates the manifest read below.
+          // Not a TOCTOU — downstream operations handle ENOENT gracefully,
+          // so a race (dir removed between readdir and read) degrades to
+          // version='unknown', not a crash.
           let dirEntries: string[]
           try {
             dirEntries = (
@@ -1190,6 +1220,7 @@ export async function migrateFromEnabledPlugins(): Promise<void> {
 
           installPath = pluginCachePath
 
+          // Only read manifest if the .claude-plugin dir is present
           if (dirEntries.includes('.claude-plugin')) {
             version = getPluginVersionFromManifest(pluginCachePath, pluginId)
           }

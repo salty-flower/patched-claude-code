@@ -11,10 +11,6 @@ import {
 import { clearCwdEnvFiles } from '../sessionEnvironment.js'
 import { getHooksConfigFromSnapshot } from './hooksConfigSnapshot.js'
 
-// v112: Converted to factory pattern with singleton instance.
-// The v112 minified shows M0z() factory returning {initialize, setEnvHookNotifier,
-// updateWatchPaths, onCwdChanged, dispose}. Reconstructed from v88 structure + v112 bytes.
-
 let watcher: FSWatcher | null = null
 let currentCwd: string
 let dynamicWatchPaths: string[] = []
@@ -53,15 +49,19 @@ function resolveWatchPaths(
   config?: ReturnType<typeof getHooksConfigFromSnapshot>,
 ): string[] {
   const matchers = (config ?? getHooksConfigFromSnapshot())?.FileChanged ?? []
-  const paths: string[] = []
-  for (const hook of matchers) {
-    if (!hook.matcher) continue
-    for (const pattern of hook.matcher.split('|').map((m) => m.trim())) {
-      if (!pattern) continue
-      paths.push(isAbsolute(pattern) ? pattern : join(currentCwd, pattern))
+
+  // Matcher field: filenames to watch in cwd, pipe-separated (e.g. ".envrc|.env")
+  const staticPaths: string[] = []
+  for (const m of matchers) {
+    if (!m.matcher) continue
+    for (const name of m.matcher.split('|').map(s => s.trim())) {
+      if (!name) continue
+      staticPaths.push(isAbsolute(name) ? name : join(currentCwd, name))
     }
   }
-  return [...paths, ...dynamicWatchPaths]
+
+  // Combine static matcher paths with dynamic paths from hook output
+  return [...new Set([...staticPaths, ...dynamicWatchPaths])]
 }
 
 function startWatching(paths: string[]): void {
@@ -72,14 +72,17 @@ function startWatching(paths: string[]): void {
     awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 200 },
     ignorePermissionErrors: true,
   })
-  watcher.on('change', (path) => handleFileEvent(path, 'change'))
-  watcher.on('add', (path) => handleFileEvent(path, 'add'))
-  watcher.on('unlink', (path) => handleFileEvent(path, 'unlink'))
+  watcher.on('change', p => handleFileEvent(p, 'change'))
+  watcher.on('add', p => handleFileEvent(p, 'add'))
+  watcher.on('unlink', p => handleFileEvent(p, 'unlink'))
 }
 
-function handleFileEvent(path: string, event: string): void {
+function handleFileEvent(
+  path: string,
+  event: 'change' | 'add' | 'unlink',
+): void {
   logForDebugging(`FileChanged: ${event} ${path}`)
-  executeFileChangedHooks(path, event)
+  void executeFileChangedHooks(path, event)
     .then(({ results, watchPaths, systemMessages }) => {
       if (watchPaths.length > 0) {
         updateWatchPaths(watchPaths)
@@ -93,9 +96,11 @@ function handleFileEvent(path: string, event: string): void {
         }
       }
     })
-    .catch((err) => {
-      const msg = errorMessage(err)
-      logForDebugging(`FileChanged hook failed: ${msg}`, { level: 'error' })
+    .catch(e => {
+      const msg = errorMessage(e)
+      logForDebugging(`FileChanged hook failed: ${msg}`, {
+        level: 'error',
+      })
       notifyCallback?.(msg, true)
     })
 }
@@ -116,7 +121,7 @@ export function updateWatchPaths(paths: string[]): void {
 
 function restartWatching(): void {
   if (watcher) {
-    watcher.close()
+    void watcher.close()
     watcher = null
   }
   const paths = resolveWatchPaths()
@@ -125,33 +130,45 @@ function restartWatching(): void {
   }
 }
 
-export async function onCwdChanged(oldCwd: string, newCwd: string): Promise<void> {
+export async function onCwdChangedForHooks(
+  oldCwd: string,
+  newCwd: string,
+): Promise<void> {
   if (oldCwd === newCwd) return
+
+  // Re-evaluate from the current snapshot so mid-session hook changes are picked up
   const config = getHooksConfigFromSnapshot()
-  if (
-    !((config?.CwdChanged?.length ?? 0) > 0 ||
-      (config?.FileChanged?.length ?? 0) > 0)
-  ) {
-    return
-  }
+  const currentHasEnvHooks =
+    (config?.CwdChanged?.length ?? 0) > 0 ||
+    (config?.FileChanged?.length ?? 0) > 0
+  if (!currentHasEnvHooks) return
   currentCwd = newCwd
+
   await clearCwdEnvFiles()
-  const result = await executeCwdChangedHooks(oldCwd, newCwd).catch((err) => {
-    const msg = errorMessage(err)
-    logForDebugging(`CwdChanged hook failed: ${msg}`, { level: 'error' })
+  const hookResult = await executeCwdChangedHooks(oldCwd, newCwd).catch(e => {
+    const msg = errorMessage(e)
+    logForDebugging(`CwdChanged hook failed: ${msg}`, {
+      level: 'error',
+    })
     notifyCallback?.(msg, true)
-    return { results: [], watchPaths: [], systemMessages: [] } as HookOutsideReplResult
+    return {
+      results: [] as HookOutsideReplResult[],
+      watchPaths: [] as string[],
+      systemMessages: [] as string[],
+    }
   })
-  dynamicWatchPaths = result.watchPaths
-  dynamicWatchPathsSorted = result.watchPaths.slice().sort()
-  for (const msg of result.systemMessages) {
+  dynamicWatchPaths = hookResult.watchPaths
+  dynamicWatchPathsSorted = hookResult.watchPaths.slice().sort()
+  for (const msg of hookResult.systemMessages) {
     notifyCallback?.(msg, false)
   }
-  for (const r of result.results) {
+  for (const r of hookResult.results) {
     if (!r.succeeded && r.output) {
       notifyCallback?.(r.output, true)
     }
   }
+
+  // Re-resolve matcher paths against the new cwd
   if (initialized) {
     restartWatching()
   }
@@ -159,7 +176,7 @@ export async function onCwdChanged(oldCwd: string, newCwd: string): Promise<void
 
 function dispose(): void {
   if (watcher) {
-    watcher.close()
+    void watcher.close()
     watcher = null
   }
   dynamicWatchPaths = []
@@ -167,4 +184,8 @@ function dispose(): void {
   initialized = false
   hasEnvHooks = false
   notifyCallback = null
+}
+
+export function resetFileChangedWatcherForTesting(): void {
+  dispose()
 }

@@ -24,9 +24,6 @@ let _primitiveTools: readonly Tool[] | undefined
  *
  * Referenced directly rather than via getAllBaseTools() because that
  * excludes Glob/Grep when hasEmbeddedSearchTools() is true.
- *
- * v112 drift: jac=0.89 — function body identical; lazy-init lazy var name
- * changed internally, all exports preserved.
  */
 export function getReplPrimitiveTools(): readonly Tool[] {
   return (_primitiveTools ??= [

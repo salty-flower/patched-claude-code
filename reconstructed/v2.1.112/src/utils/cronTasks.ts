@@ -343,23 +343,15 @@ export type CronJitterConfig = {
    * `0` = unlimited (tasks never auto-expire).
    */
   recurringMaxAgeMs: number
-  /**
-   * v112: Cache-lead optimization for step crons. When a recurring task's
-   * interval is within the cache-warm threshold and cacheLeadMs > 0, the
-   * scheduler fires slightly before the next interval to warm caches.
-   */
-  cacheLeadMs: number
 }
 
-// v112: recurringFrac increased from 0.1 to 0.5; cacheLeadMs added (15s)
 export const DEFAULT_CRON_JITTER_CONFIG: CronJitterConfig = {
-  recurringFrac: 0.5,
+  recurringFrac: 0.1,
   recurringCapMs: 15 * 60 * 1000,
   oneShotMaxMs: 90 * 1000,
   oneShotFloorMs: 0,
   oneShotMinuteMod: 30,
   recurringMaxAgeMs: 7 * 24 * 60 * 60 * 1000,
-  cacheLeadMs: 15000,
 }
 
 /**
@@ -385,11 +377,6 @@ function jitterFrac(taskId: string): number {
  *
  * Only used for recurring tasks. One-shot tasks use
  * {@link oneShotJitteredNextCronRunMs} (backward jitter, minute-gated).
- *
- * v112: Adds cache-lead optimization for step crons (*/N * * * *).
- * When cacheLeadMs > 0 and the interval is within the threshold,
- * returns fromMs + interval - cacheLeadMs to fire slightly early for
- * cache warming.
  */
 export function jitteredNextCronRunMs(
   cron: string,
@@ -403,20 +390,6 @@ export function jitteredNextCronRunMs(
   // No second match in the next year (e.g. pinned date) → nothing to
   // proportion against, and near-certainly not a herd risk. Fire on t1.
   if (t2 === null) return t1
-
-  // v112: cache-lead optimization for step crons
-  const STEP_CRON_PATTERN = /^\*\/\d+ \* \* \* \*$/
-  const CACHE_WARM_THRESHOLD_MS = 60 * 60 * 1000 // 1 hour
-  if (
-    STEP_CRON_PATTERN.test(cron) &&
-    cfg.cacheLeadMs > 0 &&
-    cfg.cacheLeadMs < t2 - t1 &&
-    t2 - t1 >= CACHE_WARM_THRESHOLD_MS &&
-    t2 - t1 - cfg.cacheLeadMs < CACHE_WARM_THRESHOLD_MS
-  ) {
-    return fromMs + (t2 - t1) - cfg.cacheLeadMs
-  }
-
   const jitter = Math.min(
     jitterFrac(taskId) * cfg.recurringFrac * (t2 - t1),
     cfg.recurringCapMs,

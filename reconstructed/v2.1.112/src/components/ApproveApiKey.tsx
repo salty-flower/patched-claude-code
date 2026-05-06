@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Text } from '../ink.js';
 import { saveGlobalConfig } from '../utils/config.js';
@@ -9,7 +8,7 @@ type Props = {
   onDone(approved: boolean): void;
 };
 export function ApproveApiKey(t0) {
-  const $ = _c(17);
+  const $ = new Array(17).fill(void 0);
   const {
     customApiKeyTruncated,
     onDone

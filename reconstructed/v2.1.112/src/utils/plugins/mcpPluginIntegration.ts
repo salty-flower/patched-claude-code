@@ -82,8 +82,8 @@ async function loadMcpServersFromMcpb(
       level: 'error',
     })
 
-    // v112: source is now plugin.repository directly (not `${plugin.name}@${plugin.repository}`)
-    const source = plugin.repository
+    // Use plugin@repository as source (consistent with other plugin errors)
+    const source = `${plugin.name}@${plugin.repository}`
 
     // Determine error type based on error message
     const isUrl = mcpbPath.startsWith('http')
@@ -461,8 +461,6 @@ function buildMcpUserConfig(
  * Resolve environment variables for plugin MCP servers
  * Handles ${CLAUDE_PLUGIN_ROOT}, ${user_config.X}, and general ${VAR} substitution
  * Tracks missing environment variables for error reporting
- *
- * v112: expandEnvVarsInString now supports ${VAR:-default} fallback syntax.
  */
 export function resolvePluginMcpEnvironment(
   config: McpServerConfig,
@@ -485,7 +483,6 @@ export function resolvePluginMcpEnvironment(
 
     // Finally expand general environment variables
     // This is done last so plugin-specific and user config vars take precedence
-    // v112: expandEnvVarsInString now supports ${VAR:-default} syntax.
     const { expanded, missingVars } = expandEnvVarsInString(resolved)
     allMissingVars.push(...missingVars)
 
@@ -569,12 +566,11 @@ export function resolvePluginMcpEnvironment(
       { level: 'warn' },
     )
 
-    // v112: error source changed from `plugin:${pluginName}` to plugin.source
-    // (the plugin's source field, e.g. "github" or a URL)
+    // Add error to the errors array if plugin and server names are provided
     if (pluginName && serverName) {
       errors.push({
         type: 'mcp-config-invalid',
-        source: plugin.source,
+        source: `plugin:${pluginName}`,
         plugin: pluginName,
         serverName,
         validationError: `Missing environment variables: ${varList}`,

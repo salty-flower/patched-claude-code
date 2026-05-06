@@ -165,7 +165,11 @@ function buildPrompt(opts: {
       : BASE_QUESTION
   const firstStep = userArgs
     ? `The user has already told you what they want (see User Request at the bottom). Skip the initial question and go directly to the matching workflow.`
-    : `Your FIRST action must be a single ${ASK_USER_QUESTION_TOOL_NAME} tool call (no preamble). Use this EXACT string for the \`question\` field — do not paraphrase or shorten it:\n\n${jsonStringify(initialQuestion)}\n\nSet \`header: "Action"\` and offer the four actions (create/list/update/run) as options. After the user picks, follow the matching workflow below.`
+    : `Your FIRST action must be a single ${ASK_USER_QUESTION_TOOL_NAME} tool call (no preamble). Use this EXACT string for the \`question\` field — do not paraphrase or shorten it:
+
+${jsonStringify(initialQuestion)}
+
+Set \`header: "Action"\` and offer the four actions (create/list/update/run) as options. After the user picks, follow the matching workflow below.`
 
   return `# Schedule Remote Agents
 
@@ -173,7 +177,8 @@ You are helping the user schedule, update, list, or run **remote** Claude Code a
 
 ## First Step
 
-${firstStep}${setupNotesSection}
+${firstStep}
+${setupNotesSection}
 
 ## What You Can Do
 
@@ -284,7 +289,7 @@ Minimum interval is 1 hour. \`*/30 * * * *\` will be rejected.
 4. **Choose the model** — Default to \`claude-sonnet-4-6\`. Tell the user which model you're defaulting to and ask if they want a different one.
 5. **Validate connections** — Infer what services the agent will need from the user's description. For example, if they say "check Datadog and Slack me errors," the agent needs both Datadog and Slack MCP connectors. Cross-reference with the connectors list above. If any are missing, warn the user and link them to https://claude.ai/settings/connectors to connect first.${gitRepoUrl ? ` The default git repo is already set to \`${gitRepoUrl}\`. Ask the user if this is the right repo or if they need a different one.` : ' Ask which git repos the remote agent needs cloned into its environment.'}
 6. **Review and confirm** — Show the full configuration before creating. Let them adjust.
-7. **Create it** — Call \`${REMOTE_TRIGGER_TOOL_NAME}\` with \`action: "create"\` and show the result. The response includes the trigger ID. Always output a link at the end: \`https://claude.ai/code/scheduled/{TRIGGER_ID}\`
+7. **Create it** \u2014 Call \`${REMOTE_TRIGGER_TOOL_NAME}\` with \`action: "create"\` and show the result. The response includes the trigger ID. Always output a link at the end: \`https://claude.ai/code/scheduled/{TRIGGER_ID}\`
 
 ### UPDATE a trigger:
 
@@ -397,8 +402,8 @@ export function registerScheduleRemoteAgentsSkill(): void {
             false,
           )
           const msg = webSetupEnabled
-            ? `GitHub not connected for ${repo.owner}/${repo.name} — run /web-setup to sync your GitHub credentials, or install the Claude GitHub App at https://claude.ai/code/onboarding?magic=github-app-setup.`
-            : `Claude GitHub App not installed on ${repo.owner}/${repo.name} — install at https://claude.ai/code/onboarding?magic=github-app-setup if your trigger needs this repo.`
+            ? `GitHub not connected for ${repo.owner}/${repo.name} \u2014 run /web-setup to sync your GitHub credentials, or install the Claude GitHub App at https://claude.ai/code/onboarding?magic=github-app-setup.`
+            : `Claude GitHub App not installed on ${repo.owner}/${repo.name} \u2014 install at https://claude.ai/code/onboarding?magic=github-app-setup if your trigger needs this repo.`
           setupNotes.push(msg)
         }
       }

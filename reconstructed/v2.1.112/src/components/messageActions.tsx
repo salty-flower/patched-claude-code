@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import figures from 'figures';
 import type { RefObject } from 'react';
 import React, { useCallback, useMemo, useRef } from 'react';
@@ -272,7 +271,7 @@ export function useMessageActions(cursor: MessageActionsState | null, setCursor:
 
 // Must mount inside <KeybindingSetup>.
 export function MessageActionsKeybindings(t0) {
-  const $ = _c(2);
+  const $ = new Array(2).fill(void 0);
   const {
     handlers,
     isActive
@@ -294,7 +293,7 @@ export function MessageActionsKeybindings(t0) {
 
 // borderTop-only Box matches PromptInput's ─── line for stable footer height.
 export function MessageActionsBar(t0) {
-  const $ = _c(28);
+  const $ = new Array(28).fill(void 0);
   const {
     cursor
   } = t0;

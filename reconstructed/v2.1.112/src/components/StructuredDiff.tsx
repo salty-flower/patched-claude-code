@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import type { StructuredPatchHunk } from 'diff';
 import * as React from 'react';
 import { memo } from 'react';
@@ -93,7 +92,7 @@ function renderColorDiff(patch: StructuredPatchHunk, firstLine: string | null, f
   return entry;
 }
 export const StructuredDiff = memo(function StructuredDiff(t0) {
-  const $ = _c(26);
+  const $ = new Array(26).fill(void 0);
   const {
     patch,
     dim,

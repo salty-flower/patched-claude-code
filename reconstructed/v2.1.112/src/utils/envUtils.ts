@@ -32,7 +32,7 @@ export function hasNodeOption(flag: string): boolean {
 export function isEnvTruthy(envVar: string | boolean | undefined): boolean {
   if (!envVar) return false
   if (typeof envVar === 'boolean') return envVar
-  const normalizedValue = String(envVar).toLowerCase().trim()
+  const normalizedValue = envVar.toLowerCase().trim()
   return ['1', 'true', 'yes', 'on'].includes(normalizedValue)
 }
 
@@ -42,7 +42,7 @@ export function isEnvDefinedFalsy(
   if (envVar === undefined) return false
   if (typeof envVar === 'boolean') return !envVar
   if (!envVar) return false
-  const normalizedValue = String(envVar).toLowerCase().trim()
+  const normalizedValue = envVar.toLowerCase().trim()
   return ['0', 'false', 'no', 'off'].includes(normalizedValue)
 }
 
@@ -113,30 +113,37 @@ export function shouldMaintainProjectWorkingDir(): boolean {
 }
 
 /**
- * Parse a comma-separated tag list with optional `!` negation. Returns an
- * include/exclude split, or `null` if the input is empty or mixes positive
- * and negative entries (which is ambiguous).
+ * Check if running on Homespace (ant-internal cloud environment)
  */
-export function parseTagList(input: string | undefined): {
-  include: string[]
-  exclude: string[]
-  isExclusive: boolean
-} | null {
-  if (!input || input.trim() === '') return null
-  const tokens = input
-    .split(',')
-    .map(t => t.trim())
-    .filter(Boolean)
-  if (tokens.length === 0) return null
-  const hasNegative = tokens.some(t => t.startsWith('!'))
-  const hasPositive = tokens.some(t => !t.startsWith('!'))
-  if (hasNegative && hasPositive) return null
-  const normalized = tokens.map(t => t.replace(/^!/, '').toLowerCase())
-  return {
-    include: hasNegative ? [] : normalized,
-    exclude: hasNegative ? normalized : [],
-    isExclusive: hasNegative,
+export function isRunningOnHomespace(): boolean {
+  return (
+    process.env.USER_TYPE === 'ant' &&
+    isEnvTruthy(process.env.COO_RUNNING_ON_HOMESPACE)
+  )
+}
+
+/**
+ * Conservative check for whether Claude Code is running inside a protected
+ * (privileged or ASL3+) COO namespace or cluster.
+ *
+ * Conservative means: when signals are ambiguous, assume protected. We would
+ * rather over-report protected usage than miss it. Unprotected environments
+ * are homespace, namespaces on the open allowlist, and no k8s/COO signals
+ * at all (laptop/local dev).
+ *
+ * Used for telemetry to measure auto-mode usage in sensitive environments.
+ */
+export function isInProtectedNamespace(): boolean {
+  // USER_TYPE is build-time --define'd; in external builds this block is
+  // DCE'd so the require() and namespace allowlist never appear in the bundle.
+  if (process.env.USER_TYPE === 'ant') {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    return (
+      require('./protectedNamespace.js') as typeof import('./protectedNamespace.js')
+    ).checkProtectedNamespace()
+    /* eslint-enable @typescript-eslint/no-require-imports */
   }
+  return false
 }
 
 // @[MODEL LAUNCH]: Add a Vertex region override env var for the new model.
@@ -150,9 +157,6 @@ const VERTEX_REGION_OVERRIDES: ReadonlyArray<[string, string]> = [
   ['claude-3-5-haiku', 'VERTEX_REGION_CLAUDE_3_5_HAIKU'],
   ['claude-3-5-sonnet', 'VERTEX_REGION_CLAUDE_3_5_SONNET'],
   ['claude-3-7-sonnet', 'VERTEX_REGION_CLAUDE_3_7_SONNET'],
-  ['claude-opus-4-7', 'VERTEX_REGION_CLAUDE_4_7_OPUS'],
-  ['claude-opus-4-6', 'VERTEX_REGION_CLAUDE_4_6_OPUS'],
-  ['claude-opus-4-5', 'VERTEX_REGION_CLAUDE_4_5_OPUS'],
   ['claude-opus-4-1', 'VERTEX_REGION_CLAUDE_4_1_OPUS'],
   ['claude-opus-4', 'VERTEX_REGION_CLAUDE_4_0_OPUS'],
   ['claude-sonnet-4-6', 'VERTEX_REGION_CLAUDE_4_6_SONNET'],

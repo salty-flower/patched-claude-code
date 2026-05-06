@@ -18,8 +18,6 @@ export function getManagedPluginNames(): Set<string> | null {
     if (typeof value !== 'boolean' || !pluginId.includes('@')) {
       continue
     }
-    // v112: uses splitOnce utility instead of split('@')[0]
-    // TODO(lift): i5 (splitOnce) at byte ~5090180
     const name = pluginId.split('@')[0]
     if (name) {
       names.add(name)

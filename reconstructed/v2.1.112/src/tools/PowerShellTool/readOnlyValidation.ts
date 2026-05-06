@@ -607,6 +607,11 @@ export const CMDLET_ALLOWLIST: Record<string, CommandConfig> = Object.assign(
         '-DestinationPrefix',
       ],
     },
+    'get-dnsclientcache': {
+      // SECURITY: -CimSession/-ThrottleLimit excluded. -CimSession connects to
+      // a remote host (network request). Previously empty config = all flags OK.
+      safeFlags: ['-Entry', '-Name', '-Type', '-Status', '-Section', '-Data'],
+    },
     'get-dnsclient': {
       safeFlags: ['-InterfaceIndex', '-InterfaceAlias'],
     },
@@ -696,7 +701,7 @@ export const CMDLET_ALLOWLIST: Record<string, CommandConfig> = Object.assign(
       // are SKIPPED. Reject any positional argument — only bare `ipconfig` or
       // `ipconfig /all` (read-only display) allowed. Windows ipconfig only uses
       // /flags (display), macOS ipconfig uses subcommands (get/set/waitall).
-      safeFlags: ['/all', '/allcompartments'],
+      safeFlags: ['/all', '/displaydns', '/allcompartments'],
       additionalCommandIsDangerousCallback: (
         _cmd: string,
         element?: ParsedCommandElement,
@@ -765,15 +770,7 @@ export const CMDLET_ALLOWLIST: Record<string, CommandConfig> = Object.assign(
       allowAllFlags: true,
     },
     arp: {
-      safeFlags: ['-a', '-g', '-v', '-n'],
-      additionalCommandIsDangerousCallback: (
-        _cmd: string,
-        element?: ParsedCommandElement,
-      ) => {
-        return (element?.args ?? []).some(
-          a => !a.startsWith('-'),
-        )
-      },
+      safeFlags: ['-a', '-g', '-v', '-N'],
     },
     route: {
       safeFlags: ['print', 'PRINT', '-4', '-6'],
@@ -789,7 +786,8 @@ export const CMDLET_ALLOWLIST: Record<string, CommandConfig> = Object.assign(
         if (!element) {
           return true
         }
-        return element.args.find(a => !a.startsWith('-'))?.toLowerCase() !== 'print'
+        const verb = element.args.find(a => !a.startsWith('-'))
+        return verb?.toLowerCase() !== 'print'
       },
     },
     // netsh: intentionally NOT allowlisted. Three rounds of denylist gaps in PR
@@ -1703,6 +1701,11 @@ function isGitSafe(args: string[]): boolean {
 }
 
 function isGhSafe(args: string[]): boolean {
+  // gh commands are network-dependent; only allow for ant users
+  if (process.env.USER_TYPE !== 'ant') {
+    return false
+  }
+
   if (args.length === 0) {
     return true
   }
@@ -1744,7 +1747,6 @@ function isGhSafe(args: string[]): boolean {
       return false
     }
   }
-
   if (
     config.additionalCommandIsDangerousCallback &&
     config.additionalCommandIsDangerousCallback('', flagArgs)
@@ -1819,14 +1821,3 @@ function isDotnetSafe(args: string[]): boolean {
 
   return true
 }
-
-// ---------------------------------------------------------------------------
-// v112 stubs — unresolved minified symbols
-// ---------------------------------------------------------------------------
-
-// TODO(lift): mgq at byte ~9502846 — new v112 function: looks up a custom
-// gh subcommand config from a user-configurable allowlist. Takes a string
-// (subcommand name), returns a config object or undefined.
-// Calls ugq() (check-enabled predicate), xgq() (getter), PR1() (JSON parse).
-// Not present in v88_src. Skipped pending resolution of ugq/xgq/PR1 imports.
-declare function _mgq_V112(subcommand: string): unknown | undefined

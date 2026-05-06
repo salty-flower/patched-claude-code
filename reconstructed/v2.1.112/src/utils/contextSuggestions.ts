@@ -5,7 +5,6 @@ import { WEB_FETCH_TOOL_NAME } from '../tools/WebFetchTool/prompt.js'
 import type { ContextData } from './analyzeContext.js'
 import { getDisplayPath } from './file.js'
 import { formatTokens } from './format.js'
-import { isEnvTruthy } from './envUtils.js'
 
 // --
 
@@ -63,9 +62,7 @@ function checkNearCapacity(
       title: `Context is ${data.percentage}% full`,
       detail: data.isAutoCompactEnabled
         ? 'Autocompact will trigger soon, which discards older messages. Use /compact now to control what gets kept.'
-        : isEnvTruthy(process.env.DISABLE_COMPACT)
-          ? 'Compaction is disabled.'
-          : 'Autocompact is disabled. Use /compact to free space, or enable autocompact in /config.',
+        : 'Autocompact is disabled. Use /compact to free space, or enable autocompact in /config.',
     })
   }
 }
@@ -111,7 +108,7 @@ function getLargeToolSuggestion(
         severity: 'warning',
         title: `Bash results using ${tokenStr} tokens (${percent.toFixed(0)}%)`,
         detail:
-          'Pipe output through head, tail, or grep to reduce result size. Avoid cat on large files — use Read with offset/limit instead.',
+          'Pipe output through head, tail, or grep to reduce result size. Avoid cat on large files \u2014 use Read with offset/limit instead.',
         savingsTokens: Math.floor(tokens * 0.5),
       }
     case FILE_READ_TOOL_NAME:
@@ -143,7 +140,7 @@ function getLargeToolSuggestion(
         return {
           severity: 'info',
           title: `${toolName} using ${tokenStr} tokens (${percent.toFixed(0)}%)`,
-          detail: 'This tool is consuming a significant portion of context.',
+          detail: `This tool is consuming a significant portion of context.`,
           savingsTokens: Math.floor(tokens * 0.2),
         }
       }
@@ -225,7 +222,6 @@ function checkAutoCompactDisabled(
 ): void {
   if (
     !data.isAutoCompactEnabled &&
-    !isEnvTruthy(process.env.DISABLE_COMPACT) &&
     data.percentage >= 50 &&
     data.percentage < NEAR_CAPACITY_PERCENT
   ) {

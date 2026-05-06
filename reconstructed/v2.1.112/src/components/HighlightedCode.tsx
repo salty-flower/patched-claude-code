@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from '../hooks/useSettings.js';
@@ -16,7 +15,7 @@ type Props = {
 };
 const DEFAULT_WIDTH = 80;
 export const HighlightedCode = memo(function HighlightedCode(t0) {
-  const $ = _c(21);
+  const $ = new Array(21).fill(void 0);
   const {
     code,
     filePath,
@@ -135,7 +134,7 @@ export const HighlightedCode = memo(function HighlightedCode(t0) {
   return t7;
 });
 function CodeLine(t0) {
-  const $ = _c(13);
+  const $ = new Array(13).fill(void 0);
   const {
     line,
     gutterWidth

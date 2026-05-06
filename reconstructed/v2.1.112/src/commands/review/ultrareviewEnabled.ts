@@ -6,7 +6,6 @@ import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/gr
  * when false, so ungated users don't see the command at all.
  */
 export function isUltrareviewEnabled(): boolean {
-  // TODO(lift): v112 uses Yu6() instead of direct getFeatureValue_CACHED_MAY_BE_STALE at byte ~11110145
   const cfg = getFeatureValue_CACHED_MAY_BE_STALE<Record<
     string,
     unknown

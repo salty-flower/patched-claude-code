@@ -18,8 +18,6 @@ const GHA_SUBPROCESS_SCRUB = [
   'CLAUDE_CODE_OAUTH_TOKEN',
   'ANTHROPIC_AUTH_TOKEN',
   'ANTHROPIC_FOUNDRY_API_KEY',
-  'ANTHROPIC_AWS_API_KEY',
-  'ANTHROPIC_BEDROCK_MANTLE_API_KEY',
   'ANTHROPIC_CUSTOM_HEADERS',
 
   // OTLP exporter headers — documented to carry Authorization=Bearer tokens
@@ -84,38 +82,18 @@ export function subprocessEnv(): NodeJS.ProcessEnv {
   // proxy is disabled or not registered (non-CCR), so this is a no-op outside
   // CCR containers.
   const proxyEnv = _getUpstreamProxyEnv?.() ?? {}
-  const hasProxyEnv = Object.keys(proxyEnv).length > 0
 
-  // TODO(lift): _getDotenvEnv at byte ~4576973
-  const dotenvEnv = {} as Record<string, string>
-  const hasDotenvEnv = Object.keys(dotenvEnv).length > 0
-
-  const shouldScrub = isEnvTruthy(process.env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB)
-  const shouldStripDotenv = true // TODO(lift): Kn_() at byte ~4576973
-
-  if (!hasProxyEnv && !hasDotenvEnv && !shouldScrub && !shouldStripDotenv) {
-    return process.env
+  if (!isEnvTruthy(process.env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB)) {
+    return Object.keys(proxyEnv).length > 0
+      ? { ...process.env, ...proxyEnv }
+      : process.env
   }
-
-  let env: NodeJS.ProcessEnv = { ...process.env }
-  if (hasProxyEnv) {
-    env = { ...env, ...proxyEnv }
+  const env = { ...process.env, ...proxyEnv }
+  for (const k of GHA_SUBPROCESS_SCRUB) {
+    delete env[k]
+    // GitHub Actions auto-creates INPUT_<NAME> for `with:` inputs, duplicating
+    // secrets like INPUT_ANTHROPIC_API_KEY. No-op for vars that aren't action inputs.
+    delete env[`INPUT_${k}`]
   }
-  if (hasDotenvEnv) {
-    env = { ...env, ...dotenvEnv }
-  }
-
-  if (shouldScrub) {
-    for (const k of GHA_SUBPROCESS_SCRUB) {
-      delete env[k]
-      // GitHub Actions auto-creates INPUT_<NAME> for `with:` inputs, duplicating
-      // secrets like INPUT_ANTHROPIC_API_KEY. No-op for vars that aren't action inputs.
-      delete env[`INPUT_${k}`]
-    }
-  }
-
-  // TODO(lift): dotenv file stripping at byte ~4579038
-  // if (shouldStripDotenv) { ... }
-
   return env
 }

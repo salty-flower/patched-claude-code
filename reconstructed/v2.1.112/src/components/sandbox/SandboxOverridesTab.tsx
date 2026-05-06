@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Box, color, Link, Text, useTheme } from '../../ink.js';
 import type { CommandResultDisplay } from '../../types/command.js';
@@ -12,7 +11,7 @@ type Props = {
 };
 type OverrideMode = 'open' | 'closed';
 export function SandboxOverridesTab(t0) {
-  const $ = _c(5);
+  const $ = new Array(5).fill(void 0);
   const {
     onComplete
   } = t0;
@@ -61,7 +60,7 @@ export function SandboxOverridesTab(t0) {
 // above the early returns registers a down-arrow opt-in even when we return
 // static text — pressing ↓ then blurs the header with no way back.
 function OverridesSelect(t0) {
-  const $ = _c(25);
+  const $ = new Array(25).fill(void 0);
   const {
     onComplete,
     currentMode

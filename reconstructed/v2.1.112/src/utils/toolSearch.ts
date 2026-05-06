@@ -409,8 +409,6 @@ export async function isToolSearchEnabled(
       checkedModel:
         model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
       mcpToolCount,
-      // v112: added mcpNonBlocking to analytics
-      mcpNonBlocking: isEnvTruthy(process.env.MCP_CONNECTION_NONBLOCKING),
       userType: (process.env.USER_TYPE ??
         'external') as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
       ...extraProps,

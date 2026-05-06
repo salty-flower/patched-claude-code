@@ -12,9 +12,8 @@ import type { FooterItem } from 'src/state/AppStateStore.js';
 import { getCwd } from 'src/utils/cwd.js';
 import { isQueuedCommandEditable, popAllEditable } from 'src/utils/messageQueueManager.js';
 import stripAnsi from 'strip-ansi';
-// v112: buddy/CompanionSprite + useBuddyNotification imports removed.
-//   Companion sprite footer item, buddy triggers, and BUDDY-feature gating
-//   are all dropped from PromptInput. See lift-notes.
+import { companionReservedColumns } from '../../buddy/CompanionSprite.js';
+import { findBuddyTriggerPositions, useBuddyNotification } from '../../buddy/useBuddyNotification.js';
 import { FastModePicker } from '../../commands/fast/fast.js';
 import { isUltrareviewEnabled } from '../../commands/review/ultrareviewEnabled.js';
 import { getNativeCSIuTerminalDisplayName } from '../../commands/terminalSetup/terminalSetup.js';
@@ -55,8 +54,7 @@ import type { PermissionMode } from '../../types/permissions.js';
 import type { BaseTextInputProps, PromptInputMode, VimMode } from '../../types/textInputTypes.js';
 import { isAgentSwarmsEnabled } from '../../utils/agentSwarmsEnabled.js';
 import { count } from '../../utils/array.js';
-// v112: AutoUpdaterResult prop removed — auto-updater no longer plumbed
-//   through PromptInput; the surrounding REPL owns it directly.
+import type { AutoUpdaterResult } from '../../utils/autoUpdater.js';
 import { Cursor } from '../../utils/Cursor.js';
 import { getGlobalConfig, type PastedContent, saveGlobalConfig } from '../../utils/config.js';
 import { logForDebugging } from '../../utils/debug.js';
@@ -134,9 +132,9 @@ type Props = {
   isLoading: boolean;
   verbose: boolean;
   messages: Message[];
-  // v112: `input` is no longer a prop — PromptInput owns the input string
-  // internally via a useInputState() hook. `onInputChange` is still a
-  // notification callback to the parent.
+  onAutoUpdaterResult: (result: AutoUpdaterResult) => void;
+  autoUpdaterResult: AutoUpdaterResult | null;
+  input: string;
   onInputChange: (value: string) => void;
   mode: PromptInputMode;
   onModeChange: (mode: PromptInputMode) => void;
@@ -157,12 +155,11 @@ type Props = {
   mcpClients: MCPServerConnection[];
   pastedContents: Record<number, PastedContent>;
   setPastedContents: React.Dispatch<React.SetStateAction<Record<number, PastedContent>>>;
+  vimMode: VimMode;
+  setVimMode: (mode: VimMode) => void;
   showBashesDialog: string | boolean;
   setShowBashesDialog: (show: string | boolean) => void;
   onExit: () => void;
-  // v112: new — left-arrow-on-empty triggers parent navigation (e.g. exit
-  // teammate view).
-  onLeftArrowOnEmpty?: () => void;
   getToolUseContext: (messages: Message[], newMessages: Message[], abortController: AbortController, mainLoopModel: string) => ProcessUserInputContext;
   onSubmit: (input: string, helpers: PromptInputHelpers, speculationAccept?: {
     state: ActiveSpeculationState;
@@ -172,32 +169,23 @@ type Props = {
     fromKeybinding?: boolean;
   }) => Promise<void>;
   onAgentSubmit?: (input: string, task: InProcessTeammateTaskState | LocalAgentTaskState, helpers: PromptInputHelpers) => Promise<void>;
+  isSearchingHistory: boolean;
+  setIsSearchingHistory: (isSearching: boolean) => void;
   onDismissSideQuestion?: () => void;
   isSideQuestionVisible?: boolean;
-  // v112: parent is notified when an input-blocking overlay (history search,
-  // help menu, vim insert mode) becomes active so it can suppress its own
-  // global key handling.
-  onInputOverlayActiveChange: (active: boolean) => void;
-  // v112: vim mode is internal state; parent supplies an initial mode and
-  // observes changes.
-  initialVimMode?: VimMode;
-  onVimModeChange?: (mode: VimMode) => void;
+  helpOpen: boolean;
+  setHelpOpen: React.Dispatch<React.SetStateAction<boolean>>;
   hasSuppressedDialogs?: boolean;
   isLocalJSXCommandActive?: boolean;
   insertTextRef?: React.MutableRefObject<{
-    cursorOffset: number;
     insert: (text: string) => void;
     setInputWithCursor: (value: string, cursor: number) => void;
-    // v112: insertTextRef now exposes a submit() entry point so callers
-    // (STT, IDE-mention pipeline) can submit with helpers.
-    submit: (text: string, options?: { fromKeybinding?: boolean }) => void;
+    cursorOffset: number;
   } | null>;
   voiceInterimRange?: {
     start: number;
     end: number;
   } | null;
-  // v112: env vars piped through to useTypeahead for command suggestions.
-  sessionEnvVars?: Record<string, string>;
 };
 
 // Bottom slot has maxHeight="50%"; reserve lines for footer, border, status.
@@ -214,6 +202,9 @@ function PromptInput({
   isLoading,
   verbose,
   messages,
+  onAutoUpdaterResult,
+  autoUpdaterResult,
+  input,
   onInputChange,
   mode,
   onModeChange,
@@ -225,36 +216,25 @@ function PromptInput({
   mcpClients,
   pastedContents,
   setPastedContents,
+  vimMode,
+  setVimMode,
   showBashesDialog,
   setShowBashesDialog,
   onExit,
-  onLeftArrowOnEmpty,
   getToolUseContext,
   onSubmit: onSubmitProp,
   onAgentSubmit,
+  isSearchingHistory,
+  setIsSearchingHistory,
   onDismissSideQuestion,
   isSideQuestionVisible,
-  onInputOverlayActiveChange,
-  initialVimMode,
-  onVimModeChange,
+  helpOpen,
+  setHelpOpen,
   hasSuppressedDialogs,
   isLocalJSXCommandActive = false,
   insertTextRef,
-  voiceInterimRange,
-  sessionEnvVars
+  voiceInterimRange
 }: Props): React.ReactNode {
-  // v112: input string is owned internally by PromptInput. Parent receives
-  // updates through `onInputChange` but no longer drives the value.
-  // TODO(lift): minified call site is `let A6=tC6()` at v112 byte ~12399120.
-  // The hook name is not in this slice. Likely `useInputState()` from
-  // src/hooks/useInputState (a sibling of useInputBuffer). When that hook is
-  // lifted, replace this declaration with a concrete import + call.
-  // Until then we model it as an opaque hook returning a string so the rest
-  // of this file type-checks.
-  const useInputState_TODO_v112: () => string =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ((): unknown => undefined) as unknown as () => string;
-  const input = useInputState_TODO_v112();
   const mainLoopModel = useMainLoopModel();
   // A local-jsx command (e.g., /mcp while agent is running) renders a full-
   // screen dialog on top of PromptInput via the immediate-command path with
@@ -262,27 +242,6 @@ function PromptInput({
   // system, so treat them as a modal overlay here to stop navigation keys from
   // leaking into TextInput/footer handlers and stacking a second dialog.
   const isModalOverlayActive = useIsModalOverlayActive() || isLocalJSXCommandActive;
-
-  // v112: vim mode lives in PromptInput now (was a parent-owned prop in v88).
-  const [vimMode, setVimMode] = useState<VimMode>(initialVimMode ?? 'INSERT');
-  useEffect(() => {
-    onVimModeChange?.(vimMode);
-  }, [vimMode, onVimModeChange]);
-
-  // v112: history search state moved inside PromptInput.
-  const [isSearchingHistory, setIsSearchingHistory] = useState(false);
-  // v112: helpOpen state moved inside PromptInput.
-  const [helpOpen, setHelpOpen] = useState(false);
-
-  // v112: notify parent whenever an input-blocking overlay is active so it
-  // can mute conflicting global key handlers. The overlay set is the union
-  // of "searching history", "help menu open", and (in vim mode) INSERT mode.
-  const inputOverlayActive = isSearchingHistory || helpOpen || (isVimModeEnabled() && vimMode === 'INSERT');
-  useEffect(() => {
-    onInputOverlayActiveChange(inputOverlayActive);
-    return () => onInputOverlayActiveChange(false);
-  }, [inputOverlayActive, onInputOverlayActiveChange]);
-
   const [isAutoUpdating, setIsAutoUpdating] = useState(false);
   const [exitMessage, setExitMessage] = useState<{
     show: boolean;
@@ -304,18 +263,11 @@ function PromptInput({
     lastInternalInputRef.current = value;
     onInputChange(value);
   }, [onInputChange]);
-  // v112: a ref to the latest onSubmit closure, so insertTextRef.submit() can
-  // dispatch into the current onSubmit without re-binding the ref every render.
-  const onSubmitRef = useRef<((text: string, options?: { fromKeybinding?: boolean }) => void) | null>(null);
   // Expose an insertText function so callers (e.g. STT) can splice text at the
-  // current cursor position instead of replacing the entire input. v112 also
-  // adds a `submit` entry point for STT/IDE-mention pipelines.
+  // current cursor position instead of replacing the entire input.
   if (insertTextRef) {
     insertTextRef.current = {
       cursorOffset,
-      submit: (text: string, options?: { fromKeybinding?: boolean }) => {
-        onSubmitRef.current?.(text, options);
-      },
       insert: (text: string) => {
         const needsSpace = cursorOffset === input.length && input.length > 0 && !/\s$/.test(input);
         const insertText = needsSpace ? ' ' + text : text;
@@ -341,12 +293,11 @@ function PromptInput({
   // the pill returns null for implicit-and-not-reconnecting, so nav must too,
   // otherwise bridge becomes an invisible selection stop.
   const bridgeFooterVisible = replBridgeConnected && (replBridgeExplicit || replBridgeReconnecting);
-  // Tmux pill (ant-only) — dead-coded to false in v112; the conditional
-  // `"external" === 'ant'` collapses to false in external builds.
-  const hasTungstenSession = useAppState(_s => false);
-  const tmuxFooterVisible = false;
+  // Tmux pill (ant-only) — visible when there's an active tungsten session
+  const hasTungstenSession = useAppState(s => "external" === 'ant' && s.tungstenActiveSession !== undefined);
+  const tmuxFooterVisible = "external" === 'ant' && hasTungstenSession;
   // WebBrowser pill — visible when a browser is open
-  const bagelFooterVisible = useAppState(_s => false);
+  const bagelFooterVisible = useAppState(s => false);
   const teamContext = useAppState(s => s.teamContext);
   const queuedCommands = useCommandQueue();
   const promptSuggestionState = useAppState(s => s.promptSuggestion);
@@ -355,15 +306,22 @@ function PromptInput({
   const viewingAgentTaskId = useAppState(s => s.viewingAgentTaskId);
   const viewSelectionMode = useAppState(s => s.viewSelectionMode);
   const showSpinnerTree = useAppState(s => s.expandedView) === 'teammates';
-  // v112: companion sprite/buddy notification feature was dropped from
-  // PromptInput. The KAIROS/KAIROS_BRIEF gate around briefOwnsGap was also
-  // removed — `isBriefOnly` is now read unconditionally.
+  const {
+    companion: _companion,
+    companionMuted
+  } = feature('BUDDY') ? getGlobalConfig() : {
+    companion: undefined,
+    companionMuted: undefined
+  };
+  const companionFooterVisible = !!_companion && !companionMuted;
   // Brief mode: BriefSpinner/BriefIdleStatus own the 2-row footprint above
   // the input. Dropping marginTop here lets the spinner sit flush against
   // the input bar. viewingAgentTaskId mirrors the gate on both (Spinner.tsx,
   // REPL.tsx) — teammate view falls back to SpinnerWithVerbInner which has
   // its own marginTop, so the gap stays even without ours.
-  const briefOwnsGap = useAppState(s => s.isBriefOnly) && !viewingAgentTaskId;
+  const briefOwnsGap = feature('KAIROS') || feature('KAIROS_BRIEF') ?
+  // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
+  useAppState(s => s.isBriefOnly) && !viewingAgentTaskId : false;
   const mainLoopModel_ = useAppState(s => s.mainLoopModel);
   const mainLoopModelForSession = useAppState(s => s.mainLoopModelForSession);
   const thinkingEnabled = useAppState(s => s.thinkingEnabled);
@@ -395,10 +353,7 @@ function PromptInput({
     historyQuery,
     setHistoryQuery,
     historyMatch,
-    historyFailedMatch,
-    // v112: useHistorySearch now also returns a key-down handler that the
-    // composite onKeyDownBefore composes with useTypeahead's handler.
-    handleKeyDown: handleHistorySearchKeyDown
+    historyFailedMatch
   } = useHistorySearch(entry => {
     setPastedContents(entry.pastedContents);
     void onSubmit(entry.display);
@@ -502,8 +457,7 @@ function PromptInput({
   // something is running.
   const tasksFooterVisible = (runningTaskCount > 0 || "external" === 'ant' && coordinatorTaskCount > 0) && !shouldHideTasksFooter(tasks, showSpinnerTree);
   const teamsFooterVisible = cachedTeams.length > 0;
-  // v112: 'companion' footer slot removed alongside the buddy feature.
-  const footerItems = useMemo(() => [tasksFooterVisible && 'tasks', tmuxFooterVisible && 'tmux', bagelFooterVisible && 'bagel', teamsFooterVisible && 'teams', bridgeFooterVisible && 'bridge'].filter(Boolean) as FooterItem[], [tasksFooterVisible, tmuxFooterVisible, bagelFooterVisible, teamsFooterVisible, bridgeFooterVisible]);
+  const footerItems = useMemo(() => [tasksFooterVisible && 'tasks', tmuxFooterVisible && 'tmux', bagelFooterVisible && 'bagel', teamsFooterVisible && 'teams', bridgeFooterVisible && 'bridge', companionFooterVisible && 'companion'].filter(Boolean) as FooterItem[], [tasksFooterVisible, tmuxFooterVisible, bagelFooterVisible, teamsFooterVisible, bridgeFooterVisible, companionFooterVisible]);
 
   // Effective selection: null if the selected pill stopped rendering (bridge
   // disconnected, task finished). The derivation makes the UI correct
@@ -568,8 +522,7 @@ function PromptInput({
   const ultraplanTriggers = useMemo(() => feature('ULTRAPLAN') && !ultraplanSessionUrl && !ultraplanLaunching ? findUltraplanTriggerPositions(displayedValue) : [], [displayedValue, ultraplanSessionUrl, ultraplanLaunching]);
   const ultrareviewTriggers = useMemo(() => isUltrareviewEnabled() ? findUltrareviewTriggerPositions(displayedValue) : [], [displayedValue]);
   const btwTriggers = useMemo(() => findBtwTriggerPositions(displayedValue), [displayedValue]);
-  // v112: buddyTriggers removed — buddy/companion feature dropped from
-  // PromptInput.
+  const buddyTriggers = useMemo(() => findBuddyTriggerPositions(displayedValue), [displayedValue]);
   const slashCommandTriggers = useMemo(() => {
     const positions = findSlashCommandPositions(displayedValue);
     // Only highlight valid commands
@@ -578,9 +531,7 @@ function PromptInput({
       return hasCommand(commandName, commands);
     });
   }, [displayedValue, commands]);
-  // v112: tokenBudgetTriggers reduced to empty array — `findTokenBudgetPositions`
-  //   is no longer called (feature gate stripped to a constant `[]` in v112_min).
-  const tokenBudgetTriggers: ReturnType<typeof findTokenBudgetPositions> = useMemo(() => [], [displayedValue]);
+  const tokenBudgetTriggers = useMemo(() => feature('TOKEN_BUDGET') ? findTokenBudgetPositions(displayedValue) : [], [displayedValue]);
   const knownChannelsVersion = useSyncExternalStore(subscribeKnownChannels, getKnownChannelsVersion);
   const slackChannelTriggers = useMemo(() => hasSlackMcpServer(store.getState().mcp.clients) ? findSlackChannelPositions(displayedValue) : [],
   // eslint-disable-next-line react-hooks/exhaustive-deps -- store is a stable ref
@@ -774,9 +725,20 @@ function PromptInput({
       }
     }
 
-    // v112: rainbow highlight for /buddy removed (buddy feature dropped).
+    // Rainbow for /buddy
+    for (const trigger of buddyTriggers) {
+      for (let i = trigger.start; i < trigger.end; i++) {
+        highlights.push({
+          start: i,
+          end: i + 1,
+          color: getRainbowColor(i - trigger.start),
+          shimmerColor: getRainbowColor(i - trigger.start, true),
+          priority: 10
+        });
+      }
+    }
     return highlights;
-  }, [isSearchingHistory, historyQuery, historyMatch, historyFailedMatch, cursorOffset, btwTriggers, imageRefPositions, memberMentionHighlights, slashCommandTriggers, tokenBudgetTriggers, slackChannelTriggers, displayedValue, voiceInterimRange, thinkTriggers, ultraplanTriggers, ultrareviewTriggers]);
+  }, [isSearchingHistory, historyQuery, historyMatch, historyFailedMatch, cursorOffset, btwTriggers, imageRefPositions, memberMentionHighlights, slashCommandTriggers, tokenBudgetTriggers, slackChannelTriggers, displayedValue, voiceInterimRange, thinkTriggers, ultraplanTriggers, ultrareviewTriggers, buddyTriggers]);
   const {
     addNotification,
     removeNotification
@@ -1141,8 +1103,6 @@ function PromptInput({
       resetHistory
     });
   }, [promptSuggestionState, speculation, speculationSessionTimeSavedMs, teamContext, store, footerItems, suggestionsState.suggestions, onSubmitProp, onAgentSubmit, clearBuffer, resetHistory, logOutcomeAtSubmission, setAppState, markAccepted, pastedContents, removeNotification]);
-  // v112: keep onSubmitRef pointed at the latest onSubmit for insertTextRef.submit.
-  onSubmitRef.current = onSubmit;
   const {
     suggestions,
     selectedSuggestion,
@@ -1162,9 +1122,7 @@ function PromptInput({
     suggestionsState,
     suppressSuggestions: isSearchingHistory || historyIndex > 0,
     markAccepted,
-    onModeChange,
-    // v112: session env vars piped through for command suggestion expansion.
-    sessionEnvVars
+    onModeChange
   });
 
   // Track if prompt suggestion should be shown (computed later with terminal width).
@@ -1737,21 +1695,36 @@ function PromptInput({
     isActive: helpOpen
   });
 
-  // v112: Quick Open / Global Search / History Picker keybindings are still
-  //   registered to preserve handler-registry slots, but with empty handlers
-  //   and `isActive: false`. The feature() gates collapsed at build time.
-  const quickSearchActive = false;
-  useKeybinding('app:quickOpen', () => {}, {
+  // Quick Open / Global Search. Hook calls are unconditional (Rules of Hooks);
+  // the handler body is feature()-gated so the setState calls and component
+  // references get tree-shaken in external builds.
+  const quickSearchActive = feature('QUICK_SEARCH') ? !isModalOverlayActive : false;
+  useKeybinding('app:quickOpen', () => {
+    if (feature('QUICK_SEARCH')) {
+      setShowQuickOpen(true);
+      setHelpOpen(false);
+    }
+  }, {
     context: 'Global',
     isActive: quickSearchActive
   });
-  useKeybinding('app:globalSearch', () => {}, {
+  useKeybinding('app:globalSearch', () => {
+    if (feature('QUICK_SEARCH')) {
+      setShowGlobalSearch(true);
+      setHelpOpen(false);
+    }
+  }, {
     context: 'Global',
     isActive: quickSearchActive
   });
-  useKeybinding('history:search', () => {}, {
+  useKeybinding('history:search', () => {
+    if (feature('HISTORY_PICKER')) {
+      setShowHistoryPicker(true);
+      setHelpOpen(false);
+    }
+  }, {
     context: 'Global',
-    isActive: false
+    isActive: feature('HISTORY_PICKER') ? !isModalOverlayActive : false
   });
 
   // Handle Ctrl+C to abort speculation when idle (not loading)
@@ -1812,7 +1785,12 @@ function PromptInput({
         return;
       }
       switch (footerItemSelected) {
-        // v112: 'companion' case removed (buddy feature dropped).
+        case 'companion':
+          if (feature('BUDDY')) {
+            selectFooterItem(null);
+            void onSubmit('/buddy');
+          }
+          break;
         case 'tasks':
           if (isTeammateMode) {
             // Enter switches to the selected agent's view
@@ -2002,15 +1980,15 @@ function PromptInput({
       timeoutMs: 12_000
     });
   }, [effortNotificationText, addNotification, removeNotification]);
-  // v112: useBuddyNotification + companionSpeaking + companionReservedColumns
-  // were all stripped — companion sprite/buddy feature is gone.
+  useBuddyNotification();
+  const companionSpeaking = feature('BUDDY') ?
+  // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
+  useAppState(s => s.companionReaction !== undefined) : false;
   const {
     columns,
     rows
   } = useTerminalSize();
-  // v112: textInputColumns is just `columns - 3` (no companion reservation).
-  // The literal `u_A = 3` appears as a constant in v112_min.
-  const textInputColumns = columns - 3;
+  const textInputColumns = columns - 3 - companionReservedColumns(columns, companionSpeaking);
 
   // POC: click-to-position-cursor. Mouse tracking is only enabled inside
   // <AlternateScreen>, so this is dormant in the normal main-screen REPL.
@@ -2151,8 +2129,29 @@ function PromptInput({
       setShowTeamsDialog(false);
     }} />;
   }
-  // v112: QUICK_SEARCH / HISTORY_PICKER early-return dialogs removed
-  //   (feature gates dead, dialogs never instantiated from PromptInput).
+  if (feature('QUICK_SEARCH')) {
+    const insertWithSpacing = (text: string) => {
+      const cursorChar = input[cursorOffset - 1] ?? ' ';
+      insertTextAtCursor(/\s/.test(cursorChar) ? text : ` ${text}`);
+    };
+    if (showQuickOpen) {
+      return <QuickOpenDialog onDone={() => setShowQuickOpen(false)} onInsert={insertWithSpacing} />;
+    }
+    if (showGlobalSearch) {
+      return <GlobalSearchDialog onDone={() => setShowGlobalSearch(false)} onInsert={insertWithSpacing} />;
+    }
+  }
+  if (feature('HISTORY_PICKER') && showHistoryPicker) {
+    return <HistorySearchDialog initialQuery={input} onSelect={entry => {
+      const entryMode = getModeFromInput(entry.display);
+      const value = getValueFromInput(entry.display);
+      onModeChange(entryMode);
+      trackAndSetInput(value);
+      setPastedContents(entry.pastedContents);
+      setCursorOffset(value.length);
+      setShowHistoryPicker(false);
+    }} onCancel={() => setShowHistoryPicker(false)} />;
+  }
 
   // Show loop mode menu when requested (ant-only, eliminated from external builds)
   if (modelPickerElement) {
@@ -2188,9 +2187,6 @@ function PromptInput({
       show,
       key
     }),
-    // v112: TextInput now exposes a left-arrow-on-empty hook so PromptInput
-    // can forward navigation to the parent (e.g. exit teammate view).
-    onLeftArrowOnEmpty,
     onImagePaste,
     columns: textInputColumns,
     maxVisibleLines,
@@ -2275,10 +2271,7 @@ function PromptInput({
             {textInputElement}
           </Box>
         </Box>}
-      {/* v112: autoUpdaterResult/onAutoUpdaterResult props dropped from
-            PromptInputFooter — autoUpdater UI is now owned by an outer
-            container, not by PromptInput. */}
-      <PromptInputFooter apiKeyStatus={apiKeyStatus} debug={debug} exitMessage={exitMessage} vimMode={isVimModeEnabled() ? vimMode : undefined} mode={mode} isAutoUpdating={isAutoUpdating} verbose={verbose} onChangeIsUpdating={setIsAutoUpdating} suggestions={suggestions} selectedSuggestion={selectedSuggestion} maxColumnWidth={maxColumnWidth} toolPermissionContext={effectiveToolPermissionContext} helpOpen={helpOpen} suppressHint={input.length > 0} isLoading={isLoading} tasksSelected={tasksSelected} teamsSelected={teamsSelected} bridgeSelected={bridgeSelected} tmuxSelected={tmuxSelected} teammateFooterIndex={teammateFooterIndex} ideSelection={ideSelection} mcpClients={mcpClients} isPasting={isPasting} isInputWrapped={isInputWrapped} messages={messages} isSearching={isSearchingHistory} historyQuery={historyQuery} setHistoryQuery={setHistoryQuery} historyFailedMatch={historyFailedMatch} onOpenTasksDialog={isFullscreenEnvEnabled() ? handleOpenTasksDialog : undefined} />
+      <PromptInputFooter apiKeyStatus={apiKeyStatus} debug={debug} exitMessage={exitMessage} vimMode={isVimModeEnabled() ? vimMode : undefined} mode={mode} autoUpdaterResult={autoUpdaterResult} isAutoUpdating={isAutoUpdating} verbose={verbose} onAutoUpdaterResult={onAutoUpdaterResult} onChangeIsUpdating={setIsAutoUpdating} suggestions={suggestions} selectedSuggestion={selectedSuggestion} maxColumnWidth={maxColumnWidth} toolPermissionContext={effectiveToolPermissionContext} helpOpen={helpOpen} suppressHint={input.length > 0} isLoading={isLoading} tasksSelected={tasksSelected} teamsSelected={teamsSelected} bridgeSelected={bridgeSelected} tmuxSelected={tmuxSelected} teammateFooterIndex={teammateFooterIndex} ideSelection={ideSelection} mcpClients={mcpClients} isPasting={isPasting} isInputWrapped={isInputWrapped} messages={messages} isSearching={isSearchingHistory} historyQuery={historyQuery} setHistoryQuery={setHistoryQuery} historyFailedMatch={historyFailedMatch} onOpenTasksDialog={isFullscreenEnvEnabled() ? handleOpenTasksDialog : undefined} />
       {isFullscreenEnvEnabled() ? null : autoModeOptInDialog}
       {isFullscreenEnvEnabled() ?
     // position=absolute takes zero layout height so the spinner
@@ -2298,8 +2291,7 @@ function PromptInput({
     // initial-check effect from re-firing on every slash-completion
     // toggle (PR#22413).
     <Box position="absolute" marginTop={briefOwnsGap ? -2 : -1} height={suggestions.length === 0 && !showAutoModeOptIn ? 1 : 0} width="100%" paddingLeft={2} paddingRight={1} flexDirection="column" justifyContent="flex-end" overflow="hidden">
-          {/* v112: autoUpdater plumbing removed from Notifications too. */}
-          <Notifications apiKeyStatus={apiKeyStatus} debug={debug} isAutoUpdating={isAutoUpdating} verbose={verbose} messages={messages} onChangeIsUpdating={setIsAutoUpdating} ideSelection={ideSelection} mcpClients={mcpClients} isInputWrapped={isInputWrapped} />
+          <Notifications apiKeyStatus={apiKeyStatus} autoUpdaterResult={autoUpdaterResult} debug={debug} isAutoUpdating={isAutoUpdating} verbose={verbose} messages={messages} onAutoUpdaterResult={onAutoUpdaterResult} onChangeIsUpdating={setIsAutoUpdating} ideSelection={ideSelection} mcpClients={mcpClients} isInputWrapped={isInputWrapped} />
         </Box> : null}
     </Box>;
 }

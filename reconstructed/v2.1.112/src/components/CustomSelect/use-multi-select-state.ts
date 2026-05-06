@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react'
 import { isDeepStrictEqual } from 'util'
 import { useRegisterOverlay } from '../../context/overlayContext.js'
 import type { InputEvent } from '../../ink/events/input-event.js'
+// eslint-disable-next-line custom-rules/prefer-use-keybindings -- raw space/arrow multiselect input
+import { useInput } from '../../ink.js'
 import {
   normalizeFullWidthDigits,
   normalizeFullWidthSpace,
@@ -146,13 +148,6 @@ export type MultiSelectState<T> = {
    * Callback for canceling the select.
    */
   onCancel: () => void
-
-  /**
-   * Keyboard handler for the multi-select component.
-   * v112 refactored from useInput to a returned handleKeyDown function
-   * to support Ink 5 focus management.
-   */
-  handleKeyDown: (event: InputEvent) => void
 }
 
 export function useMultiSelectState<T>({
@@ -248,14 +243,10 @@ export function useMultiSelectState<T>({
     [options, updateSelectedValues],
   )
 
-  // v112: handleKeyDown replaces the useInput hook for keyboard handling.
-  // This supports Ink 5's focus-managed event system.
-  const handleKeyDown = useCallback(
-    (event: InputEvent) => {
-      if (isDisabled) return
-
-      const key = event.key
-      const normalizedInput = normalizeFullWidthDigits(key)
+  // Handle all keyboard input
+  useInput(
+    (input, key, event: InputEvent) => {
+      const normalizedInput = normalizeFullWidthDigits(input)
       const focusedOption = options.find(
         opt => opt.value === navigation.focusedValue,
       )
@@ -263,25 +254,20 @@ export function useMultiSelectState<T>({
 
       // When in input field, only allow navigation keys
       if (isInInput) {
-        if (
-          !(
-            key === 'up' ||
-            key === 'down' ||
-            key === 'escape' ||
-            key === 'tab' ||
-            key === 'return' ||
-            (event.ctrl && (key === 'n' || key === 'p' || key === 'return'))
-          )
-        ) {
-          return
-        }
+        const isAllowedKey =
+          key.upArrow ||
+          key.downArrow ||
+          key.escape ||
+          key.tab ||
+          key.return ||
+          (key.ctrl && (input === 'n' || input === 'p' || key.return))
+        if (!isAllowedKey) return
       }
 
       const lastOptionValue = options[options.length - 1]?.value
 
       // Handle Tab to move forward
-      if (key === 'tab' && !event.shift) {
-        event.preventDefault()
+      if (key.tab && !key.shift) {
         if (
           submitButtonText &&
           onSubmit &&
@@ -296,8 +282,7 @@ export function useMultiSelectState<T>({
       }
 
       // Handle Shift+Tab to move backward
-      if (key === 'tab' && event.shift) {
-        event.preventDefault()
+      if (key.tab && key.shift) {
         if (submitButtonText && onSubmit && isSubmitFocused) {
           setIsSubmitFocused(false)
           navigation.focusOption(lastOptionValue)
@@ -309,11 +294,10 @@ export function useMultiSelectState<T>({
 
       // Handle arrow down / Ctrl+N / j
       if (
-        key === 'down' ||
-        (event.ctrl && key === 'n') ||
-        (!event.ctrl && !event.shift && key === 'j')
+        key.downArrow ||
+        (key.ctrl && input === 'n') ||
+        (!key.ctrl && !key.shift && input === 'j')
       ) {
-        event.preventDefault()
         if (isSubmitFocused && onDownFromLastItem) {
           onDownFromLastItem()
         } else if (
@@ -338,11 +322,10 @@ export function useMultiSelectState<T>({
 
       // Handle arrow up / Ctrl+P / k
       if (
-        key === 'up' ||
-        (event.ctrl && key === 'p') ||
-        (!event.ctrl && !event.shift && key === 'k')
+        key.upArrow ||
+        (key.ctrl && input === 'p') ||
+        (!key.ctrl && !key.shift && input === 'k')
       ) {
-        event.preventDefault()
         if (submitButtonText && onSubmit && isSubmitFocused) {
           setIsSubmitFocused(false)
           navigation.focusOption(lastOptionValue)
@@ -358,23 +341,20 @@ export function useMultiSelectState<T>({
       }
 
       // Handle page navigation
-      if (key === 'pagedown') {
-        event.preventDefault()
+      if (key.pageDown) {
         navigation.focusNextPage()
         return
       }
 
-      if (key === 'pageup') {
-        event.preventDefault()
+      if (key.pageUp) {
         navigation.focusPreviousPage()
         return
       }
 
       // Handle Enter or Space for selection/submit
-      if (key === 'return' || normalizeFullWidthSpace(normalizedInput) === ' ') {
-        event.preventDefault()
+      if (key.return || normalizeFullWidthSpace(input) === ' ') {
         // Ctrl+Enter from input field submits
-        if (event.ctrl && key === 'return' && isInInput && onSubmit) {
+        if (key.ctrl && key.return && isInInput && onSubmit) {
           onSubmit(selectedValues)
           return
         }
@@ -386,7 +366,7 @@ export function useMultiSelectState<T>({
         }
 
         // No submit button: Enter submits directly, Space still toggles
-        if (key === 'return' && !submitButtonText && onSubmit) {
+        if (key.return && !submitButtonText && onSubmit) {
           onSubmit(selectedValues)
           return
         }
@@ -402,8 +382,7 @@ export function useMultiSelectState<T>({
       }
 
       // Handle numeric keys (1-9) for direct selection
-      if (!hideIndexes && /^[0-9]$/.test(normalizedInput)) {
-        event.preventDefault()
+      if (!hideIndexes && /^[0-9]+$/.test(normalizedInput)) {
         const index = parseInt(normalizedInput) - 1
         if (index >= 0 && index < options.length) {
           const value = options[index]!.value
@@ -416,25 +395,12 @@ export function useMultiSelectState<T>({
       }
 
       // Handle Escape
-      if (key === 'escape') {
+      if (key.escape) {
         onCancel()
         event.stopImmediatePropagation()
       }
     },
-    [
-      isDisabled,
-      options,
-      navigation,
-      submitButtonText,
-      onSubmit,
-      isSubmitFocused,
-      onDownFromLastItem,
-      onUpFromFirstItem,
-      selectedValues,
-      updateSelectedValues,
-      onCancel,
-      hideIndexes,
-    ],
+    { isActive: !isDisabled },
   )
 
   return {
@@ -444,6 +410,5 @@ export function useMultiSelectState<T>({
     isSubmitFocused,
     updateInputValue,
     onCancel,
-    handleKeyDown,
   }
 }

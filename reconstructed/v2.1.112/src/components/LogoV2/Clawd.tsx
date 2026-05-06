@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { Box, Text } from '../../ink.js';
 import { env } from '../../utils/env.js';
@@ -71,7 +70,7 @@ const APPLE_EYES: Record<ClawdPose, string> = {
   'arms-up': ' ▗   ▖ '
 };
 export function Clawd(t0) {
-  const $ = _c(26);
+  const $ = new Array(26).fill(void 0);
   let t1;
   if ($[0] !== t0) {
     t1 = t0 === undefined ? {} : t0;
@@ -181,7 +180,7 @@ export function Clawd(t0) {
   return t12;
 }
 function AppleTerminalClawd(t0) {
-  const $ = _c(10);
+  const $ = new Array(10).fill(void 0);
   const {
     pose
   } = t0;

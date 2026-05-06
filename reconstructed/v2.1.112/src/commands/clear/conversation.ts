@@ -50,26 +50,18 @@ export async function clearConversation({
   setMessages,
   readFileState,
   discoveredSkillNames,
-  discoveredRemoteSkills,
   loadedNestedMemoryPaths,
-  sessionEnvVars,
-  memorySelector,
   getAppState,
   setAppState,
   setConversationId,
-  resultDedupState,
 }: {
   setMessages: (updater: (prev: Message[]) => Message[]) => void
   readFileState: FileStateCache
   discoveredSkillNames?: Set<string>
-  discoveredRemoteSkills?: Set<string>
   loadedNestedMemoryPaths?: Set<string>
-  sessionEnvVars?: Map<string, string>
-  memorySelector?: unknown
   getAppState?: () => AppState
   setAppState?: (f: (prev: AppState) => AppState) => void
   setConversationId?: (id: UUID) => void
-  resultDedupState?: { seen: Set<string>; counter: number }
 }): Promise<void> {
   // Execute SessionEnd hooks before clearing (bounded by
   // CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS, default 1.5s)
@@ -116,6 +108,14 @@ export async function clearConversation({
 
   setMessages(() => [])
 
+  // Clear context-blocked flag so proactive ticks resume after /clear
+  if (feature('PROACTIVE') || feature('KAIROS')) {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const { setContextBlocked } = require('../../proactive/index.js')
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    setContextBlocked(false)
+  }
+
   // Force logo re-render by updating conversationId
   if (setConversationId) {
     setConversationId(randomUUID())
@@ -129,14 +129,7 @@ export async function clearConversation({
   setCwd(getOriginalCwd())
   readFileState.clear()
   discoveredSkillNames?.clear()
-  discoveredRemoteSkills?.clear()
   loadedNestedMemoryPaths?.clear()
-  sessionEnvVars?.clear()
-  // TODO(lift): memorySelector cleanup at byte ~10115200
-  if (resultDedupState) {
-    resultDedupState.seen.clear()
-    resultDedupState.counter = 0
-  }
 
   // Clean out necessary items from App State
   if (setAppState) {
@@ -179,7 +172,6 @@ export async function clearConversation({
         // Clear standalone agent context (name/color set by /rename, /color)
         // so the new session doesn't display the old session's identity badge
         standaloneAgentContext: undefined,
-        cacheBreakerPhrase: undefined,
         fileHistory: {
           snapshots: [],
           trackedFiles: new Set(),
@@ -193,7 +185,6 @@ export async function clearConversation({
           tools: [],
           commands: [],
           resources: {},
-          resourceTemplates: {},
           pluginReconnectKey: prev.mcp.pluginReconnectKey,
         },
       }
@@ -236,7 +227,15 @@ export async function clearConversation({
   // knows what the new post-clear session was in. clearSessionMetadata
   // wiped both from the cache, but the process is still in the same mode
   // and (if applicable) the same worktree directory.
-  // TODO(lift): COORDINATOR_MODE saveMode at byte ~10116800
+  if (true) {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const { saveMode } = require('../../utils/sessionStorage.js')
+    const {
+      isCoordinatorMode,
+    } = require('../../coordinator/coordinatorMode.js')
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    saveMode(isCoordinatorMode() ? 'coordinator' : 'normal')
+  }
   const worktreeSession = getCurrentWorktreeSession()
   if (worktreeSession) {
     saveWorktreeState(worktreeSession)

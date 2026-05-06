@@ -16,7 +16,9 @@ import {
 
 /**
  * Build a regex that matches `git <subcmd>` while tolerating git's global
- * options between `git` and the subcommand.
+ * options between `git` and the subcommand (e.g. `-c key=val`, `-C path`,
+ * `--git-dir=path`). Common when the model retries with
+ * `git -c commit.gpgsign=false commit` after a signing failure.
  */
 function gitCmdRe(subcmd: string, suffix = ''): RegExp {
   return new RegExp(
@@ -24,17 +26,11 @@ function gitCmdRe(subcmd: string, suffix = ''): RegExp {
   )
 }
 
-// v112: these constants are module-level (init block), same regex values.
 const GIT_COMMIT_RE = gitCmdRe('commit')
 const GIT_PUSH_RE = gitCmdRe('push')
 const GIT_CHERRY_PICK_RE = gitCmdRe('cherry-pick')
 const GIT_MERGE_RE = gitCmdRe('merge', '(?!-)')
 const GIT_REBASE_RE = gitCmdRe('rebase')
-
-// v112 new: regex to detect `gh pr checkout <number>` for branch-switch tracking.
-// RNz = /\bgh\s+pr\s+checkout\b[^&|;]*\s(\d+)(?=\s|$|[&|;])/
-const GH_PR_CHECKOUT_RE =
-  /\bgh\s+pr\s+checkout\b[^&|;]*\s(\d+)(?=\s|$|[&|;])/
 
 export type CommitKind = 'committed' | 'amended' | 'cherry-picked'
 export type BranchAction = 'merged' | 'rebased'
@@ -57,6 +53,7 @@ const GH_PR_ACTIONS: readonly { re: RegExp; action: PrAction; op: string }[] = [
 
 /**
  * Parse PR info from a GitHub PR URL.
+ * Returns { prNumber, prUrl, prRepository } or null if not a valid PR URL.
  */
 function parsePrUrl(
   url: string,
@@ -80,12 +77,18 @@ function findPrInStdout(stdout: string): ReturnType<typeof parsePrUrl> {
 
 // Exported for testing purposes
 export function parseGitCommitId(stdout: string): string | undefined {
+  // git commit output: [branch abc1234] message
+  // or for root commit: [branch (root-commit) abc1234] message
   const match = stdout.match(/\[[\w./-]+(?: \(root-commit\))? ([0-9a-f]+)\]/)
   return match?.[1]
 }
 
 /**
- * Parse branch name from git push output.
+ * Parse branch name from git push output. Push writes progress to stderr but
+ * the ref update line ("abc..def  branch -> branch", "* [new branch]
+ * branch -> branch", or " + abc...def  branch -> branch (forced update)") is
+ * the signal. Works on either stdout or stderr. Git prefixes each ref line
+ * with a status flag (space, +, -, *, !, =); the char class tolerates any.
  */
 function parseGitPushBranch(output: string): string | undefined {
   const match = output.match(
@@ -105,6 +108,7 @@ function parsePrNumberFromText(stdout: string): number | undefined {
 
 /**
  * Extract target ref from `git merge <ref>` / `git rebase <ref>` command.
+ * Skips flags and keywords — first non-flag argument is the ref.
  */
 function parseRefFromCommand(
   command: string,
@@ -121,28 +125,12 @@ function parseRefFromCommand(
 }
 
 /**
- * v112 new: link a session to a PR by checked-out PR number.
- * Called when `gh pr checkout <number>` is detected.
- * TODO(lift): Rd4 at byte ~6932613 — links session to PR via sessionStorage.
- */
-async function _linkSessionToCheckedOutPr_V112(prNumber: number): Promise<void> {
-  // TODO(lift): Rd4 implementation at byte ~6932613
-  void prNumber
-}
-
-/**
- * v112 new: track push/branch activity via an unresolved helper.
- * Called on git push and on push without a PR action.
- * TODO(lift): kd4 at byte ~6933107 — likely records branch push telemetry.
- */
-async function _trackPushBranchTelemetry_V112(branch?: string): Promise<void> {
-  // TODO(lift): kd4 implementation at byte ~6933107
-  void branch
-}
-
-/**
  * Scan bash command + output for git operations worth surfacing in the
- * collapsed tool-use summary.
+ * collapsed tool-use summary ("committed a1b2c3, created PR #42, ran 3 bash
+ * commands"). Checks the command to avoid matching SHAs/URLs that merely
+ * appear in unrelated output (e.g. `git log`).
+ *
+ * Pass stdout+stderr concatenated — git push writes the ref update to stderr.
  */
 export function detectGitOperation(
   command: string,
@@ -154,6 +142,7 @@ export function detectGitOperation(
   pr?: { number: number; url?: string; action: PrAction }
 } {
   const result: ReturnType<typeof detectGitOperation> = {}
+  // commit and cherry-pick both produce "[branch sha] msg" output
   const isCherryPick = GIT_CHERRY_PICK_RE.test(command)
   if (GIT_COMMIT_RE.test(command) || isCherryPick) {
     const sha = parseGitCommitId(output)
@@ -197,12 +186,6 @@ export function detectGitOperation(
 }
 
 // Exported for testing purposes
-// v112 changes (jac=0.571):
-// - New: gh pr checkout detection fires Rd4(_linkSessionToCheckedOutPr_V112).
-// - New: git push fires kd4 when there is no matching PR action.
-// - PR creation auto-link (linkSessionToPR) is now factored into Rd4.
-// - glab mr create still tracked.
-// - curl POST PR detection unchanged.
 export function trackGitOperations(
   command: string,
   exitCode: number,
@@ -226,14 +209,12 @@ export function trackGitOperations(
     }
     getCommitCounter()?.add(1)
   }
-
   if (GIT_PUSH_RE.test(command)) {
     logEvent('tengu_git_operation', {
       operation:
         'push' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
     })
   }
-
   const prHit = GH_PR_ACTIONS.find(a => a.re.test(command))
   if (prHit) {
     logEvent('tengu_git_operation', {
@@ -241,27 +222,31 @@ export function trackGitOperations(
         prHit.op as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
     })
   }
-
   if (prHit?.action === 'created') {
     getPrCounter()?.add(1)
-    // v112: PR URL auto-link is now handled via Rd4 (factored out of inline).
+    // Auto-link session to PR if we can extract PR URL from stdout
     if (stdout) {
       const prInfo = findPrInStdout(stdout)
       if (prInfo) {
-        void _linkSessionToCheckedOutPr_V112(prInfo.prNumber)
+        // Import is done dynamically to avoid circular dependency
+        void import('../../utils/sessionStorage.js').then(
+          ({ linkSessionToPR }) => {
+            void import('../../bootstrap/state.js').then(({ getSessionId }) => {
+              const sessionId = getSessionId()
+              if (sessionId) {
+                void linkSessionToPR(
+                  sessionId as `${string}-${string}-${string}-${string}-${string}`,
+                  prInfo.prNumber,
+                  prInfo.prUrl,
+                  prInfo.prRepository,
+                )
+              }
+            })
+          },
+        )
       }
     }
   }
-
-  // v112 new: detect `gh pr checkout <number>` and call kd4 with PR number.
-  const checkoutMatch = command.match(GH_PR_CHECKOUT_RE)
-  if (checkoutMatch?.[1]) {
-    void _trackPushBranchTelemetry_V112(checkoutMatch[1]).catch(() => {})
-  } else if (GIT_PUSH_RE.test(command) && !prHit) {
-    // v112 new: on plain push (no PR action), call kd4 for branch telemetry.
-    void _trackPushBranchTelemetry_V112().catch(() => {})
-  }
-
   if (command.match(/\bglab\s+mr\s+create\b/)) {
     logEvent('tengu_git_operation', {
       operation:
@@ -269,12 +254,16 @@ export function trackGitOperations(
     })
     getPrCounter()?.add(1)
   }
-
+  // Detect PR creation via curl to REST APIs (Bitbucket, GitHub API, GitLab API)
+  // Check for POST method and PR endpoint separately to handle any argument order
+  // Also detect implicit POST when -d is used (curl defaults to POST with data)
   const isCurlPost =
     command.match(/\bcurl\b/) &&
     (command.match(/-X\s*POST\b/i) ||
       command.match(/--request\s*=?\s*POST\b/i) ||
       command.match(/\s-d\s/))
+  // Match PR endpoints in URLs, but not sub-resources like /pulls/123/comments
+  // Require https?:// prefix to avoid matching text in POST body or other params
   const isPrEndpoint = command.match(
     /https?:\/\/[^\s'"]*\/(pulls|pull-requests|merge[-_]requests)(?!\/\d)/i,
   )

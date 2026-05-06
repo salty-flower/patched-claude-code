@@ -49,88 +49,6 @@ export type ValidationWarning = {
 }
 
 /**
- * Parse a plugin command string into structured args.
- * Handles install with @marketplace syntax, URLs, and bare plugin names.
- */
-export function parsePluginCommand(input: string):
-  | { type: 'menu' }
-  | { type: 'help' }
-  | { type: 'install' }
-  | { type: 'install'; plugin: string; marketplace?: string }
-  | { type: 'install'; marketplace: string }
-  | { type: 'manage' }
-  | { type: 'uninstall'; plugin?: string }
-  | { type: 'enable'; plugin?: string }
-  | { type: 'disable'; plugin?: string }
-  | { type: 'validate'; path?: string }
-  | { type: 'marketplace' }
-  | { type: 'marketplace'; action: 'add' | 'remove' | 'update'; target: string }
-  | { type: 'marketplace'; action: 'list' } {
-  if (!input) return { type: 'menu' }
-  const tokens = input.trim().split(/\s+/)
-  switch (tokens[0]?.toLowerCase()) {
-    case 'help':
-    case '--help':
-    case '-h':
-      return { type: 'help' }
-    case 'install':
-    case 'i': {
-      const arg = tokens[1]
-      if (!arg) return { type: 'install' }
-      // v112: simplified @ splitting (split on first @ rather than lastIndexOf)
-      if (arg.includes('@')) {
-        const [plugin, marketplace] = arg.split('@')
-        return { type: 'install', plugin, marketplace }
-      }
-      if (
-        !arg.startsWith('@') &&
-        (arg.startsWith('http://') ||
-          arg.startsWith('https://') ||
-          arg.startsWith('file://') ||
-          arg.includes('/') ||
-          arg.includes('\\'))
-      ) {
-        return { type: 'install', marketplace: arg }
-      }
-      return { type: 'install', plugin: arg }
-    }
-    case 'manage':
-      return { type: 'manage' }
-    case 'uninstall':
-      return { type: 'uninstall', plugin: tokens[1] }
-    case 'enable':
-      return { type: 'enable', plugin: tokens[1] }
-    case 'disable':
-      return { type: 'disable', plugin: tokens[1] }
-    case 'validate':
-      return {
-        type: 'validate',
-        path: tokens.slice(1).join(' ').trim() || undefined,
-      }
-    case 'marketplace':
-    case 'market': {
-      const sub = tokens[1]?.toLowerCase()
-      const rest = tokens.slice(2).join(' ')
-      switch (sub) {
-        case 'add':
-          return { type: 'marketplace', action: 'add', target: rest }
-        case 'remove':
-        case 'rm':
-          return { type: 'marketplace', action: 'remove', target: rest }
-        case 'update':
-          return { type: 'marketplace', action: 'update', target: rest }
-        case 'list':
-          return { type: 'marketplace', action: 'list' }
-        default:
-          return { type: 'marketplace' }
-      }
-    }
-    default:
-      return { type: 'menu' }
-  }
-}
-
-/**
  * Detect whether a file is a plugin manifest or marketplace manifest
  */
 function detectManifestType(
@@ -553,27 +471,15 @@ export async function validateMarketplaceManifest(
           if (typeof parsed.version === 'string') {
             manifestVersion = parsed.version
           }
-        } catch (e: unknown) {
-          const code = getErrnoCode(e)
-          if (code === 'ENOENT' || code === 'ENOTDIR') {
-            // Missing/unreadable plugin.json is someone else's error to report
-            continue
-          }
-          warnings.push({
-            path: `plugins[${i}].source`,
-            message: `Could not read ${path.relative(
-              marketplaceRoot,
-              pluginJsonPath,
-            )} for version cross-check: ${errorMessage(e)}`,
-          })
+        } catch {
+          // Missing/unreadable plugin.json is someone else's error to report
           continue
         }
         if (manifestVersion && manifestVersion !== entry.version) {
-          const relPath = path.relative(marketplaceRoot, pluginJsonPath)
           warnings.push({
             path: `plugins[${i}].version`,
             message:
-              `Entry declares version "${entry.version}" but ${relPath} says "${manifestVersion}". ` +
+              `Entry declares version "${entry.version}" but ${entry.source}/.claude-plugin/plugin.json says "${manifestVersion}". ` +
               `At install time, plugin.json wins (calculatePluginVersion precedence) — the entry version is silently ignored. ` +
               `Update this entry to "${manifestVersion}" to match.`,
           })
@@ -599,7 +505,6 @@ export async function validateMarketplaceManifest(
     fileType: 'marketplace',
   }
 }
-
 /**
  * Validate the YAML frontmatter in a plugin component markdown file.
  *
@@ -931,15 +836,13 @@ export async function validateManifest(
     )
     const marketplaceResult = await validateMarketplaceManifest(marketplacePath)
     // Only fall through if the marketplace file was not found (ENOENT)
-    const firstErrorCode = marketplaceResult.errors[0]?.code
-    if (firstErrorCode !== 'ENOENT' && firstErrorCode !== 'ENOTDIR') {
+    if (marketplaceResult.errors[0]?.code !== 'ENOENT') {
       return marketplaceResult
     }
 
     const pluginPath = path.join(absolutePath, '.claude-plugin', 'plugin.json')
     const pluginResult = await validatePluginManifest(pluginPath)
-    const pluginFirstCode = pluginResult.errors[0]?.code
-    if (pluginFirstCode !== 'ENOENT' && pluginFirstCode !== 'ENOTDIR') {
+    if (pluginResult.errors[0]?.code !== 'ENOENT') {
       return pluginResult
     }
 

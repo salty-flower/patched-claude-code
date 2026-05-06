@@ -12,6 +12,7 @@ import {
   readTeamFile,
   unregisterTeamForSessionCleanup,
 } from '../../utils/swarm/teamHelpers.js'
+import { clearTeammateColors } from '../../utils/swarm/teammateLayoutManager.js'
 import { clearLeaderTeamName } from '../../utils/tasks.js'
 import { TEAM_DELETE_TOOL_NAME } from './constants.js'
 import { getPrompt } from './prompt.js'
@@ -28,9 +29,6 @@ export type Output = {
 
 export type Input = z.infer<InputSchema>
 
-// jac=0.973 — v112 changes vs v88:
-// - clearTeammateColors() replaced with context.teammateColors.clear()
-// - TODO(lift): context.teammateColors.clear() at byte ~9233800
 export const TeamDeleteTool: Tool<InputSchema, Output> = buildTool({
   name: TEAM_DELETE_TOOL_NAME,
   searchHint: 'disband a swarm team and clean up',
@@ -76,11 +74,16 @@ export const TeamDeleteTool: Tool<InputSchema, Output> = buildTool({
     const teamName = appState.teamContext?.teamName
 
     if (teamName) {
+      // Read team config to check for active members
       const teamFile = readTeamFile(teamName)
       if (teamFile) {
+        // Filter out the team lead - only count non-lead members
         const nonLeadMembers = teamFile.members.filter(
           m => m.name !== TEAM_LEAD_NAME,
         )
+
+        // Separate truly active members from idle/dead ones
+        // Members with isActive === false are idle (finished their turn or crashed)
         const activeMembers = nonLeadMembers.filter(m => m.isActive !== false)
 
         if (activeMembers.length > 0) {
@@ -96,12 +99,13 @@ export const TeamDeleteTool: Tool<InputSchema, Output> = buildTool({
       }
 
       await cleanupTeamDirectories(teamName)
+      // Already cleaned — don't try again on gracefulShutdown.
       unregisterTeamForSessionCleanup(teamName)
 
-      // v112: context.teammateColors.clear() instead of clearTeammateColors()
-      // TODO(lift): context.teammateColors.clear() at byte ~9233800
-      ;(context as unknown as { teammateColors: { clear: () => void } }).teammateColors.clear()
+      // Clear color assignments so new teams start fresh
+      clearTeammateColors()
 
+      // Clear leader team name so getTaskListId() falls back to session ID
       clearLeaderTeamName()
 
       logEvent('tengu_team_deleted', {
@@ -110,11 +114,12 @@ export const TeamDeleteTool: Tool<InputSchema, Output> = buildTool({
       })
     }
 
+    // Clear team context and inbox from app state
     setAppState(prev => ({
       ...prev,
       teamContext: undefined,
       inbox: {
-        messages: [],
+        messages: [], // Clear any queued messages
       },
     }))
 

@@ -6,43 +6,11 @@ const SKILL_USAGE_DEBOUNCE_MS = 60_000
 // calls. Same pattern as lastConfigStatTime / globalConfigWriteCount in config.ts.
 const lastWriteBySkill = new Map<string, number>()
 
-// TODO(lift): sn1.emit at byte ~5755266 — skill usage event emitter
-
-/**
- * Parses a slash command string to extract command name, args, and MCP flag.
- * v112: added to support "(MCP)" suffix in command names.
- */
-export function parseSlashCommand(input: string): {
-  commandName: string
-  args: string
-  isMcp: boolean
-} | null {
-  const trimmed = input.trim()
-  if (!trimmed.startsWith('/')) return null
-
-  const parts = trimmed.slice(1).split(' ')
-  if (!parts[0]) return null
-
-  let commandName = parts[0]
-  let isMcp = false
-  let argStart = 1
-
-  if (parts.length > 1 && parts[1] === '(MCP)') {
-    commandName = commandName + ' (MCP)'
-    isMcp = true
-    argStart = 2
-  }
-
-  const args = parts.slice(argStart).join(' ')
-  return { commandName, args, isMcp }
-}
-
 /**
  * Records a skill usage for ranking purposes.
  * Updates both usage count and last used timestamp.
  */
 export function recordSkillUsage(skillName: string): void {
-  // TODO(lift): sn1.emit at byte ~5755266
   const now = Date.now()
   const lastWrite = lastWriteBySkill.get(skillName)
   // The ranking algorithm uses a 7-day half-life, so sub-minute granularity

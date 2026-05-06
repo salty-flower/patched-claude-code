@@ -10,7 +10,7 @@
  * - Support for both JS and native builds
  */
 
-import { type Stats } from 'fs'
+import { constants as fsConstants, type Stats } from 'fs'
 import {
   access,
   chmod,
@@ -134,7 +134,17 @@ function getBaseDirectories() {
 async function isPossibleClaudeBinary(filePath: string): Promise<boolean> {
   try {
     const stats = await stat(filePath)
-    return stats.isFile()
+    // before download, the version lock file (located at the same filePath) will be size 0
+    // also, we allow small sizes because we want to treat small wrapper scripts as valid
+    if (!stats.isFile() || stats.size === 0) {
+      return false
+    }
+
+    // Check if file is executable. Note: On Windows, this relies on file extensions
+    // (.exe, .bat, .cmd) and ACL permissions rather than Unix permission bits,
+    // so it may not work perfectly for all executable files on Windows.
+    await access(filePath, fsConstants.X_OK)
+    return true
   } catch {
     return false
   }
@@ -153,17 +163,11 @@ async function getVersionPaths(version: string) {
 
   const installPath = join(dirs.versions, version)
 
-  // Create an empty file if it doesn't exist (use wx flag to avoid overwriting)
+  // Create an empty file if it doesn't exist
   try {
     await stat(installPath)
   } catch {
-    try {
-      await writeFile(installPath, '', { encoding: 'utf8', flag: 'wx' })
-    } catch (error) {
-      if (getErrnoCode(error) !== 'EEXIST') {
-        throw error
-      }
-    }
+    await writeFile(installPath, '', { encoding: 'utf8' })
   }
 
   return {
@@ -466,10 +470,7 @@ async function performVersionUpdate(
   await updateSymlink(executablePath, installPath)
 
   // Verify the executable was actually created/updated
-  if (
-    !(await isPossibleClaudeBinary(executablePath)) &&
-    !(await isPossibleClaudeBinary(installPath))
-  ) {
+  if (!(await isPossibleClaudeBinary(executablePath))) {
     let installPathExists = false
     try {
       await stat(installPath)
@@ -499,7 +500,6 @@ async function updateLatest(
   latestVersion: string
   lockFailed?: boolean
   lockHolderPid?: number
-  wasSkipped?: boolean
 }> {
   const startTime = Date.now()
   let version = await getLatestVersion(channelOrVersion)
@@ -526,7 +526,7 @@ async function updateLatest(
           available_version:
             version as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         })
-        return { success: true, latestVersion: version, wasSkipped: true }
+        return { success: true, latestVersion: version }
       }
       version = maxVersion
     }
@@ -548,7 +548,7 @@ async function updateLatest(
       was_force_reinstall: false,
       was_already_running: true,
     })
-    return { success: true, latestVersion: version, wasSkipped: true }
+    return { success: true, latestVersion: version }
   }
 
   // Check if this version should be skipped due to minimumVersion setting
@@ -558,7 +558,7 @@ async function updateLatest(
       target_version:
         version as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
     })
-    return { success: true, latestVersion: version, wasSkipped: true }
+    return { success: true, latestVersion: version }
   }
 
   // Track if we're actually installing or just symlinking
@@ -722,8 +722,8 @@ async function updateSymlink(
     }
   }
 
-  // For non-Windows platforms, use symlinks
-  // Ensure parent directory exists
+  // For non-Windows platforms, use symlinks as before
+  // Ensure parent directory exists (same as Windows path above)
   const parentDir = dirname(symlinkPath)
   try {
     await mkdir(parentDir, { recursive: true })
@@ -733,6 +733,39 @@ async function updateSymlink(
       new Error(`Failed to create directory ${parentDir}: ${mkdirError}`),
     )
     return false
+  }
+
+  // Check if symlink already exists and points to the correct target
+  try {
+    let symlinkExists = false
+    try {
+      await stat(symlinkPath)
+      symlinkExists = true
+    } catch {
+      // symlinkPath doesn't exist
+    }
+
+    if (symlinkExists) {
+      try {
+        const currentTarget = await readlink(symlinkPath)
+        const resolvedCurrentTarget = resolve(
+          dirname(symlinkPath),
+          currentTarget,
+        )
+        const resolvedTargetPath = resolve(targetPath)
+
+        if (resolvedCurrentTarget === resolvedTargetPath) {
+          return false
+        }
+      } catch {
+        // Path exists but is not a symlink - will remove it below
+      }
+
+      // Remove existing file/symlink before creating new one
+      await unlink(symlinkPath)
+    }
+  } catch (error) {
+    logError(new Error(`Failed to check/remove existing symlink: ${error}`))
   }
 
   // Use atomic rename to avoid race conditions. Create symlink with temporary name
@@ -813,6 +846,12 @@ export async function checkInstall(
   }
 
   // Check if claude executable exists and is valid.
+  // On non-Windows, call readlink directly and route errno — ENOENT means
+  // the executable is missing, EINVAL means it exists but isn't a symlink.
+  // This avoids an access()→readlink() TOCTOU where deletion between the
+  // two calls produces a misleading "Not a symlink" diagnostic.
+  // isPossibleClaudeBinary stats the path internally, so we don't pre-check
+  // with access() — that would be a TOCTOU between access and the stat.
   if (isWindows) {
     // On Windows it's a copied executable, not a symlink
     if (!(await isPossibleClaudeBinary(dirs.executable))) {
@@ -874,7 +913,7 @@ export async function checkInstall(
   if (!isInCurrentPath) {
     if (isWindows) {
       // Windows-specific PATH instructions
-      const windowsBinPath = localBinDir.replaceAll('/', '\\')
+      const windowsBinPath = localBinDir.replace(/\//g, '\\')
       messages.push({
         message: `Native installation exists but ${windowsBinPath} is not in your PATH. Add it by opening: System Properties → Environment Variables → Edit User PATH → New → Add the path above. Then restart your terminal.`,
         userActionRequired: true,
@@ -905,7 +944,6 @@ type InstallLatestResult = {
   wasUpdated: boolean
   lockFailed?: boolean
   lockHolderPid?: number
-  wasSkipped?: boolean
 }
 
 // In-process singleflight guard. NativeAutoUpdater remounts whenever the
@@ -972,9 +1010,8 @@ async function installLatestImpl(
 
   return {
     latestVersion: updateResult.latestVersion,
-    wasUpdated: updateResult.success && !updateResult.wasSkipped,
+    wasUpdated: updateResult.success,
     lockFailed: false,
-    wasSkipped: updateResult.wasSkipped,
   }
 }
 
@@ -1242,7 +1279,6 @@ export async function cleanupOldVersions(): Promise<void> {
     path: string
     resolvedPath: string
     mtime: Date
-    size: number
   }
   const versionFiles: VersionInfo[] = []
   let tempFilesCleanedCount = 0
@@ -1285,7 +1321,6 @@ export async function cleanupOldVersions(): Promise<void> {
         path: entryPath,
         resolvedPath: resolve(entryPath),
         mtime: stats.mtime,
-        size: stats.size,
       })
     } catch {
       // Skip files we can't stat
@@ -1316,16 +1351,6 @@ export async function cleanupOldVersions(): Promise<void> {
     const currentSymlinkVersion = await getVersionFromSymlink(dirs.executable)
     if (currentSymlinkVersion) {
       protectedVersions.add(currentSymlinkVersion)
-    } else if (getPlatform().startsWith('win32')) {
-      // On Windows, fallback to size-matching for symlink resolution
-      try {
-        const executableStats = await stat(dirs.executable)
-        for (const v of versionFiles) {
-          if (v.size === executableStats.size) {
-            protectedVersions.add(v.resolvedPath)
-          }
-        }
-      } catch {}
     }
 
     // Protect versions with active locks (running in other processes)

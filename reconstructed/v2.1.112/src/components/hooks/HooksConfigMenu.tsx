@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 /**
  * HooksConfigMenu is a read-only browser for configured hooks.
  *
@@ -49,7 +48,7 @@ type ModeState = {
   hook: IndividualHookConfig;
 };
 export function HooksConfigMenu(t0) {
-  const $ = _c(100);
+  const $ = new Array(100).fill(void 0);
   const {
     toolNames,
     onExit

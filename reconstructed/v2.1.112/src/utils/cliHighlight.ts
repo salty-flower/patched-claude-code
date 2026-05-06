@@ -12,37 +12,43 @@ export type CliHighlight = {
   supportsLanguage: typeof import('cli-highlight').supportsLanguage
 }
 
-// NOTE(lift): v112 region.json shows heavy attrition.
-// v88 decls [6290858,6292772], [6292805,6293036], [6293036,6293073], [6293183,6293195]
-// all have NO v112 match. Only decl [6293073,6293183] (getLanguageName) → jac=1,cos=0.975
-// matches v112 at [7938085,7938195].
-//
-// The v112_min fragment shows:
-//   function Aaz(q){let K=Bp8(q);if(K)return v_K(K);let _=mp8(q);if(_)return _.join(" ");return q.type??"unknown"}
-//
-// This is a NEW function — not `getLanguageName`. The function resolves a language
-// name from a token, not a file path. The module-level promise/cache and `loadCliHighlight`
-// were replaced with a simpler token-based lookup. The shared-promise pattern is gone.
+// One promise shared by Fallback.tsx, markdown.ts, events.ts, getLanguageName.
+// The highlight.js import piggybacks: cli-highlight has already pulled it into
+// the module cache, so the second import() is a cache hit — no extra bytes
+// faulted in.
+let cliHighlightPromise: Promise<CliHighlight | null> | undefined
 
-// TODO(lift): Aaz at v112 byte ~7938085 — `getLanguageName` replacement.
-// Takes a token object (with .type) and resolves language via Bp8 (highlight.js lookup?),
-// mp8 (language alias list?), falling back to q.type. Signature changed from
-// `(file_path: string) => Promise<string>` to a synchronous token resolver.
+let loadedGetLanguage: typeof import('highlight.js').getLanguage | undefined
 
-/**
- * v112: getLanguageName now takes a token object and resolves synchronously.
- * The async file-path-based version and the shared cli-highlight promise were removed.
- *
- * @param token - A syntax token with a `type` field and optionally other language metadata.
- * @returns The resolved language name string.
- */
-export function getLanguageName(token: { type?: string; [key: string]: unknown }): string {
-  // TODO(lift): Bp8 at byte ~7938085 — first lookup (highlight.js language registry by token)
-  // TODO(lift): v_K at byte ~7938085 — name resolver for highlight.js language object
-  // TODO(lift): mp8 at byte ~7938085 — second lookup (alias list or language map)
-  return token.type ?? 'unknown'
+async function loadCliHighlight(): Promise<CliHighlight | null> {
+  try {
+    const cliHighlight = await import('cli-highlight')
+    // cache hit — cli-highlight already loaded highlight.js
+    const highlightJs = await import('highlight.js')
+    loadedGetLanguage = highlightJs.getLanguage
+    return {
+      highlight: cliHighlight.highlight,
+      supportsLanguage: cliHighlight.supportsLanguage,
+    }
+  } catch {
+    return null
+  }
 }
 
-// NOTE: The module-level shared promise, loadCliHighlight, and getCliHighlightPromise
-// functions were removed in v112. The CliHighlight type export is kept for consumers
-// that may still reference it transitively, but its internal implementation changed.
+export function getCliHighlightPromise(): Promise<CliHighlight | null> {
+  cliHighlightPromise ??= loadCliHighlight()
+  return cliHighlightPromise
+}
+
+/**
+ * eg. "foo/bar.ts" → "TypeScript". Awaits the shared cli-highlight load,
+ * then reads highlight.js's language registry. All callers are telemetry
+ * (OTel counter attributes, permission-dialog unary events) — none block
+ * on this, they fire-and-forget or the consumer already handles Promise<string>.
+ */
+export async function getLanguageName(file_path: string): Promise<string> {
+  await getCliHighlightPromise()
+  const ext = extname(file_path).slice(1)
+  if (!ext) return 'unknown'
+  return loadedGetLanguage?.(ext)?.name ?? 'unknown'
+}

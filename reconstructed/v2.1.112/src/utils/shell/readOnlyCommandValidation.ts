@@ -629,7 +629,7 @@ export const GIT_READ_ONLY_COMMANDS: Record<string, ExternalCommandConfig> = {
   'git grep': {
     safeFlags: {
       // Pattern matching modes
-      '-e': 'string', // Pattern to search for
+      '-e': 'string', // Pattern
       '-E': 'none', // Extended regexp
       '--extended-regexp': 'none',
       '-G': 'none', // Basic regexp (default)
@@ -645,23 +645,24 @@ export const GIT_READ_ONLY_COMMANDS: Record<string, ExternalCommandConfig> = {
       '--invert-match': 'none',
       '-w': 'none', // Word regexp
       '--word-regexp': 'none',
-      // Output options
-      '-c': 'none', // Count matches
+      // Output control
+      '-n': 'none', // Line number
+      '--line-number': 'none',
+      '-c': 'none', // Count
       '--count': 'none',
       '-l': 'none', // Files with matches
       '--files-with-matches': 'none',
+      '-L': 'none', // Files without match
       '--files-without-match': 'none',
-      '-n': 'none', // Line number
-      '--line-number': 'none',
-      '-o': 'none', // Only matching
-      '--only-matching': 'none',
-      '-H': 'none', // With filename
       '-h': 'none', // No filename
+      '-H': 'none', // With filename
       '--heading': 'none',
       '--break': 'none',
       '--full-name': 'none',
       '--color': 'none',
       '--no-color': 'none',
+      '-o': 'none', // Only matching
+      '--only-matching': 'none',
       // Context
       '-A': 'number', // After context
       '--after-context': 'number',
@@ -1769,10 +1770,7 @@ export function validateFlags(
         // Handle flags with directly attached numeric arguments (e.g., -A20, -B10)
         // Only apply this special handling to grep and rg commands
         if (
-          (options?.commandName === 'grep' ||
-            options?.commandName === 'egrep' ||
-            options?.commandName === 'fgrep' ||
-            options?.commandName === 'rg') &&
+          (options?.commandName === 'grep' || options?.commandName === 'rg') &&
           flag.startsWith('-') &&
           !flag.startsWith('--') &&
           flag.length > 2
@@ -1780,10 +1778,7 @@ export function validateFlags(
           const potentialFlag = flag.substring(0, 2) // e.g., '-A' from '-A20'
           const potentialValue = flag.substring(2) // e.g., '20' from '-A20'
 
-          if (
-            config.safeFlags[potentialFlag] &&
-            /^\d+$/.test(potentialValue)
-          ) {
+          if (config.safeFlags[potentialFlag] && /^\d+$/.test(potentialValue)) {
             // This is a flag with attached numeric argument
             const flagArgType = config.safeFlags[potentialFlag]
             if (flagArgType === 'number' || flagArgType === 'string') {

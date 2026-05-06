@@ -8,14 +8,9 @@ import { sideQuery } from './sideQuery.js'
 import { jsonParse } from './slowOperations.js'
 
 // Limits for transcript extraction
-// TODO(lift): FRK at byte ~11110145 — max chars for formatted transcript line
-const MAX_TRANSCRIPT_LINE_CHARS = 2000 // FRK
-// TODO(lift): UcK at byte ~11470770 — half of max messages to scan
-const MAX_MESSAGES_HALF = 50 // UcK (half)
-// TODO(lift): fQY at byte ~11096302 — threshold for messages array length check
-const MAX_MESSAGES_TO_SCAN = 100 // fQY
-// TODO(lift): QcK at byte ~11096632 — max combined metadata + transcript chars
-const MAX_COMBINED_CHARS = 2000 // QcK
+const MAX_TRANSCRIPT_CHARS = 2000 // Max chars of transcript per session
+const MAX_MESSAGES_TO_SCAN = 100 // Max messages to scan from start/end
+const MAX_SESSIONS_TO_SEARCH = 100 // Max sessions to send to the API
 
 const SESSION_SEARCH_SYSTEM_PROMPT = `Your goal is to find relevant sessions based on a user's search query.
 
@@ -86,71 +81,67 @@ function extractMessageText(message: SerializedMessage): string {
 }
 
 /**
- * v112: Formats a transcript excerpt from a log, prefixed with "$ ".
- * Lines are individually trimmed/collapsed, then joined with newlines.
- * Truncated to MAX_TRANSCRIPT_LINE_CHARS.
- *
- * Replaces the v88 extractTranscript (which joined with spaces and had
- * its own slice logic) — v112 uses a newline-separated format.
+ * Extracts a truncated transcript from session messages.
  */
-function formatTranscriptExcerpt(log: LogOption): string {
-  const messages =
-    log.messages.length <= MAX_MESSAGES_TO_SCAN
-      ? log.messages
+function extractTranscript(messages: SerializedMessage[]): string {
+  if (messages.length === 0) return ''
+
+  // Take messages from start and end to get context
+  const messagesToScan =
+    messages.length <= MAX_MESSAGES_TO_SCAN
+      ? messages
       : [
-          ...log.messages.slice(0, MAX_MESSAGES_HALF),
-          ...log.messages.slice(-MAX_MESSAGES_HALF),
+          ...messages.slice(0, MAX_MESSAGES_TO_SCAN / 2),
+          ...messages.slice(-MAX_MESSAGES_TO_SCAN / 2),
         ]
 
-  const text =
-    '$ ' +
-    messages
-      .map(extractMessageText)
-      .map(line => line.replace(/\s+/g, ' ').trim())
-      .filter(line => line !== '')
-      .join('\n')
+  const text = messagesToScan
+    .map(extractMessageText)
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 
-  return text.length > MAX_TRANSCRIPT_LINE_CHARS
-    ? text.slice(0, MAX_TRANSCRIPT_LINE_CHARS - 1) + '…'
+  return text.length > MAX_TRANSCRIPT_CHARS
+    ? text.slice(0, MAX_TRANSCRIPT_CHARS) + '…'
     : text
 }
 
 /**
- * v112: Builds a combined searchable string from all log metadata + transcript.
- * Used as the single text blob for a log entry in the session list.
- * Replaces separate logContainsQuery + extractTranscript helpers.
+ * Checks if a log contains the query term in any searchable field.
  */
-function buildLogSearchText(log: LogOption): string {
-  const transcriptText =
-    log.messages && log.messages.length > 0
-      ? formatTranscriptExcerpt(log)
-      : ''
+function logContainsQuery(log: LogOption, queryLower: string): boolean {
+  // Check title
+  const title = getLogDisplayTitle(log).toLowerCase()
+  if (title.includes(queryLower)) return true
 
-  const combined = [
-    log.customTitle,
-    log.summary,
-    log.firstPrompt,
-    log.gitBranch,
-    log.tag,
-    log.prNumber ? `PR #${log.prNumber}` : undefined,
-    (log as unknown as { prRepository?: string }).prRepository,
-    transcriptText,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .trim()
+  // Check custom title
+  if (log.customTitle?.toLowerCase().includes(queryLower)) return true
 
-  return combined.length > MAX_COMBINED_CHARS
-    ? combined.slice(0, MAX_COMBINED_CHARS)
-    : combined
+  // Check tag
+  if (log.tag?.toLowerCase().includes(queryLower)) return true
+
+  // Check branch
+  if (log.gitBranch?.toLowerCase().includes(queryLower)) return true
+
+  // Check summary
+  if (log.summary?.toLowerCase().includes(queryLower)) return true
+
+  // Check first prompt
+  if (log.firstPrompt?.toLowerCase().includes(queryLower)) return true
+
+  // Check transcript (more expensive, do last)
+  if (log.messages && log.messages.length > 0) {
+    const transcript = extractTranscript(log.messages).toLowerCase()
+    if (transcript.includes(queryLower)) return true
+  }
+
+  return false
 }
 
 /**
  * Performs an agentic search using Claude to find relevant sessions
  * based on semantic understanding of the query.
- *
- * v112: Simplified — no separate logContainsQuery pre-filter. The log
- * list is built directly and sent to the model.
  */
 export async function agenticSessionSearch(
   query: string,
@@ -163,13 +154,40 @@ export async function agenticSessionSearch(
 
   const queryLower = query.toLowerCase()
 
+  // Pre-filter: find sessions that contain the query term
+  // This ensures we search relevant sessions, not just recent ones
+  const matchingLogs = logs.filter(log => logContainsQuery(log, queryLower))
+
+  // Take up to MAX_SESSIONS_TO_SEARCH matching logs
+  // If fewer matches, fill remaining slots with recent non-matching logs for context
+  let logsToSearch: LogOption[]
+  if (matchingLogs.length >= MAX_SESSIONS_TO_SEARCH) {
+    logsToSearch = matchingLogs.slice(0, MAX_SESSIONS_TO_SEARCH)
+  } else {
+    const nonMatchingLogs = logs.filter(
+      log => !logContainsQuery(log, queryLower),
+    )
+    const remainingSlots = MAX_SESSIONS_TO_SEARCH - matchingLogs.length
+    logsToSearch = [
+      ...matchingLogs,
+      ...nonMatchingLogs.slice(0, remainingSlots),
+    ]
+  }
+
+  // Debug: log what data we have
+  logForDebugging(
+    `Agentic search: ${logsToSearch.length}/${logs.length} logs, query="${query}", ` +
+      `matching: ${matchingLogs.length}, with messages: ${count(logsToSearch, l => l.messages?.length > 0)}`,
+  )
+
   // Load full logs for lite logs to get transcript content
-  const logsWithTranscriptsPromises = logs.map(async log => {
+  const logsWithTranscriptsPromises = logsToSearch.map(async log => {
     if (isLiteLog(log)) {
       try {
         return await loadFullLog(log)
       } catch (error) {
         logError(error as Error)
+        // If loading fails, use the lite log (no transcript)
         return log
       }
     }
@@ -178,8 +196,7 @@ export async function agenticSessionSearch(
   const logsWithTranscripts = await Promise.all(logsWithTranscriptsPromises)
 
   logForDebugging(
-    `Agentic search: ${logsWithTranscripts.length}/${logs.length} logs, query="${query}", ` +
-      `with messages: ${count(logsWithTranscripts, l => l.messages?.length > 0)}`,
+    `Agentic search: loaded ${count(logsWithTranscripts, l => l.messages?.length > 0)}/${logsToSearch.length} logs with transcripts`,
   )
 
   // Build session list for the prompt with all searchable metadata
@@ -218,7 +235,7 @@ export async function agenticSessionSearch(
 
       // Transcript excerpt (if messages are available)
       if (log.messages && log.messages.length > 0) {
-        const transcript = formatTranscriptExcerpt(log)
+        const transcript = extractTranscript(log.messages)
         if (transcript) {
           parts.push(`- Transcript: ${transcript}`)
         }
@@ -235,12 +252,10 @@ Search query: "${query}"
 
 Find the sessions that are most relevant to this query.`
 
+  // Debug: log first part of the session list
   logForDebugging(
     `Agentic search prompt (first 500 chars): ${userMessage.slice(0, 500)}...`,
   )
-
-  // Suppress unused variable warning — queryLower kept for potential future use
-  void queryLower
 
   try {
     const model = getSmallFastModel()
@@ -261,6 +276,7 @@ Find the sessions that are most relevant to this query.`
       return []
     }
 
+    // Debug: log the response
     logForDebugging(`Agentic search response: ${textContent.text}`)
 
     // Parse the JSON response
@@ -273,7 +289,7 @@ Find the sessions that are most relevant to this query.`
     const result: AgenticSearchResult = jsonParse(jsonMatch[0])
     const relevantIndices = result.relevant_indices || []
 
-    // Map indices back to logs
+    // Map indices back to logs (indices are relative to logsWithTranscripts)
     const relevantLogs = relevantIndices
       .filter(index => index >= 0 && index < logsWithTranscripts.length)
       .map(index => logsWithTranscripts[index]!)

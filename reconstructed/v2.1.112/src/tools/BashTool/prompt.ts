@@ -23,7 +23,6 @@ import { GLOB_TOOL_NAME } from '../GlobTool/prompt.js'
 import { GREP_TOOL_NAME } from '../GrepTool/prompt.js'
 import { TodoWriteTool } from '../TodoWriteTool/TodoWriteTool.js'
 import { BASH_TOOL_NAME } from './toolName.js'
-import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 
 export function getDefaultTimeoutMs(): number {
   return getDefaultBashTimeoutMs()
@@ -87,7 +86,7 @@ You can call multiple tools in a single response. When multiple independent piec
 
 Git Safety Protocol:
 - NEVER update the git config
-- NEVER run destructive git commands (push --force, reset --hard, checkout ., restore ., clean -f, branch -D) unless the user explicitly requests these actions. Taking unauthorized destructive actions is unhelpful and can result in lost work, so it's best to ONLY run these commands when given direct instructions
+- NEVER run destructive git commands (push --force, reset --hard, checkout ., restore ., clean -f, branch -D) unless the user explicitly requests these actions. Taking unauthorized destructive actions is unhelpful and can result in lost work, so it's best to ONLY run these commands when given direct instructions 
 - NEVER skip hooks (--no-verify, --no-gpg-sign, etc) unless the user explicitly requests it
 - NEVER run force push to main/master, warn the user if they request it
 - CRITICAL: Always create NEW commits rather than amending, unless the user explicitly requests a git amend. When a pre-commit hook fails, the commit did NOT happen — so --amend would modify the PREVIOUS commit, which may result in destroying work or losing previous changes. Instead, after hook failure, fix the issue, re-stage, and create a NEW commit
@@ -183,6 +182,9 @@ function getSimpleSandboxSection(): string {
   const allowUnsandboxedCommands =
     SandboxManager.areUnsandboxedCommandsAllowed()
 
+  // Replace the per-UID temp dir literal (e.g. /private/tmp/claude-1001/) with
+  // "$TMPDIR" so the prompt is identical across users — avoids busting the
+  // cross-user global prompt cache. The sandbox already sets $TMPDIR at runtime.
   const claudeTempDir = getClaudeTempDir()
   const normalizeAllowOnly = (paths: string[]): string[] =>
     [...new Set(paths)].map(p => (p === claudeTempDir ? '$TMPDIR' : p))
@@ -270,12 +272,9 @@ function getSimpleSandboxSection(): string {
   ].join('\n')
 }
 
-// TODO(lift): A36() at byte ~9893871 — unknown predicate that enables a
-// "rerun prior command" hint. Likely a feature flag or setting check.
-// Returns truthy when a rerun-shorthand feature is active.
-declare function getRerunHintEnabled(): boolean
-
 export function getSimplePrompt(): string {
+  // Ant-native builds alias find/grep to embedded bfs/ugrep in Claude's shell,
+  // so we don't steer away from them (and Glob/Grep tools are removed).
   const embedded = hasEmbeddedSearchTools()
 
   const toolPreferenceItems = [
@@ -295,21 +294,12 @@ export function getSimplePrompt(): string {
     ? '`cat`, `head`, `tail`, `sed`, `awk`, or `echo`'
     : '`find`, `grep`, `cat`, `head`, `tail`, `sed`, `awk`, or `echo`'
 
-  // v112: multipleCommandsSubitems conditionally disabled by tengu_relay_chain_v1
-  // feature flag. When relay chain is active, the "When issuing multiple commands"
-  // section is suppressed (model handles parallelism differently in relay mode).
-  const multipleCommandsSection: Array<string | string[]> =
-    getFeatureValue_CACHED_MAY_BE_STALE('tengu_relay_chain_v1', false)
-      ? []
-      : [
-          'When issuing multiple commands:',
-          [
-            `If the commands are independent and can run in parallel, make multiple ${BASH_TOOL_NAME} tool calls in a single message. Example: if you need to run "git status" and "git diff", send a single message with two ${BASH_TOOL_NAME} tool calls in parallel.`,
-            `If the commands depend on each other and must run sequentially, use a single ${BASH_TOOL_NAME} call with '&&' to chain them together.`,
-            "Use ';' only when you need to run commands sequentially but don't care if earlier commands fail.",
-            'DO NOT use newlines to separate commands (newlines are ok in quoted strings).',
-          ],
-        ]
+  const multipleCommandsSubitems = [
+    `If the commands are independent and can run in parallel, make multiple ${BASH_TOOL_NAME} tool calls in a single message. Example: if you need to run "git status" and "git diff", send a single message with two ${BASH_TOOL_NAME} tool calls in parallel.`,
+    `If the commands depend on each other and must run sequentially, use a single ${BASH_TOOL_NAME} call with '&&' to chain them together.`,
+    "Use ';' only when you need to run commands sequentially but don't care if earlier commands fail.",
+    'DO NOT use newlines to separate commands (newlines are ok in quoted strings).',
+  ]
 
   const gitSubitems = [
     'Prefer to create a new commit rather than amending an existing commit.',
@@ -317,7 +307,6 @@ export function getSimplePrompt(): string {
     'Never skip hooks (--no-verify) or bypass signing (--no-gpg-sign, -c commit.gpgsign=false) unless the user has explicitly asked for it. If a hook fails, investigate and fix the underlying issue.',
   ]
 
-  // v112: sleep subitems include Monitor tool hints when feature('MONITOR_TOOL') is active
   const sleepSubitems = [
     'Do not sleep between commands that can run immediately — just run them.',
     ...(feature('MONITOR_TOOL')
@@ -330,35 +319,33 @@ export function getSimplePrompt(): string {
     'If waiting for a background task you started with `run_in_background`, you will be notified when it completes — do not poll.',
     ...(feature('MONITOR_TOOL')
       ? [
-          'Long leading `sleep` commands are blocked. To poll until a condition is met, use Monitor with an until-loop (e.g. `until <check>; do sleep 2; done`) — you get a notification when the loop exits. Do not chain shorter sleeps to work around the block.',
+          '`sleep N` as the first command with N ≥ 2 is blocked. If you need a delay (rate limiting, deliberate pacing), keep it under 2 seconds.',
         ]
       : [
           'If you must poll an external process, use a check command (e.g. `gh run view`) rather than sleeping first.',
-          'If you must sleep, keep the duration short to avoid blocking the user.',
+          'If you must sleep, keep the duration short (1-5 seconds) to avoid blocking the user.',
         ]),
   ]
   const backgroundNote = getBackgroundUsageNote()
 
-  // v112: rerun hint — A36() check enables "emit {rerun:'bN'}" instruction
-  // TODO(lift): A36() predicate at byte ~9889440 — unknown; likely a build-time
-  // or settings feature check for rerun-shorthand capability.
-  const rerunHint: string | null = null // A36() ? "To rerun a prior command exactly..." : null
-
   const instructionItems: Array<string | string[]> = [
-    ...(rerunHint !== null ? [rerunHint] : []),
     'If your command will create new directories or files, first use this tool to run `ls` to verify the parent directory exists and is the correct location.',
     'Always quote file paths that contain spaces with double quotes in your command (e.g., cd "path with spaces/file.txt")',
     'Try to maintain your current working directory throughout the session by using absolute paths and avoiding usage of `cd`. You may use `cd` if the User explicitly requests it.',
     `You may specify an optional timeout in milliseconds (up to ${getMaxTimeoutMs()}ms / ${getMaxTimeoutMs() / 60000} minutes). By default, your command will timeout after ${getDefaultTimeoutMs()}ms (${getDefaultTimeoutMs() / 60000} minutes).`,
     ...(backgroundNote !== null ? [backgroundNote] : []),
-    // v112: multipleCommandsSection spread directly (no wrapping, conditional on feature flag)
-    ...multipleCommandsSection,
+    'When issuing multiple commands:',
+    multipleCommandsSubitems,
     'For git commands:',
     gitSubitems,
     'Avoid unnecessary `sleep` commands:',
     sleepSubitems,
     ...(embedded
       ? [
+          // bfs (which backs `find`) uses Oniguruma for -regex, which picks the
+          // FIRST matching alternative (leftmost-first), unlike GNU find's
+          // POSIX leftmost-longest. This silently drops matches when a shorter
+          // alternative is a prefix of a longer one.
           "When using `find -regex` with alternation, put the longest alternative first. Example: use `'.*\\.\\(tsx\\|ts\\)'` not `'.*\\.\\(ts\\|tsx\\)'` — the second form silently skips `.tsx` files.",
         ]
       : []),
@@ -372,7 +359,7 @@ export function getSimplePrompt(): string {
     `IMPORTANT: Avoid using this tool to run ${avoidCommands} commands, unless explicitly instructed or after you have verified that a dedicated tool cannot accomplish your task. Instead, use the appropriate dedicated tool as this will provide a much better experience for the user:`,
     '',
     ...prependBullets(toolPreferenceItems),
-    `While the ${BASH_TOOL_NAME} tool can do similar things, it's better to use the built-in tools as they provide a better user experience and make it easier to review tool calls and give permission.`,
+    `While the ${BASH_TOOL_NAME} tool can do similar things, it’s better to use the built-in tools as they provide a better user experience and make it easier to review tool calls and give permission.`,
     '',
     '# Instructions',
     ...prependBullets(instructionItems),

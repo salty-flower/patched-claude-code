@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import { relative } from 'path';
 import * as React from 'react';
 import { getCwd } from 'src/utils/cwd.js';
@@ -14,7 +13,7 @@ type Props = {
   verbose: boolean;
 };
 export function NotebookEditToolUseRejectedMessage(t0) {
-  const $ = _c(20);
+  const $ = new Array(20).fill(void 0);
   const {
     notebook_path,
     cell_id,

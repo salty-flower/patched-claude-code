@@ -51,14 +51,10 @@ const PERSIST_THRESHOLD_OVERRIDE_FLAG = 'tengu_satin_quoll'
  * so a flag served as `null` leaks through. We guard with optional chaining and a
  * typeof check so any non-object flag value (null, string, number) falls through
  * to the hardcoded default instead of throwing on index or returning 0.
- *
- * v112: added `persistenceThresholdCeiling` parameter with default `DEFAULT_MAX_RESULT_SIZE_CHARS`.
- * TODO(lift): verify exact default param name at byte ~5068480
  */
 export function getPersistenceThreshold(
   toolName: string,
   declaredMaxResultSizeChars: number,
-  persistenceThresholdCeiling: number = DEFAULT_MAX_RESULT_SIZE_CHARS,
 ): number {
   // Infinity = hard opt-out. Read self-bounds via maxTokens; persisting its
   // output to a file the model reads back with Read is circular. Checked
@@ -78,7 +74,7 @@ export function getPersistenceThreshold(
   ) {
     return override
   }
-  return Math.min(declaredMaxResultSizeChars, persistenceThresholdCeiling)
+  return Math.min(declaredMaxResultSizeChars, DEFAULT_MAX_RESULT_SIZE_CHARS)
 }
 
 // Result of persisting a tool result to disk
@@ -205,9 +201,6 @@ export function buildLargeToolResultMessage(
 /**
  * Process a tool result for inclusion in a message.
  * Maps the result to the API format and persists large results to disk.
- *
- * v112: added `persistenceThresholdCeiling` parameter forwarded to getPersistenceThreshold.
- * TODO(lift): verify exact parameter name at byte ~5068636
  */
 export async function processToolResultBlock<T>(
   tool: {
@@ -217,7 +210,6 @@ export async function processToolResultBlock<T>(
       result: T,
       toolUseID: string,
     ) => ToolResultBlockParam
-    persistenceThresholdCeiling?: number
   },
   toolUseResult: T,
   toolUseID: string,
@@ -229,7 +221,7 @@ export async function processToolResultBlock<T>(
   return maybePersistLargeToolResult(
     toolResultBlock,
     tool.name,
-    getPersistenceThreshold(tool.name, tool.maxResultSizeChars, tool.persistenceThresholdCeiling),
+    getPersistenceThreshold(tool.name, tool.maxResultSizeChars),
   )
 }
 

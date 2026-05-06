@@ -224,19 +224,14 @@ function detectSessionFileType(
   return null
 }
 
-// v112: tengu_slate_reef flag changes offset/limit parameter descriptions
 const inputSchema = lazySchema(() =>
   z.strictObject({
     file_path: z.string().describe('The absolute path to the file to read'),
     offset: semanticNumber(z.number().int().nonnegative().optional()).describe(
-      getFeatureValue_CACHED_MAY_BE_STALE('tengu_slate_reef', false)
-        ? 'The line number to start reading from. Provide with `limit` to read a specific line range, or alone when the file is too large to read at once.'
-        : 'The line number to start reading from. Only provide if the file is too large to read at once',
+      'The line number to start reading from. Only provide if the file is too large to read at once',
     ),
     limit: semanticNumber(z.number().int().positive().optional()).describe(
-      getFeatureValue_CACHED_MAY_BE_STALE('tengu_slate_reef', false)
-        ? 'ONLY include with offset to read a specific slice. OMIT to read the whole file (harness truncates oversized files automatically).'
-        : 'The number of lines to read. Only provide if the file is too large to read at once.',
+      'The number of lines to read. Only provide if the file is too large to read at once.',
     ),
     pages: z
       .string()
@@ -419,35 +414,6 @@ export const FileReadTool = buildTool({
   extractSearchText() {
     return ''
   },
-  // v112: new stripForStorage method strips content from stored results to reduce memory
-  stripForStorage(data) {
-    if (typeof data !== 'object' || data === null) return data
-    switch ((data as Output).type) {
-      case 'text': {
-        const typed = data as Extract<Output, { type: 'text' }>
-        if (typed.file.content === '') return data
-        return { ...typed, file: { ...typed.file, content: '' } }
-      }
-      case 'image': {
-        const typed = data as Extract<Output, { type: 'image' }>
-        if (typed.file.base64 === '') return data
-        return { ...typed, file: { ...typed.file, base64: '' } }
-      }
-      case 'pdf': {
-        const typed = data as Extract<Output, { type: 'pdf' }>
-        if (typed.file.base64 === '') return data
-        return { ...typed, file: { ...typed.file, base64: '' } }
-      }
-      case 'notebook': {
-        const typed = data as Extract<Output, { type: 'notebook' }>
-        const { cells } = typed.file
-        if (cells.length === 0 || cells[0] == null) return data
-        return { ...typed, file: { ...typed.file, cells: Array(cells.length) } }
-      }
-      default:
-        return data
-    }
-  },
   renderToolUseErrorMessage,
   async validateInput({ file_path, pages }, toolUseContext: ToolUseContext) {
     // Validate pages parameter (pure string parsing, no I/O)
@@ -541,6 +507,7 @@ export const FileReadTool = buildTool({
     const maxTokens = fileReadingLimits?.maxTokens ?? defaults.maxTokens
 
     // Telemetry: track when callers override default read limits.
+    // Only fires on override (low volume) — event count = override frequency.
     if (fileReadingLimits !== undefined) {
       logEvent('tengu_file_read_limits_override', {
         hasMaxTokens: fileReadingLimits.maxTokens !== undefined,
@@ -549,18 +516,23 @@ export const FileReadTool = buildTool({
     }
 
     const ext = path.extname(file_path).toLowerCase().slice(1)
+    // Use expandPath for consistent path normalization with FileEditTool/FileWriteTool
+    // (especially handles whitespace trimming and Windows path separators)
     const fullFilePath = expandPath(file_path)
-
-    // v112: log re-read telemetry before dedup check
-    const priorState = readFileState.get(fullFilePath)
-    if (priorState) {
-      logEvent('tengu_file_read_reread', {
-        priorOp: priorState.offset === undefined ? 'edit_write' : 'read',
-      } as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS)
-    }
 
     // Dedup: if we've already read this exact range and the file hasn't
     // changed on disk, return a stub instead of re-sending the full content.
+    // The earlier Read tool_result is still in context — two full copies
+    // waste cache_creation tokens on every subsequent turn. BQ proxy shows
+    // ~18% of Read calls are same-file collisions (up to 2.64% of fleet
+    // cache_creation). Only applies to text/notebook reads — images/PDFs
+    // aren't cached in readFileState so won't match here.
+    //
+    // Ant soak: 1,734 dedup hits in 2h, no Read error regression.
+    // Killswitch pattern: GB can disable if the stub message confuses
+    // the model externally.
+    // 3P default: killswitch off = dedup enabled. Client-side only — no
+    // server support needed, safe for Bedrock/Vertex/Foundry.
     const dedupKillswitch = getFeatureValue_CACHED_MAY_BE_STALE(
       'tengu_read_dedup_killswitch',
       false,
@@ -568,6 +540,10 @@ export const FileReadTool = buildTool({
     const existingState = dedupKillswitch
       ? undefined
       : readFileState.get(fullFilePath)
+    // Only dedup entries that came from a prior Read (offset is always set
+    // by Read). Edit/Write store offset=undefined — their readFileState
+    // entry reflects post-edit mtime, so deduping against it would wrongly
+    // point the model at the pre-edit Read content.
     if (
       existingState &&
       !existingState.isPartialView &&
@@ -582,7 +558,7 @@ export const FileReadTool = buildTool({
             const analyticsExt = getFileExtensionForAnalytics(fullFilePath)
             logEvent('tengu_file_read_dedup', {
               ...(analyticsExt !== undefined && { ext: analyticsExt }),
-            } as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS)
+            })
             return {
               data: {
                 type: 'file_unchanged' as const,
@@ -597,15 +573,20 @@ export const FileReadTool = buildTool({
     }
 
     // Discover skills from this file's path (fire-and-forget, non-blocking)
+    // Skip in simple mode - no skills available
     const cwd = getCwd()
     if (!isEnvTruthy(process.env.CLAUDE_CODE_SIMPLE)) {
       const newSkillDirs = await discoverSkillDirsForPaths([fullFilePath], cwd)
       if (newSkillDirs.length > 0) {
+        // Store discovered dirs for attachment display
         for (const dir of newSkillDirs) {
           context.dynamicSkillDirTriggers?.add(dir)
         }
+        // Don't await - let skill loading happen in the background
         addSkillDirectories(newSkillDirs).catch(() => {})
       }
+
+      // Activate conditional skills whose path patterns match this file
       activateConditionalSkillsForPaths([fullFilePath], cwd)
     }
 
@@ -689,12 +670,14 @@ export const FileReadTool = buildTool({
       case 'notebook':
         return mapNotebookCellsToToolResult(data.file.cells, toolUseID)
       case 'pdf':
+        // Return PDF metadata only - the actual content is sent as a supplemental DocumentBlockParam
         return {
           tool_use_id: toolUseID,
           type: 'tool_result',
           content: `PDF file read: ${data.file.filePath} (${formatFileSize(data.file.originalSize)})`,
         }
       case 'parts':
+        // Extracted page images are read and sent as image blocks in mapToolResultToAPIMessage
         return {
           tool_use_id: toolUseID,
           type: 'tool_result',
@@ -704,8 +687,7 @@ export const FileReadTool = buildTool({
         return {
           tool_use_id: toolUseID,
           type: 'tool_result',
-          // v112: FILE_UNCHANGED_STUB is now returned via a separate function call
-          content: getFileUnchangedStubContent(),
+          content: FILE_UNCHANGED_STUB,
         }
       case 'text': {
         let content: string
@@ -718,6 +700,7 @@ export const FileReadTool = buildTool({
               ? CYBER_RISK_MITIGATION_REMINDER
               : '')
         } else {
+          // Determine the appropriate warning message
           content =
             data.file.totalLines === 0
               ? '<system-reminder>Warning: the file exists but the contents are empty.</system-reminder>'
@@ -734,11 +717,6 @@ export const FileReadTool = buildTool({
   },
 } satisfies ToolDef<InputSchema, Output>)
 
-// v112: stub content getter — wraps FILE_UNCHANGED_STUB (same string, but now a fn call)
-function getFileUnchangedStubContent(): string {
-  return FILE_UNCHANGED_STUB
-}
-
 function pickLineFormatInstruction(): string {
   return LINE_FORMAT_INSTRUCTION
 }
@@ -751,38 +729,20 @@ function formatFileLines(file: { content: string; startLine: number }): string {
 export const CYBER_RISK_MITIGATION_REMINDER =
   '\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n'
 
-// v112: models where cyber risk mitigation should be skipped — expanded list
-// (v88 had just claude-opus-4-6; v112 adds many more models via regex patterns)
-// TODO(lift): kDY at byte ~9619200 — regex array expanded significantly in v112.
-// v88 was: new Set(['claude-opus-4-6'])
-// v112 uses regexes: /claude-3-opus/, /claude-3-sonnet/, /claude-3-haiku/,
-//   /claude-3-5-sonnet/, /claude-3-5-haiku/, /claude-3-7-sonnet/,
-//   /claude-sonnet-4(?:$|[-@]\d{8}|[^-@\d])/, /claude-sonnet-4-5/,
-//   /claude-opus-4(?:$|[-@]\d{8}|[^-@\d])/, /claude-opus-4-1/,
-//   /claude-opus-4-5/, /claude-haiku-4-5/
-const MITIGATION_EXEMPT_MODEL_PATTERNS = [
-  /claude-3-opus/,
-  /claude-3-sonnet/,
-  /claude-3-haiku/,
-  /claude-3-5-sonnet/,
-  /claude-3-5-haiku/,
-  /claude-3-7-sonnet/,
-  /claude-sonnet-4(?:$|[-@]\d{8}|[^-@\d])/,
-  /claude-sonnet-4-5/,
-  /claude-opus-4(?:$|[-@]\d{8}|[^-@\d])/,
-  /claude-opus-4-1/,
-  /claude-opus-4-5/,
-  /claude-haiku-4-5/,
-]
+// Models where cyber risk mitigation should be skipped
+const MITIGATION_EXEMPT_MODELS = new Set(['claude-opus-4-6'])
 
 function shouldIncludeFileReadMitigation(): boolean {
   const shortName = getCanonicalName(getMainLoopModel())
-  return !MITIGATION_EXEMPT_MODEL_PATTERNS.some(p => p.test(shortName))
+  return !MITIGATION_EXEMPT_MODELS.has(shortName)
 }
 
 /**
  * Side-channel from call() to mapToolResultToToolResultBlockParam: mtime
- * of auto-memory files, keyed by the `data` object identity.
+ * of auto-memory files, keyed by the `data` object identity. Avoids
+ * adding a presentation-only field to the output schema (which flows
+ * into SDK types) and avoids sync fs in the mapper. WeakMap auto-GCs
+ * when the data object becomes unreachable after rendering.
  */
 const memoryFileMtimes = new WeakMap<object, number>()
 
@@ -838,78 +798,13 @@ function createImageResponse(
   }
 }
 
-// v112: readImage now takes an additional `mainLoopModel` parameter for
-// model-aware image processing (passed from context.options.mainLoopModel)
-async function readImage(
-  filePath: string,
-  maxTokens = getDefaultFileReadingLimits().maxTokens,
-  _abortSignal?: AbortSignal,
-  mainLoopModel?: string,
-): Promise<ImageResult> {
-  const fs = getFsImplementation()
-  const buffer = await fs.readFileBytes(filePath, _abortSignal)
-  const size = buffer.length
-  if (size === 0) throw new Error(`Image file is empty: ${filePath}`)
-
-  const detectedFormat = detectImageFormatFromBuffer(buffer)
-  const mediaType = detectedFormat.split('/')[1] || 'png'
-  let result: ImageResult
-  try {
-    // v112: passes mainLoopModel to maybeResizeAndDownsampleImageBuffer
-    const resized = await maybeResizeAndDownsampleImageBuffer(
-      buffer,
-      size,
-      mediaType,
-      mainLoopModel,
-    )
-    result = createImageResponse(resized.buffer, resized.mediaType, size, resized.dimensions)
-  } catch (e) {
-    if (e instanceof ImageResizeError) throw e
-    logError(e as Error)
-    result = createImageResponse(buffer, mediaType, size)
-  }
-
-  if (Math.ceil(result.file.base64.length * 0.125) > maxTokens) {
-    try {
-      const compressed = await compressImageBufferWithTokenLimit(
-        buffer,
-        maxTokens,
-        detectedFormat,
-      )
-      return {
-        type: 'image',
-        file: {
-          base64: compressed.base64,
-          type: compressed.mediaType as Base64ImageSource['media_type'],
-          originalSize: size,
-        },
-      }
-    } catch (e) {
-      logError(e as Error)
-      try {
-        const sharpModule = await import('sharp')
-        const sharp = sharpModule.default || sharpModule
-        const smallBuf = await (sharp as any)(buffer)
-          .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
-          .jpeg({ quality: 20 })
-          .toBuffer()
-        return createImageResponse(smallBuf, 'jpeg', size)
-      } catch (e2) {
-        logError(e2 as Error)
-        return createImageResponse(buffer, mediaType, size)
-      }
-    }
-  }
-  return result
-}
-
-// v112: callInner has one added call: MR8(fullFilePath) after storing in readFileState
-// MR8 appears to be a notification/side-effect call (notifyFileRead or similar)
-// TODO(lift): MR8 at byte ~9609100 — unknown notification call after file read completes
+/**
+ * Inner implementation of call, separated to allow ENOENT handling in the outer call.
+ */
 async function callInner(
   file_path: string,
-  displayPath: string,
-  actualPath: string,
+  fullFilePath: string,
+  resolvedFilePath: string,
   ext: string,
   offset: number,
   limit: number | undefined,
@@ -919,126 +814,188 @@ async function callInner(
   readFileState: ToolUseContext['readFileState'],
   context: ToolUseContext,
   messageId: string | undefined,
-): Promise<{ data: Output; newMessages?: unknown[] }> {
-  const fs = getFsImplementation()
-
+): Promise<{
+  data: Output
+  newMessages?: ReturnType<typeof createUserMessage>[]
+}> {
+  // --- Notebook ---
   if (ext === 'ipynb') {
-    const cells = await readNotebook(actualPath)
-    const content = jsonStringify(cells)
-    const byteSize = Buffer.byteLength(content)
-    if (byteSize > maxSizeBytes) {
+    const cells = await readNotebook(resolvedFilePath)
+    const cellsJson = jsonStringify(cells)
+
+    const cellsJsonBytes = Buffer.byteLength(cellsJson)
+    if (cellsJsonBytes > maxSizeBytes) {
       throw new Error(
-        `Notebook content (${formatFileSize(byteSize)}) exceeds maximum allowed size (${formatFileSize(maxSizeBytes)}). Use ${BASH_TOOL_NAME} with jq to read specific portions:\n  cat "${file_path}" | jq '.cells[:20]' # First 20 cells\n  cat "${file_path}" | jq '.cells[100:120]' # Cells 100-120\n  cat "${file_path}" | jq '.cells | length' # Count total cells\n  cat "${file_path}" | jq '.cells[] | select(.cell_type=="code") | .source' # All code sources`,
+        `Notebook content (${formatFileSize(cellsJsonBytes)}) exceeds maximum allowed size (${formatFileSize(maxSizeBytes)}). ` +
+          `Use ${BASH_TOOL_NAME} with jq to read specific portions:\n` +
+          `  cat "${file_path}" | jq '.cells[:20]' # First 20 cells\n` +
+          `  cat "${file_path}" | jq '.cells[100:120]' # Cells 100-120\n` +
+          `  cat "${file_path}" | jq '.cells | length' # Count total cells\n` +
+          `  cat "${file_path}" | jq '.cells[] | select(.cell_type=="code") | .source' # All code sources`,
       )
     }
-    await validateContentTokens(content, ext, maxTokens)
-    const stat = await fs.stat(actualPath)
-    readFileState.set(displayPath, {
-      content,
-      timestamp: Math.floor(stat.mtimeMs),
+
+    await validateContentTokens(cellsJson, ext, maxTokens)
+
+    // Get mtime via async stat (single call, no prior existence check)
+    const stats = await getFsImplementation().stat(resolvedFilePath)
+    readFileState.set(fullFilePath, {
+      content: cellsJson,
+      timestamp: Math.floor(stats.mtimeMs),
       offset,
       limit,
     })
-    context.nestedMemoryAttachmentTriggers?.add(displayPath)
-    const result: Output = { type: 'notebook', file: { filePath: file_path, cells } }
-    logFileOperation({ operation: 'read', tool: 'FileReadTool', filePath: displayPath, content })
-    return { data: result }
+    context.nestedMemoryAttachmentTriggers?.add(fullFilePath)
+
+    const data = {
+      type: 'notebook' as const,
+      file: { filePath: file_path, cells },
+    }
+
+    logFileOperation({
+      operation: 'read',
+      tool: 'FileReadTool',
+      filePath: fullFilePath,
+      content: cellsJson,
+    })
+
+    return { data }
   }
 
-  // v112: extract mainLoopModel from context for image processing
-  const mainLoopModel = getCanonicalName(
-    (context as any).options?.mainLoopModel ?? getMainLoopModel(),
-  )
-
+  // --- Image (single read, no double-read) ---
   if (IMAGE_EXTENSIONS.has(ext)) {
-    const imageResult = await readImage(actualPath, maxTokens, undefined, mainLoopModel)
-    context.nestedMemoryAttachmentTriggers?.add(displayPath)
-    logFileOperation({ operation: 'read', tool: 'FileReadTool', filePath: displayPath, content: imageResult.file.base64 })
-    const metaText = imageResult.file.dimensions
-      ? createImageMetadataText(imageResult.file.dimensions)
+    // Images have their own size limits (token budget + compression) —
+    // don't apply the text maxSizeBytes cap.
+    const data = await readImageWithTokenBudget(resolvedFilePath, maxTokens)
+    context.nestedMemoryAttachmentTriggers?.add(fullFilePath)
+
+    logFileOperation({
+      operation: 'read',
+      tool: 'FileReadTool',
+      filePath: fullFilePath,
+      content: data.file.base64,
+    })
+
+    const metadataText = data.file.dimensions
+      ? createImageMetadataText(data.file.dimensions)
       : null
+
     return {
-      data: imageResult,
-      ...(metaText && {
-        newMessages: [createUserMessage({ content: metaText, isMeta: true })],
+      data,
+      ...(metadataText && {
+        newMessages: [
+          createUserMessage({ content: metadataText, isMeta: true }),
+        ],
       }),
     }
   }
 
-  if (isPDFExtension(`.${ext}`)) {
+  // --- PDF ---
+  if (isPDFExtension(ext)) {
     if (pages) {
-      const parsed = parsePDFPageRange(pages)
-      const extraction = await extractPDFPages(actualPath, parsed ?? undefined)
-      if (!extraction.success) throw new Error(extraction.error.message)
+      const parsedRange = parsePDFPageRange(pages)
+      const extractResult = await extractPDFPages(
+        resolvedFilePath,
+        parsedRange ?? undefined,
+      )
+      if (!extractResult.success) {
+        throw new Error(extractResult.error.message)
+      }
       logEvent('tengu_pdf_page_extraction', {
         success: true,
-        pageCount: extraction.data.file.count,
-        fileSize: extraction.data.file.originalSize,
+        pageCount: extractResult.data.file.count,
+        fileSize: extractResult.data.file.originalSize,
         hasPageRange: true,
-      } as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS)
+      })
       logFileOperation({
         operation: 'read',
         tool: 'FileReadTool',
-        filePath: displayPath,
+        filePath: fullFilePath,
         content: `PDF pages ${pages}`,
       })
-      const pageFiles = (await readdir(extraction.data.file.outputDir))
-        .filter(f => f.endsWith('.jpg'))
-        .sort()
-      // v112: uses model-aware sE() helper instead of direct LL() calls
-      // TODO(lift): sE at byte ~9607000 — model-aware image block builder
+      const entries = await readdir(extractResult.data.file.outputDir)
+      const imageFiles = entries.filter(f => f.endsWith('.jpg')).sort()
       const imageBlocks = await Promise.all(
-        pageFiles.map(async f => {
-          const imgPath = path.join(extraction.data.file.outputDir, f)
-          const imgBuf = await readFileAsync(imgPath)
-          const { block } = await buildImageBlock_V112({
-            data: imgBuf,
-            mediaType: 'jpeg',
-            limits: mainLoopModel,
-          })
-          return block
+        imageFiles.map(async f => {
+          const imgPath = path.join(extractResult.data.file.outputDir, f)
+          const imgBuffer = await readFileAsync(imgPath)
+          const resized = await maybeResizeAndDownsampleImageBuffer(
+            imgBuffer,
+            imgBuffer.length,
+            'jpeg',
+          )
+          return {
+            type: 'image' as const,
+            source: {
+              type: 'base64' as const,
+              media_type:
+                `image/${resized.mediaType}` as Base64ImageSource['media_type'],
+              data: resized.buffer.toString('base64'),
+            },
+          }
         }),
       )
       return {
-        data: extraction.data,
+        data: extractResult.data,
         ...(imageBlocks.length > 0 && {
-          newMessages: [createUserMessage({ content: imageBlocks, isMeta: true })],
+          newMessages: [
+            createUserMessage({ content: imageBlocks, isMeta: true }),
+          ],
         }),
       }
     }
 
-    const pageCount = await getPDFPageCount(actualPath)
-    if (pageCount !== null && pageCount > PDF_EXTRACT_SIZE_THRESHOLD) {
+    const pageCount = await getPDFPageCount(resolvedFilePath)
+    if (pageCount !== null && pageCount > PDF_AT_MENTION_INLINE_THRESHOLD) {
       throw new Error(
-        `This PDF has ${pageCount} pages, which is too many to read at once. Use the pages parameter to read specific page ranges (e.g., pages: "1-5"). Maximum ${PDF_MAX_PAGES_PER_READ} pages per request.`,
+        `This PDF has ${pageCount} pages, which is too many to read at once. ` +
+          `Use the pages parameter to read specific page ranges (e.g., pages: "1-5"). ` +
+          `Maximum ${PDF_MAX_PAGES_PER_READ} pages per request.`,
       )
     }
-    const stat = await fs.stat(actualPath)
-    if (!isPDFSupported() || stat.size > PDF_AT_MENTION_INLINE_THRESHOLD) {
-      const extraction = await extractPDFPages(actualPath)
-      if (extraction.success) {
+
+    const fs = getFsImplementation()
+    const stats = await fs.stat(resolvedFilePath)
+    const shouldExtractPages =
+      !isPDFSupported() || stats.size > PDF_EXTRACT_SIZE_THRESHOLD
+
+    if (shouldExtractPages) {
+      const extractResult = await extractPDFPages(resolvedFilePath)
+      if (extractResult.success) {
         logEvent('tengu_pdf_page_extraction', {
           success: true,
-          pageCount: extraction.data.file.count,
-          fileSize: extraction.data.file.originalSize,
-        } as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS)
+          pageCount: extractResult.data.file.count,
+          fileSize: extractResult.data.file.originalSize,
+        })
       } else {
         logEvent('tengu_pdf_page_extraction', {
           success: false,
-          available: extraction.error.reason !== 'unavailable',
-          fileSize: stat.size,
-        } as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS)
+          available: extractResult.error.reason !== 'unavailable',
+          fileSize: stats.size,
+        })
       }
     }
+
     if (!isPDFSupported()) {
       throw new Error(
-        `Reading full PDFs is not supported with this model. Use a newer model (Sonnet 3.5 v2 or later), or use the pages parameter to read specific page ranges (e.g., pages: "1-5", maximum ${PDF_MAX_PAGES_PER_READ} pages per request). Page extraction requires poppler-utils: install with \`brew install poppler\` on macOS or \`apt-get install poppler-utils\` on Debian/Ubuntu.`,
+        'Reading full PDFs is not supported with this model. Use a newer model (Sonnet 3.5 v2 or later), ' +
+          `or use the pages parameter to read specific page ranges (e.g., pages: "1-5", maximum ${PDF_MAX_PAGES_PER_READ} pages per request). ` +
+          'Page extraction requires poppler-utils: install with `brew install poppler` on macOS or `apt-get install poppler-utils` on Debian/Ubuntu.',
       )
     }
-    const pdfResult = await readPDF(actualPath)
-    if (!pdfResult.success) throw new Error(pdfResult.error.message)
-    const pdfData = pdfResult.data
-    logFileOperation({ operation: 'read', tool: 'FileReadTool', filePath: displayPath, content: pdfData.file.base64 })
+
+    const readResult = await readPDF(resolvedFilePath)
+    if (!readResult.success) {
+      throw new Error(readResult.error.message)
+    }
+    const pdfData = readResult.data
+    logFileOperation({
+      operation: 'read',
+      tool: 'FileReadTool',
+      filePath: fullFilePath,
+      content: pdfData.file.base64,
+    })
+
     return {
       data: pdfData,
       newMessages: [
@@ -1059,89 +1016,168 @@ async function callInner(
     }
   }
 
+  // --- Text file (single async read via readFileInRange) ---
   const lineOffset = offset === 0 ? 0 : offset - 1
-  const {
-    content,
-    lineCount: numLines,
-    totalLines,
-    totalBytes,
-    readBytes,
-    mtimeMs,
-  } = await readFileInRange(
-    actualPath,
-    lineOffset,
-    limit,
-    limit === undefined ? maxSizeBytes : undefined,
-    context.abortController.signal,
-  )
+  const { content, lineCount, totalLines, totalBytes, readBytes, mtimeMs } =
+    await readFileInRange(
+      resolvedFilePath,
+      lineOffset,
+      limit,
+      limit === undefined ? maxSizeBytes : undefined,
+      context.abortController.signal,
+    )
+
   await validateContentTokens(content, ext, maxTokens)
-  readFileState.set(displayPath, {
+
+  readFileState.set(fullFilePath, {
     content,
     timestamp: Math.floor(mtimeMs),
     offset,
     limit,
   })
-  context.nestedMemoryAttachmentTriggers?.add(displayPath)
-  // v112: MR8(displayPath) — notify file read (unknown side-effect call)
-  // TODO(lift): MR8 at byte ~9609100 — side-effect notification after read
-  notifyFileRead_V112(displayPath)
+  context.nestedMemoryAttachmentTriggers?.add(fullFilePath)
+
+  // Snapshot before iterating — a listener that unsubscribes mid-callback
+  // would splice the live array and skip the next listener.
   for (const listener of fileReadListeners.slice()) {
-    listener(displayPath, content)
+    listener(resolvedFilePath, content)
   }
 
-  const result: Output = {
-    type: 'text',
-    file: { filePath: file_path, content, numLines, startLine: offset, totalLines },
+  const data = {
+    type: 'text' as const,
+    file: {
+      filePath: file_path,
+      content,
+      numLines: lineCount,
+      startLine: offset,
+      totalLines,
+    },
   }
-  if (isAutoMemFile(displayPath)) {
-    memoryFileMtimes.set(result, mtimeMs)
+  if (isAutoMemFile(fullFilePath)) {
+    memoryFileMtimes.set(data, mtimeMs)
   }
-  logFileOperation({ operation: 'read', tool: 'FileReadTool', filePath: displayPath, content })
 
-  const sessionFileType = detectSessionFileType(displayPath)
-  const analyticsExt = getFileExtensionForAnalytics(displayPath)
+  logFileOperation({
+    operation: 'read',
+    tool: 'FileReadTool',
+    filePath: fullFilePath,
+    content,
+  })
+
+  const sessionFileType = detectSessionFileType(fullFilePath)
+  const analyticsExt = getFileExtensionForAnalytics(fullFilePath)
   logEvent('tengu_session_file_read', {
     totalLines,
-    readLines: numLines,
+    readLines: lineCount,
     totalBytes,
     readBytes,
     offset,
     ...(limit !== undefined && { limit }),
     ...(analyticsExt !== undefined && { ext: analyticsExt }),
-    ...(messageId !== undefined && { messageID: messageId }),
+    ...(messageId !== undefined && {
+      messageID:
+        messageId as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+    }),
     is_session_memory: sessionFileType === 'session_memory',
     is_session_transcript: sessionFileType === 'session_transcript',
-  } as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS)
+  })
 
-  return { data: result }
+  return { data }
 }
 
 /**
- * v112: stub for MR8() — unknown side-effect call after file read completes.
- * Likely notifies some registry that a file was read (e.g. for dedup tracking).
+ * Reads an image file and applies token-based compression if needed.
+ * Reads the file ONCE, then applies standard resize. If the result exceeds
+ * the token limit, applies aggressive compression from the same buffer.
+ *
+ * @param filePath - Path to the image file
+ * @param maxTokens - Maximum token budget for the image
+ * @returns Image data with appropriate compression applied
  */
-function notifyFileRead_V112(_filePath: string): void {
-  // TODO(lift): MR8 at byte ~9609100 — side-effect notification call
-}
+export async function readImageWithTokenBudget(
+  filePath: string,
+  maxTokens: number = getDefaultFileReadingLimits().maxTokens,
+  maxBytes?: number,
+): Promise<ImageResult> {
+  // Read file ONCE — capped to maxBytes to avoid OOM on huge files
+  const imageBuffer = await getFsImplementation().readFileBytes(
+    filePath,
+    maxBytes,
+  )
+  const originalSize = imageBuffer.length
 
-/**
- * v112: stub for sE() — model-aware image block builder used in PDF page extraction.
- * Returns a block with the image data in the appropriate format for the current model.
- */
-async function buildImageBlock_V112(_params: {
-  data: Buffer
-  mediaType: string
-  limits: unknown
-}): Promise<{ block: unknown }> {
-  // TODO(lift): sE at byte ~9607000 — model-aware image block builder
-  return {
-    block: {
-      type: 'image',
-      source: {
-        type: 'base64',
-        media_type: `image/${_params.mediaType}`,
-        data: _params.data.toString('base64'),
-      },
-    },
+  if (originalSize === 0) {
+    throw new Error(`Image file is empty: ${filePath}`)
   }
+
+  const detectedMediaType = detectImageFormatFromBuffer(imageBuffer)
+  const detectedFormat = detectedMediaType.split('/')[1] || 'png'
+
+  // Try standard resize
+  let result: ImageResult
+  try {
+    const resized = await maybeResizeAndDownsampleImageBuffer(
+      imageBuffer,
+      originalSize,
+      detectedFormat,
+    )
+    result = createImageResponse(
+      resized.buffer,
+      resized.mediaType,
+      originalSize,
+      resized.dimensions,
+    )
+  } catch (e) {
+    if (e instanceof ImageResizeError) throw e
+    logError(e)
+    result = createImageResponse(imageBuffer, detectedFormat, originalSize)
+  }
+
+  // Check if it fits in token budget
+  const estimatedTokens = Math.ceil(result.file.base64.length * 0.125)
+  if (estimatedTokens > maxTokens) {
+    // Aggressive compression from the SAME buffer (no re-read)
+    try {
+      const compressed = await compressImageBufferWithTokenLimit(
+        imageBuffer,
+        maxTokens,
+        detectedMediaType,
+      )
+      return {
+        type: 'image',
+        file: {
+          base64: compressed.base64,
+          type: compressed.mediaType,
+          originalSize,
+        },
+      }
+    } catch (e) {
+      logError(e)
+      // Fallback: heavily compressed version from the SAME buffer
+      try {
+        const sharpModule = await import('sharp')
+        const sharp =
+          (
+            sharpModule as {
+              default?: typeof sharpModule
+            } & typeof sharpModule
+          ).default || sharpModule
+
+        const fallbackBuffer = await sharp(imageBuffer)
+          .resize(400, 400, {
+            fit: 'inside',
+            withoutEnlargement: true,
+          })
+          .jpeg({ quality: 20 })
+          .toBuffer()
+
+        return createImageResponse(fallbackBuffer, 'jpeg', originalSize)
+      } catch (error) {
+        logError(error)
+        return createImageResponse(imageBuffer, detectedFormat, originalSize)
+      }
+    }
+  }
+
+  return result
 }

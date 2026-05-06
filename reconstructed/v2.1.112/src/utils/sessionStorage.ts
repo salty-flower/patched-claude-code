@@ -23,9 +23,11 @@ import {
 } from 'src/services/analytics/index.js'
 import {
   getOriginalCwd,
+  getPlanSlugCache,
   getPromptId,
   getSessionId,
   getSessionProjectDir,
+  isSessionPersistenceDisabled,
   switchSession,
 } from '../bootstrap/state.js'
 import { builtInCommandNames } from '../commands.js'
@@ -185,7 +187,9 @@ const EPHEMERAL_PROGRESS_TYPES = new Set([
   'bash_progress',
   'powershell_progress',
   'mcp_progress',
-
+  ...(feature('PROACTIVE') || feature('KAIROS')
+    ? (['sleep_progress'] as const)
+    : []),
 ])
 export function isEphemeralToolProgress(dataType: unknown): boolean {
   return typeof dataType === 'string' && EPHEMERAL_PROGRESS_TYPES.has(dataType)
@@ -408,12 +412,12 @@ export function sessionIdExists(sessionId: string): boolean {
 
 // exported for testing
 export function getNodeEnv(): string {
-  return 'production'
+  return process.env.NODE_ENV || 'development'
 }
 
 // exported for testing
 export function getUserType(): string {
-  return 'external'
+  return process.env.USER_TYPE || 'external'
 }
 
 function getEntrypoint(): string | undefined {
@@ -960,7 +964,7 @@ class Project {
     return (
       (getNodeEnv() === 'test' && !allowTestPersistence) ||
       getSettings_DEPRECATED()?.cleanupPeriodDays === 0 ||
-      isEnvTruthy(process.env.CLAUDE_CODE_NO_SESSION_PERSISTENCE) ||
+      isSessionPersistenceDisabled() ||
       isEnvTruthy(process.env.CLAUDE_CODE_SKIP_PROMPT_HISTORY)
     )
   }
@@ -1014,7 +1018,9 @@ class Project {
         gitBranch = undefined
       }
 
+      // Get slug if one exists for this session (used for plan files, etc.)
       const sessionId = getSessionId()
+      const slug = getPlanSlugCache().get(sessionId)
 
       for (const message of messages) {
         const isCompactBoundary = isCompactBoundaryMessage(message)
@@ -1054,6 +1060,7 @@ class Project {
           sessionId,
           version: VERSION,
           gitBranch,
+          slug,
         }
         await this.appendEntry(transcriptMessage)
         if (isChainParticipant(message)) {

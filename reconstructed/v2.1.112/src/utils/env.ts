@@ -4,8 +4,9 @@ import { join } from 'path'
 import { fileSuffixForOauthConfig } from '../constants/oauth.js'
 import { isRunningWithBun } from './bundledMode.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
+import { findExecutable } from './findExecutable.js'
 import { getFsImplementation } from './fsOperations.js'
-import { which, whichSync } from './which.js'
+import { which } from './which.js'
 
 type Platform = 'win32' | 'darwin' | 'linux'
 
@@ -93,10 +94,7 @@ const isNpmFromWindowsPath = memoize((): boolean => {
     }
 
     // Find the actual npm executable path
-    const cmd = whichSync('npm')
-    if (cmd === null) {
-      return false
-    }
+    const { cmd } = findExecutable('npm', [])
 
     // If npm is in Windows path, it will start with /mnt/c/
     return cmd.startsWith('/mnt/c/')
@@ -243,14 +241,6 @@ export const detectDeploymentEnvironment = memoize((): string => {
   // Cloud development environments
   if (isEnvTruthy(process.env.CODESPACES)) return 'codespaces'
   if (process.env.GITPOD_WORKSPACE_ID) return 'gitpod'
-  if (isEnvTruthy(process.env.CODER) || process.env.CODER_WORKSPACE_NAME)
-    return 'coder'
-  if (isEnvTruthy(process.env.DEVPOD) || process.env.DEVPOD_WORKSPACE_UID)
-    return 'devpod'
-  if (process.env.DAYTONA_WS_ID) return 'daytona'
-  if (process.env.CLOUD_WORKSTATIONS_CLUSTER_ID)
-    return 'gcp-cloud-workstations'
-  if (process.env.C9_PID || process.env.C9_USER) return 'aws-cloud9'
   if (process.env.REPL_ID || process.env.REPL_SLUG) return 'replit'
   if (process.env.PROJECT_DOMAIN) return 'glitch'
 

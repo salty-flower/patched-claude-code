@@ -3,7 +3,7 @@ import { execa } from 'execa'
 import { mkdir, stat } from 'fs/promises'
 import * as os from 'os'
 import { join } from 'path'
-import { logEvent } from '../../services/analytics/index.js'
+import { logEvent } from 'src/services/analytics/index.js'
 import { registerCleanup } from '../cleanupRegistry.js'
 import { getCwd } from '../cwd.js'
 import { logForDebugging } from '../debug.js'
@@ -12,71 +12,55 @@ import {
   hasEmbeddedSearchTools,
 } from '../embeddedTools.js'
 import { getClaudeConfigHomeDir } from '../envUtils.js'
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await stat(filePath)
-    return true
-  } catch {
-    return false
-  }
-}
+import { pathExists } from '../file.js'
 import { getFsImplementation } from '../fsOperations.js'
 import { logError } from '../log.js'
 import { getPlatform } from '../platform.js'
 import { ripgrepCommand } from '../ripgrep.js'
-// TODO(lift): RG4 at byte ~8714100 — returns extra PATH entries to prepend (ant-native / runtime injection)
 import { subprocessEnv } from '../subprocessEnv.js'
-// TODO(lift): t_Y at byte ~8714960 — createBqShellIntegration(): string | null
-// TODO(lift): sX at byte ~8715020 — Windows path converter (windowsPathToPosixPath?)
 import { quote } from './shellQuote.js'
 
 const LITERAL_BACKSLASH = '\\'
-
-// v112: snapshot creation timeout bumped to 10s (unchanged from v88: 1e4 ms)
 const SNAPSHOT_CREATION_TIMEOUT = 10000 // 10 seconds
 
-// v112: CLAUDE_CODE_EXECPATH env-var name used as the binary source hint in
-// the argv0 shell function. Replaces the hard-coded binaryPath argument.
-const CLAUDE_CODE_EXECPATH_VAR = 'CLAUDE_CODE_EXECPATH'
-
 /**
- * Creates a shell function that invokes the claude binary with a specific argv[0].
+ * Creates a shell function that invokes `binaryPath` with a specific argv[0].
+ * This uses the bun-internal ARGV0 dispatch trick: the bun binary checks its
+ * argv[0] and runs the embedded tool (rg, bfs, ugrep) that matches.
  *
- * v112 change: the function no longer takes a hard-coded binaryPath. Instead it
- * reads CLAUDE_CODE_EXECPATH at runtime, falling back to `command -v claude`.
- * This allows the embedded-tool dispatch to work even when the binary moves.
- *
- * @param prependArgs - Arguments to inject before the user's args. Each element
- *   must be a valid shell word (no spaces/special chars).
+ * @param prependArgs - Arguments to inject before the user's args (e.g.,
+ *   default flags). Injected literally; each element must be a valid shell
+ *   word (no spaces/special chars).
  */
 function createArgv0ShellFunction(
   funcName: string,
   argv0: string,
+  binaryPath: string,
   prependArgs: string[] = [],
 ): string {
+  const quotedPath = quote([binaryPath])
   const argSuffix =
     prependArgs.length > 0 ? `${prependArgs.join(' ')} "$@"` : '"$@"'
   return [
     `function ${funcName} {`,
-    `  local _cc_bin="\${${CLAUDE_CODE_EXECPATH_VAR}:-}"`,
-    '  [[ -x $_cc_bin ]] || _cc_bin=$(command -v claude 2>/dev/null)',
-    `  if [[ ! -x $_cc_bin ]]; then command ${funcName} "$@"; return; fi`,
     '  if [[ -n $ZSH_VERSION ]]; then',
-    `    ARGV0=${argv0} "$_cc_bin" ${argSuffix}`,
+    `    ARGV0=${argv0} ${quotedPath} ${argSuffix}`,
     '  elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then',
-    `    ARGV0=${argv0} "$_cc_bin" ${argSuffix}`,
+    // On Windows (git bash), exec -a does not work, so use ARGV0 env var instead
+    // The bun binary reads from ARGV0 natively to set argv[0]
+    `    ARGV0=${argv0} ${quotedPath} ${argSuffix}`,
     '  elif [[ $BASHPID != $$ ]]; then',
-    `    exec -a ${argv0} "$_cc_bin" ${argSuffix}`,
+    `    exec -a ${argv0} ${quotedPath} ${argSuffix}`,
     '  else',
-    `    (exec -a ${argv0} "$_cc_bin" ${argSuffix})`,
+    `    (exec -a ${argv0} ${quotedPath} ${argSuffix})`,
     '  fi',
     '}',
   ].join('\n')
 }
 
 /**
- * Creates ripgrep shell integration (alias or function).
- * @returns Object with type and the shell snippet to use.
+ * Creates ripgrep shell integration (alias or function)
+ * @returns Object with type and the shell snippet to use
  */
 export function createRipgrepShellIntegration(): {
   type: 'alias' | 'function'
@@ -84,16 +68,19 @@ export function createRipgrepShellIntegration(): {
 } {
   const rgCommand = ripgrepCommand()
 
-  // For embedded ripgrep (bun-internal), we need a shell function that sets argv0.
-  // v112: no longer passes binaryPath; uses CLAUDE_CODE_EXECPATH instead.
+  // For embedded ripgrep (bun-internal), we need a shell function that sets argv0
   if (rgCommand.argv0) {
     return {
       type: 'function',
-      snippet: createArgv0ShellFunction('rg', rgCommand.argv0),
+      snippet: createArgv0ShellFunction(
+        'rg',
+        rgCommand.argv0,
+        rgCommand.rgPath,
+      ),
     }
   }
 
-  // For regular ripgrep, use a simple alias target.
+  // For regular ripgrep, use a simple alias target
   const quotedPath = quote([rgCommand.rgPath])
   const quotedArgs = rgCommand.rgArgs.map(arg => quote([arg]))
   const aliasTarget =
@@ -123,8 +110,43 @@ const VCS_DIRECTORIES_TO_EXCLUDE = [
  * this always shadows the system find/grep since bfs/ugrep are drop-in
  * replacements and we want consistent fast behavior.
  *
- * v112 change: uses createArgv0ShellFunction without binaryPath (CLAUDE_CODE_EXECPATH
- * provides the binary at runtime).
+ * These wrappers replace the GlobTool/GrepTool dedicated tools (which are
+ * removed from the tool registry when embedded search tools are available),
+ * so they're tuned to match those tools' semantics, not GNU find/grep.
+ *
+ * `find` ↔ GlobTool:
+ * - Inject `-regextype findutils-default`: bfs defaults to POSIX BRE for
+ *   -regex, but GNU find defaults to emacs-flavor (which supports `\|`
+ *   alternation). Without this, `find . -regex '.*\.\(js\|ts\)'` silently
+ *   returns zero results. A later user-supplied -regextype still overrides.
+ * - No gitignore filtering: GlobTool passes `--no-ignore` to rg. bfs has no
+ *   gitignore support anyway, so this matches by default.
+ * - Hidden files included: both GlobTool (`--hidden`) and bfs's default.
+ *
+ * Caveat: even with findutils-default, Oniguruma (bfs's regex engine) uses
+ * leftmost-first alternation, not POSIX leftmost-longest. Patterns where
+ * one alternative is a prefix of another (e.g., `\(ts\|tsx\)`) may miss
+ * matches that GNU find catches. Workaround: put the longer alternative first.
+ *
+ * `grep` ↔ GrepTool (file filtering) + GNU grep (regex syntax):
+ * - `-G` (basic regex / BRE): GNU grep defaults to BRE where `\|` is
+ *   alternation. ugrep defaults to ERE where `|` is alternation and `\|` is a
+ *   literal pipe. Without -G, `grep "foo\|bar"` silently returns zero results.
+ *   User-supplied `-E`, `-F`, or `-P` later in argv overrides this.
+ * - `--ignore-files`: respect .gitignore (GrepTool uses rg's default, which
+ *   respects gitignore). Override with `grep --no-ignore-files`.
+ * - `--hidden`: include hidden files (GrepTool passes `--hidden` to rg).
+ *   Override with `grep --no-hidden`.
+ * - `--exclude-dir` for VCS dirs: GrepTool passes `--glob '!.git'` etc. to rg.
+ * - `-I`: skip binary files. rg's recursion silently skips binary matches
+ *   by default (different from direct-file-arg behavior); ugrep doesn't, so
+ *   we inject -I to match. Override with `grep -a`.
+ *
+ * Not replicated from GrepTool:
+ * - `--max-columns 500`: ugrep's `--width` hard-truncates output which could
+ *   break pipelines; rg's version replaces the line with a placeholder.
+ * - Read deny rules / plugin cache exclusions: require toolPermissionContext
+ *   which isn't available at shell-snapshot creation time.
  *
  * Returns null if embedded search tools are not available in this build.
  */
@@ -132,17 +154,21 @@ export function createFindGrepShellIntegration(): string | null {
   if (!hasEmbeddedSearchTools()) {
     return null
   }
+  const binaryPath = embeddedSearchToolsBinaryPath()
   return [
     // User shell configs may define aliases like `alias find=gfind` or
-    // `alias grep=ggrep` (common on macOS with Homebrew GNU tools). Clear
-    // them first so user aliases don't bypass the embedded bfs/ugrep dispatch.
+    // `alias grep=ggrep` (common on macOS with Homebrew GNU tools). The
+    // snapshot sources user aliases before these function definitions, and
+    // bash expands aliases before function lookup — so a renaming alias
+    // would silently bypass the embedded bfs/ugrep dispatch. Clear them first
+    // (same fix the rg integration uses).
     'unalias find 2>/dev/null || true',
     'unalias grep 2>/dev/null || true',
-    createArgv0ShellFunction('find', 'bfs', [
+    createArgv0ShellFunction('find', 'bfs', binaryPath, [
       '-regextype',
       'findutils-default',
     ]),
-    createArgv0ShellFunction('grep', 'ugrep', [
+    createArgv0ShellFunction('grep', 'ugrep', binaryPath, [
       '-G',
       '--ignore-files',
       '--hidden',
@@ -165,8 +191,8 @@ function getConfigFile(shellPath: string): string {
 }
 
 /**
- * Generates user-specific snapshot content (functions, options, aliases).
- * This content is derived from the user's shell configuration file.
+ * Generates user-specific snapshot content (functions, options, aliases)
+ * This content is derived from the user's shell configuration file
  */
 function getUserSnapshotContent(configFile: string): string {
   const isZsh = configFile.endsWith('.zshrc')
@@ -237,48 +263,32 @@ function getUserSnapshotContent(configFile: string): string {
 }
 
 /**
- * Generates Claude Code specific snapshot content.
- * This content is always included regardless of user configuration.
- *
- * v112 changes:
- * - Windows PATH extraction uses `execa(shell, ['-lc', 'echo "$PATH"'])` instead of
- *   `execa('echo $PATH', { shell: true })`.
- * - Extra PATH entries are appended from `getExtraPathEntries()` (ant-native runtimes).
- * - PATH is written to the snapshot via a heredoc marker (avoids quoting issues).
- * - BigQuery shell integration block added (`createBqShellIntegration()`).
+ * Generates Claude Code specific snapshot content
+ * This content is always included regardless of user configuration
  */
-async function getClaudeCodeSnapshotContent(shell: string): Promise<string> {
-  // Get the appropriate PATH based on platform.
+async function getClaudeCodeSnapshotContent(): Promise<string> {
+  // Get the appropriate PATH based on platform
   let pathValue = process.env.PATH
   if (getPlatform() === 'windows') {
-    // On Windows with git-bash, read the Cygwin PATH via a login shell.
-    // v112: passes shell+args instead of shell:true.
-    const cygwinResult = await execa(shell, ['-lc', 'echo "$PATH"'], {
+    // On Windows with git-bash, read the Cygwin PATH
+    const cygwinResult = await execa('echo $PATH', {
+      shell: true,
       reject: false,
-      timeout: SNAPSHOT_CREATION_TIMEOUT,
     })
     if (cygwinResult.exitCode === 0 && cygwinResult.stdout) {
       pathValue = cygwinResult.stdout.trim()
     }
-    // Fall back to process.env.PATH if we can't get Cygwin PATH.
-  }
-
-  // v112: prepend extra PATH entries from ant-native runtime registration.
-  // TODO(lift): getExtraPathEntries (RG4) at byte ~8714100 — returns string[]
-  const extraPaths: string[] = [] // TODO(lift): await getExtraPathEntries()
-  if (extraPaths.length > 0) {
-    const posixPaths =
-      getPlatform() === 'windows'
-        ? extraPaths.map(p => p) // TODO(lift): sX = windowsPathToPosixPath at byte ~8715020
-        : extraPaths
-    pathValue = [pathValue, ...posixPaths].filter(Boolean).join(':')
+    // Fall back to process.env.PATH if we can't get Cygwin PATH
   }
 
   const rgIntegration = createRipgrepShellIntegration()
 
   let content = ''
 
-  // Check if rg is available, if not create an alias/function to bundled ripgrep.
+  // Check if rg is available, if not create an alias/function to bundled ripgrep
+  // We use a subshell to unalias rg before checking, so that user aliases like
+  // `alias rg='rg --smart-case'` don't shadow the real binary check. The subshell
+  // ensures we don't modify the user's aliases in the parent shell.
   content += `
       # Check for rg availability
       echo "# Check for rg availability" >> "$SNAPSHOT_FILE"
@@ -286,16 +296,15 @@ async function getClaudeCodeSnapshotContent(shell: string): Promise<string> {
   `
 
   if (rgIntegration.type === 'function') {
-    // For embedded ripgrep, write the function definition using heredoc.
+    // For embedded ripgrep, write the function definition using heredoc
     content += `
       cat >> "$SNAPSHOT_FILE" << 'RIPGREP_FUNC_END'
   ${rgIntegration.snippet}
 RIPGREP_FUNC_END
     `
   } else {
-    // For regular ripgrep, write a simple alias.
-    // v112: uses replaceAll instead of /'/g regex.
-    const escapedSnippet = rgIntegration.snippet.replaceAll("'", "'\\''")
+    // For regular ripgrep, write a simple alias
+    const escapedSnippet = rgIntegration.snippet.replace(/'/g, "'\\''")
     content += `
       echo '  alias rg='"'${escapedSnippet}'" >> "$SNAPSHOT_FILE"
     `
@@ -305,7 +314,10 @@ RIPGREP_FUNC_END
       echo "fi" >> "$SNAPSHOT_FILE"
   `
 
-  // For ant-native builds, shadow find/grep with bfs/ugrep embedded in the bun binary.
+  // For ant-native builds, shadow find/grep with bfs/ugrep embedded in the bun
+  // binary. Unlike rg (which only activates if system rg is absent), we always
+  // shadow find/grep since bfs/ugrep are drop-in replacements and we want
+  // consistent fast behavior in Claude's shell.
   const findGrepIntegration = createFindGrepShellIntegration()
   if (findGrepIntegration !== null) {
     content += `
@@ -317,34 +329,18 @@ FIND_GREP_FUNC_END
     `
   }
 
-  // v112 new: BigQuery shell integration (ant-native only).
-  // TODO(lift): createBqShellIntegration (t_Y) at byte ~8714960 — returns string | null
-  const bqIntegration: string | null = null // TODO(lift): createBqShellIntegration()
-  if (bqIntegration !== null) {
-    content += `
-      echo "# Shadow bq to label query jobs with source=claude_code" >> "$SNAPSHOT_FILE"
-      cat >> "$SNAPSHOT_FILE" << 'BQ_FUNC_END'
-${bqIntegration}
-BQ_FUNC_END
-    `
-  }
-
-  // v112 change: PATH is written via a heredoc with a random marker rather than
-  // `echo "export PATH=..."`. This avoids shell escaping issues with complex PATH values.
-  const pathHeredocMarker = `PATH_END_${Math.random().toString(36).substring(2, 18)}`
+  // Add PATH to the file
   content += `
 
       # Add PATH to the file
-      cat >> "$SNAPSHOT_FILE" << '${pathHeredocMarker}'
-export PATH=${quote([pathValue || ''])}
-${pathHeredocMarker}
+      echo "export PATH=${quote([pathValue || ''])}" >> "$SNAPSHOT_FILE"
   `
 
   return content
 }
 
 /**
- * Creates the appropriate shell script for capturing environment.
+ * Creates the appropriate shell script for capturing environment
  */
 async function getSnapshotScript(
   shellPath: string,
@@ -354,15 +350,14 @@ async function getSnapshotScript(
   const configFile = getConfigFile(shellPath)
   const isZsh = configFile.endsWith('.zshrc')
 
-  // Generate the user content and Claude Code content.
+  // Generate the user content and Claude Code content
   const userContent = configFileExists
     ? getUserSnapshotContent(configFile)
     : !isZsh
       ? // we need to manually force alias expansion in bash - normally `getUserSnapshotContent` takes care of this
         'echo "shopt -s expand_aliases" >> "$SNAPSHOT_FILE"'
       : ''
-  // v112: getClaudeCodeSnapshotContent now takes shellPath for Windows PATH extraction.
-  const claudeCodeContent = await getClaudeCodeSnapshotContent(shellPath)
+  const claudeCodeContent = await getClaudeCodeSnapshotContent()
 
   const script = `SNAPSHOT_FILE=${quote([snapshotFilePath])}
       ${configFileExists ? `source "${configFile}" < /dev/null` : '# No user config file to source'}
@@ -391,7 +386,7 @@ async function getSnapshotScript(
 }
 
 /**
- * Creates and saves the shell environment snapshot by loading the user's shell configuration.
+ * Creates and saves the shell environment snapshot by loading the user's shell configuration
  *
  * This function is a critical part of Claude CLI's shell integration strategy. It:
  *
@@ -404,6 +399,14 @@ async function getSnapshotScript(
  *
  * The snapshot is saved to a temporary file that can be sourced by subsequent shell
  * commands, ensuring they run with the user's expected environment, aliases, and functions.
+ *
+ * This approach allows Claude CLI to execute commands as if they were run in the user's
+ * interactive shell, while avoiding the overhead of creating a new login shell for each command.
+ * It handles both Bash and Zsh shells with their different syntax for functions, options, and aliases.
+ *
+ * If the snapshot creation fails (e.g., timeout, permissions issues), the CLI will still
+ * function but without the user's custom shell environment, potentially missing aliases
+ * and functions the user relies on.
  *
  * @returns Promise that resolves to the snapshot file path or undefined if creation failed
  */
@@ -430,7 +433,7 @@ export const createAndSaveSnapshot = async (
         )
       }
 
-      // Create unique snapshot path with timestamp and random ID.
+      // Create unique snapshot path with timestamp and random ID
       const timestamp = Date.now()
       const randomId = Math.random().toString(36).substring(2, 8)
       const snapshotsDir = join(getClaudeConfigHomeDir(), 'shell-snapshots')
@@ -440,7 +443,7 @@ export const createAndSaveSnapshot = async (
         `snapshot-${shellType}-${timestamp}-${randomId}.sh`,
       )
 
-      // Ensure snapshots directory exists.
+      // Ensure snapshots directory exists
       await mkdir(snapshotsDir, { recursive: true })
 
       const snapshotScript = await getSnapshotScript(
@@ -455,8 +458,6 @@ export const createAndSaveSnapshot = async (
         ['-c', '-l', snapshotScript],
         {
           env: {
-            // v112: uses process.env spread directly (CLAUDE_CODE_DONT_INHERIT_ENV gate
-            // kept; subprocessEnv() renamed to Dk() in minified — same logic).
             ...((process.env.CLAUDE_CODE_DONT_INHERIT_ENV
               ? {}
               : subprocessEnv()) as typeof process.env),
@@ -503,7 +504,7 @@ export const createAndSaveSnapshot = async (
             logError(
               new Error(`Failed to create shell snapshot: ${error.message}`),
             )
-            // Convert signal name to number if present.
+            // Convert signal name to number if present
             const signalNumber = execError?.signal
               ? os.constants.signals[
                   execError.signal as keyof typeof os.constants.signals
@@ -521,7 +522,7 @@ export const createAndSaveSnapshot = async (
             try {
               snapshotSize = (await stat(shellSnapshotPath)).size
             } catch {
-              // Snapshot file not found.
+              // Snapshot file not found
             }
 
             if (snapshotSize !== undefined) {
@@ -529,7 +530,7 @@ export const createAndSaveSnapshot = async (
                 `Shell snapshot created successfully (${snapshotSize} bytes)`,
               )
 
-              // Register cleanup to remove snapshot on graceful shutdown.
+              // Register cleanup to remove snapshot on graceful shutdown
               registerCleanup(async () => {
                 try {
                   await getFsImplementation().unlink(shellSnapshotPath)

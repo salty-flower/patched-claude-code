@@ -32,21 +32,12 @@
  * - Use `sanitizeAgentName()` from TeammateTool.ts to strip @ from names
  */
 
-// v112: word list for agent name generation (new addition)
-export const AGENT_NAME_WORDS = [
-  'Baked',
-  'Brewed',
-  'Churned',
-  'Cogitated',
-  'Cooked',
-  'Crunched',
-  'Sautéed',
-  'Worked',
-]
-
-// v112: formatAgentId removed (not present in v112_min)
-// v112: generateRequestId removed (not present in v112_min)
-// v112: parseRequestId removed (not present in v112_min)
+/**
+ * Formats an agent ID in the format `agentName@teamName`.
+ */
+export function formatAgentId(agentName: string, teamName: string): string {
+  return `${agentName}@${teamName}`
+}
 
 /**
  * Parses an agent ID into its components.
@@ -63,4 +54,46 @@ export function parseAgentId(
     agentName: agentId.slice(0, atIndex),
     teamName: agentId.slice(atIndex + 1),
   }
+}
+
+/**
+ * Formats a request ID in the format `{requestType}-{timestamp}@{agentId}`.
+ */
+export function generateRequestId(
+  requestType: string,
+  agentId: string,
+): string {
+  const timestamp = Date.now()
+  return `${requestType}-${timestamp}@${agentId}`
+}
+
+/**
+ * Parses a request ID into its components.
+ * Returns null if the request ID doesn't match the expected format.
+ */
+export function parseRequestId(
+  requestId: string,
+): { requestType: string; timestamp: number; agentId: string } | null {
+  const atIndex = requestId.indexOf('@')
+  if (atIndex === -1) {
+    return null
+  }
+
+  const prefix = requestId.slice(0, atIndex)
+  const agentId = requestId.slice(atIndex + 1)
+
+  const lastDashIndex = prefix.lastIndexOf('-')
+  if (lastDashIndex === -1) {
+    return null
+  }
+
+  const requestType = prefix.slice(0, lastDashIndex)
+  const timestampStr = prefix.slice(lastDashIndex + 1)
+  const timestamp = parseInt(timestampStr, 10)
+
+  if (isNaN(timestamp)) {
+    return null
+  }
+
+  return { requestType, timestamp, agentId }
 }

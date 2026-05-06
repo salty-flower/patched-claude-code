@@ -60,6 +60,8 @@ export type ValidationError = {
   suggestion?: string
   /** Link to relevant documentation */
   docLink?: string
+  /** Severity of the validation issue */
+  severity?: 'warning'
   /** MCP-specific metadata - only present for MCP configuration errors */
   mcpErrorMetadata?: {
     /** Which configuration scope this error came from */
@@ -200,13 +202,7 @@ export function validateSettingsFileContent(content: string):
     const errors = formatZodError(result.error, 'settings')
     const errorMessage =
       'Settings validation failed:\n' +
-      errors
-        .map(err => {
-          let line = `- ${err.path}: ${err.message}`
-          if (err.suggestion) line += `. ${err.suggestion}`
-          return line
-        })
-        .join('\n')
+      errors.map(err => `- ${err.path}: ${err.message}`).join('\n')
 
     return {
       isValid: false,
@@ -247,7 +243,6 @@ export function filterInvalidPermissionRules(
           file: filePath,
           path: `permissions.${key}`,
           message: `Non-string value in ${key} array was removed`,
-          severity: 'warning',
           invalidValue: rule,
         })
         return false
@@ -261,7 +256,6 @@ export function filterInvalidPermissionRules(
           file: filePath,
           path: `permissions.${key}`,
           message,
-          severity: 'warning',
           invalidValue: rule,
         })
         return false
@@ -270,4 +264,67 @@ export function filterInvalidPermissionRules(
     })
   }
   return warnings
+}
+
+/**
+ * Valid hook event names recognized by the settings schema.
+ */
+const VALID_HOOK_EVENTS = new Set([
+  'PreToolUse',
+  'PostToolUse',
+  'Notification',
+  'UserPromptSubmit',
+  'SessionStart',
+  'SessionEnd',
+  'Stop',
+  'SubagentStop',
+  'PreCompact',
+  'PostCompact',
+  'TeammateIdle',
+  'TaskCreated',
+  'TaskCompleted',
+])
+
+/**
+ * Removes unknown hook events from raw parsed JSON data before schema validation.
+ * Mutates the data in place. Returns warnings for each removed event.
+ */
+export function removeUnknownHookEvents(
+  data: unknown,
+  filePath: string,
+): ValidationError[] {
+  if (!data || typeof data !== 'object') return []
+  const obj = data as Record<string, unknown>
+  if (!obj.hooks || typeof obj.hooks !== 'object') return []
+  const hooks = obj.hooks as Record<string, unknown>
+
+  const warnings: ValidationError[] = []
+  for (const key of Object.keys(hooks)) {
+    if (!VALID_HOOK_EVENTS.has(key)) {
+      warnings.push({
+        file: filePath,
+        path: `hooks.${key}`,
+        message: `Unknown hook event "${key}" was removed`,
+        severity: 'warning',
+        invalidValue: key,
+      })
+      delete hooks[key]
+    }
+  }
+  return warnings
+}
+
+/**
+ * Pre-processes raw settings data before schema validation.
+ * Removes invalid permission rules and unknown hook events.
+ * Mutates the data in place. Returns validation warnings.
+ */
+export function preprocessSettings(
+  data: unknown,
+  filePath: string,
+): ValidationError[] {
+  return [
+    ...filterInvalidPermissionRules(data, filePath),
+    ...removeUnknownHookEvents(data, filePath),
+  ]
 }

@@ -1,5 +1,29 @@
+import { feature } from 'bun:bundle'
 import type { Command } from '../commands.js'
+import { maybeMarkProjectOnboardingComplete } from '../projectOnboardingState.js'
 import { isEnvTruthy } from '../utils/envUtils.js'
+
+const OLD_INIT_PROMPT = `Please analyze this codebase and create a CLAUDE.md file, which will be given to future instances of Claude Code to operate in this repository.
+
+What to add:
+1. Commands that will be commonly used, such as how to build, lint, and run tests. Include the necessary commands to develop in this codebase, such as how to run a single test.
+2. High-level code architecture and structure so that future instances can be productive more quickly. Focus on the "big picture" architecture that requires reading multiple files to understand.
+
+Usage notes:
+- If there's already a CLAUDE.md, suggest improvements to it.
+- When you make the initial CLAUDE.md, do not repeat yourself and do not include obvious instructions like "Provide helpful error messages to users", "Write unit tests for all new utilities", "Never include sensitive information (API keys, tokens) in code or commits".
+- Avoid listing every component or file structure that can be easily discovered.
+- Don't include generic development practices.
+- If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include the important parts.
+- If there is a README.md, make sure to include the important parts.
+- Do not make up information such as "Common Development Tasks", "Tips for Development", "Support and Documentation" unless this is expressly included in other files that you read.
+- Be sure to prefix the file with the following text:
+
+\`\`\`
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+\`\`\``
 
 const NEW_INIT_PROMPT = `Set up a minimal CLAUDE.md (and optionally skills and hooks) for this repo. CLAUDE.md is loaded into every Claude Code session, so it must be concise — only include what Claude would get wrong without it.
 
@@ -133,7 +157,7 @@ Skills add capabilities Claude can use on demand without bloating every session.
 
 **First, consume \`skill\` entries from the Phase 3 preference queue.** Each queued skill preference becomes a SKILL.md tailored to what the user described. For each:
 - Name it from the preference (e.g., "verify-deep", "session-report", "deploy-sandbox")
-- Write the body using the user's own words from the interview plus whatever Phase 2 found (test commands, report format, deploy target). If the preference maps to an existing bundled skill (e.g., \`/verify\`), write a project skill that adds the user's specific constraints on top — tell the user the bundled one still exists and yours is additive.
+- Write the body using the user's own words from the interview plus whatever Phase 2 found (test commands, report format, deploy target). If the preference maps to an existing bundled skill (e.g., \`/verify\`), write a project skill that adds the user's specific constraints on top — tell the user the bundled one still exists and theirs is additive.
 - Ask a quick follow-up if the preference is underspecified (e.g., "which test command should verify-deep run?")
 
 **Then suggest additional skills** beyond the queue when you find:
@@ -199,33 +223,13 @@ When building the list, work through these checks and include only what applies:
 - To help you create skills and optimize existing skills using evals, Claude Code has an official skill-creator plugin you can install. Install it with \`/plugin install skill-creator@claude-plugins-official\`, then run \`/skill-creator <skill-name>\` to create new skills or refine any existing skill. (Always include this one.)
 - Browse official plugins with \`/plugin\` — these bundle skills, agents, hooks, and MCP servers that you may find helpful. You can also create your own custom plugins to share them with others. (Always include this one.)`
 
-const OLD_INIT_PROMPT = `Please analyze this codebase and create a CLAUDE.md file, which will be given to future instances of Claude Code to operate in this repository.
-
-What to add:
-1. Commands that will be commonly used, such as how to build, lint, and run tests. Include the necessary commands to develop in this codebase, such as how to run a single test.
-2. High-level code architecture and structure so that future instances can be productive more quickly. Focus on the "big picture" architecture that requires reading multiple files to understand.
-
-Usage notes:
-- If there's already a CLAUDE.md, suggest improvements to it.
-- When you make the initial CLAUDE.md, do not repeat yourself and do not include obvious instructions like "Provide helpful error messages to users", "Write unit tests for all new utilities", "Never include sensitive information (API keys, tokens) in code or commits".
-- Avoid listing every component or file structure that can be easily discovered.
-- Don't include generic development practices.
-- If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include the important parts.
-- If there is a README.md, make sure to include the important parts.
-- Do not make up information such as "Common Development Tasks", "Tips for Development", "Support and Documentation" unless this is expressly included in other files that you read.
-- Be sure to prefix the file with the following text:
-
-\`\`\`
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-\`\`\``
-
 const command = {
   type: 'prompt',
   name: 'init',
   get description() {
-    return isEnvTruthy(process.env.CLAUDE_CODE_NEW_INIT)
+    return feature('NEW_INIT') &&
+      (process.env.USER_TYPE === 'ant' ||
+        isEnvTruthy(process.env.CLAUDE_CODE_NEW_INIT))
       ? 'Initialize new CLAUDE.md file(s) and optional skills/hooks with codebase documentation'
       : 'Initialize a new CLAUDE.md file with codebase documentation'
   },
@@ -233,12 +237,17 @@ const command = {
   progressMessage: 'analyzing your codebase',
   source: 'builtin',
   async getPromptForCommand() {
+    maybeMarkProjectOnboardingComplete()
+
     return [
       {
         type: 'text',
-        text: isEnvTruthy(process.env.CLAUDE_CODE_NEW_INIT)
-          ? NEW_INIT_PROMPT
-          : OLD_INIT_PROMPT,
+        text:
+          feature('NEW_INIT') &&
+          (process.env.USER_TYPE === 'ant' ||
+            isEnvTruthy(process.env.CLAUDE_CODE_NEW_INIT))
+            ? NEW_INIT_PROMPT
+            : OLD_INIT_PROMPT,
       },
     ]
   },

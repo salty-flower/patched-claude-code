@@ -1,7 +1,13 @@
-import { extname } from 'path'
+import { feature } from 'bun:bundle'
+import { extname, isAbsolute, resolve } from 'path'
+import {
+  fileHistoryEnabled,
+  fileHistoryTrackEdit,
+} from 'src/utils/fileHistory.js'
 import { z } from 'zod/v4'
 import { buildTool, type ToolDef, type ToolUseContext } from '../../Tool.js'
 import type { NotebookCell, NotebookContent } from '../../types/notebook.js'
+import { getCwd } from '../../utils/cwd.js'
 import { isENOENT } from '../../utils/errors.js'
 import { getFileModificationTime, writeTextContent } from '../../utils/file.js'
 import { readFileSyncWithMetadata } from '../../utils/fileRead.js'
@@ -20,21 +26,6 @@ import {
   renderToolUseMessage,
   renderToolUseRejectedMessage,
 } from './UI.js'
-// TODO(lift): resolveAbsPath helper at byte ~8738757 — v112 uses a dedicated
-//   Wq() to resolve notebook_path (always makes it absolute), replacing the
-//   isAbsolute/resolve pattern from v88. Imported from a path utility module.
-// TODO(lift): isSymlinkPath helper at byte ~8739300 — mY1() + V8().stat() +
-//   gf6(mode) gate for symlink rejection (errorCode:11) in validateInput.
-// TODO(lift): SYMLINK_ERROR_MSG constant at byte ~8739350 — Ff6 string used
-//   as message for symlink errorCode:11.
-// TODO(lift): randomCellId helper at byte ~8742100 — QzY() replaces
-//   Math.random().toString(36).substring(2,15); generates 8-char ID.
-// TODO(lift): getFileHistoryState / applyFileHistoryOp at byte ~8740500 —
-//   call() destructures {readFileState, getFileHistoryState, applyFileHistoryOp}
-//   instead of v88's {readFileState, updateFileHistoryState}.
-// TODO(lift): fileHistoryEnabled / fileHistoryTrackEdit at byte ~8740600 —
-//   kO() + M96(getFileHistoryState, applyFileHistoryOp, ...) replaces
-//   e$() + OK6(updateFileHistoryState, ...) from v88.
 
 export const inputSchema = lazySchema(() =>
   z.strictObject({
@@ -107,14 +98,6 @@ export const NotebookEditTool = buildTool({
   async prompt() {
     return PROMPT
   },
-  // v112: new backfillObservableInput hook — normalises notebook_path before
-  // analytics/logging (calls Wq() to make it absolute).
-  backfillObservableInput(input: z.infer<InputSchema>) {
-    // TODO(lift): resolveAbsPath (Wq) at byte ~8739600
-    if (typeof input.notebook_path === 'string') {
-      // input.notebook_path = resolveAbsPath(input.notebook_path)
-    }
-  },
   userFacingName() {
     return 'Edit Notebook'
   },
@@ -130,8 +113,7 @@ export const NotebookEditTool = buildTool({
     return outputSchema()
   },
   toAutoClassifierInput(input) {
-    // v112: TRANSCRIPT_CLASSIFIER feature flag removed; block is always active.
-    {
+    if (feature('TRANSCRIPT_CLASSIFIER')) {
       const mode = input.edit_mode ?? 'replace'
       return `${input.notebook_path} ${mode}: ${input.new_source}`
     }
@@ -195,9 +177,9 @@ export const NotebookEditTool = buildTool({
     { notebook_path, cell_type, cell_id, edit_mode = 'replace' },
     toolUseContext: ToolUseContext,
   ) {
-    // v112: resolveAbsPath (Wq) always resolves to absolute — no isAbsolute branch.
-    // TODO(lift): resolveAbsPath at byte ~8739100
-    const fullPath = notebook_path // Wq(notebook_path)
+    const fullPath = isAbsolute(notebook_path)
+      ? notebook_path
+      : resolve(getCwd(), notebook_path)
 
     // SECURITY: Skip filesystem operations for UNC paths to prevent NTLM credential leaks.
     if (fullPath.startsWith('\\\\') || fullPath.startsWith('//')) {
@@ -233,6 +215,9 @@ export const NotebookEditTool = buildTool({
       }
     }
 
+    // Require Read-before-Edit (matches FileEditTool/FileWriteTool). Without
+    // this, the model could edit a notebook it never saw, or edit against a
+    // stale view after an external change — silent data loss.
     const readTimestamp = toolUseContext.readFileState.get(fullPath)
     if (!readTimestamp) {
       return {
@@ -242,23 +227,6 @@ export const NotebookEditTool = buildTool({
         errorCode: 9,
       }
     }
-
-    // v112: new symlink-rejection gate (errorCode: 11) after the read-state
-    // check. Uses fs.stat + mode bits (mY1() guards with isRemoteSession check).
-    // TODO(lift): isRemoteSession (mY1) at byte ~8739300
-    // TODO(lift): fs.stat symlink check (V8().stat + gf6) at byte ~8739350
-    // TODO(lift): SYMLINK_ERROR_MSG (Ff6) at byte ~8739400
-    // if (isRemoteSession()) {
-    //   try {
-    //     const { mode } = await fs.stat(fullPath)
-    //     if (isSymlink(mode)) {
-    //       return { result: false, message: SYMLINK_ERROR_MSG, errorCode: 11 }
-    //     }
-    //   } catch (e) {
-    //     if (!isENOENT(e)) throw e
-    //   }
-    // }
-
     if (getFileModificationTime(fullPath) > readTimestamp.timestamp) {
       return {
         result: false,
@@ -332,34 +300,34 @@ export const NotebookEditTool = buildTool({
       cell_type,
       edit_mode: originalEditMode,
     },
-    // v112: context destructures {readFileState, getFileHistoryState, applyFileHistoryOp}
-    // instead of {readFileState, updateFileHistoryState}.
-    { readFileState, getFileHistoryState, applyFileHistoryOp } as unknown as {
-      readFileState: ToolUseContext['readFileState']
-      getFileHistoryState: unknown
-      applyFileHistoryOp: unknown
-    },
+    { readFileState, updateFileHistoryState },
     _,
     parentMessage,
   ) {
-    // v112: resolveAbsPath (Wq) always resolves to absolute.
-    // TODO(lift): resolveAbsPath at byte ~8740500
-    const fullPath = notebook_path // Wq(notebook_path)
+    const fullPath = isAbsolute(notebook_path)
+      ? notebook_path
+      : resolve(getCwd(), notebook_path)
 
-    // v112: fileHistoryEnabled / fileHistoryTrackEdit API changed:
-    // kO() + M96(getFileHistoryState, applyFileHistoryOp, ...) replaces
-    // e$() + OK6(updateFileHistoryState, ...).
-    // TODO(lift): kO / M96 at byte ~8740550
-    // if (fileHistoryEnabled()) {
-    //   await fileHistoryTrackEdit(getFileHistoryState, applyFileHistoryOp, fullPath, parentMessage.uuid)
-    // }
+    if (fileHistoryEnabled()) {
+      await fileHistoryTrackEdit(
+        updateFileHistoryState,
+        fullPath,
+        parentMessage.uuid,
+      )
+    }
 
     try {
       // readFileSyncWithMetadata gives content + encoding + line endings in
-      // one safeResolvePath + readFileSync pass.
+      // one safeResolvePath + readFileSync pass, replacing the previous
+      // detectFileEncoding + readFile + detectLineEndings chain (each of
+      // which redid safeResolvePath and/or a 4KB readSync).
       const { content, encoding, lineEndings } =
         readFileSyncWithMetadata(fullPath)
-      // Must use non-memoized jsonParse here to avoid poisoning the safeParseJSON cache.
+      // Must use non-memoized jsonParse here: safeParseJSON caches by content
+      // string and returns a shared object reference, but we mutate the
+      // notebook in place below (cells.splice, targetCell.source = ...).
+      // Using the memoized version poisons the cache for validateInput() and
+      // any subsequent call() with the same file content.
       let notebook: NotebookContent
       try {
         notebook = jsonParse(content) as NotebookContent
@@ -415,9 +383,7 @@ export const NotebookEditTool = buildTool({
         (notebook.nbformat === 4 && notebook.nbformat_minor >= 5)
       ) {
         if (edit_mode === 'insert') {
-          // v112: randomCellId() generates 8-char ID instead of 13-char.
-          // TODO(lift): QzY() at byte ~8742100
-          new_cell_id = Math.random().toString(36).slice(0, 8) // approximation; real impl is QzY()
+          new_cell_id = Math.random().toString(36).substring(2, 15)
         } else if (cell_id !== null) {
           new_cell_id = cell_id
         }
@@ -464,7 +430,10 @@ export const NotebookEditTool = buildTool({
       const IPYNB_INDENT = 1
       const updatedContent = jsonStringify(notebook, null, IPYNB_INDENT)
       writeTextContent(fullPath, updatedContent, encoding, lineEndings)
-      // Update readFileState with post-write mtime
+      // Update readFileState with post-write mtime (matches FileEditTool/
+      // FileWriteTool). offset:undefined breaks FileReadTool's dedup match —
+      // without this, Read→NotebookEdit→Read in the same millisecond would
+      // return the file_unchanged stub against stale in-context content.
       readFileState.set(fullPath, {
         content: updatedContent,
         timestamp: getFileModificationTime(fullPath),

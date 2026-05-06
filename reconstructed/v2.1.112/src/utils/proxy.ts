@@ -237,6 +237,44 @@ export const getProxyAgent = memoize((uri: string): undici.Dispatcher => {
 })
 
 /**
+ * Get an HTTP agent configured for WebSocket proxy support
+ * Returns undefined if no proxy is configured or URL should bypass proxy
+ */
+export function getWebSocketProxyAgent(url: string): Agent | undefined {
+  const proxyUrl = getProxyUrl()
+
+  if (!proxyUrl) {
+    return undefined
+  }
+
+  // Check if URL should bypass proxy
+  if (shouldBypassProxy(url)) {
+    return undefined
+  }
+
+  return createHttpsProxyAgent(proxyUrl)
+}
+
+/**
+ * Get the proxy URL for WebSocket connections under Bun.
+ * Bun's native WebSocket supports a `proxy` string option instead of Node's `agent`.
+ * Returns undefined if no proxy is configured or URL should bypass proxy.
+ */
+export function getWebSocketProxyUrl(url: string): string | undefined {
+  const proxyUrl = getProxyUrl()
+
+  if (!proxyUrl) {
+    return undefined
+  }
+
+  if (shouldBypassProxy(url)) {
+    return undefined
+  }
+
+  return proxyUrl
+}
+
+/**
  * Get fetch options for the Anthropic SDK with proxy and mTLS configuration
  * Returns fetch options with appropriate dispatcher for proxy and/or mTLS
  *
@@ -253,22 +291,13 @@ export function getProxyFetchOptions(opts?: { forAnthropicAPI?: boolean }): {
   proxy?: string
   unix?: string
   keepalive?: false
-  timeout?: false
 } {
-  const base: {
-    keepalive?: false
-    timeout?: false
-  } = keepAliveDisabled ? { keepalive: false } : {}
+  const base = keepAliveDisabled ? ({ keepalive: false } as const) : {}
 
   // ANTHROPIC_UNIX_SOCKET tunnels through the `claude ssh` auth proxy, which
   // hardcodes the upstream to the Anthropic API. Scope to the Anthropic API
   // client so MCP/SSE/other callers don't get their requests misrouted.
   if (opts?.forAnthropicAPI) {
-    // Disable timeout for Anthropic API calls under Bun to avoid premature
-    // socket closure on long-running streaming requests.
-    if (typeof Bun !== 'undefined') {
-      base.timeout = false
-    }
     const unixSocket = process.env.ANTHROPIC_UNIX_SOCKET
     if (unixSocket && typeof Bun !== 'undefined') {
       return { ...base, unix: unixSocket }
@@ -280,13 +309,7 @@ export function getProxyFetchOptions(opts?: { forAnthropicAPI?: boolean }): {
   // If we have a proxy, use the proxy agent (which includes mTLS config)
   if (proxyUrl) {
     if (typeof Bun !== 'undefined') {
-      // TODO(lift): vAq at byte ~2063177 (getProxyAuth)
-      const proxyAuth = undefined // getProxyAuth()
-      return {
-        ...base,
-        proxy: proxyAuth ? { url: proxyUrl, headers: { 'Proxy-Authorization': proxyAuth } } : proxyUrl,
-        ...getTLSFetchOptions(),
-      }
+      return { ...base, proxy: proxyUrl, ...getTLSFetchOptions() }
     }
     return { ...base, dispatcher: getProxyAgent(proxyUrl) }
   }

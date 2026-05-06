@@ -359,10 +359,6 @@ export function findToolByName(tools: Tools, name: string): Tool | undefined {
   return tools.find(t => toolMatchesName(t, name))
 }
 
-// TODO(lift): getDefaultToolUserFacingName at byte ~3756409
-// v112 adds a standalone helper `y_(q){return q.userFacingName?.()??q.name}`
-// that returns the user-facing name for a tool, falling back to tool.name.
-
 export type Tool<
   Input extends AnyObject = AnyObject,
   Output = unknown,
@@ -743,12 +739,6 @@ type BuiltTool<D> = Omit<D, DefaultableToolKeys> & {
       : D[K]
     : ToolDefaults[K]
 }
-
-// TODO(lift): TOOL_DEFAULTS and buildTool moved to lazy init in v112.
-// The v112 minifier hoisted the defaults object into a lazy-init closure
-// (`var gq=L(()=>{jy_=...})`). The runtime semantics are identical.
-// Reconstructing the exact lazy-init pattern is deferred; the eager
-// definition below is functionally equivalent.
 
 /**
  * Build a complete `Tool` from a partial definition, filling in safe defaults

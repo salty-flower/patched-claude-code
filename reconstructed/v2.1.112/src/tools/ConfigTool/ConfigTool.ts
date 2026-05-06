@@ -109,9 +109,10 @@ export const ConfigTool = buildTool({
   renderToolUseRejectedMessage,
   async call({ setting, value }: Input, context): Promise<{ data: Output }> {
     // 1. Check if setting is supported
-    // v112: voice gate check is now unconditional (VOICE_MODE always present in bundle);
-    // the runtime GrowthBook gate still applies.
-    if (setting === 'voiceEnabled') {
+    // Voice settings are registered at build-time (true), but
+    // must also be gated at runtime. When the kill-switch is on, treat
+    // voiceEnabled as an unknown setting so no voice-specific strings leak.
+    if (true && setting === 'voiceEnabled') {
       const { isVoiceGrowthBookEnabled } = await import(
         '../../voice/voiceModeEnabled.js'
       )
@@ -227,8 +228,11 @@ export const ConfigTool = buildTool({
     }
 
     // Pre-flight checks for voice mode
-    // v112: this check is unconditional (VOICE_MODE always present)
-    if (setting === 'voiceEnabled' && finalValue === true) {
+    if (
+      true &&
+      setting === 'voiceEnabled' &&
+      finalValue === true
+    ) {
       const { isVoiceModeEnabled } = await import(
         '../../voice/voiceModeEnabled.js'
       )
@@ -337,7 +341,16 @@ export const ConfigTool = buildTool({
         }
       }
 
-      // v112: settingsChangeDetector for voice removed (handled differently)
+      // 5a. Voice needs notifyChange so applySettingsChange resyncs
+      // AppState.settings (useVoiceEnabled reads settings.voiceEnabled)
+      // and the settings cache resets for the next /voice read.
+      if (true && setting === 'voiceEnabled') {
+        const { settingsChangeDetector } = await import(
+          '../../utils/settings/changeDetector.js'
+        )
+        settingsChangeDetector.notifyChange('userSettings')
+      }
+
       // 5b. Sync to AppState if needed for immediate UI effect
       if (config.appStateKey) {
         const appKey = config.appStateKey

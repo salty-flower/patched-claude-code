@@ -356,11 +356,6 @@ export function convertToSandboxRuntimeConfig(
     argv0,
   }
 
-  // TODO(lift): _J4 at byte ~4589324 (getSeccompProfile)
-  // TODO(lift): xP at byte ~4589324 (isInContainer / isClaudeCodeRemote)
-  // TODO(lift): Js at byte ~4589324 (isSandboxAvailableInContainer)
-  // TODO(lift): lE6 at byte ~4589324 (isSandboxEnabledInSettings)
-
   return {
     network: {
       allowedDomains,
@@ -368,7 +363,6 @@ export function convertToSandboxRuntimeConfig(
       allowUnixSockets: settings.sandbox?.network?.allowUnixSockets,
       allowAllUnixSockets: settings.sandbox?.network?.allowAllUnixSockets,
       allowLocalBinding: settings.sandbox?.network?.allowLocalBinding,
-      allowMachLookup: settings.sandbox?.network?.allowMachLookup,
       httpProxyPort: settings.sandbox?.network?.httpProxyPort,
       socksProxyPort: settings.sandbox?.network?.socksProxyPort,
     },
@@ -383,7 +377,6 @@ export function convertToSandboxRuntimeConfig(
     enableWeakerNetworkIsolation:
       settings.sandbox?.enableWeakerNetworkIsolation,
     ripgrep: ripgrepConfig,
-    seccomp: undefined, // _J4() in v112
   }
 }
 
@@ -537,17 +530,6 @@ function isPlatformInEnabledList(): boolean {
  * This checks the user's enabled setting, platform support, and enabledPlatforms restriction
  */
 function isSandboxingEnabled(): boolean {
-  // CCR on Linux: sandbox is handled by the container runtime, not bwrap.
-  // Delegate to sandbox-runtime's isSandboxAvailableInContainer().
-  // TODO(lift): xP at byte ~4592444 (isClaudeCodeRemote)
-  // TODO(lift): lE6 at byte ~4592444 (isSandboxEnabledInSettings)
-  if (
-    /* isClaudeCodeRemote() && */ process.platform === 'linux' &&
-    !getSandboxEnabledSetting()
-  ) {
-    // return isSandboxAvailableInContainer()
-  }
-
   if (!isSupportedPlatform()) {
     return false
   }
@@ -917,10 +899,8 @@ export interface ISandboxManager {
   getNetworkRestrictionConfig(): NetworkRestrictionConfig
   getAllowUnixSockets(): string[] | undefined
   getAllowLocalBinding(): boolean | undefined
-  getAllowMachLookup(): boolean | undefined
   getIgnoreViolations(): IgnoreViolationsConfig | undefined
   getEnableWeakerNestedSandbox(): boolean | undefined
-  getEnableWeakerNetworkIsolation(): boolean | undefined
   getExcludedCommands(): string[]
   getProxyPort(): number | undefined
   getSocksProxyPort(): number | undefined
@@ -971,10 +951,7 @@ export const SandboxManager: ISandboxManager = {
   isSupportedPlatform,
   getAllowUnixSockets: BaseSandboxManager.getAllowUnixSockets,
   getAllowLocalBinding: BaseSandboxManager.getAllowLocalBinding,
-  getAllowMachLookup: BaseSandboxManager.getAllowMachLookup,
   getEnableWeakerNestedSandbox: BaseSandboxManager.getEnableWeakerNestedSandbox,
-  getEnableWeakerNetworkIsolation:
-    BaseSandboxManager.getEnableWeakerNetworkIsolation,
   getProxyPort: BaseSandboxManager.getProxyPort,
   getSocksProxyPort: BaseSandboxManager.getSocksProxyPort,
   getLinuxHttpSocketPath: BaseSandboxManager.getLinuxHttpSocketPath,

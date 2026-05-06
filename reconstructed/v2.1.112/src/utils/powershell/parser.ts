@@ -194,11 +194,6 @@ export type ParsedPowerShellCommand = {
    * `#Requires -Modules <name>` triggers module loading from PSModulePath.
    */
   hasScriptRequirements?: boolean
-  /**
-   * v112: Whether the command contains background job operators (`&` at
-   * pipeline end, or `Start-Job` usage). Added for security gating.
-   */
-  hasBackgroundJob?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -276,8 +271,6 @@ type RawParsedOutput = {
   typeLiterals?: string[]
   hasUsingStatements?: boolean
   hasScriptRequirements?: boolean
-  // v112: hasBackgroundJob emitted by updated PS1 script (see TODO below)
-  hasBackgroundJob?: boolean
 }
 
 // This is the canonical copy of the parse script. There is no separate .ps1 file.
@@ -573,11 +566,6 @@ $output = @{
 
 $output | ConvertTo-Json -Depth 10 -Compress
 `
-
-// TODO(lift): v112 PS1 script body updated at byte ~9480765 (unmatched v88 decl
-// [8580161,8590844]). The v112 script likely adds hasBackgroundJob detection.
-// The extracted v112_min shows the old body at a different location; the actual
-// v112 body with hasBackgroundJob is in a separate chunk not visible here.
 
 // ---------------------------------------------------------------------------
 // Windows CreateProcess has a 32,767 char command-line limit. The encoding
@@ -1134,10 +1122,6 @@ function transformRawOutput(raw: RawParsedOutput): ParsedPowerShellCommand {
   if (raw.hasScriptRequirements) {
     result.hasScriptRequirements = true
   }
-  // v112: hasBackgroundJob surfaced from updated PS1 script
-  if (raw.hasBackgroundJob) {
-    result.hasBackgroundJob = true
-  }
   return result
 }
 
@@ -1195,17 +1179,18 @@ async function parsePowerShellCommandImpl(
     encodedScript,
   ]
 
-  // v112: Retry loop restructured. Spawn errors are now caught and retried
-  // rather than immediately returning. Logging is consolidated per-iteration.
+  // Spawn pwsh with one retry on timeout. On loaded CI runners (Windows
+  // especially), pwsh spawn + .NET JIT + ParseInput occasionally exceeds 5s
+  // even after CAN_SPAWN_PARSE_SCRIPT() warms the JIT. execa kills the process
+  // but exitCode is undefined, which the old code reported as the misleading
+  // "pwsh exited with code 1:" with empty stderr. A single retry absorbs
+  // transient load spikes; a double timeout is reported as PwshTimeout.
   const parseTimeoutMs = getParseTimeoutMs()
   let stdout = ''
   let stderr = ''
   let code: number | null = null
   let timedOut = false
-  let spawnError: string | null = null
   for (let attempt = 0; attempt < 2; attempt++) {
-    spawnError = null
-    timedOut = false
     try {
       const result = await execa(pwshPath, args, {
         timeout: parseTimeoutMs,
@@ -1216,21 +1201,18 @@ async function parsePowerShellCommandImpl(
       timedOut = result.timedOut
       code = result.failed ? (result.exitCode ?? 1) : 0
     } catch (e: unknown) {
-      // v112: capture spawn error for retry instead of immediate return
-      spawnError = e instanceof Error ? e.message : String(e)
-      code = null
+      logForDebugging(
+        `PowerShell parser: failed to spawn pwsh: ${e instanceof Error ? e.message : e}`,
+      )
+      return makeInvalidResult(
+        command,
+        `Failed to spawn PowerShell: ${e instanceof Error ? e.message : e}`,
+        'PwshSpawnError',
+      )
     }
-    if (code === 0) break
+    if (!timedOut) break
     logForDebugging(
-      `PowerShell parser: ${spawnError ? `failed to spawn pwsh: ${spawnError}` : timedOut ? `pwsh timed out after ${parseTimeoutMs}ms` : `pwsh exited ${code}: ${stderr}`} (attempt ${attempt + 1})`,
-    )
-  }
-
-  if (spawnError) {
-    return makeInvalidResult(
-      command,
-      `Failed to spawn PowerShell: ${spawnError}`,
-      'PwshSpawnError',
+      `PowerShell parser: pwsh timed out after ${parseTimeoutMs}ms (attempt ${attempt + 1})`,
     )
   }
 
@@ -1673,46 +1655,32 @@ export function isPowerShellParameter(
 }
 
 /**
- * v112: Replaced commandHasArgAbbreviation with a security-focused check.
- * Returns true if any argument is a dangerous cmdlet abbreviation with an
- * unsafe value. Checks against a denylist of dangerous parameters (BEK) and
- * a safelist of values (pEK).
- *
- * Minified: fWY(q) where q is command.args array.
+ * Check if any argument on a command is an unambiguous abbreviation of a PowerShell parameter.
+ * PowerShell allows parameter abbreviation as long as the prefix is unambiguous.
+ * The minPrefix is the shortest unambiguous prefix for the parameter.
+ * For example, minPrefix '-en' for fullParam '-encodedcommand' matches '-en', '-enc', '-enco', etc.
  */
-// TODO(lift): fWY at byte ~9502528 — verify exact denylist/safelist contents
-export function commandHasDangerousAbbreviation(command: ParsedCommandElement): boolean {
-  for (let i = 0; i < command.args.length; i++) {
-    const arg = command.args[i]!
-    if (!PS_TOKENIZER_DASH_CHARS.has(arg[0]!)) continue
-
-    const normalized = arg[0] === '-' ? arg : '-' + arg.slice(1)
-    const colonIndex = normalized.indexOf(':', 1)
-    const paramPart = (colonIndex > 0 ? normalized.slice(0, colonIndex) : normalized).toLowerCase()
-
-    // TODO(lift): BEK — dangerous parameter denylist at byte ~9502528
-    if (!isDangerousParam(paramPart)) continue
-
-    const value = (colonIndex > 0 ? normalized.slice(colonIndex + 1) : command.args[i + 1] ?? '')
-      .toLowerCase()
-      .replace(/^['"]|['"]$/g, '')
-      .trim()
-
-    // TODO(lift): pEK — safe value safelist at byte ~9502528
-    if (value.length > 0 && !isSafeValue(value)) return true
-  }
-  return false
-}
-
-// TODO(lift): BEK / pEK sets at byte ~9502528
-function isDangerousParam(param: string): boolean {
-  // Placeholder: actual denylist lives in another chunk
-  return false
-}
-
-function isSafeValue(value: string): boolean {
-  // Placeholder: actual safelist lives in another chunk
-  return false
+export function commandHasArgAbbreviation(
+  command: ParsedCommandElement,
+  fullParam: string,
+  minPrefix: string,
+): boolean {
+  const lowerFull = fullParam.toLowerCase()
+  const lowerMin = minPrefix.toLowerCase()
+  return command.args.some(a => {
+    // Strip colon-bound value (e.g., -en:base64value -> -en)
+    const colonIndex = a.indexOf(':', 1)
+    const paramPart = colonIndex > 0 ? a.slice(0, colonIndex) : a
+    // Strip backtick escapes — PowerShell resolves `-Member`Name` to
+    // `-MemberName` but Extent.Text preserves the backtick, causing
+    // prefix-comparison misses on the raw text.
+    const lower = paramPart.replace(/`/g, '').toLowerCase()
+    return (
+      lower.startsWith(lowerMin) &&
+      lowerFull.startsWith(lower) &&
+      lower.length <= lowerFull.length
+    )
+  })
 }
 
 /**

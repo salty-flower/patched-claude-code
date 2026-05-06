@@ -83,13 +83,6 @@ function getErrorMessage(
   return String(errorCode)
 }
 
-// TODO(lift): KQ6 at byte ~949103 — Windows command safety validator
-function validateWindowsCommand(file: string): string | null {
-  // Stub: v112 adds a Windows-only command path safety check here.
-  // The minified calls KQ6(q) and returns null if unsafe.
-  return file
-}
-
 /**
  * execFile, but always resolves (never throws)
  */
@@ -112,19 +105,9 @@ export function execFileNoThrowWithCwd(
     maxBuffer: 1_000_000,
   },
 ): Promise<{ stdout: string; stderr: string; code: number; error?: string }> {
-  let resolvedFile = file
-  if (process.platform === 'win32' && !shell) {
-    const safe = validateWindowsCommand(file)
-    if (safe === null) {
-      const msg = `Command '${file}' not found or is in an unsafe location (current directory)`
-      return Promise.resolve({ stdout: '', stderr: msg, code: 127, error: msg })
-    }
-    resolvedFile = safe
-  }
-
   return new Promise(resolve => {
     // Use execa for cross-platform .bat/.cmd compatibility on Windows
-    execa(resolvedFile, args, {
+    execa(file, args, {
       maxBuffer,
       signal: abortSignal,
       timeout: finalTimeout,

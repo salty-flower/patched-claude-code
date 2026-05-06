@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React, { createContext, isValidElement, type ReactNode, useContext } from 'react';
 import { Box } from '../../ink.js';
 import { OrderedListItem, OrderedListItemContext } from './OrderedListItem.js';
@@ -9,7 +8,7 @@ type OrderedListProps = {
   children: ReactNode;
 };
 function OrderedListComponent(t0) {
-  const $ = _c(9);
+  const $ = new Array(9).fill(void 0);
   const {
     children
   } = t0;

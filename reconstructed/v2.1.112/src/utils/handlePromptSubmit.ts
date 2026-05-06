@@ -23,8 +23,7 @@ import { logForDebugging } from './debug.js'
 import type { EffortValue } from './effort.js'
 import type { FileHistoryState } from './fileHistory.js'
 import { fileHistoryEnabled, fileHistoryMakeSnapshot } from './fileHistory.js'
-// TODO(lift): exit() replaced by unresolved SzA at byte ~12490739
-// import { gracefulShutdownSync } from './gracefulShutdown.js'
+import { gracefulShutdownSync } from './gracefulShutdown.js'
 import { enqueue } from './messageQueueManager.js'
 import { resolveSkillModelOverride } from './model/model.js'
 import type { ProcessUserInputContext } from './processUserInput/processUserInput.js'
@@ -33,10 +32,8 @@ import type { QueryGuard } from './QueryGuard.js'
 import { queryCheckpoint, startQueryProfile } from './queryProfiler.js'
 import { runWithWorkload } from './workloadContext.js'
 
-// TODO(lift): SzA at byte ~12490739 — replaced local exit() in v112.
 function exit(): void {
-  // gracefulShutdownSync(0)
-  // v112 calls an external SzA() instead; leaving stub.
+  gracefulShutdownSync(0)
 }
 
 type BaseExecutionParams = {
@@ -72,10 +69,8 @@ type BaseExecutionParams = {
     onBeforeQuery?: (input: string, newMessages: Message[]) => Promise<boolean>,
     input?: string,
     effort?: EffortValue,
-    stopHookActive?: boolean,
   ) => Promise<void>
   setAppState: (updater: (prev: AppState) => AppState) => void
-  getAppState: () => AppState
   onBeforeQuery?: (input: string, newMessages: Message[]) => Promise<boolean>
   canUseTool?: CanUseToolFn
 }
@@ -141,7 +136,6 @@ export async function handlePromptSubmit(
     setAbortController,
     onQuery,
     setAppState,
-    getAppState,
     onBeforeQuery,
     canUseTool,
     queuedCommands,
@@ -169,7 +163,6 @@ export async function handlePromptSubmit(
       setAbortController,
       onQuery,
       setAppState,
-      getAppState,
       onBeforeQuery,
       resetHistory,
       canUseTool,
@@ -386,7 +379,6 @@ export async function handlePromptSubmit(
     setAbortController,
     onQuery,
     setAppState,
-    getAppState,
     onBeforeQuery,
     resetHistory,
     canUseTool,
@@ -414,7 +406,6 @@ async function executeUserInput(params: ExecuteUserInputParams): Promise<void> {
     setAbortController,
     onQuery,
     setAppState,
-    getAppState,
     onBeforeQuery,
     resetHistory,
     canUseTool,
@@ -469,16 +460,6 @@ async function executeUserInput(params: ExecuteUserInputParams): Promise<void> {
       commands.every(c => c.workload === firstWorkload)
         ? firstWorkload
         : undefined
-
-    // v112 pre-computes a history string for the workload context.
-    const primaryValue = commands[0]?.value
-    const historyString =
-      typeof primaryValue === 'string'
-        ? primaryValue
-        : primaryValue
-          ? // TODO(lift): s5 at byte ~12493603 — string join utility
-            String(primaryValue)
-          : ''
 
     // Wrap the entire turn (processUserInput loop + onQuery) in an
     // AsyncLocalStorage context. This is the ONLY way to correctly
@@ -546,14 +527,9 @@ async function executeUserInput(params: ExecuteUserInputParams): Promise<void> {
         newMessages.filter(selectableUserMessagesFilter).forEach(message => {
           void fileHistoryMakeSnapshot(
             (updater: (prev: FileHistoryState) => FileHistoryState) => {
-              const appState = getAppState()
-              const updatedHistory = updater(appState.fileHistory)
-              if (updatedHistory === appState.fileHistory) {
-                return
-              }
               setAppState(prev => ({
                 ...prev,
-                fileHistory: updatedHistory,
+                fileHistory: updater(prev.fileHistory),
               }))
             },
             message.uuid,
@@ -581,10 +557,6 @@ async function executeUserInput(params: ExecuteUserInputParams): Promise<void> {
             ? primaryCmd.value
             : undefined
         const shouldCallBeforeQuery = primaryMode === 'prompt'
-        // v112: any command in the batch has stopHookActive → forward to onQuery.
-        const stopHookActive = commands.some(c => c.stopHookActive)
-          ? true
-          : undefined
         await onQuery(
           newMessages,
           abortController,
@@ -596,7 +568,6 @@ async function executeUserInput(params: ExecuteUserInputParams): Promise<void> {
           shouldCallBeforeQuery ? onBeforeQuery : undefined,
           primaryInput,
           effort,
-          stopHookActive,
         )
       } else {
         // Local slash commands that skip messages (e.g., /model, /theme).
@@ -635,7 +606,5 @@ async function executeUserInput(params: ExecuteUserInputParams): Promise<void> {
     // turn's resetLoadingState. Harmless when onQuery ran: setMessages grew
     // displayedMessages past the baseline, so REPL.tsx already hid it.
     setUserInputOnProcessing(undefined)
-    // TODO(lift): Uc at byte ~12495584 — post-completion UI cleanup.
-    // v112 calls Uc() here in addition to setUserInputOnProcessing(undefined).
   }
 }

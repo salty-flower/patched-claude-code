@@ -66,7 +66,6 @@ const DATADOG_ALLOWED_EVENTS = new Set([
 const TAG_FIELDS = [
   'arch',
   'clientType',
-  'entrypoint',
   'errorType',
   'http_status_range',
   'http_status',
@@ -75,7 +74,6 @@ const TAG_FIELDS = [
   'platform',
   'provider',
   'skillMode',
-  'coachMode',
   'subscriptionType',
   'toolName',
   'userBucket',

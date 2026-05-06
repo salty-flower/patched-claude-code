@@ -1,12 +1,11 @@
 import type { Command } from '../../commands.js'
 
-const rateLimitOptions = {
+const outputStyle = {
   type: 'local-jsx',
-  name: 'rate-limit-options',
-  description: 'Show options when rate limit is reached',
-  isEnabled: () => false,
+  name: 'output-style',
+  description: 'Deprecated: use /config to change output style',
   isHidden: true,
-  load: () =>> import('./rate-limit-options.js'),
+  load: () => import('./output-style.js'),
 } satisfies Command
 
-export default rateLimitOptions
+export default outputStyle

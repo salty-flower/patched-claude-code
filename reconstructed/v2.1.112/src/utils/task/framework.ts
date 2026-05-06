@@ -113,7 +113,6 @@ export function registerTask(task: TaskState, setAppState: SetAppState): void {
         ? (task.workflowName as string | undefined)
         : undefined,
     prompt: 'prompt' in task ? (task.prompt as string) : undefined,
-    skip_transcript: task.skipTranscript,
   })
 }
 

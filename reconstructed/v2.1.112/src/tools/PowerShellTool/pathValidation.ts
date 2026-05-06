@@ -765,22 +765,6 @@ const CMDLET_PATH_CONFIG: Record<string, CmdletPathConfig> = {
 }
 
 /**
- * Element types that are safe to extract as literal path strings.
- *
- * Only element types with statically-known string values are safe for path
- * extraction. Variable and ExpandableString have runtime-determined values —
- * even though they're defended downstream ($ detection in validatePath's
- * `includes('$')` check, and the hasExpandableStrings security flag), excluding
- * them here is defense-in-direct: fail-safe at the earliest gate rather than
- * relying on downstream checks to catch them.
- *
- * Any other type (e.g., 'Other' for ArrayLiteralExpressionAst, 'SubExpression',
- * 'ScriptBlock', 'Variable', 'ExpandableString') cannot be statically validated
- * and must force an ask.
- */
-const SAFE_PATH_ELEMENT_TYPES = new Set<string>(['StringConstant', 'Parameter'])
-
-/**
  * Checks if a lowercase parameter name (with leading dash) matches any entry
  * in the given param list, accounting for PowerShell's prefix-matching behavior
  * (e.g., -Lit matches -LiteralPath).
@@ -875,8 +859,6 @@ export function dangerousRemovalDeny(path: string): PermissionResult {
 /**
  * Checks if a resolved path is allowed for the given operation type.
  * Mirrors the logic in BashTool/pathValidation.ts isPathAllowed.
- *
- * v112: checkPathSafetyForAutoEdit now receives isRemoteMode from context.
  */
 function isPathAllowed(
   resolvedPath: string,
@@ -915,13 +897,10 @@ function isPathAllowed(
   }
 
   // 2.5. For write/create operations, check safety validations
-  // v112: passes isRemoteMode from context to checkPathSafetyForAutoEdit
   if (operationType !== 'read') {
     const safetyCheck = checkPathSafetyForAutoEdit(
       resolvedPath,
       precomputedPathsToCheck,
-      undefined,
-      (context as unknown as { isRemoteMode?: boolean }).isRemoteMode,
     )
     if (!safetyCheck.safe) {
       return {
@@ -1030,9 +1009,6 @@ function checkDenyRuleForGuessedPath(
 
 /**
  * Validates a file system path, handling tilde expansion.
- *
- * v112: adds a guard for ~user paths (e.g., ~otheruser/...) which cannot be
- * statically validated since the username portion is dynamic.
  */
 function validatePath(
   filePath: string,
@@ -1048,23 +1024,6 @@ function validatePath(
   // Normalize before resolution so traversal patterns like dir\..\..\etc\shadow
   // are correctly detected.
   const normalizedPath = cleanPath.replace(/\\/g, '/')
-
-  // SECURITY: v112 — Paths beginning with ~user (tilde followed immediately by
-  // a non-slash character) cannot be statically validated because the username
-  // portion is dynamic. expandTilde only handles `~` / `~/` / `~\`; any other
-  // form like `~otheruser/...` is left unexpanded, so resolution against cwd
-  // would produce a bogus path and silently allow or deny incorrectly.
-  if (/^~[^/]/.test(normalizedPath)) {
-    return {
-      allowed: false,
-      resolvedPath: normalizedPath,
-      decisionReason: {
-        type: 'other',
-        reason:
-          'Paths beginning with ~user cannot be statically validated and require manual approval',
-      },
-    }
-  }
 
   // SECURITY: Backtick (`) is PowerShell's escape character. It is a no-op in
   // many positions (e.g., `/ === /) but defeats Node.js path checks like
@@ -1317,6 +1276,22 @@ function getGlobBaseDirectory(filePath: string): string {
   if (lastSepIndex === -1) return '.'
   return beforeGlob.substring(0, lastSepIndex + 1) || '/'
 }
+
+/**
+ * Element types that are safe to extract as literal path strings.
+ *
+ * Only element types with statically-known string values are safe for path
+ * extraction. Variable and ExpandableString have runtime-determined values —
+ * even though they're defended downstream ($ detection in validatePath's
+ * `includes('$')` check, and the hasExpandableStrings security flag), excluding
+ * them here is defense-in-direct: fail-safe at the earliest gate rather than
+ * relying on downstream checks to catch them.
+ *
+ * Any other type (e.g., 'Other' for ArrayLiteralExpressionAst, 'SubExpression',
+ * 'ScriptBlock', 'Variable', 'ExpandableString') cannot be statically validated
+ * and must force an ask.
+ */
+const SAFE_PATH_ELEMENT_TYPES = new Set<string>(['StringConstant', 'Parameter'])
 
 /**
  * Extract file paths from a parsed PowerShell command element.
@@ -1752,37 +1727,6 @@ function checkPathConstraintsForStatement(
     // on a dangerous path → deny (not ask). User cannot approve system32 deletion.
     const isRemoval = resolveToCanonical(cmd.name) === 'remove-item'
 
-    // SECURITY: v112 — Remove-Item -Recurse targeting the working directory
-    // would delete the working directory including .git and .claude. Ask.
-    if (isRemoval) {
-      const hasRecurseFlag = cmd.args.some(arg => {
-        const normalized = (arg.length > 0 ? '-' + arg.slice(1) : arg).toLowerCase()
-        const colonIdx = normalized.indexOf(':')
-        const flagName = colonIdx > 0 ? normalized.slice(0, colonIdx) : normalized
-        return flagName.length >= 2 && '-recurse'.startsWith(flagName)
-      })
-      if (hasRecurseFlag) {
-        const cwdResolved = safeResolvePath(getFsImplementation(), cwd).resolvedPath
-        for (const filePath of paths) {
-          const absPath = isAbsolute(filePath)
-            ? filePath
-            : resolve(cwd, filePath)
-          const resolvedFilePath = safeResolvePath(getFsImplementation(), absPath).resolvedPath
-          if (
-            resolvedFilePath === cwdResolved ||
-            cwdResolved.startsWith(resolvedFilePath + '/') ||
-            cwdResolved.startsWith(resolvedFilePath + '\\')
-          ) {
-            firstAsk ??= {
-              behavior: 'ask',
-              message: `Remove-Item -Recurse targeting '${filePath}' would delete the working directory including .git and .claude — requires manual approval`,
-            }
-            break
-          }
-        }
-      }
-    }
-
     for (const filePath of paths) {
       // Hard-deny removal of dangerous system paths (/, ~, /etc, etc.).
       // Check the RAW path (pre-realpath) first: safeResolvePath can
@@ -1845,12 +1789,7 @@ function checkPathConstraintsForStatement(
           }
         }
 
-        // v112: only suggest acceptEdits when in default or plan mode
-        if (
-          (operationType === 'write' || operationType === 'create') &&
-          (toolPermissionContext.mode === 'default' ||
-            toolPermissionContext.mode === 'plan')
-        ) {
+        if (operationType === 'write' || operationType === 'create') {
           suggestions.push({
             type: 'setMode',
             mode: 'acceptEdits',
@@ -1963,12 +1902,7 @@ function checkPathConstraintsForStatement(
             }
           }
 
-          // v112: only suggest acceptEdits when in default or plan mode
-          if (
-            (operationType === 'write' || operationType === 'create') &&
-            (toolPermissionContext.mode === 'default' ||
-              toolPermissionContext.mode === 'plan')
-          ) {
+          if (operationType === 'write' || operationType === 'create') {
             suggestions.push({
               type: 'setMode',
               mode: 'acceptEdits',

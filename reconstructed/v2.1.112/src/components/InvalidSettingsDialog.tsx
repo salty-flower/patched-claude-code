@@ -1,11 +1,9 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Text } from '../ink.js';
 import type { ValidationError } from '../utils/settings/validation.js';
 import { Select } from './CustomSelect/index.js';
 import { Dialog } from './design-system/Dialog.js';
 import { ValidationErrorsList } from './ValidationErrorsList.js';
-
 type Props = {
   settingsErrors: ValidationError[];
   onContinue: () => void;
@@ -17,7 +15,7 @@ type Props = {
  * User must choose to continue (skipping invalid files) or exit to fix them.
  */
 export function InvalidSettingsDialog(t0) {
-  const $ = _c(20);
+  const $ = new Array(13).fill(void 0);
   const {
     settingsErrors,
     onContinue,
@@ -41,69 +39,50 @@ export function InvalidSettingsDialog(t0) {
   const handleSelect = t1;
   let t2;
   if ($[3] !== settingsErrors) {
-    t2 = settingsErrors.some(isSevereError_V112);
+    t2 = <ValidationErrorsList errors={settingsErrors} />;
     $[3] = settingsErrors;
     $[4] = t2;
   } else {
     t2 = $[4];
   }
-  const hasSevereErrors = t2;
   let t3;
-  if ($[5] !== hasSevereErrors) {
-    t3 = hasSevereErrors
-      ? [{ label: "Exit and fix manually", value: "exit" }, { label: "Continue without these settings", value: "continue" }]
-      : [{ label: "Continue", value: "continue" }, { label: "Exit and fix manually", value: "exit" }];
-    $[5] = hasSevereErrors;
-    $[6] = t3;
+  if ($[5] === Symbol.for("react.memo_cache_sentinel")) {
+    t3 = <Text dimColor={true}>Files with errors are skipped entirely, not just the invalid settings.</Text>;
+    $[5] = t3;
   } else {
-    t3 = $[6];
+    t3 = $[5];
   }
-  const options = t3;
-  const dialogTitle = hasSevereErrors ? "Settings Error" : "Settings Warning";
-  const cancelAction = hasSevereErrors ? onExit : onContinue;
   let t4;
-  if ($[7] !== settingsErrors) {
-    t4 = <ValidationErrorsList errors={settingsErrors} />;
-    $[7] = settingsErrors;
-    $[8] = t4;
+  if ($[6] === Symbol.for("react.memo_cache_sentinel")) {
+    t4 = [{
+      label: "Exit and fix manually",
+      value: "exit"
+    }, {
+      label: "Continue without these settings",
+      value: "continue"
+    }];
+    $[6] = t4;
   } else {
-    t4 = $[8];
+    t4 = $[6];
   }
-  const messageText = hasSevereErrors
-    ? "Files with errors are skipped entirely, not just the invalid settings."
-    : "The values listed above were skipped; the rest of the file is in effect.";
   let t5;
-  if ($[9] !== messageText) {
-    t5 = <Text dimColor={true}>{messageText}</Text>;
-    $[9] = messageText;
-    $[10] = t5;
+  if ($[7] !== handleSelect) {
+    t5 = <Select options={t4} onChange={handleSelect} />;
+    $[7] = handleSelect;
+    $[8] = t5;
   } else {
-    t5 = $[10];
+    t5 = $[8];
   }
   let t6;
-  if ($[11] !== handleSelect || $[12] !== options) {
-    t6 = <Select options={options} onChange={handleSelect} />;
-    $[11] = handleSelect;
-    $[12] = options;
-    $[13] = t6;
+  if ($[9] !== onExit || $[10] !== t2 || $[11] !== t5) {
+    t6 = <Dialog title="Settings Error" onCancel={onExit} color="warning">{t2}{t3}{t5}</Dialog>;
+    $[9] = onExit;
+    $[10] = t2;
+    $[11] = t5;
+    $[12] = t6;
   } else {
-    t6 = $[13];
+    t6 = $[12];
   }
-  let t7;
-  if ($[14] !== dialogTitle || $[15] !== cancelAction || $[16] !== t4 || $[17] !== t5 || $[18] !== t6) {
-    t7 = <Dialog title={dialogTitle} onCancel={cancelAction} color="warning">{t4}{t5}{t6}</Dialog>;
-    $[14] = dialogTitle;
-    $[15] = cancelAction;
-    $[16] = t4;
-    $[17] = t5;
-    $[18] = t6;
-    $[19] = t7;
-  } else {
-    t7 = $[19];
-  }
-  return t7;
+  return t6;
 }
-
-// TODO: unresolved symbol isSevereError_V112 — v112 checks `_.some(I$A)` for severe errors
-// This determines whether the dialog shows "Settings Error" vs "Settings Warning" and
-// reorders/adjusts the options. Byte range: 12804933-12806121
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJSZWFjdCIsIlRleHQiLCJWYWxpZGF0aW9uRXJyb3IiLCJTZWxlY3QiLCJEaWFsb2ciLCJWYWxpZGF0aW9uRXJyb3JzTGlzdCIsIlByb3BzIiwic2V0dGluZ3NFcnJvcnMiLCJvbkNvbnRpbnVlIiwib25FeGl0IiwiSW52YWxpZFNldHRpbmdzRGlhbG9nIiwidDAiLCIkIiwiX2MiLCJ0MSIsImhhbmRsZVNlbGVjdCIsInZhbHVlIiwidDIiLCJ0MyIsIlN5bWJvbCIsImZvciIsInQ0IiwibGFiZWwiLCJ0NSIsInQ2Il0sInNvdXJjZXMiOlsiSW52YWxpZFNldHRpbmdzRGlhbG9nLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnXG5pbXBvcnQgeyBUZXh0IH0gZnJvbSAnLi4vaW5rLmpzJ1xuaW1wb3J0IHR5cGUgeyBWYWxpZGF0aW9uRXJyb3IgfSBmcm9tICcuLi91dGlscy9zZXR0aW5ncy92YWxpZGF0aW9uLmpzJ1xuaW1wb3J0IHsgU2VsZWN0IH0gZnJvbSAnLi9DdXN0b21TZWxlY3QvaW5kZXguanMnXG5pbXBvcnQgeyBEaWFsb2cgfSBmcm9tICcuL2Rlc2lnbi1zeXN0ZW0vRGlhbG9nLmpzJ1xuaW1wb3J0IHsgVmFsaWRhdGlvbkVycm9yc0xpc3QgfSBmcm9tICcuL1ZhbGlkYXRpb25FcnJvcnNMaXN0LmpzJ1xuXG50eXBlIFByb3BzID0ge1xuICBzZXR0aW5nc0Vycm9yczogVmFsaWRhdGlvbkVycm9yW11cbiAgb25Db250aW51ZTogKCkgPT4gdm9pZFxuICBvbkV4aXQ6ICgpID0+IHZvaWRcbn1cblxuLyoqXG4gKiBEaWFsb2cgc2hvd24gd2hlbiBzZXR0aW5ncyBmaWxlcyBoYXZlIHZhbGlkYXRpb24gZXJyb3JzLlxuICogVXNlciBtdXN0IGNob29zZSB0byBjb250aW51ZSAoc2tpcHBpbmcgaW52YWxpZCBmaWxlcykgb3IgZXhpdCB0byBmaXggdGhlbS5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIEludmFsaWRTZXR0aW5nc0RpYWxvZyh7XG4gIHNldHRpbmdzRXJyb3JzLFxuICBvbkNvbnRpbnVlLFxuICBvbkV4aXQsXG59OiBQcm9wcyk6IFJlYWN0LlJlYWN0Tm9kZSB7XG4gIGZ1bmN0aW9uIGhhbmRsZVNlbGVjdCh2YWx1ZTogc3RyaW5nKTogdm9pZCB7XG4gICAgaWYgKHZhbHVlID09PSAnZXhpdCcpIHtcbiAgICAgIG9uRXhpdCgpXG4gICAgfSBlbHNlIHtcbiAgICAgIG9uQ29udGludWUoKVxuICAgIH1cbiAgfVxuXG4gIHJldHVybiAoXG4gICAgPERpYWxvZyB0aXRsZT1cIlNldHRpbmdzIEVycm9yXCIgb25DYW5jZWw9e29uRXhpdH0gY29sb3I9XCJ3YXJuaW5nXCI+XG4gICAgICA8VmFsaWRhdGlvbkVycm9yc0xpc3QgZXJyb3JzPXtzZXR0aW5nc0Vycm9yc30gLz5cbiAgICAgIDxUZXh0IGRpbUNvbG9yPlxuICAgICAgICBGaWxlcyB3aXRoIGVycm9ycyBhcmUgc2tpcHBlZCBlbnRpcmVseSwgbm90IGp1c3QgdGhlIGludmFsaWQgc2V0dGluZ3MuXG4gICAgICA8L1RleHQ+XG4gICAgICA8U2VsZWN0XG4gICAgICAgIG9wdGlvbnM9e1tcbiAgICAgICAgICB7IGxhYmVsOiAnRXhpdCBhbmQgZml4IG1hbnVhbGx5JywgdmFsdWU6ICdleGl0JyB9LFxuICAgICAgICAgIHtcbiAgICAgICAgICAgIGxhYmVsOiAnQ29udGludWUgd2l0aG91dCB0aGVzZSBzZXR0aW5ncycsXG4gICAgICAgICAgICB2YWx1ZTogJ2NvbnRpbnVlJyxcbiAgICAgICAgICB9LFxuICAgICAgICBdfVxuICAgICAgICBvbkNoYW5nZT17aGFuZGxlU2VsZWN0fVxuICAgICAgLz5cbiAgICA8L0RpYWxvZz5cbiAgKVxufVxuIl0sIm1hcHBpbmdzIjoiO0FBQUEsT0FBT0EsS0FBSyxNQUFNLE9BQU87QUFDekIsU0FBU0MsSUFBSSxRQUFRLFdBQVc7QUFDaEMsY0FBY0MsZUFBZSxRQUFRLGlDQUFpQztBQUN0RSxTQUFTQyxNQUFNLFFB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

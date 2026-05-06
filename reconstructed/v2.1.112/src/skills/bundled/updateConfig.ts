@@ -18,16 +18,16 @@ Choose the appropriate file based on scope:
 
 | File | Scope | Git | Use For |
 |------|-------|-----|---------|
-| ` + '`~/.claude/settings.json`' + ` | Global | N/A | Personal preferences for all projects |
-| ` + '`.claude/settings.json`' + ` | Project | Commit | Team-wide hooks, permissions, plugins |
-| ` + '`.claude/settings.local.json`' + ` | Project | Gitignore | Personal overrides for this project |
+| \`~/.claude/settings.json\` | Global | N/A | Personal preferences for all projects |
+| \`.claude/settings.json\` | Project | Commit | Team-wide hooks, permissions, plugins |
+| \`.claude/settings.local.json\` | Project | Gitignore | Personal overrides for this project |
 
 Settings load in order: user → project → local (later overrides earlier).
 
 ## Settings Schema Reference
 
 ### Permissions
-` + '```json' + `
+\`\`\`json
 {
   "permissions": {
     "allow": ["Bash(npm:*)", "Edit(.claude)", "Read"],
@@ -37,70 +37,70 @@ Settings load in order: user → project → local (later overrides earlier).
     "additionalDirectories": ["/extra/dir"]
   }
 }
-` + '```' + `
+\`\`\`
 
 **Permission Rule Syntax:**
-- Exact match: ` + '`"Bash(npm run test)"`' + `
-- Prefix wildcard: ` + '`"Bash(git:*)"`' + ` - matches ` + '`git status`', `git commit`, etc.
-- Tool only: ` + '`"Read"`' + ` - allows all Read operations
+- Exact match: \`"Bash(npm run test)"\`
+- Prefix wildcard: \`"Bash(git:*)"\` - matches \`git status\`, \`git commit\`, etc.
+- Tool only: \`"Read"\` - allows all Read operations
 
 ### Environment Variables
-` + '```json' + `
+\`\`\`json
 {
   "env": {
     "DEBUG": "true",
     "MY_API_KEY": "value"
   }
 }
-` + '```' + `
+\`\`\`
 
 ### Model & Agent
-` + '```json' + `
+\`\`\`json
 {
   "model": "sonnet",  // or "opus", "haiku", full model ID
   "agent": "agent-name",
   "alwaysThinkingEnabled": true
 }
-` + '```' + `
+\`\`\`
 
 ### Attribution (Commits & PRs)
-` + '```json' + `
+\`\`\`json
 {
   "attribution": {
     "commit": "Custom commit trailer text",
     "pr": "Custom PR description text"
   }
 }
-` + '```' + `
-Set ` + '`commit`' + ` or ` + '`pr`' + ` to empty string ` + '`""`' + ` to hide that attribution.
+\`\`\`
+Set \`commit\` or \`pr\` to empty string \`""\` to hide that attribution.
 
 ### MCP Server Management
-` + '```json' + `
+\`\`\`json
 {
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": ["server1", "server2"],
   "disabledMcpjsonServers": ["blocked-server"]
 }
-` + '```' + `
+\`\`\`
 
 ### Plugins
-` + '```json' + `
+\`\`\`json
 {
   "enabledPlugins": {
     "formatter@anthropic-tools": true
   }
 }
-` + '```' + `
-Plugin syntax: ` + '`plugin-name@source`' + ` where source is ` + '`claude-code-marketplace`', `claude-plugins-official`, or `builtin` + `.
+\`\`\`
+Plugin syntax: \`plugin-name@source\` where source is \`claude-code-marketplace\`, \`claude-plugins-official\`, or \`builtin\`.
 
 ### Other Settings
-- ` + '`language`' + `: Preferred response language (e.g., "japanese")
-- ` + '`cleanupPeriodDays`' + `: Days to keep transcripts (default: 30; 0 disables persistence entirely)
-- ` + '`respectGitignore`' + `: Whether to respect .gitignore (default: true)
-- ` + '`spinnerTipsEnabled`' + `: Show tips in spinner
-- ` + '`spinnerVerbs`' + `: Customize spinner verbs (` + '`{ "mode": "append" | "replace", "verbs": [...] }`' + `)
-- ` + '`spinnerTipsOverride`' + `: Override spinner tips (` + '`{ "excludeDefault": true, "tips": ["Custom tip"] }`' + `)
-- ` + '`syntaxHighlightingDisabled`' + `: Disable diff highlighting
+- \`language\`: Preferred response language (e.g., "japanese")
+- \`cleanupPeriodDays\`: Days to keep transcripts (default: 30; 0 disables persistence entirely)
+- \`respectGitignore\`: Whether to respect .gitignore (default: true)
+- \`spinnerTipsEnabled\`: Show tips in spinner
+- \`spinnerVerbs\`: Customize spinner verbs (\`{ "mode": "append" | "replace", "verbs": [...] }\`)
+- \`spinnerTipsOverride\`: Override spinner tips (\`{ "excludeDefault": true, "tips": ["Custom tip"] }\`)
+- \`syntaxHighlightingDisabled\`: Disable diff highlighting
 `
 
 // Note: We keep hand-written examples for common patterns since they're more
@@ -112,7 +112,7 @@ const HOOKS_DOCS = `## Hooks Configuration
 Hooks run commands at specific points in Claude Code's lifecycle.
 
 ### Hook Structure
-` + '```json' + `
+\`\`\`json
 {
   "hooks": {
     "EVENT_NAME": [
@@ -130,7 +130,7 @@ Hooks run commands at specific points in Claude Code's lifecycle.
     ]
   }
 }
-` + '```' + `
+\`\`\`
 
 ### Hook Events
 
@@ -147,42 +147,42 @@ Hooks run commands at specific points in Claude Code's lifecycle.
 | UserPromptSubmit | - | When user submits |
 | SessionStart | - | When session starts |
 
-**Common tool matchers:** ` + '`Bash`', `Write`, `Edit`, `Read`, `Glob`, `Grep` + `
+**Common tool matchers:** \`Bash\`, \`Write\`, \`Edit\`, \`Read\`, \`Glob\`, \`Grep\`
 
 ### Hook Types
 
 **1. Command Hook** - Runs a shell command:
-` + '```json' + `
+\`\`\`json
 { "type": "command", "command": "prettier --write $FILE", "timeout": 30 }
-` + '```' + `
+\`\`\`
 
 **2. Prompt Hook** - Evaluates a condition with LLM:
-` + '```json' + `
+\`\`\`json
 { "type": "prompt", "prompt": "Is this safe? $ARGUMENTS" }
-` + '```' + `
+\`\`\`
 Only available for tool events: PreToolUse, PostToolUse, PermissionRequest.
 
 **3. Agent Hook** - Runs an agent with tools:
-` + '```json' + `
+\`\`\`json
 { "type": "agent", "prompt": "Verify tests pass: $ARGUMENTS" }
-` + '```' + `
+\`\`\`
 Only available for tool events: PreToolUse, PostToolUse, PermissionRequest.
 
 ### Hook Input (stdin JSON)
-` + '```json' + `
+\`\`\`json
 {
   "session_id": "abc123",
   "tool_name": "Write",
   "tool_input": { "file_path": "/path/to/file.txt", "content": "..." },
   "tool_response": { "success": true }  // PostToolUse only
 }
-` + '```' + `
+\`\`\`
 
 ### Hook JSON Output
 
 Hooks can return JSON to control behavior:
 
-` + '```json' + `
+\`\`\`json
 {
   "systemMessage": "Warning shown to user in UI",
   "continue": false,
@@ -195,25 +195,25 @@ Hooks can return JSON to control behavior:
     "additionalContext": "Context injected back to model"
   }
 }
-` + '```' + `
+\`\`\`
 
 **Fields:**
-- ` + '`systemMessage`' + ` - Display a message to the user (all hooks)
-- ` + '`continue`' + ` - Set to ` + '`false`' + ` to block/stop (default: true)
-- ` + '`stopReason`' + ` - Message shown when ` + '`continue`' + ` is false
-- ` + '`suppressOutput`' + ` - Hide stdout from transcript (default: false)
-- ` + '`decision`' + ` - "block" for PostToolUse/Stop/UserPromptSubmit hooks (deprecated for PreToolUse, use hookSpecificOutput.permissionDecision instead)
-- ` + '`reason`' + ` - Explanation for decision
-- ` + '`hookSpecificOutput`' + ` - Event-specific output (must include ` + '`hookEventName`' + `):
-  - ` + '`additionalContext`' + ` - Text injected into model context
-  - ` + '`permissionDecision`' + ` - "allow", "deny", or "ask" (PreToolUse only)
-  - ` + '`permissionDecisionReason`' + ` - Reason for the permission decision (PreToolUse only)
-  - ` + '`updatedInput`' + ` - Modified tool input (PreToolUse only)
+- \`systemMessage\` - Display a message to the user (all hooks)
+- \`continue\` - Set to \`false\` to block/stop (default: true)
+- \`stopReason\` - Message shown when \`continue\` is false
+- \`suppressOutput\` - Hide stdout from transcript (default: false)
+- \`decision\` - "block" for PostToolUse/Stop/UserPromptSubmit hooks (deprecated for PreToolUse, use hookSpecificOutput.permissionDecision instead)
+- \`reason\` - Explanation for decision
+- \`hookSpecificOutput\` - Event-specific output (must include \`hookEventName\`):
+  - \`additionalContext\` - Text injected into model context
+  - \`permissionDecision\` - "allow", "deny", or "ask" (PreToolUse only)
+  - \`permissionDecisionReason\` - Reason for the permission decision (PreToolUse only)
+  - \`updatedInput\` - Modified tool input (PreToolUse only)
 
 ### Common Patterns
 
 **Auto-format after writes:**
-` + '```json' + `
+\`\`\`json
 {
   "hooks": {
     "PostToolUse": [{
@@ -225,10 +225,10 @@ Hooks can return JSON to control behavior:
     }]
   }
 }
-` + '```' + `
+\`\`\`
 
 **Log all bash commands:**
-` + '```json' + `
+\`\`\`json
 {
   "hooks": {
     "PreToolUse": [{
@@ -240,30 +240,30 @@ Hooks can return JSON to control behavior:
     }]
   }
 }
-` + '```' + `
+\`\`\`
 
 **Stop hook that displays message to user:**
 
-Command must output JSON with ` + '`systemMessage`' + ` field:
-` + '```bash' + `
+Command must output JSON with \`systemMessage\` field:
+\`\`\`bash
 # Example command that outputs: {"systemMessage": "Session complete!"}
 echo '{"systemMessage": "Session complete!"}'
-` + '```' + `
+\`\`\`
 
 **Run tests after code changes:**
-` + '```json' + `
+\`\`\`json
 {
   "hooks": {
     "PostToolUse": [{
       "matcher": "Write|Edit",
       "hooks": [{
         "type": "command",
-        "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | grep -E '\\.(ts|js)$' && npm test || true"
+        "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | grep -E '\\\\.(ts|js)$' && npm test || true"
       }]
     }]
   }
 }
-` + '```' + `
+\`\`\`
 `
 
 const HOOK_VERIFICATION_FLOW = `## Constructing a Hook (with verification)
@@ -273,35 +273,35 @@ Given an event, matcher, target file, and desired behavior, follow this flow. Ea
 1. **Dedup check.** Read the target file. If a hook already exists on the same event+matcher, show the existing command and ask: keep it, replace it, or add alongside.
 
 2. **Construct the command for THIS project — don't assume.** The hook receives JSON on stdin. Build a command that:
-   - Extracts any needed payload safely — use ` + '`jq -r`' + ` into a quoted variable or ` + '`{ read -r f; ... "$f"; }`' + `, NOT unquoted ` + '`| xargs`' + ` (splits on spaces)
+   - Extracts any needed payload safely — use \`jq -r\` into a quoted variable or \`{ read -r f; ... "$f"; }\`, NOT unquoted \`| xargs\` (splits on spaces)
    - Invokes the underlying tool the way this project runs it (npx/bunx/yarn/pnpm? Makefile target? globally-installed?)
-   - Skips inputs the tool doesn't handle (formatters often have ` + '`--ignore-unknown`' + `; if not, guard by extension)
-   - Stays RAW for now — no ` + '`|| true`' + `, no stderr suppression. You'll wrap it after the pipe-test passes.
+   - Skips inputs the tool doesn't handle (formatters often have \`--ignore-unknown\`; if not, guard by extension)
+   - Stays RAW for now — no \`|| true\`, no stderr suppression. You'll wrap it after the pipe-test passes.
 
 3. **Pipe-test the raw command.** Synthesize the stdin payload the hook will receive and pipe it directly:
-   - ` + '`Pre|PostToolUse`' + ` on ` + '`Write|Edit`' + `: ` + '`echo '{"tool_name":"Edit","tool_input":{"file_path":"<a real file from this repo>"}}' | <cmd>`' + `
-   - ` + '`Pre|PostToolUse`' + ` on ` + '`Bash`' + `: ` + '`echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' | <cmd>`' + `
-   - ` + '`Stop`' + `/` + '`UserPromptSubmit`' + `/` + '`SessionStart`' + `: most commands don't read stdin, so ` + '`echo '{}' | <cmd>`' + ` suffices
+   - \`Pre|PostToolUse\` on \`Write|Edit\`: \`echo '{"tool_name":"Edit","tool_input":{"file_path":"<a real file from this repo>"}}' | <cmd>\`
+   - \`Pre|PostToolUse\` on \`Bash\`: \`echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' | <cmd>\`
+   - \`Stop\`/\`UserPromptSubmit\`/\`SessionStart\`: most commands don't read stdin, so \`echo '{}' | <cmd>\` suffices
 
-   Check exit code AND side effect (file actually formatted, test actually ran). If it fails you get a real error — fix (wrong package manager? tool not installed? jq path wrong?) and retest. Once it works, wrap with ` + '`2>/dev/null || true`' + ` (unless the user wants a blocking check).
+   Check exit code AND side effect (file actually formatted, test actually ran). If it fails you get a real error — fix (wrong package manager? tool not installed? jq path wrong?) and retest. Once it works, wrap with \`2>/dev/null || true\` (unless the user wants a blocking check).
 
-4. **Write the JSON.** Merge into the target file (schema shape in the "Hook Structure" section above). If this creates ` + '`.claude/settings.local.json`' + ` for the first time, add it to .gitignore — the Write tool doesn't auto-gitignore it.
+4. **Write the JSON.** Merge into the target file (schema shape in the "Hook Structure" section above). If this creates \`.claude/settings.local.json\` for the first time, add it to .gitignore — the Write tool doesn't auto-gitignore it.
 
 5. **Validate syntax + schema in one shot:**
 
-   ` + '`jq -e '.hooks.<event>[] | select(.matcher == "<matcher>") | .hooks[] | select(.type == "command") | .command' <target-file>`' + `
+   \`jq -e '.hooks.<event>[] | select(.matcher == "<matcher>") | .hooks[] | select(.type == "command") | .command' <target-file>\`
 
    Exit 0 + prints your command = correct. Exit 4 = matcher doesn't match. Exit 5 = malformed JSON or wrong nesting. A broken settings.json silently disables ALL settings from that file — fix any pre-existing malformation too.
 
-6. **Prove the hook fires** — only for ` + '`Pre|PostToolUse`' + ` on a matcher you can trigger in-turn (` + '`Write|Edit`' + ` via Edit, ` + '`Bash`' + ` via Bash). ` + '`Stop`' + `/` + '`UserPromptSubmit`' + `/` + '`SessionStart`' + ` fire outside this turn — skip to step 7.
+6. **Prove the hook fires** — only for \`Pre|PostToolUse\` on a matcher you can trigger in-turn (\`Write|Edit\` via Edit, \`Bash\` via Bash). \`Stop\`/\`UserPromptSubmit\`/\`SessionStart\` fire outside this turn — skip to step 7.
 
-   For a **formatter** on ` + '`PostToolUse`' + `/` + '`Write|Edit`' + `: introduce a detectable violation via Edit (two consecutive blank lines, bad indentation, missing semicolon — something this formatter corrects; NOT trailing whitespace, Edit strips that before writing), re-read, confirm the hook **fixed** it. For **anything else**: temporarily prefix the command in settings.json with ` + '`echo "$(date) hook fired" >> /tmp/claude-hook-check.txt; `' + `, trigger the matching tool (Edit for ` + '`Write|Edit`' + `, a harmless ` + '`true`' + ` for ` + '`Bash`' + `), read the sentinel file.
+   For a **formatter** on \`PostToolUse\`/\`Write|Edit\`: introduce a detectable violation via Edit (two consecutive blank lines, bad indentation, missing semicolon — something this formatter corrects; NOT trailing whitespace, Edit strips that before writing), re-read, confirm the hook **fixed** it. For **anything else**: temporarily prefix the command in settings.json with \`echo "$(date) hook fired" >> /tmp/claude-hook-check.txt; \`, trigger the matching tool (Edit for \`Write|Edit\`, a harmless \`true\` for \`Bash\`), read the sentinel file.
 
    **Always clean up** — revert the violation, strip the sentinel prefix — whether the proof passed or failed.
 
-   **If proof fails but pipe-test passed and ` + '`jq -e`' + ` passed**: the settings watcher isn't watching ` + '`.claude/`' + ` — it only watches directories that had a settings file when this session started. The hook is written correctly. Tell the user to open ` + '`/hooks`' + ` once (reloads config) or restart — you can't do this yourself; ` + '`/hooks`' + ` is a user UI menu and opening it ends this turn.
+   **If proof fails but pipe-test passed and \`jq -e\` passed**: the settings watcher isn't watching \`.claude/\` — it only watches directories that had a settings file when this session started. The hook is written correctly. Tell the user to open \`/hooks\` once (reloads config) or restart — you can't do this yourself; \`/hooks\` is a user UI menu and opening it ends this turn.
 
-7. **Handoff.** Tell the user the hook is live (or needs ` + '`/hooks`' + `/restart per the watcher caveat). Point them at ` + '`/hooks`' + ` to review, edit, or disable it later. The UI only shows "Ran N hooks" if a hook errors or is slow — silent success is invisible by design.
+7. **Handoff.** Tell the user the hook is live (or needs \`/hooks\`/restart per the watcher caveat). Point them at \`/hooks\` to review, edit, or disable it later. The UI only shows "Ran N hooks" if a hook errors or is slow — silent success is invisible by design.
 `
 
 const UPDATE_CONFIG_PROMPT = `# Update Config Skill
@@ -334,9 +334,9 @@ When the user's request is ambiguous, use AskUserQuestion to clarify:
 ## Decision: Config Tool vs Direct Edit
 
 **Use the Config tool** for these simple settings:
-- ` + '`theme`', `editorMode`, `verbose`, `model`' + `
-- ` + '`language`', `alwaysThinkingEnabled`' + `
-- ` + '`permissions.defaultMode`' + `
+- \`theme\`, \`editorMode\`, \`verbose\`, \`model\`
+- \`language\`, \`alwaysThinkingEnabled\`
+- \`permissions.defaultMode\`
 
 **Edit settings.json directly** for:
 - Hooks (PreToolUse, PostToolUse, etc.)
@@ -358,22 +358,22 @@ When the user's request is ambiguous, use AskUserQuestion to clarify:
 When adding to permission arrays or hook arrays, **merge with existing**, don't replace:
 
 **WRONG** (replaces existing permissions):
-` + '```json' + `
+\`\`\`json
 { "permissions": { "allow": ["Bash(npm:*)"] } }
-` + '```' + `
+\`\`\`
 
 **RIGHT** (preserves existing + adds new):
-` + '```json' + `
+\`\`\`json
 {
   "permissions": {
     "allow": [
       "Bash(git:*)",      // existing
       "Edit(.claude)",    // existing
-      "Bash(npm:*)",       // new
+      "Bash(npm:*)"       // new
     ]
   }
 }
-` + '```' + `
+\`\`\`
 
 ${SETTINGS_EXAMPLES_DOCS}
 
@@ -388,10 +388,10 @@ ${HOOK_VERIFICATION_FLOW}
 User: "Format my code after Claude writes it"
 
 1. **Clarify**: Which formatter? (prettier, gofmt, etc.)
-2. **Read**: ` + '`.claude/settings.json`' + ` (or create if missing)
+2. **Read**: \`.claude/settings.json\` (or create if missing)
 3. **Merge**: Add to existing hooks, don't replace
 4. **Result**:
-` + '```json' + `
+\`\`\`json
 {
   "hooks": {
     "PostToolUse": [{
@@ -403,14 +403,14 @@ User: "Format my code after Claude writes it"
     }]
   }
 }
-` + '```' + `
+\`\`\`
 
 ### Adding Permissions
 
 User: "Allow npm commands without prompting"
 
 1. **Read**: Existing permissions
-2. **Merge**: Add ` + '`Bash(npm:*)`' + ` to allow array
+2. **Merge**: Add \`Bash(npm:*)\` to allow array
 3. **Result**: Combined with existing allows
 
 ### Environment Variables
@@ -420,9 +420,9 @@ User: "Set DEBUG=true"
 1. **Decide**: User settings (global) or project settings?
 2. **Read**: Target file
 3. **Merge**: Add to env object
-` + '```json' + `
+\`\`\`json
 { "env": { "DEBUG": "true" } }
-` + '```' + `
+\`\`\`
 
 ## Common Mistakes to Avoid
 
@@ -439,7 +439,7 @@ If a hook isn't running:
 3. **Check the matcher** - Does it match the tool name? (e.g., "Bash", "Write", "Edit")
 4. **Check hook type** - Is it "command", "prompt", or "agent"?
 5. **Test the command** - Run the hook command manually to see if it works
-6. **Use --debug** - Run ` + '`claude --debug`' + ` to see hook execution logs
+6. **Use --debug** - Run \`claude --debug\` to see hook execution logs
 `
 
 export function registerUpdateConfigSkill(): void {
@@ -463,7 +463,7 @@ export function registerUpdateConfigSkill(): void {
       const jsonSchema = generateSettingsSchema()
 
       let prompt = UPDATE_CONFIG_PROMPT
-      prompt += `\n\n## Full Settings JSON Schema\n\n` + '```json' + `\n${jsonSchema}\n` + '```' + ``
+      prompt += `\n\n## Full Settings JSON Schema\n\n\`\`\`json\n${jsonSchema}\n\`\`\``
 
       if (args) {
         prompt += `\n\n## User Request\n\n${args}`

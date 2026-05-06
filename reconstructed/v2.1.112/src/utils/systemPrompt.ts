@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,
@@ -5,22 +6,37 @@ import {
 import type { ToolUseContext } from '../Tool.js'
 import type { AgentDefinition } from '../tools/AgentTool/loadAgentsDir.js'
 import { isBuiltInAgent } from '../tools/AgentTool/loadAgentsDir.js'
+import { isEnvTruthy } from './envUtils.js'
 import { asSystemPrompt, type SystemPrompt } from './systemPromptType.js'
 
 export { asSystemPrompt, type SystemPrompt } from './systemPromptType.js'
 
+// Dead code elimination: conditional import for proactive mode.
+// Same pattern as prompts.ts — lazy require to avoid pulling the module
+// into non-proactive builds.
+/* eslint-disable @typescript-eslint/no-require-imports */
+const proactiveModule =
+  feature('PROACTIVE') || feature('KAIROS')
+    ? (require('../proactive/index.js') as typeof import('../proactive/index.js'))
+    : null
+/* eslint-enable @typescript-eslint/no-require-imports */
+
+function isProactiveActive_SAFE_TO_CALL_ANYWHERE(): boolean {
+  return proactiveModule?.isProactiveActive() ?? false
+}
+
 /**
  * Builds the effective system prompt array based on priority:
  * 0. Override system prompt (if set, e.g., via loop mode - REPLACES all other prompts)
- * 1. Agent system prompt (if mainThreadAgentDefinition is set)
- * 2. Custom system prompt (if specified via --system-prompt)
- * 3. Default system prompt (the standard Claude Code prompt)
+ * 1. Coordinator system prompt (if coordinator mode is active)
+ * 2. Agent system prompt (if mainThreadAgentDefinition is set)
+ *    - In proactive mode: agent prompt is APPENDED to default (agent adds domain
+ *      instructions on top of the autonomous agent prompt, like teammates do)
+ *    - Otherwise: agent prompt REPLACES default
+ * 3. Custom system prompt (if specified via --system-prompt)
+ * 4. Default system prompt (the standard Claude Code prompt)
  *
  * Plus appendSystemPrompt is always added at the end if specified (except when override is set).
- *
- * In v112, the coordinator mode and proactive mode branches were removed.
- * The coordinator mode feature was deleted, and proactive mode agent handling
- * was simplified — agents now always replace the default prompt (no append mode).
  */
 export function buildEffectiveSystemPrompt({
   mainThreadAgentDefinition,
@@ -39,6 +55,23 @@ export function buildEffectiveSystemPrompt({
 }): SystemPrompt {
   if (overrideSystemPrompt) {
     return asSystemPrompt([overrideSystemPrompt])
+  }
+  // Coordinator mode: use coordinator prompt instead of default
+  // Use inline env check instead of coordinatorModule to avoid circular
+  // dependency issues during test module loading.
+  if (
+    true &&
+    isEnvTruthy(process.env.CLAUDE_CODE_COORDINATOR_MODE) &&
+    !mainThreadAgentDefinition
+  ) {
+    // Lazy require to avoid circular dependency at module load time
+    const { getCoordinatorSystemPrompt } =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('../coordinator/coordinatorMode.js') as typeof import('../coordinator/coordinatorMode.js')
+    return asSystemPrompt([
+      getCoordinatorSystemPrompt(),
+      ...(appendSystemPrompt ? [appendSystemPrompt] : []),
+    ])
   }
 
   const agentSystemPrompt = mainThreadAgentDefinition
@@ -61,6 +94,22 @@ export function buildEffectiveSystemPrompt({
       source:
         'main-thread' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
     })
+  }
+
+  // In proactive mode, agent instructions are appended to the default prompt
+  // rather than replacing it. The proactive default prompt is already lean
+  // (autonomous agent identity + memory + env + proactive section), and agents
+  // add domain-specific behavior on top — same pattern as teammates.
+  if (
+    agentSystemPrompt &&
+    (feature('PROACTIVE') || feature('KAIROS')) &&
+    isProactiveActive_SAFE_TO_CALL_ANYWHERE()
+  ) {
+    return asSystemPrompt([
+      ...defaultSystemPrompt,
+      `\n# Custom Agent Instructions\n${agentSystemPrompt}`,
+      ...(appendSystemPrompt ? [appendSystemPrompt] : []),
+    ])
   }
 
   return asSystemPrompt([

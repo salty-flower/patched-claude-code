@@ -47,12 +47,16 @@ function isPermissionMode(raw: string): raw is PermissionMode {
  * Resolves the Chrome bridge URL based on environment and feature flag.
  * Bridge is used when the feature flag is enabled; ant users always get
  * bridge. API key / 3P users fall back to native messaging.
- *
- * v112 change: bridgeEnabled gate removed; getChromeBridgeUrl() now always
- * returns a URL (no undefined check). The `...!false` spread (dead code) in
- * createChromeContext shows the ant-only callAnthropicMessages block was dropped.
  */
-function getChromeBridgeUrl(): string {
+function getChromeBridgeUrl(): string | undefined {
+  const bridgeEnabled =
+    process.env.USER_TYPE === 'ant' ||
+    getFeatureValue_CACHED_MAY_BE_STALE('tengu_copper_bridge', false)
+
+  if (!bridgeEnabled) {
+    return undefined
+  }
+
   if (
     isEnvTruthy(process.env.USE_LOCAL_OAUTH) ||
     isEnvTruthy(process.env.LOCAL_BRIDGE)
@@ -83,7 +87,7 @@ export function createChromeContext(
 ): ClaudeForChromeContext {
   const logger = new DebugLogger()
   const chromeBridgeUrl = getChromeBridgeUrl()
-  logger.info(`Bridge URL: ${chromeBridgeUrl}`)
+  logger.info(`Bridge URL: ${chromeBridgeUrl ?? 'none (using native socket)'}`)
   const rawPermissionMode =
     env?.CLAUDE_CHROME_PERMISSION_MODE ??
     process.env.CLAUDE_CHROME_PERMISSION_MODE
@@ -132,20 +136,85 @@ export function createChromeContext(
     getPersistedDeviceId: () => {
       return getGlobalConfig().chromeExtension?.pairedDeviceId
     },
-    bridgeConfig: {
-      url: chromeBridgeUrl,
-      getUserId: async () => {
-        return getGlobalConfig().oauthAccount?.accountUuid
+    ...(chromeBridgeUrl && {
+      bridgeConfig: {
+        url: chromeBridgeUrl,
+        getUserId: async () => {
+          return getGlobalConfig().oauthAccount?.accountUuid
+        },
+        getOAuthToken: async () => {
+          return getClaudeAIOAuthTokens()?.accessToken ?? ''
+        },
+        ...(isLocalBridge() && { devUserId: 'dev_user_local' }),
       },
-      getOAuthToken: async () => {
-        return getClaudeAIOAuthTokens()?.accessToken ?? ''
-      },
-      ...(isLocalBridge() && { devUserId: 'dev_user_local' }),
-    },
+    }),
     ...(initialPermissionMode && { initialPermissionMode }),
-    // v112: callAnthropicMessages (ant-only sideQuery injection) removed.
-    // The `...!1` / `...false` spread in the minified output is dead code
-    // confirming the entire block was dropped. Three-gate guard no longer needed.
+    // Wire inference for the browser_task tool — the chrome-mcp server runs
+    // a lightning-mode agent loop in Node and calls the extension's
+    // lightning_turn tool once per iteration for execution.
+    //
+    // Ant-only: the extension's lightning_turn is build-time-gated via
+    // import.meta.env.ANT_ONLY_BUILD — the whole lightning/ module graph is
+    // tree-shaken from the public extension build (build:prod greps for a
+    // marker to verify). Without this injection, the Node MCP server's
+    // ListTools also filters browser_task + lightning_turn out, so external
+    // users never see the tools advertised. Three independent gates.
+    //
+    // Types inlined: AnthropicMessagesRequest/Response live in
+    // @ant/claude-for-chrome-mcp@0.4.0 which isn't published yet. CI installs
+    // 0.3.0. The callAnthropicMessages field is also 0.4.0-only, but spreading
+    // an extra property into ClaudeForChromeContext is fine against either
+    // version — 0.3.0 sees an unknown field (allowed in spread), 0.4.0 sees a
+    // structurally-matching one. Once 0.4.0 is published, this can switch to
+    // the package's exported types and the dep can be bumped.
+    ...(process.env.USER_TYPE === 'ant' && {
+      callAnthropicMessages: async (req: {
+        model: string
+        max_tokens: number
+        system: string
+        messages: Parameters<typeof sideQuery>[0]['messages']
+        stop_sequences?: string[]
+        signal?: AbortSignal
+      }): Promise<{
+        content: Array<{ type: 'text'; text: string }>
+        stop_reason: string | null
+        usage?: { input_tokens: number; output_tokens: number }
+      }> => {
+        // sideQuery handles OAuth attribution fingerprint, proxy, model betas.
+        // skipSystemPromptPrefix: the lightning prompt is complete on its own;
+        // the CLI prefix would dilute the batching instructions.
+        // tools: [] is load-bearing — without it Sonnet emits
+        // <function_calls> XML before the text commands. Original
+        // lightning-harness.js (apps repo) does the same.
+        const response = await sideQuery({
+          model: req.model,
+          system: req.system,
+          messages: req.messages,
+          max_tokens: req.max_tokens,
+          stop_sequences: req.stop_sequences,
+          signal: req.signal,
+          skipSystemPromptPrefix: true,
+          tools: [],
+          querySource: 'chrome_mcp',
+        })
+        // BetaContentBlock is TextBlock | ThinkingBlock | ToolUseBlock | ...
+        // Only text blocks carry the model's command output.
+        const textBlocks: Array<{ type: 'text'; text: string }> = []
+        for (const b of response.content) {
+          if (b.type === 'text') {
+            textBlocks.push({ type: 'text', text: b.text })
+          }
+        }
+        return {
+          content: textBlocks,
+          stop_reason: response.stop_reason,
+          usage: {
+            input_tokens: response.usage.input_tokens,
+            output_tokens: response.usage.output_tokens,
+          },
+        }
+      },
+    }),
     trackEvent: (eventName, metadata) => {
       const safeMetadata: {
         [key: string]:

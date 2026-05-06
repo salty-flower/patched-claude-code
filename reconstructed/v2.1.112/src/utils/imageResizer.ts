@@ -577,6 +577,23 @@ export async function compressImageBuffer(
 }
 
 /**
+ * Compresses an image buffer to fit within a token limit.
+ * Converts tokens to bytes using the formula: maxBytes = (maxTokens / 0.125) * 0.75
+ */
+export async function compressImageBufferWithTokenLimit(
+  imageBuffer: Buffer,
+  maxTokens: number,
+  originalMediaType?: string,
+): Promise<CompressedImageResult> {
+  // Convert token limit to byte limit
+  // base64 uses about 4/3 the original size, so we reverse this
+  const maxBase64Chars = Math.floor(maxTokens / 0.125)
+  const maxBytes = Math.floor(maxBase64Chars * 0.75)
+
+  return compressImageBuffer(imageBuffer, maxBytes, originalMediaType)
+}
+
+/**
  * Compresses an image block to fit within a maximum byte size.
  * Wrapper around compressImageBuffer for ImageBlockParam.
  */

@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { Box, render, Text } from '../ink.js';
 import { KeybindingSetup } from '../keybindings/KeybindingProviderSetup.js';
@@ -23,7 +22,7 @@ interface InvalidConfigDialogProps {
  * Dialog shown when the Claude config file contains invalid JSON
  */
 function InvalidConfigDialog(t0) {
-  const $ = _c(19);
+  const $ = new Array(19).fill(void 0);
   const {
     filePath,
     errorDescription,

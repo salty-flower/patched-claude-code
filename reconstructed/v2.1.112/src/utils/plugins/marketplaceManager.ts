@@ -117,6 +117,13 @@ export function getMarketplacesCacheDir(): string {
  */
 
 /**
+ * Clear all cached marketplace data (for testing)
+ */
+export function clearMarketplacesCache(): void {
+  getMarketplace.cache?.clear?.()
+}
+
+/**
  * Configuration for known marketplaces
  */
 export type KnownMarketplacesConfig = KnownMarketplacesFile
@@ -290,6 +297,24 @@ export async function loadKnownMarketplacesConfig(): Promise<KnownMarketplacesCo
   }
 }
 
+/**
+ * Load known marketplaces config, returning {} on any error instead of throwing.
+ *
+ * Use this on read-only paths (plugin loading, feature checks) where a corrupted
+ * config should degrade gracefully rather than crash. DO NOT use on load→mutate→save
+ * paths — returning {} there would cause the save to overwrite the corrupted file
+ * with just the new entry, permanently destroying the user's other entries. The
+ * throwing variant preserves the file so the user can fix the corruption and recover.
+ */
+export async function loadKnownMarketplacesConfigSafe(): Promise<KnownMarketplacesConfig> {
+  try {
+    return await loadKnownMarketplacesConfig()
+  } catch {
+    // Inner function already logged via logForDebugging. Don't logError here —
+    // corrupted user config isn't a Claude Code bug, shouldn't hit the error file.
+    return {}
+  }
+}
 
 /**
  * Save known marketplaces configuration to disk
@@ -749,6 +774,14 @@ function isAuthenticationError(stderr: string): boolean {
   )
 }
 
+/**
+ * Extract the SSH host from a git URL for error messaging.
+ * Matches the SSH format user@host:path (e.g., git@github.com:owner/repo.git).
+ */
+function extractSshHost(gitUrl: string): string | null {
+  const match = gitUrl.match(/^[^@]+@([^:]+):/)
+  return match?.[1] ?? null
+}
 
 /**
  * Git clone operation (exported for testing)
@@ -889,7 +922,6 @@ export async function gitClone(
     // "Host key verification failed" for BOTH host-not-in-known_hosts and
     // host-key-has-changed; distinguish them by the key-change banner.
     if (result.stderr.includes('REMOTE HOST IDENTIFICATION HAS CHANGED')) {
-      // TODO(lift): extractSshHost cross-chunk at byte ~5047856
       const host = extractSshHost(gitUrl)
       const removeHint = host ? `ssh-keygen -R ${host}` : 'ssh-keygen -R <host>'
       return {
@@ -898,7 +930,6 @@ export async function gitClone(
       }
     }
     if (result.stderr.includes('Host key verification failed')) {
-      // TODO(lift): extractSshHost cross-chunk at byte ~5047856
       const host = extractSshHost(gitUrl)
       const connectHint = host ? `ssh -T git@${host}` : 'ssh -T git@<host>'
       return {
@@ -1087,13 +1118,6 @@ async function cacheMarketplaceFromGit(
       pullResult.code === 0 ? undefined : classifyFetchError(pullResult.stderr),
     )
     if (pullResult.code === 0) return
-    if (isEnvTruthy(process.env.CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE)) {
-      logForDebugging(
-        `git pull failed, keeping existing clone (CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE): ${pullResult.stderr}`,
-        { level: 'warn' },
-      )
-      return
-    }
     logForDebugging(`git pull failed, will re-clone: ${pullResult.stderr}`, {
       level: 'warn',
     })
@@ -1103,45 +1127,22 @@ async function cacheMarketplaceFromGit(
     )
   }
 
-  const backupPath = `${cachePath}.bak`
-  let hasBackup = false
-
-  // Try to rename any existing cachePath to backupPath (atomic on POSIX).
   try {
-    await fs.rename(backupPath, cachePath)
-  } catch (renameError) {
-    if (!isENOENT(renameError)) {
-      const markerPath = join(cachePath, '.claude-plugin', 'marketplace.json')
-      if (!await fs.stat(markerPath).then(() => true, () => false)) {
-        await fs.rm(cachePath, { recursive: true, force: true }).catch(() => {})
-        await fs.rename(backupPath, cachePath)
-      }
-    }
-  }
-
-  try {
-    await fs.rm(backupPath, { recursive: true, force: true })
-  } catch (rmError) {
-    throw new Error(
-      `Failed to clean up stale marketplace backup directory. Please manually delete the directory at ${backupPath} and try again.\n\nTechnical details: ${errorMessage(rmError)}`,
-    )
-  }
-
-  try {
-    await fs.rename(cachePath, backupPath)
-    hasBackup = true
+    await fs.rm(cachePath, { recursive: true })
+    // rm succeeded — a stale or partially-cloned directory existed; log for diagnostics
     logForDebugging(
-      `Found stale marketplace directory at ${cachePath}, moving aside to allow re-clone`,
+      `Found stale marketplace directory at ${cachePath}, cleaning up to allow re-clone`,
       { level: 'warn' },
     )
     safeCallProgress(
       onProgress,
       'Found stale directory, cleaning up and re-cloning…',
     )
-  } catch (renameError) {
-    if (!isENOENT(renameError)) {
+  } catch (rmError) {
+    if (!isENOENT(rmError)) {
+      const rmErrorMsg = errorMessage(rmError)
       throw new Error(
-        `Failed to clean up existing marketplace directory. Please manually delete the directory at ${cachePath} and try again.\n\nTechnical details: ${errorMessage(renameError)}`,
+        `Failed to clean up existing marketplace directory. Please manually delete the directory at ${cachePath} and try again.\n\nTechnical details: ${rmErrorMsg}`,
       )
     }
     // ENOENT — cachePath didn't exist, this is a fresh install, nothing to clean up
@@ -1171,34 +1172,23 @@ async function cacheMarketplaceFromGit(
     } catch {
       // ignore
     }
-    if (hasBackup) {
-      try {
-        await fs.rename(backupPath, cachePath)
-      } catch {
-        // ignore
-      }
-    }
     throw new Error(`Failed to clone marketplace repository: ${result.stderr}`)
   }
-
-  if (hasBackup) {
-    try {
-      await fs.rm(backupPath, { recursive: true, force: true })
-    } catch {
-      // ignore
-    }
-  }
-
   safeCallProgress(onProgress, 'Clone complete, validating marketplace…')
 }
 
 /**
- * Convert an entries-bearing object to a plain record.
+ * Redact header values for safe logging
  *
- * // TODO(lift): verify name and type for pe6 at byte ~9445875
+ * @param headers - Headers to redact
+ * @returns Headers with values replaced by '***REDACTED***'
  */
-function objectFromEntries(q: { entries(): IterableIterator<[string, string]> }): Record<string, string> {
-  return Object.fromEntries(q.entries())
+function redactHeaders(
+  headers: Record<string, string>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(headers).map(([key]) => [key, '***REDACTED***']),
+  )
 }
 
 /**
@@ -1276,7 +1266,6 @@ async function cacheMarketplaceFromUrl(
   logForDebugging(`Downloading marketplace from URL: ${redactedUrl}`)
   if (customHeaders && Object.keys(customHeaders).length > 0) {
     logForDebugging(
-      // TODO(lift): redactHeaders cross-chunk at byte ~9451494
       `Using custom headers: ${jsonStringify(redactHeaders(customHeaders))}`,
     )
   }
@@ -1974,14 +1963,13 @@ export async function removeMarketplaceSource(name: string): Promise<void> {
   const cacheDir = getMarketplacesCacheDir()
   const cachePath = join(cacheDir, name)
   await fs.rm(cachePath, { recursive: true, force: true })
-  await fs.rm(`${cachePath}.bak`, { recursive: true, force: true })
   const jsonCachePath = join(cacheDir, `${name}.json`)
   await fs.rm(jsonCachePath, { force: true })
 
   // Clean up settings.json - remove marketplace from extraKnownMarketplaces
   // and remove related plugin entries from enabledPlugins
 
-  // TODO(lift): $v cross-chunk settings sources array at byte ~9458192
+  // Check each editable settings source
   const editableSources: Array<
     'userSettings' | 'projectSettings' | 'localSettings'
   > = ['userSettings', 'projectSettings', 'localSettings']
@@ -2377,7 +2365,7 @@ export async function refreshAllMarketplaces(): Promise<void> {
 export async function refreshMarketplace(
   name: string,
   onProgress?: MarketplaceProgressCallback,
-  options?: { disableCredentialHelper?: boolean; skipIfRecent?: boolean },
+  options?: { disableCredentialHelper?: boolean },
 ): Promise<void> {
   const config = await loadKnownMarketplacesConfig()
   const entry = config[name]
@@ -2386,17 +2374,6 @@ export async function refreshMarketplace(
     throw new Error(
       `Marketplace '${name}' not found. Available marketplaces: ${Object.keys(config).join(', ')}`,
     )
-  }
-
-  // Throttle rapid refreshes (e.g. concurrent UI clicks) to avoid redundant work.
-  if (options?.skipIfRecent && entry.lastUpdated) {
-    const elapsed = Date.now() - new Date(entry.lastUpdated).getTime()
-    if (elapsed >= 0 && elapsed < 30000) {
-      logForDebugging(
-        `Skipping refresh for marketplace '${name}' — refreshed ${Math.round(elapsed / 1000)}s ago`,
-      )
-      return
-    }
   }
 
   // Clear the memoization cache for this specific marketplace
@@ -2661,7 +2638,6 @@ export async function setMarketplaceAutoUpdate(
   logForDebugging(`Set autoUpdate=${autoUpdate} for marketplace: ${name}`)
 }
 
-// TODO(lift): kc8 = new Map at byte ~9465756 — verify name and purpose
 export const _test = {
   redactUrlCredentials,
 }

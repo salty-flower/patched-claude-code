@@ -1,30 +1,26 @@
 import { execa } from 'execa'
 import { execSync_DEPRECATED } from './execSyncWrapper.js'
 
-// v112: whichNodeAsync and whichNodeSync completely rewritten.
-// They now use execa with array args instead of shell strings.
-// Windows: uses AF7() (which is 'where.exe') with array args, filters cwd.
-// TODO(lift): verify AF7 / WU / YF7 / uA1 exact imports at byte ~960332
-
 async function whichNodeAsync(command: string): Promise<string | null> {
   if (process.platform === 'win32') {
     // On Windows, use where.exe and return the first result
-    // v112: uses execa('where.exe', [command]) instead of shell string
-    const result = await execa('where.exe', [command], {
+    const result = await execa(`where.exe ${command}`, {
+      shell: true,
+      stderr: 'ignore',
       reject: false,
     })
     if (result.exitCode !== 0 || !result.stdout) {
       return null
     }
     // where.exe returns multiple paths separated by newlines, return the first
-    const paths = result.stdout.trim().split(/\r?\n/).filter(Boolean)
-    // TODO(lift): v112 filters out cwd paths via uA1 at byte ~960332
-    return paths[0] || null
+    return result.stdout.trim().split(/\r?\n/)[0] || null
   }
 
   // On POSIX systems (macOS, Linux, WSL), use which
-  // v112: uses execa('which', [command]) instead of shell string
-  const result = await execa('which', [command], {
+  // Cross-platform safe: Windows is handled above
+  // eslint-disable-next-line custom-rules/no-cross-platform-process-issues
+  const result = await execa(`which ${command}`, {
+    shell: true,
     stderr: 'ignore',
     reject: false,
   })
@@ -37,23 +33,19 @@ async function whichNodeAsync(command: string): Promise<string | null> {
 function whichNodeSync(command: string): string | null {
   if (process.platform === 'win32') {
     try {
-      // v112: uses execSync_DEPRECATED('where.exe', [command]) instead of shell
-      const result = execSync_DEPRECATED('where.exe', [command], {
+      const result = execSync_DEPRECATED(`where.exe ${command}`, {
         encoding: 'utf-8',
         stdio: ['ignore', 'pipe', 'ignore'],
       })
       const output = result.toString().trim()
-      const paths = output.split(/\r?\n/).filter(Boolean)
-      // TODO(lift): v112 filters out cwd paths via uA1 at byte ~960660
-      return paths[0] || null
+      return output.split(/\r?\n/)[0] || null
     } catch {
       return null
     }
   }
 
   try {
-    // v112: uses execSync_DEPRECATED('which', [command]) instead of shell
-    const result = execSync_DEPRECATED('which', [command], {
+    const result = execSync_DEPRECATED(`which ${command}`, {
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
     })

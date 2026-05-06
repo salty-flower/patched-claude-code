@@ -1,18 +1,11 @@
-import { readdir, stat } from 'fs/promises'
+import { readdir } from 'fs/promises'
 import { join } from 'path'
 import { coerce as semverCoerce } from 'semver'
 import { getSessionId } from '../bootstrap/state.js'
 import { getCwd } from './cwd.js'
 import { logForDebugging } from './debug.js'
 import { execFileNoThrow } from './execFileNoThrow.js'
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await stat(filePath)
-    return true
-  } catch {
-    return false
-  }
-}
+import { pathExists } from './file.js'
 import { gte as semverGte } from './semver.js'
 
 const MIN_DESKTOP_VERSION = '1.1.2396'
@@ -124,7 +117,7 @@ async function getDesktopVersion(): Promise<string | null> {
           const cb = semverCoerce(b)!
           return ca.compare(cb)
         })
-      return versions.length > 0 ? versions.at(-1)! : null
+      return versions.length > 0 ? versions[versions.length - 1]! : null
     } catch {
       return null
     }

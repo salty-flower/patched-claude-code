@@ -187,9 +187,6 @@ export function getPluginTrustMessage(): string | undefined {
 /**
  * Compare two MarketplaceSource objects for equality.
  * Sources are equal if they have the same type and all relevant fields match.
- *
- * v112 change: for 'settings' source type, uses f$ utility instead of isEqual
- * for plugins array comparison.
  */
 function areSourcesEqual(a: MarketplaceSource, b: MarketplaceSource): boolean {
   if (a.source !== b.source) return false
@@ -216,8 +213,6 @@ function areSourcesEqual(a: MarketplaceSource, b: MarketplaceSource): boolean {
     case 'directory':
       return a.path === (b as typeof a).path
     case 'settings':
-      // v112: uses f$ utility instead of isEqual
-      // TODO(lift): f$ (deepEqual) at byte ~5091857
       return (
         a.name === (b as typeof a).name &&
         isEqual(a.plugins, (b as typeof a).plugins)
@@ -349,9 +344,6 @@ export function getHostPatternsFromAllowlist(): string[] {
  * - git@github.com:owner/repo.git
  * - https://github.com/owner/repo.git
  * - https://github.com/owner/repo
- *
- * v112: inlined into areSourcesEquivalentForBlocklist; kept as standalone
- * for readability.
  */
 function extractGitHubRepoFromGitUrl(url: string): string | null {
   // SSH format: git@github.com:owner/repo.git
@@ -375,8 +367,6 @@ function extractGitHubRepoFromGitUrl(url: string): string | null {
  * Check if a blocked ref/path constraint matches a source.
  * If the blocklist entry has no ref/path, it matches ALL refs/paths (wildcard).
  * If the blocklist entry has a specific ref/path, it only matches that exact value.
- *
- * v112: inlined as oK6; kept as standalone for readability.
  */
 function blockedConstraintMatches(
   blockedValue: string | undefined,
@@ -397,9 +387,6 @@ function blockedConstraintMatches(
  * Blocklist matching is asymmetric:
  * - If blocklist entry has no ref/path, it blocks ALL refs/paths (wildcard)
  * - If blocklist entry has a specific ref/path, only that exact value is blocked
- *
- * v112 change: uses rK6 utility for constraint matching instead of inline
- * blockedConstraintMatches.
  */
 function areSourcesEquivalentForBlocklist(
   source: MarketplaceSource,

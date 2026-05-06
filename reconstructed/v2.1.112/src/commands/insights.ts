@@ -1,5 +1,17 @@
+import { execFileSync } from 'child_process'
 import { diffLines } from 'diff'
-import { mkdir, readdir, readFile, unlink, writeFile } from 'fs/promises'
+import { constants as fsConstants } from 'fs'
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  unlink,
+  writeFile,
+} from 'fs/promises'
+import { tmpdir } from 'os'
 import { extname, join } from 'path'
 import type { Command } from '../commands.js'
 import { queryWithModel } from '../services/api/claude.js'
@@ -10,6 +22,7 @@ import {
 import type { LogOption } from '../types/logs.js'
 import { getClaudeConfigHomeDir } from '../utils/envUtils.js'
 import { toError } from '../utils/errors.js'
+import { execFileNoThrow } from '../utils/execFileNoThrow.js'
 import { logError } from '../utils/log.js'
 import { extractTextContent } from '../utils/messages.js'
 import { getDefaultOpusModel } from '../utils/model/model.js'
@@ -23,9 +36,190 @@ import { jsonParse, jsonStringify } from '../utils/slowOperations.js'
 import { countCharInString } from '../utils/stringUtils.js'
 import { asSystemPrompt } from '../utils/systemPromptType.js'
 import { escapeXmlAttr as escapeHtml } from '../utils/xml.js'
-import { buildInsightsResponsePrompt } from '../utils/insightsPrompt.js'
 
-// TODO(lift): buildInsightsResponsePrompt import path at byte ~11551138
+// Model for facet extraction and summarization (Opus - best quality)
+function getAnalysisModel(): string {
+  return getDefaultOpusModel()
+}
+
+// Model for narrative insights (Opus - best quality)
+function getInsightsModel(): string {
+  return getDefaultOpusModel()
+}
+
+// ============================================================================
+// Homespace Data Collection
+// ============================================================================
+
+type RemoteHostInfo = {
+  name: string
+  sessionCount: number
+}
+
+/* eslint-disable custom-rules/no-process-env-top-level */
+const getRunningRemoteHosts: () => Promise<string[]> =
+  process.env.USER_TYPE === 'ant'
+    ? async () => {
+        const { stdout, code } = await execFileNoThrow(
+          'coder',
+          ['list', '-o', 'json'],
+          { timeout: 30000 },
+        )
+        if (code !== 0) return []
+        try {
+          const workspaces = jsonParse(stdout) as Array<{
+            name: string
+            latest_build?: { status?: string }
+          }>
+          return workspaces
+            .filter(w => w.latest_build?.status === 'running')
+            .map(w => w.name)
+        } catch {
+          return []
+        }
+      }
+    : async () => []
+
+const getRemoteHostSessionCount: (hs: string) => Promise<number> =
+  process.env.USER_TYPE === 'ant'
+    ? async (homespace: string) => {
+        const { stdout, code } = await execFileNoThrow(
+          'ssh',
+          [
+            `${homespace}.coder`,
+            'find /root/.claude/projects -name "*.jsonl" 2>/dev/null | wc -l',
+          ],
+          { timeout: 30000 },
+        )
+        if (code !== 0) return 0
+        return parseInt(stdout.trim(), 10) || 0
+      }
+    : async () => 0
+
+const collectFromRemoteHost: (
+  hs: string,
+  destDir: string,
+) => Promise<{ copied: number; skipped: number }> =
+  process.env.USER_TYPE === 'ant'
+    ? async (homespace: string, destDir: string) => {
+        const result = { copied: 0, skipped: 0 }
+
+        // Create temp directory
+        const tempDir = await mkdtemp(join(tmpdir(), 'claude-hs-'))
+
+        try {
+          // SCP the projects folder
+          const scpResult = await execFileNoThrow(
+            'scp',
+            ['-rq', `${homespace}.coder:/root/.claude/projects/`, tempDir],
+            { timeout: 300000 },
+          )
+          if (scpResult.code !== 0) {
+            // SCP failed
+            return result
+          }
+
+          const projectsDir = join(tempDir, 'projects')
+          let projectDirents: Awaited<ReturnType<typeof readdir>>
+          try {
+            projectDirents = await readdir(projectsDir, { withFileTypes: true })
+          } catch {
+            return result
+          }
+
+          // Merge into destination (parallel per project directory)
+          await Promise.all(
+            projectDirents.map(async dirent => {
+              const projectName = dirent.name
+              const projectPath = join(projectsDir, projectName)
+
+              // Skip if not a directory
+              if (!dirent.isDirectory()) return
+
+              const destProjectName = `${projectName}__${homespace}`
+              const destProjectPath = join(destDir, destProjectName)
+
+              try {
+                await mkdir(destProjectPath, { recursive: true })
+              } catch {
+                // Directory may already exist
+              }
+
+              // Copy session files (skip existing)
+              let files: Awaited<ReturnType<typeof readdir>>
+              try {
+                files = await readdir(projectPath, { withFileTypes: true })
+              } catch {
+                return
+              }
+              await Promise.all(
+                files.map(async fileDirent => {
+                  const fileName = fileDirent.name
+                  if (!fileName.endsWith('.jsonl')) return
+
+                  const srcFile = join(projectPath, fileName)
+                  const destFile = join(destProjectPath, fileName)
+
+                  try {
+                    await copyFile(srcFile, destFile, fsConstants.COPYFILE_EXCL)
+                    result.copied++
+                  } catch {
+                    // EEXIST from COPYFILE_EXCL means dest already exists
+                    result.skipped++
+                  }
+                }),
+              )
+            }),
+          )
+        } finally {
+          try {
+            await rm(tempDir, { recursive: true, force: true })
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
+
+        return result
+      }
+    : async () => ({ copied: 0, skipped: 0 })
+
+const collectAllRemoteHostData: (destDir: string) => Promise<{
+  hosts: RemoteHostInfo[]
+  totalCopied: number
+  totalSkipped: number
+}> =
+  process.env.USER_TYPE === 'ant'
+    ? async (destDir: string) => {
+        const rHosts = await getRunningRemoteHosts()
+        const result: RemoteHostInfo[] = []
+        let totalCopied = 0
+        let totalSkipped = 0
+
+        // Collect from all hosts in parallel (SCP per host can take seconds)
+        const hostResults = await Promise.all(
+          rHosts.map(async hs => {
+            const sessionCount = await getRemoteHostSessionCount(hs)
+            if (sessionCount > 0) {
+              const { copied, skipped } = await collectFromRemoteHost(
+                hs,
+                destDir,
+              )
+              return { name: hs, sessionCount, copied, skipped }
+            }
+            return { name: hs, sessionCount, copied: 0, skipped: 0 }
+          }),
+        )
+
+        for (const hr of hostResults) {
+          result.push({ name: hr.name, sessionCount: hr.sessionCount })
+          totalCopied += hr.copied
+          totalSkipped += hr.skipped
+        }
+
+        return { hosts: result, totalCopied, totalSkipped }
+      }
+    : async () => ({ hosts: [], totalCopied: 0, totalSkipped: 0 })
+/* eslint-enable custom-rules/no-process-env-top-level */
 
 // ============================================================================
 // Types
@@ -691,7 +885,7 @@ async function summarizeTranscriptChunk(chunk: string): Promise<string> {
       userPrompt: SUMMARIZE_CHUNK_PROMPT + chunk,
       signal: new AbortController().signal,
       options: {
-        model: getDefaultOpusModel(),
+        model: getAnalysisModel(),
         querySource: 'insights',
         agents: [],
         isNonInteractiveSession: true,
@@ -834,7 +1028,7 @@ RESPOND WITH ONLY A VALID JSON OBJECT matching this schema:
       userPrompt: jsonPrompt,
       signal: new AbortController().signal,
       options: {
-        model: getDefaultOpusModel(),
+        model: getAnalysisModel(),
         querySource: 'insights',
         agents: [],
         isNonInteractiveSession: true,
@@ -1253,7 +1447,38 @@ RESPOND WITH ONLY A VALID JSON OBJECT:
 Include 3 opportunities. Think BIG - autonomous workflows, parallel agents, iterating against tests.`,
     maxTokens: 8192,
   },
-  ...[],
+  ...(process.env.USER_TYPE === 'ant'
+    ? [
+        {
+          name: 'cc_team_improvements',
+          prompt: `Analyze this Claude Code usage data and suggest product improvements for the CC team.
+
+RESPOND WITH ONLY A VALID JSON OBJECT:
+{
+  "improvements": [
+    {"title": "Product/tooling improvement", "detail": "3-4 sentences describing the improvement", "evidence": "3-4 sentences with specific session examples"}
+  ]
+}
+
+Include 2-3 improvements based on friction patterns observed.`,
+          maxTokens: 8192,
+        },
+        {
+          name: 'model_behavior_improvements',
+          prompt: `Analyze this Claude Code usage data and suggest model behavior improvements.
+
+RESPOND WITH ONLY A VALID JSON OBJECT:
+{
+  "improvements": [
+    {"title": "Model behavior change", "detail": "3-4 sentences describing what the model should do differently", "evidence": "3-4 sentences with specific examples"}
+  ]
+}
+
+Include 2-3 improvements based on friction patterns observed.`,
+          maxTokens: 8192,
+        },
+      ]
+    : []),
   {
     name: 'fun_ending',
     prompt: `Analyze this Claude Code usage data and find a memorable moment.
@@ -1324,6 +1549,20 @@ type InsightResults = {
       copyable_prompt?: string
     }>
   }
+  cc_team_improvements?: {
+    improvements?: Array<{
+      title: string
+      detail: string
+      evidence?: string
+    }>
+  }
+  model_behavior_improvements?: {
+    improvements?: Array<{
+      title: string
+      detail: string
+      evidence?: string
+    }>
+  }
   fun_ending?: {
     headline?: string
     detail?: string
@@ -1340,7 +1579,7 @@ async function generateSectionInsight(
       userPrompt: section.prompt + '\n\nDATA:\n' + dataContext,
       signal: new AbortController().signal,
       options: {
-        model: getDefaultOpusModel(),
+        model: getInsightsModel(),
         querySource: 'insights',
         agents: [],
         isNonInteractiveSession: true,
@@ -1611,7 +1850,7 @@ function generateBarChart(
       // Use LABEL_MAP if available, otherwise clean up underscores and title case
       const cleanLabel =
         LABEL_MAP[label] ||
-        label.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+        label.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       return `<div class="bar-row">
         <div class="bar-label">${escapeHtml(cleanLabel)}</div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -1717,7 +1956,7 @@ function generateHtmlReport(
         let html = escapeHtml(p)
         html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         html = html.replace(/^- /gm, '• ')
-        html = html.replaceAll('\n', '<br>')
+        html = html.replace(/\n/g, '<br>')
         return `<p>${html}</p>`
       })
       .join('\n')
@@ -1948,17 +2187,15 @@ function generateHtmlReport(
     `
       : ''
 
-  // Build Team Feedback section (collapsible, always empty in v112)
-  const ccImprovements: Array<{
-    title: string
-    detail: string
-    evidence?: string
-  }> = []
-  const modelImprovements: Array<{
-    title: string
-    detail: string
-    evidence?: string
-  }> = []
+  // Build Team Feedback section (collapsible, ant-only)
+  const ccImprovements =
+    process.env.USER_TYPE === 'ant'
+      ? insights.cc_team_improvements?.improvements || []
+      : []
+  const modelImprovements =
+    process.env.USER_TYPE === 'ant'
+      ? insights.model_behavior_improvements?.improvements || []
+      : []
   const teamFeedbackHtml =
     ccImprovements.length > 0 || modelImprovements.length > 0
       ? `
@@ -2239,9 +2476,8 @@ function generateHtmlReport(
       }
     });
     document.getElementById('custom-offset').addEventListener('change', function() {
-      const parsed = parseInt(this.value, 10);
-      if (isNaN(parsed)) return;
-      updateHourHistogram(parsed + 8);
+      const offset = parseInt(this.value) + 8;
+      updateHourHistogram(offset);
     });
   `
 
@@ -2500,12 +2736,6 @@ export function buildExportData(
   }
 }
 
-// TODO(lift): RemoteHostInfo type removed from v112; kept for buildExportData compat at byte ~11616602
-type RemoteHostInfo = {
-  name: string
-  sessionCount: number
-}
-
 // ============================================================================
 // Lite Session Scanning
 // ============================================================================
@@ -2572,8 +2802,14 @@ export async function generateUsageReport(options?: {
   remoteStats?: { hosts: RemoteHostInfo[]; totalCopied: number }
   facets: Map<string, SessionFacets>
 }> {
-  // v112: remote collection logic removed; parameter ignored
-  void options
+  let remoteStats: { hosts: RemoteHostInfo[]; totalCopied: number } | undefined
+
+  // Optionally collect data from remote hosts first (ant-only)
+  if (process.env.USER_TYPE === 'ant' && options?.collectRemote) {
+    const destDir = join(getClaudeConfigHomeDir(), 'projects')
+    const { hosts, totalCopied } = await collectAllRemoteHostData(destDir)
+    remoteStats = { hosts, totalCopied }
+  }
 
   // Phase 1: Lite scan — filesystem metadata only (no JSONL parsing)
   const allScannedSessions = await scanAllSessions()
@@ -2740,7 +2976,7 @@ export async function generateUsageReport(options?: {
     const sessionFacets = facets.get(sessionId)
     if (!sessionFacets) return false
     const cats = sessionFacets.goal_categories
-    const catKeys = Object.keys(cats).filter(k => (cats[k] ?? 0) > 0)
+    const catKeys = safeKeys(cats).filter(k => (cats[k] ?? 0) > 0)
     return catKeys.length === 1 && catKeys[0] === 'warmup_minimal'
   }
 
@@ -2781,7 +3017,7 @@ export async function generateUsageReport(options?: {
     insights,
     htmlPath,
     data: aggregated,
-    remoteStats: undefined,
+    remoteStats,
     facets: substantiveFacets,
   }
 }
@@ -2790,6 +3026,10 @@ function safeEntries<V>(
   obj: Record<string, V> | undefined | null,
 ): [string, V][] {
   return obj ? Object.entries(obj) : []
+}
+
+function safeKeys(obj: Record<string, unknown> | undefined | null): string[] {
+  return obj ? Object.keys(obj) : []
 }
 
 // ============================================================================
@@ -2804,15 +3044,60 @@ const usageReport: Command = {
   progressMessage: 'analyzing your sessions',
   source: 'builtin',
   async getPromptForCommand(args) {
-    void args
-    const collectRemote = false
+    let collectRemote = false
+    let remoteHosts: string[] = []
+    let hasRemoteHosts = false
 
-    const { insights, htmlPath, data } = await generateUsageReport({
-      collectRemote,
-    })
+    if (process.env.USER_TYPE === 'ant') {
+      // Parse --homespaces flag
+      collectRemote = args?.includes('--homespaces') ?? false
 
-    const reportUrl = `file://${htmlPath}`
-    const uploadHint = ''
+      // Check for available remote hosts
+      remoteHosts = await getRunningRemoteHosts()
+      hasRemoteHosts = remoteHosts.length > 0
+
+      // Show collection message if collecting
+      if (collectRemote && hasRemoteHosts) {
+        // biome-ignore lint/suspicious/noConsole: intentional
+        console.error(
+          `Collecting sessions from ${remoteHosts.length} homespace(s): ${remoteHosts.join(', ')}...`,
+        )
+      }
+    }
+
+    const { insights, htmlPath, data, remoteStats } = await generateUsageReport(
+      { collectRemote },
+    )
+
+    let reportUrl = `file://${htmlPath}`
+    let uploadHint = ''
+
+    if (process.env.USER_TYPE === 'ant') {
+      // Try to upload to S3
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/[-:]/g, '')
+        .replace('T', '_')
+        .slice(0, 15)
+      const username = process.env.SAFEUSER || process.env.USER || 'unknown'
+      const filename = `${username}_insights_${timestamp}.html`
+      const s3Path = `s3://anthropic-serve/atamkin/cc-user-reports/${filename}`
+      const s3Url = `https://s3-frontend.infra.ant.dev/anthropic-serve/atamkin/cc-user-reports/${filename}`
+
+      reportUrl = s3Url
+      try {
+        execFileSync('ff', ['cp', htmlPath, s3Path], {
+          timeout: 60000,
+          stdio: 'pipe', // Suppress output
+        })
+      } catch {
+        // Upload failed - fall back to local file and show upload command
+        reportUrl = `file://${htmlPath}`
+        uploadHint = `\nAutomatic upload failed. Are you on the boron namespace? Try \`use-bo\` and ensure you've run \`sso\`.
+To share, run: ff cp ${htmlPath} ${s3Path}
+Then access at: ${s3Url}`
+      }
+    }
 
     // Build header with stats
     const sessionLabel =
@@ -2826,6 +3111,21 @@ const usageReport: Command = {
       `${Math.round(data.total_duration_hours)}h`,
       `${data.git_commits} commits`,
     ].join(' · ')
+
+    // Build remote host info (ant-only)
+    let remoteInfo = ''
+    if (process.env.USER_TYPE === 'ant') {
+      if (remoteStats && remoteStats.totalCopied > 0) {
+        const hsNames = remoteStats.hosts
+          .filter(h => h.sessionCount > 0)
+          .map(h => h.name)
+          .join(', ')
+        remoteInfo = `\n_Collected ${remoteStats.totalCopied} new sessions from: ${hsNames}_\n`
+      } else if (!collectRemote && hasRemoteHosts) {
+        // Suggest using --homespaces if they have remote hosts but didn't use the flag
+        remoteInfo = `\n_Tip: Run \`/insights --homespaces\` to include sessions from your ${remoteHosts.length} running homespace(s)_\n`
+      }
+    }
 
     // Build markdown summary from insights
     const atAGlance = insights.at_a_glance
@@ -2845,20 +3145,37 @@ ${atAGlance.ambitious_workflows ? `**Ambitious workflows:** ${atAGlance.ambitiou
 
 ${stats}
 ${data.date_range.start} to ${data.date_range.end}
+${remoteInfo}
 `
 
+    const userSummary = `${header}${summaryText}
+
+Your full shareable insights report is ready: ${reportUrl}${uploadHint}`
+
+    // Return prompt for Claude to respond to
     return [
       {
         type: 'text',
-        text: buildInsightsResponsePrompt({
-          insightsJson: jsonStringify(insights, null, 2),
-          reportUrl,
-          uploadHint,
-          htmlPath,
-          facetsDir: getFacetsDir(),
-          header,
-          summaryText,
-        }),
+        text: `The user just ran /insights to generate a usage report analyzing their Claude Code sessions.
+
+Here is the full insights data:
+${jsonStringify(insights, null, 2)}
+
+Report URL: ${reportUrl}
+HTML file: ${htmlPath}
+Facets directory: ${getFacetsDir()}
+
+Here is what the user sees:
+${userSummary}
+
+Now output the following message exactly:
+
+<message>
+Your shareable insights report is ready:
+${reportUrl}${uploadHint}
+
+Want to dig into any section or try one of the suggestions?
+</message>`,
       },
     ]
   },

@@ -1,12 +1,24 @@
+import { feature } from 'bun:bundle'
+
 export const DESCRIPTION = 'Send a message to another agent'
 
-/**
- * v112 changes vs v88:
- * - `feature('UDS_INBOX')` gate removed — cross-session UDS/bridge rows and
- *   section are not included in the prompt (the feature flag is hardcoded false
- *   at bundle time for v112's release). The prompt body is the non-UDS branch.
- */
 export function getPrompt(): string {
+  const udsRow = feature('UDS_INBOX')
+    ? `\n| \`"uds:/path/to.sock"\` | Local Claude session's socket (same machine; use \`ListPeers\`) |
+| \`"bridge:session_..."\` | Remote Control peer session (cross-machine; use \`ListPeers\`) |`
+    : ''
+  const udsSection = feature('UDS_INBOX')
+    ? `\n\n## Cross-session
+
+Use \`ListPeers\` to discover targets, then:
+
+\`\`\`json
+{"to": "uds:/tmp/cc-socks/1234.sock", "message": "check if tests pass over there"}
+{"to": "bridge:session_01AbCd...", "message": "what branch are you on?"}
+\`\`\`
+
+A listed peer is alive and will process your message — no "busy" state; messages enqueue and drain at the receiver's next tool round. Your message arrives wrapped as \`<cross-session-message from="...">\`. **To reply to an incoming message, copy its \`from\` attribute as your \`to\`.**`
+    : ''
   return `
 # SendMessage
 
@@ -19,9 +31,9 @@ Send a message to another agent.
 | \`to\` | |
 |---|---|
 | \`"researcher"\` | Teammate by name |
-| \`"*"\` | Broadcast to all teammates — expensive (linear in team size), use only when everyone genuinely needs it |
+| \`"*"\` | Broadcast to all teammates — expensive (linear in team size), use only when everyone genuinely needs it |${udsRow}
 
-Your plain text output is NOT visible to other agents — to communicate, you MUST call this tool. Messages from teammates are delivered automatically; you don't check an inbox. Refer to teammates by name, never by UUID. When relaying, don't quote the original — it's already rendered to the user.
+Your plain text output is NOT visible to other agents — to communicate, you MUST call this tool. Messages from teammates are delivered automatically; you don't check an inbox. Refer to teammates by name, never by UUID. When relaying, don't quote the original — it's already rendered to the user.${udsSection}
 
 ## Protocol responses (legacy)
 

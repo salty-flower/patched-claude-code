@@ -11,6 +11,7 @@ import {
   buildInheritedEnvVars,
   getTeammateCommand,
 } from '../spawnUtils.js'
+import { assignTeammateColor } from '../teammateLayoutManager.js'
 import { isInsideTmux } from './detection.js'
 import type {
   BackendType,
@@ -91,8 +92,7 @@ export class PaneBackendExecutor implements TeammateExecutor {
     }
 
     try {
-      // v112: color assignment moved to context.teammateColors.assign()
-      // TODO(lift): this.context.teammateColors.assign(agentId) at byte ~9375744
+      // Assign a unique color to this teammate
       const teammateColor = config.color ?? assignTeammateColor(agentId)
 
       // Create a pane in the swarm view
@@ -342,11 +342,6 @@ export class PaneBackendExecutor implements TeammateExecutor {
     // but that would require adding a new method to PaneBackend
     return true
   }
-}
-
-// TODO(lift): assignTeammateColor at byte ~9375744 — moved to context.teammateColors
-function assignTeammateColor(_agentId: string): string {
-  return 'blue'
 }
 
 /**

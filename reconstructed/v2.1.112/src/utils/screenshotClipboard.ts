@@ -51,7 +51,7 @@ async function copyPngToClipboard(
   if (platform === 'macos') {
     // macOS: Use osascript to copy PNG to clipboard
     // Escape backslashes and double quotes for AppleScript string
-    const escapedPath = pngPath.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+    const escapedPath = pngPath.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
     const script = `set the clipboard to (read (POSIX file "${escapedPath}") as «class PNGf»)`
     const result = await execFileNoThrowWithCwd('osascript', ['-e', script], {
       timeout: 5000,
@@ -98,7 +98,7 @@ async function copyPngToClipboard(
 
   if (platform === 'windows') {
     // Windows: Use PowerShell to copy image to clipboard
-    const psScript = `Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile('${pngPath.replaceAll("'", "''")}'))`
+    const psScript = `Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile('${pngPath.replace(/'/g, "''")}'))`
     const result = await execFileNoThrowWithCwd(
       'powershell',
       ['-NoProfile', '-Command', psScript],

@@ -19,22 +19,13 @@ import {
 } from './settings/settings.js'
 import { TOOL_RESULTS_SUBDIR } from './toolResultStorage.js'
 import { cleanupStaleAgentWorktrees } from './worktree.js'
-import { isSettingSourceEnabled } from './settings/constants.js'
 
 const DEFAULT_CLEANUP_PERIOD_DAYS = 30
 
-/**
- * v112 change: getCutoffDate() returns null when cleanupPeriodDays === 0,
- * allowing callers to skip cleanup entirely when retention is set to 0.
- * All callers must null-check before using the cutoff date.
- */
-function getCutoffDate(): Date | null {
+function getCutoffDate(): Date {
   const settings = getSettings_DEPRECATED() || {}
   const cleanupPeriodDays =
     settings.cleanupPeriodDays ?? DEFAULT_CLEANUP_PERIOD_DAYS
-  if (cleanupPeriodDays === 0) {
-    return null
-  }
   const cleanupPeriodMs = cleanupPeriodDays * 24 * 60 * 60 * 1000
   return new Date(Date.now() - cleanupPeriodMs)
 }
@@ -102,9 +93,6 @@ async function cleanupOldFilesInDirectory(
 export async function cleanupOldMessageFiles(): Promise<CleanupResult> {
   const fsImpl = getFsImplementation()
   const cutoffDate = getCutoffDate()
-  if (cutoffDate === null) {
-    return { messages: 0, errors: 0 }
-  }
   const errorPath = CACHE_PATHS.errors()
   const baseCachePath = CACHE_PATHS.baseLogs()
 
@@ -164,19 +152,9 @@ async function tryRmdir(dirPath: string, fsImpl: FsOperations): Promise<void> {
   }
 }
 
-/**
- * v112 change: cleanupOldSessionFiles has significant logic changes.
- * - null-guard for cutoffDate
- * - session entries sorted (directories after files: `sort((a,b) => Number(b.isDirectory()) - Number(a.isDirectory()))`)
- * - when a .jsonl file is removed, also removes a same-named directory (session dir alongside jsonl)
- * - handles a `frame/` subdirectory under session dirs
- */
 export async function cleanupOldSessionFiles(): Promise<CleanupResult> {
   const cutoffDate = getCutoffDate()
   const result: CleanupResult = { messages: 0, errors: 0 }
-  if (cutoffDate === null) {
-    return result
-  }
   const projectsDir = getProjectsDir()
   const fsImpl = getFsImplementation()
 
@@ -200,9 +178,6 @@ export async function cleanupOldSessionFiles(): Promise<CleanupResult> {
       continue
     }
 
-    // v112: sort directories after files so files are cleaned before dirs
-    entries.sort((a, b) => Number(b.isDirectory()) - Number(a.isDirectory()))
-
     for (const entry of entries) {
       if (entry.isFile()) {
         if (!entry.name.endsWith('.jsonl') && !entry.name.endsWith('.cast')) {
@@ -213,17 +188,6 @@ export async function cleanupOldSessionFiles(): Promise<CleanupResult> {
             await unlinkIfOld(join(projectDir, entry.name), cutoffDate, fsImpl)
           ) {
             result.messages++
-            // v112 change: when a .jsonl file is removed, also remove the
-            // same-named session directory (e.g. <session-id> dir next to <session-id>.jsonl)
-            if (entry.name.endsWith('.jsonl')) {
-              const sessionDirName = entry.name.slice(0, -6) // strip '.jsonl'
-              if (sessionDirName && sessionDirName !== '.' && sessionDirName !== '..') {
-                await fsImpl.rm(join(projectDir, sessionDirName), {
-                  recursive: true,
-                  force: true,
-                }).catch(() => { result.errors++ })
-              }
-            }
           }
         } catch {
           result.errors++
@@ -283,20 +247,6 @@ export async function cleanupOldSessionFiles(): Promise<CleanupResult> {
           }
         }
         await tryRmdir(toolResultsDir, fsImpl)
-
-        // v112 change: also cleans up frame/ subdirectory under session dirs
-        const frameDir = join(sessionDir, 'frame')
-        for (const frameEntry of await fsImpl.readdir(frameDir).catch(() => [])) {
-          if (!frameEntry.isFile() || !frameEntry.name.endsWith('.html')) continue
-          try {
-            if (await unlinkIfOld(join(frameDir, frameEntry.name), cutoffDate, fsImpl)) {
-              result.messages++
-            }
-          } catch {
-            result.errors++
-          }
-        }
-        await tryRmdir(frameDir, fsImpl)
         await tryRmdir(sessionDir, fsImpl)
       }
     }
@@ -320,9 +270,6 @@ async function cleanupSingleDirectory(
 ): Promise<CleanupResult> {
   const cutoffDate = getCutoffDate()
   const result: CleanupResult = { messages: 0, errors: 0 }
-  if (cutoffDate === null) {
-    return result
-  }
   const fsImpl = getFsImplementation()
 
   let dirents
@@ -358,9 +305,6 @@ export function cleanupOldPlanFiles(): Promise<CleanupResult> {
 export async function cleanupOldFileHistoryBackups(): Promise<CleanupResult> {
   const cutoffDate = getCutoffDate()
   const result: CleanupResult = { messages: 0, errors: 0 }
-  if (cutoffDate === null) {
-    return result
-  }
   const fsImpl = getFsImplementation()
 
   try {
@@ -406,9 +350,6 @@ export async function cleanupOldFileHistoryBackups(): Promise<CleanupResult> {
 export async function cleanupOldSessionEnvDirs(): Promise<CleanupResult> {
   const cutoffDate = getCutoffDate()
   const result: CleanupResult = { messages: 0, errors: 0 }
-  if (cutoffDate === null) {
-    return result
-  }
   const fsImpl = getFsImplementation()
 
   try {
@@ -455,9 +396,6 @@ export async function cleanupOldSessionEnvDirs(): Promise<CleanupResult> {
 export async function cleanupOldDebugLogs(): Promise<CleanupResult> {
   const cutoffDate = getCutoffDate()
   const result: CleanupResult = { messages: 0, errors: 0 }
-  if (cutoffDate === null) {
-    return result
-  }
   const fsImpl = getFsImplementation()
   const debugDir = join(getClaudeConfigHomeDir(), 'debug')
 
@@ -634,27 +572,7 @@ export async function cleanupOldVersionsThrottled(): Promise<void> {
   }
 }
 
-/**
- * v112 change: cleanupOldMessageFilesInBackground has a new guard at the top:
- * when userSettings source is disabled AND no enabled source provides
- * cleanupPeriodDays, skip cleanup entirely (log a message and return).
- * This prevents cleanup from running with wrong defaults when settings are locked down.
- *
- * Also: cleanupOldPastes and cleanupStaleAgentWorktrees now receive a
- * nullable cutoffDate (null = skip).
- */
 export async function cleanupOldMessageFilesInBackground(): Promise<void> {
-  // v112 new guard: skip retention cleanup when userSettings is disabled
-  // and no enabled source provides cleanupPeriodDays
-  await deferredCleanupChecks()
-
-  if (!isSettingSourceEnabled('userSettings') && getSettings_DEPRECATED()?.cleanupPeriodDays === undefined) {
-    logForDebugging(
-      'Skipping retention cleanup: userSettings source is disabled (--setting-sources) and no enabled source provides cleanupPeriodDays.',
-    )
-    return
-  }
-
   // If settings have validation errors but the user explicitly set cleanupPeriodDays,
   // skip cleanup entirely rather than falling back to the default (30 days).
   // This prevents accidentally deleting files when the user intended a different retention period.
@@ -673,25 +591,12 @@ export async function cleanupOldMessageFilesInBackground(): Promise<void> {
   await cleanupOldSessionEnvDirs()
   await cleanupOldDebugLogs()
   await cleanupOldImageCaches()
-
-  const cutoffDate = getCutoffDate()
-  if (cutoffDate !== null) {
-    await cleanupOldPastes(cutoffDate)
-    const removedWorktrees = await cleanupStaleAgentWorktrees(cutoffDate)
-    if (removedWorktrees > 0) {
-      logEvent('tengu_worktree_cleanup', { removed: removedWorktrees })
-    }
+  await cleanupOldPastes(getCutoffDate())
+  const removedWorktrees = await cleanupStaleAgentWorktrees(getCutoffDate())
+  if (removedWorktrees > 0) {
+    logEvent('tengu_worktree_cleanup', { removed: removedWorktrees })
   }
-
   if (process.env.USER_TYPE === 'ant') {
     await cleanupNpmCacheForAnthropicPackages()
   }
-}
-
-// TODO(lift): deferredCleanupChecks at byte ~12452631 — async initialization/checks
-// run before the main cleanup flow. The minified shows `await dq5()` which is
-// an unresolved symbol suggesting additional pre-cleanup validation logic.
-async function deferredCleanupChecks(): Promise<void> {
-  // TODO(lift): dq5 at byte ~12452631 — unresolved deferred cleanup initializer.
-  // Likely performs async settings validation or lock acquisition before cleanup proceeds.
 }

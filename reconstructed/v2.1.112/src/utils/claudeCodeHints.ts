@@ -146,21 +146,48 @@ function firstCommandToken(command: string): string {
 // the same store.
 // ============================================================================
 
-// NOTE(lift): v112 lazy-init block shows UZ4 (pendingHintChanged signal),
-// QZ4 (emit/notify), nZ4 (subscribe) still present. The store write/read
-// helpers (setPendingHint, clearPendingHint, markShownThisSession,
-// hasShownHintThisSession, _resetClaudeCodeHintStore, _test) have no v112
-// match in region.json [8535389..8535597] — dropped in v112.
+let pendingHint: ClaudeCodeHint | null = null
+let shownThisSession = false
 const pendingHintChanged = createSignal()
-const notify = pendingHintChanged.emit  // eslint-disable-line @typescript-eslint/no-unused-vars
+const notify = pendingHintChanged.emit
+
+/** Raw store write. Callers should gate first (see module comment). */
+export function setPendingHint(hint: ClaudeCodeHint): void {
+  if (shownThisSession) return
+  pendingHint = hint
+  notify()
+}
+
+/** Clear the slot without flipping the session flag — for rejected hints. */
+export function clearPendingHint(): void {
+  if (pendingHint !== null) {
+    pendingHint = null
+    notify()
+  }
+}
+
+/** Flip the once-per-session flag. Call only when a dialog is actually shown. */
+export function markShownThisSession(): void {
+  shownThisSession = true
+}
 
 export const subscribeToPendingHint = pendingHintChanged.subscribe
 
 export function getPendingHintSnapshot(): ClaudeCodeHint | null {
-  return _pendingHint_V112
+  return pendingHint
 }
 
-// TODO(lift): _pendingHint_V112 — module-level pendingHint store slot at byte ~8535389.
-// The store mutation helpers were removed but the slot itself is still referenced by
-// getPendingHintSnapshot. Exact initializer unclear from v112_min.
-let _pendingHint_V112: ClaudeCodeHint | null = null
+export function hasShownHintThisSession(): boolean {
+  return shownThisSession
+}
+
+/** Test-only reset. */
+export function _resetClaudeCodeHintStore(): void {
+  pendingHint = null
+  shownThisSession = false
+}
+
+export const _test = {
+  parseAttrs,
+  firstCommandToken,
+}

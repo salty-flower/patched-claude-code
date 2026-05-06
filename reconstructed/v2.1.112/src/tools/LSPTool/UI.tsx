@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import type { ToolResultBlockParam } from '@anthropic-ai/sdk/resources/index.mjs';
 import React from 'react';
 import { CtrlOToExpand } from '../../components/CtrlOToExpand.js';
@@ -59,7 +58,7 @@ const OPERATION_LABELS: Record<Input['operation'], {
  * Reusable component for LSP result summaries with collapsed/expanded views
  */
 function LSPResultSummary(t0) {
-  const $ = _c(24);
+  const $ = new Array(24).fill(void 0);
   const {
     operation,
     resultCount,

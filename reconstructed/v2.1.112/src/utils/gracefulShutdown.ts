@@ -215,7 +215,6 @@ function forceExit(exitCode: number): never {
   } catch (e) {
     // process.exit() threw. In tests, it's mocked to throw - re-throw so test sees it.
     // In production, it's likely EIO from dead terminal - use SIGKILL.
-    // v112 removed the process.env.NODE_ENV === 'test' guard; always SIGKILL on throw.
     if ((process.env.NODE_ENV as string) === 'test') {
       throw e
     }
@@ -224,8 +223,12 @@ function forceExit(exitCode: number): never {
   }
   // In tests, process.exit may be mocked to return instead of exiting.
   // In production, we should never reach here.
-  // v112 removed the NODE_ENV check and always throws Error("unreachable").
-  throw new Error('unreachable')
+  if ((process.env.NODE_ENV as string) !== 'test') {
+    throw new Error('unreachable')
+  }
+  // TypeScript trick: cast to never since we know this only happens in tests
+  // where the mock returns instead of exiting
+  return undefined as never
 }
 
 /**
@@ -303,8 +306,6 @@ export const setupGracefulShutdown = memoize(() => {
     logEvent('tengu_uncaught_exception', {
       error_name:
         error.name as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-      // TODO(lift): Ln1 at byte ~5718230 — error-info spread helper
-      // v112 adds `...Ln1(error)` to the event payload.
     })
   })
 
@@ -328,8 +329,6 @@ export const setupGracefulShutdown = memoize(() => {
     logEvent('tengu_unhandled_rejection', {
       error_name:
         errorName as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-      // TODO(lift): Ln1 at byte ~5718230 — error-info spread helper
-      // v112 adds `...Ln1(reason)` to the event payload.
     })
   })
 })
@@ -397,19 +396,12 @@ export async function gracefulShutdown(
     setAppState?: (f: (prev: AppState) => AppState) => void
     /** Printed to stderr after alt-screen exit, before forceExit. */
     finalMessage?: string
-    /** When true, suppress the resume hint (used by some callers). */
-    suppressResumeHint?: boolean
   },
 ): Promise<void> {
   if (shutdownInProgress) {
     return
   }
   shutdownInProgress = true
-
-  // v112: caller may suppress the resume hint.
-  if (options?.suppressResumeHint) {
-    resumeHintPrinted = true
-  }
 
   // Resolve the SessionEnd hook budget before arming the failsafe so the
   // failsafe can scale with it. Without this, a user-configured 10s hook

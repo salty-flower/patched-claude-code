@@ -33,13 +33,10 @@ export function preconnectAnthropicApi(): void {
   fired = true
 
   // Skip if using a cloud provider — different endpoint + auth
-  // v112 adds CLAUDE_CODE_USE_ANTHROPIC_AWS and CLAUDE_CODE_USE_MANTLE checks
   if (
     isEnvTruthy(process.env.CLAUDE_CODE_USE_BEDROCK) ||
     isEnvTruthy(process.env.CLAUDE_CODE_USE_VERTEX) ||
-    isEnvTruthy(process.env.CLAUDE_CODE_USE_FOUNDRY) ||
-    isEnvTruthy(process.env.CLAUDE_CODE_USE_ANTHROPIC_AWS) ||
-    isEnvTruthy(process.env.CLAUDE_CODE_USE_MANTLE)
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_FOUNDRY)
   ) {
     return
   }

@@ -1,21 +1,17 @@
 import { spawnSync } from 'child_process'
+import { getIsInteractive } from '../bootstrap/state.js'
 import { logForDebugging } from './debug.js'
 import { isEnvDefinedFalsy, isEnvTruthy } from './envUtils.js'
 import { execFileNoThrow } from './execFileNoThrow.js'
 
-export type FullscreenState = {
-  tmuxControlModeProbed: boolean | undefined
-  checkedTmuxMouseHint: boolean
-  loggedTmuxCcDisable: boolean
-}
+let loggedTmuxCcDisable = false
+let checkedTmuxMouseHint = false
 
-export function createFullscreenState(): FullscreenState {
-  return {
-    tmuxControlModeProbed: undefined,
-    checkedTmuxMouseHint: false,
-    loggedTmuxCcDisable: false,
-  }
-}
+/**
+ * Cached result from `tmux display-message -p '#{client_control_mode}'`.
+ * undefined = not yet queried (or probe failed) — env heuristic stays authoritative.
+ */
+let tmuxControlModeProbed: boolean | undefined
 
 /**
  * Env-var heuristic for iTerm2's tmux integration mode (`tmux -CC` / `tmux -2CC`).
@@ -57,13 +53,13 @@ function isTmuxControlModeEnvHeuristic(): boolean {
  * The TMUX env check MUST come first — without it, display-message would
  * query whatever tmux server happens to be running rather than our client.
  */
-export function probeTmuxControlModeSync(state: FullscreenState): void {
+function probeTmuxControlModeSync(): void {
   // Seed cache with heuristic result so early returns below don't leave it
   // undefined — isTmuxControlMode() is called 15+ times per render, and an
   // undefined cache would re-enter this function (re-spawning tmux in the
   // failure case) on every call.
-  state.tmuxControlModeProbed = isTmuxControlModeEnvHeuristic()
-  if (state.tmuxControlModeProbed) return
+  tmuxControlModeProbed = isTmuxControlModeEnvHeuristic()
+  if (tmuxControlModeProbed) return
   if (!process.env.TMUX) return
   // Only probe when iTerm might be involved: TERM_PROGRAM is iTerm.app
   // (covered above) or not set (SSH often doesn't propagate it). When
@@ -86,7 +82,7 @@ export function probeTmuxControlModeSync(state: FullscreenState): void {
   // Non-zero exit / spawn error: tmux too old (format var added in 2.4) or
   // unavailable. Keep the heuristic result cached.
   if (result.status !== 0) return
-  state.tmuxControlModeProbed = result.stdout.trim() === '1'
+  tmuxControlModeProbed = result.stdout.trim() === '1'
 }
 
 /**
@@ -98,23 +94,38 @@ export function probeTmuxControlModeSync(state: FullscreenState): void {
  *
  * Lazily probes tmux on first call when the env heuristic can't decide.
  */
-export function isTmuxControlMode(state: FullscreenState): boolean {
-  if (state.tmuxControlModeProbed === undefined) probeTmuxControlModeSync(state)
-  return state.tmuxControlModeProbed ?? false
+export function isTmuxControlMode(): boolean {
+  if (tmuxControlModeProbed === undefined) probeTmuxControlModeSync()
+  return tmuxControlModeProbed ?? false
+}
+
+export function _resetTmuxControlModeProbeForTesting(): void {
+  tmuxControlModeProbed = undefined
+  loggedTmuxCcDisable = false
 }
 
 /**
- * Runtime env-var check only. Returns "on", "off", or undefined.
- *   - "on"  = explicitly enabled (CLAUDE_CODE_NO_FLICKER truthy)
- *   - "off" = explicitly disabled (CLAUDE_CODE_NO_FLICKER falsy)
- *   - undefined = neither set (caller decides)
+ * Runtime env-var check only. Ants default to on (CLAUDE_CODE_NO_FLICKER=0
+ * to opt out); external users default to off (CLAUDE_CODE_NO_FLICKER=1 to
+ * opt in).
  */
-export function isFullscreenEnvEnabled(): 'on' | 'off' | undefined {
+export function isFullscreenEnvEnabled(): boolean {
   // Explicit user opt-out always wins.
-  if (isEnvDefinedFalsy(process.env.CLAUDE_CODE_NO_FLICKER)) return 'off'
+  if (isEnvDefinedFalsy(process.env.CLAUDE_CODE_NO_FLICKER)) return false
   // Explicit opt-in overrides auto-detection (escape hatch).
-  if (isEnvTruthy(process.env.CLAUDE_CODE_NO_FLICKER)) return 'on'
-  return undefined
+  if (isEnvTruthy(process.env.CLAUDE_CODE_NO_FLICKER)) return true
+  // Auto-disable under tmux -CC: alt-screen + mouse tracking corrupts
+  // terminal state on double-click and mouse wheel is dead.
+  if (isTmuxControlMode()) {
+    if (!loggedTmuxCcDisable) {
+      loggedTmuxCcDisable = true
+      logForDebugging(
+        'fullscreen disabled: tmux -CC (iTerm2 integration mode) detected · set CLAUDE_CODE_NO_FLICKER=1 to override',
+      )
+    }
+    return false
+  }
+  return process.env.USER_TYPE === 'ant'
 }
 
 /**
@@ -148,25 +159,8 @@ export function isMouseClicksDisabled(): boolean {
  * enter fullscreen, so features that depend on alt-screen re-rendering
  * should gate on this.
  */
-// TODO(lift): isFullscreenActive at byte ~3793942 — v112 takes a state
-// object parameter; lifted with v88 signature (no state param). Verify
-// callers have been updated.
-export function isFullscreenActive(state: FullscreenState): boolean {
-  const env = isFullscreenEnvEnabled()
-  if (env === 'off') return false
-  if (env === 'on') return true
-  // Auto-disable under tmux -CC: alt-screen + mouse tracking corrupts
-  // terminal state on double-click and mouse wheel is dead.
-  if (isTmuxControlMode(state)) {
-    if (!state.loggedTmuxCcDisable) {
-      state.loggedTmuxCcDisable = true
-      logForDebugging(
-        'fullscreen disabled: tmux -CC (iTerm2 integration mode) detected · set CLAUDE_CODE_NO_FLICKER=1 to override',
-      )
-    }
-    return false
-  }
-  return process.env.USER_TYPE === 'ant'
+export function isFullscreenActive(): boolean {
+  return getIsInteractive() && isFullscreenEnvEnabled()
 }
 
 /**
@@ -183,14 +177,12 @@ export function isFullscreenActive(state: FullscreenState): boolean {
  * session if TMUX is set, fullscreen is active, and tmux's current
  * `mouse` option is off; null otherwise.
  */
-export async function maybeGetTmuxMouseHint(
-  state: FullscreenState,
-): Promise<string | null> {
+export async function maybeGetTmuxMouseHint(): Promise<string | null> {
   if (!process.env.TMUX) return null
   // tmux -CC auto-disables fullscreen above, but belt-and-suspenders.
-  if (!isFullscreenActive(state) || isTmuxControlMode(state)) return null
-  if (state.checkedTmuxMouseHint) return null
-  state.checkedTmuxMouseHint = true
+  if (!isFullscreenActive() || isTmuxControlMode()) return null
+  if (checkedTmuxMouseHint) return null
+  checkedTmuxMouseHint = true
   // -A includes inherited values: `show -v mouse` returns empty when the
   // option is set globally (`set -g mouse on` in .tmux.conf) but not at
   // session level — which is the common case. -A gives the effective value.
@@ -204,7 +196,7 @@ export async function maybeGetTmuxMouseHint(
 }
 
 /** Test-only: reset module-level once-per-session flags. */
-export function _resetForTesting(state: FullscreenState): void {
-  state.loggedTmuxCcDisable = false
-  state.checkedTmuxMouseHint = false
+export function _resetForTesting(): void {
+  loggedTmuxCcDisable = false
+  checkedTmuxMouseHint = false
 }

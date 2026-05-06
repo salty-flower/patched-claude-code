@@ -50,9 +50,6 @@ function validatePathWithinPlugin(
  * 1. .lsp.json file in plugin directory
  * 2. manifest.lspServers field
  *
- * v112 change: error source field uses plugin.repository instead of 'plugin'
- * string literal.
- *
  * @param plugin - The loaded plugin
  * @param errors - Array to collect any errors encountered
  * @returns Record of server name to config, or undefined if no servers
@@ -82,7 +79,7 @@ export async function loadPluginLspServers(
         plugin: plugin.name,
         serverName: '.lsp.json',
         validationError: result.error.message,
-        source: plugin.repository,
+        source: 'plugin',
       })
     }
   } catch (error) {
@@ -103,7 +100,7 @@ export async function loadPluginLspServers(
           error instanceof Error
             ? `Failed to parse JSON: ${error.message}`
             : 'Failed to parse JSON file',
-        source: plugin.repository,
+        source: 'plugin',
       })
     }
   }
@@ -112,7 +109,8 @@ export async function loadPluginLspServers(
   if (plugin.manifest.lspServers) {
     const manifestServers = await loadLspServersFromManifest(
       plugin.manifest.lspServers,
-      plugin,
+      plugin.path,
+      plugin.name,
       errors,
     )
     if (manifestServers) {
@@ -125,16 +123,14 @@ export async function loadPluginLspServers(
 
 /**
  * Load LSP servers from manifest declaration (handles multiple formats).
- *
- * v112 change: takes LoadedPlugin instead of separate pluginPath/pluginName,
- * and uses plugin.repository for error source.
  */
 async function loadLspServersFromManifest(
   declaration:
     | string
     | Record<string, LspServerConfig>
     | Array<string | Record<string, LspServerConfig>>,
-  plugin: LoadedPlugin,
+  pluginPath: string,
+  pluginName: string,
   errors: PluginError[],
 ): Promise<Record<string, LspServerConfig> | undefined> {
   const servers: Record<string, LspServerConfig> = {}
@@ -145,18 +141,18 @@ async function loadLspServersFromManifest(
   for (const decl of declarations) {
     if (typeof decl === 'string') {
       // Validate path to prevent directory traversal
-      const validatedPath = validatePathWithinPlugin(plugin.path, decl)
+      const validatedPath = validatePathWithinPlugin(pluginPath, decl)
       if (!validatedPath) {
-        const securityMsg = `Security: Path traversal attempt blocked in plugin ${plugin.name}: ${decl}`
+        const securityMsg = `Security: Path traversal attempt blocked in plugin ${pluginName}: ${decl}`
         logError(new Error(securityMsg))
         logForDebugging(securityMsg, { level: 'warn' })
         errors.push({
           type: 'lsp-config-invalid',
-          plugin: plugin.name,
+          plugin: pluginName,
           serverName: decl,
           validationError:
             'Invalid path: must be relative and within plugin directory',
-          source: plugin.repository,
+          source: 'plugin',
         })
         continue
       }
@@ -172,33 +168,33 @@ async function loadLspServersFromManifest(
         if (result.success) {
           Object.assign(servers, result.data)
         } else {
-          const errorMsg = `LSP config validation failed for ${decl} in plugin ${plugin.name}: ${result.error.message}`
+          const errorMsg = `LSP config validation failed for ${decl} in plugin ${pluginName}: ${result.error.message}`
           logError(new Error(errorMsg))
           errors.push({
             type: 'lsp-config-invalid',
-            plugin: plugin.name,
+            plugin: pluginName,
             serverName: decl,
             validationError: result.error.message,
-            source: plugin.repository,
+            source: 'plugin',
           })
         }
       } catch (error) {
         const _errorMsg =
           error instanceof Error
-            ? `Failed to read/parse LSP config from ${decl} in plugin ${plugin.name}: ${error.message}`
-            : `Failed to read/parse LSP config file ${decl} in plugin ${plugin.name}`
+            ? `Failed to read/parse LSP config from ${decl} in plugin ${pluginName}: ${error.message}`
+            : `Failed to read/parse LSP config file ${decl} in plugin ${pluginName}`
 
         logError(toError(error))
 
         errors.push({
           type: 'lsp-config-invalid',
-          plugin: plugin.name,
+          plugin: pluginName,
           serverName: decl,
           validationError:
             error instanceof Error
               ? `Failed to parse JSON: ${error.message}`
               : 'Failed to parse JSON file',
-          source: plugin.repository,
+          source: 'plugin',
         })
       }
     } else {
@@ -208,14 +204,14 @@ async function loadLspServersFromManifest(
         if (result.success) {
           servers[serverName] = result.data
         } else {
-          const errorMsg = `LSP config validation failed for inline server "${serverName}" in plugin ${plugin.name}: ${result.error.message}`
+          const errorMsg = `LSP config validation failed for inline server "${serverName}" in plugin ${pluginName}: ${result.error.message}`
           logError(new Error(errorMsg))
           errors.push({
             type: 'lsp-config-invalid',
-            plugin: plugin.name,
+            plugin: pluginName,
             serverName,
             validationError: result.error.message,
-            source: plugin.repository,
+            source: 'plugin',
           })
         }
       }
@@ -229,9 +225,6 @@ async function loadLspServersFromManifest(
  * Resolve environment variables for plugin LSP servers.
  * Handles ${CLAUDE_PLUGIN_ROOT}, ${user_config.X}, and general ${VAR}
  * substitution. Tracks missing environment variables for error reporting.
- *
- * v112 change: deduplicates missing vars using F4 (array dedupe utility)
- * instead of [...new Set(Y)].
  */
 export function resolvePluginLspEnvironment(
   config: LspServerConfig,
@@ -289,8 +282,6 @@ export function resolvePluginLspEnvironment(
 
   // Log missing variables if any were found
   if (allMissingVars.length > 0) {
-    // v112: uses F4 utility for deduplication instead of [...new Set()]
-    // TODO(lift): F4 at byte ~8570957
     const uniqueMissingVars = [...new Set(allMissingVars)]
     const warnMsg = `Missing environment variables in plugin LSP config: ${uniqueMissingVars.join(', ')}`
     logError(new Error(warnMsg))
@@ -327,9 +318,6 @@ export function addPluginScopeToLspServers(
  * Get LSP servers from a specific plugin with environment variable resolution and scoping
  * This function is called when the LSP servers need to be activated and ensures they have
  * the proper environment variables and scope applied
- *
- * v112 change: uses uH6(plugin) instead of getPluginStorageId(plugin) for
- * loading plugin options.
  */
 export async function getPluginLspServers(
   plugin: LoadedPlugin,
@@ -352,8 +340,6 @@ export async function getPluginLspServers(
   // loadPluginOptions always returns {} so without this guard userConfig is
   // truthy for every plugin and substituteUserConfigVariables throws on any
   // unresolved ${user_config.X}. Also skips unneeded keychain reads.
-  // v112: uses uH6(plugin) for storage id
-  // TODO(lift): uH6 at byte ~8571089
   const userConfig = plugin.manifest.userConfig
     ? loadPluginOptions(getPluginStorageId(plugin))
     : undefined
@@ -373,10 +359,6 @@ export async function getPluginLspServers(
 
 /**
  * Extract all LSP servers from loaded plugins
- *
- * v112: This function was removed from the bundle (not present in v112 decls).
- * Its functionality is inlined or moved elsewhere. Preserved here for reference
- * but marked as removed.
  */
 export async function extractLspServersFromPlugins(
   plugins: LoadedPlugin[],

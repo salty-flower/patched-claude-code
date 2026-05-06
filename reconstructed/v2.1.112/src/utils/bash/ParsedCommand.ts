@@ -36,6 +36,7 @@ export interface IParsedCommand {
  * unavailable. The primary gate is parseForSecurity (ast.ts).
  *
  * Regex-based fallback implementation using shell-quote parser.
+ * Used when tree-sitter is not available.
  * Exported for testing purposes.
  */
 export class RegexParsedCommand_DEPRECATED implements IParsedCommand {
@@ -120,6 +121,10 @@ function extractPipePositions(rootNode: Node): number[] {
       }
     }
   })
+  // visitNodes is depth-first. For `a | b && c | d`, the outer `list` nests
+  // the second pipeline as a sibling of the first, so the outer `|` is
+  // visited before the inner one — positions arrive out of order.
+  // getPipeSegments iterates them to slice left-to-right, so sort here.
   return pipePositions.sort((a, b) => a - b)
 }
 
@@ -143,13 +148,18 @@ function extractRedirectionNodes(rootNode: Node): RedirectionNode[] {
   return redirections
 }
 
-// v112: TreeSitterParsedCommand fields are now public (no `private` modifier in minified class)
 class TreeSitterParsedCommand implements IParsedCommand {
   readonly originalCommand: string
-  readonly commandBytes: Buffer
-  readonly pipePositions: number[]
-  readonly redirectionNodes: RedirectionNode[]
-  readonly treeSitterAnalysis: TreeSitterAnalysis
+  // Tree-sitter's startIndex/endIndex are UTF-8 byte offsets, but JS
+  // String.slice() uses UTF-16 code-unit indices. For ASCII they coincide;
+  // for multi-byte code points (e.g. `—` U+2014: 3 UTF-8 bytes, 1 code unit)
+  // they diverge and slicing the string directly lands mid-token. Slicing
+  // the UTF-8 Buffer with tree-sitter's byte offsets and decoding back to
+  // string is correct regardless of code-point width.
+  private readonly commandBytes: Buffer
+  private readonly pipePositions: number[]
+  private readonly redirectionNodes: RedirectionNode[]
+  private readonly treeSitterAnalysis: TreeSitterAnalysis
 
   constructor(
     command: string,
@@ -227,6 +237,16 @@ class TreeSitterParsedCommand implements IParsedCommand {
   }
 }
 
+const getTreeSitterAvailable = memoize(async (): Promise<boolean> => {
+  try {
+    const { parseCommand } = await import('./parser.js')
+    const testResult = await parseCommand('echo test')
+    return testResult !== null
+  } catch {
+    return false
+  }
+})
+
 /**
  * Build a TreeSitterParsedCommand from a pre-parsed AST root. Lets callers
  * that already have the tree skip the redundant native.parse that
@@ -247,36 +267,52 @@ export function buildParsedCommandFromRoot(
   )
 }
 
-/**
- * v112: parse is now a direct async function (AkY) that only uses tree-sitter path.
- * The memoized getTreeSitterAvailable check and the RegexParsedCommand fallback
- * are removed — callers that need the fallback should use RegexParsedCommand_DEPRECATED directly.
- * The ParsedCommand namespace object wrapper is also removed.
- *
- * Returns null if tree-sitter is unavailable or parsing fails.
- */
-export async function parsedCommandParse(
-  command: string,
-): Promise<IParsedCommand | null> {
+async function doParse(command: string): Promise<IParsedCommand | null> {
   if (!command) return null
 
-  try {
-    const { parseCommand } = await import('./parser.js')
-    const data = await parseCommand(command)
-    if (data) {
-      return buildParsedCommandFromRoot(command, data.rootNode)
+  const treeSitterAvailable = await getTreeSitterAvailable()
+  if (treeSitterAvailable) {
+    try {
+      const { parseCommand } = await import('./parser.js')
+      const data = await parseCommand(command)
+      if (data) {
+        // Native NAPI parser returns plain JS objects (no WASM handles);
+        // nothing to free — extract directly.
+        return buildParsedCommandFromRoot(command, data.rootNode)
+      }
+    } catch {
+      // Fall through to regex implementation
     }
-  } catch {
-    // Tree-sitter unavailable or failed
   }
 
-  return null
+  // Fallback to regex implementation
+  return new RegexParsedCommand_DEPRECATED(command)
 }
 
-// v112: memoize wrapper for compatibility with callers that expect the old
-// single-entry cache behaviour. The v88 `lastCmd`/`lastResult` cache is gone;
-// memoize() provides equivalent deduplication.
-// TODO(lift): v112 no longer exports ParsedCommand object — callers updated elsewhere
+// Single-entry cache: legacy callers (bashCommandIsSafeAsync,
+// buildSegmentWithoutRedirections) may call ParsedCommand.parse repeatedly
+// with the same command string. Each parse() is ~1 native.parse + ~6 tree
+// walks, so caching the most recent command skips the redundant work.
+// Size-1 bound avoids leaking TreeSitterParsedCommand instances.
+let lastCmd: string | undefined
+let lastResult: Promise<IParsedCommand | null> | undefined
+
+/**
+ * ParsedCommand provides methods for working with shell commands.
+ * Uses tree-sitter when available for quote-aware parsing,
+ * falls back to regex-based parsing otherwise.
+ */
 export const ParsedCommand = {
-  parse: memoize(parsedCommandParse),
+  /**
+   * Parse a command string and return a ParsedCommand instance.
+   * Returns null if parsing fails completely.
+   */
+  parse(command: string): Promise<IParsedCommand | null> {
+    if (command === lastCmd && lastResult !== undefined) {
+      return lastResult
+    }
+    lastCmd = command
+    lastResult = doParse(command)
+    return lastResult
+  },
 }

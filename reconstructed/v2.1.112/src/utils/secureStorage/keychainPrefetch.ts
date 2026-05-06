@@ -87,3 +87,30 @@ export function startKeychainPrefetch(): void {
     },
   )
 }
+
+/**
+ * Await prefetch completion. Called in main.tsx preAction alongside
+ * ensureMdmSettingsLoaded() — nearly free since subprocesses finish during
+ * the ~65ms of main.tsx imports. Resolves immediately on non-darwin.
+ */
+export async function ensureKeychainPrefetchCompleted(): Promise<void> {
+  if (prefetchPromise) await prefetchPromise
+}
+
+/**
+ * Consumed by getApiKeyFromConfigOrMacOSKeychain() in auth.ts before it
+ * falls through to sync execSync. Returns null if prefetch hasn't completed.
+ */
+export function getLegacyApiKeyPrefetchResult(): {
+  stdout: string | null
+} | null {
+  return legacyApiKeyPrefetch
+}
+
+/**
+ * Clear prefetch result. Called alongside getApiKeyFromConfigOrMacOSKeychain
+ * cache invalidation so a stale prefetch doesn't shadow a fresh write.
+ */
+export function clearLegacyApiKeyPrefetch(): void {
+  legacyApiKeyPrefetch = null
+}

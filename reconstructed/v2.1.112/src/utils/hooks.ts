@@ -173,29 +173,12 @@ const TOOL_HOOK_EXECUTION_TIMEOUT_MS = 10 * 60 * 1000
  * teardown scripts need more time.
  */
 const SESSION_END_HOOK_TIMEOUT_MS_DEFAULT = 1500
-
-// v112: FeY in minified — max session end hook timeout cap (30 seconds)
-const SESSION_END_HOOK_TIMEOUT_MS_MAX = 30 * 1000
-
 export function getSessionEndHookTimeoutMs(): number {
   const raw = process.env.CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS
   const parsed = raw ? parseInt(raw, 10) : NaN
-  if (Number.isFinite(parsed) && parsed > 0) {
-    return parsed
-  }
-  // v112: scan hook configs for the largest timeout among SessionEnd hooks
-  let maxTimeout = 0
-  for (const matcher of getHooksConfigFromSnapshot()?.SessionEnd ?? []) {
-    for (const hook of matcher.hooks) {
-      if (hook.timeout && hook.timeout * 1000 > maxTimeout) {
-        maxTimeout = hook.timeout * 1000
-      }
-    }
-  }
-  return Math.max(
-    SESSION_END_HOOK_TIMEOUT_MS_DEFAULT,
-    Math.min(maxTimeout, SESSION_END_HOOK_TIMEOUT_MS_MAX),
-  )
+  return Number.isFinite(parsed) && parsed > 0
+    ? parsed
+    : SESSION_END_HOOK_TIMEOUT_MS_DEFAULT
 }
 
 function executeInBackground({
@@ -207,8 +190,6 @@ function executeInBackground({
   hookName,
   command,
   asyncRewake,
-  rewakeMessage,
-  rewakeSummary,
   pluginId,
 }: {
   processId: string
@@ -219,14 +200,25 @@ function executeInBackground({
   hookName: string
   command: string
   asyncRewake?: boolean
-  rewakeMessage?: string
-  rewakeSummary?: string
   pluginId?: string
 }): boolean {
   if (asyncRewake) {
-    // v112: asyncRewake hooks now use XML-tagged notification format with
-    // rewakeMessage/rewakeSummary parameters.
+    // asyncRewake hooks bypass the registry entirely. On completion, if exit
+    // code 2 (blocking error), enqueue as a task-notification so it wakes the
+    // model via useQueueProcessor (idle) or gets injected mid-query via
+    // queued_command attachments (busy).
+    //
+    // NOTE: We deliberately do NOT call shellCommand.background() here, because
+    // it calls taskOutput.spillToDisk() which breaks in-memory stdout/stderr
+    // capture (getStderr() returns '' in disk mode). The StreamWrappers stay
+    // attached and pipe data into the in-memory TaskOutput buffers. The abort
+    // handler already no-ops on 'interrupt' reason (user submitted a new
+    // message), so the hook survives new prompts. A hard cancel (Escape) WILL
+    // kill the hook via the abort handler, which is the desired behavior.
     void shellCommand.result.then(async result => {
+      // result resolves on 'exit', but stdio 'data' events may still be
+      // pending. Yield to I/O so the StreamWrapper data handlers drain into
+      // TaskOutput before we read it.
       await new Promise(resolve => setImmediate(resolve))
       const stdout = await shellCommand.taskOutput.getStdout()
       const stderr = shellCommand.taskOutput.getStderr()
@@ -242,16 +234,11 @@ function executeInBackground({
         outcome: result.code === 0 ? 'success' : 'error',
       })
       if (result.code === 2) {
-        const title = rewakeMessage || 'Stop hook feedback'
-        const summary = rewakeSummary || title
-        const wrappedContent = wrapInSystemReminder(
-          `Stop hook blocking error from command "${hookName}": ${stderr || stdout}`,
-        )
-        // v112: XML-tagged format for rewake notifications
         enqueuePendingNotification({
-          value: `<notification>\n<title>${summary}</title>\n</notification>\n${wrappedContent}`,
+          value: wrapInSystemReminder(
+            `Stop hook blocking error from command "${hookName}": ${stderr || stdout}`,
+          ),
           mode: 'task-notification',
-          stopHookActive: true,
         })
       }
     })
@@ -355,7 +342,7 @@ export interface HookResult {
   outcome: 'success' | 'blocking' | 'non_blocking_error' | 'cancelled'
   preventContinuation?: boolean
   stopReason?: string
-  permissionBehavior?: 'ask' | 'deny' | 'allow' | 'passthrough' | 'defer'
+  permissionBehavior?: 'ask' | 'deny' | 'allow' | 'passthrough'
   hookPermissionDecisionReason?: string
   additionalContext?: string
   initialUserMessage?: string
@@ -367,7 +354,6 @@ export interface HookResult {
   elicitationResultResponse?: ElicitationResponse
   retry?: boolean
   hook: HookCommand | HookCallback | FunctionHook
-  sessionTitle?: string
 }
 
 export type AggregatedHookResult = {
@@ -377,7 +363,7 @@ export type AggregatedHookResult = {
   stopReason?: string
   hookPermissionDecisionReason?: string
   hookSource?: string
-  permissionBehavior?: PermissionResult['behavior'] | 'defer'
+  permissionBehavior?: PermissionResult['behavior']
   additionalContexts?: string[]
   initialUserMessage?: string
   updatedInput?: Record<string, unknown>
@@ -387,7 +373,6 @@ export type AggregatedHookResult = {
   elicitationResponse?: ElicitationResponse
   elicitationResultResponse?: ElicitationResponse
   retry?: boolean
-  sessionTitle?: string
 }
 
 /**
@@ -436,18 +421,17 @@ function parseHookOutput(stdout: string): {
         decision: '"approve" | "block" (optional)',
         reason: 'string (optional)',
         systemMessage: 'string (optional)',
-        permissionDecision: '"allow" | "deny" | "ask" | "defer" (optional)',
+        permissionDecision: '"allow" | "deny" | "ask" (optional)',
         hookSpecificOutput: {
           'for PreToolUse': {
             hookEventName: '"PreToolUse"',
-            permissionDecision: '"allow" | "deny" | "ask" | "defer" (optional)',
+            permissionDecision: '"allow" | "deny" | "ask" (optional)',
             permissionDecisionReason: 'string (optional)',
             updatedInput: 'object (optional) - Modified tool input to use',
           },
           'for UserPromptSubmit': {
             hookEventName: '"UserPromptSubmit"',
             additionalContext: 'string (required)',
-            sessionTitle: 'string (optional)',
           },
           'for PostToolUse': {
             hookEventName: '"PostToolUse"',
@@ -582,14 +566,10 @@ function processHookJSONOutput({
       case 'ask':
         result.permissionBehavior = 'ask'
         break
-      case 'defer':
-        // v112: Added "defer" permission decision
-        result.permissionBehavior = 'defer'
-        break
       default:
         // Handle unknown decision types as errors
         throw new Error(
-          `Unknown hook permissionDecision type: ${json.hookSpecificOutput.permissionDecision}. Valid types are: allow, deny, ask, defer`,
+          `Unknown hook permissionDecision type: ${json.hookSpecificOutput.permissionDecision}. Valid types are: allow, deny, ask`,
         )
     }
   }
@@ -630,10 +610,6 @@ function processHookJSONOutput({
             case 'ask':
               result.permissionBehavior = 'ask'
               break
-            case 'defer':
-              // v112: Added "defer" permission decision
-              result.permissionBehavior = 'defer'
-              break
           }
         }
         result.hookPermissionDecisionReason =
@@ -647,8 +623,6 @@ function processHookJSONOutput({
         break
       case 'UserPromptSubmit':
         result.additionalContext = json.hookSpecificOutput.additionalContext
-        // v112: Added sessionTitle support for UserPromptSubmit hooks
-        result.sessionTitle = json.hookSpecificOutput.sessionTitle
         break
       case 'SessionStart':
         result.additionalContext = json.hookSpecificOutput.additionalContext
@@ -748,7 +722,7 @@ function processHookJSONOutput({
           hookName,
           toolUseID,
           hookEvent,
-          // JSON-output hooks inject context via additionalContext ->
+          // JSON-output hooks inject context via additionalContext →
           // hook_additional_context, not this field. Empty content suppresses
           // the trivial "X hook success: Success" system-reminder that
           // otherwise pollutes every turn (messages.ts:3577 skips on '').
@@ -783,8 +757,6 @@ async function execCommandHook(
   skillRoot?: string,
   forceSyncExecution?: boolean,
   requestPrompt?: (request: PromptRequest) => Promise<PromptResponse>,
-  rewakeMessage?: string,
-  rewakeSummary?: string,
 ): Promise<{
   stdout: string
   stderr: string
@@ -849,22 +821,6 @@ async function execCommandHook(
   // as opaque — not re-interpreted as a template.
   let command = hook.command
   let pluginOpts: ReturnType<typeof loadPluginOptions> | undefined
-
-  // v112: Validate plugin/skill variable references before substitution.
-  // Skill hooks can only reference ${CLAUDE_PLUGIN_ROOT}, not ${CLAUDE_PLUGIN_DATA}.
-  for (const [varName, varRoot] of [
-    ['CLAUDE_PLUGIN_ROOT', pluginRoot || skillRoot],
-    ['CLAUDE_PLUGIN_DATA', pluginRoot],
-  ] as const) {
-    if (!command.includes('${' + varName + '}')) continue
-    if (varRoot) continue
-    throw new Error(
-      skillRoot
-        ? `Hook command references \${${varName}} but only \${CLAUDE_PLUGIN_ROOT} is available for skill hooks (\${CLAUDE_PLUGIN_DATA} is plugin-only). Command: ${command}`
-        : `Hook command references \${${varName}} but the hook is not associated with a plugin. This variable is only available in hooks defined in a plugin's hooks/hooks.json file, not in settings.json. Command: ${command}`,
-    )
-  }
-
   if (pluginRoot) {
     // Plugin directory gone (orphan GC race, concurrent session deleted it):
     // throw so callers yield a non-blocking error. Running would fail — and
@@ -886,10 +842,10 @@ async function execCommandHook(
     // form .replace() so paths containing $ aren't mangled by $-pattern
     // interpretation (rare but possible: \\server\c$\plugin).
     const rootPath = toHookPath(pluginRoot)
-    command = command.replaceAll('${CLAUDE_PLUGIN_ROOT}', () => rootPath)
+    command = command.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, () => rootPath)
     if (pluginId) {
       const dataPath = toHookPath(getPluginDataDir(pluginId))
-      command = command.replaceAll('${CLAUDE_PLUGIN_DATA}', () => dataPath)
+      command = command.replace(/\$\{CLAUDE_PLUGIN_DATA\}/g, () => dataPath)
     }
     if (pluginId) {
       pluginOpts = loadPluginOptions(pluginId)
@@ -1036,11 +992,7 @@ async function execCommandHook(
   // Track whether stdin has already been written (to avoid "write after end" errors)
   let stdinWritten = false
 
-  // v112: asyncRewake is only enabled when the hook config has asyncRewake set
-  // AND we're not in a context where it should be disabled.
-  const asyncRewakeEnabled = !forceSyncExecution || hook.asyncRewake
-
-  if ((hook.async || (hook.asyncRewake && asyncRewakeEnabled)) && !forceSyncExecution) {
+  if ((hook.async || hook.asyncRewake) && !forceSyncExecution) {
     const processId = `async_hook_${child.pid}`
     logForDebugging(
       `Hooks: Config-based async hook, backgrounding process ${processId}`,
@@ -1064,8 +1016,6 @@ async function execCommandHook(
       hookName,
       command: hook.command,
       asyncRewake: hook.asyncRewake,
-      rewakeMessage,
-      rewakeSummary,
       pluginId,
     })
     if (backgrounded) {
@@ -1527,6 +1477,7 @@ function getPluginHookCounts(
   return counts
 }
 
+
 /**
  * Build a map of {hookType: count} from matched hooks.
  */
@@ -1987,11 +1938,9 @@ export function getUserPromptSubmitHookBlockingMessage(
 ): string {
   return `UserPromptSubmit operation blocked by hook:\n${blockingError.blockingError}`
 }
-
 /**
  * Common logic for executing hooks
  * @param hookInput The structured hook input that will be validated and converted to JSON
- * @param extendedHookInput Optional extended hook input for additional context
  * @param toolUseID The ID for tracking this hook execution
  * @param matchQuery The query to match against hook matchers
  * @param signal Optional AbortSignal to cancel hook execution
@@ -2002,7 +1951,6 @@ export function getUserPromptSubmitHookBlockingMessage(
  */
 async function* executeHooks({
   hookInput,
-  extendedHookInput,
   toolUseID,
   matchQuery,
   signal,
@@ -2014,7 +1962,6 @@ async function* executeHooks({
   toolInputSummary,
 }: {
   hookInput: HookInput
-  extendedHookInput?: HookInput
   toolUseID: string
   matchQuery?: string
   signal?: AbortSignal
@@ -2095,7 +2042,7 @@ async function* executeHooks({
     const context = toolUseContext
       ? {
           getAppState: toolUseContext.getAppState,
-          applyAttributionOp: toolUseContext.applyAttributionOp,
+          updateAttributionState: toolUseContext.updateAttributionState,
         }
       : undefined
     for (const [i, { hook }] of matchingHooks.entries()) {
@@ -2170,14 +2117,6 @@ async function* executeHooks({
 
   // Track wall-clock time for the entire hook batch
   const batchStartTime = Date.now()
-
-  // Telemetry counters for hook output sizes
-  const telemetryCounters = {
-    additionalContextChars: 0,
-    systemMessageChars: 0,
-    initialUserMessageChars: 0,
-    hookSuccessStdoutChars: 0,
-  }
 
   // Lazy-once stringify of hookInput. Shared across all command/prompt/agent/http
   // hooks in this batch (hookInput is never mutated). Callback/function hooks
@@ -2668,9 +2607,7 @@ async function* executeHooks({
         })
         yield {
           ...processed,
-          outcome: result.status === 2 && !processed.blockingError
-            ? 'blocking'
-            : 'success' as const,
+          outcome: 'success' as const,
           hook,
         }
         return
@@ -2688,18 +2625,13 @@ async function* executeHooks({
           exitCode: result.status,
           outcome: 'success',
         })
-        const persistedStdout = await persistHookOutput(
-          result.stdout.trim(),
-          hookId,
-          'stdout',
-        )
         yield {
           message: createAttachmentMessage({
             type: 'hook_success',
             hookName,
             toolUseID,
             hookEvent,
-            content: persistedStdout,
+            content: result.stdout.trim(),
             stdout: result.stdout,
             stderr: result.stderr,
             exitCode: result.status,
@@ -2807,15 +2739,10 @@ async function* executeHooks({
   }
 
   let permissionBehavior: PermissionResult['behavior'] | undefined
-  let hookIndex = 0
 
   // Run all hooks in parallel and wait for all to complete
   for await (const result of all(hookPromises)) {
     outcomes[result.outcome]++
-
-    if (result.message?.type === 'attachment' && result.message.attachment.type === 'hook_success') {
-      telemetryCounters.hookSuccessStdoutChars += result.message.attachment.stdout?.length ?? 0
-    }
 
     // Check for preventContinuation early
     if (result.preventContinuation) {
@@ -2833,27 +2760,18 @@ async function* executeHooks({
       yield {
         blockingError: result.blockingError,
       }
-      permissionBehavior = 'deny'
     }
 
     if (result.message) {
       yield { message: result.message }
     }
 
-    hookIndex++
-
     // Yield system message separately if present
     if (result.systemMessage) {
-      telemetryCounters.systemMessageChars += result.systemMessage.length
-      const persistedSystemMessage = await persistHookOutput(
-        result.systemMessage,
-        `${toolUseID}-${hookIndex}`,
-        'systemMessage',
-      )
       yield {
         message: createAttachmentMessage({
           type: 'hook_system_message',
-          content: persistedSystemMessage,
+          content: result.systemMessage,
           hookName,
           toolUseID,
           hookEvent,
@@ -2863,32 +2781,20 @@ async function* executeHooks({
 
     // Collect additional context from hooks
     if (result.additionalContext) {
-      telemetryCounters.additionalContextChars += result.additionalContext.length
       logForDebugging(
         `Hook ${hookEvent} (${getHookDisplayText(result.hook)}) provided additionalContext (${result.additionalContext.length} chars)`,
       )
-      const persistedContext = await persistHookOutput(
-        result.additionalContext,
-        `${toolUseID}-${hookIndex}`,
-        'additionalContext',
-      )
       yield {
-        additionalContexts: [persistedContext],
+        additionalContexts: [result.additionalContext],
       }
     }
 
     if (result.initialUserMessage) {
-      telemetryCounters.initialUserMessageChars += result.initialUserMessage.length
       logForDebugging(
         `Hook ${hookEvent} (${getHookDisplayText(result.hook)}) provided initialUserMessage (${result.initialUserMessage.length} chars)`,
       )
-      const persistedMessage = await persistHookOutput(
-        result.initialUserMessage,
-        `${toolUseID}-${hookIndex}`,
-        'initialUserMessage',
-      )
       yield {
-        initialUserMessage: persistedMessage,
+        initialUserMessage: result.initialUserMessage,
       }
     }
 
@@ -2898,16 +2804,6 @@ async function* executeHooks({
       )
       yield {
         watchPaths: result.watchPaths,
-      }
-    }
-
-    // Yield sessionTitle if provided
-    if (result.sessionTitle) {
-      logForDebugging(
-        `Hook ${hookEvent} (${getHookDisplayText(result.hook)}) provided sessionTitle (${[...result.sessionTitle].length} chars)`,
-      )
-      yield {
-        sessionTitle: result.sessionTitle,
       }
     }
 
@@ -2921,7 +2817,7 @@ async function* executeHooks({
       }
     }
 
-    // Check for permission behavior with precedence: deny > defer > ask > allow
+    // Check for permission behavior with precedence: deny > ask > allow
     if (result.permissionBehavior) {
       logForDebugging(
         `Hook ${hookEvent} (${getHookDisplayText(result.hook)}) returned permissionDecision: ${result.permissionBehavior}${result.hookPermissionDecisionReason ? ` (reason: ${result.hookPermissionDecisionReason})` : ''}`,
@@ -2932,15 +2828,9 @@ async function* executeHooks({
           // deny always takes precedence
           permissionBehavior = 'deny'
           break
-        case 'defer':
-          // defer takes precedence over ask and allow but not deny
-          if (permissionBehavior !== 'deny') {
-            permissionBehavior = 'defer'
-          }
-          break
         case 'ask':
-          // ask takes precedence over allow but not deny or defer
-          if (permissionBehavior !== 'deny' && permissionBehavior !== 'defer') {
+          // ask takes precedence over allow but not deny
+          if (permissionBehavior !== 'deny') {
             permissionBehavior = 'ask'
           }
           break
@@ -2957,7 +2847,7 @@ async function* executeHooks({
     }
 
     // Yield permission behavior and updatedInput if provided (from allow or ask behavior)
-    if (permissionBehavior !== undefined && permissionBehavior === result.permissionBehavior) {
+    if (permissionBehavior !== undefined) {
       const updatedInput =
         result.updatedInput &&
         (result.permissionBehavior === 'allow' ||
@@ -3051,7 +2941,6 @@ async function* executeHooks({
     numNonBlockingError: outcomes.non_blocking_error,
     numCancelled: outcomes.cancelled,
     totalDurationMs,
-    ...telemetryCounters,
   })
 
   // Log hook execution completion to OTEL (only for beta tracing)
@@ -3193,7 +3082,7 @@ async function executeHooksOutsideREPL({
 
   // Run all hooks in parallel with individual timeouts
   const hookPromises = matchingHooks.map(
-    async ({ hook, pluginRoot, pluginId, skillRoot }, hookIndex) => {
+    async ({ hook, pluginRoot, pluginId }, hookIndex) => {
       // Handle callback hooks
       if (hook.type === 'callback') {
         const callbackTimeoutMs = hook.timeout ? hook.timeout * 1000 : timeoutMs
@@ -3204,15 +3093,11 @@ async function executeHooksOutsideREPL({
 
         try {
           const toolUseID = randomUUID()
-          const context = getAppState
-            ? { getAppState, applyAttributionOp: undefined }
-            : undefined
           const json = await hook.callback(
             hookInput,
             toolUseID,
             abortSignal,
             hookIndex,
-            context,
           )
 
           cleanup?.()
@@ -3408,7 +3293,6 @@ async function executeHooksOutsideREPL({
           hookIndex,
           pluginRoot,
           pluginId,
-          skillRoot,
         )
 
         // Clear timeout if hook completes
@@ -3713,7 +3597,7 @@ export async function executeStopFailureHooks(
   timeoutMs: number = TOOL_HOOK_EXECUTION_TIMEOUT_MS,
 ): Promise<void> {
   const appState = toolUseContext?.getAppState()
-  // executeHooksOutsideREPL hardcodes main sessionId. Agent frontmatter
+  // executeHooksOutsideREPL hardcodes main sessionId (:2738). Agent frontmatter
   // hooks (registerFrontmatterHooks) key by agentId; gating with agentId here
   // would pass the gate but fail execution. Align gate with execution.
   const sessionId = getSessionId()
@@ -3724,7 +3608,7 @@ export async function executeStopFailureHooks(
 
   // Some createAssistantAPIErrorMessage call sites omit `error` (e.g.
   // image-size at errors.ts:431). Default to 'unknown' so matcher filtering
-  // at getMatchingHooks always applies.
+  // at getMatchingHooks:1525 always applies.
   const error = lastMessage.error ?? 'unknown'
   const hookInput: StopFailureHookInput = {
     ...createBaseHookInput(undefined, undefined, toolUseContext),
@@ -3803,7 +3687,6 @@ export async function* executeStopHooks(
   // Trust check is now centralized in executeHooks()
   yield* executeHooks({
     hookInput,
-    extendedHookInput: undefined,
     toolUseID: randomUUID(),
     signal,
     timeoutMs,
@@ -3959,7 +3842,6 @@ export async function* executeUserPromptSubmitHooks(
     ...createBaseHookInput(permissionMode),
     hook_event_name: 'UserPromptSubmit',
     prompt,
-    session_title: getSessionTitle(getSessionId()),
   }
 
   yield* executeHooks({
@@ -4086,7 +3968,6 @@ export async function executePreCompactHooks(
 ): Promise<{
   newCustomInstructions?: string
   userDisplayMessage?: string
-  blockedBy?: string
 }> {
   const hookInput: PreCompactHookInput = {
     ...createBaseHookInput(undefined),
@@ -4108,13 +3989,13 @@ export async function executePreCompactHooks(
 
   // Extract custom instructions from successful hooks with non-empty output
   const successfulOutputs = results
-    .filter(result => result.succeeded && !result.blocked && result.output.trim().length > 0)
+    .filter(result => result.succeeded && result.output.trim().length > 0)
     .map(result => result.output.trim())
 
   // Build user display messages with command info
   const displayMessages: string[] = []
   for (const result of results) {
-    if (result.succeeded && !result.blocked) {
+    if (result.succeeded) {
       if (result.output.trim()) {
         displayMessages.push(
           `PreCompact [${result.command}] completed successfully: ${result.output.trim()}`,
@@ -4135,21 +4016,11 @@ export async function executePreCompactHooks(
     }
   }
 
-  const blockedHooks = results.filter(r => r.blocked)
-
   return {
     newCustomInstructions:
       successfulOutputs.length > 0 ? successfulOutputs.join('\n\n') : undefined,
     userDisplayMessage:
       displayMessages.length > 0 ? displayMessages.join('\n') : undefined,
-    ...(blockedHooks.length > 0 && {
-      blockedBy: blockedHooks
-        .map(r => {
-          const out = r.output.trim()
-          return `[${r.command}]${out ? `: ${out}` : ''}`
-        })
-        .join('\n'),
-    }),
   }
 }
 
@@ -4236,7 +4107,7 @@ export async function executeSessionEndHooks(
     getAppState,
     setAppState,
     signal,
-    timeoutMs = getSessionEndHookTimeoutMs(),
+    timeoutMs = TOOL_HOOK_EXECUTION_TIMEOUT_MS,
   } = options || {}
 
   const hookInput: SessionEndHookInput = {
@@ -4525,7 +4396,7 @@ function parseElicitationHookOutput(
   if (result.blocked && !result.succeeded) {
     return {
       blockingError: {
-        blockingError: result.output || 'Elicitation blocked by hook',
+        blockingError: result.output || `Elicitation blocked by hook`,
         command: result.command,
       },
     }
@@ -4987,7 +4858,7 @@ async function executeHookCallback({
   const context = toolUseContext
     ? {
         getAppState: toolUseContext.getAppState,
-        applyAttributionOp: toolUseContext.applyAttributionOp,
+        updateAttributionState: toolUseContext.updateAttributionState,
       }
     : undefined
   const json = await hook.callback(
@@ -5119,11 +4990,8 @@ export async function executeWorktreeRemoveHook(
     return false
   }
 
-  let anySucceeded = false
   for (const result of results) {
-    if (result.succeeded) {
-      anySucceeded = true
-    } else {
+    if (!result.succeeded) {
       logForDebugging(
         `WorktreeRemove hook failed [${result.command}]: ${result.output.trim()}`,
         { level: 'error' },
@@ -5131,7 +4999,7 @@ export async function executeWorktreeRemoveHook(
     }
   }
 
-  return anySucceeded
+  return true
 }
 
 function getHookDefinitionsForTelemetry(

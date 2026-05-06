@@ -11,9 +11,9 @@ import { getCwd } from './cwd.js'
 import { type env, getHostPlatformForAnalytics } from './env.js'
 import { isEnvTruthy } from './envUtils.js'
 
-// v112: initUser() and resetUserCache() removed.
-// getCoreUserData is now a plain memoized function without async init.
-// TODO(lift): verify whether initUser/resetUserCache moved elsewhere at byte ~3536845
+// Cache for email fetched asynchronously at startup
+let cachedEmail: string | undefined | null = null // null means not fetched yet
+let emailFetchPromise: Promise<string | undefined> | null = null
 
 /**
  * GitHub Actions metadata when running in CI
@@ -44,6 +44,31 @@ export type CoreUserData = {
   rateLimitTier?: string
   firstTokenTime?: number
   githubActionsMetadata?: GitHubActionsMetadata
+}
+
+/**
+ * Initialize user data asynchronously. Should be called early in startup.
+ * This pre-fetches the email so getUser() can remain synchronous.
+ */
+export async function initUser(): Promise<void> {
+  if (cachedEmail === null && !emailFetchPromise) {
+    emailFetchPromise = getEmailAsync()
+    cachedEmail = await emailFetchPromise
+    emailFetchPromise = null
+    // Clear memoization cache so next call picks up the email
+    getCoreUserData.cache.clear?.()
+  }
+}
+
+/**
+ * Reset all user data caches. Call on auth changes (login/logout/account switch)
+ * so the next getCoreUserData() call picks up fresh credentials and email.
+ */
+export function resetUserCache(): void {
+  cachedEmail = null
+  emailFetchPromise = null
+  getCoreUserData.cache.clear?.()
+  getGitEmail.cache.clear?.()
 }
 
 /**
@@ -84,8 +109,7 @@ export const getCoreUserData = memoize(
       platform: getHostPlatformForAnalytics(),
       organizationUuid,
       accountUuid,
-      // v112: userType hardcoded to 'external' in minified; keeping env fallback
-      userType: process.env.USER_TYPE ?? 'external',
+      userType: process.env.USER_TYPE,
       subscriptionType,
       rateLimitTier,
       firstTokenTime,
@@ -111,13 +135,27 @@ export function getUserForGrowthBook(): CoreUserData {
 }
 
 function getEmail(): string | undefined {
+  // Return cached email if available (from async initialization)
+  if (cachedEmail !== null) {
+    return cachedEmail
+  }
+
   // Only include OAuth email when actively using OAuth authentication
   const oauthAccount = getOauthAccountInfo()
   if (oauthAccount?.emailAddress) {
     return oauthAccount.emailAddress
   }
 
-  // v112: ant-only fallbacks removed from synchronous path
+  // Ant-only fallbacks below (no execSync)
+  if (process.env.USER_TYPE !== 'ant') {
+    return undefined
+  }
+
+  if (process.env.COO_CREATOR) {
+    return `${process.env.COO_CREATOR}@anthropic.com`
+  }
+
+  // If initUser() wasn't called, we return undefined instead of blocking
   return undefined
 }
 
@@ -128,17 +166,25 @@ async function getEmailAsync(): Promise<string | undefined> {
     return oauthAccount.emailAddress
   }
 
-  // v112: ant-only fallbacks removed from async path
+  // Ant-only fallbacks below
+  if (process.env.USER_TYPE !== 'ant') {
+    return undefined
+  }
+
+  if (process.env.COO_CREATOR) {
+    return `${process.env.COO_CREATOR}@anthropic.com`
+  }
+
   return getGitEmail()
 }
 
 /**
  * Get the user's git email from `git config user.email`.
  * Memoized so the subprocess only spawns once per process.
- * v112: uses execa without shell:true, cwd from getCwd()
  */
 export const getGitEmail = memoize(async (): Promise<string | undefined> => {
-  const result = await execa('git', ['config', '--get', 'user.email'], {
+  const result = await execa('git config --get user.email', {
+    shell: true,
     reject: false,
     cwd: getCwd(),
   })

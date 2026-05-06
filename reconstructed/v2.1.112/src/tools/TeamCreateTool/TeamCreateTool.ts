@@ -18,15 +18,18 @@ import { TEAM_LEAD_NAME } from '../../utils/swarm/constants.js'
 import type { TeamFile } from '../../utils/swarm/teamHelpers.js'
 import {
   getTeamFilePath,
+  readTeamFile,
   registerTeamForSessionCleanup,
   sanitizeName,
   writeTeamFileAsync,
 } from '../../utils/swarm/teamHelpers.js'
+import { assignTeammateColor } from '../../utils/swarm/teammateLayoutManager.js'
 import {
   ensureTasksDir,
   resetTaskList,
   setLeaderTeamName,
 } from '../../utils/tasks.js'
+import { generateWordSlug } from '../../utils/words.js'
 import { TEAM_CREATE_TOOL_NAME } from './constants.js'
 import { getPrompt } from './prompt.js'
 import { renderToolUseMessage } from './UI.js'
@@ -54,22 +57,19 @@ export type Output = {
 
 export type Input = z.infer<InputSchema>
 
-// v112: jac=0.841 drift — key changes vs v88:
-// - generateUniqueTeamName removed; v112 writes exclusively and throws if team exists
-// - writeTeamFileAsync replaced with Bd8(name, file, {exclusive:true}) — exclusive write
-// - Error handling: EEXIST check with mw8() for path, Cc for TeamDelete name
-// - teammateColors.assign() from context replaces assignTeammateColor()
-// - T96(j) for task list ID (wraps sanitizeName)
-//
-// TODO(lift): Bd8() — exclusive writeTeamFileAsync at byte ~9230500
-// TODO(lift): Q1() — error code extractor at byte ~9230600
-// TODO(lift): mw8() — path from error at byte ~9230700
-// TODO(lift): Cc — TEAM_DELETE_TOOL_NAME constant at byte ~9230800
-// TODO(lift): T96() — sanitizeName wrapper for task list ID at byte ~9230900
-// TODO(lift): context.teammateColors — new ToolUseContext field at byte ~9231000
-// TODO(lift): xb8() — resetTaskList alias at byte ~9231100
-// TODO(lift): An1() — ensureTasksDir alias at byte ~9231200
-// TODO(lift): _R4() — setLeaderTeamName alias at byte ~9231300
+/**
+ * Generates a unique team name by checking if the provided name already exists.
+ * If the name already exists, generates a new word slug.
+ */
+function generateUniqueTeamName(providedName: string): string {
+  // If the team doesn't exist, use the provided name
+  if (!readTeamFile(providedName)) {
+    return providedName
+  }
+
+  // Team exists, generate a new unique name
+  return generateWordSlug()
+}
 
 export const TeamCreateTool: Tool<InputSchema, Output> = buildTool({
   name: TEAM_CREATE_TOOL_NAME,
@@ -129,22 +129,23 @@ export const TeamCreateTool: Tool<InputSchema, Output> = buildTool({
     const { setAppState, getAppState } = context
     const { team_name, description: _description, agent_type } = input
 
+    // Check if already in a team - restrict to one team per leader
     const appState = getAppState()
     const existingTeam = appState.teamContext?.teamName
 
     if (existingTeam) {
       throw new Error(
-        // v112: references TeamDelete tool name (Cc constant)
-        // TODO(lift): Cc = TEAM_DELETE_TOOL_NAME at byte ~9230800
         `Already leading team "${existingTeam}". A leader can only manage one team at a time. Use TeamDelete to end the current team before creating a new one.`,
       )
     }
 
-    // v112: no longer calls generateUniqueTeamName — uses provided name directly
-    // and throws with detailed error if team already exists (exclusive write)
-    const finalTeamName = team_name
+    // If team already exists, generate a unique name instead of failing
+    const finalTeamName = generateUniqueTeamName(team_name)
+
+    // Generate a deterministic agent ID for the team lead
     const leadAgentId = formatAgentId(TEAM_LEAD_NAME, finalTeamName)
     const leadAgentType = agent_type || TEAM_LEAD_NAME
+    // Get the team lead's current model from AppState (handles session model, settings, CLI override)
     const leadModel = parseUserSpecifiedModel(
       appState.mainLoopModelForSession ??
         appState.mainLoopModel ??
@@ -158,7 +159,7 @@ export const TeamCreateTool: Tool<InputSchema, Output> = buildTool({
       description: _description,
       createdAt: Date.now(),
       leadAgentId,
-      leadSessionId: getSessionId(),
+      leadSessionId: getSessionId(), // Store actual session ID for team discovery
       members: [
         {
           agentId: leadAgentId,
@@ -173,31 +174,23 @@ export const TeamCreateTool: Tool<InputSchema, Output> = buildTool({
       ],
     }
 
-    // v112: exclusive write — throws if file already exists (EEXIST)
-    // TODO(lift): Bd8(finalTeamName, teamFile, {exclusive: true}) at byte ~9230500
-    try {
-      await writeTeamFileAsync(finalTeamName, teamFile)
-    } catch (err) {
-      // v112: EEXIST error check with path comparison
-      // TODO(lift): Q1(err) === 'EEXIST' && mw8(err) === teamFilePath at byte ~9230600
-      throw err
-    }
+    await writeTeamFileAsync(finalTeamName, teamFile)
+    // Track for session-end cleanup — teams were left on disk forever
+    // unless explicitly TeamDelete'd (gh-32730).
     registerTeamForSessionCleanup(finalTeamName)
 
-    // v112: T96(finalTeamName) wraps sanitizeName for task list ID
+    // Reset and create the corresponding task list directory (Team = Project = TaskList)
+    // This ensures task numbering starts fresh at 1 for each new swarm
     const taskListId = sanitizeName(finalTeamName)
-    // TODO(lift): xb8(taskListId) — resetTaskList at byte ~9231100
     await resetTaskList(taskListId)
-    // TODO(lift): An1(taskListId) — ensureTasksDir at byte ~9231200
     await ensureTasksDir(taskListId)
-    // TODO(lift): _R4(T96(finalTeamName)) — setLeaderTeamName at byte ~9231300
+
+    // Register the team name so getTaskListId() returns it for the leader.
+    // Without this, the leader falls through to getSessionId() and writes tasks
+    // to a different directory than tmux/iTerm2 teammates expect.
     setLeaderTeamName(sanitizeName(finalTeamName))
 
-    // v112: context.teammateColors.assign() instead of assignTeammateColor()
-    // TODO(lift): context.teammateColors field on ToolUseContext at byte ~9231000
-    const leadColor = (context as unknown as { teammateColors: { assign: (id: string) => unknown } })
-      .teammateColors.assign(leadAgentId)
-
+    // Update AppState with team context
     setAppState(prev => ({
       ...prev,
       teamContext: {
@@ -208,7 +201,7 @@ export const TeamCreateTool: Tool<InputSchema, Output> = buildTool({
           [leadAgentId]: {
             name: TEAM_LEAD_NAME,
             agentType: leadAgentType,
-            color: leadColor,
+            color: assignTeammateColor(leadAgentId),
             tmuxSessionName: '',
             tmuxPaneId: '',
             cwd: getCwd(),
@@ -227,6 +220,12 @@ export const TeamCreateTool: Tool<InputSchema, Output> = buildTool({
       teammate_mode:
         getResolvedTeammateMode() as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
     })
+
+    // Note: We intentionally don't set CLAUDE_CODE_AGENT_ID for the team lead because:
+    // 1. The lead is not a "teammate" - isTeammate() should return false for them
+    // 2. Their ID is deterministic (team-lead@teamName) and can be derived when needed
+    // 3. Setting it would cause isTeammate() to return true, breaking inbox polling
+    // Team name is stored in AppState.teamContext, not process.env
 
     return {
       data: {

@@ -392,7 +392,7 @@ async function detectConfigurationIssues(
       }
       // Remove trailing slashes for comparison (handles paths like /home/user/.local/bin/)
       const trimmedDir = normalizedDir.replace(/\/+$/, '')
-      const trimmedRawDir = dir.replace(/[/\]+$/, '')
+      const trimmedRawDir = dir.replace(/[/\\]+$/, '')
       return (
         trimmedDir === normalizedLocalBinPath ||
         trimmedRawDir === '~/.local/bin' ||
@@ -511,9 +511,7 @@ export function detectLinuxGlobPatternWarnings(): Array<{
   return warnings
 }
 
-export async function getDoctorDiagnostic(
-  opts: { probeKeychain?: boolean } = {},
-): Promise<DiagnosticInfo> {
+export async function getDoctorDiagnostic(): Promise<DiagnosticInfo> {
   const installationType = await getCurrentInstallationType()
   const version =
     typeof MACRO !== 'undefined' && MACRO.VERSION ? MACRO.VERSION : 'unknown'
@@ -524,14 +522,6 @@ export async function getDoctorDiagnostic(
 
   // Add glob pattern warnings for Linux sandboxing
   warnings.push(...detectLinuxGlobPatternWarnings())
-
-  // v112: optional keychain probe for managed-device diagnostics
-  if (opts.probeKeychain) {
-    const keychainWarning = await probeKeychain()
-    if (keychainWarning) {
-      warnings.push(keychainWarning)
-    }
-  }
 
   // Add warnings for leftover npm installations when running native
   if (installationType === 'native') {
@@ -632,14 +622,4 @@ export async function getDoctorDiagnostic(
   }
 
   return diagnostic
-}
-
-// TODO(lift): probeKeychain at byte ~7878974 — unresolved helper for
-// keychain diagnostics under opts.probeKeychain. Likely checks macOS
-// Keychain or similar credential-store accessibility.
-async function probeKeychain(): Promise<
-  { issue: string; fix: string } | undefined
-> {
-  // Stub — real implementation unresolved at lift time.
-  return undefined
 }

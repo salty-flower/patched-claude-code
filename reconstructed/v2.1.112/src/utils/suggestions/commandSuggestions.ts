@@ -14,9 +14,7 @@ const SEPARATORS = /[:_-]/g
 type CommandSearchItem = {
   descriptionKey: string[]
   partKey: string[] | undefined
-  displayPartKey: string[] | undefined
   commandName: string
-  displayName: string
   command: Command
   aliasKey: string[] | undefined
 }
@@ -29,26 +27,16 @@ let fuseCache: {
   fuse: Fuse<CommandSearchItem>
 } | null = null
 
-// TODO(lift): co8 at byte ~12292512 — command visibility filter
-function isCommandVisible(_cmd: Command): boolean {
-  return true
-}
-
 function getCommandFuse(commands: Command[]): Fuse<CommandSearchItem> {
   if (fuseCache?.commands === commands) {
     return fuseCache.fuse
   }
 
   const commandData: CommandSearchItem[] = commands
-    .filter(cmd => !cmd.isHidden && !isCommandVisible(cmd))
+    .filter(cmd => !cmd.isHidden)
     .map(cmd => {
       const commandName = getCommandName(cmd)
-      const displayName = cmd.displayName ?? commandName
       const parts = commandName.split(SEPARATORS).filter(Boolean)
-      const displayParts =
-        displayName !== commandName
-          ? displayName.split(SEPARATORS).filter(Boolean)
-          : []
 
       return {
         descriptionKey: (cmd.description ?? '')
@@ -56,9 +44,7 @@ function getCommandFuse(commands: Command[]): Fuse<CommandSearchItem> {
           .map(word => cleanWord(word))
           .filter(Boolean),
         partKey: parts.length > 1 ? parts : undefined,
-        displayPartKey: displayParts.length > 1 ? displayParts : undefined,
         commandName,
-        displayName,
         command: cmd,
         aliasKey: cmd.aliases,
       }
@@ -75,20 +61,12 @@ function getCommandFuse(commands: Command[]): Fuse<CommandSearchItem> {
         weight: 3, // Highest priority for command names
       },
       {
-        name: 'displayName',
-        weight: 2, // Next highest priority for display names
-      },
-      {
         name: 'partKey',
         weight: 2, // Next highest priority for command parts
       },
       {
         name: 'aliasKey',
         weight: 2, // Same high priority for aliases
-      },
-      {
-        name: 'displayPartKey',
-        weight: 1, // Lower priority for display name parts
       },
       {
         name: 'descriptionKey',
@@ -150,8 +128,7 @@ export function findMidInputSlashCommand(
   // Lookbehind (?<=\s) is avoided — it defeats YARR JIT in JSC, and the
   // interpreter scans O(n) even with the $ anchor. Capture the whitespace
   // instead and offset match.index by 1.
-  // v112: extended with CJK punctuation 。、？！
-  const match = beforeCursor.match(/[\s\u3002\u3001\uff1f\uff01]\/([a-zA-Z0-9_:-]*)$/)
+  const match = beforeCursor.match(/\s\/([a-zA-Z0-9_:-]*)$/)
   if (!match || match.index === undefined) {
     return null
   }
@@ -204,13 +181,12 @@ export function getBestCommandMatch(
     if (!isCommandMetadata(suggestion.metadata)) {
       continue
     }
-    for (const name of [suggestion.metadata.name, getCommandName(suggestion.metadata)]) {
-      if (name.toLowerCase().startsWith(query)) {
-        const suffix = name.slice(partialCommand.length)
-        // Only return if there's something to complete
-        if (suffix) {
-          return { suffix, fullCommand: name }
-        }
+    const name = getCommandName(suggestion.metadata)
+    if (name.toLowerCase().startsWith(query)) {
+      const suffix = name.slice(partialCommand.length)
+      // Only return if there's something to complete
+      if (suffix) {
+        return { suffix, fullCommand: name }
       }
     }
   }
@@ -331,7 +307,7 @@ export function generateCommandSuggestions(
 
   // When just typing '/' without additional text
   if (query === '') {
-    const visibleCommands = commands.filter(cmd => !cmd.isHidden && !isCommandVisible(cmd))
+    const visibleCommands = commands.filter(cmd => !cmd.isHidden)
 
     // Find recently used skills (only prompt commands have usage tracking)
     const recentlyUsed: Command[] = []
@@ -412,11 +388,15 @@ export function generateCommandSuggestions(
   // be the user's explicit override and should win). Prepend rather than
   // early-return so visible prefix siblings (e.g. /voice-memo) still appear
   // below, and getBestCommandMatch can still find a non-empty suffix.
-  const isExactMatch = (cmd: Command) =>
-    getCommandName(cmd).toLowerCase() === query || cmd.name.toLowerCase() === query
-
-  let hiddenExact = commands.find(cmd => cmd.isHidden && isExactMatch(cmd))
-  if (hiddenExact && commands.some(cmd => !cmd.isHidden && isExactMatch(cmd))) {
+  let hiddenExact = commands.find(
+    cmd => cmd.isHidden && getCommandName(cmd).toLowerCase() === query,
+  )
+  if (
+    hiddenExact &&
+    commands.some(
+      cmd => !cmd.isHidden && getCommandName(cmd).toLowerCase() === query,
+    )
+  ) {
     hiddenExact = undefined
   }
 
@@ -431,30 +411,25 @@ export function generateCommandSuggestions(
   // 4. Prefix alias match
   // 5. Fuzzy match (lowest)
   // Precompute per-item values once to avoid O(n log n) recomputation in comparator
-  const withMeta = searchResults
-    .filter(r => !isCommandVisible(r.item.command))
-    .map(r => {
-      const name = r.item.commandName.toLowerCase()
-      const display = r.item.displayName.toLowerCase()
-      const aliases = r.item.aliasKey?.map(alias => alias.toLowerCase()) ?? []
-      const usage =
-        r.item.command.type === 'prompt'
-          ? getSkillUsageScore(getCommandName(r.item.command))
-          : 0
-      return { r, name, display, aliases, usage }
-    })
+  const withMeta = searchResults.map(r => {
+    const name = r.item.commandName.toLowerCase()
+    const aliases = r.item.aliasKey?.map(alias => alias.toLowerCase()) ?? []
+    const usage =
+      r.item.command.type === 'prompt'
+        ? getSkillUsageScore(getCommandName(r.item.command))
+        : 0
+    return { r, name, aliases, usage }
+  })
 
   const sortedResults = withMeta.sort((a, b) => {
     const aName = a.name
     const bName = b.name
-    const aDisplay = a.display
-    const bDisplay = b.display
     const aAliases = a.aliases
     const bAliases = b.aliases
 
     // Check for exact name match (highest priority)
-    const aExactName = aName === query || aDisplay === query
-    const bExactName = bName === query || bDisplay === query
+    const aExactName = aName === query
+    const bExactName = bName === query
     if (aExactName && !bExactName) return -1
     if (bExactName && !aExactName) return 1
 
@@ -464,16 +439,14 @@ export function generateCommandSuggestions(
     if (aExactAlias && !bExactAlias) return -1
     if (bExactAlias && !aExactAlias) return 1
 
-    // Check for prefix name match on either commandName or displayName
-    const prefixLen = (s: string) => (s.startsWith(query) ? s.length : Infinity)
-    const aPrefixLen = Math.min(prefixLen(aName), prefixLen(aDisplay))
-    const bPrefixLen = Math.min(prefixLen(bName), prefixLen(bDisplay))
-    const aHasPrefix = aPrefixLen < Infinity
-    const bHasPrefix = bPrefixLen < Infinity
-    if (aHasPrefix && !bHasPrefix) return -1
-    if (bHasPrefix && !aHasPrefix) return 1
-    if (aHasPrefix && bHasPrefix && aPrefixLen !== bPrefixLen) {
-      return aPrefixLen - bPrefixLen
+    // Check for prefix name match
+    const aPrefixName = aName.startsWith(query)
+    const bPrefixName = bName.startsWith(query)
+    if (aPrefixName && !bPrefixName) return -1
+    if (bPrefixName && !aPrefixName) return 1
+    // Among prefix name matches, prefer the shorter name (closer to exact)
+    if (aPrefixName && bPrefixName && aName.length !== bName.length) {
+      return aName.length - bName.length
     }
 
     // Check for prefix alias match
@@ -566,9 +539,8 @@ export function applyCommandSuggestion(
 }
 
 // Helper function at bottom of file per CLAUDE.md
-// v112: changed to kebab-case normalization for display-name matching
 function cleanWord(word: string) {
-  return word.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
+  return word.toLowerCase().replace(/[^a-z0-9]/g, '')
 }
 
 /**
@@ -576,15 +548,13 @@ function cleanWord(word: string) {
  * Returns array of {start, end} positions.
  * Requires whitespace or start-of-string before the slash to avoid
  * matching paths like /usr/bin.
- * v112: extended regex to include CJK punctuation as valid preceding chars.
  */
 export function findSlashCommandPositions(
   text: string,
 ): Array<{ start: number; end: number }> {
   const positions: Array<{ start: number; end: number }> = []
   // Match /command patterns preceded by whitespace or start-of-string
-  // v112: includes CJK punctuation 。、？！ as valid preceding characters
-  const regex = /(^|[\s\u3002\u3001\uff1f\uff01])(\/[a-zA-Z][a-zA-Z0-9:\-_]*)/g
+  const regex = /(^|[\s])(\/[a-zA-Z][a-zA-Z0-9:\-_]*)/g
   let match: RegExpExecArray | null = null
   while ((match = regex.exec(text)) !== null) {
     const precedingChar = match[1] ?? ''

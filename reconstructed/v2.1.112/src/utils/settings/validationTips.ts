@@ -45,10 +45,12 @@ const TIP_MATCHERS: TipMatcher[] = [
   },
   {
     matches: (ctx): boolean =>
-      ctx.path === 'cleanupPeriodDays' && ctx.code === 'too_small',
+      ctx.path === 'cleanupPeriodDays' &&
+      ctx.code === 'too_small' &&
+      ctx.expected === '0',
     tip: {
       suggestion:
-        'cleanupPeriodDays must be at least 1. To keep transcripts for a long time, set a large number (e.g. 3650 for ~10 years). To disable transcript writes entirely, remove this setting and use the --no-session-persistence CLI flag or the SDK persistSession:false option instead. (0 is rejected because it previously silently disabled all transcript writes, which users setting it to mean "never clean up" did not expect.)',
+        'Must be 0 or greater. Set a positive number for days to retain transcripts (default is 30). Setting 0 disables session persistence entirely: no transcripts are written and existing transcripts are deleted at startup.',
     },
   },
   {
@@ -68,15 +70,6 @@ const TIP_MATCHERS: TipMatcher[] = [
     tip: {
       suggestion:
         'Permission rules must be in an array. Format: ["Tool(specifier)"]. Examples: ["Bash(npm run build)", "Edit(docs/**)", "Read(~/.zshrc)"]. Use * for wildcards.',
-    },
-  },
-  {
-    matches: (ctx): boolean =>
-      ctx.path.startsWith('hooks.') && ctx.code === 'invalid_key',
-    tip: {
-      suggestion:
-        'Not a recognized hook event. Common events: PreToolUse, PostToolUse, UserPromptSubmit, SessionStart, SessionEnd, Stop. Check spelling and capitalization.',
-      docLink: `${DOCUMENTATION_BASE}/hooks`,
     },
   },
   {

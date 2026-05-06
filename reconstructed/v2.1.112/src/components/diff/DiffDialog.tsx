@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import type { StructuredPatchHunk } from 'diff';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { CommandResultDisplay } from '../../commands.js';
@@ -53,7 +52,7 @@ function turnDiffToDiffData(turn: TurnDiff): DiffData {
   };
 }
 export function DiffDialog(t0) {
-  const $ = _c(73);
+  const $ = new Array(73).fill(void 0);
   const {
     messages,
     onDone

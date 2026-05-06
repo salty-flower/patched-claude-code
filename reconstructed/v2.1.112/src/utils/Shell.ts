@@ -41,12 +41,6 @@ import type { ShellProvider, ShellType } from './shell/shellProvider.js'
 import { subprocessEnv } from './subprocessEnv.js'
 import { posixPathToWindowsPath } from './windowsPaths.js'
 
-// v112: new imports for sandbox write-config and agentic sandbox policy
-import { getSandboxWriteConfig } from './sandbox/writeConfig.js' // TODO(lift): Z7.getConfig/getFsWriteConfig at byte ~8728200
-import { tryParseShellCommand } from './bash/shellQuote.js' // TODO(lift): $p1/xP at byte ~8728200
-import { getOtelTraceparent } from './tracing.js' // TODO(lift): WI4 at byte ~8730819
-import { getNetworkConfig } from './network.js' // TODO(lift): KJ4 at byte ~8730819
-
 const DEFAULT_TIMEOUT = 30 * 60 * 1000 // 30 minutes
 
 export type ShellConfig = {
@@ -178,10 +172,6 @@ export type ExecOptions = {
   shouldAutoBackground?: boolean
   /** When provided, stdout is piped (not sent to file) and this callback fires on each data chunk. */
   onStdout?: (data: string) => void
-  /** v112: session-specific env vars to merge into the subprocess environment */
-  sessionEnvVars?: Record<string, string>
-  /** v112: tmux socket path for process coordination */
-  tmuxSocket?: string
 }
 
 /**
@@ -201,8 +191,6 @@ export async function exec(
     shouldUseSandbox,
     shouldAutoBackground,
     onStdout,
-    sessionEnvVars,
-    tmuxSocket,
   } = options ?? {}
   const commandTimeout = timeout || DEFAULT_TIMEOUT
 
@@ -268,74 +256,27 @@ export async function exec(
   const isSandboxedPowerShell = shouldUseSandbox && shellType === 'powershell'
   const sandboxBinShell = isSandboxedPowerShell ? '/bin/sh' : binShell
 
-  // v112: agentic parse for sandbox write-access config
   if (shouldUseSandbox) {
-    // TODO(lift): xP at byte ~8728200 — isAgenticSandboxEnabled check
-    // v112: when agentic sandbox is enabled, parse command to extract
-    // sandbox write config from the hook registry and active sandbox config.
-    // This block builds a merged allowWrite/denyWrite config for the sandbox.
-    // Reconstruct from minified:
-    // if (xP()) {
-    //   let F = await Py6(q) (parse shell command)
-    //   $p1(F.kind === 'simple' ? F.commands.map(U=>U.text).join('\n') : q)
-    //   // then build sandbox config from Z7.getConfig() / Z7.getFsWriteConfig()
-    // }
-
-    let sandboxConfig: unknown = undefined
-
-    // v112: agentic sandbox builds a custom filesystem policy
-    // TODO(lift): xP at byte ~8728200 — isAgenticSandboxEnabled()
-    // TODO(lift): Js at byte ~8728200 — isSandboxWriteConfigEnabled()
-    // TODO(lift): Hp1 at byte ~8728200 — getSandboxPolicy()
-    // TODO(lift): F4 at byte ~8728200 — deduplicatePaths()
-    // TODO(lift): Z7.getFsWriteConfig/getConfig at byte ~8728200 — sandbox config accessors
-
-    let sandboxTmpDirCreated = false
-    try {
-      await getFsImplementation().mkdir(sandboxTmpDir, { mode: 0o700 })
-      sandboxTmpDirCreated = true
-    } catch (error) {
-      if (errorMessage(error) === 'EEXIST') {
-        sandboxTmpDirCreated = true
-      } else {
-        logForDebugging(`Failed to create ${sandboxTmpDir} directory: ${error}`)
-      }
-    }
-
-    // v112: set CLAUDE_TMPDIR env var when tmp dir is ready
-    if (sandboxTmpDirCreated && !process.env.CLAUDE_TMPDIR) {
-      process.env.CLAUDE_TMPDIR = sandboxTmpDir
-    }
-
     commandString = await SandboxManager.wrapWithSandbox(
       commandString,
       sandboxBinShell,
-      sandboxConfig,
+      undefined,
       abortSignal,
     )
+    // Create sandbox temp directory for sandboxed processes with secure permissions
+    try {
+      const fs = getFsImplementation()
+      await fs.mkdir(sandboxTmpDir, { mode: 0o700 })
+    } catch (error) {
+      logForDebugging(`Failed to create ${sandboxTmpDir} directory: ${error}`)
+    }
   }
-
-  // v112: network config for sandboxed commands (e.g. firewall rules)
-  // TODO(lift): KJ4 at byte ~8730819 — getNetworkConfig() for sandboxed processes
-  const networkConfig = shouldUseSandbox
-    ? await (async () => {
-        try {
-          return await getNetworkConfig()
-        } catch {
-          return undefined
-        }
-      })()
-    : undefined
 
   const spawnBinary = isSandboxedPowerShell ? '/bin/sh' : binShell
   const shellArgs = isSandboxedPowerShell
     ? ['-c', commandString]
     : provider.getSpawnArgs(commandString)
-  const envOverrides = await provider.getEnvironmentOverrides(
-    command,
-    sessionEnvVars,
-    tmuxSocket,
-  )
+  const envOverrides = await provider.getEnvironmentOverrides(command)
 
   // When onStdout is provided, use pipe mode: stdout flows through
   // StreamWrapper → TaskOutput in-memory buffer instead of a file fd.
@@ -371,10 +312,6 @@ export async function exec(
     )
   }
 
-  // v112: get OTEL traceparent for distributed tracing
-  // TODO(lift): WI4 at byte ~8730819 — getOtelTraceparent()
-  const traceparent = getOtelTraceparent()
-
   try {
     const childProcess = spawn(spawnBinary, shellArgs, {
       env: {
@@ -383,16 +320,13 @@ export async function exec(
         GIT_EDITOR: 'true',
         CLAUDECODE: '1',
         ...envOverrides,
-        // v112: inject OTEL traceparent when available
-        ...(traceparent ? { TRACEPARENT: traceparent } : {}),
-        // v112: false placeholder — removed the ant-only CLAUDE_CODE_SESSION_ID block
-        ...false,
+        ...(process.env.USER_TYPE === 'ant'
+          ? {
+              CLAUDE_CODE_SESSION_ID: getSessionId(),
+            }
+          : {}),
       },
       cwd,
-      // v112: stdio helper function hzY builds the stdio config
-      // In pipe mode: ['pipe', 'pipe', 'pipe']
-      // In file mode: ['pipe', outputHandle?.fd, outputHandle?.fd]
-      // v112: networkConfig fd may be injected as a 4th element for sandboxed processes
       stdio: usePipeMode
         ? ['pipe', 'pipe', 'pipe']
         : ['pipe', outputHandle?.fd, outputHandle?.fd],
@@ -401,8 +335,6 @@ export async function exec(
       // Prevent visible console window on Windows (no-op on other platforms)
       windowsHide: true,
     })
-
-    void networkConfig // suppress unused warning
 
     const shellCommand = wrapSpawn(
       childProcess,
@@ -447,9 +379,7 @@ export async function exec(
     // Similarly, `pwd -P` outputs a POSIX path that must be converted before setCwd.
     const nativeCwdFilePath =
       getPlatform() === 'windows'
-        ? // TODO(lift): w_6 at byte ~8731153 — posixPathToWindowsPath in v88, but
-          // v112 references an unresolved symbol w_6 here
-          posixPathToWindowsPath(cwdFilePath)
+        ? posixPathToWindowsPath(cwdFilePath)
         : cwdFilePath
 
     void shellCommand.result.then(async result => {
@@ -475,11 +405,7 @@ export async function exec(
           // don't false-positive as "changed" on every command.
           if (newCwd.normalize('NFC') !== cwd) {
             setCwd(newCwd, cwd)
-            // v112: invalidateSessionEnvCache only when not Sf6() (some session flag)
-            // TODO(lift): Sf6 at byte ~8731153 — conditional invalidate check
-            if (!false) {
-              invalidateSessionEnvCache()
-            }
+            invalidateSessionEnvCache()
             void onCwdChangedForHooks(cwd, newCwd)
           }
         } catch {
@@ -536,12 +462,13 @@ export function setCwd(path: string, relativeTo?: string): void {
   }
 
   setCwdState(physicalPath)
-  // v112: logEvent call retained but without process.env.NODE_ENV guard
-  try {
-    logEvent('tengu_shell_set_cwd', {
-      success: true,
-    })
-  } catch (_error) {
-    // Ignore logging errors to prevent test failures
+  if (process.env.NODE_ENV !== 'test') {
+    try {
+      logEvent('tengu_shell_set_cwd', {
+        success: true,
+      })
+    } catch (_error) {
+      // Ignore logging errors to prevent test failures
+    }
   }
 }

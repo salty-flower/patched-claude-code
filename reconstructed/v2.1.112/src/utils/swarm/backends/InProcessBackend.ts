@@ -242,8 +242,7 @@ export class InProcessBackend implements TeammateExecutor {
       task.identity.teamName,
     )
 
-    // v112: uses taskRegistry instead of setAppState for shutdown request
-    // TODO(lift): ui1(z.id, this.context.taskRegistry) at byte ~9372222
+    // Mark the task as shutdown requested
     requestTeammateShutdown(task.id, this.context.setAppState)
 
     logForDebugging(
@@ -280,8 +279,7 @@ export class InProcessBackend implements TeammateExecutor {
       return false
     }
 
-    // v112: killInProcessTeammate now takes taskRegistry and setAppState
-    // TODO(lift): W18(_.id, this.context.taskRegistry, this.context.setAppState) at byte ~9372222
+    // Kill the teammate via the existing helper function
     const killed = killInProcessTeammate(task.id, this.context.setAppState)
 
     logForDebugging(

@@ -14,71 +14,41 @@ import { getPlatform } from './platform.js'
  */
 function checkPathExists(path: string): boolean {
   try {
-    // v112: uses execSync_DEPRECATED with array args instead of shell string
-    execSync_DEPRECATED('dir', [path], { stdio: 'pipe' })
+    execSync_DEPRECATED(`dir "${path}"`, { stdio: 'pipe' })
     return true
   } catch {
     return false
   }
 }
 
-// v112: findExecutable removed; its logic inlined into findGitBashPath
-// TODO(lift): verify removal at byte ~902009
-
 /**
- * If Windows, set the SHELL environment variable to git-bash path.
- * This is used by BashTool and Shell.ts for user shell commands.
- * COMSPEC is left unchanged for system process execution.
+ * Find an executable using where.exe on Windows
+ * @param executable - The name of the executable to find
+ * @returns The path to the executable or null if not found
  */
-export function setShellIfWindows(): void {
-  if (getPlatform() === 'windows') {
-    const gitBashPath = findGitBashPath()
-    process.env.SHELL = gitBashPath
-    logForDebugging(`Using bash path: "${gitBashPath}"`)
-  }
-}
-
-/**
- * Find the path where `bash.exe` included with git-bash exists, exiting the process if not found.
- * v112: rewritten to inline findExecutable logic and use execSync_DEPRECATED with array args.
- */
-export const findGitBashPath = memoize((): string => {
-  if (process.env.CLAUDE_CODE_GIT_BASH_PATH) {
-    if (checkPathExists(process.env.CLAUDE_CODE_GIT_BASH_PATH)) {
-      return process.env.CLAUDE_CODE_GIT_BASH_PATH
-    }
-    // biome-ignore lint/suspicious/noConsole:: intentional console output
-    console.error(
-      `Claude Code was unable to find CLAUDE_CODE_GIT_BASH_PATH path "${process.env.CLAUDE_CODE_GIT_BASH_PATH}"`,
-    )
-    // eslint-disable-next-line custom-rules/no-process-exit
-    process.exit(1)
-  }
-
+function findExecutable(executable: string): string | null {
   // For git, check common installation locations first
-  const defaultLocations = [
-    // check 64 bit before 32 bit
-    'C:\\Program Files\\Git\\cmd\\git.exe',
-    'C:\\Program Files (x86)\\Git\\cmd\\git.exe',
-    // intentionally don't look for C:\Program Files\Git\mingw64\bin\git.exe
-    // because that directory is the "raw" tools with no environment setup
-  ]
+  if (executable === 'git') {
+    const defaultLocations = [
+      // check 64 bit before 32 bit
+      'C:\\Program Files\\Git\\cmd\\git.exe',
+      'C:\\Program Files (x86)\\Git\\cmd\\git.exe',
+      // intentionally don't look for C:\Program Files\Git\mingw64\bin\git.exe
+      // because that directory is the "raw" tools with no environment setup
+    ]
 
-  for (const location of defaultLocations) {
-    if (checkPathExists(location)) {
-      const bashPath = pathWin32.join(location, '..', '..', 'bin', 'bash.exe')
-      if (checkPathExists(bashPath)) {
-        return bashPath
+    for (const location of defaultLocations) {
+      if (checkPathExists(location)) {
+        return location
       }
     }
   }
 
   // Fall back to where.exe
-  // v112: uses execSync_DEPRECATED with array args
   try {
-    const result = execSync_DEPRECATED('where.exe', ['git'], {
-      encoding: 'utf8',
+    const result = execSync_DEPRECATED(`where.exe ${executable}`, {
       stdio: 'pipe',
+      encoding: 'utf8',
     }).trim()
 
     // SECURITY: Filter out any results from the current directory
@@ -99,13 +69,51 @@ export const findGitBashPath = memoize((): string => {
         continue
       }
 
-      const bashPath = pathWin32.join(candidatePath, '..', '..', 'bin', 'bash.exe')
-      if (checkPathExists(bashPath)) {
-        return bashPath
-      }
+      // Return the first valid path that's not in the current directory
+      return candidatePath
     }
+
+    return null
   } catch {
-    // fall through to error
+    return null
+  }
+}
+
+/**
+ * If Windows, set the SHELL environment variable to git-bash path.
+ * This is used by BashTool and Shell.ts for user shell commands.
+ * COMSPEC is left unchanged for system process execution.
+ */
+export function setShellIfWindows(): void {
+  if (getPlatform() === 'windows') {
+    const gitBashPath = findGitBashPath()
+    process.env.SHELL = gitBashPath
+    logForDebugging(`Using bash path: "${gitBashPath}"`)
+  }
+}
+
+/**
+ * Find the path where `bash.exe` included with git-bash exists, exiting the process if not found.
+ */
+export const findGitBashPath = memoize((): string => {
+  if (process.env.CLAUDE_CODE_GIT_BASH_PATH) {
+    if (checkPathExists(process.env.CLAUDE_CODE_GIT_BASH_PATH)) {
+      return process.env.CLAUDE_CODE_GIT_BASH_PATH
+    }
+    // biome-ignore lint/suspicious/noConsole:: intentional console output
+    console.error(
+      `Claude Code was unable to find CLAUDE_CODE_GIT_BASH_PATH path "${process.env.CLAUDE_CODE_GIT_BASH_PATH}"`,
+    )
+    // eslint-disable-next-line custom-rules/no-process-exit
+    process.exit(1)
+  }
+
+  const gitPath = findExecutable('git')
+  if (gitPath) {
+    const bashPath = pathWin32.join(gitPath, '..', '..', 'bin', 'bash.exe')
+    if (checkPathExists(bashPath)) {
+      return bashPath
+    }
   }
 
   // biome-ignore lint/suspicious/noConsole:: intentional console output

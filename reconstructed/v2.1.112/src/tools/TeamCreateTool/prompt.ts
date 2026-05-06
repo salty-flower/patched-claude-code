@@ -1,6 +1,3 @@
-// jac=0.955, cos=1 — v112 prompt text updated with new sections vs v88
-// The body is unchanged from v88 based on high cos=1, minor diff in jac=0.955
-
 export function getPrompt(): string {
   return `
 # TeamCreate

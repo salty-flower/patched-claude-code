@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 /**
  * Miscellaneous subcommand handlers — extracted from main.tsx for lazy loading.
  * setup-token, doctor, install
@@ -54,7 +53,7 @@ const DoctorLazy = React.lazy(() => import('../../screens/Doctor.js').then(m => 
   default: m.Doctor
 })));
 function DoctorWithPlugins(t0) {
-  const $ = _c(2);
+  const $ = new Array(2).fill(void 0);
   const {
     onDone
   } = t0;

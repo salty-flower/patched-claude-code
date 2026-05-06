@@ -10,6 +10,7 @@ import { AGENT_TOOL_NAME } from '../../tools/AgentTool/constants.js'
 import { shouldUseSandbox } from '../../tools/BashTool/shouldUseSandbox.js'
 import { BASH_TOOL_NAME } from '../../tools/BashTool/toolName.js'
 import { POWERSHELL_TOOL_NAME } from '../../tools/PowerShellTool/toolName.js'
+import { REPL_TOOL_NAME } from '../../tools/REPLTool/constants.js'
 import type { AssistantMessage } from '../../types/message.js'
 import { extractOutputRedirections } from '../bash/commands.js'
 import { logForDebugging } from '../debug.js'
@@ -420,35 +421,16 @@ async function runPermissionRequestHooksForHeadlessAgent(
       const decision = hookResult.permissionRequestResult
       if (decision.behavior === 'allow') {
         const finalInput = decision.updatedInput ?? input
-        // Validate hook-rewritten input against the tool's schema and re-run
-        // rule-based checks. If the rewritten input itself triggers an ask or
-        // deny rule, convert the hook's allow into a deny so the user sees
-        // the rule-based boundary instead of a silent override.
-        if (decision.updatedInput) {
-          const revalidated = await checkRuleBasedPermissions(
-            tool,
-            finalInput,
-            context,
-          )
-          if (revalidated) {
-            return revalidated.behavior === 'ask'
-              ? {
-                  behavior: 'deny',
-                  message: revalidated.message,
-                  decisionReason: revalidated.decisionReason ?? {
-                    type: 'other',
-                    reason: 'ask rule on hook-rewritten input',
-                  },
-                }
-              : revalidated
-          }
-        }
         // Persist permission updates if provided
         if (decision.updatedPermissions?.length) {
           persistPermissionUpdates(decision.updatedPermissions)
-          context.setToolPermissionContext(prev =>
-            applyPermissionUpdates(prev, decision.updatedPermissions!),
-          )
+          context.setAppState(prev => ({
+            ...prev,
+            toolPermissionContext: applyPermissionUpdates(
+              prev.toolPermissionContext,
+              decision.updatedPermissions!,
+            ),
+          }))
         }
         return {
           behavior: 'allow',
@@ -496,6 +478,7 @@ export const hasPermissionsToUseTool: CanUseToolFn = async (
   toolUseID,
 ): Promise<PermissionDecision> => {
   const result = await hasPermissionsToUseToolInner(tool, input, context)
+
 
   // Reset consecutive denials on any allowed tool use in auto mode.
   // This ensures that a successful tool use (even one auto-allowed by rules)
@@ -610,11 +593,14 @@ export const hasPermissionsToUseTool: CanUseToolFn = async (
       // Before running the auto mode classifier, check if acceptEdits mode would
       // allow this action. This avoids expensive classifier API calls for safe
       // operations like file edits in the working directory.
-      // Skip for Agent — its checkPermissions returns 'allow' for
-      // acceptEdits mode, which would silently bypass the classifier.
+      // Skip for Agent and REPL — their checkPermissions returns 'allow' for
+      // acceptEdits mode, which would silently bypass the classifier. REPL
+      // code can contain VM escapes between inner tool calls; the classifier
+      // must see the glue JavaScript, not just the inner tool calls.
       if (
         result.behavior === 'ask' &&
-        tool.name !== AGENT_TOOL_NAME
+        tool.name !== AGENT_TOOL_NAME &&
+        tool.name !== REPL_TOOL_NAME
       ) {
         try {
           const parsedInput = tool.inputSchema.parse(input)
@@ -715,6 +701,20 @@ export const hasPermissionsToUseTool: CanUseToolFn = async (
         clearClassifierChecking(toolUseID)
       }
 
+      // Notify ants when classifier error dumped prompts (will be in /share)
+      if (
+        process.env.USER_TYPE === 'ant' &&
+        classifierResult.errorDumpPath &&
+        context.addNotification
+      ) {
+        context.addNotification({
+          key: 'auto-mode-error-dump',
+          text: `Auto mode classifier error — prompts dumped to ${classifierResult.errorDumpPath} (included in /share)`,
+          priority: 'immediate',
+          color: 'error',
+        })
+      }
+
       // Log classifier decision for metrics (including overhead telemetry)
       const yoloDecision = classifierResult.unavailable
         ? 'unavailable'
@@ -735,13 +735,6 @@ export const hasPermissionsToUseTool: CanUseToolFn = async (
           yoloDecision as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         toolName: sanitizeToolNameForAnalytics(tool.name),
         inProtectedNamespace: isInProtectedNamespace(),
-        stripAllBashFlag: getFeatureValue_CACHED_WITH_REFRESH(
-          'tengu_bash_allowlist_strip_all',
-          false,
-        ),
-        originalDecisionReasonType: result.decisionReason?.type as
-          | AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
-          | undefined,
         // msg_id of the agent completion that produced this tool_use —
         // the action at the bottom of the classifier transcript.
         agentMsgId: assistantMessage.message
@@ -827,19 +820,6 @@ export const hasPermissionsToUseTool: CanUseToolFn = async (
         // error, won't recover on retry. Skip iron_gate and fall back to
         // normal prompting so the user can approve/deny manually.
         if (classifierResult.transcriptTooLong) {
-          // Bash tool is allowed to proceed when transcript is too long,
-          // as it's the primary workhorse and blocking it would stall
-          // the agent permanently.
-          if (tool.name === BASH_TOOL_NAME) {
-            return {
-              behavior: 'allow',
-              updatedInput: input,
-              decisionReason: {
-                type: 'mode',
-                mode: 'auto',
-              },
-            }
-          }
           if (appState.toolPermissionContext.shouldAvoidPermissionPrompts) {
             // Permanent condition (transcript only grows) — deny-retry-deny
             // wastes tokens without ever hitting the denial-limit abort.
@@ -1155,7 +1135,8 @@ export async function checkRuleBasedPermissions(
   // (e.g. Bash(npm publish:*) → {ask, type:'rule', ruleBehavior:'ask'})
   if (
     toolPermissionResult?.behavior === 'ask' &&
-    isAskRuleDecision(toolPermissionResult.decisionReason)
+    toolPermissionResult.decisionReason?.type === 'rule' &&
+    toolPermissionResult.decisionReason.rule.ruleBehavior === 'ask'
   ) {
     return toolPermissionResult
   }
@@ -1165,42 +1146,13 @@ export async function checkRuleBasedPermissions(
   // allow. checkPathSafetyForAutoEdit returns {type:'safetyCheck'} for these.
   if (
     toolPermissionResult?.behavior === 'ask' &&
-    isSafetyCheckDecision(toolPermissionResult.decisionReason)
+    toolPermissionResult.decisionReason?.type === 'safetyCheck'
   ) {
     return toolPermissionResult
   }
 
   // No rule-based objection
   return null
-}
-
-/**
- * Type guard: returns true if the decision reason is a rule-based ask.
- */
-function isAskRuleDecision(
-  reason: PermissionDecisionReason | undefined,
-): boolean {
-  return (
-    reason?.type === 'rule' &&
-    reason.rule.ruleBehavior === 'ask'
-  )
-}
-
-/**
- * Type guard: returns true if the decision reason is a safety check.
- * In v112, this accepts an optional classifierApprovable predicate.
- */
-function isSafetyCheckDecision(
-  reason: PermissionDecisionReason | undefined,
-  predicate?: (safetyCheck: Extract<PermissionDecisionReason, { type: 'safetyCheck' }>) => boolean,
-): boolean {
-  if (reason?.type !== 'safetyCheck') {
-    return false
-  }
-  if (predicate) {
-    return predicate(reason as Extract<PermissionDecisionReason, { type: 'safetyCheck' }>)
-  }
-  return true
 }
 
 async function hasPermissionsToUseToolInner(

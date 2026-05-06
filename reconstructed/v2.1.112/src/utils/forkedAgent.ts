@@ -67,9 +67,18 @@ export type CacheSafeParams = {
   forkContextMessages: Message[]
 }
 
-// v112: saveCacheSafeParams / getLastCacheSafeParams removed. The slot was
-// written by handleStopHooks; v112 handles this differently (likely through
-// the state store or caller threading).
+// Slot written by handleStopHooks after each turn so post-turn forks
+// (promptSuggestion, postTurnSummary, /btw) can share the main loop's
+// prompt cache without each caller threading params through.
+let lastCacheSafeParams: CacheSafeParams | null = null
+
+export function saveCacheSafeParams(params: CacheSafeParams | null): void {
+  lastCacheSafeParams = params
+}
+
+export function getLastCacheSafeParams(): CacheSafeParams | null {
+  return lastCacheSafeParams
+}
 
 export type ForkedAgentParams = {
   /** Messages to start the forked query loop with */
@@ -148,19 +157,17 @@ export function createGetAppStateWithAllowedTools(
         ...appState.toolPermissionContext,
         alwaysAllowRules: {
           ...appState.toolPermissionContext.alwaysAllowRules,
-          command: dedupeStrings([
-            ...(appState.toolPermissionContext.alwaysAllowRules.command ||
-              []),
-            ...allowedTools,
-          ]),
+          command: [
+            ...new Set([
+              ...(appState.toolPermissionContext.alwaysAllowRules.command ||
+                []),
+              ...allowedTools,
+            ]),
+          ],
         },
       },
     }
   }
-}
-
-function dedupeStrings(arr: string[]): string[] {
-  return [...new Set(arr)]
 }
 
 /**
@@ -310,15 +317,30 @@ export type SubagentContextOverrides = {
  * - Override specific fields via the overrides parameter
  * - Explicitly opt-in to sharing specific callbacks (shareSetAppState, etc.)
  *
- * v112 changes:
- * - Added sessionEnvVars, tmuxSocket, discoveredRemoteSkills, memorySelector,
- *   bashRerunAliases, resultDedupState, setToolPermissionContext, taskRegistry,
- *   sessionHooksRegistry, setClassifierApprovals, setReplContext, setWebBrowserSlice,
- *   abortSpeculation, agentLifecycle, teammateColors, setComputerUseMcpState
- * - Replaced setResponseLength with addResponseLength/resetResponseLength
- * - Replaced updateFileHistoryState with getFileHistoryState/applyFileHistoryOp
- * - Replaced updateAttributionState with applyAttributionOp
- * - Added turnStartIndex: 0
+ * @param parentContext - The parent's ToolUseContext to create subagent context from
+ * @param overrides - Optional overrides and sharing options
+ *
+ * @example
+ * // Full isolation (for background agents like session memory)
+ * const ctx = createSubagentContext(parentContext)
+ *
+ * @example
+ * // Custom options and agentId (for AgentTool async agents)
+ * const ctx = createSubagentContext(parentContext, {
+ *   options: customOptions,
+ *   agentId: newAgentId,
+ *   messages: initialMessages,
+ * })
+ *
+ * @example
+ * // Interactive subagent that shares some state
+ * const ctx = createSubagentContext(parentContext, {
+ *   options: customOptions,
+ *   agentId: newAgentId,
+ *   shareSetAppState: true,
+ *   shareSetResponseLength: true,
+ *   shareAbortController: true,
+ * })
  */
 export function createSubagentContext(
   parentContext: ToolUseContext,
@@ -359,13 +381,9 @@ export function createSubagentContext(
     ),
     nestedMemoryAttachmentTriggers: new Set<string>(),
     loadedNestedMemoryPaths: new Set<string>(),
-    sessionEnvVars: parentContext.sessionEnvVars,
-    tmuxSocket: parentContext.tmuxSocket,
     dynamicSkillDirTriggers: new Set<string>(),
+    // Per-subagent: tracks skills surfaced by discovery for was_discovered telemetry (SkillTool.ts:116)
     discoveredSkillNames: new Set<string>(),
-    discoveredRemoteSkills: parentContext.discoveredRemoteSkills ?? new Map(),
-    memorySelector: createMemorySelector(),
-    bashRerunAliases: { map: new Map(), nextId: 1 },
     toolDecisions: undefined,
     // Budget decisions: override > clone of parent > undefined (feature off).
     //
@@ -383,7 +401,6 @@ export function createSubagentContext(
       (parentContext.contentReplacementState
         ? cloneContentReplacementState(parentContext.contentReplacementState)
         : undefined),
-    resultDedupState: createResultDedupState(),
 
     // AbortController
     abortController,
@@ -393,23 +410,11 @@ export function createSubagentContext(
     setAppState: overrides?.shareSetAppState
       ? parentContext.setAppState
       : () => {},
-    setToolPermissionContext: overrides?.shareSetAppState
-      ? parentContext.setToolPermissionContext
-      : () => {},
     // Task registration/kill must always reach the root store, even when
     // setAppState is a no-op — otherwise async agents' background bash tasks
     // are never registered and never killed (PPID=1 zombie).
-    taskRegistry: parentContext.taskRegistry,
-    sessionHooksRegistry: parentContext.sessionHooksRegistry,
-    setClassifierApprovals: parentContext.setClassifierApprovals,
-    setReplContext: parentContext.setReplContext,
-    setWebBrowserSlice: parentContext.setWebBrowserSlice,
-    abortSpeculation: parentContext.abortSpeculation,
-    agentLifecycle: parentContext.agentLifecycle,
-    teammateColors: parentContext.teammateColors,
-    setComputerUseMcpState: overrides?.shareSetAppState
-      ? parentContext.setComputerUseMcpState
-      : undefined,
+    setAppStateForTasks:
+      parentContext.setAppStateForTasks ?? parentContext.setAppState,
     // Async subagents whose setAppState is a no-op need local denial tracking
     // so the denial counter actually accumulates across retries.
     localDenialTracking: overrides?.shareSetAppState
@@ -418,22 +423,16 @@ export function createSubagentContext(
 
     // Mutation callbacks - no-op by default
     setInProgressToolUseIDs: () => {},
-    addResponseLength: overrides?.shareSetResponseLength
-      ? parentContext.addResponseLength
-      : () => {},
-    resetResponseLength: overrides?.shareSetResponseLength
-      ? parentContext.resetResponseLength
+    setResponseLength: overrides?.shareSetResponseLength
+      ? parentContext.setResponseLength
       : () => {},
     pushApiMetricsEntry: overrides?.shareSetResponseLength
       ? parentContext.pushApiMetricsEntry
       : undefined,
-    getFileHistoryState: () => {
-      return
-    },
-    applyFileHistoryOp: () => {},
+    updateFileHistoryState: () => {},
     // Attribution is scoped and functional (prev => next) — safe to share even
     // when setAppState is stubbed. Concurrent calls compose via React's state queue.
-    applyAttributionOp: parentContext.applyAttributionOp,
+    updateAttributionState: parentContext.updateAttributionState,
 
     // UI callbacks - undefined for subagents (can't control parent UI)
     addNotification: undefined,
@@ -445,7 +444,6 @@ export function createSubagentContext(
     // Fields that can be overridden or copied from parent
     options: overrides?.options ?? parentContext.options,
     messages: overrides?.messages ?? parentContext.messages,
-    turnStartIndex: 0,
     // Generate new agentId for subagents (each subagent should have its own ID)
     agentId: overrides?.agentId ?? createAgentId(),
     agentType: overrides?.agentType,
@@ -463,19 +461,6 @@ export function createSubagentContext(
   }
 }
 
-// TODO(lift): createMemorySelector at byte ~5925150 — unresolved import
-function createMemorySelector(): unknown {
-  return undefined
-}
-
-// TODO(lift): createResultDedupState at byte ~5925150 — unresolved import
-function createResultDedupState(): unknown {
-  return undefined
-}
-
-// Default max turns for forked agents (v112 adds this default)
-const DEFAULT_MAX_TURNS = 10
-
 /**
  * Runs a forked agent query loop and tracks cache hit metrics.
  *
@@ -484,11 +469,22 @@ const DEFAULT_MAX_TURNS = 10
  * 2. Accumulates usage across all query iterations
  * 3. Logs tengu_fork_agent_query with full usage when complete
  *
- * v112 changes:
- * - Adds maxTurns default (DEFAULT_MAX_TURNS)
- * - Tracks assistant message count (R); logs tengu_forked_agent_default_turns_exceeded
- *   when the default limit is hit without an explicit maxTurns override.
- * - Uses .at(-1) instead of length-1 for lastRecordedUuid
+ * @example
+ * ```typescript
+ * const result = await runForkedAgent({
+ *   promptMessages: [createUserMessage({ content: userPrompt })],
+ *   cacheSafeParams: {
+ *     systemPrompt,
+ *     userContext,
+ *     systemContext,
+ *     toolUseContext: clonedToolUseContext,
+ *     forkContextMessages: messages,
+ *   },
+ *   canUseTool,
+ *   querySource: 'session_memory',
+ *   forkLabel: 'session_memory',
+ * })
+ * ```
  */
 export async function runForkedAgent({
   promptMessages,
@@ -540,12 +536,9 @@ export async function runForkedAgent({
     // Track the last recorded message UUID for parent chain continuity
     lastRecordedUuid =
       initialMessages.length > 0
-        ? initialMessages.at(-1)!.uuid
+        ? initialMessages[initialMessages.length - 1]!.uuid
         : null
   }
-
-  const effectiveMaxTurns = maxTurns ?? DEFAULT_MAX_TURNS
-  let assistantCount = 0
 
   // Run the query loop with isolated context (cache-safe params preserved)
   try {
@@ -558,7 +551,7 @@ export async function runForkedAgent({
       toolUseContext: isolatedToolUseContext,
       querySource,
       maxOutputTokensOverride: maxOutputTokens,
-      maxTurns: effectiveMaxTurns,
+      maxTurns,
       skipCacheWrite,
     })) {
       // Extract real usage from message_delta stream events (final usage per API call)
@@ -575,10 +568,6 @@ export async function runForkedAgent({
       }
       if (message.type === 'stream_request_start') {
         continue
-      }
-
-      if (message.type === 'assistant') {
-        assistantCount++
       }
 
       logForDebugging(
@@ -619,15 +608,6 @@ export async function runForkedAgent({
   )
 
   const durationMs = Date.now() - startTime
-
-  // Log when the default turn limit is exceeded (v112 addition)
-  if (maxTurns === undefined && assistantCount >= DEFAULT_MAX_TURNS) {
-    logEvent('tengu_forked_agent_default_turns_exceeded', {
-      forkLabel,
-      querySource,
-      turnCount: assistantCount,
-    })
-  }
 
   // Log the fork query metrics with full NonNullableUsage
   logForkAgentQueryEvent({

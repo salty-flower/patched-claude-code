@@ -521,18 +521,6 @@ export async function getGithubRepo(): Promise<string | null> {
 }
 
 /**
- * v112: Returns the name of the current git worktree, or null if not in a
- * worktree. Derived from the worktree path relative to the repo root.
- *
- * TODO(lift): getGitWorktreeName at byte ~963013 — body not resolved from
- * v112_min; lifted as a stub returning null.
- */
-export function getGitWorktreeName(): string | null {
-  // TODO(lift): unresolved body at byte ~963013
-  return null
-}
-
-/**
  * Preserved git state for issue submission.
  * Uses remote base (e.g., origin/main) which is rarely force-pushed,
  * unlike local commits that can be GC'd after force push.
@@ -862,60 +850,6 @@ function isLocalHost(host: string): boolean {
     hostWithoutPort === 'localhost' ||
     /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostWithoutPort)
   )
-}
-
-const REMOTE_SLUG_NOT_FOUND = Symbol('remote-slug-not-found')
-
-/**
- * v112: Find the canonical remote slug for a repo path.
- * Tries pushurl first, then url. Memoized with LRU.
- * Returns the symbol REMOTE_SLUG_NOT_FOUND when neither is available.
- */
-const findRepoRemoteSlugImpl = memoizeWithLRU(
-  (repoPath: string): string | typeof REMOTE_SLUG_NOT_FOUND => {
-    const gitDir = resolveGitDirSync(repoPath)
-    if (!gitDir) return REMOTE_SLUG_NOT_FOUND
-    const getUrl = (key: string): string | null => {
-      // TODO(lift): parseGitConfigValue at byte ~963013 — unresolved import
-      // Using a stub that returns null
-      return null
-    }
-    return getUrl('pushurl') ?? getUrl('url') ?? REMOTE_SLUG_NOT_FOUND
-  },
-  path => path,
-  50,
-)
-
-export const findRepoRemoteSlug = createFindRepoRemoteSlug()
-
-function createFindRepoRemoteSlug(): {
-  (repoPath: string): string | null
-  cache: typeof findRepoRemoteSlugImpl.cache
-} {
-  function wrapper(repoPath: string): string | null {
-    const result = findRepoRemoteSlugImpl(repoPath)
-    return result === REMOTE_SLUG_NOT_FOUND ? null : result
-  }
-  wrapper.cache = findRepoRemoteSlugImpl.cache
-  return wrapper
-}
-
-// TODO(lift): resolveGitDirSync at byte ~963013 — unresolved import
-function resolveGitDirSync(startPath?: string): string | null {
-  // TODO(lift): unresolved body at byte ~963013
-  return null
-}
-
-/**
- * v112: Redact credentials from a git remote URL for safe display.
- * Strips user:password from https:// URLs and user@ from ssh URLs.
- *
- * TODO(lift): redactGitRemoteCredentials at byte ~963013 — body not resolved
- * from v112_min; lifted as a stub returning the input unchanged.
- */
-export function redactGitRemoteCredentials(url: string): string {
-  // TODO(lift): unresolved body at byte ~963013
-  return url
 }
 
 /**

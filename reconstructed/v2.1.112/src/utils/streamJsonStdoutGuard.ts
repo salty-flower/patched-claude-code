@@ -11,8 +11,6 @@ let installed = false
 let buffer = ''
 let originalWrite: typeof process.stdout.write | null = null
 
-const textDecoder = new TextDecoder('utf-8')
-
 function isJsonLine(line: string): boolean {
   // Empty lines are tolerated in NDJSON streams — treat them as valid so a
   // trailing newline or a blank separator doesn't trip the guard.
@@ -64,9 +62,7 @@ export function installStreamJsonStdoutGuard(): void {
     cb?: (err?: Error) => void,
   ): boolean {
     const text =
-      typeof chunk === 'string'
-        ? chunk
-        : textDecoder.decode(chunk, { stream: true })
+      typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf-8')
 
     buffer += text
     let newlineIdx: number
@@ -97,8 +93,6 @@ export function installStreamJsonStdoutGuard(): void {
   registerCleanup(async () => {
     // Flush any partial line left in the buffer at shutdown. If it's a JSON
     // fragment it won't parse — divert it rather than drop it silently.
-    // Also flush any remaining bytes in the TextDecoder.
-    buffer += textDecoder.decode()
     if (buffer.length > 0) {
       if (originalWrite && isJsonLine(buffer)) {
         originalWrite(buffer + '\n')

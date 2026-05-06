@@ -3,12 +3,7 @@ import type {
   AttachmentMessage,
   SystemMessage,
   UserMessage,
-} from '../types/message.js'
-
-// v112: jac=0.75, cos=0.995. The main decl drift (jac=0.75) is a sourcemap
-// boundary artifact — the v112 decl [8282333,8283188] overlaps with
-// RemoteAgentTask module init code. The actual utils.ts functions at
-// [8541057,8541297] are both jac=1/cos=1 (verbatim).
+} from 'src/types/message.js'
 
 /**
  * Tags user messages with a sourceToolUseID so they stay transient until the tool resolves.

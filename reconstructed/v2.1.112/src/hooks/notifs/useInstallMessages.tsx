@@ -11,8 +11,10 @@ function _temp(message, index) {
   let priority = "low";
   if (message.type === "error" || message.userActionRequired) {
     priority = "high";
-  } else if (message.type === "path" || message.type === "alias") {
-    priority = "medium";
+  } else {
+    if (message.type === "path" || message.type === "alias") {
+      priority = "medium";
+    }
   }
   return {
     key: `install-message-${index}-${message.type}`,

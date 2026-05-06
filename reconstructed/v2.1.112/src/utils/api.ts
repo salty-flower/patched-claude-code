@@ -450,7 +450,10 @@ export function prependUserContext(
   messages: Message[],
   context: { [k: string]: string },
 ): Message[] {
-  // v112: removed the process.env.NODE_ENV === 'test' early-return guard.
+  if (process.env.NODE_ENV === 'test') {
+    return messages
+  }
+
   if (Object.entries(context).length === 0) {
     return messages
   }
@@ -617,19 +620,8 @@ export function normalizeToolInput<T extends Tool>(
       } as z.infer<T['inputSchema']>
     }
     case FileEditTool.name: {
-      // v112 adds old_str → old_string / new_str → new_string migration before
-      // parsing, to handle transcripts from older versions.
-      const rawInput = { ...input } as Record<string, unknown>
-      if ('old_str' in rawInput) {
-        if (!('old_string' in rawInput)) rawInput.old_string = rawInput.old_str
-        delete rawInput.old_str
-      }
-      if ('new_str' in rawInput) {
-        if (!('new_string' in rawInput)) rawInput.new_string = rawInput.new_str
-        delete rawInput.new_str
-      }
       // Validated upstream, won't throw
-      const parsedInput = FileEditTool.inputSchema.parse(rawInput)
+      const parsedInput = FileEditTool.inputSchema.parse(input)
 
       // This is a workaround for tokens claude can't see
       const { file_path, edits } = normalizeFileEditInput({
@@ -683,11 +675,6 @@ export function normalizeToolInput<T extends Tool>(
         timeout: timeout ?? 30000,
       } as z.infer<T['inputSchema']>
     }
-    // TODO(lift): new v112 case — tool name constant at byte ~11838000
-    // v112_min shows: case U16: { const { message: z } = K; if (typeof z !== 'string') return K;
-    //   return { ...K, message: z.replace(/\\u([0-9a-fA-F]{4})/g, (Y, A) => String.fromCharCode(parseInt(A, 16))) } }
-    // This normalises unicode escape sequences in the message field of an unknown tool.
-    // U16 is likely a StructuredOutputTool or similar; leaving as TODO stub until identified.
     default:
       return input
   }

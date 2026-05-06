@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import { extname } from 'path';
 import React, { Suspense, use, useMemo } from 'react';
 import { Ansi, Text } from '../../ink.js';
@@ -37,7 +36,7 @@ function cachedHighlight(hl: NonNullable<Awaited<ReturnType<typeof getCliHighlig
   return out;
 }
 export function HighlightedCodeFallback(t0) {
-  const $ = _c(20);
+  const $ = new Array(20).fill(void 0);
   const {
     code,
     filePath,
@@ -122,7 +121,7 @@ export function HighlightedCodeFallback(t0) {
   return t8;
 }
 function Highlighted(t0) {
-  const $ = _c(10);
+  const $ = new Array(10).fill(void 0);
   const {
     codeWithSpaces,
     language

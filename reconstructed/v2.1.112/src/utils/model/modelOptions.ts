@@ -134,17 +134,9 @@ function getOpus46Option(fastMode = false): ModelOption {
   const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: is3P ? getModelStrings().opus46 : 'opus',
-    label: 'Opus 4.6',
+    label: 'Opus',
     description: `Opus 4.6 · Most capable for complex work${getOpus46PricingSuffix(fastMode)}`,
     descriptionForModel: 'Opus 4.6 - most capable for complex work',
-  }
-}
-
-function getOpus47Option(fastMode = false): ModelOption {
-  return {
-    value: 'opus',
-    label: 'Opus',
-    description: `Opus 4.7 · Most capable for complex work${getOpus46PricingSuffix(fastMode)}`,
   }
 }
 
@@ -163,7 +155,7 @@ export function getOpus46_1MOption(fastMode = false): ModelOption {
   const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: is3P ? getModelStrings().opus46 + '[1m]' : 'opus[1m]',
-    label: 'Opus 4.6 (1M context)',
+    label: 'Opus (1M context)',
     description: `Opus 4.6 for long sessions${getOpus46PricingSuffix(fastMode)}`,
     descriptionForModel:
       'Opus 4.6 with 1M context window - for long sessions with large codebases',
@@ -254,17 +246,6 @@ function getMergedOpus1MOption(fastMode = false): ModelOption {
   }
 }
 
-function getOpus47_1MOption(fastMode = false): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
-  const billingInfo = isClaudeAISubscriber() ? ' · Billed as extra usage' : ''
-  const extra3P = billingInfo !== '' && !is3P
-  return {
-    value: is3P ? getModelStrings().opus47 + '[1m]' : 'opus[1m]',
-    label: 'Opus (1M context)',
-    description: `Opus 4.7 with 1M context${getOpus46PricingSuffix(fastMode)}${billingInfo}${!extra3P ? '' : ` · ${formatModelPricing(COST_TIER_3_15)}`}`,
-  }
-}
-
 const MaxSonnet46Option: ModelOption = {
   value: 'sonnet',
   label: 'Sonnet',
@@ -281,7 +262,7 @@ function getOpusPlanOption(): ModelOption {
   return {
     value: 'opusplan',
     label: 'Opus Plan Mode',
-    description: 'Use Opus in plan mode, Sonnet otherwise',
+    description: 'Use Opus 4.6 in plan mode, Sonnet 4.6 otherwise',
   }
 }
 
@@ -519,12 +500,12 @@ export function getModelOptions(fastMode = false): ModelOption[] {
   } else if (customModel === 'opus' && getAPIProvider() === 'firstParty') {
     return filterModelOptionsByAllowlist([
       ...options,
-      getOpus47Option(fastMode),
+      getMaxOpusOption(fastMode),
     ])
   } else if (customModel === 'opus[1m]' && getAPIProvider() === 'firstParty') {
     return filterModelOptionsByAllowlist([
       ...options,
-      getOpus47_1MOption(fastMode),
+      getMergedOpus1MOption(fastMode),
     ])
   } else {
     // Try to show a human-readable label for known Anthropic models, with an
@@ -557,6 +538,3 @@ function filterModelOptionsByAllowlist(options: ModelOption[]): ModelOption[] {
       opt.value === null || (opt.value !== null && isModelAllowed(opt.value)),
   )
 }
-
-// TODO(lift): getAntModels at byte ~3727255
-// TODO(lift): trackModelOptionSelected at byte ~9157278

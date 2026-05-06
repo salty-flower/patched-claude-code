@@ -14,6 +14,7 @@ import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,
 } from 'src/services/analytics/index.js'
+import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import { type FilesApiConfig, uploadFile } from '../../services/api/filesApi.js'
 import { getCwd } from '../cwd.js'
 import { logForDebugging } from '../debug.js'
@@ -36,40 +37,22 @@ export type BundleUploadResult =
     }
   | { success: false; error: string; failReason?: BundleFailReason }
 
-type BundleFailReason = 'git_error' | 'too_large' | 'empty_repo' | 'stash_failed' | 'no_changes'
+type BundleFailReason = 'git_error' | 'too_large' | 'empty_repo'
 
 type BundleCreateResult =
   | { ok: true; size: number; scope: BundleScope }
   | { ok: false; error: string; failReason: BundleFailReason }
 
-// TODO(lift): getRepoSizeInfo at byte ~8250900
-async function getRepoSizeInfo(
-  gitRoot: string,
-  signal: AbortSignal | undefined,
-): Promise<{ sizeBytes: number | null; inPackCount: number | null }> {
-  // Placeholder — v112 adds a preflight size check before bundling.
-  return { sizeBytes: null, inPackCount: null }
-}
-
 // Bundle --all → HEAD → squashed-root. HEAD drops side branches/tags but
 // keeps full current-branch history. Squashed-root is a single parentless
 // commit of HEAD's tree (or the stash tree if WIP exists) — no history,
 // just the snapshot. Receiver needs refs/seed/root handling for that tier.
-//
-// v112 adds:
-//   - Preflight size check: skips --all/HEAD/squashed tiers when the repo
-//     is obviously too large, avoiding slow git-bundle calls.
-//   - baseRef diff: when baseRef is provided, compares its tree to the
-//     working tree. If identical, returns no_changes.
-//   - baseRef parent: when baseRef differs, the squashed commit includes
-//     baseRef as a parent so the backend can compute a delta.
 async function _bundleWithFallback(
   gitRoot: string,
   bundlePath: string,
   maxBytes: number,
   hasStash: boolean,
   signal: AbortSignal | undefined,
-  baseRef?: string,
 ): Promise<BundleCreateResult> {
   // --all picks up refs/seed/stash; HEAD needs it explicit.
   const extra = hasStash ? ['refs/seed/stash'] : []
@@ -80,117 +63,48 @@ async function _bundleWithFallback(
       { cwd: gitRoot, abortSignal: signal },
     )
 
-  // Preflight: check repo size before attempting bundle.
-  const { sizeBytes, inPackCount } = await getRepoSizeInfo(gitRoot, signal)
-  const tooLargeForAll = sizeBytes !== null && sizeBytes > maxBytes
-  const tooLargeForHead =
-    sizeBytes !== null && sizeBytes > 3 * maxBytes
-  const skipAllTiers =
-    tooLargeForHead &&
-    (sizeBytes !== null && sizeBytes > 100 * maxBytes ||
-      inPackCount !== null && inPackCount > 5_000_000)
-
-  if (tooLargeForAll) {
-    logForDebugging(
-      `[gitBundle] size-pack ${(sizeBytes! / 1024 / 1024).toFixed(0)}MB > ${(maxBytes / 1024 / 1024).toFixed(0)}MB cap; skipping --all${tooLargeForHead ? ' and HEAD' : ''}${skipAllTiers ? ' and squashed' : ''}`,
-    )
-  }
-
-  if (!tooLargeForAll) {
-    const allResult = await mkBundle('--all')
-    if (allResult.code !== 0) {
-      return {
-        ok: false,
-        error: `git bundle create --all failed (${allResult.code}): ${allResult.stderr.slice(0, 200)}`,
-        failReason: 'git_error',
-      }
-    }
-
-    const { size: allSize } = await stat(bundlePath)
-    if (allSize <= maxBytes) {
-      return { ok: true, size: allSize, scope: 'all' }
-    }
-
-    // bundle create overwrites in place.
-    logForDebugging(
-      `[gitBundle] --all bundle is ${(allSize / 1024 / 1024).toFixed(1)}MB (> ${(maxBytes / 1024 / 1024).toFixed(0)}MB), retrying HEAD-only`,
-    )
-  }
-
-  if (!tooLargeForHead) {
-    const headResult = await mkBundle('HEAD')
-    if (headResult.code !== 0) {
-      return {
-        ok: false,
-        error: `git bundle create HEAD failed (${headResult.code}): ${headResult.stderr.slice(0, 200)}`,
-        failReason: 'git_error',
-      }
-    }
-
-    const { size: headSize } = await stat(bundlePath)
-    if (headSize <= maxBytes) {
-      return { ok: true, size: headSize, scope: 'head' }
-    }
-
-    logForDebugging(
-      `[gitBundle] HEAD bundle is ${(headSize / 1024 / 1024).toFixed(1)}MB, retrying squashed-root`,
-    )
-  }
-
-  if (skipAllTiers) {
+  const allResult = await mkBundle('--all')
+  if (allResult.code !== 0) {
     return {
       ok: false,
-      error: 'Repo is too large to bundle. Please setup GitHub on https://claude.ai/code',
-      failReason: 'too_large',
+      error: `git bundle create --all failed (${allResult.code}): ${allResult.stderr.slice(0, 200)}`,
+      failReason: 'git_error',
     }
   }
 
-  // Last resort: squash to a single commit. Uses the stash tree
+  const { size: allSize } = await stat(bundlePath)
+  if (allSize <= maxBytes) {
+    return { ok: true, size: allSize, scope: 'all' }
+  }
+
+  // bundle create overwrites in place.
+  logForDebugging(
+    `[gitBundle] --all bundle is ${(allSize / 1024 / 1024).toFixed(1)}MB (> ${(maxBytes / 1024 / 1024).toFixed(0)}MB), retrying HEAD-only`,
+  )
+  const headResult = await mkBundle('HEAD')
+  if (headResult.code !== 0) {
+    return {
+      ok: false,
+      error: `git bundle create HEAD failed (${headResult.code}): ${headResult.stderr.slice(0, 200)}`,
+      failReason: 'git_error',
+    }
+  }
+
+  const { size: headSize } = await stat(bundlePath)
+  if (headSize <= maxBytes) {
+    return { ok: true, size: headSize, scope: 'head' }
+  }
+
+  // Last resort: squash to a single parentless commit. Uses the stash tree
   // when WIP exists (bakes uncommitted changes in — can't bundle the stash
   // ref separately since its parents would drag history back).
+  logForDebugging(
+    `[gitBundle] HEAD bundle is ${(headSize / 1024 / 1024).toFixed(1)}MB, retrying squashed-root`,
+  )
   const treeRef = hasStash ? 'refs/seed/stash^{tree}' : 'HEAD^{tree}'
-
-  // If a baseRef is provided, diff the trees. If they're identical,
-  // there's nothing new to bundle.
-  const parents: string[] = []
-  if (baseRef) {
-    const [baseTree, headTree] = await Promise.all(
-      [treeRef, `${baseRef}^{tree}`].map(ref =>
-        execFileNoThrowWithCwd(gitExe(), ['rev-parse', ref], {
-          cwd: gitRoot,
-          abortSignal: signal,
-        }),
-      ),
-    )
-    if (
-      baseTree?.code === 0 &&
-      headTree?.code === 0 &&
-      baseTree.stdout.trim() === headTree.stdout.trim()
-    ) {
-      return {
-        ok: false,
-        error: "It doesn't look like you have any new commits or changes to review. Stage or commit them first?",
-        failReason: 'no_changes',
-      }
-    }
-
-    const baseCommit = await execFileNoThrowWithCwd(
-      gitExe(),
-      ['commit-tree', `${baseRef}^{tree}`, '-m', 'seed-base'],
-      { cwd: gitRoot, abortSignal: signal },
-    )
-    if (baseCommit.code === 0) {
-      parents.push('-p', baseCommit.stdout.trim())
-    } else {
-      logForDebugging(
-        `[gitBundle] baseRef commit-tree failed (${baseCommit.code}), squashing without parent: ${baseCommit.stderr.slice(0, 200)}`,
-      )
-    }
-  }
-
   const commitTree = await execFileNoThrowWithCwd(
     gitExe(),
-    ['commit-tree', treeRef, ...parents, '-m', 'seed'],
+    ['commit-tree', treeRef, '-m', 'seed'],
     { cwd: gitRoot, abortSignal: signal },
   )
   if (commitTree.code !== 0) {
@@ -231,19 +145,13 @@ async function _bundleWithFallback(
   }
 }
 
-// TODO(lift): getBundleMaxBytes at byte ~8250900
-function getBundleMaxBytes(): number {
-  // v112 replaces the GrowthBook feature-flag read with a direct setting.
-  return DEFAULT_BUNDLE_MAX_BYTES
-}
-
 // Bundle the repo and upload to Files API; return file_id for
 // seed_bundle_file_id. --all → HEAD → squashed-root fallback chain.
 // Tracked WIP via stash create → refs/seed/stash (or baked into the
 // squashed tree); untracked not captured.
 export async function createAndUploadGitBundle(
   config: FilesApiConfig,
-  opts?: { cwd?: string; signal?: AbortSignal; baseRef?: string },
+  opts?: { cwd?: string; signal?: AbortSignal },
 ): Promise<BundleUploadResult> {
   const workdir = opts?.cwd ?? getCwd()
   const gitRoot = findGitRoot(workdir)
@@ -292,26 +200,8 @@ export async function createAndUploadGitBundle(
   const hasWip = wipStashSha !== ''
   if (stashResult.code !== 0) {
     logForDebugging(
-      `[gitBundle] git stash create failed (${stashResult.code}): ${stashResult.stderr.slice(0, 200)}`,
+      `[gitBundle] git stash create failed (${stashResult.code}), proceeding without WIP: ${stashResult.stderr.slice(0, 200)}`,
     )
-    // v112: if stash fails but HEAD exists, report stash_failed instead of
-    // proceeding silently without WIP.
-    const headCheck = await execFileNoThrowWithCwd(
-      gitExe(),
-      ['rev-parse', '--verify', 'HEAD'],
-      { cwd: gitRoot },
-    )
-    if (headCheck.code === 0) {
-      logEvent('tengu_ccr_bundle_upload', {
-        outcome:
-          'stash_failed' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-      })
-      return {
-        success: false,
-        error: `Could not capture uncommitted changes (git stash create: ${stashResult.stderr.trim()}). Run \`git add .\` or commit, then retry.`,
-        failReason: 'stash_failed',
-      }
-    }
   } else if (hasWip) {
     logForDebugging(`[gitBundle] Captured WIP as stash ${wipStashSha}`)
     // env-runner reads the SHA via bundle list-heads refs/seed/stash.
@@ -326,7 +216,11 @@ export async function createAndUploadGitBundle(
 
   // git leaves a partial file on nonzero exit (e.g. empty-repo 128).
   try {
-    const maxBytes = getBundleMaxBytes()
+    const maxBytes =
+      getFeatureValue_CACHED_MAY_BE_STALE<number | null>(
+        'tengu_ccr_bundle_max_bytes',
+        null,
+      ) ?? DEFAULT_BUNDLE_MAX_BYTES
 
     const bundle = await _bundleWithFallback(
       gitRoot,
@@ -334,7 +228,6 @@ export async function createAndUploadGitBundle(
       maxBytes,
       hasWip,
       opts?.signal,
-      opts?.baseRef,
     )
 
     if (!bundle.ok) {

@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 import { saveCurrentProjectConfig } from '../utils/config.js';
 export type StatsStore = {
@@ -102,7 +101,7 @@ type Props = {
   children: React.ReactNode;
 };
 export function StatsProvider(t0) {
-  const $ = _c(7);
+  const $ = new Array(7).fill(void 0);
   const {
     store: externalStore,
     children
@@ -162,7 +161,7 @@ export function useStats() {
   return store;
 }
 export function useCounter(name) {
-  const $ = _c(3);
+  const $ = new Array(3).fill(void 0);
   const store = useStats();
   let t0;
   if ($[0] !== name || $[1] !== store) {
@@ -176,7 +175,7 @@ export function useCounter(name) {
   return t0;
 }
 export function useGauge(name) {
-  const $ = _c(3);
+  const $ = new Array(3).fill(void 0);
   const store = useStats();
   let t0;
   if ($[0] !== name || $[1] !== store) {
@@ -190,7 +189,7 @@ export function useGauge(name) {
   return t0;
 }
 export function useTimer(name) {
-  const $ = _c(3);
+  const $ = new Array(3).fill(void 0);
   const store = useStats();
   let t0;
   if ($[0] !== name || $[1] !== store) {
@@ -204,7 +203,7 @@ export function useTimer(name) {
   return t0;
 }
 export function useSet(name) {
-  const $ = _c(3);
+  const $ = new Array(3).fill(void 0);
   const store = useStats();
   let t0;
   if ($[0] !== name || $[1] !== store) {

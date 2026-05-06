@@ -124,12 +124,15 @@ export function getDirectoryForPath(path: string): string {
   return dirname(absolutePath)
 }
 
-// TODO(lift): containsPathTraversal at byte ~10083334 — function moved to a different
-// location in the v112 bundle (matched at v112_decl [10083334,10083394] with cos=0.989
-// but this is a different function, not the original containsPathTraversal).
-// The original function was: export function containsPathTraversal(path: string): boolean {
-//   return /(?:^|[\\/])\.\.(?:[\\/]|$)/.test(path)
-// }
+/**
+ * Checks if a path contains directory traversal patterns that navigate to parent directories.
+ *
+ * @param path - The path to check for traversal patterns
+ * @returns true if the path contains traversal (e.g., '../', '..\', or ends with '..')
+ */
+export function containsPathTraversal(path: string): boolean {
+  return /(?:^|[\\/])\.\.(?:[\\/]|$)/.test(path)
+}
 
 // Re-export from the shared zero-dep source.
 export { sanitizePath } from './sessionStoragePortable.js'

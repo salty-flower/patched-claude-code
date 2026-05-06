@@ -136,6 +136,14 @@ export async function loadFlaggedPlugins(): Promise<void> {
 }
 
 /**
+ * Get all flagged plugins from the in-memory cache.
+ * Returns an empty object if loadFlaggedPlugins() has not been called yet.
+ */
+export function getFlaggedPlugins(): Record<string, FlaggedPlugin> {
+  return cache ?? {}
+}
+
+/**
  * Add a plugin to the flagged list.
  *
  * @param pluginId "name@marketplace" format
@@ -182,4 +190,19 @@ export async function markFlaggedPluginsSeen(
   if (changed) {
     await writeToDisk(updated)
   }
+}
+
+/**
+ * Remove a plugin from the flagged list. Called when the user dismisses
+ * a flagged plugin notification in /plugins.
+ */
+export async function removeFlaggedPlugin(pluginId: string): Promise<void> {
+  if (cache === null) {
+    cache = await readFromDisk()
+  }
+  if (!(pluginId in cache)) return
+
+  const { [pluginId]: _, ...rest } = cache
+  cache = rest
+  await writeToDisk(rest)
 }

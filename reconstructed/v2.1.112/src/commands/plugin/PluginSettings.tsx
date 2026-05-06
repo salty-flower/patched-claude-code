@@ -1,4 +1,3 @@
-import { c as _c } from "react/compiler-runtime";
 import figures from 'figures';
 import * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
@@ -29,7 +28,7 @@ import type { PluginSettingsProps, ViewState } from './types.js';
 import { ValidatePlugin } from './ValidatePlugin.js';
 type TabId = 'discover' | 'installed' | 'marketplaces' | 'errors';
 function MarketplaceList(t0) {
-  const $ = _c(4);
+  const $ = new Array(4).fill(void 0);
   const {
     onComplete
   } = t0;
@@ -355,7 +354,7 @@ function removeExtraMarketplace(name: string, sources: Array<{
   }
 }
 function ErrorsTabContent(t0) {
-  const $ = _c(26);
+  const $ = new Array(26).fill(void 0);
   const {
     setViewState,
     setActiveTab,
@@ -726,7 +725,7 @@ function getInitialTab(viewState: ViewState): TabId {
   return 'discover';
 }
 export function PluginSettings(t0) {
-  const $ = _c(75);
+  const $ = new Array(75).fill(void 0);
   const {
     onComplete,
     args,

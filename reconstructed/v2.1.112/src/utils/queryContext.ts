@@ -26,9 +26,6 @@ import {
   shouldEnableThinkingByDefault,
   type ThinkingConfig,
 } from './thinking.js'
-// TODO(lift): Yl8 at byte ~13433860 (getCacheBreakerContext)
-// TODO(lift): $2 at byte ~13433860 (getUserContext — verify import)
-// TODO(lift): fj at byte ~13434332 (getSystemContext with cacheBreaker)
 
 /**
  * Fetch the three context pieces that form the API cache-key prefix:
@@ -48,52 +45,31 @@ export async function fetchSystemPromptParts({
   tools,
   mainLoopModel,
   additionalWorkingDirectories,
+  mcpClients,
   customSystemPrompt,
-  excludeDynamicSections,
-  cacheBreakerPhrase,
 }: {
   tools: Tools
   mainLoopModel: string
   additionalWorkingDirectories: string[]
-  customSystemPrompt: string | string[] | undefined
-  excludeDynamicSections?: boolean
-  cacheBreakerPhrase?: string
+  mcpClients: MCPServerConnection[]
+  customSystemPrompt: string | undefined
 }): Promise<{
   defaultSystemPrompt: string[]
   userContext: { [k: string]: string }
   systemContext: { [k: string]: string }
 }> {
-  const [
-    defaultSystemPrompt,
-    userContext,
-    systemContext,
-    cacheBreakerContext,
-  ] = await Promise.all([
+  const [defaultSystemPrompt, userContext, systemContext] = await Promise.all([
     customSystemPrompt !== undefined
       ? Promise.resolve([])
       : getSystemPrompt(
           tools,
           mainLoopModel,
           additionalWorkingDirectories,
-          // TODO(lift): verify whether mcpClients param was removed or moved
-          [],
+          mcpClients,
         ),
     getUserContext(),
-    customSystemPrompt !== undefined ? Promise.resolve({}) : getSystemContext(cacheBreakerPhrase),
-    excludeDynamicSections && customSystemPrompt === undefined
-      ? // TODO(lift): Yl8 at byte ~13433860
-        Promise.resolve({})
-      : Promise.resolve({}),
+    customSystemPrompt !== undefined ? Promise.resolve({}) : getSystemContext(),
   ])
-
-  if (excludeDynamicSections) {
-    return {
-      defaultSystemPrompt,
-      userContext: { ...systemContext, ...userContext, ...cacheBreakerContext },
-      systemContext: {},
-    }
-  }
-
   return { defaultSystemPrompt, userContext, systemContext }
 }
 
@@ -119,7 +95,6 @@ export async function buildSideQuestionFallbackParams({
   setAppState,
   customSystemPrompt,
   appendSystemPrompt,
-  excludeDynamicSections,
   thinkingConfig,
   agents,
 }: {
@@ -130,9 +105,8 @@ export async function buildSideQuestionFallbackParams({
   readFileState: FileStateCache
   getAppState: () => AppState
   setAppState: (f: (prev: AppState) => AppState) => void
-  customSystemPrompt: string | string[] | undefined
+  customSystemPrompt: string | undefined
   appendSystemPrompt: string | undefined
-  excludeDynamicSections?: boolean
   thinkingConfig: ThinkingConfig | undefined
   agents: AgentDefinition[]
 }): Promise<CacheSafeParams> {
@@ -146,16 +120,13 @@ export async function buildSideQuestionFallbackParams({
       additionalWorkingDirectories: Array.from(
         appState.toolPermissionContext.additionalWorkingDirectories.keys(),
       ),
+      mcpClients,
       customSystemPrompt,
-      excludeDynamicSections,
-      cacheBreakerPhrase: appState.cacheBreakerPhrase,
     })
 
   const systemPrompt = asSystemPrompt([
     ...(customSystemPrompt !== undefined
-      ? Array.isArray(customSystemPrompt)
-        ? customSystemPrompt
-        : [customSystemPrompt]
+      ? [customSystemPrompt]
       : defaultSystemPrompt),
     ...(appendSystemPrompt ? [appendSystemPrompt] : []),
   ])
@@ -192,33 +163,10 @@ export async function buildSideQuestionFallbackParams({
     getAppState,
     setAppState,
     messages: forkContextMessages,
-    turnStartIndex: 0,
     setInProgressToolUseIDs: () => {},
-    addResponseLength: () => {},
-    resetResponseLength: () => {},
-    getFileHistoryState: () => {
-      return
-    },
-    applyFileHistoryOp: () => {},
-    applyAttributionOp: () => {},
-    // TODO(lift): Uk at byte ~13435976 (taskRegistry)
-    // TODO(lift): OM6 at byte ~13435976 (sessionHooksRegistry)
-    // TODO(lift): qF at byte ~13435976 (setClassifierApprovals)
-    // TODO(lift): H06 at byte ~13435976 (setReplContext)
-    // TODO(lift): P36 at byte ~13435976 (setWebBrowserSlice)
-    // TODO(lift): gD at byte ~13435976 (abortSpeculation)
-    // TODO(lift): YW6 at byte ~13435976 (agentLifecycle)
-    // TODO(lift): AW6 at byte ~13435976 (teammateColors)
-    setToolPermissionContext: (v) =>
-      setAppState((prev) => {
-        const next =
-          typeof v === 'function'
-            ? v(prev.toolPermissionContext)
-            : v
-        return prev.toolPermissionContext === next
-          ? prev
-          : { ...prev, toolPermissionContext: next }
-      }),
+    setResponseLength: () => {},
+    updateFileHistoryState: () => {},
+    updateAttributionState: () => {},
   }
 
   return {

@@ -103,7 +103,6 @@ export default function BashToolResultMessage({
             {backgroundTaskId ? (
               <>
                 Running in the background{' '}
-                {/* TODO(lift): KeyboardShortcutHint now uses chord="down" instead of shortcut="↓" at byte ~8290600 */}
                 <KeyboardShortcutHint chord="down" action="manage" parens={true} />
               </>
             ) : (

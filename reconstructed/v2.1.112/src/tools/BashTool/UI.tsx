@@ -62,12 +62,9 @@ export function BackgroundHint({
     return null
   }
 
-  // v112: KeyboardShortcutHint now accepts chord + format={keyCase:"lower"}
-  // instead of shortcut prop
   return (
     <Box paddingLeft={5}>
       <Text dimColor>
-        {/* TODO(lift): KeyboardShortcutHint now uses chord prop + format={{keyCase:"lower"}} at byte ~8295253 */}
         <KeyboardShortcutHint
           chord={shortcut}
           action="run in background"

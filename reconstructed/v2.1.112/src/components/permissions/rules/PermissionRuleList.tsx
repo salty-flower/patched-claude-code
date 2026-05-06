@@ -1,0 +1,717 @@
+import chalk from 'chalk'
+import figures from 'figures'
+import * as React from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useAppState, useSetAppState } from '../../../state/AppState.js'
+import { applyPermissionUpdate, persistPermissionUpdate } from '../../../utils/permissions/PermissionUpdate.js'
+import type { PermissionUpdateDestination } from '../../../utils/permissions/PermissionUpdateSchema.js'
+import type { CommandResultDisplay } from '../../../commands.js'
+import { Select } from '../../../components/CustomSelect/select.js'
+import { useExitOnCtrlCDWithKeybindings } from '../../../hooks/useExitOnCtrlCDWithKeybindings.js'
+import { useSearchInput } from '../../../hooks/useSearchInput.js'
+import type { KeyboardEvent } from '../../../ink/events/keyboard-event.js'
+import { Box, Text, useTerminalFocus } from '../../../ink.js'
+import { useKeybinding } from '../../../keybindings/useKeybinding.js'
+import { type AutoModeDenial, getAutoModeDenials } from '../../../utils/autoModeDenials.js'
+import type { PermissionBehavior, PermissionRule, PermissionRuleValue } from '../../../utils/permissions/PermissionRule.js'
+import { permissionRuleValueToString } from '../../../utils/permissions/permissionRuleParser.js'
+import { deletePermissionRule, getAllowRules, getAskRules, getDenyRules, permissionRuleSourceDisplayString } from '../../../utils/permissions/permissions.js'
+import type { UnreachableRule } from '../../../utils/permissions/shadowedRuleDetection.js'
+import { jsonStringify } from '../../../utils/slowOperations.js'
+import { Pane } from '../../design-system/Pane.js'
+import { Tab, Tabs, useTabHeaderFocus, useTabsWidth } from '../../design-system/Tabs.js'
+import { SearchBox } from '../../SearchBox.js'
+import type { Option } from '../../ui/option.js'
+import { AddPermissionRules } from './AddPermissionRules.js'
+import { AddWorkspaceDirectory } from './AddWorkspaceDirectory.js'
+import { PermissionRuleDescription } from './PermissionRuleDescription.js'
+import { PermissionRuleInput } from './PermissionRuleInput.js'
+import { RecentDenialsTab } from './RecentDenialsTab.js'
+import { RemoveWorkspaceDirectory } from './RemoveWorkspaceDirectory.js'
+import { WorkspaceTab } from './WorkspaceTab.js'
+
+type TabType = 'recent' | 'allow' | 'ask' | 'deny' | 'workspace'
+
+type RuleSourceTextProps = {
+  rule: PermissionRule
+}
+
+function RuleSourceText({ rule }: RuleSourceTextProps): React.ReactNode {
+  const sourceText = permissionRuleSourceDisplayString(rule.source)
+  return <Text dimColor>From {sourceText}</Text>
+}
+
+// Helper function to get the appropriate label for rule behavior
+function getRuleBehaviorLabel(ruleBehavior: PermissionBehavior): string {
+  switch (ruleBehavior) {
+    case 'allow':
+      return 'allowed'
+    case 'deny':
+      return 'denied'
+    case 'ask':
+      return 'ask'
+  }
+}
+
+// Component for showing tool details and managing the interactive deletion workflow
+function RuleDetails({
+  rule,
+  onDelete,
+  onCancel,
+}: {
+  rule: PermissionRule
+  onDelete: () => void
+  onCancel: () => void
+}): React.ReactNode {
+  const exitState = useExitOnCtrlCDWithKeybindings()
+  useKeybinding('confirm:no', onCancel, { context: 'Confirmation' })
+
+  const ruleDescription = (
+    <Box flexDirection="column" marginX={2}>
+      <Text bold>{permissionRuleValueToString(rule.ruleValue)}</Text>
+      <PermissionRuleDescription ruleValue={rule.ruleValue} />
+      <RuleSourceText rule={rule} />
+    </Box>
+  )
+
+  const footer = (
+    <Box marginLeft={3}>
+      {exitState.pending ? (
+        <Text dimColor>Press {exitState.keyName} again to exit</Text>
+      ) : (
+        <Text dimColor>Esc to cancel</Text>
+      )}
+    </Box>
+  )
+
+  if (rule.source === 'policySettings') {
+    return (
+      <>
+        <Box flexDirection="column" gap={1} borderStyle="round" paddingLeft={1} paddingRight={1} borderColor="permission">
+          <Text bold color="permission">Rule details</Text>
+          {ruleDescription}
+          <Text italic>
+            This rule is configured by managed settings and cannot be modified.{'\n'}
+            Contact your system administrator for more information.
+          </Text>
+        </Box>
+        {footer}
+      </>
+    )
+  }
+
+  const behaviorLabel = getRuleBehaviorLabel(rule.ruleBehavior)
+
+  return (
+    <>
+      <Box flexDirection="column" gap={1} borderStyle="round" paddingLeft={1} paddingRight={1} borderColor="error">
+        <Text bold color="error">Delete {behaviorLabel} tool?</Text>
+        {ruleDescription}
+        <Text>Are you sure you want to delete this permission rule?</Text>
+        <Select
+          onChange={v => (v === 'yes' ? onDelete() : onCancel())}
+          onCancel={onCancel}
+          options={[
+            { label: 'Yes', value: 'yes' },
+            { label: 'No', value: 'no' },
+          ]}
+        />
+      </Box>
+      {footer}
+    </>
+  )
+}
+
+type RulesTabContentProps = {
+  options: Option[]
+  searchQuery: string
+  isSearchMode: boolean
+  isFocused: boolean
+  onSelect: (value: string) => void
+  onCancel: () => void
+  lastFocusedRuleKey: string | undefined
+  cursorOffset?: number
+  onHeaderFocusChange?: (focused: boolean) => void
+}
+
+// Component for rendering rules tab content with full width support
+function RulesTabContent({
+  options,
+  searchQuery,
+  isSearchMode,
+  isFocused,
+  onSelect,
+  onCancel,
+  lastFocusedRuleKey,
+  cursorOffset,
+  onHeaderFocusChange,
+}: RulesTabContentProps): React.ReactNode {
+  const tabWidth = useTabsWidth()
+  const { headerFocused, focusHeader, blurHeader } = useTabHeaderFocus()
+
+  useEffect(() => {
+    if (isSearchMode && headerFocused) {
+      blurHeader()
+    }
+  }, [isSearchMode, headerFocused, blurHeader])
+
+  useEffect(() => {
+    onHeaderFocusChange?.(headerFocused)
+  }, [headerFocused, onHeaderFocusChange])
+
+  const showSearchBox = isSearchMode && !headerFocused
+
+  return (
+    <Box flexDirection="column">
+      <Box marginBottom={1} flexDirection="column">
+        <SearchBox
+          query={searchQuery}
+          isFocused={showSearchBox}
+          isTerminalFocused={isFocused}
+          width={tabWidth}
+          cursorOffset={cursorOffset}
+        />
+      </Box>
+      <Select
+        options={options}
+        onChange={onSelect}
+        onCancel={onCancel}
+        visibleOptionCount={Math.min(10, options.length)}
+        isDisabled={isSearchMode || headerFocused}
+        defaultFocusValue={lastFocusedRuleKey}
+        onUpFromFirstItem={focusHeader}
+      />
+    </Box>
+  )
+}
+
+// Composes the subtitle + search + Select for a single allow/ask/deny tab.
+function PermissionRulesTab({
+  tab,
+  getRulesOptions,
+  handleToolSelect,
+  ...rulesProps
+}: {
+  tab: TabType
+  getRulesOptions: (tab: TabType, query?: string) => { options: Option[]; rulesByKey: Map<string, PermissionRule> }
+  handleToolSelect: (value: string, tab: TabType) => void
+} & Omit<RulesTabContentProps, 'options' | 'onSelect'>): React.ReactNode {
+  const { options } = getRulesOptions(tab, rulesProps.searchQuery)
+
+  const tabDescriptions: Record<string, string> = {
+    allow: "Claude Code won't ask before using allowed tools.",
+    ask: 'Claude Code will always ask for confirmation before using these tools.',
+    deny: 'Claude Code will always reject requests to use denied tools.',
+  }
+
+  return (
+    <Box flexDirection="column" flexShrink={tab === 'allow' ? 0 : undefined}>
+      <Text>{tabDescriptions[tab]}</Text>
+      <RulesTabContent
+        options={options}
+        onSelect={v => handleToolSelect(v, tab)}
+        {...rulesProps}
+      />
+    </Box>
+  )
+}
+
+type Props = {
+  onExit: (
+    result?: string,
+    options?: {
+      display?: CommandResultDisplay
+      shouldQuery?: boolean
+      metaMessages?: string[]
+    },
+  ) => void
+  initialTab?: TabType
+  onRetryDenials?: (commands: string[]) => void
+}
+
+export function PermissionRuleList({
+  onExit,
+  initialTab,
+  onRetryDenials,
+}: Props): React.ReactNode {
+  const hasDenials = getAutoModeDenials().length > 0
+  const defaultTab = initialTab ?? (hasDenials ? 'recent' : 'allow')
+
+  const [changes, setChanges] = useState<string[]>([])
+  const toolPermissionContext = useAppState(s => s.toolPermissionContext)
+  const setAppState = useSetAppState()
+  const isTerminalFocused = useTerminalFocus()
+
+  const denialStateRef = useRef({
+    approved: new Set<number>(),
+    retry: new Set<number>(),
+    denials: [] as AutoModeDenial[],
+  })
+
+  const handleDenialStateChange = useCallback(
+    (s: { approved: Set<number>; retry: Set<number>; denials: readonly AutoModeDenial[] }) => {
+      denialStateRef.current = s
+    },
+    [],
+  )
+
+  const [selectedRule, setSelectedRule] = useState<PermissionRule | undefined>()
+  const [lastFocusedRuleKey, setLastFocusedRuleKey] = useState<string | undefined>()
+  const [addingRuleToTab, setAddingRuleToTab] = useState<TabType | null>(null)
+  const [validatedRule, setValidatedRule] = useState<{ ruleValue: PermissionRuleValue; ruleBehavior: PermissionBehavior } | null>(null)
+  const [isAddingWorkspaceDirectory, setIsAddingWorkspaceDirectory] = useState(false)
+  const [removingDirectory, setRemovingDirectory] = useState<string | null>(null)
+  const [isSearchMode, setIsSearchMode] = useState(false)
+  const [headerFocused, setHeaderFocused] = useState(true)
+
+  const handleHeaderFocusChange = useCallback((focused: boolean) => {
+    setHeaderFocused(focused)
+  }, [])
+
+  const allowRulesByKey = useMemo(() => {
+    const map = new Map<string, PermissionRule>()
+    getAllowRules(toolPermissionContext).forEach(rule => {
+      map.set(jsonStringify(rule), rule)
+    })
+    return map
+  }, [toolPermissionContext])
+
+  const denyRulesByKey = useMemo(() => {
+    const map = new Map<string, PermissionRule>()
+    getDenyRules(toolPermissionContext).forEach(rule => {
+      map.set(jsonStringify(rule), rule)
+    })
+    return map
+  }, [toolPermissionContext])
+
+  const askRulesByKey = useMemo(() => {
+    const map = new Map<string, PermissionRule>()
+    getAskRules(toolPermissionContext).forEach(rule => {
+      map.set(jsonStringify(rule), rule)
+    })
+    return map
+  }, [toolPermissionContext])
+
+  const getRulesOptions = useCallback(
+    (tab: TabType, query?: string) => {
+      const q = query ?? ''
+      const rulesByKey = (() => {
+        switch (tab) {
+          case 'allow':
+            return allowRulesByKey
+          case 'deny':
+            return denyRulesByKey
+          case 'ask':
+            return askRulesByKey
+          case 'workspace':
+          case 'recent':
+            return new Map<string, PermissionRule>()
+        }
+      })()
+
+      const options: Option[] = []
+      if (tab !== 'workspace' && tab !== 'recent' && !q) {
+        options.push({
+          label: `Add a new rule${figures.ellipsis}`,
+          value: 'add-new-rule',
+        })
+      }
+
+      const sortedRuleKeys = Array.from(rulesByKey.keys()).sort((a, b) => {
+        const ruleA = rulesByKey.get(a)
+        const ruleB = rulesByKey.get(b)
+        if (ruleA && ruleB) {
+          const ruleAString = permissionRuleValueToString(ruleA.ruleValue).toLowerCase()
+          const ruleBString = permissionRuleValueToString(ruleB.ruleValue).toLowerCase()
+          return ruleAString.localeCompare(ruleBString)
+        }
+        return 0
+      })
+
+      const lowerQuery = q.toLowerCase()
+      for (const ruleKey of sortedRuleKeys) {
+        const rule = rulesByKey.get(ruleKey)
+        if (rule) {
+          const ruleString = permissionRuleValueToString(rule.ruleValue)
+          if (q && !ruleString.toLowerCase().includes(lowerQuery)) {
+            continue
+          }
+          options.push({
+            label: ruleString,
+            value: ruleKey,
+          })
+        }
+      }
+
+      return { options, rulesByKey }
+    },
+    [allowRulesByKey, askRulesByKey, denyRulesByKey],
+  )
+
+  const exitState = useExitOnCtrlCDWithKeybindings()
+  const isSearchModeActive =
+    !selectedRule &&
+    !addingRuleToTab &&
+    !validatedRule &&
+    !isAddingWorkspaceDirectory &&
+    !removingDirectory
+
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    cursorOffset: searchCursorOffset,
+  } = useSearchInput({
+    isActive: isSearchModeActive && isSearchMode,
+    onExit: () => setIsSearchMode(false),
+  })
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isSearchModeActive) {
+        return
+      }
+      if (isSearchMode) {
+        return
+      }
+      if (e.ctrl || e.meta) {
+        return
+      }
+      if (e.key === '/') {
+        e.preventDefault()
+        setIsSearchMode(true)
+        setSearchQuery('')
+      } else {
+        if (
+          e.key.length === 1 &&
+          e.key !== 'j' &&
+          e.key !== 'k' &&
+          e.key !== 'm' &&
+          e.key !== 'i' &&
+          e.key !== 'r' &&
+          e.key !== ' '
+        ) {
+          e.preventDefault()
+          setIsSearchMode(true)
+          setSearchQuery(e.key)
+        }
+      }
+    },
+    [isSearchMode, isSearchModeActive, setSearchQuery],
+  )
+
+  const handleToolSelect = useCallback(
+    (selectedValue: string, tab: TabType) => {
+      const { rulesByKey } = getRulesOptions(tab)
+      if (selectedValue === 'add-new-rule') {
+        setAddingRuleToTab(tab)
+        return
+      } else {
+        setSelectedRule(rulesByKey.get(selectedValue))
+        return
+      }
+    },
+    [getRulesOptions],
+  )
+
+  const handleRuleInputCancel = useCallback(() => {
+    setAddingRuleToTab(null)
+  }, [])
+
+  const handleRuleInputSubmit = useCallback(
+    (ruleValue: PermissionRuleValue, ruleBehavior: PermissionBehavior) => {
+      setValidatedRule({ ruleValue, ruleBehavior })
+      setAddingRuleToTab(null)
+    },
+    [],
+  )
+
+  const handleAddRulesSuccess = useCallback(
+    (rules: PermissionRule[], unreachable?: UnreachableRule[]) => {
+      setValidatedRule(null)
+      for (const rule of rules) {
+        setChanges(prev => [
+          ...prev,
+          `Added ${rule.ruleBehavior} rule ${chalk.bold(permissionRuleValueToString(rule.ruleValue))}`,
+        ])
+      }
+      if (unreachable && unreachable.length > 0) {
+        for (const u of unreachable) {
+          const severity = u.shadowType === 'deny' ? 'blocked' : 'shadowed'
+          setChanges(prev => [
+            ...prev,
+            chalk.yellow(
+              `${figures.warning} Warning: ${permissionRuleValueToString(u.rule.ruleValue)} is ${severity}`,
+            ),
+            chalk.dim(`  ${u.reason}`),
+            chalk.dim(`  Fix: ${u.fix}`),
+          ])
+        }
+      }
+    },
+    [],
+  )
+
+  const handleAddRuleCancel = useCallback(() => {
+    setValidatedRule(null)
+  }, [])
+
+  const handleRequestAddDirectory = useCallback(() => setIsAddingWorkspaceDirectory(true), [])
+  const handleRequestRemoveDirectory = useCallback((path: string) => setRemovingDirectory(path), [])
+
+  const handleRulesCancel = useCallback(() => {
+    const s = denialStateRef.current
+    const denialsFor = (set: Set<number>) =>
+      Array.from(set)
+        .map(idx => s.denials[idx])
+        .filter((d): d is AutoModeDenial => d !== undefined)
+
+    const retryDenials = denialsFor(s.retry)
+    if (retryDenials.length > 0) {
+      const commands = retryDenials.map(d => d.display)
+      onRetryDenials?.(commands)
+      onExit(undefined, {
+        shouldQuery: true,
+        metaMessages: [
+          `Permission granted for: ${commands.join(', ')}. You may now retry ${commands.length === 1 ? 'this command' : 'these commands'} if you would like.`,
+        ],
+      })
+      return
+    }
+
+    const approvedDenials = denialsFor(s.approved)
+    if (approvedDenials.length > 0 || changes.length > 0) {
+      const approvedMsg =
+        approvedDenials.length > 0
+          ? [`Approved ${approvedDenials.map(d => chalk.bold(d.display)).join(', ')}`]
+          : []
+      onExit([...approvedMsg, ...changes].join('\n'))
+    } else {
+      onExit('Permissions dialog dismissed', {
+        display: 'system',
+      })
+    }
+  }, [changes, onExit, onRetryDenials])
+
+  useKeybinding('confirm:no', handleRulesCancel, {
+    context: 'Settings',
+    isActive: isSearchModeActive && !isSearchMode,
+  })
+
+  const handleDeleteRule = useCallback(() => {
+    if (!selectedRule) {
+      return
+    }
+    const { options } = getRulesOptions(selectedRule.ruleBehavior as TabType)
+    const selectedKey = jsonStringify(selectedRule)
+    const ruleKeys = options.filter(opt => opt.value !== 'add-new-rule').map(opt => opt.value)
+    const currentIndex = ruleKeys.indexOf(selectedKey)
+    let nextFocusKey: string | undefined
+    if (currentIndex !== -1) {
+      if (currentIndex < ruleKeys.length - 1) {
+        nextFocusKey = ruleKeys[currentIndex + 1]
+      } else {
+        if (currentIndex > 0) {
+          nextFocusKey = ruleKeys[currentIndex - 1]
+        }
+      }
+    }
+    setLastFocusedRuleKey(nextFocusKey)
+    deletePermissionRule({
+      rule: selectedRule,
+      initialContext: toolPermissionContext,
+      setToolPermissionContext(toolPermissionContext_0: typeof toolPermissionContext) {
+        setAppState(prev => ({
+          ...prev,
+          toolPermissionContext: toolPermissionContext_0,
+        }))
+      },
+    })
+    setChanges(prev => [
+      ...prev,
+      `Deleted ${selectedRule.ruleBehavior} rule ${chalk.bold(permissionRuleValueToString(selectedRule.ruleValue))}`,
+    ])
+    setSelectedRule(undefined)
+  }, [getRulesOptions, selectedRule, setAppState, toolPermissionContext])
+
+  if (selectedRule) {
+    return (
+      <RuleDetails
+        rule={selectedRule}
+        onDelete={handleDeleteRule}
+        onCancel={() => setSelectedRule(undefined)}
+      />
+    )
+  }
+
+  if (addingRuleToTab && addingRuleToTab !== 'workspace' && addingRuleToTab !== 'recent') {
+    return (
+      <PermissionRuleInput
+        onCancel={handleRuleInputCancel}
+        onSubmit={handleRuleInputSubmit}
+        ruleBehavior={addingRuleToTab}
+      />
+    )
+  }
+
+  if (validatedRule) {
+    return (
+      <AddPermissionRules
+        onAddRules={handleAddRulesSuccess}
+        onCancel={handleAddRuleCancel}
+        ruleValues={[validatedRule.ruleValue]}
+        ruleBehavior={validatedRule.ruleBehavior}
+        initialContext={toolPermissionContext}
+        setToolPermissionContext={(toolPermissionContext_1: typeof toolPermissionContext) => {
+          setAppState(prev => ({
+            ...prev,
+            toolPermissionContext: toolPermissionContext_1,
+          }))
+        }}
+      />
+    )
+  }
+
+  if (isAddingWorkspaceDirectory) {
+    const handleAddDirectory = (path: string, remember?: boolean) => {
+      const destination: PermissionUpdateDestination = remember ? 'localSettings' : 'session'
+      const permissionUpdate = {
+        type: 'addDirectories' as const,
+        directories: [path],
+        destination,
+      }
+      const updatedContext = applyPermissionUpdate(toolPermissionContext, permissionUpdate)
+      setAppState(prev => ({
+        ...prev,
+        toolPermissionContext: updatedContext,
+      }))
+      if (remember) {
+        persistPermissionUpdate(permissionUpdate)
+      }
+      setChanges(prev => [
+        ...prev,
+        `Added directory ${chalk.bold(path)} to workspace${remember ? ' and saved to local settings' : ' for this session'}`,
+      ])
+      setIsAddingWorkspaceDirectory(false)
+    }
+
+    return (
+      <AddWorkspaceDirectory
+        onAddDirectory={handleAddDirectory}
+        onCancel={() => setIsAddingWorkspaceDirectory(false)}
+        permissionContext={toolPermissionContext}
+      />
+    )
+  }
+
+  if (removingDirectory) {
+    const handleRemove = () => {
+      setChanges(prev => [
+        ...prev,
+        `Removed directory ${chalk.bold(removingDirectory)} from workspace`,
+      ])
+      setRemovingDirectory(null)
+    }
+
+    return (
+      <RemoveWorkspaceDirectory
+        directoryPath={removingDirectory}
+        onRemove={handleRemove}
+        onCancel={() => setRemovingDirectory(null)}
+        permissionContext={toolPermissionContext}
+        setPermissionContext={(toolPermissionContext_2: typeof toolPermissionContext) => {
+          setAppState(prev => ({
+            ...prev,
+            toolPermissionContext: toolPermissionContext_2,
+          }))
+        }}
+      />
+    )
+  }
+
+  const sharedRulesProps = {
+    searchQuery,
+    isSearchMode,
+    isFocused: isTerminalFocused,
+    onCancel: handleRulesCancel,
+    lastFocusedRuleKey,
+    cursorOffset: searchCursorOffset,
+    getRulesOptions,
+    handleToolSelect,
+    onHeaderFocusChange: handleHeaderFocusChange,
+  }
+
+  const isHidden =
+    !!selectedRule ||
+    !!addingRuleToTab ||
+    !!validatedRule ||
+    isAddingWorkspaceDirectory ||
+    !!removingDirectory
+
+  return (
+    <Box flexDirection="column" onKeyDown={handleKeyDown}>
+      <Pane color="permission">
+        <Tabs
+          title="Permissions:"
+          color="permission"
+          defaultTab={defaultTab}
+          hidden={isHidden}
+          initialHeaderFocused={!hasDenials}
+          navFromContent={!isSearchMode}
+        >
+          <Tab id="recent" title="Recently denied">
+            <RecentDenialsTab
+              onHeaderFocusChange={handleHeaderFocusChange}
+              onStateChange={handleDenialStateChange}
+            />
+          </Tab>
+          <Tab id="allow" title="Allow">
+            <PermissionRulesTab tab="allow" {...sharedRulesProps} />
+          </Tab>
+          <Tab id="ask" title="Ask">
+            <PermissionRulesTab tab="ask" {...sharedRulesProps} />
+          </Tab>
+          <Tab id="deny" title="Deny">
+            <PermissionRulesTab tab="deny" {...sharedRulesProps} />
+          </Tab>
+          <Tab id="workspace" title="Workspace">
+            <Box flexDirection="column">
+              <Text>Claude Code can read files in the workspace, and make edits when auto-accept edits is on.</Text>
+              <WorkspaceTab
+                onExit={onExit}
+                toolPermissionContext={toolPermissionContext}
+                onRequestAddDirectory={handleRequestAddDirectory}
+                onRequestRemoveDirectory={handleRequestRemoveDirectory}
+                onHeaderFocusChange={handleHeaderFocusChange}
+              />
+            </Box>
+          </Tab>
+        </Tabs>
+        <Box marginTop={1} paddingLeft={1}>
+          <Text dimColor>
+            {exitState.pending ? (
+              <>
+                Press {exitState.keyName} again to exit
+              </>
+            ) : headerFocused ? (
+              <>
+                ←/→ tab switch · ↓ return · Esc cancel
+              </>
+            ) : isSearchMode ? (
+              <>
+                Type to filter · Enter/↓ select · ↑ tabs · Esc clear
+              </>
+            ) : hasDenials && defaultTab === 'recent' ? (
+              <>
+                Enter approve · r retry · ↑↓ navigate · ←/→ switch · Esc cancel
+              </>
+            ) : (
+              <>
+                ↑↓ navigate · Enter select · Type to search · ←/→ switch · Esc cancel
+              </>
+            )}
+          </Text>
+        </Box>
+      </Pane>
+    </Box>
+  )
+}

@@ -23,11 +23,9 @@ import {
 } from 'src/services/analytics/index.js'
 import {
   getOriginalCwd,
-  getPlanSlugCache,
   getPromptId,
   getSessionId,
   getSessionProjectDir,
-  isSessionPersistenceDisabled,
   switchSession,
 } from '../bootstrap/state.js'
 import { builtInCommandNames } from '../commands.js'
@@ -187,9 +185,7 @@ const EPHEMERAL_PROGRESS_TYPES = new Set([
   'bash_progress',
   'powershell_progress',
   'mcp_progress',
-  ...(feature('PROACTIVE') || feature('KAIROS')
-    ? (['sleep_progress'] as const)
-    : []),
+
 ])
 export function isEphemeralToolProgress(dataType: unknown): boolean {
   return typeof dataType === 'string' && EPHEMERAL_PROGRESS_TYPES.has(dataType)
@@ -412,12 +408,12 @@ export function sessionIdExists(sessionId: string): boolean {
 
 // exported for testing
 export function getNodeEnv(): string {
-  return process.env.NODE_ENV || 'development'
+  return 'production'
 }
 
 // exported for testing
 export function getUserType(): string {
-  return process.env.USER_TYPE || 'external'
+  return 'external'
 }
 
 function getEntrypoint(): string | undefined {
@@ -964,7 +960,7 @@ class Project {
     return (
       (getNodeEnv() === 'test' && !allowTestPersistence) ||
       getSettings_DEPRECATED()?.cleanupPeriodDays === 0 ||
-      isSessionPersistenceDisabled() ||
+      isEnvTruthy(process.env.CLAUDE_CODE_NO_SESSION_PERSISTENCE) ||
       isEnvTruthy(process.env.CLAUDE_CODE_SKIP_PROMPT_HISTORY)
     )
   }
@@ -1018,9 +1014,7 @@ class Project {
         gitBranch = undefined
       }
 
-      // Get slug if one exists for this session (used for plan files, etc.)
       const sessionId = getSessionId()
-      const slug = getPlanSlugCache().get(sessionId)
 
       for (const message of messages) {
         const isCompactBoundary = isCompactBoundaryMessage(message)
@@ -1060,7 +1054,6 @@ class Project {
           sessionId,
           version: VERSION,
           gitBranch,
-          slug,
         }
         await this.appendEntry(transcriptMessage)
         if (isChainParticipant(message)) {
@@ -2678,9 +2671,6 @@ export function saveAiGeneratedTitle(sessionId: UUID, aiTitle: string): void {
  * what the agent is doing *now*, so staleness is fine; ps reads the most
  * recent one from the tail.
  */
-// TODO(lift-v112): saveTaskSummary is NOT exported in v2.1.112 export table.
-// Kept here for body reference; mark non-export if confirmed unused, or
-// re-export under a new v112 name if it was renamed.
 export function saveTaskSummary(sessionId: UUID, summary: string): void {
   appendEntryToFile(getTranscriptPathForSession(sessionId), {
     type: 'task-summary',
@@ -2690,8 +2680,6 @@ export function saveTaskSummary(sessionId: UUID, summary: string): void {
   })
 }
 
-// TODO(lift-v112): saveTag is NOT exported in v2.1.112 export table — likely
-// retired alongside `getCurrentSessionTag`. Body retained as v88 reference.
 export async function saveTag(sessionId: UUID, tag: string, fullPath?: string) {
   // Fall back to computed path if fullPath is not provided
   const resolvedPath = fullPath ?? getTranscriptPathForSession(sessionId)
@@ -2733,8 +2721,6 @@ export async function linkSessionToPR(
   logEvent('tengu_session_linked_to_pr', { prNumber })
 }
 
-// TODO(lift-v112): getCurrentSessionTag is NOT exported in v2.1.112; the
-// session-tag concept appears retired. Body retained for cross-version diff.
 export function getCurrentSessionTag(sessionId: UUID): string | undefined {
   // Only returns tag for current session (the only one we cache)
   if (sessionId === getSessionId()) {
@@ -4373,12 +4359,8 @@ export function isLoggableMessage(m: Message): boolean {
   return true
 }
 
-// v2.1.112 change: now exported and takes optional accumulator set so
-// repeated calls can fold REPL ids across multiple message slices.
-export function collectReplIds(
-  messages: readonly Message[],
-  ids: Set<string> = new Set<string>(),
-): Set<string> {
+function collectReplIds(messages: readonly Message[]): Set<string> {
+  const ids = new Set<string>()
   for (const m of messages) {
     if (m.type === 'assistant' && Array.isArray(m.message.content)) {
       for (const b of m.message.content) {
@@ -5114,160 +5096,3 @@ export async function enrichLogs(
 
   return { logs: result, nextIndex: i }
 }
-
-// =============================================================================
-// v2.1.112-only additions
-// =============================================================================
-//
-// The following exports are present in the v2.1.112 export table but absent
-// from the v88 source. Most of them resolve to symbols defined in *other*
-// chunks of the v112 bundle (cross-chunk re-exports). For those, this file
-// provides best-effort stubs marked with `TODO(lift-v112)`; the body must be
-// looked up in the chunk that actually owns the symbol or replaced by the
-// real implementation when that chunk is lifted.
-//
-// Two of the new exports (`collectReplIds`, `listSubagentIdsFromDisk`) ARE
-// defined locally — `collectReplIds` is an existing v88 function that became
-// exported (already updated in place above), and `listSubagentIdsFromDisk`
-// is wholly new (lifted below).
-
-/**
- * List subagent ids by scanning the current session's `subagents/` directory
- * for `agent-<id>.jsonl` files. Used by /resume to surface subagent
- * transcripts without parsing the parent session.
- *
- * Lifted from v112_min byte range 11669525–11670507 (jac=0.516, cos=0.998).
- */
-export async function listSubagentIdsFromDisk(): Promise<string[]> {
-  const projectDir = getSessionProjectDir() ?? getProjectDir(getCwd())
-  const sessionId = getSessionId()
-  const subagentsDir = join(projectDir, sessionId, 'subagents')
-  let dirents: Dirent[]
-  try {
-    dirents = await readdir(subagentsDir, { withFileTypes: true })
-  } catch {
-    return []
-  }
-  return dirents
-    .filter(
-      d =>
-        d.isFile() &&
-        d.name.startsWith('agent-') &&
-        d.name.endsWith('.jsonl'),
-    )
-    .map(d => d.name.slice('agent-'.length, -'.jsonl'.length))
-}
-
-// -----------------------------------------------------------------------------
-// Cross-chunk re-export stubs (v2.1.112-only)
-//
-// Each TODO(lift-v112) below points at the v112 export-table line and the
-// internal symbol it redirects to. Replace with a re-export from the owning
-// module once that chunk is lifted.
-// -----------------------------------------------------------------------------
-
-/** TODO(lift-v112): re-export of `Va1` (cross-chunk). Tracks every session
- *  write for telemetry/throttling. */
-export function trackSessionWrite(_sessionId: string, _bytes: number): void {
-  // TODO(lift-v112): body lives in another chunk (sessionMirror/telemetry).
-  throw new Error('trackSessionWrite: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `Jz8` (cross-chunk). Returns the byte
- *  cursor at the end of the active transcript. */
-export function transcriptCursorEnd(): number {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error('transcriptCursorEnd: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `mH7` (cross-chunk). Subscribe to the
- *  current-session title-change event. */
-export function subscribeSessionTitleChanged(
-  _listener: (title: string) => void,
-): () => void {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error(
-    'subscribeSessionTitleChanged: not yet lifted (cross-chunk)',
-  )
-}
-
-/** TODO(lift-v112): re-export of `xH7` (cross-chunk). Subscribe to the
- *  current-session agent-name-change event. */
-export function subscribeSessionAgentNameChanged(
-  _listener: (name: string) => void,
-): () => void {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error(
-    'subscribeSessionAgentNameChanged: not yet lifted (cross-chunk)',
-  )
-}
-
-/** TODO(lift-v112): re-export of `pH7` (cross-chunk). Persist permission
- *  mode for the active session. */
-export function savePermissionMode(_mode: string): void {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error('savePermissionMode: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `IH7` (cross-chunk). Returns the cached
- *  agent name for the current session, if any. */
-export function getCurrentSessionAgentName(): string | undefined {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error('getCurrentSessionAgentName: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `HtY` (cross-chunk). Returns the path to
- *  the currently active session file. */
-export function getCurrentSessionFile(): string | undefined {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error('getCurrentSessionFile: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `ueK` (cross-chunk). Returns true if
- *  transcript persistence is disabled (env or settings). */
-export function isTranscriptPersistenceDisabled(): boolean {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error(
-    'isTranscriptPersistenceDisabled: not yet lifted (cross-chunk)',
-  )
-}
-
-/** TODO(lift-v112): re-export of `EH7` (cross-chunk). Add a session mirror
- *  destination (additional file the transcript is mirrored to). */
-export function addSessionMirror(_path: string): () => void {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error('addSessionMirror: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `Ta1` (cross-chunk). Fan out an entry to
- *  all registered session mirrors. */
-export function fireSessionMirror(_entry: Entry): void {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error('fireSessionMirror: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `NH7` (cross-chunk). Reset the internal
- *  event writer (test/teardown helper). */
-export function clearInternalEventWriter(): void {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error('clearInternalEventWriter: not yet lifted (cross-chunk)')
-}
-
-/** TODO(lift-v112): re-export of `z77` (cross-chunk). Locate the deferred-
- *  tool-use marker entry inside a transcript chain, if present. */
-export function findDeferredToolMarkerInTranscript(
-  _chain: readonly Message[],
-): Message | undefined {
-  // TODO(lift-v112): body lives in another chunk.
-  throw new Error(
-    'findDeferredToolMarkerInTranscript: not yet lifted (cross-chunk)',
-  )
-}
-
-/** TODO(lift-v112): re-export of `CeK` (cross-chunk). Policy enum
- *  describing how new entries should be appended to a session file. */
-// TODO(lift-v112): ENTRY_APPEND_POLICY definition lives in another chunk;
-// this is a placeholder of the right shape for downstream typing only.
-export const ENTRY_APPEND_POLICY = {
-  // TODO(lift-v112): real values must be sourced from owning chunk.
-} as const

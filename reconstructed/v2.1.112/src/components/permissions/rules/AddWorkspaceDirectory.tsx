@@ -252,8 +252,8 @@ export function AddWorkspaceDirectory({
                   <Text>Press {exitState.keyName} again to exit</Text>
                 ) : (
                   <Byline>
-                    <KeyboardShortcutHint chord="Tab" action="complete" />
-                    <KeyboardShortcutHint chord="Enter" action="add" />
+                    <KeyboardShortcutHint chord="tab" format={{ keyCase: 'lower' }} action="complete" />
+                    <KeyboardShortcutHint chord="return" format={{ keyCase: 'lower' }} action="add" />
                     <ConfigurableShortcutHint
                       action="confirm:no"
                       context="Settings"

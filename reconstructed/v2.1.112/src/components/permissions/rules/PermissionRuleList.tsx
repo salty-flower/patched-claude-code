@@ -3,7 +3,10 @@ import figures from 'figures'
 import * as React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppState, useSetAppState } from '../../../state/AppState.js'
-import { applyPermissionUpdate, persistPermissionUpdate } from '../../../utils/permissions/PermissionUpdate.js'
+import {
+  applyPermissionUpdate,
+  persistPermissionUpdate,
+} from '../../../utils/permissions/PermissionUpdate.js'
 import type { PermissionUpdateDestination } from '../../../utils/permissions/PermissionUpdateSchema.js'
 import type { CommandResultDisplay } from '../../../commands.js'
 import { Select } from '../../../components/CustomSelect/select.js'
@@ -12,14 +15,32 @@ import { useSearchInput } from '../../../hooks/useSearchInput.js'
 import type { KeyboardEvent } from '../../../ink/events/keyboard-event.js'
 import { Box, Text, useTerminalFocus } from '../../../ink.js'
 import { useKeybinding } from '../../../keybindings/useKeybinding.js'
-import { type AutoModeDenial, getAutoModeDenials } from '../../../utils/autoModeDenials.js'
-import type { PermissionBehavior, PermissionRule, PermissionRuleValue } from '../../../utils/permissions/PermissionRule.js'
+import {
+  type AutoModeDenial,
+  getAutoModeDenials,
+} from '../../../utils/autoModeDenials.js'
+import type {
+  PermissionBehavior,
+  PermissionRule,
+  PermissionRuleValue,
+} from '../../../utils/permissions/PermissionRule.js'
 import { permissionRuleValueToString } from '../../../utils/permissions/permissionRuleParser.js'
-import { deletePermissionRule, getAllowRules, getAskRules, getDenyRules, permissionRuleSourceDisplayString } from '../../../utils/permissions/permissions.js'
+import {
+  deletePermissionRule,
+  getAllowRules,
+  getAskRules,
+  getDenyRules,
+  permissionRuleSourceDisplayString,
+} from '../../../utils/permissions/permissions.js'
 import type { UnreachableRule } from '../../../utils/permissions/shadowedRuleDetection.js'
 import { jsonStringify } from '../../../utils/slowOperations.js'
 import { Pane } from '../../design-system/Pane.js'
-import { Tab, Tabs, useTabHeaderFocus, useTabsWidth } from '../../design-system/Tabs.js'
+import {
+  Tab,
+  Tabs,
+  useTabHeaderFocus,
+  useTabsWidth,
+} from '../../design-system/Tabs.js'
 import { SearchBox } from '../../SearchBox.js'
 import type { Option } from '../../ui/option.js'
 import { AddPermissionRules } from './AddPermissionRules.js'
@@ -87,8 +108,17 @@ function RuleDetails({
   if (rule.source === 'policySettings') {
     return (
       <>
-        <Box flexDirection="column" gap={1} borderStyle="round" paddingLeft={1} paddingRight={1} borderColor="permission">
-          <Text bold color="permission">Rule details</Text>
+        <Box
+          flexDirection="column"
+          gap={1}
+          borderStyle="round"
+          paddingLeft={1}
+          paddingRight={1}
+          borderColor="permission"
+        >
+          <Text bold color="permission">
+            Rule details
+          </Text>
           {ruleDescription}
           <Text italic>
             This rule is configured by managed settings and cannot be modified.{'\n'}
@@ -104,8 +134,17 @@ function RuleDetails({
 
   return (
     <>
-      <Box flexDirection="column" gap={1} borderStyle="round" paddingLeft={1} paddingRight={1} borderColor="error">
-        <Text bold color="error">Delete {behaviorLabel} tool?</Text>
+      <Box
+        flexDirection="column"
+        gap={1}
+        borderStyle="round"
+        paddingLeft={1}
+        paddingRight={1}
+        borderColor="error"
+      >
+        <Text bold color="error">
+          Delete {behaviorLabel} tool?
+        </Text>
         {ruleDescription}
         <Text>Are you sure you want to delete this permission rule?</Text>
         <Select
@@ -193,7 +232,10 @@ function PermissionRulesTab({
   ...rulesProps
 }: {
   tab: TabType
-  getRulesOptions: (tab: TabType, query?: string) => { options: Option[]; rulesByKey: Map<string, PermissionRule> }
+  getRulesOptions: (tab: TabType, query?: string) => {
+    options: Option[]
+    rulesByKey: Map<string, PermissionRule>
+  }
   handleToolSelect: (value: string, tab: TabType) => void
 } & Omit<RulesTabContentProps, 'options' | 'onSelect'>): React.ReactNode {
   const { options } = getRulesOptions(tab, rulesProps.searchQuery)
@@ -249,18 +291,32 @@ export function PermissionRuleList({
   })
 
   const handleDenialStateChange = useCallback(
-    (s: { approved: Set<number>; retry: Set<number>; denials: readonly AutoModeDenial[] }) => {
+    (s: {
+      approved: Set<number>
+      retry: Set<number>
+      denials: readonly AutoModeDenial[]
+    }) => {
       denialStateRef.current = s
     },
     [],
   )
 
-  const [selectedRule, setSelectedRule] = useState<PermissionRule | undefined>()
-  const [lastFocusedRuleKey, setLastFocusedRuleKey] = useState<string | undefined>()
+  const [selectedRule, setSelectedRule] = useState<
+    PermissionRule | undefined
+  >()
+  const [lastFocusedRuleKey, setLastFocusedRuleKey] = useState<
+    string | undefined
+  >()
   const [addingRuleToTab, setAddingRuleToTab] = useState<TabType | null>(null)
-  const [validatedRule, setValidatedRule] = useState<{ ruleValue: PermissionRuleValue; ruleBehavior: PermissionBehavior } | null>(null)
-  const [isAddingWorkspaceDirectory, setIsAddingWorkspaceDirectory] = useState(false)
-  const [removingDirectory, setRemovingDirectory] = useState<string | null>(null)
+  const [validatedRule, setValidatedRule] = useState<{
+    ruleValue: PermissionRuleValue
+    ruleBehavior: PermissionBehavior
+  } | null>(null)
+  const [isAddingWorkspaceDirectory, setIsAddingWorkspaceDirectory] =
+    useState(false)
+  const [removingDirectory, setRemovingDirectory] = useState<string | null>(
+    null,
+  )
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [headerFocused, setHeaderFocused] = useState(true)
 
@@ -321,8 +377,12 @@ export function PermissionRuleList({
         const ruleA = rulesByKey.get(a)
         const ruleB = rulesByKey.get(b)
         if (ruleA && ruleB) {
-          const ruleAString = permissionRuleValueToString(ruleA.ruleValue).toLowerCase()
-          const ruleBString = permissionRuleValueToString(ruleB.ruleValue).toLowerCase()
+          const ruleAString = permissionRuleValueToString(
+            ruleA.ruleValue,
+          ).toLowerCase()
+          const ruleBString = permissionRuleValueToString(
+            ruleB.ruleValue,
+          ).toLowerCase()
           return ruleAString.localeCompare(ruleBString)
         }
         return 0
@@ -455,8 +515,14 @@ export function PermissionRuleList({
     setValidatedRule(null)
   }, [])
 
-  const handleRequestAddDirectory = useCallback(() => setIsAddingWorkspaceDirectory(true), [])
-  const handleRequestRemoveDirectory = useCallback((path: string) => setRemovingDirectory(path), [])
+  const handleRequestAddDirectory = useCallback(
+    () => setIsAddingWorkspaceDirectory(true),
+    [],
+  )
+  const handleRequestRemoveDirectory = useCallback(
+    (path: string) => setRemovingDirectory(path),
+    [],
+  )
 
   const handleRulesCancel = useCallback(() => {
     const s = denialStateRef.current
@@ -482,7 +548,9 @@ export function PermissionRuleList({
     if (approvedDenials.length > 0 || changes.length > 0) {
       const approvedMsg =
         approvedDenials.length > 0
-          ? [`Approved ${approvedDenials.map(d => chalk.bold(d.display)).join(', ')}`]
+          ? [
+              `Approved ${approvedDenials.map(d => chalk.bold(d.display)).join(', ')}`,
+            ]
           : []
       onExit([...approvedMsg, ...changes].join('\n'))
     } else {
@@ -503,7 +571,9 @@ export function PermissionRuleList({
     }
     const { options } = getRulesOptions(selectedRule.ruleBehavior as TabType)
     const selectedKey = jsonStringify(selectedRule)
-    const ruleKeys = options.filter(opt => opt.value !== 'add-new-rule').map(opt => opt.value)
+    const ruleKeys = options
+      .filter(opt => opt.value !== 'add-new-rule')
+      .map(opt => opt.value)
     const currentIndex = ruleKeys.indexOf(selectedKey)
     let nextFocusKey: string | undefined
     if (currentIndex !== -1) {
@@ -543,7 +613,11 @@ export function PermissionRuleList({
     )
   }
 
-  if (addingRuleToTab && addingRuleToTab !== 'workspace' && addingRuleToTab !== 'recent') {
+  if (
+    addingRuleToTab &&
+    addingRuleToTab !== 'workspace' &&
+    addingRuleToTab !== 'recent'
+  ) {
     return (
       <PermissionRuleInput
         onCancel={handleRuleInputCancel}
@@ -573,13 +647,18 @@ export function PermissionRuleList({
 
   if (isAddingWorkspaceDirectory) {
     const handleAddDirectory = (path: string, remember?: boolean) => {
-      const destination: PermissionUpdateDestination = remember ? 'localSettings' : 'session'
+      const destination: PermissionUpdateDestination = remember
+        ? 'localSettings'
+        : 'session'
       const permissionUpdate = {
         type: 'addDirectories' as const,
         directories: [path],
         destination,
       }
-      const updatedContext = applyPermissionUpdate(toolPermissionContext, permissionUpdate)
+      const updatedContext = applyPermissionUpdate(
+        toolPermissionContext,
+        permissionUpdate,
+      )
       setAppState(prev => ({
         ...prev,
         toolPermissionContext: updatedContext,
@@ -675,7 +754,10 @@ export function PermissionRuleList({
           </Tab>
           <Tab id="workspace" title="Workspace">
             <Box flexDirection="column">
-              <Text>Claude Code can read files in the workspace, and make edits when auto-accept edits is on.</Text>
+              <Text>
+                Claude Code can read files in the workspace, and make edits when
+                auto-accept edits is on.
+              </Text>
               <WorkspaceTab
                 onExit={onExit}
                 toolPermissionContext={toolPermissionContext}
@@ -706,7 +788,8 @@ export function PermissionRuleList({
               </>
             ) : (
               <>
-                ↑↓ navigate · Enter select · Type to search · ←/→ switch · Esc cancel
+                ↑↓ navigate · Enter select · Type to search · ←/→ switch · Esc
+                cancel
               </>
             )}
           </Text>

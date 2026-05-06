@@ -113,7 +113,7 @@ export function ManagedSettingsSecurityDialog(t0) {
   }
   let t17;
   if ($[14] !== exitState.keyName || $[15] !== exitState.pending) {
-    t17 = <Text dimColor={true}>{exitState.pending ? <>Press {exitState.keyName} again to exit</> : <><KeyboardShortcutHint shortcut="enter" action="confirm" /><KeyboardShortcutHint shortcut="escape" action="exit" /></>}</Text>;
+    t17 = <Text dimColor={true}>{exitState.pending ? <>Press {exitState.keyName} again to exit</> : <><KeyboardShortcutHint chord="enter" action="confirm" /><KeyboardShortcutHint chord="escape" action="exit" /></>}</Text>;
     $[14] = exitState.keyName;
     $[15] = exitState.pending;
     $[16] = t17;

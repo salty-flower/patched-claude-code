@@ -301,7 +301,7 @@ function CopyPicker(t0) {
   }
   let t12;
   if ($[29] === Symbol.for("react.memo_cache_sentinel")) {
-    t12 = <Text dimColor={true}><Byline><KeyboardShortcutHint shortcut="enter" action="copy" /><KeyboardShortcutHint shortcut="w" action="write to file" /><KeyboardShortcutHint shortcut="esc" action="cancel" /></Byline></Text>;
+    t12 = <Text dimColor={true}><Byline><KeyboardShortcutHint chord="enter" action="copy" /><KeyboardShortcutHint chord="w" action="write to file" /><KeyboardShortcutHint chord="esc" action="cancel" /></Byline></Text>;
     $[29] = t12;
   } else {
     t12 = $[29];

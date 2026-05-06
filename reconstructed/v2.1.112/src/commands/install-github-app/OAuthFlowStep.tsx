@@ -348,7 +348,7 @@ export function OAuthFlowStep({
               <Text color="success">(Copied!)</Text>
             ) : (
               <Text dimColor>
-                <KeyboardShortcutHint shortcut="c" action="copy" parens />
+                <KeyboardShortcutHint chord="c" action="copy" parens />
               </Text>
             )}
           </Box>

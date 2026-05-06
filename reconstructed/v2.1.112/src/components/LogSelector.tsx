@@ -996,7 +996,7 @@ export function LogSelector({
         ) : viewMode === 'rename' ? (
           <Text dimColor={true}>
             <Byline>
-              <KeyboardShortcutHint shortcut="Enter" action="save" />
+              <KeyboardShortcutHint chord="Enter" action="save" />
               <ConfigurableShortcutHint
                 action="confirm:no"
                 context="Confirmation"
@@ -1020,8 +1020,8 @@ export function LogSelector({
         ) : isAgenticSearchOptionFocused ? (
           <Text dimColor={true}>
             <Byline>
-              <KeyboardShortcutHint shortcut="Enter" action="search" />
-              <KeyboardShortcutHint shortcut={'\u2193'} action="skip" />
+              <KeyboardShortcutHint chord="Enter" action="search" />
+              <KeyboardShortcutHint chord={'\u2193'} action="skip" />
               <ConfigurableShortcutHint
                 action="confirm:no"
                 context="Confirmation"
@@ -1034,7 +1034,7 @@ export function LogSelector({
           <Text dimColor={true}>
             <Byline>
               <Text>Type to Search</Text>
-              <KeyboardShortcutHint shortcut="Enter" action="select" />
+              <KeyboardShortcutHint chord="Enter" action="select" />
               <ConfigurableShortcutHint
                 action="confirm:no"
                 context="Confirmation"
@@ -1048,25 +1048,25 @@ export function LogSelector({
             <Byline>
               {onToggleAllProjects && (
                 <KeyboardShortcutHint
-                  shortcut="Ctrl+A"
+                  chord="Ctrl+A"
                   action={showAllProjects ? 'only show current repo' : 'show all projects'}
                 />
               )}
               {currentBranch && (
                 <KeyboardShortcutHint
-                  shortcut="Ctrl+B"
+                  chord="Ctrl+B"
                   action={branchFilterEnabled ? 'only show current branch' : 'show all branches'}
                 />
               )}
               {hasMultipleWorktrees && (
                 <KeyboardShortcutHint
-                  shortcut="Ctrl+W"
+                  chord="Ctrl+W"
                   action={showAllWorktrees ? 'only show current worktree' : 'show all worktrees'}
                 />
               )}
               {/* v112: Space triggers preview (was Ctrl+V in v88) */}
-              <KeyboardShortcutHint shortcut="space" action="preview" />
-              <KeyboardShortcutHint shortcut="Ctrl+R" action="rename" />
+              <KeyboardShortcutHint chord="space" action="preview" />
+              <KeyboardShortcutHint chord="Ctrl+R" action="rename" />
               <Text>Type to search</Text>
               <ConfigurableShortcutHint
                 action="confirm:no"

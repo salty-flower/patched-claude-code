@@ -19,6 +19,9 @@ Sources checked on 2026-05-07:
 - https://registry.npmjs.org/@anthropic-ai%2fclaude-code
 - https://newreleases.io/project/github/anthropics/claude-code/release/v2.1.88
 
+Capture status for these notes is tracked in
+[v2.1.88-v2.1.112 Delta Capture Matrix](./2026-05-07-v2.1.88-v2.1.112-delta-capture-matrix.md).
+
 ## Covered Versions
 
 The released versions observed between v2.1.88 and v2.1.112 are:

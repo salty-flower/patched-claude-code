@@ -2452,8 +2452,9 @@ function runHeadlessStreaming(
       return
     } finally {
       runPhase = 'finally_flush'
-      // Flush pending internal events before going idle
+      // Flush pending CCR queues before going idle.
       await structuredIO.flushInternalEvents()
+      await structuredIO.flushDeliveryAcks()
       runPhase = 'finally_post_flush'
       if (!isShuttingDown()) {
         notifySessionStateChanged('idle')
@@ -2672,6 +2673,7 @@ function runHeadlessStreaming(
         suggestionState.abortController?.abort()
         suggestionState.abortController = null
         await finalizePendingAsyncHooks()
+        await structuredIO.flushDeliveryAcks()
         unsubscribeSkillChanges()
         unsubscribeAuthStatus?.()
         statusListeners.delete(rateLimitListener)
@@ -4132,6 +4134,7 @@ function runHeadlessStreaming(
       suggestionState.abortController?.abort()
       suggestionState.abortController = null
       await finalizePendingAsyncHooks()
+      await structuredIO.flushDeliveryAcks()
       unsubscribeSkillChanges()
       unsubscribeAuthStatus?.()
       statusListeners.delete(rateLimitListener)

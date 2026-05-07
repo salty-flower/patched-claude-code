@@ -185,6 +185,10 @@ export function hasCursorUpViewportYankBug(): boolean {
   return process.platform === 'win32' && !!process.env.WT_SESSION
 }
 
+export function isSyncSupported(): boolean {
+  return isSynchronizedOutputSupported()
+}
+
 // Computed once at module load — terminal capabilities don't change mid-session.
 // Exported so callers can pass a sync-skip hint gated to specific modes.
 export const SYNC_OUTPUT_SUPPORTED = isSynchronizedOutputSupported()

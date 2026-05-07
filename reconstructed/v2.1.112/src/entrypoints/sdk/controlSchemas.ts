@@ -529,6 +529,9 @@ export const SDKControlElicitationRequestSchema = lazySchema(() =>
       url: z.string().optional(),
       elicitation_id: z.string().optional(),
       requested_schema: z.record(z.string(), z.unknown()).optional(),
+      title: z.string().optional(),
+      display_name: z.string().optional(),
+      description: z.string().optional(),
     })
     .describe(
       'Requests the SDK consumer to handle an MCP elicitation (user input request).',
@@ -542,6 +545,43 @@ export const SDKControlElicitationResponseSchema = lazySchema(() =>
       content: z.record(z.string(), z.unknown()).optional(),
     })
     .describe('Response from the SDK consumer for an elicitation request.'),
+)
+
+export const SDKControlRequestUserDialogRequestSchema = lazySchema(() =>
+  z
+    .object({
+      subtype: z.literal('request_user_dialog'),
+      dialog_kind: z.string(),
+      payload: z.record(z.string(), z.unknown()),
+      tool_use_id: z.string().optional(),
+    })
+    .describe(
+      'Requests the SDK consumer to show a CLI-originated user dialog.',
+    ),
+)
+
+export const SDKControlRequestUserDialogResponseSchema = lazySchema(() =>
+  z
+    .record(z.string(), z.unknown())
+    .describe('Opaque response payload returned by the SDK-hosted user dialog.'),
+)
+
+export const SDKControlOAuthTokenRefreshRequestSchema = lazySchema(() =>
+  z
+    .object({
+      subtype: z.literal('oauth_token_refresh'),
+    })
+    .describe(
+      'Requests the SDK consumer to refresh and return a claude.ai OAuth access token.',
+    ),
+)
+
+export const SDKControlOAuthTokenRefreshResponseSchema = lazySchema(() =>
+  z
+    .object({
+      accessToken: z.string(),
+    })
+    .describe('Fresh claude.ai OAuth access token returned by the SDK host.'),
 )
 
 
@@ -572,6 +612,8 @@ export const SDKControlRequestInnerSchema = lazySchema(() =>
     SDKControlApplyFlagSettingsRequestSchema(),
     SDKControlGetSettingsRequestSchema(),
     SDKControlElicitationRequestSchema(),
+    SDKControlRequestUserDialogRequestSchema(),
+    SDKControlOAuthTokenRefreshRequestSchema(),
   ]),
 )
 

@@ -1,4 +1,4 @@
-import type { StdoutMessage } from 'src/entrypoints/sdk/controlTypes.js'
+import type { StdoutMessage } from '../entrypoints/sdk/controlTypes.js'
 import { PassThrough } from 'stream'
 import { URL } from 'url'
 import { getSessionId } from '../bootstrap/state.js'
@@ -13,7 +13,10 @@ import { logError } from '../utils/log.js'
 import { writeToStdout } from '../utils/process.js'
 import { getSessionIngressAuthToken } from '../utils/sessionIngressAuth.js'
 import {
+  setSessionStateChangedListener,
   setSessionMetadataChangedListener,
+  type RequiresActionDetails,
+  type SessionState,
 } from '../utils/sessionState.js'
 import {
   setInternalEventReader,
@@ -25,8 +28,6 @@ import { CCRClient, CCRInitError } from './transports/ccrClient.js'
 import { SSETransport } from './transports/SSETransport.js'
 import type { Transport } from './transports/Transport.js'
 import { getTransportForUrl } from './transports/transportUtils.js'
-
-// TODO(lift): SessionState type import at byte ~13430005
 
 /**
  * Bidirectional streaming for SDK mode with session tracking
@@ -45,7 +46,6 @@ export class RemoteIO extends StructuredIO {
     streamUrl: string,
     initialPrompt?: AsyncIterable<string>,
     replayUserMessages?: boolean,
-    // TODO(lift): sessionState parameter added in v112 at byte ~13430005
   ) {
     const inputStream = new PassThrough({ encoding: 'utf8' })
     super(inputStream, replayUserMessages)
@@ -161,13 +161,11 @@ export class RemoteIO extends StructuredIO {
       this.onCommandLifecycle = (uuid: string, state: 'started' | 'completed') => {
         this.ccrClient?.reportDelivery(uuid, LIFECYCLE_TO_DELIVERY[state])
       }
-      // v112: use direct property assignment on sessionState
-      this.sessionState.onStateChanged = (state: string, details?: unknown) => {
-        this.ccrClient?.reportState(state as never, details as never)
-      }
-      this.sessionState.onMetadataChanged = (metadata: Record<string, unknown>) => {
-        this.ccrClient?.reportMetadata(metadata)
-      }
+      setSessionStateChangedListener(
+        (state: SessionState, details?: RequiresActionDetails) => {
+          this.ccrClient?.reportState(state, details)
+        },
+      )
       setSessionMetadataChangedListener(metadata => {
         this.ccrClient?.reportMetadata(metadata)
       })
@@ -225,7 +223,7 @@ export class RemoteIO extends StructuredIO {
   }
 
   // v112: new method
-  flushDeliveryAcks(): Promise<void> {
+  override flushDeliveryAcks(): Promise<void> {
     return this.ccrClient?.flushDeliveryAcks() ?? Promise.resolve()
   }
 
@@ -244,6 +242,7 @@ export class RemoteIO extends StructuredIO {
     if ((message as Record<string, unknown>).type === 'transcript_mirror') {
       return
     }
+    this.trackWrite(message)
     if (this.ccrClient) {
       await this.ccrClient.writeEvent(message)
     } else {

@@ -12,7 +12,12 @@ import type {
   SDKMessage,
   SDKUserMessage,
 } from '../entrypoints/agentSdkTypes.js'
-import { SDKControlElicitationResponseSchema } from '../entrypoints/sdk/controlSchemas.js'
+import {
+  SDKControlElicitationResponseSchema,
+  SDKControlOAuthTokenRefreshResponseSchema,
+  SDKControlRequestUserDialogResponseSchema,
+  StdoutMessageSchema,
+} from '../entrypoints/sdk/controlSchemas.js'
 import type {
   SDKControlRequest,
   SDKControlResponse,
@@ -41,7 +46,6 @@ import {
 import { writeToStdout } from '../utils/process.js'
 import { jsonStringify } from '../utils/slowOperations.js'
 import { z } from 'zod/v4'
-import { notifyCommandLifecycle } from '../utils/commandLifecycle.js'
 import { normalizeControlMessageKeys } from '../utils/controlMessageCompat.js'
 import { executePermissionRequestHooks } from '../utils/hooks.js'
 import {
@@ -49,6 +53,7 @@ import {
   persistPermissionUpdates,
 } from '../utils/permissions/PermissionUpdate.js'
 import {
+  getSessionState,
   notifySessionStateChanged,
   type RequiresActionDetails,
   type SessionExternalMetadata,
@@ -187,8 +192,6 @@ export class StructuredIO {
   private readonly createdAt = Date.now()
   // TODO(lift): onCommandLifecycle type at byte ~12602049
   onCommandLifecycle?: (uuid: string, state: 'started' | 'completed') => void
-  // TODO(lift): sessionState type at byte ~12602049
-  sessionState: Record<string, unknown> = {}
 
   // sendRequest() and print.ts both enqueue here; the drain loop is the
   // only writer. Prevents control_request from overtaking queued stream_events.
@@ -369,7 +372,7 @@ export class StructuredIO {
   }
 
   // v112: track write for stall detection and schema violation sampling
-  private trackWrite(message: StdoutMessage): void {
+  protected trackWrite(message: StdoutMessage): void {
     if (this.stallTimer) {
       clearTimeout(this.stallTimer)
     }
@@ -380,7 +383,7 @@ export class StructuredIO {
           // TODO(lift): d() telemetry function at byte ~12602049
           logForDiagnosticsNoPII('info', 'tengu_sdk_stall', {
             session_age_ms: Date.now() - this.createdAt,
-            // TODO(lift): session_state from sessionState.getState() at byte ~12602049
+            session_state: getSessionState(),
             last_message_type: type,
             pending_control_requests: this.pendingRequests.size,
           })
@@ -391,10 +394,13 @@ export class StructuredIO {
       this.stallTimer.unref()
     }
     if (message.type !== 'system' && Math.random() < SCHEMA_VIOLATION_SAMPLE_RATE) {
-      // TODO(lift): aY5().safeParse(q) schema validator at byte ~12602049
-      logForDiagnosticsNoPII('info', 'tengu_sdk_schema_violation', {
-        message_type: message.type,
-      })
+      const parsed = StdoutMessageSchema().safeParse(message)
+      if (!parsed.success) {
+        logForDiagnosticsNoPII('info', 'tengu_sdk_schema_violation', {
+          message_type: message.type,
+          issue_count: parsed.error.issues.length,
+        })
+      }
     }
   }
 
@@ -817,14 +823,14 @@ export class StructuredIO {
     options?: { toolUseId?: string; signal?: AbortSignal },
   ): Promise<Record<string, unknown>> {
     try {
-      return await this.sendRequest(
+      return await this.sendRequest<Record<string, unknown>>(
         {
           subtype: 'request_user_dialog',
           dialog_kind: dialogKind,
           payload,
           tool_use_id: options?.toolUseId,
         },
-        z.object({ behavior: z.string() }),
+        SDKControlRequestUserDialogResponseSchema(),
         options?.signal,
       )
     } catch {
@@ -888,12 +894,12 @@ export class StructuredIO {
 
   // v112: new method for OAuth token refresh
   async requestOAuthTokenRefresh(): Promise<{ accessToken: string }> {
-    const result = await this.sendRequest(
+    const result = await this.sendRequest<{ accessToken: string }>(
       { subtype: 'oauth_token_refresh' },
-      z.object({ accessToken: z.string() }),
+      SDKControlOAuthTokenRefreshResponseSchema(),
       AbortSignal.timeout(30_000),
     )
-    return result as { accessToken: string }
+    return result
   }
 }
 

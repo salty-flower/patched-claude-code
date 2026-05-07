@@ -74,6 +74,14 @@ See [`docs/guides/Bumping-Target.md`](docs/guides/Bumping-Target.md).
 Native bundle extraction support is governed by
 [`docs/rules/Native-Bundle-Extraction.md`](docs/rules/Native-Bundle-Extraction.md).
 
+### Release a patched bundle
+
+See [`docs/rules/Releases.md`](docs/rules/Releases.md) and
+[`docs/guides/Releasing.md`](docs/guides/Releasing.md).
+To publish from `main`, use commit title
+`release: claude-code-<upstream-version>-patch.<n>`; the release workflow
+creates the matching tag and GitHub release.
+
 ### Add a new reference version (rare, audit-grade decision)
 
 See [`docs/rules/Reference-Versions.md`](docs/rules/Reference-Versions.md).

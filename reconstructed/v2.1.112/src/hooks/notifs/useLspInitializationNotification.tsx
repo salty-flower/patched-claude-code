@@ -23,7 +23,7 @@ export function useLspInitializationNotification() {
     addNotification
   } = useNotifications();
   const setAppState = useSetAppState();
-  const [shouldPoll, setShouldPoll] = React.useState(_temp);
+  const [shouldPoll, setShouldPoll] = React.useState(() => isEnvTruthy("true"));
   const notifiedErrorsRef = React.useRef(new Set());
   const addError = React.useCallback((source, errorMessage) => {
     const errorKey = `${source}:${errorMessage}`;
@@ -33,7 +33,12 @@ export function useLspInitializationNotification() {
     notifiedErrorsRef.current.add(errorKey);
     logForDebugging(`LSP error: ${source} - ${errorMessage}`);
     setAppState(prev => {
-      const existingKeys = new Set(prev.plugins.errors.map(_temp2));
+      const existingKeys = new Set(prev.plugins.errors.map(e => {
+        if (e.type === "generic-error") {
+          return `generic-error:${e.source}:${e.error}`;
+        }
+        return `${e.type}:${e.source}`;
+      }));
       const stateErrorKey = `generic-error:${source}:${errorMessage}`;
       if (existingKeys.has(stateErrorKey)) {
         return prev;
@@ -91,13 +96,4 @@ export function useLspInitializationNotification() {
     }
     poll();
   }, [poll, shouldPoll]);
-}
-function _temp2(e) {
-  if (e.type === "generic-error") {
-    return `generic-error:${e.source}:${e.error}`;
-  }
-  return `${e.type}:${e.source}`;
-}
-function _temp() {
-  return isEnvTruthy("true");
 }

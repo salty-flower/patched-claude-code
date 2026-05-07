@@ -32,7 +32,10 @@ export function usePluginAutoupdateNotification() {
     if (updatedPlugins.length === 0) {
       return;
     }
-    const pluginNames = updatedPlugins.map(_temp);
+    const pluginNames = updatedPlugins.map(id => {
+      const atIndex = id.indexOf("@");
+      return atIndex > 0 ? id.substring(0, atIndex) : id;
+    });
     const displayNames = pluginNames.length <= 2 ? pluginNames.join(" and ") : `${pluginNames.length} plugins`;
     addNotification({
       key: "plugin-autoupdate-restart",
@@ -42,8 +45,4 @@ export function usePluginAutoupdateNotification() {
     });
     logForDebugging(`Showing plugin autoupdate notification for: ${pluginNames.join(", ")}`);
   }, [updatedPlugins, addNotification]);
-}
-function _temp(id) {
-  const atIndex = id.indexOf("@");
-  return atIndex > 0 ? id.substring(0, atIndex) : id;
 }

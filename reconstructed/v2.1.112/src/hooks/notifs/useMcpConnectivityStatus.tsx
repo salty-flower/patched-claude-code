@@ -9,10 +9,7 @@ type Props = {
   mcpClients?: MCPServerConnection[];
 };
 const EMPTY_MCP_CLIENTS: MCPServerConnection[] = [];
-export function useMcpConnectivityStatus(t0) {
-  const {
-    mcpClients: t1
-  } = t0;
+export function useMcpConnectivityStatus({ mcpClients: t1 }: Props = {}) {
   const mcpClients = t1 === undefined ? EMPTY_MCP_CLIENTS : t1;
   const {
     addNotification
@@ -21,10 +18,10 @@ export function useMcpConnectivityStatus(t0) {
     if (getIsRemoteMode()) {
       return;
     }
-    const failedLocalClients = mcpClients.filter(_temp);
-    const failedClaudeAiClients = mcpClients.filter(_temp2);
-    const needsAuthLocalServers = mcpClients.filter(_temp3);
-    const needsAuthClaudeAiServers = mcpClients.filter(_temp4);
+    const failedLocalClients = mcpClients.filter(client => client.type === "failed" && client.config.type !== "sse-ide" && client.config.type !== "ws-ide" && client.config.type !== "claudeai-proxy");
+    const failedClaudeAiClients = mcpClients.filter(client => client.type === "failed" && client.config.type === "claudeai-proxy" && hasClaudeAiMcpEverConnected(client.name));
+    const needsAuthLocalServers = mcpClients.filter(client => client.type === "needs-auth" && client.config.type !== "claudeai-proxy");
+    const needsAuthClaudeAiServers = mcpClients.filter(client => client.type === "needs-auth" && client.config.type === "claudeai-proxy" && hasClaudeAiMcpEverConnected(client.name));
     if (failedLocalClients.length === 0 && failedClaudeAiClients.length === 0 && needsAuthLocalServers.length === 0 && needsAuthClaudeAiServers.length === 0) {
       return;
     }
@@ -57,16 +54,4 @@ export function useMcpConnectivityStatus(t0) {
       });
     }
   }, [addNotification, mcpClients]);
-}
-function _temp4(client_2) {
-  return client_2.type === "needs-auth" && client_2.config.type === "claudeai-proxy" && hasClaudeAiMcpEverConnected(client_2.name);
-}
-function _temp3(client_1) {
-  return client_1.type === "needs-auth" && client_1.config.type !== "claudeai-proxy";
-}
-function _temp2(client_0) {
-  return client_0.type === "failed" && client_0.config.type === "claudeai-proxy" && hasClaudeAiMcpEverConnected(client_0.name);
-}
-function _temp(client) {
-  return client.type === "failed" && client.config.type !== "sse-ide" && client.config.type !== "ws-ide" && client.config.type !== "claudeai-proxy";
 }

@@ -56,7 +56,7 @@ export function useClaudeCodeHintRecommendation() {
       _PROTO_marketplace_name: recommendation.marketplaceName as AnalyticsMetadata_I_VERIFIED_THIS_IS_PII_TAGGED,
       response: response as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
     });
-    bb15: switch (response) {
+    switch (response) {
       case "yes":
         {
           const {
@@ -76,12 +76,12 @@ export function useClaudeCodeHintRecommendation() {
               throw new Error(result.error);
             }
           });
-          break bb15;
+          break;
         }
       case "disable":
         {
           disableHintRecommendations();
-          break bb15;
+          break;
         }
       case "no":
     }

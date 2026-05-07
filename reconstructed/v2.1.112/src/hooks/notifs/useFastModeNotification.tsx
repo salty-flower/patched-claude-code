@@ -12,7 +12,7 @@ export function useFastModeNotification() {
   const {
     addNotification
   } = useNotifications();
-  const isFastMode = useAppState(_temp);
+  const isFastMode = useAppState(s => s.fastMode);
   const setAppState = useSetAppState();
   useEffect(() => {
     if (getIsRemoteMode()) {
@@ -31,7 +31,10 @@ export function useFastModeNotification() {
         });
       } else {
         if (isFastMode) {
-          setAppState(_temp2);
+          setAppState(prev => ({
+            ...prev,
+            fastMode: false
+          }));
           addNotification({
             key: ORG_CHANGED_KEY,
             color: "warning",
@@ -50,7 +53,10 @@ export function useFastModeNotification() {
       return;
     }
     return onFastModeOverageRejection(message => {
-      setAppState(_temp3);
+      setAppState(prev_0 => ({
+        ...prev_0,
+        fastMode: false
+      }));
       addNotification({
         key: OVERAGE_REJECTED_KEY,
         color: "warning",
@@ -93,21 +99,6 @@ export function useFastModeNotification() {
       unsubExpired();
     };
   }, [addNotification, isFastMode]);
-}
-function _temp3(prev_0) {
-  return {
-    ...prev_0,
-    fastMode: false
-  };
-}
-function _temp2(prev) {
-  return {
-    ...prev,
-    fastMode: false
-  };
-}
-function _temp(s) {
-  return s.fastMode;
 }
 function getCooldownMessage(reason: CooldownReason, resetIn: string): string {
   switch (reason) {

@@ -38,7 +38,7 @@ type UseLspPluginRecommendationResult = {
   handleResponse: (response: 'yes' | 'no' | 'never' | 'disable') => void;
 };
 export function useLspPluginRecommendation() {
-  const trackedFiles = useAppState(_temp);
+  const trackedFiles = useAppState(s => s.fileHistory.trackedFiles);
   const {
     addNotification
   } = useNotifications();
@@ -94,7 +94,7 @@ export function useLspPluginRecommendation() {
       shownAt
     } = recommendation;
     logForDebugging(`[useLspPluginRecommendation] User response: ${response} for ${pluginName}`);
-    bb60: switch (response) {
+    switch (response) {
       case "yes":
         {
           installPluginAndNotify(pluginId, pluginName, "lsp-plugin", addNotification, async pluginData => {
@@ -110,7 +110,7 @@ export function useLspPluginRecommendation() {
             });
             logForDebugging(`[useLspPluginRecommendation] Plugin installed: ${pluginId}`);
           });
-          break bb60;
+          break;
         }
       case "no":
         {
@@ -119,16 +119,24 @@ export function useLspPluginRecommendation() {
             logForDebugging(`[useLspPluginRecommendation] Timeout detected (${elapsed}ms), incrementing ignored count`);
             incrementIgnoredCount();
           }
-          break bb60;
+          break;
         }
       case "never":
         {
           addToNeverSuggest(pluginId);
-          break bb60;
+          break;
         }
       case "disable":
         {
-          saveGlobalConfig(_temp2);
+          saveGlobalConfig(current => {
+            if (current.lspRecommendationDisabled) {
+              return current;
+            }
+            return {
+              ...current,
+              lspRecommendationDisabled: true
+            };
+          });
         }
     }
     clearRecommendation();
@@ -137,16 +145,4 @@ export function useLspPluginRecommendation() {
     recommendation,
     handleResponse
   };
-}
-function _temp2(current) {
-  if (current.lspRecommendationDisabled) {
-    return current;
-  }
-  return {
-    ...current,
-    lspRecommendationDisabled: true
-  };
-}
-function _temp(s) {
-  return s.fileHistory.trackedFiles;
 }

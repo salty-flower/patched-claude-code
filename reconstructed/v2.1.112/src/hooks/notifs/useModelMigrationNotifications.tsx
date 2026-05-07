@@ -33,18 +33,17 @@ c => {
   };
 }];
 export function useModelMigrationNotifications() {
-  useStartupNotification(_temp);
-}
-function _temp() {
-  const config = getGlobalConfig();
-  const notifs = [];
-  for (const migration of MIGRATIONS) {
-    const notif = migration(config);
-    if (notif) {
-      notifs.push(notif);
+  useStartupNotification(() => {
+    const config = getGlobalConfig();
+    const notifs = [];
+    for (const migration of MIGRATIONS) {
+      const notif = migration(config);
+      if (notif) {
+        notifs.push(notif);
+      }
     }
-  }
-  return notifs.length > 0 ? notifs : null;
+    return notifs.length > 0 ? notifs : null;
+  });
 }
 function recent(ts: number | undefined): boolean {
   return ts !== undefined && Date.now() - ts < 3000;

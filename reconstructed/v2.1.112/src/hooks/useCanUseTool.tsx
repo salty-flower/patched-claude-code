@@ -124,7 +124,7 @@ function useCanUseTool(setToolUseConfirmQueue, setToolPermissionContext) {
                 command: string;
               }).command);
               if (speculativePromise) {
-                const raceResult = await Promise.race([speculativePromise.then(_temp), new Promise(_temp2)]);
+                const raceResult = await Promise.race([speculativePromise.then(r => ({ type: "result" as const, result: r })), new Promise(res => setTimeout(res, 2000, { type: "timeout" as const }))]);
                 if (ctx.resolveIfAborted(resolve)) {
                   return;
                 }
@@ -178,16 +178,5 @@ function useCanUseTool(setToolUseConfirmQueue, setToolPermissionContext) {
     });
   }), [setToolPermissionContext, setToolUseConfirmQueue]);
   return t0;
-}
-function _temp2(res) {
-  return setTimeout(res, 2000, {
-    type: "timeout" as const
-  });
-}
-function _temp(r) {
-  return {
-    type: "result" as const,
-    result: r
-  };
 }
 export default useCanUseTool;

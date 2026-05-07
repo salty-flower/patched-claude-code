@@ -13,12 +13,11 @@ type Props = {
   ideSelection: IDESelection | undefined;
   mcpClients: MCPServerConnection[];
 };
-export function useIDEStatusIndicator(t0) {
-  const {
-    ideSelection,
-    mcpClients,
-    ideInstallationStatus
-  } = t0;
+export function useIDEStatusIndicator({
+  ideSelection,
+  mcpClients,
+  ideInstallationStatus
+}: Props) {
   const {
     addNotification,
     removeNotification
@@ -45,7 +44,23 @@ export function useIDEStatusIndicator(t0) {
     if (hasShownHintRef.current || (getGlobalConfig().ideHintShownCount ?? 0) >= MAX_IDE_HINT_SHOW_COUNT) {
       return;
     }
-    const timeoutId = setTimeout(_temp2, 3000, hasShownHintRef, addNotification);
+    const timeoutId = setTimeout(() => {
+      detectIDEs(true).then(infos => {
+        const ideName_0 = infos[0]?.name;
+        if (ideName_0 && !hasShownHintRef.current) {
+          hasShownHintRef.current = true;
+          saveGlobalConfig(current => ({
+            ...current,
+            ideHintShownCount: (current.ideHintShownCount ?? 0) + 1
+          }));
+          addNotification({
+            key: "ide-status-hint",
+            jsx: <Text dimColor={true}>/ide for <Text color="ide">{ideName_0}</Text></Text>,
+            priority: "low"
+          });
+        }
+      });
+    }, 3000);
     return () => clearTimeout(timeoutId);
   }, [addNotification, removeNotification, ideStatus, showJetBrainsInfo]);
   useEffect(() => {
@@ -92,24 +107,4 @@ export function useIDEStatusIndicator(t0) {
       priority: "medium"
     });
   }, [addNotification, removeNotification, showIDEInstallError]);
-}
-function _temp2(hasShownHintRef_0, addNotification_0) {
-  detectIDEs(true).then(infos => {
-    const ideName_0 = infos[0]?.name;
-    if (ideName_0 && !hasShownHintRef_0.current) {
-      hasShownHintRef_0.current = true;
-      saveGlobalConfig(_temp);
-      addNotification_0({
-        key: "ide-status-hint",
-        jsx: <Text dimColor={true}>/ide for <Text color="ide">{ideName_0}</Text></Text>,
-        priority: "low"
-      });
-    }
-  });
-}
-function _temp(current) {
-  return {
-    ...current,
-    ideHintShownCount: (current.ideHintShownCount ?? 0) + 1
-  };
 }

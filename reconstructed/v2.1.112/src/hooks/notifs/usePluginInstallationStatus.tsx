@@ -10,7 +10,7 @@ export function usePluginInstallationStatus() {
   const {
     addNotification
   } = useNotifications();
-  const installationStatus = useAppState(_temp);
+  const installationStatus = useAppState(s => s.plugins.installationStatus);
   const {
     totalFailed,
     failedMarketplacesCount,
@@ -23,8 +23,8 @@ export function usePluginInstallationStatus() {
         failedPluginsCount: 0
       };
     }
-    const failedMarketplaces = installationStatus.marketplaces.filter(_temp2);
-    const failedPlugins = installationStatus.plugins.filter(_temp3);
+    const failedMarketplaces = installationStatus.marketplaces.filter(m => m.status === "failed");
+    const failedPlugins = installationStatus.plugins.filter(p => p.status === "failed");
     const totalFailed = failedMarketplaces.length + failedPlugins.length;
     return {
       totalFailed,
@@ -54,13 +54,4 @@ export function usePluginInstallationStatus() {
       priority: "medium"
     });
   }, [addNotification, totalFailed, failedMarketplacesCount, failedPluginsCount, installationStatus]);
-}
-function _temp3(p) {
-  return p.status === "failed";
-}
-function _temp2(m) {
-  return m.status === "failed";
-}
-function _temp(s) {
-  return s.plugins.installationStatus;
 }

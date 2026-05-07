@@ -10,7 +10,12 @@ export function useSettingsErrors() {
     addNotification,
     removeNotification
   } = useNotifications();
-  const [errors_0, setErrors] = useState(_temp);
+  const [errors_0, setErrors] = useState(() => {
+    const {
+      errors
+    } = getSettingsWithAllErrors();
+    return errors;
+  });
   const handleSettingsChange = useCallback(() => {
     const {
       errors: errors_1
@@ -36,10 +41,4 @@ export function useSettingsErrors() {
     }
   }, [errors_0, addNotification, removeNotification]);
   return errors_0;
-}
-function _temp() {
-  const {
-    errors
-  } = getSettingsWithAllErrors();
-  return errors;
 }

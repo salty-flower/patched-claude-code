@@ -11,14 +11,13 @@ type UseIDEIntegrationProps = {
   setShowIdeOnboarding: React.Dispatch<React.SetStateAction<boolean>>;
   setIDEInstallationState: React.Dispatch<React.SetStateAction<IDEExtensionInstallationStatus | null>>;
 };
-export function useIDEIntegration(t0) {
-  const {
-    autoConnectIdeFlag,
-    ideToInstallExtension,
-    setDynamicMcpConfig,
-    setShowIdeOnboarding,
-    setIDEInstallationState
-  } = t0;
+export function useIDEIntegration({
+  autoConnectIdeFlag,
+  ideToInstallExtension,
+  setDynamicMcpConfig,
+  setShowIdeOnboarding,
+  setIDEInstallationState
+}: UseIDEIntegrationProps) {
   useEffect(() => {
     const addIde = function addIde(ide) {
       if (!ide) {

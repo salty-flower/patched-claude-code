@@ -33,11 +33,10 @@ const NOOP_HELPERS: PromptInputHelpers = {
  * user's keybinding configuration. When triggered, each handler submits
  * the corresponding slash command (e.g., "command:commit" submits "/commit").
  */
-export function CommandKeybindingHandlers(t0) {
-  const {
-    onSubmit,
-    isActive: t1
-  } = t0;
+export function CommandKeybindingHandlers({
+  onSubmit,
+  isActive: t1
+}: Props) {
   const isActive = t1 === undefined ? true : t1;
   const keybindingContext = useOptionalKeybindingContext();
   const isModalOverlayActive = useIsModalOverlayActive();

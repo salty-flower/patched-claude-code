@@ -13,12 +13,17 @@ The `release` workflow stages the upstream npm package, renders the patched
 bundle, packages it, uploads workflow artifacts, and creates the GitHub release
 for pushed tags.
 
+Current releases stage `@anthropic-ai/claude-code-darwin-arm64`. The patched
+asset is JavaScript, but patch locators are authored against that native
+package's embedded bundle bytes.
+
 Manual dry run:
 
 ```sh
 gh workflow run release.yml \
   -f target_version=2.1.132 \
   -f release_id=patch.1 \
+  -f platform_package=@anthropic-ai/claude-code-darwin-arm64 \
   -f publish=false
 ```
 
@@ -28,13 +33,14 @@ Manual publish:
 gh workflow run release.yml \
   -f target_version=2.1.132 \
   -f release_id=patch.1 \
+  -f platform_package=@anthropic-ai/claude-code-darwin-arm64 \
   -f publish=true
 ```
 
 ## Local Packaging
 
 ```sh
-bin/stage-claude-code 2.1.132
+bin/stage-claude-code 2.1.132 --platform-package @anthropic-ai/claude-code-darwin-arm64
 bin/render-patched 2.1.132
 bun run tools/package-release.ts --version 2.1.132 --release-id patch.1
 ```

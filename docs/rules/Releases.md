@@ -11,6 +11,7 @@ version.
 | Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz` |
 | Bundle | `cli.js` inside the artifact; never committed to git |
 | Runtime | Bun supplied by the consumer |
+| Native package | Explicitly staged; current target is `@anthropic-ai/claude-code-darwin-arm64` |
 | Manifest | `manifest.json` inside the artifact plus `<artifact>.manifest.json` beside it |
 
 `patch.<n>` increments whenever the rendered bundle changes for the same

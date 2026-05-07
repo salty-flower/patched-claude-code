@@ -8,6 +8,7 @@ on:
 
 env:
   TARGET_VERSION: "2.1.132"
+  TARGET_PLATFORM_PACKAGE: "@anthropic-ai/claude-code-darwin-arm64"
 
 jobs:
   verify:
@@ -26,7 +27,7 @@ jobs:
         run: bun run --cwd tools typecheck
 
       - name: Stage target bundle
-        run: bin/stage-claude-code "$TARGET_VERSION"
+        run: bin/stage-claude-code "$TARGET_VERSION" --platform-package "$TARGET_PLATFORM_PACKAGE"
 
       - name: Verify patches and contracts
         run: |

@@ -29,6 +29,12 @@ type PatchFile = {
   raw: string;
 };
 
+type StageManifest = {
+  source?: string;
+  platformPackage?: string;
+  nativeTarball?: string;
+};
+
 function parseArgs(argv: string[]): Args {
   const args: Args = { outDir: join(ROOT, "dist") };
   for (let i = 0; i < argv.length; i++) {
@@ -93,6 +99,12 @@ function loadPatches(): PatchFile[] {
     });
 }
 
+function loadStageManifest(version: string): StageManifest | null {
+  const path = join(ROOT, "staging", version, "stage-manifest.json");
+  if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, "utf8")) as StageManifest;
+}
+
 function writeExecutable(path: string, body: string): void {
   writeFileSync(path, body, { mode: 0o755 });
 }
@@ -126,6 +138,7 @@ exec bun "$dir/cli.js" "$@"
   );
 
   const patches = loadPatches();
+  const stageManifest = loadStageManifest(version);
   const patchSetSource = patches
     .map(({ patch, raw }) => `${patch.name}\0${raw}`)
     .join("\n");
@@ -138,6 +151,9 @@ exec bun "$dir/cli.js" "$@"
     upstream: {
       package: PACKAGE,
       version,
+      source: stageManifest?.source ?? null,
+      platformPackage: stageManifest?.platformPackage ?? null,
+      nativeTarball: stageManifest?.nativeTarball ?? null,
     },
     release: {
       id: releaseId,

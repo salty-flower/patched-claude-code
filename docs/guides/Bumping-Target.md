@@ -7,12 +7,17 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 ## Workflow
 
 1. **Stage the new bundle.**
-   - npm-tarball release: `npm pack @anthropic-ai/claude-code@<ver>`,
-     extract `package/cli.js` into `staging/<ver>/`.
-   - Bun-binary release (post 2.1.113): use a Bun extractor like
-     `@shepherdjerred/bun-decompile` to recover the bundled JS, drop the
-     result at `staging/<ver>/cli.js`. Repacking back to a binary is **not
-     in scope** — patched JS runs on a separately-installed Bun runtime.
+   ```sh
+   bin/stage-claude-code <ver>
+   ```
+   Use `latest` instead of `<ver>` only when intentionally moving to the
+   current npm dist-tag. The stager handles both old packages with
+   `package/cli.js` and current native packages whose JS entrypoint is
+   embedded in a Bun standalone binary. Repacking back to a binary is **not
+   in scope** — patched JS runs on a separately-installed Bun runtime.
+   Native extraction validity is governed by
+   [`../rules/Native-Bundle-Extraction.md`](../rules/Native-Bundle-Extraction.md);
+   update that rule when a new staged native version is smoke-tested.
 
 2. **Re-verify every patch against the new bundle.**
    ```sh
@@ -29,10 +34,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
 3. **Build and smoke.**
    ```sh
-   bin/build-audited staging/<ver>/cli.js /tmp/cli.patched.js
-   node /tmp/cli.patched.js --version
+   bin/render-patched <ver>
+   bun staging/<ver>/cli.patched.js --version
    ```
-   For Bun binaries: `bun /tmp/cli.patched.js --version`.
 
 4. **Update `target_version` in patches.**
    When a patch was authored against an older target, update its

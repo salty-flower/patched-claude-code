@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Thin shell wrapper: locate project root, then exec tools/stage-claude-code.ts.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export AUDITED_CC_ROOT="$ROOT"
+exec bun run "$ROOT/tools/stage-claude-code.ts" "$@"

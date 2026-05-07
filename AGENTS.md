@@ -9,6 +9,23 @@ works of Anthropic's Claude Code, recovered from a publicly-leaked source map
 **read-only audit reference** — never modify, never publish, never extract
 into other projects.
 
+## Project direction
+
+This repo is bundle-first. The primary deliverable is a traceable patching
+pipeline for released Claude Code bundles, not a fully buildable decompilation.
+
+Use `reference/v2.1.88/` and `reconstructed/` as audit corpora:
+
+- Use recovered source to explain behavior, locate patch sites, and justify
+  `patches/*.toml` rationale.
+- Do not assume source-map recovered trees are buildable. The v2.1.88 reference
+  itself is not a complete upstream build tree.
+- Treat buildability as a scoped task for named entrypoints or compatibility
+  layers. Document unrecoverable gaps instead of filling them with guessed
+  behavior.
+- Private packages, never-bundled modules, and inlined source-map imports are
+  reconstruction boundaries unless local/private evidence is supplied.
+
 ## Hard rules
 
 You MUST:
@@ -54,6 +71,8 @@ See [`docs/guides/Adding-Patches.md`](docs/guides/Adding-Patches.md).
 ### Bump the target Claude Code version (the version we patch)
 
 See [`docs/guides/Bumping-Target.md`](docs/guides/Bumping-Target.md).
+Native bundle extraction support is governed by
+[`docs/rules/Native-Bundle-Extraction.md`](docs/rules/Native-Bundle-Extraction.md).
 
 ### Add a new reference version (rare, audit-grade decision)
 

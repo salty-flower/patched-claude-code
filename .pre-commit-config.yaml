@@ -1,0 +1,40 @@
+fail_fast: false
+
+repos:
+  - repo: local
+    hooks:
+      - id: staged-diff-check
+        name: staged diff has no whitespace errors
+        entry: git diff --cached --check
+        language: system
+        always_run: true
+        pass_filenames: false
+
+      - id: tools-typecheck
+        name: tools TypeScript typecheck
+        entry: bash -c 'cd tools && bun run typecheck'
+        language: system
+        always_run: true
+        pass_filenames: false
+
+      - id: verify-patches
+        name: patch locators and rationale refs verify
+        entry: bun run tools/verify-patches.ts
+        language: system
+        always_run: true
+        pass_filenames: false
+
+      - id: native-extraction-contract
+        name: native extraction contract is declared
+        entry: bun run tools/check-native-extraction-contract.ts
+        language: system
+        always_run: true
+        pass_filenames: false
+
+      - id: render-and-smoke-current-target
+        name: render and smoke current patched target
+        entry: bash -c 'bin/render-patched 2.1.132 && bun staging/2.1.132/cli.patched.js --version'
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [manual]

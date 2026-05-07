@@ -34,7 +34,10 @@ import type {
   PermissionDecision,
   PermissionDecisionReason,
 } from 'src/utils/permissions/PermissionResult.js'
-import { hasPermissionsToUseTool } from 'src/utils/permissions/permissions.js'
+import {
+  checkRuleBasedPermissions,
+  hasPermissionsToUseTool,
+} from 'src/utils/permissions/permissions.js'
 import { writeToStdout } from 'src/utils/process.js'
 import { jsonStringify } from 'src/utils/slowOperations.js'
 import { z } from 'zod/v4'
@@ -938,8 +941,14 @@ async function executePermissionRequestHooksForSDK(
 
         // v112: check ask-rule on hook-rewritten input
         if (decision.updatedInput) {
-          // TODO(lift): y98(await yM6(tool, finalInput, toolUseContext), tool.name)
-          // ask-rule validation on hook-rewritten input at byte ~12602049
+          const ruleCheck = await checkRuleBasedPermissions(
+            tool,
+            finalInput,
+            toolUseContext,
+          )
+          if (ruleCheck) {
+            return ruleCheck
+          }
         }
 
         // Apply permission updates if provided by hook ("always allow")

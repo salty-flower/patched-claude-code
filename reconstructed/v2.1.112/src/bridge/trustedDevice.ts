@@ -9,6 +9,10 @@ import {
 import { logForDebugging } from '../utils/debug.js'
 import { errorMessage } from '../utils/errors.js'
 import { isEssentialTrafficOnly } from '../utils/privacyLevel.js'
+import {
+  isPolicyAllowed,
+  waitForPolicyLimitsToLoad,
+} from '../services/policyLimits/index.js'
 import { getSecureStorage } from '../utils/secureStorage/index.js'
 import { jsonStringify } from '../utils/slowOperations.js'
 
@@ -116,10 +120,8 @@ export async function enrollTrustedDevice(): Promise<void> {
       return
     }
     // v112: org policy check for require_trusted_devices
-    // TODO(lift): verify PolicyLimits module name at byte ~6959100
-    const policyLimits = getPolicyLimits()
-    await policyLimits.waitForPolicyLimitsToLoad()
-    if (!policyLimits.isPolicyAllowed(REQUIRE_TRUSTED_DEVICES_POLICY)) {
+    await waitForPolicyLimitsToLoad()
+    if (!isPolicyAllowed(REQUIRE_TRUSTED_DEVICES_POLICY)) {
       logForDebugging(
         `[trusted-device] Org has not enabled ${REQUIRE_TRUSTED_DEVICES_POLICY}, skipping enrollment`,
       )
@@ -219,11 +221,3 @@ export async function enrollTrustedDevice(): Promise<void> {
   }
 }
 
-// TODO(lift): PolicyLimits import at byte ~6959000
-function getPolicyLimits(): {
-  waitForPolicyLimitsToLoad(): Promise<void>
-  isPolicyAllowed(policy: string): boolean
-} {
-  // v112 adds org policy check; this is a placeholder for the actual import
-  throw new Error('TODO(lift): PolicyLimits module not resolved')
-}

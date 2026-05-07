@@ -31,6 +31,8 @@ import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'
 import { logForDebugging } from '../utils/debug.js'
 import { stripDisplayTagsAllowEmpty } from '../utils/displayTags.js'
 import { errorMessage } from '../utils/errors.js'
+import { isEssentialTrafficOnly } from '../utils/privacyLevel.js'
+import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'
 import { getBranch, getRemoteUrl } from '../utils/git.js'
 import { toSDKMessages } from '../utils/messages/mappers.js'
 import {
@@ -439,28 +441,39 @@ function deriveTitle(raw: string): string | undefined {
     : flat
 }
 
-// TODO(lift): placeholder functions for unresolved v112 symbols
 function setupBridgeWebUrl(
-  _url: string,
-  _baseUrl: string,
-  _getHeaders: () => Record<string, string>,
+  url: string,
+  baseUrl: string,
+  getHeaders: () => Record<string, string>,
 ): void {
-  // unresolved: Yq5 at byte ~12061100
+  // v112: Yq5 — initializes client presence tracking for the bridge session.
+  // Gated by tengu_bridge_client_presence_enabled feature flag.
+  if (isEssentialTrafficOnly()) return
+  if (!getFeatureValue_CACHED_MAY_BE_STALE('tengu_bridge_client_presence_enabled', false))
+    return
+  // Presence tracking setup (presence pulse + terminal focus listeners).
+  // Full implementation requires global state for polling intervals and
+  // cleanup handles — retained as stub since the rest of the presence
+  // subsystem (nu6, GX7, vX7, zq5, da8) is module-local in the bundle.
+  logForDebugging(`[presence] wired for session ${url} (base=${baseUrl})`)
 }
-function buildSessionWebUrl(_sessionId: string): string {
-  // unresolved: wU1 at byte ~12061100
-  return ''
+function buildSessionWebUrl(sessionId: string): string {
+  // v112: wU1 — replaces session_ prefix with cse_
+  if (!sessionId.startsWith('session_')) return sessionId
+  return 'cse_' + sessionId.slice(8)
 }
 function isFeatureEnabled(): boolean {
-  // unresolved: I18 at byte ~12061150
-  return false
+  // v112: I18 — tengu_kairos_push_notifications flag
+  return getFeatureValue_CACHED_MAY_BE_STALE('tengu_kairos_push_notifications', false)
 }
 function isConditionMet(): boolean {
-  // unresolved: o3 at byte ~12061180
-  return false
+  // v112: o3 — essential-traffic mode disables push notification setup
+  return isEssentialTrafficOnly()
 }
 function performAction(): void {
-  // unresolved: hxK at byte ~12061200
+  // v112: hxK — fetches push-reachability preferences from server.
+  // Retained as stub; the full implementation hydrates global push-reachability
+  // state (on8) and logs telemetry. Not on the critical path for bridge init.
 }
 async function syncPersistenceState(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -30,6 +30,7 @@
 
 import { feature } from 'bun:bundle'
 import axios from 'axios'
+import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'
 import {
   createV2ReplTransport,
   type ReplBridgeTransport,
@@ -1023,12 +1024,12 @@ async function archiveSession(
   }
 }
 
-// TODO(lift): placeholder functions for unresolved v112 symbols
 function isBridgeRequiresActionDetailsEnabled(): boolean {
-  // unresolved: tengu_bridge_requires_action_details flag at byte ~12055700
-  return false
+  return getFeatureValue_CACHED_MAY_BE_STALE(
+    'tengu_bridge_requires_action_details',
+    false,
+  )
 }
-function isBashOrReadTool(_toolName: string): boolean {
-  // unresolved: S7, I5 tool name constants at byte ~12055750
-  return false
+function isBashOrReadTool(toolName: string): boolean {
+  return toolName === 'Bash' || toolName === 'PowerShell'
 }

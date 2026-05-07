@@ -2,17 +2,8 @@ import { useCallback, useRef, useState } from 'react'
 import { KeyboardEvent } from '../ink/events/keyboard-event.js'
 // eslint-disable-next-line custom-rules/prefer-use-keybindings -- backward-compat bridge until consumers wire handleKeyDown to <Box onKeyDown>
 import { useInput } from '../ink.js'
-import {
-  Cursor,
-  getLastKill,
-  pushToKillRing,
-  recordYank,
-  resetKillAccumulation,
-  resetYankState,
-  updateYankLength,
-  yankPop,
-} from '../utils/Cursor.js'
-import { useKillRing } from './useKillRing.js'
+import { Cursor } from '../utils/Cursor.js'
+import { getLastKill, getYankPopResult, useKillRing } from './useKillRing.js'
 import { useTerminalSize } from './useTerminalSize.js'
 
 type UseSearchInputOptions = {
@@ -140,14 +131,9 @@ export function useSearchInput({
       return
     }
 
-    // Reset kill accumulation for non-kill keys
-    if (!isKillKey(e)) {
-      resetKillAccumulation()
-    }
-
-    // Reset yank state for non-yank keys
-    if (!isYankKey(e)) {
-      resetYankState()
+    // Reset kill/yank state for non-special keys
+    if (!isKillKey(e) && !isYankKey(e)) {
+      killRing.dispatch({ type: 'interrupt' })
     }
 
     // Exit conditions
@@ -331,7 +317,7 @@ export function useSearchInput({
           return
         }
         case 'y': {
-          const text = getLastKill()
+          const text = getLastKill(killRing.state)
           if (text.length > 0) {
             const startOffset = cursor.offset
             const newCursor = cursor.insert(text)
@@ -371,14 +357,15 @@ export function useSearchInput({
           return
         }
         case 'y': {
-          const popResult = yankPop()
+          const popResult = getYankPopResult(killRing.state)
           if (popResult) {
             const { text, start, length } = popResult
             const before = currentQuery.slice(0, start)
             const after = currentQuery.slice(start + length)
             const newText = before + text + after
             const newOffset = start + text.length
-            updateYankLength(text.length)
+            killRing.dispatch({ type: 'yankPop' })
+            killRing.dispatch({ type: 'updateYankLength', length: text.length })
             updateQuery(newText, newOffset)
           }
           return

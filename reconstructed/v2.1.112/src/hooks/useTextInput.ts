@@ -8,16 +8,8 @@ import type {
   InlineGhostText,
   TextInputState,
 } from '../types/textInputTypes.js'
-import {
-  Cursor,
-  getLastKill,
-  pushToKillRing,
-  recordYank,
-  resetKillAccumulation,
-  resetYankState,
-  updateYankLength,
-  yankPop,
-} from '../utils/Cursor.js'
+import { Cursor } from '../utils/Cursor.js'
+import { getLastKill, getYankPopResult, useKillRing } from './useKillRing.js'
 import { env } from '../utils/env.js'
 import { isFullscreenEnvEnabled } from '../utils/fullscreen.js'
 import type { ImageDimensions } from '../utils/imageResizer.js'
@@ -68,6 +60,8 @@ export type UseTextInputProps = {
   inputFilter?: (input: string, key: Key) => string
   inlineGhostText?: InlineGhostText
   dim?: (text: string) => string
+  /** External kill ring to use instead of the default. */
+  killRing?: ReturnType<typeof useKillRing>
 }
 
 export function useTextInput({
@@ -94,7 +88,11 @@ export function useTextInput({
   inputFilter,
   inlineGhostText,
   dim,
+  killRing: externalKillRing,
 }: UseTextInputProps): TextInputState {
+  const defaultKillRing = useKillRing()
+  const killRing = externalKillRing ?? defaultKillRing
+
   // Pre-warm the modifiers module for Apple Terminal (has internal guard, safe to call multiple times)
   if (env.terminal === 'Apple_Terminal') {
     prewarmModifiers()
@@ -179,35 +177,35 @@ export function useTextInput({
 
   function killToLineEnd(): Cursor {
     const { cursor: newCursor, killed } = cursor.deleteToLineEnd()
-    pushToKillRing(killed, 'append')
+    killRing.dispatch({ type: 'kill', text: killed, direction: 'append' })
     return newCursor
   }
 
   function killToLineStart(): Cursor {
     const { cursor: newCursor, killed } = cursor.deleteToLineStart()
-    pushToKillRing(killed, 'prepend')
+    killRing.dispatch({ type: 'kill', text: killed, direction: 'prepend' })
     return newCursor
   }
 
   function killWordBefore(): Cursor {
     const { cursor: newCursor, killed } = cursor.deleteWordBefore()
-    pushToKillRing(killed, 'prepend')
+    killRing.dispatch({ type: 'kill', text: killed, direction: 'prepend' })
     return newCursor
   }
 
   function yank(): Cursor {
-    const text = getLastKill()
+    const text = getLastKill(killRing.state)
     if (text.length > 0) {
       const startOffset = cursor.offset
       const newCursor = cursor.insert(text)
-      recordYank(startOffset, text.length)
+      killRing.dispatch({ type: 'yank', start: startOffset, length: text.length })
       return newCursor
     }
     return cursor
   }
 
   function handleYankPop(): Cursor {
-    const popResult = yankPop()
+    const popResult = getYankPopResult(killRing.state)
     if (!popResult) {
       return cursor
     }
@@ -217,7 +215,8 @@ export function useTextInput({
     const after = cursor.text.slice(start + length)
     const newText = before + text + after
     const newOffset = start + text.length
-    updateYankLength(text.length)
+    killRing.dispatch({ type: 'yankPop' })
+    killRing.dispatch({ type: 'updateYankLength', length: text.length })
     return Cursor.fromText(newText, columns, newOffset)
   }
 
@@ -459,19 +458,13 @@ export function useTextInput({
         }
         setOffset(currentCursor.offset)
       }
-      resetKillAccumulation()
-      resetYankState()
+      killRing.dispatch({ type: 'interrupt' })
       return
     }
 
-    // Reset kill accumulation for non-kill keys
-    if (!isKillKey(key, filteredInput)) {
-      resetKillAccumulation()
-    }
-
-    // Reset yank state for non-yank keys (breaks yank-pop chain)
-    if (!isYankKey(key, filteredInput)) {
-      resetYankState()
+    // Reset kill/yank state for non-special keys
+    if (!isKillKey(key, filteredInput) && !isYankKey(key, filteredInput)) {
+      killRing.dispatch({ type: 'interrupt' })
     }
 
     const nextCursor = mapKey(key)(filteredInput)

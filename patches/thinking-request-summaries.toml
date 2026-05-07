@@ -15,8 +15,8 @@ requests thinking summaries for local interactive use.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/betas.ts#L264-L277"
 
-locator_pattern = '''if\(O&&e19\(H\)&&!N8\(\)&&u8\(\)\.showThinkingSummaries!==!0\)_\.push\(Tu_\)'''
+locator_pattern = '''if\(_&&c1K\(H\)&&!N6\(\)&&u6\(\)\.showThinkingSummaries!==!0\)\$\.push\(_u\$\)'''
 locator_kind = "regex"
 expected_matches = 1
 
-replacement = "if(!1)_.push(Tu_)"
+replacement = "if(!1)$.push(_u$)"

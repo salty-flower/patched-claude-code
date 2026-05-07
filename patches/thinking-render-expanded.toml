@@ -15,8 +15,8 @@ thinking content in interactive mode.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
 
-locator_pattern = '''if\(Y\)return null;if\(!\(O\|\|T\)\)'''
+locator_pattern = '''if\(O\)return null;if\(!\(_\|\|A\)\)'''
 locator_kind = "regex"
 expected_matches = 1
 
-replacement = "if(!1)return null;if(!1)"
+replacement = "if(O)return null;if(!1)"

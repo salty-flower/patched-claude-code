@@ -15,7 +15,7 @@ display directly selectable for local patched builds.
 """
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2456-L2488"
 
-locator_pattern = '''if\(x1\.type!=="disabled"\)\{if\(Y\.thinkingDisplay==="summarized"\|\|Y\.thinkingDisplay==="omitted"\)x1\.display=Y\.thinkingDisplay;else if\(!N8\(\)&&u8\(\)\.showThinkingSummaries===!0\)x1\.display="summarized"\}'''
+locator_pattern = '''if\(x1\.type!=="disabled"\)\{if\(O\.thinkingDisplay==="summarized"\|\|O\.thinkingDisplay==="omitted"\)x1\.display=O\.thinkingDisplay;else if\(!N6\(\)&&u6\(\)\.showThinkingSummaries===!0\)x1\.display="summarized"\}'''
 locator_kind = "regex"
 expected_matches = 1
 

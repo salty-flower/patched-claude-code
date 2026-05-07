@@ -9,9 +9,9 @@ git commit --allow-empty -m "release: claude-code-2.1.132-patch.2"
 git push origin main
 ```
 
-The `release` workflow stages the upstream npm package, renders the patched
-bundle, packages it, uploads workflow artifacts, and creates the GitHub release
-and tag from the pushed commit.
+The manual `release` workflow stages from the npm/native package path. The
+scheduled `auto-release` workflow sets `TARGET_SOURCE` from upstream detection
+and may stage npm or GCS before rendering, testing, and packaging.
 
 Manual tag release remains supported:
 
@@ -27,11 +27,8 @@ package's embedded bundle bytes.
 Manual dry run:
 
 ```sh
-gh workflow run release.yml \
-  -f target_version=2.1.132 \
-  -f release_id=patch.1 \
-  -f platform_package=@anthropic-ai/claude-code-darwin-arm64 \
-  -f publish=false
+just release-dry 2.1.132 patch.1
+TARGET_SOURCE=gcs just release-dry 2.1.132 patch.1
 ```
 
 Manual publish:
@@ -47,9 +44,8 @@ gh workflow run release.yml \
 ## Local Packaging
 
 ```sh
-bin/stage-claude-code 2.1.132 --platform-package @anthropic-ai/claude-code-darwin-arm64
-bin/render-patched 2.1.132
-bun run tools/package-release.ts --version 2.1.132 --release-id patch.1
+just release-dry 2.1.132 patch.1
+TARGET_SOURCE=gcs just release-dry 2.1.132 patch.1
 ```
 
 Outputs land in `dist/`:

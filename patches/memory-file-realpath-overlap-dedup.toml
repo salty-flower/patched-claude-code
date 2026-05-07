@@ -19,3 +19,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''let{resolvedPath:z,isSymlink:$}=Vz(F_(),H),YH=RP(z);if($&&q.has(YH))return[];if(q.add(A),$)q.add(YH);let{info:Y,includePaths:w}=await Eu9(H,_,z)'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''let{resolvedPath:z,isSymlink:$}=Vz(F_(),H),YH=RP(z);if($&&q.has(YH))return[];if(q.add(A),$)q.add(YH);let{info:Y,includePaths:w}=await Eu9(H,_,z)'''

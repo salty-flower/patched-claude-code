@@ -18,3 +18,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''function uQ7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${tO6(P)||U1(P)}`:"";switch(H.type){'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''function uQ7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${tO6(P)||U1(P)}`:"";switch(H.type){'''

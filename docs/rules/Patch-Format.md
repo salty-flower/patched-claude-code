@@ -20,7 +20,7 @@ rationale_ref = "reference/v2.1.88/sources/tools/AskUserQuestionTool/AskUserQues
 
 # Required. The byte sequence (or regex) that locates the patch site.
 # Must hit `expected_matches` times in `target_version`'s minified cli.js.
-# Verified by tools/verify-patches.ts before commit.
+# Verified by tools/patch/verify-patches.ts before commit.
 locator_pattern = '''isEnabled\(\)\{if\(\w+\(\)\.length>0\)return!1;return!0\}'''
 locator_kind = "regex"                # "regex" | "literal"
 
@@ -38,6 +38,12 @@ replacement = "isEnabled(){return!0}"
 # Optional. If set, the patch is only applied when this env var is truthy.
 # Used to gate experimental patches behind a flag.
 gated_by_env = ""
+
+# Required. Tests travel with patch metadata.
+[[tests]]
+kind = "static"                     # "static" | "cli" | "pty"
+name = "replacement is rendered"
+assert_contains = "isEnabled(){return!0}"
 ```
 
 ## Field rules
@@ -54,14 +60,19 @@ gated_by_env = ""
   deterministic substitutions, not transforms.
 - `applies_to` uses standard semver ranges. When a patch needs different
   text per range, split it into two files.
+- Every patch MUST include at least one `[[tests]]` entry. Static tests run
+  against the rendered bundle. CLI tests run `bun <cli.patched.js>`.
+  PTY tests use `script(1)` plus `timeout` and default input `/exit`.
 
 ## Lifecycle
 
-- Add: write the file, run `bun run tools/verify-patches.ts <patch-file>`,
-  commit alongside any docs/records entry the patch needs.
+- Add: write the file, run `just verify <target-version>`, and commit
+  alongside any docs/records entry the patch needs. For a single-patch
+  diagnostic, run
+  `bun run tools/patch/verify-patches.ts patches/<file>.toml --against staging/<target-version>/cli.js`.
 - Re-anchor (target version bump): run
-  `bun run tools/verify-patches.ts --against <new-cli.js>`. If the locator
-  fails, edit the pattern; if the replacement intent shifted, write a
-  second `applies_to` patch instead of mutating the original.
+  `TARGET_SOURCE=<npm|gcs> just verify <target-version>`. If the locator
+  fails, edit the pattern; if the replacement intent shifted, write a second
+  `applies_to` patch instead of mutating the original.
 - Retire: delete the file when upstream behaviour makes the patch a no-op.
   The deletion commit must reference the upstream version that obsoleted it.

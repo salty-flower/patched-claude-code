@@ -18,3 +18,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''.addOption(new y4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(NV)).option("--hide-builtin-footer","Hide the built-in footer line.",()=>!0).option("-c, --continue"'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''.addOption(new y4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(NV)).option("--hide-builtin-footer","Hide the built-in footer line.",()=>!0).option("-c, --continue"'''

@@ -13,8 +13,8 @@ needs to revalidate it without your help.
    plus the surrounding stable bytes.
 
 2. **Resolve audit context against v2.1.88.**
-   - Run `bun run tools/align.ts --target staging/<target>/cli.js` to find
-     the matching v2.1.88 declaration.
+   - Run `just alignment-report <target>` when you need an aggregate
+     alignment probe between a staged target and v2.1.88.
    - Open the source it points to under `reference/v2.1.88/sources/...` and
      read the function plus surrounding comments.
    - Pick a line range that captures the gate's *intent*, not just the body.
@@ -27,15 +27,17 @@ needs to revalidate it without your help.
 
 4. **Verify.**
    ```sh
-   bun run tools/verify-patches.ts patches/<your-patch>.toml
+   TARGET_SOURCE=<npm|gcs> just verify <target-version>
    ```
-   This confirms `locator_pattern` matches exactly once and `rationale_ref`
-   resolves to a real line range. CI runs the same check on every push.
+   This confirms `locator_pattern` matches exactly once, `rationale_ref`
+   resolves to a real line range, and `[[tests]]` metadata exists. CI runs
+   the same check on every push. For a single-patch diagnostic, run
+   `bun run tools/patch/verify-patches.ts patches/<your-patch>.toml --against staging/<target-version>/cli.js`.
 
 5. **Smoke-run the patched bundle.**
    ```sh
-   bin/build-audited staging/<target>/cli.js /tmp/cli.patched.js
-   node /tmp/cli.patched.js --version
+   just smoke <target-version>
+   just patch-test <target-version>
    ```
    Confirm the patched binary boots and the patched gate behaves as
    expected (e.g. for the channels gate, run `claude --channels foo` and

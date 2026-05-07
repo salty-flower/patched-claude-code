@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-const ROOT = join(import.meta.dir, "..")
+const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = "2.1.132"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 

@@ -20,7 +20,7 @@ A second reference is only justified when:
 1. A new public source-map leak appears for a later Claude Code version,
    AND
 2. The drift between v2.1.88 and the latest target has grown large enough
-   that the alignment probe in `tools/align.ts` reports under ~70% byte
+   that `just alignment-report <latest-version>` reports under ~70% byte
    coverage at Jaccard ≥ 0.6.
 
 When both conditions hold:
@@ -35,5 +35,5 @@ When both conditions hold:
 
 ## Removing a reference version
 
-Permitted only after every patch has migrated off it and `tools/align.ts`
-no longer references it.
+Permitted only after every patch has migrated off it and maintained
+reconstruction tools no longer reference it.

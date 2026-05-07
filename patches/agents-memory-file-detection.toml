@@ -18,3 +18,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''function Cu9(H){let _=iT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''function Cu9(H){let _=iT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''

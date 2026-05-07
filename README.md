@@ -64,10 +64,12 @@ For each new Claude Code release we want to ship, we:
 | Path | Contains |
 | --- | --- |
 | `reference/v2.1.88/` | Pinned audit baseline: `cli.js`, `cli.js.map`, extracted `sources/` |
-| `tools/` | Alignment, lift, and patch-application scripts |
+| `tools/patch/` | Staging, patch verification, rendering, packaging, and release checks |
+| `tools/reconstruct/` | Alignment, lift, and reference/source reconstruction helpers |
+| `tools/platform/` | Native Linux/Darwin extracted-JS comparison and platform drift audit |
+| `tools/test/` | TOML-driven patch tests and PTY/CLI harnesses |
+| `tools/lib/` | Shared TOML, release detection, extraction, hashing, and helper code |
 | `patches/` | TOML-described patches with rationale references |
-| `bin/` | User-facing entry points (`build-audited`, etc.) |
-| `experiments/` | POC scripts that established viability — kept for re-running |
 | `docs/rules/` | Strict policies agents must follow |
 | `docs/guides/` | Operational how-to for humans |
 | `docs/records/` | Frozen audit notes (POC, design decisions) |
@@ -75,10 +77,11 @@ For each new Claude Code release we want to ship, we:
 ## Quick start
 
 ```sh
-direnv allow                  # loads the Nix devShell
-bun install --cwd tools       # toolchain deps
-bun run tools/align.ts        # align v_new to v2.1.88 (sample run)
-bin/build-audited <new-cli.js> patched.js
+direnv allow                         # loads the Nix devShell
+bun install --cwd tools --frozen-lockfile
+just hooks-install
+just release-dry 2.1.132 patch.local
+TARGET_SOURCE=gcs just release-dry 2.1.132 patch.local
 ```
 
 Versions and patch authoring workflow: see [`docs/guides/Adding-Patches.md`](docs/guides/Adding-Patches.md).

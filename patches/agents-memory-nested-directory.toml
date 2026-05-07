@@ -18,3 +18,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''let A=iT.join(H,"CLAUDE.md");K.push(...await _C(A,"Project",q,!1));let $=iT.join(H,"AGENTS.md");K.push(...await _C($,"Project",q,!1));let z=iT.join(H,".claude","CLAUDE.md")'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''let A=iT.join(H,"CLAUDE.md");K.push(...await _C(A,"Project",q,!1));let $=iT.join(H,"AGENTS.md");K.push(...await _C($,"Project",q,!1));let z=iT.join(H,".claude","CLAUDE.md")'''

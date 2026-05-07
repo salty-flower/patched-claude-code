@@ -24,6 +24,8 @@
             eza
             gh
             git
+            just
+            prek
           ];
 
           shellHook = ''

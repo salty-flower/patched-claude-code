@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Thin shell wrapper: locate project root, then exec tools/format-staged-cli.ts.
-set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export AUDITED_CC_ROOT="$ROOT"
-exec bun run "$ROOT/tools/format-staged-cli.ts" "$@"

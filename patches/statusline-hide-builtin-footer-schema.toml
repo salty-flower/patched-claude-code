@@ -20,3 +20,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''hideVimModeIndicator:v.boolean().optional().describe("Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself."),hideBuiltinFooter:v.boolean().optional().describe("Hide the additional built-in footer line when a custom status line is configured.")}).optional().describe("Custom status line display configuration")'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''hideVimModeIndicator:v.boolean().optional().describe("Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself."),hideBuiltinFooter:v.boolean().optional().describe("Hide the additional built-in footer line when a custom status line is configured.")}).optional().describe("Custom status line display configuration")'''

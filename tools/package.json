@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit --allowImportingTsExtensions --moduleResolution bundler --module esnext --target es2022 --types bun *.ts"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test test/*.test.ts"
   },
   "dependencies": {
     "@babel/parser": "^7.29.3",

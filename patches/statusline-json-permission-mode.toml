@@ -19,3 +19,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''return{...a1(),cwd:Y,permission_mode:H,...W&&{session_name:W},model:{id:M,display_name:rD(M)}'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''return{...a1(),cwd:Y,permission_mode:H,...W&&{session_name:W},model:{id:M,display_name:rD(M)}'''

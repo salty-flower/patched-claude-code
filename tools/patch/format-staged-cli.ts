@@ -4,7 +4,7 @@
 import { mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..")
+const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   version?: string
@@ -21,7 +21,9 @@ function parseArgs(argv: string[]): Args {
     } else if (arg === "--output") {
       args.output = argv[++i]
     } else if (arg === "--help" || arg === "-h") {
-      console.log("usage: bin/format-staged-cli <version> [--input <cli.js>] [--output <cli.formatted.js>]")
+      console.log(
+        "usage: bun run tools/patch/format-staged-cli.ts <version> [--input <cli.js>] [--output <cli.formatted.js>]",
+      )
       process.exit(0)
     } else if (!args.version) {
       args.version = arg
@@ -42,7 +44,9 @@ function run(cmd: string[]): void {
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
   if (!args.version) {
-    console.error("usage: bin/format-staged-cli <version> [--input <cli.js>] [--output <cli.formatted.js>]")
+    console.error(
+      "usage: bun run tools/patch/format-staged-cli.ts <version> [--input <cli.js>] [--output <cli.formatted.js>]",
+    )
     return 2
   }
 

@@ -19,7 +19,6 @@ the body. Use it when re-anchoring or retiring a patch.
 - `tools`: alignment/lift/verify scripts
 - `docs(rules)` / `docs(guides)` / `docs(records)`: documentation
 - `flake`: Nix devShell, formatter, inputs
-- `experiments`: POC / evaluation scripts
 
 Pick the most specific stable owner. `chore` and `build` are forbidden.
 

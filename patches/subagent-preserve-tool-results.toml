@@ -20,3 +20,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''P_.preserveToolUseResults=!0'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''P_.preserveToolUseResults=!0'''

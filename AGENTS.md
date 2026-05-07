@@ -35,7 +35,7 @@ You MUST:
   See [`docs/rules/Patch-Format.md`](docs/rules/Patch-Format.md).
 - Express patches as `(locator_pattern, replacement)` pairs that operate on
   minified bytes, not as tree manipulations of `reference/`.
-- Run `bun run tools/verify-patches.ts` before committing any change under
+- Run `just verify` before committing any change under
   `patches/`. The script confirms each patch's locator still hits exactly
   once on the latest staged target bundle.
 - When adding a new reference version, follow
@@ -58,6 +58,7 @@ You MUST NOT:
 | --- | --- | --- |
 | `docs/rules/` | Policies and contracts agents must follow | agents |
 | `docs/guides/` | Operational how-to | humans |
+| `docs/research/` | Surveys, alternatives analysis, design exploration | both |
 | `docs/records/` | Frozen audit notes (POC, decisions) | both |
 
 When writing or editing docs, apply the `doc-style` skill if available.

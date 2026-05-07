@@ -19,3 +19,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''Z4.createElement(qi5,{key:J,item:w,verbose:!0})'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''Z4.createElement(qi5,{key:J,item:w,verbose:!0})'''

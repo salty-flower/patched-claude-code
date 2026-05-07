@@ -30,3 +30,8 @@ locator_kind = "regex"
 expected_matches = 3
 
 replacement = "isEnabled(){return!0}"
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''isEnabled(){return!0}'''

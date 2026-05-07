@@ -20,3 +20,8 @@ locator_kind = "regex"
 expected_matches = 1
 
 replacement = "if(!1)_.push(Tu_)"
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''if(!1)_.push(Tu_)'''

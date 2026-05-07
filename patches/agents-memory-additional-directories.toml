@@ -19,3 +19,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''let G=iT.join(P,"CLAUDE.md");q.push(...await _C(G,"Project",K,T));let Q=iT.join(P,"AGENTS.md");q.push(...await _C(Q,"Project",K,T));let W=iT.join(P,".claude","CLAUDE.md")'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''let G=iT.join(P,"CLAUDE.md");q.push(...await _C(G,"Project",K,T));let Q=iT.join(P,"AGENTS.md");q.push(...await _C(Q,"Project",K,T));let W=iT.join(P,".claude","CLAUDE.md")'''

@@ -10,10 +10,11 @@ extraction layout produced `staging/<version>/cli.js`.
 | --- | --- | --- |
 | `package/cli.js` exists in `@anthropic-ai/claude-code` tarball | `2.1.112` | Copy `package/cli.js`; no native extraction is involved. |
 | Wrapper package declares a platform optional dependency with a Bun standalone binary | `2.1.132` | Extract the entrypoint from the native package's Bun standalone module graph. Treat `>=2.1.132 <2.2.0` as provisional until smoke-tested and recorded. |
+| Native downloads manifest exposes platform Bun standalone binaries | `2.1.132` | Download `https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/<version>/<platform>/claude`, verify the manifest checksum, then extract the same Bun standalone module graph. |
 
 ## Bun Standalone Layout
 
-`tools/extract-bun-standalone.ts` supports only
+`tools/lib/extract-bun-standalone.ts` supports only
 `bun-standalone-module-graph-v1`, this observed layout:
 
 ```text
@@ -32,17 +33,28 @@ The extractor must fail closed when it cannot prove the layout:
 
 ## Manifest Contract
 
-`bin/stage-claude-code <version>` must write
+`TARGET_SOURCE=<npm|gcs> just stage <version>` must write
 `staging/<version>/stage-manifest.json` with:
 
 | Field | Meaning |
 | --- | --- |
+| `channel` | `npm` or `gcs`. |
 | `source` | `wrapper-cli` or `native-bun-standalone`. |
 | `platformPackage` | Native optional package used, when any. |
+| `gcsPlatform` | Native downloads platform used, when any. |
+| `nativeBinarySha256` | Verified native binary hash when native extraction was used. |
+| `entrypointSha256` | Extracted JS entrypoint hash. |
 | `extractionSupport.knownGood` | `true` only for versions listed in this rule. |
 | `extractionSupport.contract` | The current support matrix embedded in the tool. |
 | `extractionSupport.bunStandaloneLayout` | Layout details when native extraction was used. |
 
 If `knownGood` is `false`, the staged bundle is usable for investigation but
-not an audit-grade target until `bun run tools/verify-patches.ts`,
-`bin/render-patched <version>`, and a smoke run pass and this rule is updated.
+not an audit-grade target until `just verify`, `just render <version>`,
+`just smoke <version>`, `just patch-test <version>`, and this rule is updated.
+
+Direct `bun run tools/patch/stage-claude-code.ts ...` use is for tool
+debugging. `just stage` owns the canonical staged target path; platform audit
+uses separate side-by-side cache paths under `staging/<version>/platform-audit/`
+so Linux and Darwin extractions do not overwrite the selected target bundle.
+Use `just platform-patch-test <version>` when checking whether patch locators
+and patch TOML tests pass across the maintained GCS platforms.

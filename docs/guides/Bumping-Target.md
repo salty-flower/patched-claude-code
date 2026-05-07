@@ -8,10 +8,12 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
 1. **Stage the new bundle.**
    ```sh
-   bin/stage-claude-code <ver>
+   just stage <ver>
    ```
    Use `latest` instead of `<ver>` only when intentionally moving to the
-   current npm dist-tag. The stager handles both old packages with
+   current channel pointer. For `TARGET_SOURCE=npm`, `latest` means the npm
+   dist-tag; for `TARGET_SOURCE=gcs`, it means the GCS stable object. The
+   stager handles both old packages with
    `package/cli.js` and current native packages whose JS entrypoint is
    embedded in a Bun standalone binary. Repacking back to a binary is **not
    in scope** — patched JS runs on a separately-installed Bun runtime.
@@ -21,7 +23,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
 2. **Re-verify every patch against the new bundle.**
    ```sh
-   bun run tools/verify-patches.ts --against staging/<ver>/cli.js
+   TARGET_SOURCE=<npm|gcs> just verify <ver>
    ```
    Patches that still match exactly once require no edits. Patches that
    drift fall into two cases:
@@ -34,8 +36,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
 3. **Build and smoke.**
    ```sh
-   bin/render-patched <ver>
-   bun staging/<ver>/cli.patched.js --version
+   just render <ver>
+   just smoke <ver>
+   just patch-test <ver>
    ```
 
 4. **Update `target_version` in patches.**

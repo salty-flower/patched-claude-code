@@ -18,3 +18,8 @@ locator_kind = "literal"
 expected_matches = 1
 
 replacement = '''m$={settings:Y.hideBuiltinFooter?{...u8(),hideBuiltinFooter:!0}:u8(),tasks:{},taskDecorations:{}'''
+
+[[tests]]
+kind = "static"
+name = "replacement is rendered"
+assert_contains = '''m$={settings:Y.hideBuiltinFooter?{...u8(),hideBuiltinFooter:!0}:u8(),tasks:{},taskDecorations:{}'''

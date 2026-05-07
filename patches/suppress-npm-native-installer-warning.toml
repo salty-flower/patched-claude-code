@@ -1,0 +1,22 @@
+name = "suppress-npm-native-installer-warning"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Suppress the npm-to-native-installer startup warning.
+
+The upstream startup notification tells npm-wrapper users to migrate to the
+native installer on every eligible startup. Patched bundles are deliberately
+distributed through this repo's own wrapper and release process, so the
+warning is noisy and not actionable for this installation path. Cleanup
+condition: upstream stops showing this warning for wrapper-managed or
+third-party-packaged launches, or the patched release pipeline switches to an
+upstream-supported native installer package.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
+
+locator_pattern = '''\{id:"npm-deprecation",compute:async\(\)=>\{if\(QA\(\)\|\|hH\(process\.env\.DISABLE_INSTALLATION_CHECKS\)\)return null;if\(await L9H\(\)==="development"\)return null;return\{timeoutMs:15000,key:"npm-deprecation-warning",text:"Claude Code has switched from npm to native installer\. Run `claude install` or see https://docs\.anthropic\.com/en/docs/claude-code/getting-started for more options\.",color:"warning",priority:"high"\}\}\}'''
+locator_kind = "regex"
+expected_matches = 1
+
+replacement = '''{id:"npm-deprecation",compute:async()=>null}'''

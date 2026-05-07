@@ -1,0 +1,20 @@
+name = "statusline-hide-builtin-footer-cli-option"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Add a CLI switch for hiding the built-in footer line.
+
+Users who configure statusLine output may want the same per-session override
+without editing settings files. Patched bundles add `--hide-builtin-footer` as
+a normal top-level boolean flag that maps to Commander option
+`hideBuiltinFooter`. Cleanup condition: upstream ships an official CLI flag or
+settings command for hiding the built-in footer line.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+
+locator_pattern = '''.addOption(new y4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(NV)).option("-c, --continue"'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''.addOption(new y4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(NV)).option("--hide-builtin-footer","Hide the built-in footer line.",()=>!0).option("-c, --continue"'''

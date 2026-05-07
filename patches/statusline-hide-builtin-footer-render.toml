@@ -9,10 +9,10 @@ The footer currently renders the custom StatusLine and then always renders the
 built-in PromptInputFooterLeftSide row under the normal prompt/footer
 conditions. This leaves users with both their custom statusLine output and the
 extra built-in mode/effort line. Patched bundles preserve the default behavior
-and only suppress that built-in row when the statusLine-local
-`hideBuiltinFooter` setting is true. Cleanup condition: upstream ships an
-official setting for hiding the built-in footer status line when a custom
-statusLine is present.
+and suppress that built-in row when either the statusLine-local
+`hideBuiltinFooter` setting or the runtime CLI override is true. Cleanup
+condition: upstream ships an official setting or flag for hiding the built-in
+footer status line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
 
@@ -20,4 +20,4 @@ locator_pattern = '''H_=XO.createElement(bNK,{exitMessage:O,leftArrowPending:T,v
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''H_=e?.statusLine?.hideBuiltinFooter?null:XO.createElement(bNK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:IH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:UH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:t,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
+replacement = '''H_=e?.hideBuiltinFooter||e?.statusLine?.hideBuiltinFooter?null:XO.createElement(bNK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:IH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:UH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:t,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''

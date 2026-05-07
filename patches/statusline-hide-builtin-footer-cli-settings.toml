@@ -1,0 +1,20 @@
+name = "statusline-hide-builtin-footer-cli-settings"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Carry the hideBuiltinFooter CLI switch into runtime settings.
+
+The footer render path reads settings from AppState, not directly from parsed
+CLI options. Patched bundles merge `--hide-builtin-footer` into the initial
+runtime settings object as `hideBuiltinFooter: true`, leaving persistent
+settings files unchanged. Cleanup condition: upstream ships an official CLI flag
+or runtime option for hiding the built-in footer line.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+
+locator_pattern = '''m$={settings:u8(),tasks:{},taskDecorations:{}'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''m$={settings:Y.hideBuiltinFooter?{...u8(),hideBuiltinFooter:!0}:u8(),tasks:{},taskDecorations:{}'''

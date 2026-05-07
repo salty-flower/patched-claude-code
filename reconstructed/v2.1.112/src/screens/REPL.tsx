@@ -536,8 +536,11 @@ import {
   type AutoRunIssueReason,
 } from '../utils/autoRunIssue.js'
 import type { HookProgress } from '../types/hooks.js'
-import { TungstenLiveMonitor } from '../tools/TungstenTool/TungstenLiveMonitor.js'
 /* eslint-disable @typescript-eslint/no-require-imports */
+const TungstenLiveMonitor =
+  process.env.USER_TYPE === 'ant'
+    ? (require('../tools/TungstenTool/TungstenLiveMonitor.js') as typeof import('../tools/TungstenTool/TungstenLiveMonitor.js')).TungstenLiveMonitor
+    : null
 const WebBrowserPanelModule = feature('WEB_BROWSER_TOOL')
   ? (require('../tools/WebBrowserTool/WebBrowserPanel.js') as typeof import('../tools/WebBrowserTool/WebBrowserPanel.js'))
   : null

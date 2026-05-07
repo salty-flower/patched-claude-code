@@ -41,8 +41,10 @@ export async function call(
           resetCostState()
           // Refresh remotely managed settings after login (non-blocking)
           void refreshRemoteManagedSettings()
-          // Refresh policy limits after login (non-blocking)
-          void refreshPolicyLimits()
+          // Refresh policy limits after login. Await before enrollment so
+          // the trusted-device policy check (require_trusted_devices) sees
+          // the latest policy state, not stale cached data.
+          await refreshPolicyLimits()
           // Clear user data cache BEFORE GrowthBook refresh so it picks up fresh credentials
           resetUserCache()
           // Refresh GrowthBook after login to get updated feature flags (e.g., for claude.ai MCPs)

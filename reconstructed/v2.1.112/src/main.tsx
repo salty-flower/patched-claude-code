@@ -2280,16 +2280,15 @@ async function run(): Promise<CommanderCommand> {
         // Refresh auth-dependent services now that the user has logged in during onboarding.
         // Keep in sync with the post-login logic in src/commands/login.tsx
         void refreshRemoteManagedSettings();
-        void refreshPolicyLimits();
+        // Await policy limits before enrollment so the trusted-device policy
+        // check sees fresh data. Keep in sync with src/commands/login.tsx.
+        await refreshPolicyLimits();
         // Clear user data cache BEFORE GrowthBook refresh so it picks up fresh credentials
         resetUserCache();
         // Refresh GrowthBook after login to get updated feature flags (e.g., for claude.ai MCPs)
         refreshGrowthBookAfterAuthChange();
         // Clear any stale trusted device token then enroll for Remote Control.
-        // Both self-gate on tengu_sessions_elevated_auth_enforcement internally
-        // — enrollTrustedDevice() via checkGate_CACHED_OR_BLOCKING (awaits
-        // the GrowthBook reinit above), clearTrustedDeviceToken() via the
-        // sync cached check (acceptable since clear is idempotent).
+        // Both self-gate on tengu_sessions_elevated_auth_enforcement internally.
         void import('./bridge/trustedDevice.js').then(m => {
           m.clearTrustedDeviceToken();
           return m.enrollTrustedDevice();

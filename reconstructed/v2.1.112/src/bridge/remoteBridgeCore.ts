@@ -53,6 +53,7 @@ import {
 } from './bridgeMessaging.js'
 import { logBridgeSkip } from './debugUtils.js'
 import { logForDebugging } from '../utils/debug.js'
+import { getTrustedDeviceToken } from './trustedDevice.js'
 import { logForDiagnosticsNoPII } from '../utils/diagLogs.js'
 import { isInProtectedNamespace } from '../utils/envUtils.js'
 import { errorMessage } from '../utils/errors.js'
@@ -241,6 +242,7 @@ export async function initEnvLessBridgeCore(
         baseUrl,
         accessToken,
         cfg.http_timeout_ms,
+        getTrustedDeviceToken(),
       ),
     'fetchRemoteCredentials',
     cfg,
@@ -384,6 +386,7 @@ export async function initEnvLessBridgeCore(
                 baseUrl,
                 oauthToken,
                 cfg.http_timeout_ms,
+                getTrustedDeviceToken(),
               ),
             'fetchRemoteCredentials (proactive)',
             cfg,
@@ -567,6 +570,7 @@ export async function initEnvLessBridgeCore(
             baseUrl,
             oauthToken,
             cfg.http_timeout_ms,
+            getTrustedDeviceToken(),
           ),
         'fetchRemoteCredentials (recovery)',
         cfg,

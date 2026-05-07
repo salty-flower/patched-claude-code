@@ -23,6 +23,7 @@ import type {
 import { setClassifierApproval } from '../../utils/classifierApprovals.js'
 import { logForDebugging } from '../../utils/debug.js'
 import { executePermissionRequestHooks } from '../../utils/hooks.js'
+import { checkRuleBasedPermissions } from '../../utils/permissions/permissions.js'
 import {
   REJECT_MESSAGE,
   REJECT_MESSAGE_WITH_REASON_PREFIX,
@@ -232,6 +233,19 @@ function createPermissionContext(
           const decision = hookResult.permissionRequestResult
           if (decision.behavior === 'allow') {
             const finalInput = decision.updatedInput ?? updatedInput ?? input
+            // Re-validate hook-rewritten input against permission rules.
+            // A PermissionRequest hook may sanitize input, but the sanitized
+            // version can still violate a deny/ask rule — must not bypass.
+            if (decision.updatedInput || updatedInput) {
+              const ruleCheck = await checkRuleBasedPermissions(
+                tool,
+                finalInput,
+                toolUseContext,
+              )
+              if (ruleCheck) {
+                return ruleCheck
+              }
+            }
             return await this.handleHookAllow(
               finalInput,
               decision.updatedPermissions ?? [],

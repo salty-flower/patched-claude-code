@@ -421,6 +421,17 @@ async function runPermissionRequestHooksForHeadlessAgent(
       const decision = hookResult.permissionRequestResult
       if (decision.behavior === 'allow') {
         const finalInput = decision.updatedInput ?? input
+        // Re-validate hook-rewritten input against permission rules
+        if (decision.updatedInput) {
+          const ruleCheck = await checkRuleBasedPermissions(
+            tool,
+            finalInput,
+            context,
+          )
+          if (ruleCheck) {
+            return ruleCheck
+          }
+        }
         // Persist permission updates if provided
         if (decision.updatedPermissions?.length) {
           persistPermissionUpdates(decision.updatedPermissions)

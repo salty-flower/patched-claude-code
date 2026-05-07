@@ -1,0 +1,21 @@
+name = "agents-memory-additional-directories"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Load AGENTS.md from additional project directories.
+
+When the explicit additional-directory memory path is enabled, upstream reads
+CLAUDE.md and .claude/CLAUDE.md from each added directory. Patched bundles
+should also read AGENTS.md so explicit extra workspaces retain the same
+Codex-compatible instruction behavior as the main workspace. Cleanup condition:
+upstream supports AGENTS.md as an official memory file or exposes a
+configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
+
+locator_pattern = '''let G=iT.join(P,"CLAUDE.md");q.push(...await _C(G,"Project",K,T));let W=iT.join(P,".claude","CLAUDE.md")'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''let G=iT.join(P,"CLAUDE.md");q.push(...await _C(G,"Project",K,T));let Q=iT.join(P,"AGENTS.md");q.push(...await _C(Q,"Project",K,T));let W=iT.join(P,".claude","CLAUDE.md")'''

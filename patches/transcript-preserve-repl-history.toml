@@ -1,0 +1,24 @@
+name = "transcript-preserve-repl-history"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Persist transcript messages without rewriting REPL wrapper history into
+synthetic native tool-call history.
+
+The reference transcript storage path rewrites external transcripts by
+stripping REPL tool_use/tool_result pairs and promoting virtual messages to
+real messages so resume sees native-looking tool history. For an audited
+patched build, persisted transcripts should preserve what actually happened
+instead of fabricating native tool-call history.
+
+Cleanup condition: upstream offers a transcript mode that stores raw REPL
+wrapper history for non-Ant users.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/sessionStorage.ts#L4369-L4460"
+
+locator_pattern = '''function PP_(H,_=H){let q=H.filter(Zn);if(Yj6()==="ant")return q;let K=_ instanceof Set?_:Pj6(_);return oW3(q,K)}'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''function PP_(H,_=H){return H.filter(Zn)}'''

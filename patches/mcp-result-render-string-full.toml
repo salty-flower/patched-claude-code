@@ -1,0 +1,20 @@
+name = "mcp-result-render-string-full"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Render string MCP results without terminal truncation.
+
+Plain string MCP results route through the generic output line renderer using
+the current verbose flag, which can hide most of the text in normal interactive
+transcripts. Patched bundles force this string-result path into verbose mode
+while preserving the existing large-output warning. Cleanup condition: upstream
+exposes a setting that keeps MCP text output visible in transcripts.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
+
+locator_pattern = '''Z4.createElement(gx,{content:O,verbose:q})'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''Z4.createElement(gx,{content:O,verbose:!0})'''

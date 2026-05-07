@@ -1,0 +1,22 @@
+name = "thinking-display-summarized"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Force non-disabled thinking requests to ask the API for summarized display.
+
+The 2.1.132 bundle carries the request-side thinking.display switch, while
+the v2.1.88 reference anchors the same thinking configuration construction.
+Without summarized display, newer model responses may carry empty visible
+thinking text even when thinking is enabled.
+
+Cleanup condition: upstream's public settings make summarized thinking
+display directly selectable for local patched builds.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2456-L2488"
+
+locator_pattern = '''if\(x1\.type!=="disabled"\)\{if\(Y\.thinkingDisplay==="summarized"\|\|Y\.thinkingDisplay==="omitted"\)x1\.display=Y\.thinkingDisplay;else if\(!N8\(\)&&u8\(\)\.showThinkingSummaries===!0\)x1\.display="summarized"\}'''
+locator_kind = "regex"
+expected_matches = 1
+
+replacement = '''if(x1.type!=="disabled")x1.display="summarized";'''

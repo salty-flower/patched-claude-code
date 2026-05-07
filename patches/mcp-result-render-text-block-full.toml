@@ -1,0 +1,20 @@
+name = "mcp-result-render-text-block-full"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Render individual MCP text blocks without terminal truncation.
+
+The helper that renders text members of MCP content arrays still passes
+through its caller's verbose flag. Patched bundles force that helper to render
+full text so content-array results remain visible even if another call site
+uses the helper later. Cleanup condition: upstream exposes a setting that keeps
+MCP text output visible in transcripts.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_pattern = '''Z4.createElement(gx,{content:O,verbose:K})'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''Z4.createElement(gx,{content:O,verbose:!0})'''

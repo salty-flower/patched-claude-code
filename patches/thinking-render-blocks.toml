@@ -1,0 +1,24 @@
+name = "thinking-render-blocks"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Render thinking and redacted_thinking blocks outside transcript or verbose
+mode.
+
+The reference UI drops both thinking block types in normal rendering unless
+the session is in transcript mode or verbose mode. For a patched inspection
+build, normal interactive rendering should expose those blocks so the user
+can verify whether the API supplied thinking content or only redaction
+stubs.
+
+Cleanup condition: upstream exposes an official interactive display setting
+for thinking blocks.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+
+locator_pattern = '''if\(!D&&!A\)return null;'''
+locator_kind = "regex"
+expected_matches = 2
+
+replacement = "if(!1)return null;"

@@ -1,0 +1,20 @@
+name = "read-result-path-image"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Show the file path on image Read result rows.
+
+Read image results currently display only the image size. Patched bundles append
+the same compact path suffix used for other Read result types so transcripts can
+identify which image was read without relying on surrounding context. Cleanup
+condition: upstream includes the file path in Read tool result rows or provides
+equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+
+locator_pattern = '''oK.createElement(V,null,"Read image (",q,")")'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''oK.createElement(V,null,"Read image (",q,")",Z)'''

@@ -2,16 +2,23 @@
 
 ## Coordinates
 
-Use one release tag per patched upstream Claude Code bundle:
+Use one release commit title per patched upstream Claude Code bundle:
 
 ```sh
-git tag claude-code-2.1.132-patch.1
-git push origin claude-code-2.1.132-patch.1
+git commit --allow-empty -m "release: claude-code-2.1.132-patch.2"
+git push origin main
 ```
 
 The `release` workflow stages the upstream npm package, renders the patched
 bundle, packages it, uploads workflow artifacts, and creates the GitHub release
-for pushed tags.
+and tag from the pushed commit.
+
+Manual tag release remains supported:
+
+```sh
+git tag claude-code-2.1.132-patch.2
+git push origin claude-code-2.1.132-patch.2
+```
 
 Current releases stage `@anthropic-ai/claude-code-darwin-arm64`. The patched
 asset is JavaScript, but patch locators are authored against that native

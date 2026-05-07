@@ -8,6 +8,7 @@ version.
 | Item | Rule |
 | --- | --- |
 | Tag | `claude-code-<upstream-version>-patch.<n>` |
+| Release commit title | `release: claude-code-<upstream-version>-patch.<n>` |
 | Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz` |
 | Bundle | `cli.js` inside the artifact; never committed to git |
 | Runtime | Bun supplied by the consumer |
@@ -33,6 +34,14 @@ A release MUST pass:
 
 Release artifacts MUST include a raw SHA-256 hash suitable for fixed-output
 fetching. Consumers pin the tag and the artifact hash.
+
+## Automation
+
+Pushing a commit to `main` with title
+`release: claude-code-<upstream-version>-patch.<n>` MUST publish that release
+from the pushed commit. Manual tag pushes remain supported. Do not rely on a
+workflow-created tag to trigger another workflow; GitHub suppresses most
+`GITHUB_TOKEN`-created workflow events.
 
 ## Private Repo Boundary
 

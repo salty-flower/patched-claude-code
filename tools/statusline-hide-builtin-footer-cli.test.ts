@@ -76,6 +76,9 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   const patched = readFileSync(patchedBundle, "utf8")
   expect(patched).toContain("--hide-builtin-footer")
   expect(patched).toContain("hideBuiltinFooter:!0")
+  expect(patched).toContain(
+    "ME=Y_((I_)=>I_.settings.hideBuiltinFooter)||Y_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)||lH?void 0:Qa7(MH,_H)",
+  )
 
   const help = run(["bun", patchedBundle, "--help"])
   expect(help.exitCode).toBe(0)

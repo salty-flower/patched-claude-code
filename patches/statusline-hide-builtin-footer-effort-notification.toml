@@ -1,0 +1,21 @@
+name = "statusline-hide-builtin-footer-effort-notification"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Hide the effort footer notification when hideBuiltinFooter is enabled.
+
+The built-in footer line can also include the `/effort` reminder notification,
+which is registered separately from PromptInputFooterLeftSide. Patched bundles
+suppress that notification when either the runtime CLI override or
+statusLine.hideBuiltinFooter is true, so the hide behavior covers the whole
+built-in footer line. Cleanup condition: upstream ships an official setting or
+flag for hiding the built-in footer status line.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+
+locator_pattern = '''ME=lH?void 0:Qa7(MH,_H);Mq.useEffect(()=>{if(!ME){gz("effort-level");return}gz("effort-level"),wK({key:"effort-level",text:ME,priority:"high",timeoutMs:1e4})},[ME,wK,gz])'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''ME=Y_((I_)=>I_.settings.hideBuiltinFooter)||Y_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)||lH?void 0:Qa7(MH,_H);Mq.useEffect(()=>{if(!ME){gz("effort-level");return}gz("effort-level"),wK({key:"effort-level",text:ME,priority:"high",timeoutMs:1e4})},[ME,wK,gz])'''

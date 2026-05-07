@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  TARGET_VERSION: "2.1.132"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: Install tool dependencies
+        run: bun install --cwd tools --frozen-lockfile
+
+      - name: Typecheck tools
+        run: bun run --cwd tools typecheck
+
+      - name: Stage target bundle
+        run: bin/stage-claude-code "$TARGET_VERSION"
+
+      - name: Verify patches and contracts
+        run: |
+          bun run tools/verify-patches.ts
+          bun run tools/check-native-extraction-contract.ts
+
+      - name: Render patched bundle
+        run: bin/render-patched "$TARGET_VERSION"
+
+      - name: Smoke patched bundle
+        run: bun "staging/$TARGET_VERSION/cli.patched.js" --version
+
+      - name: Package release artifact
+        run: bun run tools/package-release.ts --version "$TARGET_VERSION" --release-id "ci.${GITHUB_SHA::12}"
+
+      - name: Upload CI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: audited-claude-code-${{ env.TARGET_VERSION }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+            dist/*.manifest.json
+          if-no-files-found: error

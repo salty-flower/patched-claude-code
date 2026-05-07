@@ -7,6 +7,27 @@ v2.1.88 TypeScript source via sourcemap correspondence.
 Entry point: **`flake.nix`** (Nix devShell with the toolchain) and
 **`AGENTS.md`** (operating instructions for AI agents and humans).
 
+## Project direction
+
+This repo is a **bundle-first patch framework plus audit/reconstruction
+corpus**.
+
+The original ambition was broader: fully buildable v2.1.112 decompilation and
+future-version native recompilation with v2.1.88 as the Rosetta baseline. The
+current evidence does not support that as the default goal:
+
+- `reference/v2.1.88/` is source-map recovered reference material, not a
+  buildable upstream source tree.
+- Later reconstructions can contain imports for modules that were inlined,
+  excluded from public bundles, or supplied by private packages.
+- Public npm bundles and Bun standalone binaries do not include the full
+  private build pipeline needed to regenerate official artifacts.
+
+Buildability work is still useful, but it must be scoped to selected
+entrypoints or compatibility shims and documented as such. The durable path is
+to patch released bundles directly, prove each patch with byte/AST locators,
+and use reconstructed source only to explain, audit, and test behavior.
+
 ## What this does
 
 For each new Claude Code release we want to ship, we:
@@ -31,6 +52,9 @@ For each new Claude Code release we want to ship, we:
   patched artifacts are for personal audit and use only.
 - Not a full deminifier. We do not attempt to mass-recover TS source for
   `v_new`; we only resolve enough context to write small, reviewed patches.
+- Not a promise that `reference/` or `reconstructed/` trees are buildable.
+  They are evidence corpora. Treat buildable subsets as explicit engineering
+  projects with documented gaps.
 - Not a Bun-binary repacker. Patched output is plain JS; if the upstream
   release is a Bun binary, we run the patched bundle on a Bun runtime
   installed separately.
@@ -58,3 +82,5 @@ bin/build-audited <new-cli.js> patched.js
 ```
 
 Versions and patch authoring workflow: see [`docs/guides/Adding-Patches.md`](docs/guides/Adding-Patches.md).
+Release and installation workflow: see [`docs/guides/Releasing.md`](docs/guides/Releasing.md)
+and [`docs/guides/Installing.md`](docs/guides/Installing.md).

@@ -143,6 +143,24 @@ jobs:
           TARGET_SOURCE: canonical
         run: just package "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
 
+      - name: Write Nix source payload
+        env:
+          TARGET_SOURCE: canonical
+        run: |
+          set -euo pipefail
+          just source-release "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
+          bun ./cli.js --version
+
+      - name: Create Nix source tag
+        if: steps.coord.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          tag="${{ steps.coord.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          just source-tag "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
+          git push origin "refs/tags/$tag" --force
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6
         with:
@@ -152,6 +170,10 @@ jobs:
             dist/*.sha256
             dist/*.manifest.json
             dist/release-notes.md
+            cli.js
+            manifest.json
+            package.json
+            bin/claude-audited
           if-no-files-found: error
 
       - name: Publish GitHub release
@@ -175,7 +197,6 @@ jobs:
             gh release create "$tag" \
               --repo "$GITHUB_REPOSITORY" \
               --title "$tag" \
-              --target "$GITHUB_SHA" \
               --notes-file dist/release-notes.md \
               dist/*.tar.gz \
               dist/*.sha256 \

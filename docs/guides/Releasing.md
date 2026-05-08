@@ -11,6 +11,8 @@ git push origin main
 
 The manual `release` workflow stages the canonical Linux/Darwin bundle from
 GCS native binaries before rendering, testing, and packaging.
+When `publish=true`, it also writes the Nix source payload and moves the tag
+to a minimal generated payload commit.
 
 The scheduled `auto-release` workflow may publish a prerelease from a one-sided
 npm or GCS candidate. It promotes only after npm latest and GCS stable converge
@@ -57,6 +59,20 @@ Outputs land in `dist/`:
 | `*.sha256` | Raw tarball hash in hex form |
 | `*.manifest.json` | Machine-readable release metadata, including SRI hash |
 | `release-notes.md` | GitHub release notes |
+
+`just source-release <version> patch.<n>` writes the Nix-native payload to the
+repo root:
+
+| File | Use |
+| --- | --- |
+| `cli.js` | Patched runtime bundle consumed by the flake package |
+| `manifest.json` | Deterministic source manifest |
+| `package.json` | Minimal package metadata and `claude-audited` bin declaration |
+| `bin/claude-audited` | Bun wrapper for direct shell use |
+
+`just source-tag <version> patch.<n>` creates
+`claude-code-<version>-patch.<n>` as a minimal tag commit containing that
+payload plus `flake.nix` and `flake.lock`.
 
 ## Bump Rules
 

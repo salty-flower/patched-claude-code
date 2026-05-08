@@ -2,51 +2,38 @@
 
 ## Pinning Model
 
-Pin both:
+Pin the source tag:
 
 | Pin | Example |
 | --- | --- |
-| GitHub release tag | `claude-code-2.1.132-patch.1` |
-| Raw tarball hash | `sha256-...` from the release manifest |
+| GitHub source tag | `claude-code-2.1.132-patch.1` |
 
-The release artifact contains `cli.js` and `bin/claude-audited`. It expects a
-Bun runtime on PATH.
+The tagged source tree contains `cli.js`, `manifest.json`, `package.json`,
+`bin/claude-audited`, and a flake package. It expects Bun from Nix.
 
 ## Nix / Home Manager
 
-Use this shape in `~/repos/machine-state` after copying the release asset URL
-and raw SRI hash from `<artifact>.manifest.json`:
+Prefer a native GitHub flake input so Nix uses its GitHub fetcher and
+configured `access-tokens`:
 
 ```nix
-{ pkgs, ... }:
-
-let
-  auditedClaudeCodeVersion = "2.1.132-patch.1";
-  auditedClaudeCodeSrc = pkgs.fetchurl {
-    url = "https://github.com/<owner>/audited-claude-code/releases/download/claude-code-${auditedClaudeCodeVersion}/audited-claude-code-${auditedClaudeCodeVersion}.tar.gz";
-    hash = "sha256-REPLACE_WITH_RELEASE_MANIFEST_HASH";
-  };
-  auditedClaudeCode = pkgs.stdenvNoCC.mkDerivation {
-    pname = "audited-claude-code";
-    version = auditedClaudeCodeVersion;
-    src = auditedClaudeCodeSrc;
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    dontUnpack = true;
-    installPhase = ''
-      mkdir unpack
-      tar -xzf "$src" -C unpack --strip-components=1
-      mkdir -p "$out/lib/audited-claude-code" "$out/bin"
-      cp -R unpack/. "$out/lib/audited-claude-code/"
-      makeWrapper ${pkgs.bun}/bin/bun "$out/bin/claude-audited" \
-        --add-flags "$out/lib/audited-claude-code/cli.js"
-    '';
-  };
-in
 {
-  home.packages = [ auditedClaudeCode ];
+  inputs.audited-claude-code.url =
+    "github:salty-flower/audited-claude-code/claude-code-2.1.132-patch.1";
 }
 ```
 
-For private GitHub release assets, prefer mirroring the tarball into a private
-binary cache or another authenticated source that Nix can fetch
-deterministically.
+Then consume the package:
+
+```nix
+{ inputs, pkgs, ... }:
+
+{
+  home.packages = [
+    inputs.audited-claude-code.packages.${pkgs.system}.default
+  ];
+}
+```
+
+GitHub release tarballs remain available for manual installs, but Nix configs
+SHOULD NOT depend on release asset URLs.

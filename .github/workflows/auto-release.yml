@@ -96,6 +96,8 @@ jobs:
           just smoke "${{ steps.detect.outputs.version }}"
           just patch-test "${{ steps.detect.outputs.version }}"
           just package "${{ steps.detect.outputs.version }}" "patch.1"
+          just source-release "${{ steps.detect.outputs.version }}" "patch.1"
+          bun ./cli.js --version
 
       - name: Check canonical platform merge before promotion
         if: steps.detect.outputs.action == 'promote'
@@ -103,6 +105,16 @@ jobs:
           set -euo pipefail
           jq -e '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
             "staging/${{ steps.detect.outputs.version }}/canonical/platform-merge-report.json"
+
+      - name: Create or update Nix source tag
+        if: steps.detect.outputs.action != 'none'
+        run: |
+          set -euo pipefail
+          tag="claude-code-${{ steps.detect.outputs.version }}-patch.1"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          just source-tag "${{ steps.detect.outputs.version }}" "patch.1"
+          git push origin "refs/tags/$tag" --force
 
       - name: Create or update prerelease
         if: steps.detect.outputs.action == 'prerelease'
@@ -127,7 +139,6 @@ jobs:
             gh release create "$tag" \
               --repo "$GITHUB_REPOSITORY" \
               --title "$tag" \
-              --target "$GITHUB_SHA" \
               --notes-file dist/release-notes.md \
               --prerelease \
               dist/*.tar.gz \
@@ -153,7 +164,6 @@ jobs:
             gh release create "$tag" \
               --repo "$GITHUB_REPOSITORY" \
               --title "$tag" \
-              --target "$GITHUB_SHA" \
               --notes-file dist/release-notes.md \
               --latest \
               dist/*.tar.gz \

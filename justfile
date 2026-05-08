@@ -56,6 +56,12 @@ patch-test version=target source=source: (render version source)
 package version=target release_id="patch.local" source=source: (render version source)
   bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"
 
+source-release version=target release_id="patch.local" source=source: (render version source)
+  bun run tools/patch/write-source-release.ts --version "{{version}}" --release-id "{{release_id}}"
+
+source-tag version=target release_id="patch.local":
+  bun run tools/patch/create-source-tag.ts --version "{{version}}" --release-id "{{release_id}}"
+
 detect-upstream *args:
   bun run tools/patch/detect-upstream.ts {{args}}
 

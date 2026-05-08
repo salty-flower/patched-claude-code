@@ -9,11 +9,12 @@ version.
 | --- | --- |
 | Tag | `claude-code-<upstream-version>-patch.<n>` |
 | Release commit title | `release: claude-code-<upstream-version>-patch.<n>` |
-| Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz` |
-| Bundle | `cli.js` inside the artifact; never committed to git |
+| Nix source | Tagged git tree containing `cli.js`, `manifest.json`, `package.json`, `bin/claude-audited`, and flake files |
+| Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
+| Bundle | `cli.js` at the release tag root and inside the artifact |
 | Runtime | Bun supplied by the consumer |
 | Native package | Canonicalized from GCS `darwin-arm64` and `linux-x64` native binaries |
-| Manifest | `manifest.json` inside the artifact plus `<artifact>.manifest.json` beside it |
+| Manifest | `manifest.json` in the tagged tree and artifact, plus `<artifact>.manifest.json` beside it |
 
 `patch.<n>` increments whenever the rendered bundle changes for the same
 upstream Claude Code version. Reset it to `patch.1` when the upstream version
@@ -31,17 +32,20 @@ A release MUST pass:
 | Smoke | `just smoke <version>` |
 | Patch tests | `just patch-test <version>` |
 | Package | `just package <version> patch.<n>` |
+| Source payload | `just source-release <version> patch.<n>` |
 
-Release artifacts MUST include a raw SHA-256 hash suitable for fixed-output
-fetching. Consumers pin the tag and the artifact hash.
+Release artifacts MUST include a raw SHA-256 hash for non-flake fixed-output
+fetching. Nix consumers SHOULD pin the GitHub source tag through the native
+`github:<owner>/<repo>/<tag>` flake fetcher.
 
 ## Automation
 
 Pushing a commit to `main` with title
 `release: claude-code-<upstream-version>-patch.<n>` MUST publish that release
-from the pushed commit. Manual tag pushes remain supported. Do not rely on a
-workflow-created tag to trigger another workflow; GitHub suppresses most
-`GITHUB_TOKEN`-created workflow events.
+and MUST create or update the matching source tag with the generated release
+payload committed into a minimal tagged tree. Manual tag pushes remain supported.
+Do not rely on a workflow-created tag to trigger another workflow; GitHub
+suppresses most `GITHUB_TOKEN`-created workflow events.
 
 Scheduled polling MUST run four times daily via `auto-release.yml`.
 It MAY publish `claude-code-<version>-patch.1` as a prerelease when either
@@ -56,6 +60,6 @@ structural islands block promotion until merged by a deterministic transform.
 
 ## Private Repo Boundary
 
-GitHub release artifacts are for this private repo's owner. Do not publish
-reference files, staged raw bundles, or reconstructed source trees as release
-assets.
+GitHub release artifacts and source tags are for this private repo's owner. Do
+not publish reference files, staged raw bundles, or reconstructed source trees
+as release assets.

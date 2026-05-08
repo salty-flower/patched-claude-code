@@ -123,6 +123,19 @@ jobs:
       - name: Package release artifact
         run: just package "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
 
+      - name: Write Nix source payload
+        run: |
+          set -euo pipefail
+          just source-release "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
+          test -s cli.js
+          test -s manifest.json
+          test -s package.json
+          test -x bin/claude-audited
+          bun ./cli.js --version
+          just source-tag "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
+          git ls-tree -r --name-only "claude-code-${TARGET_VERSION}-ci.${GITHUB_SHA::12}" > source-tag-files.txt
+          diff -u <(printf '%s\n' bin/claude-audited cli.js flake.lock flake.nix manifest.json package.json) source-tag-files.txt
+
       - name: Upload CI artifact
         uses: actions/upload-artifact@v6
         with:
@@ -131,4 +144,8 @@ jobs:
             dist/*.tar.gz
             dist/*.sha256
             dist/*.manifest.json
+            cli.js
+            manifest.json
+            package.json
+            bin/claude-audited
           if-no-files-found: error

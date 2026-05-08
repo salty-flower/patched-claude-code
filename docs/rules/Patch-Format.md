@@ -1,16 +1,20 @@
 # Patch Format
 
-Each patch lives at `patches/<topic>.toml` and obeys this schema. A patch
-description is **the audit record**. Any change to it must be reviewable in
-isolation.
+Each patch entry lives in `patches/<topic>.toml` and obeys this schema. A TOML
+file may hold one legacy top-level patch entry or multiple ordered `[[patches]]`
+entries for one logical feature. A patch entry is **the audit record**. Any
+change to it must be reviewable in isolation.
 
 ## Schema
 
 ```toml
-# Required.
-name = "ask-user-question-channels-gate"
+# Required for every file.
+name = "ask-user-question-channels"
 target_version = "2.1.112"            # the bundle this patch was authored against
 applies_to = ">=2.1.112"              # semver range; null means same as target_version
+
+[[patches]]
+name = "ask-user-question-channels-gate"
 rationale = """
 One-line summary of WHY this patch exists. Followed by a short paragraph that
 states the user-visible effect, the alternative we rejected, and the cleanup
@@ -40,17 +44,20 @@ replacement = "isEnabled(){return!0}"
 gated_by_env = ""
 
 # Required. Tests travel with patch metadata.
-[[tests]]
+[[patches.tests]]
 kind = "static"                     # "static" | "cli" | "pty"
 name = "replacement is rendered"
 assert_contains = "isEnabled(){return!0}"
 ```
 
+Legacy one-entry files may keep the patch fields and `[[tests]]` at the top
+level. New logical features SHOULD use `[[patches]]` entries.
+
 ## Field rules
 
-- `rationale_ref` MUST point at a real line range in
+- Each patch entry's `rationale_ref` MUST point at a real line range in
   `reference/v2.1.88/sources/`. CI rejects dangling refs.
-- `locator_pattern` MUST hit exactly `expected_matches` times on the
+- Each patch entry's `locator_pattern` MUST hit exactly `expected_matches` times on the
   staged target bundle. The default 1 is for surgical patches; raising it
   is permitted only when the duplication is intentional (e.g., a single
   body inlined across sibling tools). A wrong count fails the patch and
@@ -60,9 +67,10 @@ assert_contains = "isEnabled(){return!0}"
   deterministic substitutions, not transforms.
 - `applies_to` uses standard semver ranges. When a patch needs different
   text per range, split it into two files.
-- Every patch MUST include at least one `[[tests]]` entry. Static tests run
-  against the rendered bundle. CLI tests run `bun <cli.patched.js>`.
-  PTY tests use `script(1)` plus `timeout` and default input `/exit`.
+- Every patch entry MUST include at least one `[[patches.tests]]` entry, or
+  `[[tests]]` for legacy one-entry files. Static tests run against the rendered
+  bundle. CLI tests run `bun <cli.patched.js>`. PTY tests use `script(1)` plus
+  `timeout` and default input `/exit`.
 
 ## Lifecycle
 

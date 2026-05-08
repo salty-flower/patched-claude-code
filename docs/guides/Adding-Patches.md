@@ -20,8 +20,11 @@ needs to revalidate it without your help.
    - Pick a line range that captures the gate's *intent*, not just the body.
      That range becomes the patch's `rationale_ref`.
 
-3. **Write the patch file.**
+3. **Write the patch entry.**
    See [`../rules/Patch-Format.md`](../rules/Patch-Format.md) for the schema.
+   Use a new `patches/<feature>.toml` for a new logical feature. Add a
+   `[[patches]]` entry to an existing feature file when the new locator is part
+   of the same user-facing behavior.
    Keep `replacement` minimal — typically a one-line override that
    short-circuits the gate. Do not embed Anthropic source verbatim.
 
@@ -50,8 +53,8 @@ needs to revalidate it without your help.
 
 ## Anti-patterns
 
-- Multi-pattern patches in one TOML file — split them. Each is independently
-  reviewed.
+- Multi-pattern patch entries. Use one `[[patches]]` entry per locator so each
+  `rationale_ref`, replacement, and test set remains independently reviewable.
 - Patches that depend on identifier names from the locator's capture groups
   surviving unchanged into the replacement. Identifiers reminify; the
   patch breaks silently on the next bump.

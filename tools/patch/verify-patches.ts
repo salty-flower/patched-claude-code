@@ -17,21 +17,10 @@
 
 import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
-import * as TOML from "@iarna/toml"
+import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
 
-type Patch = {
-  name: string
-  target_version: string
-  applies_to?: string
-  rationale: string
-  rationale_ref: string
-  locator_pattern: string
-  locator_kind: "regex" | "literal"
-  expected_matches?: number
-  replacement: string
-  gated_by_env?: string
-}
+type Patch = PatchEntry
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -52,11 +41,6 @@ function parseArgs(argv: string[]): { patches: string[]; target?: string } {
       .map((f) => join(dir, f))
   }
   return out
-}
-
-function loadPatch(file: string): Patch & { tests?: unknown[] } {
-  const raw = readFileSync(file, "utf8")
-  return TOML.parse(raw) as unknown as Patch
 }
 
 function defaultTarget(p: Patch): string {
@@ -113,29 +97,37 @@ function main(): number {
 
   let allOk = true
   for (const file of files) {
-    const p = loadPatch(file)
-    const tgt = target ?? defaultTarget(p)
-    if (!existsSync(tgt)) {
-      console.error(`[${p.name}] target bundle missing: ${tgt}`)
+    const patches = loadPatchEntriesFromFile(file)
+    const fileTests = loadPatchTestsFromToml(readFileSync(file, "utf8"))
+    if (fileTests.length === 0) {
+      console.log(`[FAIL] ${file}: no [[tests]] entries`)
       allOk = false
-      continue
     }
 
-    const lr = verifyLocator(p, tgt)
-    const rr = verifyRationaleRef(p)
-    const replOk = p.replacement.length > 0
-    const tests = loadPatchTestsFromToml(readFileSync(file, "utf8"))
-    const testsOk = tests.length > 0
-    const ok = lr.ok && rr.ok && replOk && testsOk
-    allOk &&= ok
+    for (const p of patches) {
+      const tgt = target ?? defaultTarget(p)
+      if (!existsSync(tgt)) {
+        console.error(`[${p.name}] target bundle missing: ${tgt}`)
+        allOk = false
+        continue
+      }
 
-    const tag = ok ? "ok" : "FAIL"
-    console.log(`[${tag}] ${p.name}`)
-    console.log(`     target=${tgt}`)
-    console.log(`     ${lr.msg}`)
-    console.log(`     ${rr.msg}`)
-    if (!replOk) console.log(`     replacement is empty`)
-    if (!testsOk) console.log(`     no [[tests]] entries`)
+      const lr = verifyLocator(p, tgt)
+      const rr = verifyRationaleRef(p)
+      const replOk = p.replacement.length > 0
+      const testsOk = (p.tests ?? []).length > 0
+      const ok = lr.ok && rr.ok && replOk && testsOk
+      allOk &&= ok
+
+      const tag = ok ? "ok" : "FAIL"
+      console.log(`[${tag}] ${p.name}`)
+      console.log(`     file=${p.file}`)
+      console.log(`     target=${tgt}`)
+      console.log(`     ${lr.msg}`)
+      console.log(`     ${rr.msg}`)
+      if (!replOk) console.log(`     replacement is empty`)
+      if (!testsOk) console.log(`     no [[patches.tests]] entries`)
+    }
   }
 
   return allOk ? 0 : 1

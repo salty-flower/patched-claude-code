@@ -1,0 +1,282 @@
+name = "statusline-footer-control"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
+
+rationale = """
+Let custom status lines own the built-in footer surfaces.
+
+Patched bundles add a CLI switch and settings schema for hiding specific
+built-in footer items, while preserving the status JSON fields custom
+statusLine commands need to render those items themselves. Cleanup condition:
+upstream ships official statusLine footer controls and equivalent statusLine
+JSON fields.
+"""
+
+[[patches]]
+name = "statusline-footer-control-cli-option"
+rationale = """
+Add a CLI switch for hiding built-in footer items.
+
+Users who configure statusLine output may want the same per-session override
+without editing settings files. Patched bundles add `--hide-builtin-footer` as
+a normal top-level option that accepts an optional comma-separated item list;
+omitting the value hides all known footer items. Cleanup condition: upstream
+ships an official CLI flag or settings command for built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+locator_pattern = '''.addOption(new h4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(ZV)).option("-c, --continue"'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''.addOption(new h4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(ZV)).option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
+
+[[patches.tests]]
+kind = "static"
+name = "CLI option is rendered"
+assert_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
+
+[[patches]]
+name = "statusline-footer-control-cli-settings"
+rationale = """
+Carry the hide-built-in-footer CLI switch into runtime settings.
+
+The footer render path reads settings from AppState, not directly from parsed
+CLI options. Patched bundles merge `--hide-builtin-footer` into the initial
+runtime settings object as `statusLine.disabledFooter`, leaving persistent
+settings files unchanged. Cleanup condition: upstream ships an official CLI
+flag or runtime option for hiding built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+locator_pattern = '''F$={settings:m8(),tasks:{},taskDecorations:{}'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''F$={settings:Y.hideBuiltinFooter?(()=>{let H=m8(),_=Y.hideBuiltinFooter===!0||Y.hideBuiltinFooter==="all"?["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(Y.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);return{...H,statusLine:{...H.statusLine,disabledFooter:_}}})():m8(),tasks:{},taskDecorations:{}'''
+
+[[patches.tests]]
+kind = "static"
+name = "CLI option expands to all footer items by default"
+assert_contains = '''["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint"
+rationale = """
+Hide clipboard image hint banners when the clipboard_image_hint item is disabled.
+
+The focus-regain clipboard hook registers the `clipboard-image-hint`
+notification, rendered as "Image in clipboard · ctrl+v to paste", separately
+from the built-in footer row. Patched bundles still probe the clipboard and
+record the result for custom statusLine commands, but suppress this immediate
+notification when either the compatibility boolean or
+`statusLine.disabledFooter` includes `clipboard_image_hint`. Cleanup condition:
+upstream ships official footer item controls while exposing equivalent state to
+custom status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_pattern = '''function zn_(H,_){let{addNotification:q}=J7(),K=UuH.useRef(H),O=UuH.useRef(0),T=UuH.useRef(null);UuH.useEffect(()=>{let A=K.current;if(K.current=H,!_||!H||A)return;if(T.current)clearTimeout(T.current);return T.current=setTimeout(async(z,$,Y)=>{z.current=null;let w=Date.now();if(w-$.current<bC1)return;if(await Wv9())$.current=w,Y({key:CC1,text:`Image in clipboard \xB7 ${ff("chat:imagePaste","Chat","ctrl+v")} to paste`,priority:"immediate",timeoutMs:8000})},IC1,T,O,q),()=>{if(T.current)clearTimeout(T.current),T.current=null}},[H,_,q])}'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''function zn_(H,_){let{addNotification:q}=J7(),rH=c8(),sH=Y_((m)=>m.settings.statusLine?.hideBuiltinFooter)||Y_((m)=>m.settings.statusLine?.disabledFooter?.includes("clipboard_image_hint")),K=UuH.useRef(H),O=UuH.useRef(0),T=UuH.useRef(null);UuH.useEffect(()=>{let A=K.current;if(K.current=H,!_||!H||A)return;if(T.current)clearTimeout(T.current);return T.current=setTimeout(async(z,$,Y,w,J)=>{z.current=null;let j=Date.now(),D=await Wv9();globalThis.__acc_clipboard_image_available=D,J((M)=>M.clipboardImageAvailable===D?M:{...M,clipboardImageAvailable:D});if(j-$.current<bC1)return;if(D)$.current=j,w||Y({key:CC1,text:`Image in clipboard \xB7 ${ff("chat:imagePaste","Chat","ctrl+v")} to paste`,priority:"immediate",timeoutMs:8000})},IC1,T,O,q,sH,rH),()=>{if(T.current)clearTimeout(T.current),T.current=null}},[H,_,q,sH,rH])}'''
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image hint is controlled by disabledFooter"
+assert_contains = '''disabledFooter?.includes("clipboard_image_hint")'''
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image hint state remains available"
+assert_contains = '''globalThis.__acc_clipboard_image_available=D'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification"
+rationale = """
+Hide the effort footer notification when the effort_notification item is disabled.
+
+The built-in footer line can also include the `/effort` reminder notification,
+which is registered separately from PromptInputFooterLeftSide. Patched bundles
+suppress that notification when either the compatibility boolean or
+`statusLine.disabledFooter` includes `effort_notification`. Cleanup condition:
+upstream ships an official setting or flag for built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_pattern = '''Hp=nH?void 0:Ws7(jH,qH);Mq.useEffect(()=>{if(!Hp){Pz("effort-level");return}Pz("effort-level"),wK({key:"effort-level",text:Hp,priority:"high",timeoutMs:1e4})},[Hp,wK,Pz])'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''Hp=(Y_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)||Y_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification")))?void 0:nH?void 0:Ws7(jH,qH);Mq.useEffect(()=>{if(!Hp){Pz("effort-level");return}Pz("effort-level"),wK({key:"effort-level",text:Hp,priority:"high",timeoutMs:1e4})},[Hp,wK,Pz])'''
+
+[[patches.tests]]
+kind = "static"
+name = "effort notification is controlled by disabledFooter"
+assert_contains = '''disabledFooter?.includes("effort_notification")))?void 0:nH?void 0:Ws7(jH,qH)'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning"
+rationale = """
+Hide rate-limit warning banners when the rate_limit_warning item is disabled.
+
+The early-warning hook registers `rate-limit-warning` notifications such as
+"You've used 72% of your session limit" separately from the built-in footer row.
+Patched bundles preserve the quota state and error handling, publish the
+rendered warning string for custom statusLine commands, but suppress this
+warning notification when either the compatibility boolean or
+`statusLine.disabledFooter` includes `rate_limit_warning`. Cleanup condition:
+upstream ships official footer item controls while exposing equivalent state to
+custom status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_pattern = '''let _=QbK.c(22),{addNotification:q}=J7(),K=uYH(),O=Y_(su3),T;if(_[0]!==K||_[1]!==H)T=l98(K,H),_[0]=K,_[1]=H,_[2]=T;else T=_[2];let A=T,z;if(_[3]!==K||_[4]!==O||_[5]!==H)'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''let _=QbK.c(22),{addNotification:q}=J7(),K=uYH(),O=Y_(su3),rH=Y_((m)=>m.settings.statusLine?.hideBuiltinFooter)||Y_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning")),T;if(_[0]!==K||_[1]!==H)T=l98(K,H),_[0]=K,_[1]=H,_[2]=T;else T=_[2];globalThis.__acc_rate_limit_warning=T;let A=rH?null:T,z;if(_[3]!==K||_[4]!==O||_[5]!==H)'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is controlled by disabledFooter"
+assert_contains = '''disabledFooter?.includes("rate_limit_warning"))'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is available to statusline"
+assert_contains = '''globalThis.__acc_rate_limit_warning=T'''
+
+[[patches]]
+name = "statusline-footer-control-render"
+rationale = """
+Hide the built-in footer line when the footer item is disabled.
+
+The footer currently renders the custom StatusLine and then always renders the
+built-in PromptInputFooterLeftSide row under the normal prompt/footer
+conditions. Patched bundles preserve the default behavior and suppress that
+built-in row when either the compatibility boolean or `statusLine.disabledFooter`
+includes `footer`. Cleanup condition: upstream ships an official setting or flag
+for hiding the built-in footer status line.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
+locator_pattern = '''iH=MO.createElement(JvK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:CH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:FH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:s,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''iH=e?.statusLine?.hideBuiltinFooter||e?.statusLine?.disabledFooter?.includes("footer")?null:MO.createElement(JvK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:CH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:FH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:s,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
+
+[[patches.tests]]
+kind = "static"
+name = "footer row is controlled by disabledFooter"
+assert_contains = '''disabledFooter?.includes("footer")?null:MO.createElement(JvK'''
+
+[[patches]]
+name = "statusline-footer-control-schema"
+rationale = """
+Accept statusLine settings that hide built-in footer items.
+
+Upstream already has statusLine-local display controls such as
+`hideVimModeIndicator` in newer bundles, but no setting for suppressing specific
+footer items below a custom statusLine. Patched bundles add
+`statusLine.disabledFooter` as an enum-like item list and keep
+`statusLine.hideBuiltinFooter` as a compatibility alias. Cleanup condition:
+upstream ships an official setting for hiding built-in footer items when a
+custom statusLine is present.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_pattern = '''hideVimModeIndicator:v.boolean().optional().describe("Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself.")}).optional().describe("Custom status line display configuration")'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''hideVimModeIndicator:v.boolean().optional().describe("Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself."),hideBuiltinFooter:v.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:v.array(v.enum(["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")}).optional().describe("Custom status line display configuration")'''
+
+[[patches.tests]]
+kind = "static"
+name = "disabledFooter schema is rendered"
+assert_contains = '''disabledFooter:v.array(v.enum(["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
+name = "statusline-footer-control-teammate-spinner-gap"
+rationale = """
+Remove the idle leader spacer before teammate spinner lines when disabled.
+
+When teammate spinner-tree rows are visible, the leader-idle branch renders a
+separate idle row with top margin before the teammate rows. With the built-in
+footer hidden, that row reads as an empty spacer between the custom status line
+and active teammate lines. Patched bundles omit it only when either the
+compatibility boolean or `statusLine.disabledFooter` includes
+`teammate_idle_spacer`. Cleanup condition: upstream removes the extra spacer or
+gives custom status lines an official way to own this layout.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Spinner.tsx#L226-L238"
+locator_pattern = '''let qH=K.current!==null?K.current-_.current-q.current:Date.now()-_.current-q.current,JH=Math.round(O.current/4),$H="claude",a="claudeShimmer",o=T??$H,_H=A??a,HH=null;if(D&&e&&!h)return tq.createElement(B,{flexDirection:"column",width:"100%",alignItems:"flex-start"},tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"},tq.createElement(V,{dimColor:!0},Ty," Idle",!t&&" \xB7 teammates running")),k&&tq.createElement(kK6,{selectedIndex:L,isInSelectionMode:N==="selecting-agent",allIdle:t,leaderTokenCount:JH,leaderIdleText:"Idle"}));'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''let qH=K.current!==null?K.current-_.current-q.current:Date.now()-_.current-q.current,JH=Math.round(O.current/4),$H="claude",a="claudeShimmer",o=T??$H,_H=A??a,HH=null,bH=Y_((kH)=>kH.settings.statusLine?.hideBuiltinFooter)||Y_((kH)=>kH.settings.statusLine?.disabledFooter?.includes("teammate_idle_spacer"));if(D&&e&&!h)return tq.createElement(B,{flexDirection:"column",width:"100%",alignItems:"flex-start"},bH&&k?null:tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"},tq.createElement(V,{dimColor:!0},Ty," Idle",!t&&" \xB7 teammates running")),k&&tq.createElement(kK6,{selectedIndex:L,isInSelectionMode:N==="selecting-agent",allIdle:t,leaderTokenCount:JH,leaderIdleText:"Idle"}));'''
+
+[[patches.tests]]
+kind = "static"
+name = "teammate tree spacer is controlled by disabledFooter"
+assert_contains = '''disabledFooter?.includes("teammate_idle_spacer"));if(D&&e&&!h)return'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-effect"
+rationale = """
+Trigger a custom statusLine rerender on clipboard image state changes.
+
+Subscribing to the patched clipboard image app-state field is not enough by
+itself because statusLine command execution is debounced behind explicit change
+checks. Patched bundles schedule the existing statusLine refresh callback when
+the clipboard image selector changes. Cleanup condition: upstream adds official
+statusLine fields and refresh triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
+locator_pattern = '''let E=Y?.statusLine?.refreshInterval;'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''aY.useEffect(()=>{x()},[b,x]);let E=Y?.statusLine?.refreshInterval;'''
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image state triggers statusline refresh"
+assert_contains = '''aY.useEffect(()=>{x()},[b,x]);let E=Y?.statusLine?.refreshInterval;'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh"
+rationale = """
+Refresh custom statusLine output when clipboard image availability changes.
+
+The clipboard image hint is detected in a focus-regain hook, outside the normal
+statusLine refresh triggers. Patched bundles subscribe the StatusLine component
+to the patched `clipboardImageAvailable` app-state field and schedule a refresh
+when it changes, so custom statusLine commands receive the updated
+`clipboard_image.available` payload. Cleanup condition: upstream adds official
+statusLine fields and refresh triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
+locator_pattern = '''let O=aY.useRef(void 0),T=Y_((l)=>l.toolPermissionContext.mode),A=Y_((l)=>l.toolPermissionContext.additionalWorkingDirectories),z=Y_((l)=>l.statusLineText),$=c8(),Y=gY(),{addNotification:w}=J7(),J=yJ(),j=Y_((l)=>l.fastMode??!1),D=Y_((l)=>l.effortValue),M=Y_((l)=>l.thinkingEnabled),f=aY.useRef(Y);'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''let O=aY.useRef(void 0),T=Y_((l)=>l.toolPermissionContext.mode),A=Y_((l)=>l.toolPermissionContext.additionalWorkingDirectories),z=Y_((l)=>l.statusLineText),$=c8(),Y=gY(),{addNotification:w}=J7(),J=yJ(),j=Y_((l)=>l.fastMode??!1),D=Y_((l)=>l.effortValue),M=Y_((l)=>l.thinkingEnabled),b=Y_((l)=>l.clipboardImageAvailable??!1),f=aY.useRef(Y);'''
+
+[[patches.tests]]
+kind = "static"
+name = "statusline observes clipboard image state"
+assert_contains = '''clipboardImageAvailable??!1'''
+
+[[patches]]
+name = "statusline-json-permission-mode"
+rationale = """
+Expose current footer state to custom statusLine commands.
+
+The upstream statusLine JSON payload includes session, model, workspace, cost,
+context, vim, agent, remote, and worktree fields, but not the selected tool
+permission/input mode that drives the built-in footer text such as "accept
+edits on" or the clipboard image hint rendered below the prompt. Patched bundles
+add a top-level `permission_mode` string and `clipboard_image` object so a
+custom statusLine command can render the same footer state itself. When the
+rate-limit warning hook publishes a rendered early-warning banner, patched
+bundles include that string under `rate_limit_warning.message`. Cleanup
+condition: upstream adds official statusLine fields for current footer/input
+hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_pattern = '''return{...a1(),cwd:Y,...W&&{session_name:W},model:{id:M,display_name:oD(M)}'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''return{...a1(),cwd:Y,permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},...W&&{session_name:W},model:{id:M,display_name:oD(M)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "statusline JSON includes footer state"
+assert_contains = '''return{...a1(),cwd:Y,permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},...W&&{session_name:W},model:{id:M,display_name:oD(M)}'''

@@ -1,17 +1,12 @@
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { isAbsolute, join, relative, sep } from "node:path"
-import * as TOML from "@iarna/toml"
+import { loadPatchEntriesFromToml, type PatchEntry } from "./patch-files"
 
 export const RELEASE_NAME = "audited-claude-code"
 export const UPSTREAM_PACKAGE = "@anthropic-ai/claude-code"
 
-export type Patch = {
-  name: string
-  target_version: string
-  applies_to?: string
-  gated_by_env?: string
-}
+export type Patch = PatchEntry
 
 export type PatchFile = {
   patch: Patch
@@ -114,8 +109,9 @@ export function loadPatches(root: string): PatchFile[] {
     .sort()
     .map((file) => {
       const raw = readFileSync(join(patchDir, file), "utf8")
-      return { patch: TOML.parse(raw) as unknown as Patch, raw }
+      return loadPatchEntriesFromToml(raw, join(patchDir, file)).map((patch) => ({ patch, raw }))
     })
+    .flat()
 }
 
 export function loadStageManifest(root: string, version: string): StageManifest | null {

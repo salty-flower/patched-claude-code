@@ -9,31 +9,17 @@
 // Each patch is verified to match exactly once before substitution; if any
 // patch fails to verify, the script exits non-zero without writing.
 
-import { readFileSync, writeFileSync, readdirSync } from "node:fs"
+import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import * as TOML from "@iarna/toml"
 import * as semver from "semver"
+import { loadPatchEntriesFromDirectory, type PatchEntry } from "../lib/patch-files"
 
-type Patch = {
-  name: string
-  target_version: string
-  applies_to?: string
-  rationale: string
-  rationale_ref: string
-  locator_pattern: string
-  locator_kind: "regex" | "literal"
-  expected_matches?: number
-  replacement: string
-  gated_by_env?: string
-}
+type Patch = PatchEntry
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 function loadPatches(): Patch[] {
-  const dir = join(ROOT, "patches")
-  return readdirSync(dir)
-    .filter((f) => f.endsWith(".toml"))
-    .map((f) => TOML.parse(readFileSync(join(dir, f), "utf8")) as unknown as Patch)
+  return loadPatchEntriesFromDirectory(ROOT)
 }
 
 function applies(p: Patch, version: string): boolean {
@@ -74,7 +60,7 @@ function main(): number {
   const version = versionArg ?? process.env.AUDITED_CC_TARGET_VERSION ?? "0.0.0"
 
   const patches = loadPatches()
-  console.error(`loaded ${patches.length} patches from patches/`)
+  console.error(`loaded ${patches.length} patch entries from patches/`)
 
   let body = readFileSync(inputPath, "utf8")
   let applied = 0
@@ -89,7 +75,7 @@ function main(): number {
   }
 
   writeFileSync(outputPath, body)
-  console.error(`wrote ${outputPath} (${applied}/${patches.length} patches applied)`)
+  console.error(`wrote ${outputPath} (${applied}/${patches.length} patch entries applied)`)
   return 0
 }
 

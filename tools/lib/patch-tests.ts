@@ -1,4 +1,5 @@
 import * as TOML from "@iarna/toml"
+import { loadPatchEntriesFromToml } from "./patch-files"
 
 export type StaticPatchTest = {
   kind: "static"
@@ -35,10 +36,16 @@ export type PatchTestResult = {
 
 type PatchToml = {
   tests?: PatchTest[]
+  patches?: Array<{
+    tests?: PatchTest[]
+  }>
 }
 
 export function loadPatchTestsFromToml(rawToml: string): PatchTest[] {
   const parsed = TOML.parse(rawToml) as unknown as PatchToml
+  if (parsed.patches) {
+    return loadPatchEntriesFromToml(rawToml, "<inline>").flatMap((patch) => patch.tests ?? [])
+  }
   return parsed.tests ?? []
 }
 

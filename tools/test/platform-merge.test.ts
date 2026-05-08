@@ -166,6 +166,32 @@ test("rewrites outer free identifiers even when an inner block shadows the same 
   expect(result.canonicalSource).toContain("function __acc_linux_entry(){let out=dep();{let x=2;out+=x}return out}")
 })
 
+test("preserves canonical state aliases inside platform-specific initializers", () => {
+  const result = mergePlatformJavaScript({
+    version: "test",
+    basePlatform: "darwin-arm64",
+    baseSource:
+      "function Z(fn){return fn}\nfunction make(){return 1}\nfunction getTerminal(){return 'x'}\nfunction isIde(value){return Boolean(value)}\n" +
+      "var helper,state;\n" +
+      "var init=Z(()=>{helper=make();state={terminal:getTerminal(),helper}});\n" +
+      "var isSupported=Z(()=>{return isIde(state.terminal)});\n",
+    otherPlatform: "linux-x64",
+    otherSource:
+      "function Z(fn){return fn}\nfunction make(){return 1}\nfunction getTerminal(){return 'x'}\nfunction isIde(value){return Boolean(value)}\n" +
+      "var fs,linuxHelper,linuxState;\n" +
+      'var init=Z(()=>{fs=require("fs");linuxHelper=make();linuxState={terminal:getTerminal(),helper:linuxHelper}});\n' +
+      "var isSupported=Z(()=>{return isIde(linuxState.terminal)});\n",
+  })
+
+  expect(result.ok).toBe(true)
+  expect(result.canonicalSource).toContain("state")
+  expect(result.canonicalSource).toContain('var init=process.platform==="darwin"?__acc_darwin_init:__acc_linux_init;')
+  expect(result.canonicalSource).toContain(
+    'var __acc_linux_init=Z(()=>{__acc_linux_fs=require("fs");__acc_linux_linuxHelper=make();state={terminal:getTerminal(),helper:__acc_linux_linuxHelper}});',
+  )
+  expect(result.canonicalSource).not.toContain("__acc_linux_linuxState={")
+})
+
 test("reports semantic union validation failures for unresolved free identifiers", () => {
   const result = mergePlatformJavaScript({
     version: "test",

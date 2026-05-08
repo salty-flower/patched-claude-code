@@ -563,6 +563,13 @@ function alignByAnchors(
 
 function buildOtherToCanonicalNameMap(pairs: Array<{ base?: TopLevelDeclaration; other?: TopLevelDeclaration }>): Map<string, string> {
   const map = new Map<string, string>()
+  const baseTopLevelNames = new Set<string>()
+  const otherTopLevelNames = new Set<string>()
+  for (const pair of pairs) {
+    if (pair.base) for (const name of declaredNames(pair.base.node)) baseTopLevelNames.add(name)
+    if (pair.other) for (const name of declaredNames(pair.other.node)) otherTopLevelNames.add(name)
+  }
+
   for (const pair of pairs) {
     if (!pair.other) continue
     const otherNames = declaredNames(pair.other.node)
@@ -579,6 +586,23 @@ function buildOtherToCanonicalNameMap(pairs: Array<{ base?: TopLevelDeclaration;
       for (const name of otherNames) map.set(name, semanticName("linux", name))
     }
   }
+
+  for (const pair of pairs) {
+    if (!pair.base || !pair.other || pair.base.structuralHash !== pair.other.structuralHash) continue
+    const baseReferences = freeIdentifierList(pair.base.node)
+    const otherReferences = freeIdentifierList(pair.other.node)
+    const count = Math.min(baseReferences.length, otherReferences.length)
+    for (let i = 0; i < count; i++) {
+      const baseName = baseReferences[i]
+      const otherName = otherReferences[i]
+      if (baseName === otherName) continue
+      if (!baseTopLevelNames.has(baseName) || !otherTopLevelNames.has(otherName)) continue
+      const current = map.get(otherName)
+      if (current !== undefined && current !== semanticName("linux", otherName)) continue
+      map.set(otherName, baseName)
+    }
+  }
+
   return map
 }
 
@@ -753,6 +777,14 @@ function freeIdentifiers(node: Record<string, unknown>, rename: Map<string, stri
   const names = new Set<string>()
   walkScoped(node, rename, (_identifier, name, kind) => {
     if (kind === "reference") names.add(rename.get(name) ?? name)
+  })
+  return names
+}
+
+function freeIdentifierList(node: Record<string, unknown>): string[] {
+  const names: string[] = []
+  walkScoped(node, new Map(), (_identifier, name, kind) => {
+    if (kind === "reference") names.push(name)
   })
   return names
 }

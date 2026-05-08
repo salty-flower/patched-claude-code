@@ -96,6 +96,7 @@
             git
             just
             prek
+            actionlint
           ];
 
           shellHook = ''

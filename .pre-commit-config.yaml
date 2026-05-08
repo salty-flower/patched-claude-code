@@ -17,6 +17,12 @@ repos:
         files: ^tools/
         pass_filenames: false
 
+      - id: actionlint
+        name: GitHub Actions workflow lint
+        entry: actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+
       - id: verify-patches
         name: patch locators and rationale refs verify
         entry: bash -euo pipefail -c 'version="${TARGET_VERSION:-2.1.133}"; source="${TARGET_SOURCE:-canonical}"; bun run tools/patch/stage-target.ts --version "$version" --source "$source"; bun run tools/patch/verify-patches.ts --against "staging/$version/cli.js"; bun run tools/patch/check-native-extraction-contract.ts'

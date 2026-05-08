@@ -65,9 +65,11 @@ jobs:
 
           bun run tools/patch/detect-upstream.ts "${handled_args[@]}" "${prerelease_args[@]}" > upstream.json
           cat upstream.json
-          echo "action=$(jq -r '.action' upstream.json)" >> "$GITHUB_OUTPUT"
-          echo "version=$(jq -r '.version // empty' upstream.json)" >> "$GITHUB_OUTPUT"
-          echo "source=$(jq -r '.source // empty' upstream.json)" >> "$GITHUB_OUTPUT"
+          {
+            echo "action=$(jq -r '.action' upstream.json)"
+            echo "version=$(jq -r '.version // empty' upstream.json)"
+            echo "source=$(jq -r '.source // empty' upstream.json)"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Stop when there is no candidate
         if: steps.detect.outputs.action == 'none'

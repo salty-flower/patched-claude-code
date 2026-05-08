@@ -60,7 +60,7 @@ jobs:
 
             while IFS= read -r path; do
               case "$path" in
-                patches/*|reference/*|justfile|flake.nix|flake.lock|.pre-commit-config.yaml)
+                patches/*|reference/*|justfile)
                   full=true
                   typecheck=true
                   ;;

@@ -99,11 +99,13 @@ jobs:
             tag="claude-code-${version}-${release_id}"
             publish="${{ inputs.publish }}"
           fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
-          echo "platform_package=$platform_package" >> "$GITHUB_OUTPUT"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$version"
+            echo "release_id=$release_id"
+            echo "platform_package=$platform_package"
+            echo "tag=$tag"
+            echo "publish=$publish"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Install tool dependencies
         run: bun install --cwd tools --frozen-lockfile

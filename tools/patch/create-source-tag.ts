@@ -51,7 +51,7 @@ function run(cmd: string[], env: Record<string, string | undefined> = {}): strin
   const result = Bun.spawnSync({
     cmd,
     cwd: ROOT,
-    env: { ...process.env, ...env },
+    env: { ...process.env, ...gitIdentityEnv(), ...env },
     stdout: "pipe",
     stderr: "inherit",
   })
@@ -59,6 +59,19 @@ function run(cmd: string[], env: Record<string, string | undefined> = {}): strin
     throw new Error(`command failed (${result.exitCode}): ${cmd.join(" ")}`)
   }
   return new TextDecoder().decode(result.stdout).trim()
+}
+
+function gitIdentityEnv(): Record<string, string> {
+  const actor = process.env.GITHUB_ACTOR || "github-actions[bot]"
+  const name = process.env.GIT_AUTHOR_NAME || process.env.GIT_COMMITTER_NAME || actor
+  const email =
+    process.env.GIT_AUTHOR_EMAIL || process.env.GIT_COMMITTER_EMAIL || "41898282+github-actions[bot]@users.noreply.github.com"
+  return {
+    GIT_AUTHOR_NAME: name,
+    GIT_AUTHOR_EMAIL: email,
+    GIT_COMMITTER_NAME: name,
+    GIT_COMMITTER_EMAIL: email,
+  }
 }
 
 function main(): number {

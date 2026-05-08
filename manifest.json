@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "name": "audited-claude-code",
+  "upstream": {
+    "package": "@anthropic-ai/claude-code",
+    "version": "2.1.133",
+    "source": "canonical-platform-merge",
+    "platformPackage": null,
+    "nativeTarball": null,
+    "canonical": {
+      "cliPath": "staging/2.1.133/canonical/cli.js",
+      "reportPath": "staging/2.1.133/canonical/platform-merge-report.json",
+      "bytes": 14252004,
+      "sha256": "bad42f1f1c67c1e7050ef65e654f6a320fa6817b0aa066a525e9704c1474a88d",
+      "structuralSha256": "e4db799b0a869161bc68a96af0a0170bb0d1a7d7e686827744a4aa48e5ee2866",
+      "structuralParseErrors": 0,
+      "mergePolicy": "canonical-platform-merge-v1"
+    },
+    "platforms": [
+      {
+        "platform": "darwin-arm64",
+        "binary": "claude",
+        "binaryUrl": "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.1.133/darwin-arm64/claude",
+        "binaryPath": "/home/runner/work/audited-claude-code/audited-claude-code/staging/2.1.133/platform-merge/darwin-arm64/claude",
+        "binarySha256": "d38f34444911c86c73f32beb82821008b26be889fa0d0caf7085580cf5737e14",
+        "entrypointSha256": "c651b59f25294706e2869ed91669432468cbc93214d008b52364d6444fded62f",
+        "entrypointBytes": 14205669,
+        "cliPath": "/home/runner/work/audited-claude-code/audited-claude-code/staging/2.1.133/platform-merge/darwin-arm64/cli.js"
+      },
+      {
+        "platform": "linux-x64",
+        "binary": "claude",
+        "binaryUrl": "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.1.133/linux-x64/claude",
+        "binaryPath": "/home/runner/work/audited-claude-code/audited-claude-code/staging/2.1.133/platform-merge/linux-x64/claude",
+        "binarySha256": "d0ddf0aee6e4426a705719e5d4716e3ce3cb38f9a5fe06eb6d5ffcef6c98832a",
+        "entrypointSha256": "7ae5fb1c7457be12f19719d5ddc4b36a3f6de9b08f4958d6c9725d2dab4047b6",
+        "entrypointBytes": 14199649,
+        "cliPath": "/home/runner/work/audited-claude-code/audited-claude-code/staging/2.1.133/platform-merge/linux-x64/cli.js"
+      }
+    ]
+  },
+  "release": {
+    "id": "patch.2",
+    "tag": "claude-code-2.1.133-patch.2",
+    "gitCommit": null,
+    "builtAt": null
+  },
+  "runtime": {
+    "command": "bun",
+    "entrypoint": "cli.js"
+  },
+  "patchSet": {
+    "count": 37,
+    "sha256": "sha256-r9f4ROWn3xRZNX4yxkYhrKKJA44Ixk4QhW6O1hx7j7k=",
+    "names": [
+      "agents-memory-additional-directories",
+      "agents-memory-ancestor-directories",
+      "agents-memory-file-detection",
+      "agents-memory-nested-directory",
+      "ask-user-question-channels-gate",
+      "channels-feature-gate",
+      "channels-provider-gate",
+      "mcp-result-render-array-text-full",
+      "mcp-result-render-string-full",
+      "mcp-result-render-text-block-full",
+      "memory-file-realpath-overlap-dedup",
+      "read-result-path-context",
+      "read-result-path-image",
+      "read-result-path-notebook",
+      "read-result-path-parts",
+      "read-result-path-pdf",
+      "read-result-path-text",
+      "read-result-path-unchanged",
+      "statusline-hide-builtin-footer-cli-option",
+      "statusline-hide-builtin-footer-cli-settings",
+      "statusline-hide-builtin-footer-clipboard-image-hint",
+      "statusline-hide-builtin-footer-effort-notification",
+      "statusline-hide-builtin-footer-rate-limit-warning",
+      "statusline-hide-builtin-footer-render",
+      "statusline-hide-builtin-footer-schema",
+      "statusline-hide-builtin-footer-teammate-spinner-gap",
+      "statusline-json-clipboard-image-refresh-effect",
+      "statusline-json-clipboard-image-refresh",
+      "statusline-json-permission-mode",
+      "subagent-preserve-tool-results",
+      "suppress-npm-native-installer-warning",
+      "thinking-render-blocks",
+      "thinking-render-expanded",
+      "thinking-render-live-complete",
+      "thinking-render-live-main",
+      "thinking-render-live-stream",
+      "transcript-preserve-repl-history"
+    ]
+  },
+  "bundle": {
+    "file": "cli.js",
+    "bytes": 14252911,
+    "sha256": "sha256-GjYG9q6+vAxCK6g6gQZMXVJB6E4pEohuLaKtI10ajps="
+  }
+}

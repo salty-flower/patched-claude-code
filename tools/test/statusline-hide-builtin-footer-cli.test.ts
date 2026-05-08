@@ -31,7 +31,11 @@ function run(cmd: string[]): { stdout: string; stderr: string; exitCode: number 
 function renderStatuslineFooterPatches(input: string, output: string): void {
   let body = readFileSync(input, "utf8")
   const patches = readdirSync(join(ROOT, "patches"))
-    .filter((file) => file.startsWith("statusline-hide-builtin-footer-") && file.endsWith(".toml"))
+    .filter(
+      (file) =>
+        (file.startsWith("statusline-hide-builtin-footer-") || file.startsWith("statusline-json-")) &&
+        file.endsWith(".toml"),
+    )
     .sort()
 
   for (const file of patches) {
@@ -83,6 +87,12 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   expect(patched).toContain(
     'k?null:tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"}',
   )
+  expect(patched).toContain("w||Y({key:CC1,text:`Image in clipboard")
+  expect(patched).toContain(
+    'clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}',
+  )
+  expect(patched).toContain("globalThis.__acc_rate_limit_warning=T")
+  expect(patched).toContain("rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}")
 
   const help = run(["bun", patchedBundle, "--help"])
   expect(help.exitCode).toBe(0)

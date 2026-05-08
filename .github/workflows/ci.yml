@@ -8,9 +8,68 @@ on:
 
 env:
   TARGET_VERSION: "2.1.132"
+  TARGET_SOURCE: canonical
   TARGET_PLATFORM_PACKAGE: "@anthropic-ai/claude-code-darwin-arm64"
 
 jobs:
+  canonical-platform-merge:
+    name: canonical-platform-merge (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: Install missing Ubuntu tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y just
+
+      - name: Install missing macOS tools
+        if: runner.os == 'macOS'
+        run: brew install just
+
+      - name: Tool availability
+        run: |
+          set -euo pipefail
+          bun --version
+          just --version
+          jq --version
+          git --version
+          tar --version
+          curl --version
+          node --version
+          npm --version
+
+      - name: Install tool dependencies
+        run: bun install --cwd tools --frozen-lockfile
+
+      - name: Typecheck tools
+        run: just typecheck
+
+      - name: Stage canonical bundle
+        run: just canonical-stage "$TARGET_VERSION"
+
+      - name: Check canonical merge report
+        run: |
+          set -euo pipefail
+          jq -e '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
+            "staging/${TARGET_VERSION}/canonical/platform-merge-report.json"
+
+      - name: Upload canonical report
+        uses: actions/upload-artifact@v6
+        with:
+          name: canonical-platform-merge-${{ matrix.os }}-${{ env.TARGET_VERSION }}
+          path: staging/${{ env.TARGET_VERSION }}/canonical/platform-merge-report.json
+          if-no-files-found: error
+
   verify:
     runs-on: ubuntu-24.04
     steps:

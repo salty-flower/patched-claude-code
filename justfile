@@ -2,8 +2,9 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 target := env_var_or_default("TARGET_VERSION", "2.1.132")
 platform_package := env_var_or_default("TARGET_PLATFORM_PACKAGE", "@anthropic-ai/claude-code-darwin-arm64")
-source := env_var_or_default("TARGET_SOURCE", "npm")
+source := env_var_or_default("TARGET_SOURCE", "canonical")
 platform := env_var_or_default("TARGET_PLATFORM", "darwin-arm64")
+canonical_base := env_var_or_default("TARGET_CANONICAL_BASE", "darwin-arm64")
 
 stage version=target source=source:
   #!/usr/bin/env bash
@@ -22,14 +23,19 @@ stage version=target source=source:
       exit 0
     fi
   fi
-  if [[ "{{source}}" == "gcs" ]]; then
+  if [[ "{{source}}" == "canonical" ]]; then
+    just canonical-stage "{{version}}"
+  elif [[ "{{source}}" == "gcs" ]]; then
     bun run tools/patch/stage-claude-code.ts "{{version}}" --source gcs --platform "{{platform}}"
   elif [[ "{{source}}" == "npm" ]]; then
     bun run tools/patch/stage-claude-code.ts "{{version}}" --platform-package "{{platform_package}}"
   else
-    echo "unsupported TARGET_SOURCE={{source}}; expected npm or gcs" >&2
+    echo "unsupported TARGET_SOURCE={{source}}; expected canonical, npm, or gcs" >&2
     exit 2
   fi
+
+canonical-stage version=target:
+  bun run tools/platform/merge-platform-bundles.ts --version "{{version}}" --platform darwin-arm64 --platform linux-x64 --base "{{canonical_base}}" --generalize-unknown-string-literals
 
 stage-gcs version=target platform=platform:
   bun run tools/patch/stage-claude-code.ts "{{version}}" --source gcs --platform "{{platform}}"

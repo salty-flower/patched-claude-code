@@ -33,6 +33,20 @@ type StageManifest = {
   source?: string
   platformPackage?: string
   nativeTarball?: string
+  canonical?: {
+    cliPath: string
+    reportPath: string
+    bytes: number
+    sha256: string
+    mergePolicy: string
+  }
+  platforms?: Array<{
+    platform: string
+    binaryUrl: string
+    binarySha256: string
+    entrypointSha256: string
+    entrypointBytes: number
+  }>
 }
 
 function parseArgs(argv: string[]): Args {
@@ -153,6 +167,8 @@ exec bun "$dir/cli.js" "$@"
       source: stageManifest?.source ?? null,
       platformPackage: stageManifest?.platformPackage ?? null,
       nativeTarball: stageManifest?.nativeTarball ?? null,
+      canonical: stageManifest?.canonical ?? null,
+      platforms: stageManifest?.platforms ?? null,
     },
     release: {
       id: releaseId,

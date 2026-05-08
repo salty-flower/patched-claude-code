@@ -113,24 +113,34 @@ jobs:
 
       - name: Stage target bundle
         env:
+          TARGET_SOURCE: canonical
           TARGET_PLATFORM_PACKAGE: ${{ steps.coord.outputs.platform_package }}
         run: just stage "${{ steps.coord.outputs.version }}"
 
       - name: Verify patches and contracts
         env:
+          TARGET_SOURCE: canonical
           TARGET_PLATFORM_PACKAGE: ${{ steps.coord.outputs.platform_package }}
         run: just verify "${{ steps.coord.outputs.version }}"
 
       - name: Render patched bundle
+        env:
+          TARGET_SOURCE: canonical
         run: just render "${{ steps.coord.outputs.version }}"
 
       - name: Smoke patched bundle
+        env:
+          TARGET_SOURCE: canonical
         run: just smoke "${{ steps.coord.outputs.version }}"
 
       - name: Patch tests
+        env:
+          TARGET_SOURCE: canonical
         run: just patch-test "${{ steps.coord.outputs.version }}"
 
       - name: Package release artifact
+        env:
+          TARGET_SOURCE: canonical
         run: just package "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
 
       - name: Upload workflow artifact

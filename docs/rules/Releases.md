@@ -12,7 +12,7 @@ version.
 | Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz` |
 | Bundle | `cli.js` inside the artifact; never committed to git |
 | Runtime | Bun supplied by the consumer |
-| Native package | Explicitly staged; current target is `@anthropic-ai/claude-code-darwin-arm64` |
+| Native package | Canonicalized from GCS `darwin-arm64` and `linux-x64` native binaries |
 | Manifest | `manifest.json` inside the artifact plus `<artifact>.manifest.json` beside it |
 
 `patch.<n>` increments whenever the rendered bundle changes for the same
@@ -25,7 +25,7 @@ A release MUST pass:
 
 | Gate | Command |
 | --- | --- |
-| Stage target | `just stage <version>` |
+| Stage target | `TARGET_SOURCE=canonical just stage <version>` |
 | Verify locators and extraction contract | `just verify` |
 | Render | `just render <version>` |
 | Smoke | `just smoke <version>` |
@@ -46,16 +46,13 @@ workflow-created tag to trigger another workflow; GitHub suppresses most
 Scheduled polling MUST run four times daily via `auto-release.yml`.
 It MAY publish `claude-code-<version>-patch.1` as a prerelease when either
 npm latest or GCS stable exposes an unhandled version. It MUST promote that
-tag only after npm latest and GCS stable converge and `just platform-audit
-<version>` reports no Linux/Darwin structural extracted-JS drift. Platform
-drift blocks promotion until repaired by explicit runtime-platform patches or
-a documented audit decision.
+tag only after npm latest and GCS stable converge and `TARGET_SOURCE=canonical
+just release-dry <version> patch.1` succeeds.
 
-The current `2.1.132` patch set is verified against the npm target and the GCS
-`darwin-arm64` native bundle. It is not Linux-portable: GCS `linux-x64`
-locator verification fails for most patches. Treat `just platform-patch-test
-<version>` as the named portability gate before claiming a patched release is
-cross-platform.
+Canonical staging MUST write
+`staging/<version>/canonical/platform-merge-report.json` with zero
+`unclassifiedDrift` and zero `acceptedDrift` entries. Unknown literal pairs and
+structural islands block promotion until merged by a deterministic transform.
 
 ## Private Repo Boundary
 

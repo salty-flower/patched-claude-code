@@ -80,14 +80,14 @@ jobs:
       - name: Stage candidate
         if: steps.detect.outputs.action != 'none'
         env:
-          TARGET_SOURCE: ${{ steps.detect.outputs.source }}
+          TARGET_SOURCE: ${{ steps.detect.outputs.action == 'promote' && 'canonical' || steps.detect.outputs.source }}
           TARGET_PLATFORM: darwin-arm64
         run: just stage "${{ steps.detect.outputs.version }}"
 
       - name: Verify, render, smoke, and package
         if: steps.detect.outputs.action != 'none'
         env:
-          TARGET_SOURCE: ${{ steps.detect.outputs.source }}
+          TARGET_SOURCE: ${{ steps.detect.outputs.action == 'promote' && 'canonical' || steps.detect.outputs.source }}
           TARGET_PLATFORM: darwin-arm64
         run: |
           set -euo pipefail
@@ -97,34 +97,12 @@ jobs:
           just patch-test "${{ steps.detect.outputs.version }}"
           just package "${{ steps.detect.outputs.version }}" "patch.1"
 
-      - name: Audit platform convergence before promotion
+      - name: Check canonical platform merge before promotion
         if: steps.detect.outputs.action == 'promote'
-        id: platform
-        continue-on-error: true
-        run: just platform-audit "${{ steps.detect.outputs.version }}" > platform-audit.json
-
-      - name: Block converged release on platform drift
-        if: steps.detect.outputs.action == 'promote' && steps.platform.outcome != 'success'
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag="claude-code-${{ steps.detect.outputs.version }}-patch.1"
-          {
-            echo "# $tag"
-            echo
-            echo "Promotion blocked: npm latest and GCS stable expose ${{ steps.detect.outputs.version }}, but Linux and Darwin extracted JS have structural drift."
-            echo
-            echo '```json'
-            cat platform-audit.json
-            echo '```'
-          } > blocked-notes.md
-          gh release edit "$tag" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "$tag (blocked: platform drift)" \
-            --notes-file blocked-notes.md \
-            --prerelease || true
-          exit 1
+          jq -e '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
+            "staging/${{ steps.detect.outputs.version }}/canonical/platform-merge-report.json"
 
       - name: Create or update prerelease
         if: steps.detect.outputs.action == 'prerelease'

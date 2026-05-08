@@ -9,9 +9,12 @@ git commit --allow-empty -m "release: claude-code-2.1.132-patch.2"
 git push origin main
 ```
 
-The manual `release` workflow stages from the npm/native package path. The
-scheduled `auto-release` workflow sets `TARGET_SOURCE` from upstream detection
-and may stage npm or GCS before rendering, testing, and packaging.
+The manual `release` workflow stages the canonical Linux/Darwin bundle from
+GCS native binaries before rendering, testing, and packaging.
+
+The scheduled `auto-release` workflow may publish a prerelease from a one-sided
+npm or GCS candidate. It promotes only after npm latest and GCS stable converge
+and canonical staging succeeds.
 
 Manual tag release remains supported:
 
@@ -20,15 +23,14 @@ git tag claude-code-2.1.132-patch.2
 git push origin claude-code-2.1.132-patch.2
 ```
 
-Current releases stage `@anthropic-ai/claude-code-darwin-arm64`. The patched
-asset is JavaScript, but patch locators are authored against that native
-package's embedded bundle bytes.
+Current releases stage `staging/<version>/canonical/cli.js`, then copy it to
+`staging/<version>/cli.js` for the patch tools. The canonical bundle is based
+on `darwin-arm64` plus `linux-x64` GCS native entrypoint JS.
 
 Manual dry run:
 
 ```sh
 just release-dry 2.1.132 patch.1
-TARGET_SOURCE=gcs just release-dry 2.1.132 patch.1
 ```
 
 Manual publish:
@@ -45,7 +47,6 @@ gh workflow run release.yml \
 
 ```sh
 just release-dry 2.1.132 patch.1
-TARGET_SOURCE=gcs just release-dry 2.1.132 patch.1
 ```
 
 Outputs land in `dist/`:

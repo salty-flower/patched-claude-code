@@ -1,0 +1,27 @@
+name = "statusline-hide-builtin-footer-teammate-spinner-gap"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
+
+rationale = """
+Remove the idle leader spacer before teammate spinner lines.
+
+When teammate spinner-tree rows are visible, the leader-idle branch renders a
+separate idle row with top margin before the teammate rows. With the built-in
+footer hidden, that row reads as an empty spacer between the custom status line
+and active teammate lines. Patched bundles keep the idle row for non-tree
+rendering, but omit it when the teammate tree is already rendering the leader
+state. Cleanup condition: upstream removes the extra spacer or gives custom
+status lines an official way to own this layout.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Spinner.tsx#L226-L238"
+
+locator_pattern = '''if(D&&e&&!h)return tq.createElement(B,{flexDirection:"column",width:"100%",alignItems:"flex-start"},tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"},tq.createElement(V,{dimColor:!0},Ty," Idle",!t&&" \xB7 teammates running")),k&&tq.createElement(kK6,{selectedIndex:L,isInSelectionMode:N==="selecting-agent",allIdle:t,leaderTokenCount:JH,leaderIdleText:"Idle"}));'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''if(D&&e&&!h)return tq.createElement(B,{flexDirection:"column",width:"100%",alignItems:"flex-start"},k?null:tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"},tq.createElement(V,{dimColor:!0},Ty," Idle",!t&&" \xB7 teammates running")),k&&tq.createElement(kK6,{selectedIndex:L,isInSelectionMode:N==="selecting-agent",allIdle:t,leaderTokenCount:JH,leaderIdleText:"Idle"}));'''
+
+[[tests]]
+kind = "static"
+name = "teammate tree omits idle spacer"
+assert_contains = '''k?null:tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"}'''

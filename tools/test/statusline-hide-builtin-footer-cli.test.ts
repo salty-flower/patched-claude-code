@@ -79,6 +79,10 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   expect(patched).toContain(
     "Hp=Y_((I_)=>I_.settings.hideBuiltinFooter)||Y_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)||nH?void 0:Ws7(jH,qH)",
   )
+  expect(patched).toContain("let A=rH?null:T,z;")
+  expect(patched).toContain(
+    'k?null:tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"}',
+  )
 
   const help = run(["bun", patchedBundle, "--help"])
   expect(help.exitCode).toBe(0)

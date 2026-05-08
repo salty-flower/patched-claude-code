@@ -60,8 +60,8 @@ Outputs land in `dist/`:
 | `*.manifest.json` | Machine-readable release metadata, including SRI hash |
 | `release-notes.md` | GitHub release notes |
 
-`just source-release <version> patch.<n>` writes the Nix-native payload to the
-repo root:
+`just release-source <version> patch.<n>` writes the Nix-native payload to the
+repo root and creates the matching minimal source tag:
 
 | File | Use |
 | --- | --- |
@@ -69,10 +69,6 @@ repo root:
 | `manifest.json` | Deterministic source manifest |
 | `package.json` | Minimal package metadata and `claude-audited` bin declaration |
 | `bin/claude-audited` | Bun wrapper for direct shell use |
-
-`just source-tag <version> patch.<n>` creates
-`claude-code-<version>-patch.<n>` as a minimal tag commit containing that
-payload plus `flake.nix` and `flake.lock`.
 
 ## Bump Rules
 

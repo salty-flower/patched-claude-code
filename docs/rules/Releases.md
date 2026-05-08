@@ -32,7 +32,7 @@ A release MUST pass:
 | Smoke | `just smoke <version>` |
 | Patch tests | `just patch-test <version>` |
 | Package | `just package <version> patch.<n>` |
-| Source payload | `just source-release <version> patch.<n>` |
+| Source tag | `just release-source <version> patch.<n>` |
 
 Release artifacts MUST include a raw SHA-256 hash for non-flake fixed-output
 fetching. Nix consumers SHOULD pin the GitHub source tag through the native

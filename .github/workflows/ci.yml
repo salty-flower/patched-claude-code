@@ -55,7 +55,7 @@ jobs:
         run: just typecheck
 
       - name: Stage canonical bundle
-        run: just canonical-stage "$TARGET_VERSION"
+        run: just stage "$TARGET_VERSION"
 
       - name: Check canonical merge report
         run: |
@@ -123,16 +123,15 @@ jobs:
       - name: Package release artifact
         run: just package "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
 
-      - name: Write Nix source payload
+      - name: Create Nix source tag
         run: |
           set -euo pipefail
-          just source-release "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
+          just release-source "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
           test -s cli.js
           test -s manifest.json
           test -s package.json
           test -x bin/claude-audited
           bun ./cli.js --version
-          just source-tag "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
           git ls-tree -r --name-only "claude-code-${TARGET_VERSION}-ci.${GITHUB_SHA::12}" > source-tag-files.txt
           diff -u <(printf '%s\n' bin/claude-audited cli.js flake.lock flake.nix manifest.json package.json) source-tag-files.txt
 

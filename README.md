@@ -79,7 +79,7 @@ For each new Claude Code release we want to ship, we:
 ```sh
 direnv allow                         # loads the Nix devShell
 bun install --cwd tools --frozen-lockfile
-just hooks-install
+prek install --overwrite
 just release-dry 2.1.132 patch.local
 ```
 

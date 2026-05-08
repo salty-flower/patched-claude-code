@@ -122,8 +122,8 @@ Outputs:
 - manifest fields for source platform hashes, canonical hash, drift counts,
   accepted structural islands, and merge policy version
 
-Add `just canonical-stage <version>` and make release packaging consume the
-canonical bundle, not `staging/<version>/cli.js`, once this tool exists.
+Make `TARGET_SOURCE=canonical just stage <version>` the default release staging
+path once this tool exists.
 
 ## Promotion Gate
 
@@ -131,7 +131,7 @@ Auto-release promotion should change from "Linux and Darwin upstream JS have
 no drift" to:
 
 1. npm latest and GCS stable converge on the same version.
-2. `canonical-stage` extracts and merges Linux plus Darwin.
+2. Canonical staging extracts and merges Linux plus Darwin.
 3. `just verify`, `just render`, `just smoke`, and `just patch-test` run
    against the canonical bundle.
 4. The merge report has zero unclassified drift.

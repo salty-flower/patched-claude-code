@@ -12,21 +12,21 @@ repos:
 
       - id: tools-typecheck
         name: tools TypeScript typecheck
-        entry: just typecheck
+        entry: bun run --cwd tools typecheck
         language: system
-        always_run: true
+        files: ^tools/
         pass_filenames: false
 
       - id: verify-patches
         name: patch locators and rationale refs verify
-        entry: just verify
+        entry: bash -euo pipefail -c 'version="${TARGET_VERSION:-2.1.132}"; source="${TARGET_SOURCE:-canonical}"; bun run tools/patch/stage-target.ts --version "$version" --source "$source"; bun run tools/patch/verify-patches.ts --against "staging/$version/cli.js"; bun run tools/patch/check-native-extraction-contract.ts'
         language: system
-        always_run: true
+        files: ^(patches/|tools/(lib|patch|platform|test)/|docs/rules/(Native-Bundle-Extraction|Patch-Format)\.md|justfile|\.pre-commit-config\.yaml)
         pass_filenames: false
 
       - id: render-and-smoke-current-target
         name: render and smoke current patched target
-        entry: just smoke
+        entry: bash -euo pipefail -c 'version="${TARGET_VERSION:-2.1.132}"; source="${TARGET_SOURCE:-canonical}"; bun run tools/patch/stage-target.ts --version "$version" --source "$source"; bun run tools/patch/verify-patches.ts --against "staging/$version/cli.js"; bun run tools/patch/check-native-extraction-contract.ts; bun run tools/patch/render-patched.ts "$version"; bun "staging/$version/cli.patched.js" --version'
         language: system
         always_run: true
         pass_filenames: false

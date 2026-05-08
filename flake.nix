@@ -75,7 +75,7 @@
           else
             pkgs.runCommand "audited-claude-code-unreleased" { } ''
               echo "This checkout does not contain a generated release payload." >&2
-              echo "Use a claude-code-<version>-patch.<n> tag or run: just source-release <version> <patch.n>" >&2
+              echo "Use a claude-code-<version>-patch.<n> tag or run: just release-source <version> <patch.n>" >&2
               exit 1
             '';
       in

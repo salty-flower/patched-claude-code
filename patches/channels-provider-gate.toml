@@ -1,6 +1,6 @@
 name = "channels-provider-gate"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Allow explicitly requested channels to register when the active provider is
@@ -18,7 +18,7 @@ marketplace channels rather than all channel registration.
 """
 rationale_ref = "reference/v2.1.88/sources/src/services/mcp/channelNotification.ts#L220-L228"
 
-locator_pattern = '''if\(gq\(\)!=="firstParty"\)return\{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"\};'''
+locator_pattern = '''if\(Qq\(\)!=="firstParty"\)return\{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"\};'''
 locator_kind = "regex"
 expected_matches = 1
 

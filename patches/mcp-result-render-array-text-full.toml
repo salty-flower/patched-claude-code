@@ -1,6 +1,6 @@
 name = "mcp-result-render-array-text-full"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Render MCP text-array results without terminal truncation.
@@ -14,13 +14,13 @@ visible in transcripts.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
 
-locator_pattern = '''Z4.createElement(qi5,{key:J,item:w,verbose:q})'''
+locator_pattern = '''L4.createElement(yr5,{key:J,item:w,verbose:q})'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''Z4.createElement(qi5,{key:J,item:w,verbose:!0})'''
+replacement = '''L4.createElement(yr5,{key:J,item:w,verbose:!0})'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''Z4.createElement(qi5,{key:J,item:w,verbose:!0})'''
+assert_contains = '''L4.createElement(yr5,{key:J,item:w,verbose:!0})'''

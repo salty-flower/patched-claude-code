@@ -1,6 +1,6 @@
 name = "read-result-path-notebook"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Show the file path on notebook Read result rows.
@@ -13,13 +13,13 @@ transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
 
-locator_pattern = '''oK.createElement(V,null,"Read ",oK.createElement(V,{bold:!0},_.length)," cells")'''
+locator_pattern = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_.length)," cells")'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''oK.createElement(V,null,"Read ",oK.createElement(V,{bold:!0},_.length)," cells",Z)'''
+replacement = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_.length)," cells",Z)'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''oK.createElement(V,null,"Read ",oK.createElement(V,{bold:!0},_.length)," cells",Z)'''
+assert_contains = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_.length)," cells",Z)'''

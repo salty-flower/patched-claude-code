@@ -1,6 +1,6 @@
 name = "agents-memory-file-detection"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Treat AGENTS.md as a memory file for cache and invalidation checks.
@@ -13,13 +13,13 @@ memory file or exposes a configurable project-memory filename list.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
 
-locator_pattern = '''function Cu9(H){let _=iT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md")return!0;'''
+locator_pattern = '''function Wm9(H){let _=rT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md")return!0;'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''function Cu9(H){let _=iT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
+replacement = '''function Wm9(H){let _=rT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''function Cu9(H){let _=iT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
+assert_contains = '''function Wm9(H){let _=rT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''

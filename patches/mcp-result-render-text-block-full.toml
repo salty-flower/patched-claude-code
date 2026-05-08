@@ -1,6 +1,6 @@
 name = "mcp-result-render-text-block-full"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Render individual MCP text blocks without terminal truncation.
@@ -13,13 +13,13 @@ MCP text output visible in transcripts.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
 
-locator_pattern = '''Z4.createElement(gx,{content:O,verbose:K})'''
+locator_pattern = '''L4.createElement(nx,{content:O,verbose:K})'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''Z4.createElement(gx,{content:O,verbose:!0})'''
+replacement = '''L4.createElement(nx,{content:O,verbose:!0})'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''Z4.createElement(gx,{content:O,verbose:!0})'''
+assert_contains = '''L4.createElement(nx,{content:O,verbose:!0})'''

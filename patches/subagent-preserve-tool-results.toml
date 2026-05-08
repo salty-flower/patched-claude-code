@@ -1,6 +1,6 @@
 name = "subagent-preserve-tool-results"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Preserve nested subagent tool results for viewable transcripts.
@@ -15,13 +15,13 @@ visibility setting.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/runAgent.ts#L716-L719"
 
-locator_pattern = '''if(j)P_.preserveToolUseResults=!0'''
+locator_pattern = '''if(j)ZH.preserveToolUseResults=!0'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''P_.preserveToolUseResults=!0'''
+replacement = '''ZH.preserveToolUseResults=!0'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''P_.preserveToolUseResults=!0'''
+assert_contains = '''ZH.preserveToolUseResults=!0'''

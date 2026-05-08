@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = "2.1.132"
+const TARGET_VERSION = "2.1.133"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
 const tempDir = mkdtempSync(join(tmpdir(), "audited-cc-statusline-"))
@@ -77,7 +77,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   expect(patched).toContain("--hide-builtin-footer")
   expect(patched).toContain("hideBuiltinFooter:!0")
   expect(patched).toContain(
-    "ME=Y_((I_)=>I_.settings.hideBuiltinFooter)||Y_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)||lH?void 0:Qa7(MH,_H)",
+    "Hp=Y_((I_)=>I_.settings.hideBuiltinFooter)||Y_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)||nH?void 0:Ws7(jH,qH)",
   )
 
   const help = run(["bun", patchedBundle, "--help"])

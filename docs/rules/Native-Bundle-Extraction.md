@@ -9,8 +9,8 @@ extraction layout produced `staging/<version>/cli.js`.
 | Source shape | Known-good Claude Code versions | Validity rule |
 | --- | --- | --- |
 | `package/cli.js` exists in `@anthropic-ai/claude-code` tarball | `2.1.112` | Copy `package/cli.js`; no native extraction is involved. |
-| Wrapper package declares a platform optional dependency with a Bun standalone binary | `2.1.132` | Extract the entrypoint from the native package's Bun standalone module graph. Treat `>=2.1.132 <2.2.0` as provisional until smoke-tested and recorded. |
-| Native downloads manifest exposes platform Bun standalone binaries | `2.1.132` | Download `https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/<version>/<platform>/claude`, verify the manifest checksum, then extract the same Bun standalone module graph. |
+| Wrapper package declares a platform optional dependency with a Bun standalone binary | `2.1.132`, `2.1.133` | Extract the entrypoint from the native package's Bun standalone module graph. Treat `>=2.1.132 <2.2.0` as provisional until smoke-tested and recorded. |
+| Native downloads manifest exposes platform Bun standalone binaries | `2.1.132`, `2.1.133` | Download `https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/<version>/<platform>/claude`, verify the manifest checksum, then extract the same Bun standalone module graph. |
 
 ## Bun Standalone Layout
 

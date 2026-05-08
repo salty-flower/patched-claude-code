@@ -1,6 +1,6 @@
 name = "agents-memory-nested-directory"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
@@ -13,13 +13,13 @@ or exposes a configurable project-memory filename list.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
 
-locator_pattern = '''let A=iT.join(H,"CLAUDE.md");K.push(...await _C(A,"Project",q,!1));let z=iT.join(H,".claude","CLAUDE.md")'''
+locator_pattern = '''let A=rT.join(H,"CLAUDE.md");K.push(...await YC(A,"Project",q,!1));let z=rT.join(H,".claude","CLAUDE.md")'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''let A=iT.join(H,"CLAUDE.md");K.push(...await _C(A,"Project",q,!1));let $=iT.join(H,"AGENTS.md");K.push(...await _C($,"Project",q,!1));let z=iT.join(H,".claude","CLAUDE.md")'''
+replacement = '''let A=rT.join(H,"CLAUDE.md");K.push(...await YC(A,"Project",q,!1));let $=rT.join(H,"AGENTS.md");K.push(...await YC($,"Project",q,!1));let z=rT.join(H,".claude","CLAUDE.md")'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''let A=iT.join(H,"CLAUDE.md");K.push(...await _C(A,"Project",q,!1));let $=iT.join(H,"AGENTS.md");K.push(...await _C($,"Project",q,!1));let z=iT.join(H,".claude","CLAUDE.md")'''
+assert_contains = '''let A=rT.join(H,"CLAUDE.md");K.push(...await YC(A,"Project",q,!1));let $=rT.join(H,"AGENTS.md");K.push(...await YC($,"Project",q,!1));let z=rT.join(H,".claude","CLAUDE.md")'''

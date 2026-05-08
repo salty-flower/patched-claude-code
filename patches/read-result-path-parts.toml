@@ -1,6 +1,6 @@
 name = "read-result-path-parts"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Show the file path on multi-part Read result rows.
@@ -13,13 +13,13 @@ equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L114-L122"
 
-locator_pattern = '''oK.createElement(V,null,"Read ",oK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",U7(H.file.originalSize),")")'''
+locator_pattern = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",p7(H.file.originalSize),")")'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''oK.createElement(V,null,"Read ",oK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",U7(H.file.originalSize),")",Z)'''
+replacement = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",p7(H.file.originalSize),")",Z)'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''oK.createElement(V,null,"Read ",oK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",U7(H.file.originalSize),")",Z)'''
+assert_contains = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",p7(H.file.originalSize),")",Z)'''

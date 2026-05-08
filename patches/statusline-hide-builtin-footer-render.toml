@@ -1,6 +1,6 @@
 name = "statusline-hide-builtin-footer-render"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Hide the built-in footer line when statusLine.hideBuiltinFooter is enabled.
@@ -16,13 +16,13 @@ footer status line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
 
-locator_pattern = '''H_=XO.createElement(bNK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:IH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:UH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:t,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
+locator_pattern = '''iH=MO.createElement(JvK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:CH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:FH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:s,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''H_=e?.hideBuiltinFooter||e?.statusLine?.hideBuiltinFooter?null:XO.createElement(bNK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:IH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:UH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:t,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
+replacement = '''iH=e?.hideBuiltinFooter||e?.statusLine?.hideBuiltinFooter?null:MO.createElement(JvK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:CH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:FH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:s,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''H_=e?.hideBuiltinFooter||e?.statusLine?.hideBuiltinFooter?null:XO.createElement(bNK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:IH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:UH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:t,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
+assert_contains = '''iH=e?.hideBuiltinFooter||e?.statusLine?.hideBuiltinFooter?null:MO.createElement(JvK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:CH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:FH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:s,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''

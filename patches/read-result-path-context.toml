@@ -1,6 +1,6 @@
 name = "read-result-path-context"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Make the Read tool result renderer aware of the input path.
@@ -13,13 +13,13 @@ tool result rows or provides equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L77-L143"
 
-locator_pattern = '''function uQ7(H){switch(H.type){'''
+locator_pattern = '''function Jd7(H){switch(H.type){'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''function uQ7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${tO6(P)||U1(P)}`:"";switch(H.type){'''
+replacement = '''function Jd7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${kT6(P)||B1(P)}`:"";switch(H.type){'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''function uQ7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${tO6(P)||U1(P)}`:"";switch(H.type){'''
+assert_contains = '''function Jd7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${kT6(P)||B1(P)}`:"";switch(H.type){'''

@@ -1,6 +1,6 @@
 name = "suppress-npm-native-installer-warning"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Suppress the npm-to-native-installer startup warning.
@@ -15,7 +15,7 @@ upstream-supported native installer package.
 """
 rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
 
-locator_pattern = '''\{id:"npm-deprecation",compute:async\(\)=>\{if\(QA\(\)\|\|hH\(process\.env\.DISABLE_INSTALLATION_CHECKS\)\)return null;if\(await L9H\(\)==="development"\)return null;return\{timeoutMs:15000,key:"npm-deprecation-warning",text:"Claude Code has switched from npm to native installer\. Run `claude install` or see https://docs\.anthropic\.com/en/docs/claude-code/getting-started for more options\.",color:"warning",priority:"high"\}\}\}'''
+locator_pattern = '''\{id:"npm-deprecation",compute:async\(\)=>\{if\(pA\(\)\|\|yH\(process\.env\.DISABLE_INSTALLATION_CHECKS\)\)return null;if\(await I9H\(\)==="development"\)return null;return\{timeoutMs:15000,key:"npm-deprecation-warning",text:"Claude Code has switched from npm to native installer\. Run `claude install` or see https://docs\.anthropic\.com/en/docs/claude-code/getting-started for more options\.",color:"warning",priority:"high"\}\}\}'''
 locator_kind = "regex"
 expected_matches = 1
 

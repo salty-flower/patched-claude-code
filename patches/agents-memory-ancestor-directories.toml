@@ -1,6 +1,6 @@
 name = "agents-memory-ancestor-directories"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Load AGENTS.md while walking project ancestor directories.
@@ -14,13 +14,13 @@ project-memory filename list.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L886-L910"
 
-locator_pattern = '''let G=iT.join(X,"CLAUDE.md");q.push(...await _C(G,"Project",K,T));let W=iT.join(X,".claude","CLAUDE.md")'''
+locator_pattern = '''let G=rT.join(X,"CLAUDE.md");q.push(...await YC(G,"Project",K,T));let W=rT.join(X,".claude","CLAUDE.md")'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''let G=iT.join(X,"CLAUDE.md");q.push(...await _C(G,"Project",K,T));let Q=iT.join(X,"AGENTS.md");q.push(...await _C(Q,"Project",K,T));let W=iT.join(X,".claude","CLAUDE.md")'''
+replacement = '''let G=rT.join(X,"CLAUDE.md");q.push(...await YC(G,"Project",K,T));let Q=rT.join(X,"AGENTS.md");q.push(...await YC(Q,"Project",K,T));let W=rT.join(X,".claude","CLAUDE.md")'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''let G=iT.join(X,"CLAUDE.md");q.push(...await _C(G,"Project",K,T));let Q=iT.join(X,"AGENTS.md");q.push(...await _C(Q,"Project",K,T));let W=iT.join(X,".claude","CLAUDE.md")'''
+assert_contains = '''let G=rT.join(X,"CLAUDE.md");q.push(...await YC(G,"Project",K,T));let Q=rT.join(X,"AGENTS.md");q.push(...await YC(Q,"Project",K,T));let W=rT.join(X,".claude","CLAUDE.md")'''

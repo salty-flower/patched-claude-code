@@ -1,6 +1,6 @@
 name = "statusline-hide-builtin-footer-cli-settings"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Carry the hideBuiltinFooter CLI switch into runtime settings.
@@ -13,13 +13,13 @@ or runtime option for hiding the built-in footer line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
 
-locator_pattern = '''m$={settings:u8(),tasks:{},taskDecorations:{}'''
+locator_pattern = '''F$={settings:m8(),tasks:{},taskDecorations:{}'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''m$={settings:Y.hideBuiltinFooter?{...u8(),hideBuiltinFooter:!0}:u8(),tasks:{},taskDecorations:{}'''
+replacement = '''F$={settings:Y.hideBuiltinFooter?{...m8(),hideBuiltinFooter:!0}:m8(),tasks:{},taskDecorations:{}'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''m$={settings:Y.hideBuiltinFooter?{...u8(),hideBuiltinFooter:!0}:u8(),tasks:{},taskDecorations:{}'''
+assert_contains = '''F$={settings:Y.hideBuiltinFooter?{...m8(),hideBuiltinFooter:!0}:m8(),tasks:{},taskDecorations:{}'''

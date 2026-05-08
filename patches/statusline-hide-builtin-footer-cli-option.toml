@@ -1,6 +1,6 @@
 name = "statusline-hide-builtin-footer-cli-option"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Add a CLI switch for hiding the built-in footer line.
@@ -13,13 +13,13 @@ settings command for hiding the built-in footer line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
 
-locator_pattern = '''.addOption(new y4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(NV)).option("-c, --continue"'''
+locator_pattern = '''.addOption(new h4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(ZV)).option("-c, --continue"'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''.addOption(new y4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(NV)).option("--hide-builtin-footer","Hide the built-in footer line.",()=>!0).option("-c, --continue"'''
+replacement = '''.addOption(new h4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(ZV)).option("--hide-builtin-footer","Hide the built-in footer line.",()=>!0).option("-c, --continue"'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''.addOption(new y4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(NV)).option("--hide-builtin-footer","Hide the built-in footer line.",()=>!0).option("-c, --continue"'''
+assert_contains = '''.addOption(new h4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(ZV)).option("--hide-builtin-footer","Hide the built-in footer line.",()=>!0).option("-c, --continue"'''

@@ -44,7 +44,7 @@ const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 function parseArgs(argv: string[]): Args {
   const args: Args = {
     reference: join(ROOT, "reference/v2.1.88/cli.js"),
-    target: process.env.AUDITED_CC_TARGET ?? join(ROOT, "staging/2.1.132/cli.js"),
+    target: process.env.AUDITED_CC_TARGET ?? join(ROOT, "staging/2.1.133/cli.js"),
     referenceLabel: "v2.1.88",
     targetLabel: process.env.AUDITED_CC_TARGET_VERSION ?? "target",
   }

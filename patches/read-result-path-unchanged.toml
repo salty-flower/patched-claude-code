@@ -1,6 +1,6 @@
 name = "read-result-path-unchanged"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Show the file path on unchanged Read result rows.
@@ -12,13 +12,13 @@ path in Read tool result rows or provides equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L136-L140"
 
-locator_pattern = '''oK.createElement(V,{dimColor:!0},"Unchanged since last read")'''
+locator_pattern = '''tK.createElement(V,{dimColor:!0},"Unchanged since last read")'''
 locator_kind = "literal"
 expected_matches = 1
 
-replacement = '''oK.createElement(V,{dimColor:!0},"Unchanged since last read",Z)'''
+replacement = '''tK.createElement(V,{dimColor:!0},"Unchanged since last read",Z)'''
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''oK.createElement(V,{dimColor:!0},"Unchanged since last read",Z)'''
+assert_contains = '''tK.createElement(V,{dimColor:!0},"Unchanged since last read",Z)'''

@@ -43,3 +43,9 @@ completion cleanup, only `thinking-render-live-main` should retire.
 When adding, retiring, or re-anchoring patches, update this record if the
 logical feature grouping changes. Do not use this record as a substitute for
 per-patch `rationale`, `rationale_ref`, and tests.
+
+## Re-anchor Log
+
+| Date | Target | Scope | Grouping change |
+| --- | --- | --- | --- |
+| 2026-05-08 | 2.1.133 | Re-anchored patch locators and replacements after upstream bundle drift from 2.1.132. | No. |

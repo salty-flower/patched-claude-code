@@ -1,6 +1,6 @@
 name = "channels-feature-gate"
-target_version = "2.1.132"
-applies_to = ">=2.1.132 <2.2.0"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Enable the runtime channels feature gate for patched bundles.
@@ -17,13 +17,13 @@ gated.
 """
 rationale_ref = "reference/v2.1.88/sources/src/services/mcp/channelAllowlist.ts#L46-L53"
 
-locator_pattern = '''function GkH\(\)\{return f_\("tengu_harbor",!1\)\}'''
+locator_pattern = '''function hkH\(\)\{return M_\("tengu_harbor",!1\)\}'''
 locator_kind = "regex"
 expected_matches = 1
 
-replacement = "function GkH(){return!0}"
+replacement = "function hkH(){return!0}"
 
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''function GkH(){return!0}'''
+assert_contains = '''function hkH(){return!0}'''

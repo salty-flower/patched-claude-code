@@ -151,7 +151,7 @@ jobs:
           just release-source "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
           bun ./cli.js --version
 
-      - name: Push Nix source tag
+      - name: Push Nix source refs
         if: steps.coord.outputs.publish == 'true'
         run: |
           set -euo pipefail
@@ -159,6 +159,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git push origin "refs/tags/$tag" --force
+          git push origin "refs/tags/$tag:refs/heads/claude-code-latest" --force
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6

@@ -106,7 +106,7 @@ jobs:
           jq -e '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
             "staging/${{ steps.detect.outputs.version }}/canonical/platform-merge-report.json"
 
-      - name: Push Nix source tag
+      - name: Push Nix source refs
         if: steps.detect.outputs.action != 'none'
         run: |
           set -euo pipefail
@@ -114,6 +114,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git push origin "refs/tags/$tag" --force
+          git push origin "refs/tags/$tag:refs/heads/claude-code-latest" --force
 
       - name: Create or update prerelease
         if: steps.detect.outputs.action == 'prerelease'

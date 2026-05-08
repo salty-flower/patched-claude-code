@@ -2,14 +2,21 @@
 
 ## Pinning Model
 
-Pin the source tag:
+Choose the ref by update policy:
 
 | Pin | Example |
 | --- | --- |
-| GitHub source tag | `claude-code-2.1.132-patch.1` |
+| Exact source tag | `claude-code-2.1.132-patch.1` |
+| Moving Nix source branch | `claude-code-latest` |
 
-The tagged source tree contains `cli.js`, `manifest.json`, `package.json`,
-`bin/claude-audited`, and a flake package. It expects Bun from Nix.
+Both refs point at a minimal source tree containing `cli.js`, `manifest.json`,
+`package.json`, `bin/claude-audited`, and a flake package. It expects Bun from
+Nix.
+
+Use an exact source tag for immutable release pinning. Use
+`claude-code-latest` when `nix flake update` should advance to the latest
+audited Claude Code source. The lock file still records the exact commit and
+narHash after each update.
 
 ## Nix / Home Manager
 
@@ -20,6 +27,15 @@ configured `access-tokens`:
 {
   inputs.audited-claude-code.url =
     "github:salty-flower/audited-claude-code/claude-code-2.1.132-patch.1";
+}
+```
+
+Auto-updating input:
+
+```nix
+{
+  inputs.audited-claude-code.url =
+    "github:salty-flower/audited-claude-code/claude-code-latest";
 }
 ```
 

@@ -12,7 +12,8 @@ git push origin main
 The manual `release` workflow stages the canonical Linux/Darwin bundle from
 GCS native binaries before rendering, testing, and packaging.
 When `publish=true`, it also writes the Nix source payload and moves the tag
-to a minimal generated payload commit.
+to a minimal generated payload commit. It also moves `claude-code-latest` to
+that same source commit for `nix flake update` users.
 
 The scheduled `auto-release` workflow may publish a prerelease from a one-sided
 npm or GCS candidate. It promotes only after npm latest and GCS stable converge
@@ -61,7 +62,8 @@ Outputs land in `dist/`:
 | `release-notes.md` | GitHub release notes |
 
 `just release-source <version> patch.<n>` writes the Nix-native payload to the
-repo root and creates the matching minimal source tag:
+repo root and creates the matching minimal source tag. Publishing workflows
+also move `claude-code-latest` to that tag commit.
 
 | File | Use |
 | --- | --- |

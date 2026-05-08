@@ -126,7 +126,7 @@ Artifact:
 - \`${basename(tarball)}\`
 - raw tarball hash: \`${tarHash.sri}\`
 
-Nix/Home Manager should prefer the source tag \`github:<owner>/audited-claude-code/claude-code-${version}-${releaseId}\`.
+Nix/Home Manager should use the source tag \`github:<owner>/audited-claude-code/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:<owner>/audited-claude-code/claude-code-latest\` when \`nix flake update\` should follow the latest audited source.
 The tarball remains available for non-flake/manual installs.
 `,
   )

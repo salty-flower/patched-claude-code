@@ -8,6 +8,7 @@ version.
 | Item | Rule |
 | --- | --- |
 | Tag | `claude-code-<upstream-version>-patch.<n>` |
+| Moving Nix ref | `claude-code-latest` |
 | Release commit title | `release: claude-code-<upstream-version>-patch.<n>` |
 | Nix source | Tagged git tree containing `cli.js`, `manifest.json`, `package.json`, `bin/claude-audited`, and flake files |
 | Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
@@ -35,23 +36,30 @@ A release MUST pass:
 | Source tag | `just release-source <version> patch.<n>` |
 
 Release artifacts MUST include a raw SHA-256 hash for non-flake fixed-output
-fetching. Nix consumers SHOULD pin the GitHub source tag through the native
-`github:<owner>/<repo>/<tag>` flake fetcher.
+fetching. Nix consumers SHOULD use the native
+`github:<owner>/<repo>/<ref>` flake fetcher. Use the source tag for immutable
+pinning. Use `claude-code-latest` when `nix flake update` should follow the
+latest audited source commit.
 
 ## Automation
 
 Pushing a commit to `main` with title
 `release: claude-code-<upstream-version>-patch.<n>` MUST publish that release
 and MUST create or update the matching source tag with the generated release
-payload committed into a minimal tagged tree. Manual tag pushes remain supported.
-Do not rely on a workflow-created tag to trigger another workflow; GitHub
-suppresses most `GITHUB_TOKEN`-created workflow events.
+payload committed into a minimal tagged tree. It MUST also update
+`refs/heads/claude-code-latest` to the same source commit. Manual tag pushes
+remain supported. Do not rely on a workflow-created tag to trigger another
+workflow; GitHub suppresses most `GITHUB_TOKEN`-created workflow events.
 
 Scheduled polling MUST run four times daily via `auto-release.yml`.
 It MAY publish `claude-code-<version>-patch.1` as a prerelease when either
 npm latest or GCS stable exposes an unhandled version. It MUST promote that
 tag only after npm latest and GCS stable converge and `TARGET_SOURCE=canonical
 just release-dry <version> patch.1` succeeds.
+
+When scheduled polling publishes or promotes `patch.1`, it MUST update
+`refs/heads/claude-code-latest` to the same minimal source commit as the source
+tag.
 
 Canonical staging MUST write
 `staging/<version>/canonical/platform-merge-report.json` with zero

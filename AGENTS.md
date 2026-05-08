@@ -38,9 +38,9 @@ You MUST:
 - Run `just verify` before committing any change under
   `patches/`. The script confirms each patch's locator still hits exactly
   once on the latest staged target bundle.
-- Update [`docs/records/2026-05-08-patch-inventory.md`](docs/records/2026-05-08-patch-inventory.md)
-  when adding, modifying, or deleting patch-backed features or `patches/*.toml`
-  entries.
+- Keep one logical feature per patch TOML when adding or modifying
+  patch-backed behavior; use ordered `[[patches]]` entries for multiple
+  locators in the same feature.
 - When adding a new reference version, follow
   [`docs/rules/Reference-Versions.md`](docs/rules/Reference-Versions.md). Do
   not silently bump the baseline.

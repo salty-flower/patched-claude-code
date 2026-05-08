@@ -41,8 +41,6 @@ creates a deliberate migration point.
 - Keep statusline JSON fields independent of hidden-surface selection:
   `permission_mode`, `clipboard_image`, `rate_limit_warning`, and `rate_limits`
   should remain available even when the corresponding built-in UI is visible.
-- Update `docs/records/2026-05-08-patch-inventory.md` when the patch grouping
-  changes.
 
 ## Verification Gate
 

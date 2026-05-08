@@ -1,0 +1,28 @@
+name = "thinking-render-live-main"
+target_version = "2.1.132"
+applies_to = ">=2.1.132 <2.2.0"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+The reference REPL threads streamingThinking into the transcript renderer but
+not the normal main-screen renderer, so thinking_delta chunks can update state
+without appearing outside Ctrl-O. For the patched inspection build, the main
+message list should receive the same live buffer as transcript mode, while
+leaving API streaming and request construction unchanged.
+
+Cleanup condition: upstream renders live thinking summaries on the main
+interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_pattern = '''isLoading:YK,streamingText:YK&&!nI?JK:null,isBriefOnly:nI?!1:VH'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''isLoading:YK,streamingText:YK&&!nI?JK:null,streamingThinking:f4,isBriefOnly:nI?!1:VH'''
+
+[[tests]]
+kind = "static"
+name = "main message renderer receives live thinking"
+assert_contains = '''isLoading:YK,streamingText:YK&&!nI?JK:null,streamingThinking:f4,isBriefOnly:nI?!1:VH'''

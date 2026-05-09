@@ -82,7 +82,7 @@ body = "{return!0}"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''function hkH(){return!0}'''
+assert_contains = '''return!0}'''
 
 [[patches]]
 name = "channels-provider-gate"

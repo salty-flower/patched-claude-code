@@ -18,6 +18,7 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { verifyAstTransformPatch } from "../lib/ast-transform-patches"
+import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
 
@@ -46,6 +47,11 @@ function parseArgs(argv: string[]): { patches: string[]; target?: string } {
 
 function defaultTarget(p: Patch): string {
   return join(ROOT, "staging", p.target_version, "cli.js")
+}
+
+function inferTargetVersion(target: string): string | undefined {
+  const normalized = target.replaceAll("\\", "/")
+  return normalized.match(/(?:^|\/)staging\/([^/]+)\/cli\.js$/)?.[1]
 }
 
 function verifyLocator(p: Patch, target: string): { ok: boolean; msg: string; matches: number } {
@@ -118,6 +124,15 @@ function main(): number {
 
     for (const p of patches) {
       const tgt = target ?? defaultTarget(p)
+      const targetVersion = target ? inferTargetVersion(tgt) : p.target_version
+      if (targetVersion && !patchApplies(p, targetVersion)) {
+        console.log(`[skip] ${p.name}`)
+        console.log(`       file=${p.file}`)
+        console.log(`       target=${tgt}`)
+        console.log(`       applies_to=${p.applies_to ?? p.target_version} excludes ${targetVersion}`)
+        continue
+      }
+
       if (!existsSync(tgt)) {
         console.error(`[${p.name}] target bundle missing: ${tgt}`)
         allOk = false

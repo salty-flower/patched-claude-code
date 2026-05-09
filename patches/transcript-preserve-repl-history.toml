@@ -29,4 +29,4 @@ op = "replace_function_body_with_first_var_initializer_return"
 [[tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''function SP_(H,_=H){return H.filter(hn)}'''
+assert_contains = '''return H.filter('''

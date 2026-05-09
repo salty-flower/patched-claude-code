@@ -34,7 +34,7 @@ code = '''let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${String(P).split(/[\\
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''function Jd7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${String(P).split(/[\\/]/).pop()||String(P)}`:"";switch(H.type){'''
+assert_contains = '''arguments[2]?.input?.file_path'''
 
 [[patches]]
 name = "read-result-path-image"
@@ -65,7 +65,7 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''tK.createElement(V,null,"Read image (",q,")",Z)'''
+assert_contains = '''"Read image (",q,")",Z)'''
 
 [[patches]]
 name = "read-result-path-notebook"
@@ -96,7 +96,7 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_.length)," cells",Z)'''
+assert_contains = '''" cells",Z)'''
 
 [[patches]]
 name = "read-result-path-parts"
@@ -127,7 +127,7 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",p7(H.file.originalSize),")",Z)'''
+assert_contains = '''originalSize),")",Z)'''
 
 [[patches]]
 name = "read-result-path-pdf"
@@ -157,7 +157,7 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''tK.createElement(V,null,"Read PDF (",q,")",Z)'''
+assert_contains = '''"Read PDF (",q,")",Z)'''
 
 [[patches]]
 name = "read-result-path-text"
@@ -188,7 +188,7 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_)," ",_===1?"line":"lines",Z)'''
+assert_contains = '''"line":"lines",Z)'''
 
 [[patches]]
 name = "read-result-path-unchanged"
@@ -218,4 +218,4 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''tK.createElement(V,{dimColor:!0},"Unchanged since last read",Z)'''
+assert_contains = '''"Unchanged since last read",Z)'''

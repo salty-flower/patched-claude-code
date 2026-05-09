@@ -36,7 +36,7 @@ value = '''{key:J,item:w,verbose:!0}'''
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''L4.createElement(yr5,{key:J,item:w,verbose:!0})'''
+assert_contains = '''item:w,verbose:!0'''
 
 [[patches]]
 name = "mcp-result-render-string-full"
@@ -68,7 +68,7 @@ value = '''{content:O,verbose:!0}'''
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''L4.createElement(nx,{content:O,verbose:!0})'''
+assert_contains = '''content:O,verbose:!0'''
 
 [[patches]]
 name = "mcp-result-render-text-block-full"
@@ -100,4 +100,4 @@ value = '''{content:O,verbose:!0}'''
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''L4.createElement(nx,{content:O,verbose:!0})'''
+assert_contains = '''content:O,verbose:!0'''

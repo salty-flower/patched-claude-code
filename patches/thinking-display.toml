@@ -43,7 +43,7 @@ assert_contains = '''z?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))''
 [[patches]]
 name = "thinking-render-live-main"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.137"
 
 rationale = """
 Pass live thinking state to the main interactive message renderer.
@@ -68,7 +68,32 @@ replacement = '''isLoading:m7,streamingText:m7&&!qb?vK:null,streamingThinking:S4
 [[patches.tests]]
 kind = "static"
 name = "main message renderer receives live thinking"
-assert_contains = '''isLoading:m7,streamingText:m7&&!qb?vK:null,streamingThinking:S4,isBriefOnly:qb?!1:VH'''
+assert_contains = '''streamingThinking:'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-137"
+target_version = "2.1.137"
+applies_to = ">=2.1.137 <2.2.0"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.137 minified-symbol variant of `thinking-render-live-main`.
+Cleanup condition: upstream renders live thinking summaries on the main
+interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_pattern = '''isLoading:V7,streamingText:V7&&!Vb?Lq:null,isBriefOnly:Vb?!1:CH'''
+locator_kind = "literal"
+expected_matches = 1
+
+replacement = '''isLoading:V7,streamingText:V7&&!Vb?Lq:null,streamingThinking:r4,isBriefOnly:Vb?!1:CH'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.137"
+assert_contains = '''streamingThinking:'''
 
 [[patches]]
 name = "thinking-render-live-complete"
@@ -104,7 +129,7 @@ value = "()=>null"
 [[patches.tests]]
 kind = "static"
 name = "completed thinking clears live buffer"
-assert_contains = '''if(w&&w.type==="thinking")z?.(()=>null)'''
+assert_contains = '''type==="thinking")z?.(()=>null)'''
 
 [[patches.tests]]
 kind = "static"

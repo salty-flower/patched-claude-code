@@ -146,7 +146,7 @@ Supported transform ops:
   diagnostic, run
   `bun run tools/patch/verify-patches.ts patches/<file>.toml --against staging/<target-version>/cli.js`.
 - Re-anchor (target version bump): run
-  `TARGET_SOURCE=<npm|gcs> just verify <target-version>`. If the locator
+  `TARGET_SOURCE=<npm|direct> just verify <target-version>`. If the locator
   fails, edit the pattern; if the replacement intent shifted, write a second
   `applies_to` patch instead of mutating the original.
 - Retire: delete the file when upstream behaviour makes the patch a no-op.

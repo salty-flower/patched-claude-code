@@ -14,7 +14,7 @@ version.
 | Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
 | Bundle | `cli.js` at the release tag root and inside the artifact |
 | Runtime | Bun supplied by the consumer |
-| Native package | Canonicalized from GCS `darwin-arm64` and `linux-x64` native binaries |
+| Native package | Canonicalized from Claude direct-download `darwin-arm64` and `linux-x64` native binaries |
 | Manifest | `manifest.json` in the tagged tree and artifact, plus `<artifact>.manifest.json` beside it |
 
 `patch.<n>` increments whenever the rendered bundle changes for the same
@@ -53,8 +53,8 @@ workflow; GitHub suppresses most `GITHUB_TOKEN`-created workflow events.
 
 Scheduled polling MUST run four times daily via `auto-release.yml`.
 It MAY publish `claude-code-<version>-patch.1` as a prerelease when either
-npm latest or GCS stable exposes an unhandled version. It MUST promote that
-tag only after npm latest and GCS stable converge and `TARGET_SOURCE=canonical
+npm latest or direct latest exposes an unhandled version. It MUST promote that
+tag only after npm latest and direct latest converge and `TARGET_SOURCE=canonical
 just release-dry <version> patch.1` succeeds.
 
 When scheduled polling publishes or promotes `patch.1`, it MUST update

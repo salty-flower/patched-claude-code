@@ -52,8 +52,8 @@ platform-patch-test version=target:
   #!/usr/bin/env bash
   set -euo pipefail
   for audit_platform in darwin-arm64 linux-x64; do
-    echo "==> patch-test {{version}} from GCS ${audit_platform}"
-    TARGET_SOURCE=gcs TARGET_PLATFORM="${audit_platform}" just patch-test "{{version}}"
+    echo "==> patch-test {{version}} from direct ${audit_platform}"
+    TARGET_SOURCE=direct TARGET_PLATFORM="${audit_platform}" just patch-test "{{version}}"
   done
 
 alignment-report version=target:

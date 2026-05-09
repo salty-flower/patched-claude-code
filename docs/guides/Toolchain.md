@@ -7,18 +7,18 @@ Use the root `justfile` as the command facade:
 
 | Recipe | Purpose |
 | --- | --- |
-| `just stage [version] [source]` | Stage `staging/<version>/cli.js`; `source` is `canonical`, `npm`, or `gcs`. |
+| `just stage [version] [source]` | Stage `staging/<version>/cli.js`; `source` is `canonical`, `npm`, or `direct`. |
 | `just verify [version] [source]` | Stage if needed, then verify patch locators, rationale refs, embedded tests, and extraction contract. |
 | `just render [version] [source]` | Stage and verify if needed, then render `staging/<version>/cli.patched.js`. |
 | `just smoke [version] [source]` | Run the patched bundle with `--version`. |
 | `just patch-test [version] [source]` | Execute `[[tests]]` from every patch TOML. |
 | `just package [version] [release_id] [source]` | Build `dist/` release artifacts. |
 | `just release-source [version] [release_id] [source]` | Write the Nix source payload and create the matching minimal source tag. |
-| `just detect-upstream [args...]` | Compare npm and native-download stable channels. |
+| `just detect-upstream [args...]` | Compare npm and Claude direct-download latest channels. |
 | `just check` | Run `prek run --all-files`. |
 | `just release-dry [version] [release_id] [source]` | Run the local release gate without publishing. |
 | `just platform-audit [version]` | Compare Linux and Darwin native-channel JS structure in side-by-side platform cache paths. |
-| `just platform-patch-test [version]` | Run GCS patch tests sequentially for Darwin and Linux; this is the explicit portability gate. |
+| `just platform-patch-test [version]` | Run direct-download patch tests sequentially for Darwin and Linux; this is the explicit portability gate. |
 | `just alignment-report [version]` | Report target-vs-reference alignment coverage. |
 | `just typecheck` | Typecheck all nested `tools/**/*.ts`. |
 
@@ -27,9 +27,9 @@ Use environment variables for default coordinates:
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `TARGET_VERSION` | `2.1.133` | Version used when a recipe omits `[version]`. |
-| `TARGET_SOURCE` | `canonical` | Staging channel: `canonical`, `npm`, or `gcs`. |
+| `TARGET_SOURCE` | `canonical` | Staging channel: `canonical`, `npm`, or `direct`. |
 | `TARGET_PLATFORM_PACKAGE` | `@anthropic-ai/claude-code-darwin-arm64` | npm native package for npm staging. |
-| `TARGET_PLATFORM` | `darwin-arm64` | GCS platform for native-download staging. |
+| `TARGET_PLATFORM` | `darwin-arm64` | Direct-download platform for native staging. |
 | `TARGET_CANONICAL_BASE` | `darwin-arm64` | Canonical merge base platform. |
 | `RELEASE_ID` | `patch.local` | Release id used when release recipes omit `[release_id]`. |
 

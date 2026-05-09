@@ -4,7 +4,7 @@ import { classifyReleaseCandidate, parseHandledReleaseTags } from "../lib/releas
 test("classifies a one-sided npm version as a prerelease candidate", () => {
   const candidate = classifyReleaseCandidate({
     npmLatest: "2.1.140",
-    gcsLatest: "2.1.139",
+    directLatest: "2.1.139",
     handledVersions: new Set(["2.1.139"]),
   })
 
@@ -19,7 +19,7 @@ test("classifies a one-sided npm version as a prerelease candidate", () => {
 test("classifies converged channels as promotion when only a prerelease exists", () => {
   const candidate = classifyReleaseCandidate({
     npmLatest: "2.1.140",
-    gcsLatest: "2.1.140",
+    directLatest: "2.1.140",
     handledVersions: new Set(),
     prereleaseVersions: new Set(["2.1.140"]),
   })
@@ -28,14 +28,14 @@ test("classifies converged channels as promotion when only a prerelease exists",
     action: "promote",
     version: "2.1.140",
     source: "npm",
-    reason: "npm latest and GCS stable have converged",
+    reason: "npm latest and direct latest have converged",
   })
 })
 
 test("classifies a new converged version as promotion gated by platform audit", () => {
   const candidate = classifyReleaseCandidate({
     npmLatest: "2.1.140",
-    gcsLatest: "2.1.140",
+    directLatest: "2.1.140",
     handledVersions: new Set(["2.1.139"]),
   })
 
@@ -43,7 +43,7 @@ test("classifies a new converged version as promotion gated by platform audit", 
     action: "promote",
     version: "2.1.140",
     source: "npm",
-    reason: "npm latest and GCS stable have converged on an unhandled version",
+    reason: "npm latest and direct latest have converged on an unhandled version",
   })
 })
 

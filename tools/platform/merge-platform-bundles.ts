@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Build one canonical JS bundle from Darwin and Linux GCS native bundles.
+// Build one canonical JS bundle from Darwin and Linux direct native downloads.
 
 import { createHash } from "node:crypto"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -7,7 +7,7 @@ import { dirname, join } from "node:path"
 import { extractStandalone } from "../lib/extract-bun-standalone"
 import { mergePlatformJavaScript } from "../lib/platform-merge"
 import { structuralJavaScriptHash } from "../lib/js-structure"
-import { GCS_STABLE_URL, gcsManifestUrl, gcsNativeBinaryUrl } from "../lib/upstream-channels"
+import { DIRECT_LATEST_URL, directManifestUrl, directNativeBinaryUrl } from "../lib/upstream-channels"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const DEFAULT_PLATFORMS = ["darwin-arm64", "linux-x64"]
@@ -19,7 +19,7 @@ type Args = {
   generalizeUnknownStringLiterals: boolean
 }
 
-type GcsManifest = {
+type DirectManifest = {
   version: string
   commit?: string
   buildDate?: string
@@ -104,12 +104,12 @@ async function downloadOrRead(url: string, path: string, expectedSha256: string)
   return download(url, path)
 }
 
-async function extractPlatform(version: string, manifest: GcsManifest, platform: string): Promise<ExtractedPlatform> {
+async function extractPlatform(version: string, manifest: DirectManifest, platform: string): Promise<ExtractedPlatform> {
   const platformManifest = manifest.platforms[platform]
-  if (!platformManifest) throw new Error(`platform ${platform} not found in GCS manifest for ${version}`)
+  if (!platformManifest) throw new Error(`platform ${platform} not found in direct manifest for ${version}`)
 
   const platformDir = join(ROOT, "staging", version, "platform-merge", platform)
-  const binaryUrl = gcsNativeBinaryUrl(version, platform, platformManifest.binary)
+  const binaryUrl = directNativeBinaryUrl(version, platform, platformManifest.binary)
   const binaryPath = join(platformDir, platformManifest.binary)
   const binary = await downloadOrRead(binaryUrl, binaryPath, platformManifest.checksum)
   const binarySha256 = sha256Hex(binary)
@@ -162,8 +162,8 @@ async function extractPlatform(version: string, manifest: GcsManifest, platform:
 
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
-  const version = args.version === "latest" ? await fetchText(GCS_STABLE_URL) : args.version
-  const manifest = await fetchJson<GcsManifest>(gcsManifestUrl(version))
+  const version = args.version === "latest" ? await fetchText(DIRECT_LATEST_URL) : args.version
+  const manifest = await fetchJson<DirectManifest>(directManifestUrl(version))
   const platforms = await Promise.all(args.platforms.map((platform) => extractPlatform(version, manifest, platform)))
   const base = platforms.find((platform) => platform.platform === args.basePlatform)
   if (!base) throw new Error(`base platform ${args.basePlatform} was not extracted`)
@@ -218,7 +218,7 @@ async function main(): Promise<number> {
         version,
         channel: "canonical",
         source: "canonical-platform-merge",
-        gcsManifest: {
+        directManifest: {
           version: manifest.version,
           commit: manifest.commit,
           buildDate: manifest.buildDate,

@@ -15,10 +15,6 @@ on:
         description: "Patch release id, for example patch.1"
         required: true
         default: "patch.1"
-      platform_package:
-        description: "Native package to extract"
-        required: true
-        default: "@anthropic-ai/claude-code-darwin-arm64"
       publish:
         description: "Create or update the GitHub release"
         type: boolean
@@ -79,7 +75,6 @@ jobs:
             fi
             version="${BASH_REMATCH[1]}"
             release_id="${BASH_REMATCH[2]}"
-            platform_package="@anthropic-ai/claude-code-darwin-arm64"
             publish=true
           elif [[ "${GITHUB_EVENT_NAME:-}" == "push" ]]; then
             subject="$(printf '%s' "$HEAD_COMMIT_MESSAGE" | head -n1)"
@@ -89,20 +84,17 @@ jobs:
             fi
             version="${BASH_REMATCH[1]}"
             release_id="${BASH_REMATCH[2]}"
-            platform_package="@anthropic-ai/claude-code-darwin-arm64"
             tag="claude-code-${version}-${release_id}"
             publish=true
           else
             version="${{ inputs.target_version }}"
             release_id="${{ inputs.release_id }}"
-            platform_package="${{ inputs.platform_package }}"
             tag="claude-code-${version}-${release_id}"
             publish="${{ inputs.publish }}"
           fi
           {
             echo "version=$version"
             echo "release_id=$release_id"
-            echo "platform_package=$platform_package"
             echo "tag=$tag"
             echo "publish=$publish"
           } >> "$GITHUB_OUTPUT"
@@ -116,13 +108,11 @@ jobs:
       - name: Stage target bundle
         env:
           TARGET_SOURCE: canonical
-          TARGET_PLATFORM_PACKAGE: ${{ steps.coord.outputs.platform_package }}
         run: just stage "${{ steps.coord.outputs.version }}"
 
       - name: Verify patches and contracts
         env:
           TARGET_SOURCE: canonical
-          TARGET_PLATFORM_PACKAGE: ${{ steps.coord.outputs.platform_package }}
         run: just verify "${{ steps.coord.outputs.version }}"
 
       - name: Render patched bundle

@@ -6,9 +6,14 @@
 
 import { createHash } from "node:crypto"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
-import { basename, dirname, join } from "node:path"
+import { dirname, join } from "node:path"
 import { BUN_STANDALONE_LAYOUT_CONTRACT, extractStandalone } from "../lib/extract-bun-standalone"
-import { GCS_RELEASE_BASE, GCS_STABLE_URL, gcsManifestUrl, gcsNativeBinaryUrl } from "../lib/upstream-channels"
+import {
+  DIRECT_LATEST_URL,
+  DIRECT_RELEASE_BASE,
+  directManifestUrl,
+  directNativeBinaryUrl,
+} from "../lib/upstream-channels"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const REGISTRY = "https://registry.npmjs.org"
@@ -27,7 +32,7 @@ export const STAGING_SUPPORT_CONTRACT = {
   },
   nativeDownloadsManifest: {
     knownGoodVersions: ["2.1.132", "2.1.133"],
-    condition: "native downloads manifest exposes platform Bun standalone binaries",
+    condition: "Claude direct-download manifest exposes platform Bun standalone binaries",
     layoutContract: BUN_STANDALONE_LAYOUT_CONTRACT.name,
   },
 } as const
@@ -47,12 +52,12 @@ type PackageMeta = {
 type Args = {
   version: string
   platformPackage?: string
-  source: "npm" | "gcs"
+  source: "npm" | "direct"
   platform: string
   keepAll: boolean
 }
 
-type GcsManifest = {
+type DirectManifest = {
   version: string
   commit?: string
   buildDate?: string
@@ -74,7 +79,7 @@ function parseArgs(argv: string[]): Args {
       args.platformPackage = argv[++i]
     } else if (arg === "--source") {
       const source = argv[++i]
-      if (source !== "npm" && source !== "gcs") throw new Error(`unsupported source: ${source}`)
+      if (source !== "npm" && source !== "direct") throw new Error(`unsupported source: ${source}`)
       args.source = source
     } else if (arg === "--platform") {
       args.platform = argv[++i]
@@ -82,7 +87,7 @@ function parseArgs(argv: string[]): Args {
       args.keepAll = true
     } else if (arg === "--help" || arg === "-h") {
       console.log(
-        "usage: bun run tools/patch/stage-claude-code.ts [version|latest] [--source npm|gcs] [--platform-package <pkg>] [--platform <gcs-platform>] [--all]",
+        "usage: bun run tools/patch/stage-claude-code.ts [version|latest] [--source npm|direct] [--platform-package <pkg>] [--platform <direct-platform>] [--all]",
       )
       process.exit(0)
     } else {
@@ -150,21 +155,21 @@ function findNativeBinary(extractedPackageDir: string): string {
   return found
 }
 
-async function resolveGcsVersion(version: string): Promise<string> {
+async function resolveDirectVersion(version: string): Promise<string> {
   if (version !== "latest") return version
-  const response = await fetch(GCS_STABLE_URL)
+  const response = await fetch(DIRECT_LATEST_URL)
   if (!response.ok) {
-    throw new Error(`GCS stable fetch failed: ${response.status} ${response.statusText}`)
+    throw new Error(`direct latest fetch failed: ${response.status} ${response.statusText}`)
   }
   return (await response.text()).trim()
 }
 
-async function fetchGcsManifest(version: string): Promise<GcsManifest> {
-  const response = await fetch(gcsManifestUrl(version))
+async function fetchDirectManifest(version: string): Promise<DirectManifest> {
+  const response = await fetch(directManifestUrl(version))
   if (!response.ok) {
-    throw new Error(`GCS manifest fetch failed for ${version}: ${response.status} ${response.statusText}`)
+    throw new Error(`direct manifest fetch failed for ${version}: ${response.status} ${response.statusText}`)
   }
-  return (await response.json()) as GcsManifest
+  return (await response.json()) as DirectManifest
 }
 
 async function extractNativeBinaryToCli(args: {
@@ -223,7 +228,7 @@ async function main(): Promise<number> {
       ? args.version === "latest"
         ? meta!["dist-tags"].latest
         : args.version
-      : await resolveGcsVersion(args.version)
+      : await resolveDirectVersion(args.version)
   const wrapper = meta?.versions[version]
   if (args.source === "npm" && !wrapper) throw new Error(`${PACKAGE}@${version} not found`)
 
@@ -247,24 +252,24 @@ async function main(): Promise<number> {
   const wrapperCli = join(wrapperDir, "package", "cli.js")
   let source: "wrapper-cli" | "native-bun-standalone"
   let platformPackage: string | undefined
-  let gcsPlatform: string | undefined
+  let directPlatform: string | undefined
   let nativeTarball: string | undefined
   let nativeBinary: string | undefined
   let nativeBinaryUrl: string | undefined
   let nativeBinarySha256: string | undefined
   let entrypointSha256: string | undefined
-  let gcsManifest: GcsManifest | undefined
+  let directManifest: DirectManifest | undefined
 
-  if (args.source === "gcs") {
-    gcsManifest = await fetchGcsManifest(version)
-    gcsPlatform = args.platform
-    const platformManifest = gcsManifest.platforms[gcsPlatform]
-    if (!platformManifest) throw new Error(`GCS platform ${gcsPlatform} not found for ${version}`)
+  if (args.source === "direct") {
+    directManifest = await fetchDirectManifest(version)
+    directPlatform = args.platform
+    const platformManifest = directManifest.platforms[directPlatform]
+    if (!platformManifest) throw new Error(`direct platform ${directPlatform} not found for ${version}`)
 
-    nativeBinaryUrl = gcsNativeBinaryUrl(version, gcsPlatform, platformManifest.binary)
+    nativeBinaryUrl = directNativeBinaryUrl(version, directPlatform, platformManifest.binary)
     nativeBinary = join(
       downloadsDir,
-      `claude-${version}-${gcsPlatform}${platformManifest.binary.endsWith(".exe") ? ".exe" : ""}`,
+      `claude-${version}-${directPlatform}${platformManifest.binary.endsWith(".exe") ? ".exe" : ""}`,
     )
     await download(nativeBinaryUrl, nativeBinary)
     const extracted = await extractNativeBinaryToCli({
@@ -278,7 +283,7 @@ async function main(): Promise<number> {
 
     if (nativeBinarySha256 !== platformManifest.checksum) {
       throw new Error(
-        `GCS checksum mismatch for ${gcsPlatform}: expected ${platformManifest.checksum}, got ${nativeBinarySha256}`,
+        `direct checksum mismatch for ${directPlatform}: expected ${platformManifest.checksum}, got ${nativeBinarySha256}`,
       )
     }
     source = "native-bun-standalone"
@@ -328,19 +333,19 @@ async function main(): Promise<number> {
         source,
         wrapperTarball: wrapper?.dist.tarball,
         platformPackage,
-        gcsPlatform,
+        directPlatform,
         nativeTarball,
         nativeBinary,
         nativeBinaryUrl,
         nativeBinarySha256,
         entrypointSha256,
-        gcsManifest: gcsManifest
+        directManifest: directManifest
           ? {
-              version: gcsManifest.version,
-              commit: gcsManifest.commit,
-              buildDate: gcsManifest.buildDate,
-              platformChecksum: gcsPlatform ? gcsManifest.platforms[gcsPlatform]?.checksum : undefined,
-              platformSize: gcsPlatform ? gcsManifest.platforms[gcsPlatform]?.size : undefined,
+              version: directManifest.version,
+              commit: directManifest.commit,
+              buildDate: directManifest.buildDate,
+              platformChecksum: directPlatform ? directManifest.platforms[directPlatform]?.checksum : undefined,
+              platformSize: directPlatform ? directManifest.platforms[directPlatform]?.size : undefined,
             }
           : undefined,
         cliPath,
@@ -357,8 +362,8 @@ async function main(): Promise<number> {
   )
 
   const channelLabel =
-    args.source === "gcs"
-      ? `${GCS_RELEASE_BASE}/${version}/${args.platform}/${basename(nativeBinary ?? "")}`
+    args.source === "direct"
+      ? (nativeBinaryUrl ?? `${DIRECT_RELEASE_BASE}/${version}/${args.platform}`)
       : `${PACKAGE}@${version}`
   console.error(`staged ${channelLabel} -> ${cliPath}`)
   return 0

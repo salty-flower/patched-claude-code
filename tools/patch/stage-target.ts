@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Dispatch target staging across canonical, GCS, and npm sources.
+// Dispatch target staging across canonical, direct native downloads, and npm sources.
 
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
@@ -17,7 +17,7 @@ type Args = {
 type StageManifest = {
   channel?: string
   platformPackage?: string
-  gcsPlatform?: string
+  directPlatform?: string
 }
 
 function parseArgs(argv: string[]): Args {
@@ -41,7 +41,7 @@ function parseArgs(argv: string[]): Args {
     } else if (arg === "--canonical-base") {
       args.canonicalBase = argv[++i]
     } else if (arg === "--help" || arg === "-h") {
-      console.log("usage: bun run tools/patch/stage-target.ts --version <ver> [--source canonical|gcs|npm]")
+      console.log("usage: bun run tools/patch/stage-target.ts --version <ver> [--source canonical|direct|npm]")
       process.exit(0)
     } else {
       throw new Error(`unexpected argument: ${arg}`)
@@ -74,8 +74,8 @@ function hasCurrentStage(args: Args): boolean {
   if (args.source === "npm") {
     return (manifest.channel ?? "npm") === "npm" && (manifest.platformPackage ?? "") === args.platformPackage
   }
-  if (args.source === "gcs") {
-    return manifest.channel === "gcs" && (manifest.gcsPlatform ?? "") === args.platform
+  if (args.source === "direct") {
+    return manifest.channel === "direct" && (manifest.directPlatform ?? "") === args.platform
   }
   return false
 }
@@ -105,12 +105,12 @@ function main(): number {
       args.canonicalBase,
       "--generalize-unknown-string-literals",
     ])
-  } else if (args.source === "gcs") {
-    run(["bun", "run", "tools/patch/stage-claude-code.ts", version, "--source", "gcs", "--platform", args.platform])
+  } else if (args.source === "direct") {
+    run(["bun", "run", "tools/patch/stage-claude-code.ts", version, "--source", "direct", "--platform", args.platform])
   } else if (args.source === "npm") {
     run(["bun", "run", "tools/patch/stage-claude-code.ts", version, "--platform-package", args.platformPackage])
   } else {
-    throw new Error(`unsupported TARGET_SOURCE=${args.source}; expected canonical, npm, or gcs`)
+    throw new Error(`unsupported TARGET_SOURCE=${args.source}; expected canonical, npm, or direct`)
   }
 
   return 0

@@ -30,7 +30,7 @@ needs to revalidate it without your help.
 
 4. **Verify.**
    ```sh
-   TARGET_SOURCE=<npm|gcs> just verify <target-version>
+   TARGET_SOURCE=<npm|direct> just verify <target-version>
    ```
    This confirms the locator resolves exactly once, `rationale_ref` resolves
    to a real line range, and `[[tests]]` metadata exists. CI runs the same

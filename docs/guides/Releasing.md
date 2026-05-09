@@ -10,14 +10,15 @@ git push origin main
 ```
 
 The manual `release` workflow stages the canonical Linux/Darwin bundle from
-GCS native binaries before rendering, testing, and packaging.
+Claude direct-download native binaries before rendering, testing, and
+packaging.
 When `publish=true`, it also writes the Nix source payload and moves the tag
 to a minimal generated payload commit. It also moves `claude-code-latest` to
 that same source commit for `nix flake update` users.
 
 The scheduled `auto-release` workflow may publish a prerelease from a one-sided
-npm or GCS candidate. It promotes only after npm latest and GCS stable converge
-and canonical staging succeeds.
+npm or direct-download candidate. It promotes only after npm latest and direct
+latest converge and canonical staging succeeds.
 
 Manual tag release remains supported:
 
@@ -28,7 +29,7 @@ git push origin claude-code-2.1.132-patch.2
 
 Current releases stage `staging/<version>/canonical/cli.js`, then copy it to
 `staging/<version>/cli.js` for the patch tools. The canonical bundle is based
-on `darwin-arm64` plus `linux-x64` GCS native entrypoint JS.
+on `darwin-arm64` plus `linux-x64` direct-download native entrypoint JS.
 
 Manual dry run:
 
@@ -42,7 +43,6 @@ Manual publish:
 gh workflow run release.yml \
   -f target_version=2.1.132 \
   -f release_id=patch.1 \
-  -f platform_package=@anthropic-ai/claude-code-darwin-arm64 \
   -f publish=true
 ```
 

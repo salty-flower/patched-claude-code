@@ -12,7 +12,8 @@ ported mechanically; it does not produce the desired artifact.
 
 ## Local Findings
 
-Target: Claude Code `2.1.132` GCS native bundles.
+Target: Claude Code `2.1.132` native bundles. The original investigation used
+the legacy GCS bucket; current tooling uses Claude's direct-download endpoint.
 
 | Check | Darwin | Linux |
 | --- | ---: | ---: |
@@ -43,7 +44,7 @@ Interpretation:
 
 The merge tool should:
 
-1. Extract Darwin and Linux GCS native bundles side by side.
+1. Extract Darwin and Linux direct-download native bundles side by side.
 2. Parse both entrypoint JS files with Babel.
 3. Align top-level declarations by normalized AST fingerprints, excluding
    minified identifier names.
@@ -130,11 +131,11 @@ path once this tool exists.
 Auto-release promotion should change from "Linux and Darwin upstream JS have
 no drift" to:
 
-1. npm latest and GCS stable converge on the same version.
+1. npm latest and direct latest converge on the same version.
 2. Canonical staging extracts and merges Linux plus Darwin.
 3. `just verify`, `just render`, `just smoke`, and `just patch-test` run
    against the canonical bundle.
 4. The merge report has zero unclassified drift.
 
 Until then, full promotion should remain blocked for upstream versions whose
-Linux and Darwin GCS bundles structurally differ.
+Linux and Darwin direct-download bundles structurally differ.

@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { extractStandalone } from "../lib/extract-bun-standalone"
 import { structuralJavaScriptHash } from "../lib/js-structure"
-import { GCS_STABLE_URL, gcsManifestUrl, gcsNativeBinaryUrl } from "../lib/upstream-channels"
+import { DIRECT_LATEST_URL, directManifestUrl, directNativeBinaryUrl } from "../lib/upstream-channels"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -15,7 +15,7 @@ type Args = {
   platforms: string[]
 }
 
-type GcsManifest = {
+type DirectManifest = {
   version: string
   platforms: Record<string, { binary: string; checksum: string; size: number }>
 }
@@ -97,12 +97,12 @@ function platformConstantHints(a: string, b: string): string[] {
 
 async function auditPlatform(
   version: string,
-  manifest: GcsManifest,
+  manifest: DirectManifest,
   platform: string,
 ): Promise<PlatformReport & { entrypointText: string }> {
   const platformManifest = manifest.platforms[platform]
-  if (!platformManifest) throw new Error(`platform ${platform} not found in GCS manifest for ${version}`)
-  const binaryUrl = gcsNativeBinaryUrl(version, platform, platformManifest.binary)
+  if (!platformManifest) throw new Error(`platform ${platform} not found in direct manifest for ${version}`)
+  const binaryUrl = directNativeBinaryUrl(version, platform, platformManifest.binary)
   const binaryPath = join(ROOT, "staging", version, "platform-audit", platform, platformManifest.binary)
   const binary = await downloadOrRead(binaryUrl, binaryPath, platformManifest.checksum)
   const binarySha256 = sha256Hex(binary)
@@ -131,8 +131,8 @@ async function auditPlatform(
 
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
-  const version = args.version === "latest" ? await fetchText(GCS_STABLE_URL) : args.version
-  const manifest = await fetchJson<GcsManifest>(gcsManifestUrl(version))
+  const version = args.version === "latest" ? await fetchText(DIRECT_LATEST_URL) : args.version
+  const manifest = await fetchJson<DirectManifest>(directManifestUrl(version))
   const reports = await Promise.all(args.platforms.map((platform) => auditPlatform(version, manifest, platform)))
   const rawHashes = new Set(reports.map((report) => report.entrypointSha256))
   const structuralHashes = new Set(reports.map((report) => report.structuralSha256))

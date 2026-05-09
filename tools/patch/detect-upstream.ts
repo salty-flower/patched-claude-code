@@ -3,7 +3,7 @@
 // version that this repository has not released yet.
 
 import { classifyReleaseCandidate, parseHandledReleaseTags } from "../lib/release-detection"
-import { GCS_STABLE_URL, NPM_REGISTRY_PACKAGE_URL } from "../lib/upstream-channels"
+import { DIRECT_LATEST_URL, NPM_REGISTRY_PACKAGE_URL } from "../lib/upstream-channels"
 
 type Args = {
   tags: string[]
@@ -43,10 +43,10 @@ async function fetchNpmLatest(): Promise<string> {
 
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
-  const [npmLatest, gcsStable] = await Promise.all([fetchNpmLatest(), fetchText(GCS_STABLE_URL)])
+  const [npmLatest, directLatest] = await Promise.all([fetchNpmLatest(), fetchText(DIRECT_LATEST_URL)])
   const candidate = classifyReleaseCandidate({
     npmLatest,
-    gcsLatest: gcsStable,
+    directLatest,
     handledVersions: parseHandledReleaseTags(args.tags),
     prereleaseVersions: parseHandledReleaseTags(args.prereleaseTags),
   })
@@ -55,7 +55,7 @@ async function main(): Promise<number> {
     JSON.stringify(
       {
         npmLatest,
-        gcsStable,
+        directLatest,
         ...candidate,
       },
       null,

@@ -1,6 +1,6 @@
 import * as semver from "semver"
 
-export type ReleaseSource = "npm" | "gcs"
+export type ReleaseSource = "npm" | "direct"
 
 export type ReleaseCandidate =
   | {
@@ -16,7 +16,7 @@ export type ReleaseCandidate =
 
 export type ReleaseChannelState = {
   npmLatest?: string
-  gcsLatest?: string
+  directLatest?: string
   handledVersions?: Set<string>
   prereleaseVersions?: Set<string>
 }
@@ -41,13 +41,13 @@ export function classifyReleaseCandidate(state: ReleaseChannelState): ReleaseCan
   const prereleaseVersions = state.prereleaseVersions ?? new Set<string>()
   const newestHandled = maxVersion([...handledVersions, ...prereleaseVersions])
 
-  if (state.npmLatest && state.gcsLatest && state.npmLatest === state.gcsLatest) {
+  if (state.npmLatest && state.directLatest && state.npmLatest === state.directLatest) {
     if (prereleaseVersions.has(state.npmLatest) && !handledVersions.has(state.npmLatest)) {
       return {
         action: "promote",
         version: state.npmLatest,
         source: "npm",
-        reason: "npm latest and GCS stable have converged",
+        reason: "npm latest and direct latest have converged",
       }
     }
 
@@ -56,7 +56,7 @@ export function classifyReleaseCandidate(state: ReleaseChannelState): ReleaseCan
         action: "promote",
         version: state.npmLatest,
         source: "npm",
-        reason: "npm latest and GCS stable have converged on an unhandled version",
+        reason: "npm latest and direct latest have converged on an unhandled version",
       }
     }
 
@@ -68,7 +68,7 @@ export function classifyReleaseCandidate(state: ReleaseChannelState): ReleaseCan
 
   const oneSided = [
     ["npm", state.npmLatest],
-    ["gcs", state.gcsLatest],
+    ["direct", state.directLatest],
   ] as const
 
   const candidate = oneSided

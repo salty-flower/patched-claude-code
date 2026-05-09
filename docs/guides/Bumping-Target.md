@@ -12,7 +12,8 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    ```
    Use `latest` instead of `<ver>` only when intentionally moving to the
    current channel pointer. For `TARGET_SOURCE=npm`, `latest` means the npm
-   dist-tag; for `TARGET_SOURCE=gcs`, it means the GCS stable object. The
+   dist-tag; for `TARGET_SOURCE=direct`, it means Claude's direct latest
+   object. The
    stager handles both old packages with
    `package/cli.js` and current native packages whose JS entrypoint is
    embedded in a Bun standalone binary. Repacking back to a binary is **not
@@ -23,7 +24,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
 2. **Re-verify every patch against the new bundle.**
    ```sh
-   TARGET_SOURCE=<npm|gcs> just verify <ver>
+   TARGET_SOURCE=<npm|direct> just verify <ver>
    ```
    Patches that still match exactly once require no edits. Patches that
    drift fall into two cases:

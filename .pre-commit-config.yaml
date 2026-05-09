@@ -17,6 +17,13 @@ repos:
         files: ^tools/
         pass_filenames: false
 
+      - id: tools-test
+        name: tools Bun tests
+        entry: bun run --cwd tools test
+        language: system
+        files: ^(tools/(lib|patch|platform|test)/|\.github/workflows/auto-release\.yml|\.pre-commit-config\.yaml)
+        pass_filenames: false
+
       - id: actionlint
         name: GitHub Actions workflow lint
         entry: actionlint

@@ -98,8 +98,6 @@ jobs:
           just smoke "${{ steps.detect.outputs.version }}"
           just patch-test "${{ steps.detect.outputs.version }}"
           just package "${{ steps.detect.outputs.version }}" "patch.1"
-          just release-source "${{ steps.detect.outputs.version }}" "patch.1"
-          bun ./cli.js --version
 
       - name: Check canonical platform merge before promotion
         if: steps.detect.outputs.action == 'promote'
@@ -108,13 +106,15 @@ jobs:
           jq -e '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
             "staging/${{ steps.detect.outputs.version }}/canonical/platform-merge-report.json"
 
-      - name: Push Nix source refs
-        if: steps.detect.outputs.action != 'none'
+      - name: Create and push Nix source refs
+        if: steps.detect.outputs.action == 'promote'
         run: |
           set -euo pipefail
           tag="claude-code-${{ steps.detect.outputs.version }}-patch.1"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          just release-source "${{ steps.detect.outputs.version }}" "patch.1"
+          bun ./cli.js --version
           git push origin "refs/tags/$tag" --force
           git push origin "refs/tags/$tag:refs/heads/claude-code-latest" --force
 
@@ -143,6 +143,7 @@ jobs:
               --title "$tag" \
               --notes-file dist/release-notes.md \
               --prerelease \
+              --target "$GITHUB_SHA" \
               dist/*.tar.gz \
               dist/*.sha256 \
               dist/*.manifest.json

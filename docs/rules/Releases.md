@@ -53,13 +53,15 @@ workflow; GitHub suppresses most `GITHUB_TOKEN`-created workflow events.
 
 Scheduled polling MUST run four times daily via `auto-release.yml`.
 It MAY publish `claude-code-<version>-patch.1` as a prerelease when either
-npm latest or direct latest exposes an unhandled version. It MUST promote that
-tag only after npm latest and direct latest converge and `TARGET_SOURCE=canonical
-just release-dry <version> patch.1` succeeds.
+npm latest or direct latest exposes an unhandled version. Prereleases are
+artifact-only: they MUST NOT run `just release-source`, MUST NOT publish the
+generated Nix source tag, and MUST NOT update `refs/heads/claude-code-latest`.
 
-When scheduled polling publishes or promotes `patch.1`, it MUST update
-`refs/heads/claude-code-latest` to the same minimal source commit as the source
-tag.
+Scheduled polling MUST promote that tag only after npm latest and direct latest
+converge and `TARGET_SOURCE=canonical just release-dry <version> patch.1`
+succeeds. Promotion MUST run `just release-source <version> patch.1`, publish
+the generated Nix source tag, and update `refs/heads/claude-code-latest` to the
+same minimal source commit as the canonical source tag.
 
 Canonical staging MUST write
 `staging/<version>/canonical/platform-merge-report.json` with zero

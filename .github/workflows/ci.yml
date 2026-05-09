@@ -273,6 +273,9 @@ jobs:
       - name: Typecheck tools
         run: just typecheck
 
+      - name: Test tools
+        run: bun run --cwd tools test
+
       - name: Stage target bundle
         run: just stage "$TARGET_VERSION"
 

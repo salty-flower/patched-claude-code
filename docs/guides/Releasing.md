@@ -18,7 +18,9 @@ that same source commit for `nix flake update` users.
 
 The scheduled `auto-release` workflow may publish a prerelease from a one-sided
 npm or direct-download candidate. It promotes only after npm latest and direct
-latest converge and canonical staging succeeds.
+latest converge and canonical staging succeeds. Prereleases upload artifacts
+only; promotion creates the exact Nix source tag and moves
+`claude-code-latest`.
 
 Manual tag release remains supported:
 
@@ -62,8 +64,8 @@ Outputs land in `dist/`:
 | `release-notes.md` | GitHub release notes |
 
 `just release-source <version> patch.<n>` writes the Nix-native payload to the
-repo root and creates the matching minimal source tag. Publishing workflows
-also move `claude-code-latest` to that tag commit.
+repo root and creates the matching minimal source tag. Manual release publish
+and scheduled promotion also move `claude-code-latest` to that tag commit.
 
 | File | Use |
 | --- | --- |

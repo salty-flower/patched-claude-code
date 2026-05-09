@@ -25,11 +25,15 @@ interactive UI.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
 
-locator_pattern = '''case"thinking_delta":return;'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''case"thinking_delta":{let w=H.event.delta.thinking;K(w.length),z?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}));return}'''
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":return;''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let w=H.event.delta.thinking;K(w.length),z?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}));return}'''
 
 [[patches.tests]]
 kind = "static"
@@ -86,11 +90,16 @@ thinking block rendering in the interactive UI.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2963-L2974"
 
-locator_pattern = '''z?.(()=>({thinking:w.thinking,isStreaming:!1,streamingEndedAt:Date.now()}))'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''z?.(()=>null)'''
+[patches.ast]
+schema = 1
+match = { node = "OptionalCallExpression", string = "streamingEndedAt:Date.now()" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 0
+value = "()=>null"
 
 [[patches.tests]]
 kind = "static"

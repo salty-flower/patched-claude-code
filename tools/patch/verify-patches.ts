@@ -53,7 +53,12 @@ function verifyLocator(p: Patch, target: string): { ok: boolean; msg: string; ma
   let matches: number
   if (p.locator_kind === "ast_transform") {
     if (!p.ast || !p.transform) return { ok: false, msg: "missing AST transform metadata", matches: 0 }
-    const result = verifyAstTransformPatch(body, { name: p.name, ast: p.ast, transform: p.transform })
+    const result = verifyAstTransformPatch(body, {
+      name: p.name,
+      expectedMatches: p.expected_matches,
+      ast: p.ast,
+      transform: p.transform,
+    })
     return { ok: result.ok, msg: result.message, matches: result.matches }
   }
   if (!p.locator_pattern) return { ok: false, msg: "missing locator_pattern", matches: 0 }

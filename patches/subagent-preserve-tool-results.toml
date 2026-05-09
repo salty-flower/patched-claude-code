@@ -15,11 +15,14 @@ visibility setting.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/runAgent.ts#L716-L719"
 
-locator_pattern = '''if(j)ZH.preserveToolUseResults=!0'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''ZH.preserveToolUseResults=!0'''
+[ast]
+schema = 1
+match = { node = "IfStatement", string = "preserveToolUseResults=!0" }
+
+[transform]
+op = "replace_with_consequent"
 
 [[tests]]
 kind = "static"

@@ -17,11 +17,14 @@ wrapper history for non-Ant users.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/sessionStorage.ts#L4369-L4460"
 
-locator_pattern = '''function SP_(H,_=H){let q=H.filter(hn);if(Bj6()==="ant")return q;let K=_ instanceof Set?_:nj6(_);return hG3(q,K)}'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''function SP_(H,_=H){return H.filter(hn)}'''
+[ast]
+schema = 1
+match = { node = "FunctionDeclaration", string_literal = "ant", string = ".filter(" }
+
+[transform]
+op = "replace_function_body_with_first_var_initializer_return"
 
 [[tests]]
 kind = "static"

@@ -79,6 +79,41 @@ name = "replacement is rendered"
 assert_contains = '''L4.createElement(nx,{content:O,verbose:!0})'''
 ```
 
+Single-entry legacy files use top-level `[ast]`, `[transform]`, and `[[tests]]`
+tables instead of `[patches.ast]`, `[patches.transform]`, and
+`[[patches.tests]]`.
+
+AST match fields are conjunctive:
+
+| Field | Meaning |
+| --- | --- |
+| `node` | Required Babel node type. |
+| `callee_property` | Direct call callee identifier or member property. |
+| `string_literal` | Descendant string literal with this exact value. |
+| `direct_string_literal` | Direct call argument string literal with this exact value. |
+| `object_property` | Descendant object property or method key. |
+| `function_name` | Function declaration identifier. |
+| `method_name` | Object/class method key. |
+| `body_statement_count` | Number of top-level statements in a block body. |
+| `source` | Exact source text for the matched node. |
+| `string` | Substring contained in the matched node source. |
+
+Supported transform ops:
+
+| Op | Required fields | Effect |
+| --- | --- | --- |
+| `replace_node` | `value` | Replace the matched node source. |
+| `replace_function_body` | `body` | Replace a block body while preserving the signature. |
+| `replace_function_body_with_first_var_initializer_return` | none | Replace the body with `return <first variable initializer>`. |
+| `set_object_property` | `property`, `value` | Replace or append an object property. |
+| `set_call_arg` | `index`, `value` | Replace a call argument. |
+| `append_call_arg` | `arg` | Append a call argument. |
+| `wrap_expression` | `template` | Replace `%%EXPR%%` with the matched expression source. |
+| `replace_with_consequent` | none | Replace an `IfStatement` with its consequent source. |
+| `prepend_function_body` | `code` | Insert code at the start of a block body. |
+| `insert_after_node` | `code` | Insert code immediately after the matched node. |
+| `replace_substring` | `find`, `value` | Replace a unique substring inside the matched node. |
+
 ## Field rules
 
 - Each patch entry's `rationale_ref` MUST point at a real line range in
@@ -88,8 +123,9 @@ assert_contains = '''L4.createElement(nx,{content:O,verbose:!0})'''
   surgical patches; raising it is permitted only when the duplication is
   intentional. A wrong count fails the patch and forces an audit either way.
 - Each `ast_transform` patch entry's AST locator MUST resolve to exactly one
-  AST node on the staged target bundle. The transform MUST pass its typed
-  preconditions and the transformed bundle MUST parse.
+  AST node on the staged target bundle unless `expected_matches` documents an
+  intentional duplicated site. The transform MUST pass its typed preconditions
+  for every matched node and the transformed bundle MUST parse.
 - `replacement` must not contain backreferences that resurrect minified
   identifier names from the locator's capture groups. Literal and regex
   patches are deterministic substitutions, not transforms.

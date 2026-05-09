@@ -16,8 +16,12 @@ export type AstMatch = {
   node: string
   callee_property?: string
   string_literal?: string
+  direct_string_literal?: string
   object_property?: string
   function_name?: string
+  method_name?: string
+  body_statement_count?: number
+  source?: string
   string?: string
 }
 
@@ -30,13 +34,19 @@ export type AstLocator = {
 export type AstTransform =
   | { op: "replace_node"; value: string }
   | { op: "replace_function_body"; body: string }
+  | { op: "replace_function_body_with_first_var_initializer_return" }
   | { op: "set_object_property"; property: string; value: string }
   | { op: "set_call_arg"; index: number; value: string }
   | { op: "append_call_arg"; arg: string }
   | { op: "wrap_expression"; template: string }
+  | { op: "replace_with_consequent" }
+  | { op: "prepend_function_body"; code: string }
+  | { op: "insert_after_node"; code: string }
+  | { op: "replace_substring"; find: string; value: string }
 
 export type AstTransformPatch = {
   name: string
+  expectedMatches?: number
   ast: AstLocator
   transform: AstTransform
 }
@@ -81,19 +91,20 @@ export function applyAstTransformPatches(source: string, patches: AstTransformPa
   for (const patch of patches) {
     const ast = parseProgram(current)
     const matches = findMatches(ast.program as Record<string, unknown>, current, patch.ast.match)
-    if (matches.length !== 1) {
-      throw new Error(`expected 1 AST match for ${patch.name}, got ${matches.length}`)
+    const expected = patch.expectedMatches ?? 1
+    if (matches.length !== expected) {
+      throw new Error(`expected ${expected} AST match(es) for ${patch.name}, got ${matches.length}`)
     }
-    const target = matches[0]
-    const edit = editForTransform(current, target, patch.transform)
-    current = applyEdit(current, edit)
+    const edits = matches.map((target) => editForTransform(current, target, patch.transform))
+    rejectOverlappingEdits(edits)
+    current = applyEdits(current, edits)
     parseProgram(current)
     reports.push({
       name: patch.name,
       op: patch.transform.op,
       matches: matches.length,
-      start: edit.start,
-      end: edit.end,
+      start: Math.min(...edits.map((edit) => edit.start)),
+      end: Math.max(...edits.map((edit) => edit.end)),
     })
   }
 
@@ -103,32 +114,34 @@ export function applyAstTransformPatches(source: string, patches: AstTransformPa
 export function verifyAstTransformPatch(source: string, patch: AstTransformPatch): AstTransformVerifyResult {
   const ast = parseProgram(source)
   const matches = findMatches(ast.program as Record<string, unknown>, source, patch.ast.match)
-  if (matches.length !== 1) {
+  const expected = patch.expectedMatches ?? 1
+  if (matches.length !== expected) {
     return {
       ok: false,
       matches: matches.length,
-      message: `expected 1 AST match, got ${matches.length}`,
+      message: `expected ${expected} AST match(es), got ${matches.length}`,
     }
   }
 
   try {
-    const edit = editForTransform(source, matches[0], patch.transform)
-    const transformed = applyEdit(source, edit)
+    const edits = matches.map((target) => editForTransform(source, target, patch.transform))
+    rejectOverlappingEdits(edits)
+    const transformed = applyEdits(source, edits)
     parseProgram(transformed)
     return {
       ok: true,
       matches: matches.length,
       message: `AST locator matches ${matches.length} node(s)`,
-      start: matches[0].start,
-      end: matches[0].end,
+      start: Math.min(...matches.map((match) => match.start)),
+      end: Math.max(...matches.map((match) => match.end)),
     }
   } catch (error) {
     return {
       ok: false,
       matches: matches.length,
       message: error instanceof Error ? error.message : String(error),
-      start: matches[0].start,
-      end: matches[0].end,
+      start: Math.min(...matches.map((match) => match.start)),
+      end: Math.max(...matches.map((match) => match.end)),
     }
   }
 }
@@ -175,8 +188,12 @@ function matchesAstMatch(node: AstNode, source: string, match: AstMatch): boolea
   if (node.type !== match.node) return false
   if (match.callee_property && !hasCalleeProperty(node, match.callee_property)) return false
   if (match.string_literal && !hasStringLiteral(node, match.string_literal)) return false
+  if (match.direct_string_literal && !hasDirectStringLiteral(node, match.direct_string_literal)) return false
   if (match.object_property && !hasObjectProperty(node, match.object_property)) return false
   if (match.function_name && !hasFunctionName(node, match.function_name)) return false
+  if (match.method_name && propertyKeyName(node) !== match.method_name) return false
+  if (match.body_statement_count !== undefined && bodyStatementCount(node) !== match.body_statement_count) return false
+  if (match.source && source.slice(node.start, node.end) !== match.source) return false
   if (match.string && !source.slice(node.start, node.end).includes(match.string)) return false
   return true
 }
@@ -198,6 +215,11 @@ function hasStringLiteral(node: AstNode, value: string): boolean {
   return found
 }
 
+function hasDirectStringLiteral(node: AstNode, value: string): boolean {
+  const args = Array.isArray(node.arguments) ? (node.arguments as Array<Record<string, unknown>>) : []
+  return args.some((arg) => arg.type === "StringLiteral" && arg.value === value)
+}
+
 function hasObjectProperty(node: AstNode, property: string): boolean {
   let found = false
   visit(node, (inner) => {
@@ -211,6 +233,12 @@ function hasObjectProperty(node: AstNode, property: string): boolean {
 function hasFunctionName(node: AstNode, name: string): boolean {
   const id = node.id as Record<string, unknown> | undefined
   return typeof id?.name === "string" && id.name === name
+}
+
+function bodyStatementCount(node: AstNode): number | null {
+  const body = node.body as Record<string, unknown> | undefined
+  if (!body || body.type !== "BlockStatement" || !Array.isArray(body.body)) return null
+  return body.body.length
 }
 
 function propertyKeyName(node: Record<string, unknown>): string | null {
@@ -227,6 +255,8 @@ function editForTransform(source: string, target: AstNode, transform: AstTransfo
       return { start: target.start, end: target.end, replacement: transform.value }
     case "replace_function_body":
       return replaceFunctionBodyEdit(target, transform.body)
+    case "replace_function_body_with_first_var_initializer_return":
+      return replaceFunctionBodyWithFirstVarInitializerReturnEdit(source, target)
     case "set_object_property":
       return setObjectPropertyEdit(target, transform.property, transform.value)
     case "set_call_arg":
@@ -235,6 +265,14 @@ function editForTransform(source: string, target: AstNode, transform: AstTransfo
       return appendCallArgEdit(target, transform.arg)
     case "wrap_expression":
       return wrapExpressionEdit(source, target, transform.template)
+    case "replace_with_consequent":
+      return replaceWithConsequentEdit(source, target)
+    case "prepend_function_body":
+      return prependFunctionBodyEdit(target, transform.code)
+    case "insert_after_node":
+      return { start: target.end, end: target.end, replacement: transform.code }
+    case "replace_substring":
+      return replaceSubstringEdit(source, target, transform.find, transform.value)
   }
 }
 
@@ -244,6 +282,24 @@ function replaceFunctionBodyEdit(target: AstNode, body: string): SourceEdit {
     throw new Error("replace_function_body target must have a block body")
   }
   return { start: block.start, end: block.end, replacement: body }
+}
+
+function replaceFunctionBodyWithFirstVarInitializerReturnEdit(source: string, target: AstNode): SourceEdit {
+  const block = target.body as Record<string, unknown> | undefined
+  if (!block || block.type !== "BlockStatement" || typeof block.start !== "number" || typeof block.end !== "number") {
+    throw new Error("replace_function_body_with_first_var_initializer_return target must have a block body")
+  }
+  const statements = Array.isArray(block.body) ? (block.body as Array<Record<string, unknown>>) : []
+  const first = statements[0]
+  if (first?.type !== "VariableDeclaration") {
+    throw new Error("replace_function_body_with_first_var_initializer_return first statement must be a variable declaration")
+  }
+  const declarations = Array.isArray(first.declarations) ? (first.declarations as Array<Record<string, unknown>>) : []
+  const init = declarations[0]?.init as Record<string, unknown> | undefined
+  if (!init || typeof init.start !== "number" || typeof init.end !== "number") {
+    throw new Error("replace_function_body_with_first_var_initializer_return first variable must have an initializer")
+  }
+  return { start: block.start, end: block.end, replacement: `{return ${source.slice(init.start, init.end)}}` }
 }
 
 function setObjectPropertyEdit(target: AstNode, property: string, value: string): SourceEdit {
@@ -298,7 +354,54 @@ function wrapExpressionEdit(source: string, target: AstNode, template: string): 
   }
 }
 
-function applyEdit(source: string, edit: SourceEdit): string {
-  if (edit.replacement.length === 0) throw new Error("AST transform replacement is empty")
-  return source.slice(0, edit.start) + edit.replacement + source.slice(edit.end)
+function replaceWithConsequentEdit(source: string, target: AstNode): SourceEdit {
+  if (target.type !== "IfStatement") throw new Error("replace_with_consequent target must be an IfStatement")
+  const consequent = target.consequent as AstNode | undefined
+  if (!consequent || typeof consequent.start !== "number" || typeof consequent.end !== "number") {
+    throw new Error("replace_with_consequent target must have a consequent")
+  }
+  if (consequent.type === "BlockStatement") {
+    return {
+      start: target.start,
+      end: target.end,
+      replacement: source.slice(consequent.start + 1, consequent.end - 1),
+    }
+  }
+  return { start: target.start, end: target.end, replacement: source.slice(consequent.start, consequent.end) }
+}
+
+function prependFunctionBodyEdit(target: AstNode, code: string): SourceEdit {
+  const block = target.body as Record<string, unknown> | undefined
+  if (!block || block.type !== "BlockStatement" || typeof block.start !== "number") {
+    throw new Error("prepend_function_body target must have a block body")
+  }
+  return { start: block.start + 1, end: block.start + 1, replacement: code }
+}
+
+function replaceSubstringEdit(source: string, target: AstNode, find: string, value: string): SourceEdit {
+  const text = source.slice(target.start, target.end)
+  const first = text.indexOf(find)
+  if (first < 0) throw new Error("replace_substring find text was not found in target node")
+  const second = text.indexOf(find, first + find.length)
+  if (second >= 0) throw new Error("replace_substring find text matched more than once in target node")
+  return {
+    start: target.start + first,
+    end: target.start + first + find.length,
+    replacement: value,
+  }
+}
+
+function applyEdits(source: string, edits: SourceEdit[]): string {
+  let out = source
+  for (const edit of edits.slice().sort((a, b) => b.start - a.start || b.end - a.end)) {
+    out = out.slice(0, edit.start) + edit.replacement + out.slice(edit.end)
+  }
+  return out
+}
+
+function rejectOverlappingEdits(edits: SourceEdit[]): void {
+  const sorted = edits.slice().sort((a, b) => a.start - b.start || a.end - b.end)
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i - 1].end > sorted[i].start) throw new Error("AST transform edits overlap")
+  }
 }

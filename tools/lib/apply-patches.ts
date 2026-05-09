@@ -40,7 +40,9 @@ export function applyPatchEntries(source: string, patches: PatchEntry[], version
 function applyOne(source: string, patch: PatchEntry): string {
   if (patch.locator_kind === "ast_transform") {
     if (!patch.ast || !patch.transform) throw new Error(`[${patch.name}] missing AST transform metadata`)
-    return applyAstTransformPatches(source, [{ name: patch.name, ast: patch.ast, transform: patch.transform }]).source
+    return applyAstTransformPatches(source, [
+      { name: patch.name, expectedMatches: patch.expected_matches, ast: patch.ast, transform: patch.transform },
+    ]).source
   }
 
   const locatorPattern = patch.locator_pattern

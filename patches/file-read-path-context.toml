@@ -21,16 +21,20 @@ tool result rows or provides equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L77-L143"
 
-locator_pattern = '''function Jd7(H){switch(H.type){'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''function Jd7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${kT6(P)||B1(P)}`:"";switch(H.type){'''
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", string_literal = "Read image (" }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${String(P).split(/[\\/]/).pop()||String(P)}`:"";'''
 
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''function Jd7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${kT6(P)||B1(P)}`:"";switch(H.type){'''
+assert_contains = '''function Jd7(H){let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${String(P).split(/[\\/]/).pop()||String(P)}`:"";switch(H.type){'''
 
 [[patches]]
 name = "read-result-path-image"
@@ -48,11 +52,15 @@ equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
 
-locator_pattern = '''tK.createElement(V,null,"Read image (",q,")")'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''tK.createElement(V,null,"Read image (",q,")",Z)'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", direct_string_literal = "Read image (" }
+
+[patches.transform]
+op = "append_call_arg"
+arg = "Z"
 
 [[patches.tests]]
 kind = "static"
@@ -75,11 +83,15 @@ transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
 
-locator_pattern = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_.length)," cells")'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_.length)," cells",Z)'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", direct_string_literal = " cells" }
+
+[patches.transform]
+op = "append_call_arg"
+arg = "Z"
 
 [[patches.tests]]
 kind = "static"
@@ -102,11 +114,15 @@ equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L114-L122"
 
-locator_pattern = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",p7(H.file.originalSize),")")'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},H.file.count)," ",H.file.count===1?"page":"pages"," (",p7(H.file.originalSize),")",Z)'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", direct_string_literal = "Read ", string = '"page":"pages"' }
+
+[patches.transform]
+op = "append_call_arg"
+arg = "Z"
 
 [[patches.tests]]
 kind = "static"
@@ -128,11 +144,15 @@ path in Read tool result rows or provides equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
 
-locator_pattern = '''tK.createElement(V,null,"Read PDF (",q,")")'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''tK.createElement(V,null,"Read PDF (",q,")",Z)'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", direct_string_literal = "Read PDF (" }
+
+[patches.transform]
+op = "append_call_arg"
+arg = "Z"
 
 [[patches.tests]]
 kind = "static"
@@ -155,11 +175,15 @@ transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L124-L134"
 
-locator_pattern = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_)," ",_===1?"line":"lines")'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''tK.createElement(V,null,"Read ",tK.createElement(V,{bold:!0},_)," ",_===1?"line":"lines",Z)'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", direct_string_literal = "Read ", string = '"line":"lines"' }
+
+[patches.transform]
+op = "append_call_arg"
+arg = "Z"
 
 [[patches.tests]]
 kind = "static"
@@ -181,11 +205,15 @@ path in Read tool result rows or provides equivalent transcript context.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L136-L140"
 
-locator_pattern = '''tK.createElement(V,{dimColor:!0},"Unchanged since last read")'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''tK.createElement(V,{dimColor:!0},"Unchanged since last read",Z)'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", direct_string_literal = "Unchanged since last read" }
+
+[patches.transform]
+op = "append_call_arg"
+arg = "Z"
 
 [[patches.tests]]
 kind = "static"

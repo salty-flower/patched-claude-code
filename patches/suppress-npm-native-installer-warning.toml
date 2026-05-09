@@ -15,11 +15,16 @@ upstream-supported native installer package.
 """
 rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
 
-locator_pattern = '''\{id:"npm-deprecation",compute:async\(\)=>\{if\(pA\(\)\|\|yH\(process\.env\.DISABLE_INSTALLATION_CHECKS\)\)return null;if\(await I9H\(\)==="development"\)return null;return\{timeoutMs:15000,key:"npm-deprecation-warning",text:"Claude Code has switched from npm to native installer\. Run `claude install` or see https://docs\.anthropic\.com/en/docs/claude-code/getting-started for more options\.",color:"warning",priority:"high"\}\}\}'''
-locator_kind = "regex"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''{id:"npm-deprecation",compute:async()=>null}'''
+[ast]
+schema = 1
+match = { node = "ObjectExpression", string_literal = "npm-deprecation" }
+
+[transform]
+op = "set_object_property"
+property = "compute"
+value = "async()=>null"
 
 [[tests]]
 kind = "static"

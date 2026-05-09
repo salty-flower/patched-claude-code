@@ -33,11 +33,16 @@ upstream allows opting out of the gate per-tool, or removes the gate.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
 
-locator_pattern = '''isEnabled\(\)\{if\(\w+\(\)\.length>0(?:&&\w+\(\))?\)return!1;return!0\}'''
-locator_kind = "regex"
+locator_kind = "ast_transform"
 expected_matches = 3
 
-replacement = "isEnabled(){return!0}"
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", string = "return!1;return!0" }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
 
 [[patches.tests]]
 kind = "static"
@@ -64,11 +69,15 @@ gated.
 """
 rationale_ref = "reference/v2.1.88/sources/src/services/mcp/channelAllowlist.ts#L46-L53"
 
-locator_pattern = '''function hkH\(\)\{return M_\("tengu_harbor",!1\)\}'''
-locator_kind = "regex"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = "function hkH(){return!0}"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", string_literal = "tengu_harbor", body_statement_count = 1 }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
 
 [[patches.tests]]
 kind = "static"
@@ -96,11 +105,15 @@ marketplace channels rather than all channel registration.
 """
 rationale_ref = "reference/v2.1.88/sources/src/services/mcp/channelNotification.ts#L220-L228"
 
-locator_pattern = '''if\(Qq\(\)!=="firstParty"\)return\{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"\};'''
-locator_kind = "regex"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''if(!1)return{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"};'''
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", string_literal = "channels are not available on third-party providers" }
+
+[patches.transform]
+op = "replace_node"
+value = '''if(!1)return{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"};'''
 
 [[patches.tests]]
 kind = "static"

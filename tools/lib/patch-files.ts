@@ -123,8 +123,12 @@ function astLocator(value: unknown, field: string, file: string): AstLocator {
       node,
       callee_property: optionalString(match.callee_property, `${field}.match.callee_property`, file),
       string_literal: optionalString(match.string_literal, `${field}.match.string_literal`, file),
+      direct_string_literal: optionalString(match.direct_string_literal, `${field}.match.direct_string_literal`, file),
       object_property: optionalString(match.object_property, `${field}.match.object_property`, file),
       function_name: optionalString(match.function_name, `${field}.match.function_name`, file),
+      method_name: optionalString(match.method_name, `${field}.match.method_name`, file),
+      body_statement_count: optionalNumber(match.body_statement_count, `${field}.match.body_statement_count`, file),
+      source: optionalString(match.source, `${field}.match.source`, file),
       string: optionalString(match.string, `${field}.match.string`, file),
     },
   }
@@ -135,6 +139,7 @@ function astTransform(value: unknown, field: string, file: string): AstTransform
   const op = requiredString(record.op, `${field}.op`, file)
   if (op === "replace_node") return { op, value: requiredString(record.value, `${field}.value`, file) }
   if (op === "replace_function_body") return { op, body: requiredString(record.body, `${field}.body`, file) }
+  if (op === "replace_function_body_with_first_var_initializer_return") return { op }
   if (op === "set_object_property") {
     return {
       op,
@@ -151,6 +156,16 @@ function astTransform(value: unknown, field: string, file: string): AstTransform
   }
   if (op === "append_call_arg") return { op, arg: requiredString(record.arg, `${field}.arg`, file) }
   if (op === "wrap_expression") return { op, template: requiredString(record.template, `${field}.template`, file) }
+  if (op === "replace_with_consequent") return { op }
+  if (op === "prepend_function_body") return { op, code: requiredString(record.code, `${field}.code`, file) }
+  if (op === "insert_after_node") return { op, code: requiredString(record.code, `${field}.code`, file) }
+  if (op === "replace_substring") {
+    return {
+      op,
+      find: requiredString(record.find, `${field}.find`, file),
+      value: requiredString(record.value, `${field}.value`, file),
+    }
+  }
   throw new Error(`${file}: unsupported AST transform op ${op}`)
 }
 

@@ -41,6 +41,32 @@ test("applies legacy byte patches and AST transform patches in order", () => {
   expect(result.applied).toBe(2)
 })
 
+test("batches consecutive applicable AST transform patches", () => {
+  let parses = 0
+  const patches: PatchEntry[] = [
+    basePatch({
+      name: "update verbose",
+      locator_kind: "ast_transform",
+      ast: { schema: 1, match: { node: "ObjectExpression", object_property: "verbose" } },
+      transform: { op: "set_object_property", property: "verbose", value: "!0" },
+    }),
+    basePatch({
+      name: "add verbose",
+      locator_kind: "ast_transform",
+      ast: { schema: 1, match: { node: "ObjectExpression", object_property: "key" } },
+      transform: { op: "set_object_property", property: "verbose", value: "!0" },
+    }),
+  ]
+
+  const result = applyPatchEntries("const a={verbose:q};const b={key:J}", patches, "1.0.0", {
+    astTransformOptions: { onParse: () => parses++ },
+  })
+
+  expect(result.source).toBe("const a={verbose:!0};const b={key:J,verbose:!0}")
+  expect(result.applied).toBe(2)
+  expect(parses).toBe(2)
+})
+
 test("skips AST transform patches outside their semver range", () => {
   const result = applyPatchEntries(
     'const out=tK.createElement(V,null,"Read image (",q,")")',

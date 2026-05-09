@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { applyAstTransformPatches, verifyAstTransformPatch } from "../lib/ast-transform-patches"
+import { applyAstTransformPatches, verifyAstTransformPatch, verifyAstTransformPatches } from "../lib/ast-transform-patches"
 
 test("append_call_arg appends one argument to a uniquely matched call", () => {
   const result = applyAstTransformPatches('const out=tK.createElement(V,null,"Read image (",q,")")', [
@@ -80,6 +80,29 @@ test("set_object_property updates an existing property and appends a missing one
   ])
 
   expect(result.source).toBe("const a={verbose:!0};const b={key:J,verbose:!0}")
+})
+
+test("applies an AST transform batch with one initial parse and one final parse", () => {
+  let parses = 0
+  const result = applyAstTransformPatches(
+    "const a={verbose:q};const b={key:J}",
+    [
+      {
+        name: "update verbose",
+        ast: { schema: 1, match: { node: "ObjectExpression", object_property: "verbose" } },
+        transform: { op: "set_object_property", property: "verbose", value: "!0" },
+      },
+      {
+        name: "add verbose",
+        ast: { schema: 1, match: { node: "ObjectExpression", object_property: "key" } },
+        transform: { op: "set_object_property", property: "verbose", value: "!0" },
+      },
+    ],
+    { onParse: () => parses++ },
+  )
+
+  expect(result.source).toBe("const a={verbose:!0};const b={key:J,verbose:!0}")
+  expect(parses).toBe(2)
 })
 
 test("replace_function_body preserves the function signature", () => {
@@ -276,4 +299,30 @@ test("verifyAstTransformPatch reports locator count and transform preconditions 
     start: 10,
     end: source.length,
   })
+})
+
+test("verifies an AST transform batch with one initial parse and one final parse", () => {
+  let parses = 0
+  const reports = verifyAstTransformPatches(
+    "const a={verbose:q};const b={key:J}",
+    [
+      {
+        name: "update verbose",
+        ast: { schema: 1, match: { node: "ObjectExpression", object_property: "verbose" } },
+        transform: { op: "set_object_property", property: "verbose", value: "!0" },
+      },
+      {
+        name: "add verbose",
+        ast: { schema: 1, match: { node: "ObjectExpression", object_property: "key" } },
+        transform: { op: "set_object_property", property: "verbose", value: "!0" },
+      },
+    ],
+    { onParse: () => parses++ },
+  )
+
+  expect(reports).toEqual([
+    expect.objectContaining({ ok: true, matches: 1 }),
+    expect.objectContaining({ ok: true, matches: 1 }),
+  ])
+  expect(parses).toBe(2)
 })

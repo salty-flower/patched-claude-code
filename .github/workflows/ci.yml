@@ -72,6 +72,10 @@ jobs:
                   full=true
                   typecheck=true
                   ;;
+                .github/workflows/*|.pre-commit-config.yaml)
+                  full=true
+                  typecheck=true
+                  ;;
                 tools/*)
                   typecheck=true
                   ;;

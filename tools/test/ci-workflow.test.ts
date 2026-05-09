@@ -22,3 +22,9 @@ test("ci stages target bundle before running integration-heavy tool tests", () =
   expect(stageIndex).toBeLessThan(testIndex)
   expect(workflowStep("Test tools")).toContain("bun run --cwd tools test")
 })
+
+test("ci routes workflow and pre-commit wiring edits through tool tests", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
+
+  expect(workflow).toContain(".github/workflows/*|.pre-commit-config.yaml)")
+})

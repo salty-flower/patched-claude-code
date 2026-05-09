@@ -21,7 +21,7 @@ repos:
         name: tools Bun tests
         entry: bun run --cwd tools test
         language: system
-        files: ^(tools/(lib|patch|platform|test)/|\.github/workflows/auto-release\.yml|\.pre-commit-config\.yaml)
+        files: ^(tools/(lib|patch|platform|test)/|\.github/workflows/.*\.ya?ml|\.pre-commit-config\.yaml)
         pass_filenames: false
 
       - id: actionlint

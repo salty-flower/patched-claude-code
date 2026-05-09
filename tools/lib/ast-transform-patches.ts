@@ -72,6 +72,12 @@ export type AstTransformVerifyResult = {
   end?: number
 }
 
+export type AstTransformParsePhase = "initial" | "final"
+
+export type AstTransformOptions = {
+  onParse?: (phase: AstTransformParsePhase) => void
+}
+
 type AstNode = Record<string, unknown> & {
   type: string
   start: number
@@ -84,69 +90,134 @@ type SourceEdit = {
   replacement: string
 }
 
-export function applyAstTransformPatches(source: string, patches: AstTransformPatch[]): AstTransformResult {
-  let current = source
-  const reports: AstTransformReport[] = []
+type PlannedAstTransform = {
+  patch: AstTransformPatch
+  matches: AstNode[]
+  edits: SourceEdit[]
+}
 
-  for (const patch of patches) {
-    const ast = parseProgram(current)
-    const matches = findMatches(ast.program as Record<string, unknown>, current, patch.ast.match)
-    const expected = patch.expectedMatches ?? 1
-    if (matches.length !== expected) {
-      throw new Error(`expected ${expected} AST match(es) for ${patch.name}, got ${matches.length}`)
-    }
-    const edits = matches.map((target) => editForTransform(current, target, patch.transform))
-    rejectOverlappingEdits(edits)
-    current = applyEdits(current, edits)
-    parseProgram(current)
-    reports.push({
+export function applyAstTransformPatches(
+  source: string,
+  patches: AstTransformPatch[],
+  options: AstTransformOptions = {},
+): AstTransformResult {
+  if (patches.length === 0) return { source, reports: [] }
+
+  const ast = parseProgram(source, options, "initial")
+  const planned = planAstTransformPatches(source, ast.program as Record<string, unknown>, patches)
+  const edits = planned.flatMap((item) => item.edits)
+  rejectOverlappingEdits(edits)
+
+  const current = applyEdits(source, edits)
+  parseProgram(current, options, "final")
+
+  return {
+    source: current,
+    reports: planned.map(({ patch, matches, edits }) => ({
       name: patch.name,
       op: patch.transform.op,
       matches: matches.length,
-      start: Math.min(...edits.map((edit) => edit.start)),
-      end: Math.max(...edits.map((edit) => edit.end)),
-    })
+      ...rangeForEdits(edits),
+    })),
   }
-
-  return { source: current, reports }
 }
 
-export function verifyAstTransformPatch(source: string, patch: AstTransformPatch): AstTransformVerifyResult {
-  const ast = parseProgram(source)
-  const matches = findMatches(ast.program as Record<string, unknown>, source, patch.ast.match)
-  const expected = patch.expectedMatches ?? 1
-  if (matches.length !== expected) {
-    return {
+export function verifyAstTransformPatch(
+  source: string,
+  patch: AstTransformPatch,
+  options: AstTransformOptions = {},
+): AstTransformVerifyResult {
+  return verifyAstTransformPatches(source, [patch], options)[0]
+}
+
+export function verifyAstTransformPatches(
+  source: string,
+  patches: AstTransformPatch[],
+  options: AstTransformOptions = {},
+): AstTransformVerifyResult[] {
+  if (patches.length === 0) return []
+
+  let ast: parser.ParseResult<any>
+  try {
+    ast = parseProgram(source, options, "initial")
+  } catch (error) {
+    return patches.map(() => ({
       ok: false,
-      matches: matches.length,
-      message: `expected ${expected} AST match(es), got ${matches.length}`,
+      matches: 0,
+      message: error instanceof Error ? error.message : String(error),
+    }))
+  }
+
+  const results: AstTransformVerifyResult[] = []
+  const successfulEdits: SourceEdit[] = []
+
+  for (const patch of patches) {
+    const matches = findMatches(ast.program as Record<string, unknown>, source, patch.ast.match)
+    const expected = patch.expectedMatches ?? 1
+    if (matches.length !== expected) {
+      results.push({
+        ok: false,
+        matches: matches.length,
+        message: `expected ${expected} AST match(es), got ${matches.length}`,
+      })
+      continue
+    }
+
+    try {
+      const edits = matches.map((target) => editForTransform(source, target, patch.transform))
+      rejectOverlappingEdits(edits)
+      successfulEdits.push(...edits)
+      results.push({
+        ok: true,
+        matches: matches.length,
+        message: `AST locator matches ${matches.length} node(s)`,
+        ...rangeForMatches(matches),
+      })
+    } catch (error) {
+      results.push({
+        ok: false,
+        matches: matches.length,
+        message: error instanceof Error ? error.message : String(error),
+        ...rangeForMatches(matches),
+      })
     }
   }
 
   try {
-    const edits = matches.map((target) => editForTransform(source, target, patch.transform))
-    rejectOverlappingEdits(edits)
-    const transformed = applyEdits(source, edits)
-    parseProgram(transformed)
-    return {
-      ok: true,
-      matches: matches.length,
-      message: `AST locator matches ${matches.length} node(s)`,
-      start: Math.min(...matches.map((match) => match.start)),
-      end: Math.max(...matches.map((match) => match.end)),
-    }
+    rejectOverlappingEdits(successfulEdits)
+    const transformed = applyEdits(source, successfulEdits)
+    parseProgram(transformed, options, "final")
   } catch (error) {
-    return {
-      ok: false,
-      matches: matches.length,
-      message: error instanceof Error ? error.message : String(error),
-      start: Math.min(...matches.map((match) => match.start)),
-      end: Math.max(...matches.map((match) => match.end)),
-    }
+    const message = error instanceof Error ? error.message : String(error)
+    return results.map((result) => (result.ok ? { ...result, ok: false, message } : result))
   }
+
+  return results
 }
 
-function parseProgram(source: string): parser.ParseResult<any> {
+function planAstTransformPatches(
+  source: string,
+  root: Record<string, unknown>,
+  patches: AstTransformPatch[],
+): PlannedAstTransform[] {
+  return patches.map((patch) => {
+    const matches = findMatches(root, source, patch.ast.match)
+    const expected = patch.expectedMatches ?? 1
+    if (matches.length !== expected) {
+      throw new Error(`expected ${expected} AST match(es) for ${patch.name}, got ${matches.length}`)
+    }
+    const edits = matches.map((target) => editForTransform(source, target, patch.transform))
+    rejectOverlappingEdits(edits)
+    return { patch, matches, edits }
+  })
+}
+
+function parseProgram(
+  source: string,
+  options: AstTransformOptions = {},
+  phase: AstTransformParsePhase = "initial",
+): parser.ParseResult<any> {
+  options.onParse?.(phase)
   const ast = parser.parse(source, {
     allowReturnOutsideFunction: true,
     errorRecovery: true,
@@ -157,6 +228,22 @@ function parseProgram(source: string): parser.ParseResult<any> {
     throw new Error(`JavaScript parse failed with ${ast.errors?.length ?? 0} error(s)`)
   }
   return ast
+}
+
+function rangeForEdits(edits: SourceEdit[]): { start: number; end: number } {
+  if (edits.length === 0) return { start: 0, end: 0 }
+  return {
+    start: Math.min(...edits.map((edit) => edit.start)),
+    end: Math.max(...edits.map((edit) => edit.end)),
+  }
+}
+
+function rangeForMatches(matches: AstNode[]): { start?: number; end?: number } {
+  if (matches.length === 0) return {}
+  return {
+    start: Math.min(...matches.map((match) => match.start)),
+    end: Math.max(...matches.map((match) => match.end)),
+  }
 }
 
 function findMatches(root: Record<string, unknown>, source: string, match: AstMatch): AstNode[] {

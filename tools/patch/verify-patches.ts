@@ -17,12 +17,14 @@
 
 import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
-import { verifyAstTransformPatch } from "../lib/ast-transform-patches"
+import { verifyAstTransformPatches, type AstTransformPatch } from "../lib/ast-transform-patches"
 import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
 
 type Patch = PatchEntry
+type LocatorResult = { ok: boolean; msg: string; matches: number }
+type PatchRecord = { file: string; patches: Patch[]; fileTests: unknown[] }
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -54,19 +56,26 @@ function inferTargetVersion(target: string): string | undefined {
   return normalized.match(/(?:^|\/)staging\/([^/]+)\/cli\.js$/)?.[1]
 }
 
-function verifyLocator(p: Patch, target: string): { ok: boolean; msg: string; matches: number } {
+function readTargetBody(target: string, cache: Map<string, string>): string {
+  const cached = cache.get(target)
+  if (cached !== undefined) return cached
   const body = readFileSync(target, "utf8")
+  cache.set(target, body)
+  return body
+}
+
+function verifyLocator(
+  p: Patch,
+  target: string,
+  targetBodies: Map<string, string>,
+  astResults: Map<Patch, LocatorResult>,
+): LocatorResult {
   let matches: number
   if (p.locator_kind === "ast_transform") {
     if (!p.ast || !p.transform) return { ok: false, msg: "missing AST transform metadata", matches: 0 }
-    const result = verifyAstTransformPatch(body, {
-      name: p.name,
-      expectedMatches: p.expected_matches,
-      ast: p.ast,
-      transform: p.transform,
-    })
-    return { ok: result.ok, msg: result.message, matches: result.matches }
+    return astResults.get(p) ?? { ok: false, msg: "AST transform was not batch-verified", matches: 0 }
   }
+  const body = readTargetBody(target, targetBodies)
   if (!p.locator_pattern) return { ok: false, msg: "missing locator_pattern", matches: 0 }
   if (p.locator_kind === "literal") {
     matches = body.split(p.locator_pattern).length - 1
@@ -79,6 +88,51 @@ function verifyLocator(p: Patch, target: string): { ok: boolean; msg: string; ma
     return { ok: false, msg: `expected ${expected} locator match(es), got ${matches}`, matches }
   }
   return { ok: true, msg: `locator matches ${matches} time(s) (expected ${expected})`, matches }
+}
+
+function batchVerifyAstLocators(
+  records: PatchRecord[],
+  explicitTarget: string | undefined,
+  targetBodies: Map<string, string>,
+): Map<Patch, LocatorResult> {
+  const groups = new Map<string, Array<{ patch: Patch; astPatch: AstTransformPatch }>>()
+
+  for (const record of records) {
+    for (const patch of record.patches) {
+      if (patch.locator_kind !== "ast_transform") continue
+      if (!patch.ast || !patch.transform) continue
+      const target = explicitTarget ?? defaultTarget(patch)
+      const targetVersion = explicitTarget ? inferTargetVersion(target) : patch.target_version
+      if (targetVersion && !patchApplies(patch, targetVersion)) continue
+      if (!existsSync(target)) continue
+
+      const group = groups.get(target) ?? []
+      group.push({
+        patch,
+        astPatch: {
+          name: patch.name,
+          expectedMatches: patch.expected_matches,
+          ast: patch.ast,
+          transform: patch.transform,
+        },
+      })
+      groups.set(target, group)
+    }
+  }
+
+  const out = new Map<Patch, LocatorResult>()
+  for (const [target, group] of groups) {
+    const body = readTargetBody(target, targetBodies)
+    const results = verifyAstTransformPatches(
+      body,
+      group.map((entry) => entry.astPatch),
+    )
+    for (let i = 0; i < group.length; i++) {
+      const result = results[i]
+      out.set(group[i].patch, { ok: result.ok, msg: result.message, matches: result.matches })
+    }
+  }
+  return out
 }
 
 function verifyRationaleRef(p: Patch): { ok: boolean; msg: string } {
@@ -114,9 +168,15 @@ function main(): number {
   }
 
   let allOk = true
-  for (const file of files) {
-    const patches = loadPatchEntriesFromFile(file)
-    const fileTests = loadPatchTestsFromToml(readFileSync(file, "utf8"))
+  const records: PatchRecord[] = files.map((file) => ({
+    file,
+    patches: loadPatchEntriesFromFile(file),
+    fileTests: loadPatchTestsFromToml(readFileSync(file, "utf8")),
+  }))
+  const targetBodies = new Map<string, string>()
+  const astResults = batchVerifyAstLocators(records, target, targetBodies)
+
+  for (const { file, patches, fileTests } of records) {
     if (fileTests.length === 0) {
       console.log(`[FAIL] ${file}: no [[tests]] entries`)
       allOk = false
@@ -139,7 +199,7 @@ function main(): number {
         continue
       }
 
-      const lr = verifyLocator(p, tgt)
+      const lr = verifyLocator(p, tgt, targetBodies, astResults)
       const rr = verifyRationaleRef(p)
       const replOk = p.locator_kind === "ast_transform" ? true : (p.replacement ?? "").length > 0
       const testsOk = (p.tests ?? []).length > 0

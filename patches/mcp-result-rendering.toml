@@ -22,11 +22,16 @@ visible in transcripts.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
 
-locator_pattern = '''L4.createElement(yr5,{key:J,item:w,verbose:q})'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''L4.createElement(yr5,{key:J,item:w,verbose:!0})'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", string = "item:w,verbose:q" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{key:J,item:w,verbose:!0}'''
 
 [[patches.tests]]
 kind = "static"
@@ -49,11 +54,16 @@ exposes a setting that keeps MCP text output visible in transcripts.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
 
-locator_pattern = '''L4.createElement(nx,{content:O,verbose:q})'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''L4.createElement(nx,{content:O,verbose:!0})'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", string = "content:O,verbose:q" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:O,verbose:!0}'''
 
 [[patches.tests]]
 kind = "static"
@@ -76,11 +86,16 @@ MCP text output visible in transcripts.
 """
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
 
-locator_pattern = '''L4.createElement(nx,{content:O,verbose:K})'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''L4.createElement(nx,{content:O,verbose:!0})'''
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", string = "content:O,verbose:K" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:O,verbose:!0}'''
 
 [[patches.tests]]
 kind = "static"

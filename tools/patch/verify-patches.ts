@@ -17,6 +17,7 @@
 
 import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
+import { verifyAstTransformPatch } from "../lib/ast-transform-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
 
@@ -50,6 +51,12 @@ function defaultTarget(p: Patch): string {
 function verifyLocator(p: Patch, target: string): { ok: boolean; msg: string; matches: number } {
   const body = readFileSync(target, "utf8")
   let matches: number
+  if (p.locator_kind === "ast_transform") {
+    if (!p.ast || !p.transform) return { ok: false, msg: "missing AST transform metadata", matches: 0 }
+    const result = verifyAstTransformPatch(body, { name: p.name, ast: p.ast, transform: p.transform })
+    return { ok: result.ok, msg: result.message, matches: result.matches }
+  }
+  if (!p.locator_pattern) return { ok: false, msg: "missing locator_pattern", matches: 0 }
   if (p.locator_kind === "literal") {
     matches = body.split(p.locator_pattern).length - 1
   } else {
@@ -114,7 +121,7 @@ function main(): number {
 
       const lr = verifyLocator(p, tgt)
       const rr = verifyRationaleRef(p)
-      const replOk = p.replacement.length > 0
+      const replOk = p.locator_kind === "ast_transform" ? true : (p.replacement ?? "").length > 0
       const testsOk = (p.tests ?? []).length > 0
       const ok = lr.ok && rr.ok && replOk && testsOk
       allOk &&= ok

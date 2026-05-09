@@ -8,9 +8,9 @@ needs to revalidate it without your help.
 
 1. **Find the gate in the target bundle.**
    `rg -n '<some recognisable byte sequence>' staging/<target-version>/cli.js`
-   Make the locator regex narrow enough to match exactly once. Identifier
-   names will reminify; anchor on `function`/`class`/`isEnabled`/etc shape
-   plus the surrounding stable bytes.
+   Prefer an `ast_transform` locator when the change fits a typed source-range
+   transform. Use literal or regex locators only when AST selection does not
+   reduce drift risk.
 
 2. **Resolve audit context against v2.1.88.**
    - Run `just alignment-report <target>` when you need an aggregate
@@ -25,16 +25,16 @@ needs to revalidate it without your help.
    Use a new `patches/<feature>.toml` for a new logical feature. Add a
    `[[patches]]` entry to an existing feature file when the new locator is part
    of the same user-facing behavior.
-   Keep `replacement` minimal — typically a one-line override that
+   Keep inserted snippets minimal — typically a one-line override that
    short-circuits the gate. Do not embed Anthropic source verbatim.
 
 4. **Verify.**
    ```sh
    TARGET_SOURCE=<npm|gcs> just verify <target-version>
    ```
-   This confirms `locator_pattern` matches exactly once, `rationale_ref`
-   resolves to a real line range, and `[[tests]]` metadata exists. CI runs
-   the same check on every push. For a single-patch diagnostic, run
+   This confirms the locator resolves exactly once, `rationale_ref` resolves
+   to a real line range, and `[[tests]]` metadata exists. CI runs the same
+   check on every push. For a single-patch diagnostic, run
    `bun run tools/patch/verify-patches.ts patches/<your-patch>.toml --against staging/<target-version>/cli.js`.
 
 5. **Smoke-run the patched bundle.**
@@ -55,6 +55,8 @@ needs to revalidate it without your help.
 
 - Multi-pattern patch entries. Use one `[[patches]]` entry per locator so each
   `rationale_ref`, replacement, and test set remains independently reviewable.
+- Broad AST visitor patches. Use a named transform op with explicit
+  preconditions.
 - Patches that depend on identifier names from the locator's capture groups
   surviving unchanged into the replacement. Identifiers reminify; the
   patch breaks silently on the next bump.

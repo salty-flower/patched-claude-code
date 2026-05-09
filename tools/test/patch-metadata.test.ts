@@ -101,3 +101,50 @@ assert_contains = "afterTwo()"
     },
   ])
 })
+
+test("loads AST transform patch entries without byte replacement fields", () => {
+  const patches = loadPatchEntriesFromToml(
+    `
+name = "ast-feature"
+target_version = "2.1.133"
+
+[[patches]]
+name = "append-call-arg"
+rationale = "Append an argument through a typed AST transform."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", string_literal = "Read image (" }
+
+[patches.transform]
+op = "append_call_arg"
+arg = "Z"
+
+[[patches.tests]]
+kind = "static"
+name = "path suffix is rendered"
+assert_contains = '"Read image (",q,")",Z'
+`,
+    "patches/ast-feature.toml",
+  )
+
+  expect(patches).toEqual([
+    {
+      file: "patches/ast-feature.toml",
+      featureName: "ast-feature",
+      name: "append-call-arg",
+      target_version: "2.1.133",
+      rationale: "Append an argument through a typed AST transform.",
+      rationale_ref: "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88",
+      locator_kind: "ast_transform",
+      ast: {
+        schema: 1,
+        match: { node: "CallExpression", callee_property: "createElement", string_literal: "Read image (" },
+      },
+      transform: { op: "append_call_arg", arg: "Z" },
+      tests: [{ kind: "static", name: "path suffix is rendered", assert_contains: '"Read image (",q,")",Z' }],
+    },
+  ])
+})

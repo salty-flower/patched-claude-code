@@ -2,6 +2,7 @@ import { afterAll, expect, test } from "bun:test"
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 
 const ROOT = join(import.meta.dir, "..", "..")
@@ -30,7 +31,7 @@ function run(cmd: string[]): { stdout: string; stderr: string; exitCode: number 
 }
 
 function renderStatuslineFooterPatches(input: string, output: string): void {
-  let body = readFileSync(input, "utf8")
+  const body = readFileSync(input, "utf8")
   const patches = readdirSync(join(ROOT, "patches"))
     .filter(
       (file) =>
@@ -39,24 +40,9 @@ function renderStatuslineFooterPatches(input: string, output: string): void {
           file.endsWith(".toml"),
     )
     .sort()
+    .flatMap((file) => loadPatchEntriesFromFile(join(ROOT, "patches", file)))
 
-  for (const file of patches) {
-    for (const patch of loadPatchEntriesFromFile(join(ROOT, "patches", file))) {
-      const expectedMatches = patch.expected_matches ?? 1
-      if (patch.locator_kind === "literal") {
-        const actualMatches = body.split(patch.locator_pattern).length - 1
-        expect(actualMatches).toBe(expectedMatches)
-        body = body.split(patch.locator_pattern).join(patch.replacement)
-      } else {
-        const pattern = new RegExp(patch.locator_pattern, "g")
-        const actualMatches = body.match(pattern)?.length ?? 0
-        expect(actualMatches).toBe(expectedMatches)
-        body = body.replace(pattern, patch.replacement)
-      }
-    }
-  }
-
-  writeFileSync(output, body)
+  writeFileSync(output, applyPatchEntries(body, patches, TARGET_VERSION).source)
 }
 
 test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", () => {

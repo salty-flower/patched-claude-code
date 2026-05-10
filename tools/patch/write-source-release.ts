@@ -3,6 +3,7 @@
 
 import { existsSync } from "node:fs"
 import { join } from "node:path"
+import { createCommand } from "../lib/cli"
 import { releaseTag, writeReleasePayload } from "../lib/release-payload"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -14,29 +15,14 @@ type Args = {
   outDir: string
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = { outDir: ROOT }
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--version") {
-      args.version = argv[++i]
-    } else if (arg === "--release-id") {
-      args.releaseId = argv[++i]
-    } else if (arg === "--input") {
-      args.input = argv[++i]
-    } else if (arg === "--out-dir") {
-      args.outDir = argv[++i]
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(
-        "usage: bun run tools/patch/write-source-release.ts --version <ver> --release-id <patch.N> [--input <cli.patched.js>] [--out-dir <repo-root>]",
-      )
-      process.exit(0)
-    } else {
-      throw new Error(`unexpected argument: ${arg}`)
-    }
-  }
-
-  if (!args.version) throw new Error("missing --version")
+export function parseArgs(argv: string[]): Args {
+  const args = createCommand("write-source-release")
+    .requiredOption("--version <ver>")
+    .option("--release-id <id>", "patch release id", "patch.local")
+    .option("--input <cli.patched.js>")
+    .option("--out-dir <repo-root>", "payload output directory", ROOT)
+    .parse(argv, { from: "user" })
+    .opts<Args>()
   args.releaseId ??= "patch.local"
   return args
 }

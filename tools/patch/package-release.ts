@@ -3,6 +3,7 @@
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { basename, join } from "node:path"
+import { createCommand } from "../lib/cli"
 import { UPSTREAM_PACKAGE, artifactBase, sha256, writeReleasePayload } from "../lib/release-payload"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -15,29 +16,15 @@ type Args = {
   outDir: string
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = { outDir: join(ROOT, "dist") }
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--version") {
-      args.version = argv[++i]
-    } else if (arg === "--release-id") {
-      args.releaseId = argv[++i]
-    } else if (arg === "--input") {
-      args.input = argv[++i]
-    } else if (arg === "--out-dir") {
-      args.outDir = argv[++i]
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(
-        "usage: bun run tools/patch/package-release.ts --version <ver> --release-id <patch.N> [--input <cli.patched.js>] [--out-dir <dist>]",
-      )
-      process.exit(0)
-    } else {
-      throw new Error(`unexpected argument: ${arg}`)
-    }
-  }
-
-  const tag = process.env.GITHUB_REF_NAME
+export function parseArgs(argv: string[], env: Record<string, string | undefined> = process.env): Args {
+  const program = createCommand("package-release")
+    .option("--version <ver>")
+    .option("--release-id <id>")
+    .option("--input <cli.patched.js>")
+    .option("--out-dir <dist>", "artifact output directory", join(ROOT, "dist"))
+    .parse(argv, { from: "user" })
+  const args = program.opts<Args>()
+  const tag = env.GITHUB_REF_NAME
   const match = tag?.match(DEFAULT_TAG_PATTERN)
   args.version ??= match?.[1]
   args.releaseId ??= match?.[2] ?? "patch.local"

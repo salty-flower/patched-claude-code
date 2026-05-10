@@ -3,6 +3,7 @@
 
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { createCommand } from "../lib/cli"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -20,36 +21,21 @@ type StageManifest = {
   directPlatform?: string
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = {
-    source: process.env.TARGET_SOURCE ?? "canonical",
-    platform: process.env.TARGET_PLATFORM ?? "darwin-arm64",
-    platformPackage: process.env.TARGET_PLATFORM_PACKAGE ?? "@anthropic-ai/claude-code-darwin-arm64",
-    canonicalBase: process.env.TARGET_CANONICAL_BASE ?? "darwin-arm64",
-  }
+export function parseArgs(argv: string[], env: Record<string, string | undefined> = process.env): Args {
+  const program = createCommand("stage-target")
+    .requiredOption("--version <ver>")
+    .option("--source <source>", "bundle source", env.TARGET_SOURCE ?? "canonical")
+    .option("--platform <platform>", "direct release platform", env.TARGET_PLATFORM ?? "darwin-arm64")
+    .option(
+      "--platform-package <package>",
+      "npm platform package",
+      env.TARGET_PLATFORM_PACKAGE ?? "@anthropic-ai/claude-code-darwin-arm64",
+    )
+    .option("--canonical-base <platform>", "canonical merge base platform", env.TARGET_CANONICAL_BASE ?? "darwin-arm64")
+    .parse(argv, { from: "user" })
+  const options = program.opts<Args>()
 
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--version") {
-      args.version = argv[++i]
-    } else if (arg === "--source") {
-      args.source = argv[++i]
-    } else if (arg === "--platform") {
-      args.platform = argv[++i]
-    } else if (arg === "--platform-package") {
-      args.platformPackage = argv[++i]
-    } else if (arg === "--canonical-base") {
-      args.canonicalBase = argv[++i]
-    } else if (arg === "--help" || arg === "-h") {
-      console.log("usage: bun run tools/patch/stage-target.ts --version <ver> [--source canonical|direct|npm]")
-      process.exit(0)
-    } else {
-      throw new Error(`unexpected argument: ${arg}`)
-    }
-  }
-
-  if (!args.version) throw new Error("missing --version")
-  return args
+  return options
 }
 
 function run(cmd: string[]): void {

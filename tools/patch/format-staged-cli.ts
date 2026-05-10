@@ -3,6 +3,7 @@
 
 import { mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { createCommand } from "../lib/cli"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -12,26 +13,20 @@ type Args = {
   output?: string
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = {}
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--input") {
-      args.input = argv[++i]
-    } else if (arg === "--output") {
-      args.output = argv[++i]
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(
-        "usage: bun run tools/patch/format-staged-cli.ts <version> [--input <cli.js>] [--output <cli.formatted.js>]",
-      )
-      process.exit(0)
-    } else if (!args.version) {
-      args.version = arg
-    } else {
-      throw new Error(`unexpected argument: ${arg}`)
-    }
+export function parseArgs(argv: string[]): Args {
+  const program = createCommand("format-staged-cli")
+    .argument("[version]")
+    .option("--input <cli.js>")
+    .option("--output <cli.formatted.js>")
+    .parse(argv, { from: "user" })
+  const options = program.opts<{ input?: string; output?: string }>()
+  const version = program.args[0]
+
+  return {
+    ...(version ? { version } : {}),
+    ...(options.input ? { input: options.input } : {}),
+    ...(options.output ? { output: options.output } : {}),
   }
-  return args
 }
 
 function run(cmd: string[]): void {

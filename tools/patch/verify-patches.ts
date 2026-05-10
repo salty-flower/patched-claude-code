@@ -19,6 +19,7 @@ import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { verifyAstTransformPatches, type AstTransformPatch } from "../lib/ast-transform-patches"
 import { patchApplies } from "../lib/apply-patches"
+import { createCommand } from "../lib/cli"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
 
@@ -28,23 +29,23 @@ type PatchRecord = { file: string; patches: Patch[]; fileTests: unknown[] }
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
-function parseArgs(argv: string[]): { patches: string[]; target?: string } {
-  const out: { patches: string[]; target?: string } = { patches: [] }
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i]
-    if (a === "--against") {
-      out.target = argv[++i]
-    } else {
-      out.patches.push(a)
-    }
-  }
-  if (out.patches.length === 0) {
+export function parseArgs(argv: string[]): { patches: string[]; target?: string } {
+  const program = createCommand("verify-patches")
+    .argument("[patches...]", "patch TOML files")
+    .option("--against <cli.js>", "explicit target bundle")
+    .parse(argv, { from: "user" })
+  const options = program.opts<{ against?: string }>()
+  const patches = program.args
+
+  if (patches.length === 0) {
     const dir = join(ROOT, "patches")
-    out.patches = readdirSync(dir)
+    patches.push(
+      ...readdirSync(dir)
       .filter((f) => f.endsWith(".toml"))
-      .map((f) => join(dir, f))
+        .map((f) => join(dir, f)),
+    )
   }
-  return out
+  return { patches, ...(options.against ? { target: options.against } : {}) }
 }
 
 function defaultTarget(p: Patch): string {
@@ -220,4 +221,6 @@ function main(): number {
   return allOk ? 0 : 1
 }
 
-process.exit(main())
+if (import.meta.main) {
+  process.exit(main())
+}

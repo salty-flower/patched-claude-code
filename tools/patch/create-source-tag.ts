@@ -4,6 +4,7 @@
 import { existsSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { createCommand } from "../lib/cli"
 import { releaseTag } from "../lib/release-payload"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -20,31 +21,16 @@ type TagFile = {
   required: boolean
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = { parent: process.env.GITHUB_SHA ?? null }
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--version") {
-      args.version = argv[++i]
-    } else if (arg === "--release-id") {
-      args.releaseId = argv[++i]
-    } else if (arg === "--parent") {
-      args.parent = argv[++i]
-    } else if (arg === "--no-parent") {
-      args.parent = null
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(
-        "usage: bun run tools/patch/create-source-tag.ts --version <ver> --release-id <patch.N> [--parent <commit>|--no-parent]",
-      )
-      process.exit(0)
-    } else {
-      throw new Error(`unexpected argument: ${arg}`)
-    }
-  }
-
-  if (!args.version) throw new Error("missing --version")
-  args.releaseId ??= "patch.local"
-  return args
+export function parseArgs(argv: string[], env: Record<string, string | undefined> = process.env): Args {
+  const args = createCommand("create-source-tag")
+    .requiredOption("--version <ver>")
+    .option("--release-id <id>", "patch release id", "patch.local")
+    .option("--parent <commit>")
+    .option("--no-parent")
+    .parse(argv, { from: "user" })
+    .opts<Omit<Args, "parent"> & { parent?: string | false }>()
+  const parent = args.parent === false ? null : (args.parent ?? env.GITHUB_SHA ?? null)
+  return { version: args.version, releaseId: args.releaseId ?? "patch.local", parent }
 }
 
 function run(cmd: string[], env: Record<string, string | undefined> = {}): string {

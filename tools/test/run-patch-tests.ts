@@ -3,6 +3,7 @@
 
 import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
+import { createCommand } from "../lib/cli"
 import {
   evaluateStaticPatchTests,
   loadPatchTestsFromToml,
@@ -18,20 +19,14 @@ type Args = {
   patches: string[]
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = { patches: [] }
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--bundle") {
-      args.bundle = argv[++i]
-    } else if (arg === "--help" || arg === "-h") {
-      console.log("usage: bun run tools/test/run-patch-tests.ts --bundle <cli.patched.js> [patches/<patch>.toml ...]")
-      process.exit(0)
-    } else {
-      args.patches.push(arg)
-    }
-  }
-  return args
+export function parseArgs(argv: string[]): Args {
+  const program = createCommand("run-patch-tests")
+    .argument("[patches...]", "patch TOML files")
+    .option("--bundle <cli.patched.js>")
+    .parse(argv, { from: "user" })
+  const options = program.opts<{ bundle?: string }>()
+
+  return { patches: program.args, ...(options.bundle ? { bundle: options.bundle } : {}) }
 }
 
 function defaultPatchFiles(): string[] {

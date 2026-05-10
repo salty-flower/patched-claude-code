@@ -7,6 +7,7 @@
 import { createHash } from "node:crypto"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { createCommand } from "../lib/cli"
 import { BUN_STANDALONE_LAYOUT_CONTRACT, extractStandalone } from "../lib/extract-bun-standalone"
 import {
   DIRECT_LATEST_URL,
@@ -71,30 +72,24 @@ type DirectManifest = {
   >
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = { version: "latest", source: "npm", platform: "darwin-arm64", keepAll: false }
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--platform-package") {
-      args.platformPackage = argv[++i]
-    } else if (arg === "--source") {
-      const source = argv[++i]
-      if (source !== "npm" && source !== "direct") throw new Error(`unsupported source: ${source}`)
-      args.source = source
-    } else if (arg === "--platform") {
-      args.platform = argv[++i]
-    } else if (arg === "--all") {
-      args.keepAll = true
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(
-        "usage: bun run tools/patch/stage-claude-code.ts [version|latest] [--source npm|direct] [--platform-package <pkg>] [--platform <direct-platform>] [--all]",
-      )
-      process.exit(0)
-    } else {
-      args.version = arg
-    }
+export function parseArgs(argv: string[]): Args {
+  const program = createCommand("stage-claude-code")
+    .argument("[version]", "version to stage", "latest")
+    .option("--platform-package <package>")
+    .option("--source <source>", "npm or direct", "npm")
+    .option("--platform <direct-platform>", "direct release platform", "darwin-arm64")
+    .option("--all", "keep all extracted package files")
+    .parse(argv, { from: "user" })
+  const options = program.opts<{ platformPackage?: string; source: string; platform: string; all?: boolean }>()
+  if (options.source !== "npm" && options.source !== "direct") throw new Error(`unsupported source: ${options.source}`)
+
+  return {
+    version: program.args[0] ?? "latest",
+    source: options.source,
+    platform: options.platform,
+    keepAll: options.all ?? false,
+    ...(options.platformPackage ? { platformPackage: options.platformPackage } : {}),
   }
-  return args
 }
 
 async function registryJson<T>(packageName: string): Promise<T> {

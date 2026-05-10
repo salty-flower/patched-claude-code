@@ -3,6 +3,7 @@
 
 import { existsSync, mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { createCommand } from "../lib/cli"
 
 const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -14,27 +15,21 @@ type Args = {
 }
 
 export function parseArgs(argv: string[]): Args {
-  const args: Args = {}
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--input") {
-      args.input = argv[++i]
-    } else if (arg === "--output") {
-      args.output = argv[++i]
-    } else if (arg === "--skip-verify") {
-      args.skipVerify = true
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(
-        "usage: bun run tools/patch/render-patched.ts <version> [--input <cli.js>] [--output <cli.patched.js>] [--skip-verify]",
-      )
-      process.exit(0)
-    } else if (!args.version) {
-      args.version = arg
-    } else {
-      throw new Error(`unexpected argument: ${arg}`)
-    }
+  const program = createCommand("render-patched")
+    .argument("[version]")
+    .option("--input <cli.js>")
+    .option("--output <cli.patched.js>")
+    .option("--skip-verify")
+    .parse(argv, { from: "user" })
+  const options = program.opts<{ input?: string; output?: string; skipVerify?: boolean }>()
+  const version = program.args[0]
+
+  return {
+    ...(version ? { version } : {}),
+    ...(options.input ? { input: options.input } : {}),
+    ...(options.output ? { output: options.output } : {}),
+    ...(options.skipVerify ? { skipVerify: true } : {}),
   }
-  return args
 }
 
 function run(cmd: string[]): void {

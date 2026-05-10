@@ -2,6 +2,7 @@
 // Detect whether npm or the native downloads channel exposes a Claude Code
 // version that this repository has not released yet.
 
+import { collectOption, createCommand } from "../lib/cli"
 import { classifyReleaseCandidate, parseHandledReleaseTags } from "../lib/release-detection"
 import { DIRECT_LATEST_URL, NPM_REGISTRY_PACKAGE_URL } from "../lib/upstream-channels"
 
@@ -10,22 +11,14 @@ type Args = {
   prereleaseTags: string[]
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = { tags: [], prereleaseTags: [] }
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]
-    if (arg === "--handled-tag") {
-      args.tags.push(argv[++i])
-    } else if (arg === "--prerelease-tag") {
-      args.prereleaseTags.push(argv[++i])
-    } else if (arg === "--help" || arg === "-h") {
-      console.log("usage: bun run tools/patch/detect-upstream.ts [--handled-tag <tag>] [--prerelease-tag <tag>]")
-      process.exit(0)
-    } else {
-      throw new Error(`unexpected argument: ${arg}`)
-    }
-  }
-  return args
+export function parseArgs(argv: string[]): Args {
+  const options = createCommand("detect-upstream")
+    .option("--handled-tag <tag>", "already handled release tag", collectOption, [])
+    .option("--prerelease-tag <tag>", "already published prerelease tag", collectOption, [])
+    .parse(argv, { from: "user" })
+    .opts<{ handledTag: string[]; prereleaseTag: string[] }>()
+
+  return { tags: options.handledTag, prereleaseTags: options.prereleaseTag }
 }
 
 async function fetchText(url: string): Promise<string> {

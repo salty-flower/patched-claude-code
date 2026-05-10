@@ -156,11 +156,16 @@ for latest-thinking blocks.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
 
-locator_pattern = '''if\(!D&&!A\)return null;let k=D&&!\(!P\|\|X===P\)'''
-locator_kind = "regex"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = "if(!1)return null;let k=!D&&!A&&!(!P||X===P)"
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string = 'case"thinking":{if(!D&&!A)return null' }
+
+[patches.transform]
+op = "replace_substring"
+find = "if(!D&&!A)return null;let k=D&&!(!P||X===P)"
+value = "if(!1)return null;let k=!D&&!A&&!(!P||X===P)"
 
 [[patches.tests]]
 kind = "static"
@@ -195,11 +200,16 @@ thinking content in interactive mode.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
 
-locator_pattern = '''if\(Y\)return null;if\(!\(O\|\|T\)\)'''
-locator_kind = "regex"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = "if(Y)return null;if(!1)"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", string = "if(!(O||T))" }
+
+[patches.transform]
+op = "replace_substring"
+find = "if(!(O||T))"
+value = "if(!1)"
 
 [[patches.tests]]
 kind = "static"

@@ -5,28 +5,28 @@ applies_to = ">=2.1.133 <2.2.0"
 rationale = """
 Group the AGENTS.md/memory discovery patches that control project, ancestor, nested, additional-directory, and realpath-dedup behavior.
 """
+
 [[patches]]
-name = "agents-memory-additional-directories"
+name = "agents-memory-nested-directory"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.1.137"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
-Load AGENTS.md from additional project directories.
+Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
 
-When the explicit additional-directory memory path is enabled, upstream reads
-CLAUDE.md and .claude/CLAUDE.md from each added directory. Patched bundles
-should also read AGENTS.md so explicit extra workspaces retain the same
-Codex-compatible instruction behavior as the main workspace. Cleanup condition:
-upstream supports AGENTS.md as an official memory file or exposes a
-configurable project-memory filename list.
+The upstream memory loader reads CLAUDE.md and .claude/CLAUDE.md for a nested
+directory. Codex-compatible repositories commonly put durable agent rules in
+AGENTS.md, so patched bundles should treat that sibling file as project memory
+too. Cleanup condition: upstream supports AGENTS.md as an official memory file
+or exposes a configurable project-memory filename list.
 """
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
 
-locator_pattern = '''let G=rT.join(P,"CLAUDE.md");q.push(...await YC(G,"Project",K,T));let W=rT.join(P,".claude","CLAUDE.md")'''
-locator_kind = "literal"
+locator_kind = "regex"
+locator_pattern = '''let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);K\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\1,"Project",q,!1\)\);let\s+([a-zA-Z0-9_$]+)=\2\(\3,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
-replacement = '''let G=rT.join(P,"CLAUDE.md");q.push(...await YC(G,"Project",K,T));let Q=rT.join(P,"AGENTS.md");q.push(...await YC(Q,"Project",K,T));let W=rT.join(P,".claude","CLAUDE.md")'''
+replacement = '''let $1=$2($3,"CLAUDE.md");K.push(...await $4($1,"Project",q,!1));let AGENTS_MD=$2($3,"AGENTS.md");K.push(...await $4(AGENTS_MD,"Project",q,!1));let $5=$2($3,".claude","CLAUDE.md")'''
 
 [[patches.tests]]
 kind = "static"
@@ -34,35 +34,9 @@ name = "replacement is rendered"
 assert_contains = '''"AGENTS.md"'''
 
 [[patches]]
-name = "agents-memory-additional-directories-2-1-137"
-target_version = "2.1.137"
-applies_to = ">=2.1.137 <2.2.0"
-
-rationale = """
-Load AGENTS.md from additional project directories.
-
-This is the 2.1.137 minified-symbol variant of
-`agents-memory-additional-directories`. Cleanup condition: upstream supports
-AGENTS.md as an official memory file or exposes a configurable project-memory
-filename list.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
-
-locator_pattern = '''let W=YA.join(G,"CLAUDE.md");q.push(...await CC(W,"Project",K,T));let R=YA.join(G,".claude","CLAUDE.md")'''
-locator_kind = "literal"
-expected_matches = 1
-
-replacement = '''let W=YA.join(G,"CLAUDE.md");q.push(...await CC(W,"Project",K,T));let ACC_AGENTS=YA.join(G,"AGENTS.md");q.push(...await CC(ACC_AGENTS,"Project",K,T));let R=YA.join(G,".claude","CLAUDE.md")'''
-
-[[patches.tests]]
-kind = "static"
-name = "replacement is rendered in 2.1.137"
-assert_contains = '''"AGENTS.md"'''
-
-[[patches]]
 name = "agents-memory-ancestor-directories"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.1.137"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Load AGENTS.md while walking project ancestor directories.
@@ -76,11 +50,11 @@ project-memory filename list.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L886-L910"
 
-locator_pattern = '''let G=rT.join(X,"CLAUDE.md");q.push(...await YC(G,"Project",K,T));let W=rT.join(X,".claude","CLAUDE.md")'''
-locator_kind = "literal"
+locator_kind = "regex"
+locator_pattern = '''for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\.reverse\(\)\)\{.{0,600}?let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\1,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\2\(\3,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
-replacement = '''let G=rT.join(X,"CLAUDE.md");q.push(...await YC(G,"Project",K,T));let Q=rT.join(X,"AGENTS.md");q.push(...await YC(Q,"Project",K,T));let W=rT.join(X,".claude","CLAUDE.md")'''
+replacement = '''let $1=$2($3,"CLAUDE.md");q.push(...await $4($1,"Project",$5));let AGENTS_MD=$2($3,"AGENTS.md");q.push(...await $4(AGENTS_MD,"Project",$5));let $6=$2($3,".claude","CLAUDE.md")'''
 
 [[patches.tests]]
 kind = "static"
@@ -88,35 +62,37 @@ name = "replacement is rendered"
 assert_contains = '''"AGENTS.md"'''
 
 [[patches]]
-name = "agents-memory-ancestor-directories-2-1-137"
-target_version = "2.1.137"
-applies_to = ">=2.1.137 <2.2.0"
+name = "agents-memory-additional-directories"
+target_version = "2.1.133"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
-Load AGENTS.md while walking project ancestor directories.
+Load AGENTS.md from additional project directories.
 
-This is the 2.1.137 minified-symbol variant of
-`agents-memory-ancestor-directories`. Cleanup condition: upstream supports
-AGENTS.md as an official memory file or exposes a configurable project-memory
-filename list.
+When the explicit additional-directory memory path is enabled, upstream reads
+CLAUDE.md and .claude/CLAUDE.md from each added directory. Patched bundles
+should also read AGENTS.md so explicit extra workspaces retain the same
+Codex-compatible instruction behavior as the main workspace. Cleanup condition:
+upstream supports AGENTS.md as an official memory file or exposes a
+configurable project-memory filename list.
 """
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L886-L910"
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
 
-locator_pattern = '''let W=YA.join(P,"CLAUDE.md");q.push(...await CC(W,"Project",K,T));let R=YA.join(P,".claude","CLAUDE.md")'''
-locator_kind = "literal"
+locator_kind = "regex"
+locator_pattern = '''CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD\)\)\{.{0,400}?for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\)\{.{0,300}?let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\1,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\2\(\3,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
-replacement = '''let W=YA.join(P,"CLAUDE.md");q.push(...await CC(W,"Project",K,T));let ACC_AGENTS=YA.join(P,"AGENTS.md");q.push(...await CC(ACC_AGENTS,"Project",K,T));let R=YA.join(P,".claude","CLAUDE.md")'''
+replacement = '''let $1=$2($3,"CLAUDE.md");q.push(...await $4($1,"Project",$5));let AGENTS_MD=$2($3,"AGENTS.md");q.push(...await $4(AGENTS_MD,"Project",$5));let $6=$2($3,".claude","CLAUDE.md")'''
 
 [[patches.tests]]
 kind = "static"
-name = "replacement is rendered in 2.1.137"
+name = "replacement is rendered"
 assert_contains = '''"AGENTS.md"'''
 
 [[patches]]
 name = "agents-memory-file-detection"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.1.137"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Treat AGENTS.md as a memory file for cache and invalidation checks.
@@ -129,100 +105,21 @@ memory file or exposes a configurable project-memory filename list.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
 
-locator_pattern = '''function Wm9(H){let _=rT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md")return!0;'''
-locator_kind = "literal"
+locator_kind = "regex"
+locator_pattern = '''function ([a-zA-Z0-9_$]+)\(H\)\{let _=([a-zA-Z0-9_.]+)\.basename\(H\);if\(_==="CLAUDE\.md"\|\|_==="CLAUDE\.local\.md"\)return!0;'''
 expected_matches = 1
 
-replacement = '''function Wm9(H){let _=rT.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
+replacement = '''function $1(H){let _=$2.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
 
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
 assert_contains = '''||_==="AGENTS.md")return!0;'''
-
-[[patches]]
-name = "agents-memory-file-detection-2-1-137"
-target_version = "2.1.137"
-applies_to = ">=2.1.137 <2.2.0"
-
-rationale = """
-Treat AGENTS.md as a memory file for cache and invalidation checks.
-
-This is the 2.1.137 minified-symbol variant of
-`agents-memory-file-detection`. Cleanup condition: upstream supports AGENTS.md
-as an official memory file or exposes a configurable project-memory filename
-list.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
-
-locator_pattern = '''function NU9(H){let _=YA.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md")return!0;'''
-locator_kind = "literal"
-expected_matches = 1
-
-replacement = '''function NU9(H){let _=YA.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
-
-[[patches.tests]]
-kind = "static"
-name = "replacement is rendered in 2.1.137"
-assert_contains = '''||_==="AGENTS.md")return!0;'''
-
-[[patches]]
-name = "agents-memory-nested-directory"
-target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.1.137"
-
-rationale = """
-Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
-
-The upstream memory loader reads CLAUDE.md and .claude/CLAUDE.md for a nested
-directory. Codex-compatible repositories commonly put durable agent rules in
-AGENTS.md, so patched bundles should treat that sibling file as project memory
-too. Cleanup condition: upstream supports AGENTS.md as an official memory file
-or exposes a configurable project-memory filename list.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
-
-locator_pattern = '''let A=rT.join(H,"CLAUDE.md");K.push(...await YC(A,"Project",q,!1));let z=rT.join(H,".claude","CLAUDE.md")'''
-locator_kind = "literal"
-expected_matches = 1
-
-replacement = '''let A=rT.join(H,"CLAUDE.md");K.push(...await YC(A,"Project",q,!1));let $=rT.join(H,"AGENTS.md");K.push(...await YC($,"Project",q,!1));let z=rT.join(H,".claude","CLAUDE.md")'''
-
-[[patches.tests]]
-kind = "static"
-name = "replacement is rendered"
-assert_contains = '''"AGENTS.md"'''
-
-[[patches]]
-name = "agents-memory-nested-directory-2-1-137"
-target_version = "2.1.137"
-applies_to = ">=2.1.137 <2.2.0"
-
-rationale = """
-Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
-
-This is the 2.1.137 minified-symbol variant of
-`agents-memory-nested-directory`. Cleanup condition: upstream supports AGENTS.md
-as an official memory file or exposes a configurable project-memory filename
-list.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
-
-locator_pattern = '''let A=YA.join(H,"CLAUDE.md");K.push(...await CC(A,"Project",q,!1));let z=YA.join(H,".claude","CLAUDE.md")'''
-locator_kind = "literal"
-expected_matches = 1
-
-replacement = '''let A=YA.join(H,"CLAUDE.md");K.push(...await CC(A,"Project",q,!1));let ACC_AGENTS=YA.join(H,"AGENTS.md");K.push(...await CC(ACC_AGENTS,"Project",q,!1));let z=YA.join(H,".claude","CLAUDE.md")'''
-
-[[patches.tests]]
-kind = "static"
-name = "replacement is rendered in 2.1.137"
-assert_contains = '''"AGENTS.md"'''
 
 [[patches]]
 name = "memory-file-realpath-overlap-dedup"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.1.137"
+applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
 Deduplicate memory files only when their resolved filesystem targets overlap.
@@ -236,38 +133,13 @@ loading memory files.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L626-L648"
 
-locator_pattern = '''let{resolvedPath:z,isSymlink:$}=Zz(F_(),H);if(q.add(A),$)q.add(SP(z));let{info:Y,includePaths:w}=await Xm9(H,_,z)'''
-locator_kind = "literal"
+locator_kind = "regex"
+locator_pattern = '''let\{resolvedPath:z,isSymlink:\$\}=([a-zA-Z0-9_$]+)\(([a-zA-Z0-9_$]+\(\),[a-zA-Z0-9_$]+)\);if\(q\.add\(A\),\$\)q\.add\(([a-zA-Z0-9_$]+)\(z\)\);let\{info:Y,includePaths:w\}=await ([a-zA-Z0-9_$]+)\(H,_,z\)'''
 expected_matches = 1
 
-replacement = '''let{resolvedPath:z,isSymlink:$}=Zz(F_(),H),YH=SP(z);if($&&q.has(YH))return[];if(q.add(A),$)q.add(YH);let{info:Y,includePaths:w}=await Xm9(H,_,z)'''
+replacement = '''let{resolvedPath:z,isSymlink:$}=$1($2),YH=$3(z);if($$&&q.has(YH))return[];if(q.add(A),$)q.add(YH);let{info:Y,includePaths:w}=await $4(H,_,z)'''
 
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''if($&&q.has(YH))return[];'''
-
-[[patches]]
-name = "memory-file-realpath-overlap-dedup-2-1-137"
-target_version = "2.1.137"
-applies_to = ">=2.1.137 <2.2.0"
-
-rationale = """
-Deduplicate memory files only when their resolved filesystem targets overlap.
-
-This is the 2.1.137 minified-symbol variant of
-`memory-file-realpath-overlap-dedup`. Cleanup condition: upstream performs
-realpath overlap checks before loading memory files.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L626-L648"
-
-locator_pattern = '''let{resolvedPath:z,isSymlink:$}=dA(p_(),H);if(q.add(A),$)q.add(QP(z));let{info:Y,includePaths:w}=await kU9(H,_,z)'''
-locator_kind = "literal"
-expected_matches = 1
-
-replacement = '''let{resolvedPath:z,isSymlink:$}=dA(p_(),H),YH=QP(z);if($&&q.has(YH))return[];if(q.add(A),$)q.add(YH);let{info:Y,includePaths:w}=await kU9(H,_,z)'''
-
-[[patches.tests]]
-kind = "static"
-name = "replacement is rendered in 2.1.137"
 assert_contains = '''if($&&q.has(YH))return[];'''

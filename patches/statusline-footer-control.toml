@@ -14,7 +14,7 @@ JSON fields.
 
 [[patches]]
 name = "statusline-footer-control-cli-option"
-applies_to = ">=2.1.133 <2.1.137"
+applies_to = ">=2.1.133 <2.2.0"
 rationale = """
 Add a CLI switch for hiding built-in footer items.
 
@@ -25,36 +25,15 @@ omitting the value hides all known footer items. Cleanup condition: upstream
 ships an official CLI flag or settings command for built-in footer items.
 """
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
-locator_pattern = '''.addOption(new h4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(ZV)).option("-c, --continue"'''
-locator_kind = "literal"
+locator_pattern = '''\.addOption\(new ([a-zA-Z0-9_$]+)\("--permission-mode <mode>","Permission mode to use for the session"\)\.argParser\(String\)\.choices\(([a-zA-Z0-9_$]+)\)\)\.option\("-c, --continue"'''
+locator_kind = "regex"
 expected_matches = 1
-replacement = '''.addOption(new h4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(ZV)).option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
+replacement = '''.addOption(new $1("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices($2)).option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue")'''
 
 [[patches.tests]]
 kind = "static"
 name = "CLI option is rendered"
-assert_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
-
-[[patches]]
-name = "statusline-footer-control-cli-option-2-1-137"
-applies_to = ">=2.1.137 <2.2.0"
-rationale = """
-Add a CLI switch for hiding built-in footer items.
-
-This is the 2.1.137 minified-symbol variant of
-`statusline-footer-control-cli-option`. Cleanup condition: upstream ships an
-official CLI flag or settings command for built-in footer items.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
-locator_pattern = '''.addOption(new k4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(gV)).option("-c, --continue"'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''.addOption(new k4("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices(gV)).option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
-
-[[patches.tests]]
-kind = "static"
-name = "CLI option is rendered in 2.1.137"
-assert_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
+assert_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue")'''
 
 [[patches]]
 name = "statusline-footer-control-cli-settings"
@@ -447,7 +426,7 @@ assert_contains = '''clipboardImageAvailable??!1'''
 
 [[patches]]
 name = "statusline-json-permission-mode"
-applies_to = ">=2.1.133 <2.1.137"
+applies_to = ">=2.1.133 <2.2.0"
 rationale = """
 Expose current footer state to custom statusLine commands.
 
@@ -463,10 +442,10 @@ condition: upstream adds official statusLine fields for current footer/input
 hints.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
-locator_pattern = '''return{...a1(),cwd:Y,...W&&{session_name:W},model:{id:M,display_name:oD(M)}'''
-locator_kind = "literal"
+locator_pattern = '''return\{\.\.\.([a-zA-Z0-9_$]+)\(\),cwd:Y,\.\.\.W&&\{session_name:W\},model:\{id:M,display_name:([a-zA-Z0-9_$]+)\(M\)\}'''
+locator_kind = "regex"
 expected_matches = 1
-replacement = '''return{...a1(),cwd:Y,permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},...W&&{session_name:W},model:{id:M,display_name:oD(M)}'''
+replacement = '''return{...$1(),cwd:Y,permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},...W&&{session_name:W},model:{id:M,display_name:$2(M)}'''
 
 [[patches.tests]]
 kind = "static"
@@ -493,22 +472,6 @@ replacement = '''let O=tY.useRef(void 0),T=J_((c)=>c.toolPermissionContext.mode)
 kind = "static"
 name = "statusline observes clipboard image state in 2.1.137"
 assert_contains = '''clipboardImageAvailable??!1'''
-
-[[patches]]
-name = "statusline-json-permission-mode-2-1-137"
-applies_to = ">=2.1.137 <2.2.0"
-rationale = """
-Expose current footer state to custom statusLine commands.
-
-This is the 2.1.137 minified-symbol variant of
-`statusline-json-permission-mode`. Cleanup condition: upstream adds official
-statusLine fields for current footer/input hints.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
-locator_pattern = '''return{...H5(),cwd:Y,...W&&{session_name:W},model:{id:M,display_name:YM(M)}'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''return{...H5(),cwd:Y,permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},...W&&{session_name:W},model:{id:M,display_name:YM(M)}'''
 
 [[patches.tests]]
 kind = "static"

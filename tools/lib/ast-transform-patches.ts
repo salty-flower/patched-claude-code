@@ -43,6 +43,7 @@ export type AstTransform =
   | { op: "prepend_function_body"; code: string }
   | { op: "insert_after_node"; code: string }
   | { op: "replace_substring"; find: string; value: string }
+  | { op: "replace_substring_regex"; find: string; value: string }
 
 export type AstTransformPatch = {
   name: string
@@ -360,6 +361,8 @@ function editForTransform(source: string, target: AstNode, transform: AstTransfo
       return { start: target.end, end: target.end, replacement: transform.code }
     case "replace_substring":
       return replaceSubstringEdit(source, target, transform.find, transform.value)
+    case "replace_substring_regex":
+      return replaceSubstringRegexEdit(source, target, transform.find, transform.value)
   }
 }
 
@@ -475,6 +478,24 @@ function replaceSubstringEdit(source: string, target: AstNode, find: string, val
     start: target.start + first,
     end: target.start + first + find.length,
     replacement: value,
+  }
+}
+
+function replaceSubstringRegexEdit(source: string, target: AstNode, find: string, value: string): SourceEdit {
+  const text = source.slice(target.start, target.end)
+  const regex = new RegExp(find)
+  const match = regex.exec(text)
+  if (!match) throw new Error("replace_substring_regex find pattern was not found in target node")
+  const secondMatch = regex.exec(text.slice(match.index + Math.max(match[0].length, 1)))
+  if (secondMatch) throw new Error("replace_substring_regex find pattern matched more than once in target node")
+  let replacement = value
+  for (let i = 1; i < match.length; i++) {
+    replacement = replacement.replaceAll(`$${i}`, match[i] ?? "")
+  }
+  return {
+    start: target.start + match.index,
+    end: target.start + match.index + match[0].length,
+    replacement,
   }
 }
 

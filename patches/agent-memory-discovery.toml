@@ -51,10 +51,10 @@ project-memory filename list.
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L886-L910"
 
 locator_kind = "regex"
-locator_pattern = '''for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\.reverse\(\)\)\{.{0,600}?let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\1,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\2\(\3,"\.claude","CLAUDE\.md"\)'''
+locator_pattern = '''(for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\.reverse\(\)\)\{.{0,600}?)let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\2,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\3\(\4,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
-replacement = '''let $1=$2($3,"CLAUDE.md");q.push(...await $4($1,"Project",$5));let AGENTS_MD=$2($3,"AGENTS.md");q.push(...await $4(AGENTS_MD,"Project",$5));let $6=$2($3,".claude","CLAUDE.md")'''
+replacement = '''$1let $2=$3($4,"CLAUDE.md");q.push(...await $5($2,"Project",$6));let AGENTS_MD=$3($4,"AGENTS.md");q.push(...await $5(AGENTS_MD,"Project",$6));let $7=$3($4,".claude","CLAUDE.md")'''
 
 [[patches.tests]]
 kind = "static"
@@ -79,10 +79,10 @@ configurable project-memory filename list.
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
 
 locator_kind = "regex"
-locator_pattern = '''CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD\)\)\{.{0,400}?for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\)\{.{0,300}?let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\1,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\2\(\3,"\.claude","CLAUDE\.md"\)'''
+locator_pattern = '''(CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD\)\)\{.{0,400}?for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\)\{.{0,300}?)let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\2,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\3\(\4,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
-replacement = '''let $1=$2($3,"CLAUDE.md");q.push(...await $4($1,"Project",$5));let AGENTS_MD=$2($3,"AGENTS.md");q.push(...await $4(AGENTS_MD,"Project",$5));let $6=$2($3,".claude","CLAUDE.md")'''
+replacement = '''$1let $2=$3($4,"CLAUDE.md");q.push(...await $5($2,"Project",$6));let AGENTS_MD=$3($4,"AGENTS.md");q.push(...await $5(AGENTS_MD,"Project",$6));let $7=$3($4,".claude","CLAUDE.md")'''
 
 [[patches.tests]]
 kind = "static"

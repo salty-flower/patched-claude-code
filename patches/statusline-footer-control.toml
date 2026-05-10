@@ -28,12 +28,12 @@ rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
 locator_pattern = '''\.addOption\(new ([a-zA-Z0-9_$]+)\("--permission-mode <mode>","Permission mode to use for the session"\)\.argParser\(String\)\.choices\(([a-zA-Z0-9_$]+)\)\)\.option\("-c, --continue"'''
 locator_kind = "regex"
 expected_matches = 1
-replacement = '''.addOption(new $1("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices($2)).option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue")'''
+replacement = '''.addOption(new $1("--permission-mode <mode>","Permission mode to use for the session").argParser(String).choices($2)).option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
 
 [[patches.tests]]
 kind = "static"
 name = "CLI option is rendered"
-assert_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue")'''
+assert_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items. Pass a comma-separated list, or omit the value to hide all.",(H)=>H??"all").option("-c, --continue"'''
 
 [[patches]]
 name = "statusline-footer-control-cli-settings"

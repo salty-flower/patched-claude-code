@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Extract a self-contained slice bundle for one v88 source path.
 //
-// Inputs (resolved from AUDITED_CC_ROOT or repo root):
+// Inputs (resolved from PATCHED_CC_ROOT or repo root):
 //   reference/v2.1.88/cli.js
 //   reference/v2.1.88/cli.js.map
 //   reference/v2.1.88/sources/<src_path>     (truth for v88)
@@ -35,14 +35,14 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSy
 import { join, dirname, extname, relative } from "node:path"
 import * as parser from "@babel/parser"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const V88_CLI = join(ROOT, "reference/v2.1.88/cli.js")
 const V88_MAP = join(ROOT, "reference/v2.1.88/cli.js.map")
 const V88_SRC_ROOT = join(ROOT, "reference/v2.1.88/sources")
-const V112_VERSION = process.env.AUDITED_CC_TARGET_VERSION ?? "2.1.112"
+const V112_VERSION = process.env.PATCHED_CC_TARGET_VERSION ?? "2.1.112"
 const V112_CLI = join(ROOT, "staging", V112_VERSION, "cli.js")
 
-const SPAN_GAP_BYTES = Number(process.env.AUDITED_CC_SPAN_GAP ?? 2048)
+const SPAN_GAP_BYTES = Number(process.env.PATCHED_CC_SPAN_GAP ?? 2048)
 
 // ---- VLQ decoder ----
 const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -455,7 +455,7 @@ function main(): number {
   const argv = process.argv.slice(2)
   let mode: "single" | "batch" | "list" = "single"
   let arg = ""
-  let outDir = process.env.AUDITED_CC_EXTRACT_OUT ?? join(ROOT, "extracted", V112_VERSION)
+  let outDir = process.env.PATCHED_CC_EXTRACT_OUT ?? join(ROOT, "extracted", V112_VERSION)
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === "--batch") {

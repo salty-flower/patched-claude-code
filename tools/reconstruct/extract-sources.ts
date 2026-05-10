@@ -9,7 +9,7 @@
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs"
 import { dirname, join, normalize } from "node:path"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const MAP = join(ROOT, "reference/v2.1.88/cli.js.map")
 const OUT = join(ROOT, "reference/v2.1.88/sources")
 

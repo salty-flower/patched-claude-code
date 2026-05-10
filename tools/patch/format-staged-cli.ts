@@ -5,7 +5,7 @@ import { mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { createCommand } from "../lib/cli"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   version?: string

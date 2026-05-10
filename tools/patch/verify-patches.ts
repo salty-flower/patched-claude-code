@@ -27,7 +27,7 @@ type Patch = PatchEntry
 type LocatorResult = { ok: boolean; msg: string; matches: number }
 type PatchRecord = { file: string; patches: Patch[]; fileTests: unknown[] }
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 export function parseArgs(argv: string[]): { patches: string[]; target?: string } {
   const program = createCommand("verify-patches")

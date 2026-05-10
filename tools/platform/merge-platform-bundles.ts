@@ -9,7 +9,7 @@ import { mergePlatformJavaScript } from "../lib/platform-merge"
 import { structuralJavaScriptHash } from "../lib/js-structure"
 import { DIRECT_LATEST_URL, directManifestUrl, directNativeBinaryUrl } from "../lib/upstream-channels"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const DEFAULT_PLATFORMS = ["darwin-arm64", "linux-x64"]
 
 type Args = {

@@ -39,14 +39,14 @@ type Args = {
   targetLabel: string
 }
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 function parseArgs(argv: string[]): Args {
   const args: Args = {
     reference: join(ROOT, "reference/v2.1.88/cli.js"),
-    target: process.env.AUDITED_CC_TARGET ?? join(ROOT, "staging/2.1.133/cli.js"),
+    target: process.env.PATCHED_CC_TARGET ?? join(ROOT, "staging/2.1.133/cli.js"),
     referenceLabel: "v2.1.88",
-    targetLabel: process.env.AUDITED_CC_TARGET_VERSION ?? "target",
+    targetLabel: process.env.PATCHED_CC_TARGET_VERSION ?? "target",
   }
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]

@@ -156,7 +156,7 @@ jobs:
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6
         with:
-          name: audited-claude-code-${{ steps.coord.outputs.version }}-${{ steps.coord.outputs.release_id }}
+          name: patched-claude-code-${{ steps.coord.outputs.version }}-${{ steps.coord.outputs.release_id }}
           path: |
             dist/*.tar.gz
             dist/*.sha256
@@ -165,7 +165,7 @@ jobs:
             cli.js
             manifest.json
             package.json
-            bin/claude-audited
+            bin/claude-patched
           if-no-files-found: error
 
       - name: Publish GitHub release

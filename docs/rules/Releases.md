@@ -10,8 +10,8 @@ version.
 | Tag | `claude-code-<upstream-version>-patch.<n>` |
 | Moving Nix ref | `claude-code-latest` |
 | Release commit title | `release: claude-code-<upstream-version>-patch.<n>` |
-| Nix source | Tagged git tree containing `cli.js`, `manifest.json`, `package.json`, `bin/claude-audited`, and flake files |
-| Artifact | `audited-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
+| Nix source | Tagged git tree containing `cli.js`, `manifest.json`, `package.json`, `bin/claude-patched`, and flake files |
+| Artifact | `patched-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
 | Bundle | `cli.js` at the release tag root and inside the artifact |
 | Runtime | Bun supplied by the consumer |
 | Native package | Canonicalized from Claude direct-download `darwin-arm64` and `linux-x64` native binaries |
@@ -39,7 +39,7 @@ Release artifacts MUST include a raw SHA-256 hash for non-flake fixed-output
 fetching. Nix consumers SHOULD use the native
 `github:<owner>/<repo>/<ref>` flake fetcher. Use the source tag for immutable
 pinning. Use `claude-code-latest` when `nix flake update` should follow the
-latest audited source commit.
+latest patched source commit.
 
 ## Automation
 

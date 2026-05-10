@@ -6,7 +6,7 @@ import { join } from "node:path"
 import { BUN_STANDALONE_LAYOUT_CONTRACT } from "../lib/extract-bun-standalone"
 import { STAGING_SUPPORT_CONTRACT } from "./stage-claude-code"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const DOC = join(ROOT, "docs", "rules", "Native-Bundle-Extraction.md")
 
 function requireText(body: string, text: string, label: string): void {

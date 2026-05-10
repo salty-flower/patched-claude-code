@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { createCommand } from "../lib/cli"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   version?: string
@@ -59,7 +59,7 @@ function main(): number {
   if (!args.skipVerify) {
     run(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input])
   }
-  run(["bun", "run", join(ROOT, "tools", "patch", "build-audited.ts"), input, output, args.version])
+  run(["bun", "run", join(ROOT, "tools", "patch", "build-patched.ts"), input, output, args.version])
   console.error(`rendered patched bundle -> ${output}`)
   return 0
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Apply every patch in patches/*.toml to a given input bundle, write the
 // patched bytes to the given output. Intended to be invoked via
-// `bun run tools/patch/build-audited.ts`.
+// `bun run tools/patch/build-patched.ts`.
 //
 // Patches whose `applies_to` excludes the input version are skipped.
 // `gated_by_env` patches are skipped unless the named env var is truthy.
@@ -14,15 +14,15 @@ import { join } from "node:path"
 import { applyPatchEntries, patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromDirectory } from "../lib/patch-files"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 function main(): number {
   const [inputPath, outputPath, versionArg] = process.argv.slice(2)
   if (!inputPath || !outputPath) {
-    console.error("usage: bun run tools/patch/build-audited.ts <input-cli.js> <output-cli.js> [version]")
+    console.error("usage: bun run tools/patch/build-patched.ts <input-cli.js> <output-cli.js> [version]")
     return 2
   }
-  const version = versionArg ?? process.env.AUDITED_CC_TARGET_VERSION ?? "0.0.0"
+  const version = versionArg ?? process.env.PATCHED_CC_TARGET_VERSION ?? "0.0.0"
 
   const patches = loadPatchEntriesFromDirectory(ROOT)
   console.error(`loaded ${patches.length} patch entries from patches/`)

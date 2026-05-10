@@ -1,5 +1,5 @@
 {
-  description = "audited-claude-code — pin Claude Code to an auditable, patched runtime by anchoring against the v2.1.88 reference";
+  description = "patched-claude-code — pin Claude Code to a patched runtime by anchoring against the v2.1.88 reference";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -21,7 +21,7 @@
           builtins.pathExists ./cli.js
           && builtins.pathExists ./manifest.json
           && builtins.pathExists ./package.json
-          && builtins.pathExists ./bin/claude-audited;
+          && builtins.pathExists ./bin/claude-patched;
         releaseManifest =
           if builtins.pathExists ./manifest.json then
             builtins.fromJSON (builtins.readFile ./manifest.json)
@@ -33,7 +33,7 @@
           else
             "${releaseManifest.upstream.version}-${releaseManifest.release.id}";
         releaseSource = builtins.path {
-          name = "audited-claude-code-${releaseVersion}-source";
+          name = "patched-claude-code-${releaseVersion}-source";
           path = ./.;
           filter =
             path: type:
@@ -44,12 +44,12 @@
             || path == "${root}/manifest.json"
             || path == "${root}/package.json"
             || path == "${root}/bin"
-            || path == "${root}/bin/claude-audited";
+            || path == "${root}/bin/claude-patched";
         };
-        auditedClaudeCode =
+        patchedClaudeCode =
           if hasReleasePayload then
             pkgs.stdenvNoCC.mkDerivation {
-              pname = "audited-claude-code";
+              pname = "patched-claude-code";
               version = releaseVersion;
               src = releaseSource;
 
@@ -59,28 +59,28 @@
 
               installPhase = ''
                 runHook preInstall
-                install -Dm0644 cli.js "$out/lib/audited-claude-code/cli.js"
-                install -Dm0644 manifest.json "$out/share/audited-claude-code/manifest.json"
-                install -Dm0644 package.json "$out/share/audited-claude-code/package.json"
-                makeWrapper ${pkgs.bun}/bin/bun "$out/bin/claude-audited" \
-                  --add-flags "$out/lib/audited-claude-code/cli.js"
+                install -Dm0644 cli.js "$out/lib/patched-claude-code/cli.js"
+                install -Dm0644 manifest.json "$out/share/patched-claude-code/manifest.json"
+                install -Dm0644 package.json "$out/share/patched-claude-code/package.json"
+                makeWrapper ${pkgs.bun}/bin/bun "$out/bin/claude-patched" \
+                  --add-flags "$out/lib/patched-claude-code/cli.js"
                 runHook postInstall
               '';
 
               meta = {
-                description = "Audited, patched Claude Code bundle";
-                mainProgram = "claude-audited";
+                description = "Patched Claude Code bundle";
+                mainProgram = "claude-patched";
               };
             }
           else
-            pkgs.runCommand "audited-claude-code-unreleased" { } ''
+            pkgs.runCommand "patched-claude-code-unreleased" { } ''
               echo "This checkout does not contain a generated release payload." >&2
               echo "Use a claude-code-<version>-patch.<n> tag or run: just release-source <version> <patch.n>" >&2
               exit 1
             '';
       in
       {
-        packages.default = auditedClaudeCode;
+        packages.default = patchedClaudeCode;
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
@@ -100,8 +100,8 @@
           ];
 
           shellHook = ''
-            export AUDITED_CC_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-            echo "audited-claude-code dev shell — root=$AUDITED_CC_ROOT" >&2
+            export PATCHED_CC_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+            echo "patched-claude-code dev shell — root=$PATCHED_CC_ROOT" >&2
           '';
         };
 

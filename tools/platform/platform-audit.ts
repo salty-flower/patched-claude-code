@@ -8,7 +8,7 @@ import { extractStandalone } from "../lib/extract-bun-standalone"
 import { structuralJavaScriptHash } from "../lib/js-structure"
 import { DIRECT_LATEST_URL, directManifestUrl, directNativeBinaryUrl } from "../lib/upstream-channels"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   version: string

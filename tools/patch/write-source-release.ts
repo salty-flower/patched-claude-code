@@ -6,7 +6,7 @@ import { join } from "node:path"
 import { createCommand } from "../lib/cli"
 import { releaseTag, writeReleasePayload } from "../lib/release-payload"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   version?: string
@@ -49,7 +49,7 @@ function main(): number {
   console.error(`wrote ${join(args.outDir, "cli.js")} (${payload.cliBytes.byteLength} bytes)`)
   console.error(`wrote ${join(args.outDir, "manifest.json")} (${payload.cliHash.sri})`)
   console.error(`wrote ${join(args.outDir, "package.json")}`)
-  console.error(`wrote ${join(args.outDir, "bin", "claude-audited")}`)
+  console.error(`wrote ${join(args.outDir, "bin", "claude-patched")}`)
   return 0
 }
 

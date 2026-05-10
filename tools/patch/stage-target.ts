@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { createCommand } from "../lib/cli"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   version?: string

@@ -1,7 +1,7 @@
-# audited-claude-code
+# patched-claude-code
 
-A private mirror that turns each new Claude Code release into an auditable,
-patched runtime — by anchoring every minified function back to the leaked
+A private mirror that turns each new Claude Code release into a patched,
+auditable runtime — by anchoring every minified function back to the leaked
 v2.1.88 TypeScript source via sourcemap correspondence.
 
 Entry point: **`flake.nix`** (Nix devShell with the toolchain) and

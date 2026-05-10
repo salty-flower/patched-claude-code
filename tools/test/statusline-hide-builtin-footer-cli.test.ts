@@ -9,7 +9,7 @@ const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = "2.1.133"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
-const tempDir = mkdtempSync(join(tmpdir(), "audited-cc-statusline-"))
+const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-statusline-"))
 const patchedBundle = join(tempDir, "cli.patched.js")
 
 afterAll(() => {

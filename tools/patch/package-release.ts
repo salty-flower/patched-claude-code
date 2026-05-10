@@ -6,7 +6,7 @@ import { basename, join } from "node:path"
 import { createCommand } from "../lib/cli"
 import { UPSTREAM_PACKAGE, artifactBase, sha256, writeReleasePayload } from "../lib/release-payload"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const DEFAULT_TAG_PATTERN = /^claude-code-(\d+\.\d+\.\d+)-(.+)$/
 
 type Args = {
@@ -113,7 +113,7 @@ Artifact:
 - \`${basename(tarball)}\`
 - raw tarball hash: \`${tarHash.sri}\`
 
-Nix/Home Manager should use the source tag \`github:<owner>/audited-claude-code/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:<owner>/audited-claude-code/claude-code-latest\` when \`nix flake update\` should follow the latest audited source.
+Nix/Home Manager should use the source tag \`github:<owner>/patched-claude-code/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:<owner>/patched-claude-code/claude-code-latest\` when \`nix flake update\` should follow the latest patched source.
 The tarball remains available for non-flake/manual installs.
 `,
   )

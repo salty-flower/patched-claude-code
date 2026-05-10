@@ -7,7 +7,7 @@ import { join } from "node:path"
 import { createCommand } from "../lib/cli"
 import { releaseTag } from "../lib/release-payload"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   version?: string
@@ -70,7 +70,7 @@ function main(): number {
     { path: "cli.js", mode: "100644", required: true },
     { path: "manifest.json", mode: "100644", required: true },
     { path: "package.json", mode: "100644", required: true },
-    { path: "bin/claude-audited", mode: "100755", required: true },
+    { path: "bin/claude-patched", mode: "100755", required: true },
     { path: "flake.nix", mode: "100644", required: true },
     { path: "flake.lock", mode: "100644", required: false },
   ]
@@ -80,7 +80,7 @@ function main(): number {
     }
   }
 
-  const index = join(tmpdir(), `audited-claude-code-source-tag-${process.pid}-${Date.now()}`)
+  const index = join(tmpdir(), `patched-claude-code-source-tag-${process.pid}-${Date.now()}`)
   const env = { GIT_INDEX_FILE: index }
   try {
     run(["git", "read-tree", "--empty"], env)

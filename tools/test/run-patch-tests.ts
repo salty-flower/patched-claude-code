@@ -12,7 +12,7 @@ import {
   type PtyPatchTest,
 } from "../lib/patch-tests"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   bundle?: string

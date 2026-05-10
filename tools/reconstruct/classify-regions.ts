@@ -17,8 +17,8 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync, copyFileSync } from "node:fs"
 import { join, dirname } from "node:path"
 
-const ROOT = process.env.AUDITED_CC_ROOT ?? join(import.meta.dir, "..", "..")
-const V112 = process.env.AUDITED_CC_TARGET_VERSION ?? "2.1.112"
+const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const V112 = process.env.PATCHED_CC_TARGET_VERSION ?? "2.1.112"
 const EXTRACTED = join(ROOT, "extracted", V112)
 const V88_SRC = join(ROOT, "reference/v2.1.88/sources")
 const RECONSTRUCTED = join(ROOT, "reconstructed", `v${V112}`)

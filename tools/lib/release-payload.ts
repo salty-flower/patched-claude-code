@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { isAbsolute, join, relative, sep } from "node:path"
 import { loadPatchEntriesFromToml, type PatchEntry } from "./patch-files"
 
-export const RELEASE_NAME = "audited-claude-code"
+export const RELEASE_NAME = "patched-claude-code"
 export const UPSTREAM_PACKAGE = "@anthropic-ai/claude-code"
 
 export type Patch = PatchEntry
@@ -133,7 +133,7 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
     JSON.stringify(releasePackageJson(options.version, options.releaseId), null, 2) + "\n",
   )
   writeFileSync(
-    join(options.outDir, "bin", "claude-audited"),
+    join(options.outDir, "bin", "claude-patched"),
     `#!/usr/bin/env sh
 set -eu
 dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -196,7 +196,7 @@ function releasePackageJson(version: string, releaseId: string): Record<string, 
     private: true,
     type: "module",
     bin: {
-      "claude-audited": "bin/claude-audited",
+      "claude-patched": "bin/claude-patched",
     },
     engines: {
       bun: ">=1.3.13",

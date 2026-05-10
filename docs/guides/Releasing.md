@@ -58,7 +58,7 @@ Outputs land in `dist/`:
 
 | File | Use |
 | --- | --- |
-| `audited-claude-code-<version>-patch.<n>.tar.gz` | Installable release artifact |
+| `patched-claude-code-<version>-patch.<n>.tar.gz` | Installable release artifact |
 | `*.sha256` | Raw tarball hash in hex form |
 | `*.manifest.json` | Machine-readable release metadata, including SRI hash |
 | `release-notes.md` | GitHub release notes |
@@ -71,8 +71,8 @@ and scheduled promotion also move `claude-code-latest` to that tag commit.
 | --- | --- |
 | `cli.js` | Patched runtime bundle consumed by the flake package |
 | `manifest.json` | Deterministic source manifest |
-| `package.json` | Minimal package metadata and `claude-audited` bin declaration |
-| `bin/claude-audited` | Bun wrapper for direct shell use |
+| `package.json` | Minimal package metadata and `claude-patched` bin declaration |
+| `bin/claude-patched` | Bun wrapper for direct shell use |
 
 ## Bump Rules
 

@@ -68,6 +68,9 @@ function main(): number {
   mkdirSync(args.outDir, { recursive: true })
 
   const gitCommit = process.env.GITHUB_SHA || output(["git", "rev-parse", "HEAD"])
+  const remoteUrl = output(["git", "remote", "get-url", "origin"])
+  const remoteMatch = remoteUrl.match(/[:/]([^/]+\/[^/]+?)(?:\.git)?$/)
+  const githubSlug = process.env.GITHUB_REPOSITORY || remoteMatch?.[1] || "<owner>/patched-claude-code"
   const tag = process.env.GITHUB_REF_NAME
   const payload = writeReleasePayload({
     root: ROOT,
@@ -113,7 +116,7 @@ Artifact:
 - \`${basename(tarball)}\`
 - raw tarball hash: \`${tarHash.sri}\`
 
-Nix/Home Manager should use the source tag \`github:<owner>/patched-claude-code/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:<owner>/patched-claude-code/claude-code-latest\` when \`nix flake update\` should follow the latest patched source.
+Nix/Home Manager should use the source tag \`github:${githubSlug}/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:${githubSlug}/claude-code-latest\` when \`nix flake update\` should follow the latest patched source.
 The tarball remains available for non-flake/manual installs.
 `,
   )

@@ -26,7 +26,7 @@ configured `access-tokens`:
 ```nix
 {
   inputs.patched-claude-code.url =
-    "github:salty-flower/patched-claude-code/claude-code-2.1.132-patch.1";
+    "github:salty-flower/audited-claude-code/claude-code-2.1.132-patch.1";
 }
 ```
 
@@ -35,7 +35,7 @@ Auto-updating input:
 ```nix
 {
   inputs.patched-claude-code.url =
-    "github:salty-flower/patched-claude-code/claude-code-latest";
+    "github:salty-flower/audited-claude-code/claude-code-latest";
 }
 ```
 

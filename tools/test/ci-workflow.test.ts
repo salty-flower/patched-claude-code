@@ -12,15 +12,24 @@ function workflowStep(name: string): string {
   return workflow.slice(start, next === -1 ? workflow.length : next)
 }
 
-test("ci stages target bundle before running integration-heavy tool tests", () => {
+test("ci does not split staged-bundle checks into separate just invocations", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
-  const stageIndex = workflow.indexOf("- name: Stage target bundle")
-  const testIndex = workflow.indexOf("- name: Test tools")
 
-  expect(stageIndex).toBeGreaterThanOrEqual(0)
-  expect(testIndex).toBeGreaterThanOrEqual(0)
-  expect(stageIndex).toBeLessThan(testIndex)
-  expect(workflowStep("Test tools")).toContain("bun run --cwd tools test")
+  expect(workflow).not.toContain("- name: Stage target bundle")
+  expect(workflow).not.toContain("- name: Test tools")
+})
+
+test("ci runs release audit through one declarative just target", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
+  const auditStep = workflowStep("Run release audit")
+
+  expect(auditStep).toContain('just ci-release-audit "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"')
+  expect(workflow).not.toContain("- name: Verify patches and contracts")
+  expect(workflow).not.toContain("- name: Render patched bundle")
+  expect(workflow).not.toContain("- name: Smoke patched bundle")
+  expect(workflow).not.toContain("- name: Patch tests")
+  expect(workflow).not.toContain("- name: Package release artifact")
+  expect(workflow).not.toContain("- name: Create Nix source tag")
 })
 
 test("ci routes workflow and pre-commit wiring edits through tool tests", () => {

@@ -277,38 +277,8 @@ jobs:
       - name: Typecheck tools
         run: just typecheck
 
-      - name: Stage target bundle
-        run: just stage "$TARGET_VERSION"
-
-      - name: Test tools
-        run: bun run --cwd tools test
-
-      - name: Verify patches and contracts
-        run: just verify "$TARGET_VERSION"
-
-      - name: Render patched bundle
-        run: just render "$TARGET_VERSION"
-
-      - name: Smoke patched bundle
-        run: just smoke "$TARGET_VERSION"
-
-      - name: Patch tests
-        run: just patch-test "$TARGET_VERSION"
-
-      - name: Package release artifact
-        run: just package "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
-
-      - name: Create Nix source tag
-        run: |
-          set -euo pipefail
-          just release-source "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
-          test -s cli.js
-          test -s manifest.json
-          test -s package.json
-          test -x bin/claude-audited
-          bun ./cli.js --version
-          git ls-tree -r --name-only "claude-code-${TARGET_VERSION}-ci.${GITHUB_SHA::12}" > source-tag-files.txt
-          diff -u <(printf '%s\n' bin/claude-audited cli.js flake.lock flake.nix manifest.json package.json) source-tag-files.txt
+      - name: Run release audit
+        run: just ci-release-audit "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
 
       - name: Upload CI artifact
         uses: actions/upload-artifact@v6

@@ -10,9 +10,10 @@ type Args = {
   version?: string
   input?: string
   output?: string
+  skipVerify?: boolean
 }
 
-function parseArgs(argv: string[]): Args {
+export function parseArgs(argv: string[]): Args {
   const args: Args = {}
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
@@ -20,9 +21,11 @@ function parseArgs(argv: string[]): Args {
       args.input = argv[++i]
     } else if (arg === "--output") {
       args.output = argv[++i]
+    } else if (arg === "--skip-verify") {
+      args.skipVerify = true
     } else if (arg === "--help" || arg === "-h") {
       console.log(
-        "usage: bun run tools/patch/render-patched.ts <version> [--input <cli.js>] [--output <cli.patched.js>]",
+        "usage: bun run tools/patch/render-patched.ts <version> [--input <cli.js>] [--output <cli.patched.js>] [--skip-verify]",
       )
       process.exit(0)
     } else if (!args.version) {
@@ -58,7 +61,9 @@ function main(): number {
   }
 
   mkdirSync(dirname(output), { recursive: true })
-  run(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input])
+  if (!args.skipVerify) {
+    run(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input])
+  }
   run(["bun", "run", join(ROOT, "tools", "patch", "build-audited.ts"), input, output, args.version])
   console.error(`rendered patched bundle -> ${output}`)
   return 0

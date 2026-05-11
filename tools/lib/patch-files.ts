@@ -148,6 +148,7 @@ function astTransform(value: unknown, field: string, file: string): AstTransform
       value: requiredString(record.value, `${field}.value`, file),
     }
   }
+  if (op === "append_object_property") return { op, code: requiredString(record.code, `${field}.code`, file) }
   if (op === "set_call_arg") {
     return {
       op,

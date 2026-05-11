@@ -107,6 +107,7 @@ Supported transform ops:
 | `replace_function_body` | `body` | Replace a block body while preserving the signature. |
 | `replace_function_body_with_first_var_initializer_return` | none | Replace the body with `return <first variable initializer>`. |
 | `set_object_property` | `property`, `value` | Replace or append an object property. |
+| `append_object_property` | `code` | Append raw property source before the closing `}` of an ObjectExpression. |
 | `set_call_arg` | `index`, `value` | Replace a call argument. |
 | `append_call_arg` | `arg` | Append a call argument. |
 | `wrap_expression` | `template` | Replace `%%EXPR%%` with the matched expression source. |
@@ -114,6 +115,7 @@ Supported transform ops:
 | `prepend_function_body` | `code` | Insert code at the start of a block body. |
 | `insert_after_node` | `code` | Insert code immediately after the matched node. |
 | `replace_substring` | `find`, `value` | Replace a unique substring inside the matched node. |
+| `replace_substring_regex` | `find`, `value` | Replace a unique regex match inside the matched node; supports `$1` captures. |
 
 ## Field rules
 

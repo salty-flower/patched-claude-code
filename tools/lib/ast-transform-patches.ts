@@ -37,6 +37,7 @@ export type AstTransform =
   | { op: "replace_function_body"; body: string }
   | { op: "replace_function_body_with_first_var_initializer_return" }
   | { op: "set_object_property"; property: string; value: string }
+  | { op: "append_object_property"; code: string }
   | { op: "set_call_arg"; index: number; value: string }
   | { op: "append_call_arg"; arg: string }
   | { op: "wrap_expression"; template: string }
@@ -354,6 +355,8 @@ function editForTransform(source: string, target: AstNode, transform: AstTransfo
       return replaceFunctionBodyWithFirstVarInitializerReturnEdit(source, target)
     case "set_object_property":
       return setObjectPropertyEdit(target, transform.property, transform.value)
+    case "append_object_property":
+      return appendObjectPropertyEdit(target, transform.code)
     case "set_call_arg":
       return setCallArgEdit(target, transform.index, transform.value)
     case "append_call_arg":
@@ -414,6 +417,13 @@ function setObjectPropertyEdit(target: AstNode, property: string, value: string)
 
   const prefix = properties.length === 0 ? "" : ","
   return { start: target.end - 1, end: target.end - 1, replacement: `${prefix}${property}:${value}` }
+}
+
+function appendObjectPropertyEdit(target: AstNode, code: string): SourceEdit {
+  if (target.type !== "ObjectExpression") throw new Error("append_object_property target must be an ObjectExpression")
+  const properties = Array.isArray(target.properties) ? (target.properties as Array<Record<string, unknown>>) : []
+  const prefix = properties.length === 0 ? "" : ","
+  return { start: target.end - 1, end: target.end - 1, replacement: `${prefix}${code}` }
 }
 
 function setCallArgEdit(target: AstNode, index: number, value: string): SourceEdit {

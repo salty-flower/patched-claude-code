@@ -298,10 +298,16 @@ upstream ships an official setting for hiding built-in footer items when a
 custom statusLine is present.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
-locator_pattern = '''hideVimModeIndicator:v.boolean().optional().describe("Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself.")}).optional().describe("Custom status line display configuration")'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''hideVimModeIndicator:v.boolean().optional().describe("Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself."),hideBuiltinFooter:v.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:v.array(v.enum(["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")}).optional().describe("Custom status line display configuration")'''
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:v.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:v.array(v.enum(["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
 
 [[patches.tests]]
 kind = "static"

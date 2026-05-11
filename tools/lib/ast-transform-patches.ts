@@ -24,6 +24,7 @@ export type AstMatch = {
   body_statement_count?: number
   source?: string
   string?: string
+  strings?: string[]
 }
 
 export type AstLocator = {
@@ -43,6 +44,7 @@ export type AstTransform =
   | { op: "wrap_expression"; template: string }
   | { op: "replace_with_consequent" }
   | { op: "prepend_function_body"; code: string }
+  | { op: "insert_before_node"; code: string }
   | { op: "insert_after_node"; code: string }
   | { op: "replace_substring"; find: string; value: string }
   | { op: "replace_substring_regex"; find: string; value: string }
@@ -286,6 +288,12 @@ function matchesAstMatch(node: AstNode, source: string, match: AstMatch): boolea
   if (match.body_statement_count !== undefined && bodyStatementCount(node) !== match.body_statement_count) return false
   if (match.source && source.slice(node.start, node.end) !== match.source) return false
   if (match.string && !source.slice(node.start, node.end).includes(match.string)) return false
+  if (match.strings && match.strings.length > 0) {
+    const nodeSource = source.slice(node.start, node.end)
+    for (const s of match.strings) {
+      if (!nodeSource.includes(s)) return false
+    }
+  }
   return true
 }
 
@@ -367,6 +375,8 @@ function editForTransform(source: string, target: AstNode, transform: AstTransfo
       return replaceWithConsequentEdit(source, target)
     case "prepend_function_body":
       return prependFunctionBodyEdit(target, transform.code)
+    case "insert_before_node":
+      return { start: target.start, end: target.start, replacement: transform.code }
     case "insert_after_node":
       return { start: target.end, end: target.end, replacement: transform.code }
     case "replace_substring":

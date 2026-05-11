@@ -253,10 +253,15 @@ includes `footer`. Cleanup condition: upstream ships an official setting or flag
 for hiding the built-in footer status line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
-locator_pattern = '''iH=MO.createElement(JvK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:CH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:FH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:s,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''iH=e?.statusLine?.hideBuiltinFooter||e?.statusLine?.disabledFooter?.includes("footer")?null:MO.createElement(JvK,{exitMessage:O,leftArrowPending:T,vimMode:A,hideVimModeIndicator:CH,mode:z,toolPermissionContext:f,suppressHint:WH,isInputEmpty:FH,isLoading:G,tasksSelected:wH,teamsSelected:R,teammateFooterIndex:N,tmuxSelected:L,isPasting:s,showExpandPasteHint:KH,isSearching:F,historyQuery:g,setHistoryQuery:Q,historyFailedMatch:c,onOpenTasksDialog:l})'''
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", strings = ["exitMessage", "isInputEmpty", "onOpenTasksDialog"] }
+
+[patches.transform]
+op = "wrap_expression"
+template = 'e?.statusLine?.hideBuiltinFooter||e?.statusLine?.disabledFooter?.includes("footer")?null:%%EXPR%%'
 
 [[patches.tests]]
 kind = "static"
@@ -274,10 +279,15 @@ This is the 2.1.137 minified-symbol variant of
 official setting or flag for hiding the built-in footer status line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
-locator_pattern = '''F3.createElement(OSK,{exitMessage:q,leftArrowPending:K,vimMode:O,hideVimModeIndicator:!t&&a&&(l?.statusLine?.hideVimModeIndicator??!1),mode:T,toolPermissionContext:D,suppressHint:o,isInputEmpty:!f,isLoading:X,tasksSelected:$H,teamsSelected:G,teammateFooterIndex:k,tmuxSelected:R,isPasting:h,showExpandPasteHint:S,isSearching:E,historyQuery:p,setHistoryQuery:F,historyFailedMatch:g,onOpenTasksDialog:Q})'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''l?.statusLine?.hideBuiltinFooter||l?.statusLine?.disabledFooter?.includes("footer")?null:F3.createElement(OSK,{exitMessage:q,leftArrowPending:K,vimMode:O,hideVimModeIndicator:!t&&a&&(l?.statusLine?.hideVimModeIndicator??!1),mode:T,toolPermissionContext:D,suppressHint:o,isInputEmpty:!f,isLoading:X,tasksSelected:$H,teamsSelected:G,teammateFooterIndex:k,tmuxSelected:R,isPasting:h,showExpandPasteHint:S,isSearching:E,historyQuery:p,setHistoryQuery:F,historyFailedMatch:g,onOpenTasksDialog:Q})'''
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", strings = ["exitMessage", "isInputEmpty", "onOpenTasksDialog"] }
+
+[patches.transform]
+op = "wrap_expression"
+template = 'l?.statusLine?.hideBuiltinFooter||l?.statusLine?.disabledFooter?.includes("footer")?null:%%EXPR%%'
 
 [[patches.tests]]
 kind = "static"
@@ -374,10 +384,16 @@ the clipboard image selector changes. Cleanup condition: upstream adds official
 statusLine fields and refresh triggers for current footer/input hints.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
-locator_pattern = '''let E=Y?.statusLine?.refreshInterval;'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''aY.useEffect(()=>{x()},[b,x]);let E=Y?.statusLine?.refreshInterval;'''
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", string = "statusLine?.refreshInterval" }
+
+[patches.transform]
+op = "insert_before_node"
+code = 'aY.useEffect(()=>{x()},[b,x]);'
 
 [[patches.tests]]
 kind = "static"
@@ -396,10 +412,16 @@ adds official statusLine fields and refresh triggers for current footer/input
 hints.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
-locator_pattern = '''let E=Y?.statusLine?.refreshInterval;'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''tY.useEffect(()=>{b()},[c,b]);let E=Y?.statusLine?.refreshInterval;'''
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", string = "statusLine?.refreshInterval" }
+
+[patches.transform]
+op = "insert_before_node"
+code = 'tY.useEffect(()=>{b()},[c,b]);'
 
 [[patches.tests]]
 kind = "static"
@@ -420,10 +442,16 @@ when it changes, so custom statusLine commands receive the updated
 statusLine fields and refresh triggers for current footer/input hints.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
-locator_pattern = '''let O=aY.useRef(void 0),T=Y_((l)=>l.toolPermissionContext.mode),A=Y_((l)=>l.toolPermissionContext.additionalWorkingDirectories),z=Y_((l)=>l.statusLineText),$=c8(),Y=gY(),{addNotification:w}=J7(),J=yJ(),j=Y_((l)=>l.fastMode??!1),D=Y_((l)=>l.effortValue),M=Y_((l)=>l.thinkingEnabled),f=aY.useRef(Y);'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''let O=aY.useRef(void 0),T=Y_((l)=>l.toolPermissionContext.mode),A=Y_((l)=>l.toolPermissionContext.additionalWorkingDirectories),z=Y_((l)=>l.statusLineText),$=c8(),Y=gY(),{addNotification:w}=J7(),J=yJ(),j=Y_((l)=>l.fastMode??!1),D=Y_((l)=>l.effortValue),M=Y_((l)=>l.thinkingEnabled),b=Y_((l)=>l.clipboardImageAvailable??!1),f=aY.useRef(Y);'''
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["thinkingEnabled", "useRef(void 0)", "toolPermissionContext", "addNotification"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = ",(\\w+=\\w+\\.useRef\\(\\w+\\));$"
+value = ",b=Y_((l)=>l.clipboardImageAvailable??!1),$1;"
 
 [[patches.tests]]
 kind = "static"
@@ -448,10 +476,16 @@ condition: upstream adds official statusLine fields for current footer/input
 hints.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
-locator_pattern = '''return\{\.\.\.([a-zA-Z0-9_$]+)\(\),cwd:Y,\.\.\.W&&\{session_name:W\},model:\{id:M,display_name:([a-zA-Z0-9_$]+)\(M\)\}'''
-locator_kind = "regex"
-expected_matches = 1
-replacement = '''return{...$1(),cwd:Y,permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},...W&&{session_name:W},model:{id:M,display_name:$2(M)}'''
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ReturnStatement", strings = ["cwd:", "session_name:", "model:", "display_name:"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(cwd:\\w+,)"
+value = '''$1permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},'''
 
 [[patches.tests]]
 kind = "static"
@@ -469,10 +503,16 @@ This is the 2.1.137 minified-symbol variant of
 official statusLine fields and refresh triggers for current footer/input hints.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
-locator_pattern = '''let O=tY.useRef(void 0),T=J_((c)=>c.toolPermissionContext.mode),A=J_((c)=>c.toolPermissionContext.additionalWorkingDirectories),z=J_((c)=>c.statusLineText),$=c8(),Y=dY(),{addNotification:w}=o9(),J=xJ(),j=J_((c)=>c.fastMode??!1),D=J_((c)=>c.effortValue),M=J_((c)=>c.thinkingEnabled),f=tY.useRef(Y);'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''let O=tY.useRef(void 0),T=J_((c)=>c.toolPermissionContext.mode),A=J_((c)=>c.toolPermissionContext.additionalWorkingDirectories),z=J_((c)=>c.statusLineText),$=c8(),Y=dY(),{addNotification:w}=o9(),J=xJ(),j=J_((c)=>c.fastMode??!1),D=J_((c)=>c.effortValue),M=J_((c)=>c.thinkingEnabled),c=J_((c)=>c.clipboardImageAvailable??!1),f=tY.useRef(Y);'''
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["thinkingEnabled", "useRef(void 0)", "toolPermissionContext", "addNotification"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = ",(\\w+=\\w+\\.useRef\\(\\w+\\));$"
+value = ",c=J_((c)=>c.clipboardImageAvailable??!1),$1;"
 
 [[patches.tests]]
 kind = "static"

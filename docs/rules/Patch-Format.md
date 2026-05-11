@@ -98,6 +98,7 @@ AST match fields are conjunctive:
 | `body_statement_count` | Number of top-level statements in a block body. |
 | `source` | Exact source text for the matched node. |
 | `string` | Substring contained in the matched node source. |
+| `strings` | Array of substrings; ALL must be contained in the matched node source. |
 
 Supported transform ops:
 
@@ -113,6 +114,7 @@ Supported transform ops:
 | `wrap_expression` | `template` | Replace `%%EXPR%%` with the matched expression source. |
 | `replace_with_consequent` | none | Replace an `IfStatement` with its consequent source. |
 | `prepend_function_body` | `code` | Insert code at the start of a block body. |
+| `insert_before_node` | `code` | Insert code immediately before the matched node. |
 | `insert_after_node` | `code` | Insert code immediately after the matched node. |
 | `replace_substring` | `find`, `value` | Replace a unique substring inside the matched node. |
 | `replace_substring_regex` | `find`, `value` | Replace a unique regex match inside the matched node; supports `$1` captures. |

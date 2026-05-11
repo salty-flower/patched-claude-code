@@ -131,6 +131,7 @@ function astLocator(value: unknown, field: string, file: string): AstLocator {
       body_statement_count: optionalNumber(match.body_statement_count, `${field}.match.body_statement_count`, file),
       source: optionalString(match.source, `${field}.match.source`, file),
       string: optionalString(match.string, `${field}.match.string`, file),
+      strings: optionalStrings(match.strings, `${field}.match.strings`, file),
     },
   }
 }
@@ -160,8 +161,16 @@ function astTransform(value: unknown, field: string, file: string): AstTransform
   if (op === "wrap_expression") return { op, template: requiredString(record.template, `${field}.template`, file) }
   if (op === "replace_with_consequent") return { op }
   if (op === "prepend_function_body") return { op, code: requiredString(record.code, `${field}.code`, file) }
+  if (op === "insert_before_node") return { op, code: requiredString(record.code, `${field}.code`, file) }
   if (op === "insert_after_node") return { op, code: requiredString(record.code, `${field}.code`, file) }
   if (op === "replace_substring") {
+    return {
+      op,
+      find: requiredString(record.find, `${field}.find`, file),
+      value: requiredString(record.value, `${field}.value`, file),
+    }
+  }
+  if (op === "replace_substring_regex") {
     return {
       op,
       find: requiredString(record.find, `${field}.find`, file),
@@ -180,6 +189,12 @@ function optionalString(value: unknown, field: string, file: string): string | u
   if (value === undefined || value === null) return undefined
   if (typeof value === "string") return value
   throw new Error(`${file}: expected string field ${field}`)
+}
+
+function optionalStrings(value: unknown, field: string, file: string): string[] | undefined {
+  if (value === undefined || value === null) return undefined
+  if (Array.isArray(value) && value.every((v) => typeof v === "string")) return value as string[]
+  throw new Error(`${file}: expected string array field ${field}`)
 }
 
 function optionalAstAnchor(value: unknown, field: string, file: string): AstLocator["anchor"] {

@@ -1,73 +1,43 @@
 # AST Transform Patches
 
-## Patch Contract
+## Status
 
-Patch entries SHOULD move from byte replacement locators to AST transform
-entries. The transform engine MUST preserve upstream byte locality by applying
-range splices against parsed source offsets, not by regenerating the whole
-bundle.
+- Phase 1 (engine) and Phase 2 (low-risk call argument patches) are complete.
+  See `docs/records/2026-05-11-ast-transform-engine.md`.
+- This file tracks only genuinely pending migration work.
 
-Legacy `literal` and `regex` locators MAY remain during migration, but new
-release-blocking patches SHOULD use `locator_kind = "ast_transform"` once the
-engine exists.
+## Pending Work
 
-## Governing Split
+### Phase 3: Control-Flow Patches
 
-| Layer | Owns | Must not own |
-| --- | --- | --- |
-| Locator | Unique AST target selection and drift detection | Inserted behavior |
-| Transform op | Typed source-range rewrite | Target discovery |
-| Patch tests | User-visible behavior checks | Locator recovery |
-| Rationale ref | Audit intent in `reference/v2.1.88/sources/` | Target-version byte offsets |
+| Family | AST patches | Legacy remaining | Blocker |
+|--------|------------|------------------|---------|
+| `thinking-display` | 4 | **2 literal** | `thinking-render-live-main` and `thinking-render-live-main-2-1-137` target minified JSX property expressions (`streamingText:m7&&!qb?vK:null`) where identifiers shift per version. An AST selector would need to match on JSX attribute structure independent of minified names, which is not yet exercised in production. |
 
-## TOML Shape
+Exit gate: No legacy locator remains in `thinking-display.toml`; transform ops cover every edit without raw byte locators.
 
-```toml
-[[patches]]
-name = "file-read-path-image"
-locator_kind = "ast_transform"
-rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+### Phase 4: Statusline Footer Controls
 
-[patches.ast]
-schema = 1
-anchor = "declaration"
-match = { node = "CallExpression", callee_property = "createElement", string_literal = "Read image (" }
+| Family | AST patches | Legacy remaining |
+|--------|------------|------------------|
+| `statusline-footer-control` | 0 | **21** (19 literal + 2 regex) |
 
-[patches.transform]
-op = "append_call_arg"
-arg = "Z"
-```
+This is the largest remaining family. Most patches inject CLI options or mutate settings objects inside minified bootstrap code. The AST transform selector vocabulary may need extension (e.g., `object_property_path` or `call_chain`) before these can be expressed without raw byte locators.
 
-Field names MAY change before the first implementation lands. After that,
-schema changes MUST update `docs/rules/Patch-Format.md` in the same commit.
-The schema MUST keep locator metadata separate from transform metadata.
+Exit gate: Auto-release against the latest staged bundle fails only on real semantic drift.
 
-## Locator Rules
+### Out-of-Scope Legacy Patches
 
-- Parse staged bundles with Babel using the same options as canonical merge.
-- Unwrap compiled module bodies before selecting top-level declarations.
-- Select an enclosing declaration by normalized AST fingerprint, useful string
-  literals, and `rationale_ref` lineage when source-map evidence is available.
-- Select the inner node by typed predicates, not by minified identifier names.
-- Fail unless the locator resolves to exactly one AST node.
-- Report the resolved byte range, enclosing declaration range, and matched
-  predicate summary.
+| Family | Legacy remaining | Note |
+|--------|-----------------|------|
+| `agent-memory-discovery` | 5 regex | Not assigned to a backlog phase. Low priority; regex locators are stable across recent versions. |
 
-## Transform Operations
+## Conversion Rules
 
-Initial ops SHOULD be small and source-range based:
-
-| Op | Rule |
-| --- | --- |
-| `replace_node` | Replace the matched node range with repo-owned JS. |
-| `replace_function_body` | Preserve the function signature and replace only the body block. |
-| `set_object_property` | Replace an existing property value or append a new property. |
-| `set_call_arg` | Replace one positional argument and validate call arity. |
-| `append_call_arg` | Append one argument to a call expression. |
-| `wrap_expression` | Replace the matched expression with a template containing one `%%EXPR%%` placeholder. |
-
-Do not add a broad "custom visitor" op. If a patch needs a new edit shape,
-add a named op with explicit preconditions.
+- Every converted patch MUST use `locator_kind = "ast_transform"`.
+- The transform engine MUST preserve upstream byte locality by applying range splices against parsed source offsets, not by regenerating the whole bundle.
+- Legacy `literal` and `regex` locators MAY remain during migration, but new release-blocking patches SHOULD use `ast_transform` once the engine exists.
+- When adding a new transform op, define explicit preconditions; do not add a broad "custom visitor" op.
 
 ## Verification Gates
 
@@ -80,22 +50,4 @@ add a named op with explicit preconditions.
 - Patch tests exist for every entry.
 - Inserted snippets are non-empty and repo-owned.
 
-`just render <version>` MUST apply AST edits in descending byte-range order and
-reject overlapping edits unless a later implementation defines an explicit
-composition rule.
-
-## Migration Order
-
-| Phase | Scope | Exit gate |
-| --- | --- | --- |
-| 1 | Add AST transform parsing, verification, and range-splice rendering. | One converted patch family passes verify, render, smoke, and patch tests. |
-| 2 | Convert low-risk call argument patches such as MCP rendering or file-read path labels. | No legacy locator remains in the converted feature file. |
-| 3 | Convert control-flow patches such as thinking display and transcript preservation. | Transform ops cover the edit without raw byte locators. |
-| 4 | Convert statusline footer controls. | Auto-release against the latest staged bundle fails only on real semantic drift. |
-
-## Open Gates
-
-- Define the final selector vocabulary before converting broad patch families.
-- Decide whether source-map lineage is required for all AST locators or only
-  used as an extra confidence signal.
-- Update `docs/rules/Patch-Format.md` after the first implementation lands.
+`just render <version>` MUST apply AST edits in descending byte-range order and reject overlapping edits unless a later implementation defines an explicit composition rule.

@@ -92,6 +92,7 @@ AST match fields are conjunctive:
 | `string_literal` | Descendant string literal with this exact value. |
 | `direct_string_literal` | Direct call argument string literal with this exact value. |
 | `object_property` | Descendant object property or method key. |
+| `object_property_direct` | Direct object property or method key on the matched node itself. |
 | `function_name` | Function declaration identifier. |
 | `method_name` | Object/class method key. |
 | `body_statement_count` | Number of top-level statements in a block body. |

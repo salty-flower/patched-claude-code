@@ -18,6 +18,7 @@ export type AstMatch = {
   string_literal?: string
   direct_string_literal?: string
   object_property?: string
+  object_property_direct?: string
   function_name?: string
   method_name?: string
   body_statement_count?: number
@@ -278,6 +279,7 @@ function matchesAstMatch(node: AstNode, source: string, match: AstMatch): boolea
   if (match.string_literal && !hasStringLiteral(node, match.string_literal)) return false
   if (match.direct_string_literal && !hasDirectStringLiteral(node, match.direct_string_literal)) return false
   if (match.object_property && !hasObjectProperty(node, match.object_property)) return false
+  if (match.object_property_direct && !hasDirectObjectProperty(node, match.object_property_direct)) return false
   if (match.function_name && !hasFunctionName(node, match.function_name)) return false
   if (match.method_name && propertyKeyName(node) !== match.method_name) return false
   if (match.body_statement_count !== undefined && bodyStatementCount(node) !== match.body_statement_count) return false
@@ -316,6 +318,11 @@ function hasObjectProperty(node: AstNode, property: string): boolean {
     }
   })
   return found
+}
+
+function hasDirectObjectProperty(node: AstNode, property: string): boolean {
+  const properties = Array.isArray(node.properties) ? (node.properties as Array<Record<string, unknown>>) : []
+  return properties.some((item) => (item.type === "ObjectProperty" || item.type === "ObjectMethod") && propertyKeyName(item) === property)
 }
 
 function hasFunctionName(node: AstNode, name: string): boolean {

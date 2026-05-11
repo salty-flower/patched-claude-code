@@ -59,11 +59,16 @@ interactive screen.
 """
 rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
 
-locator_pattern = '''isLoading:m7,streamingText:m7&&!qb?vK:null,isBriefOnly:qb?!1:VH'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''isLoading:m7,streamingText:m7&&!qb?vK:null,streamingThinking:S4,isBriefOnly:qb?!1:VH'''
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "S4"
 
 [[patches.tests]]
 kind = "static"
@@ -84,11 +89,16 @@ interactive screen.
 """
 rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
 
-locator_pattern = '''isLoading:V7,streamingText:V7&&!Vb?Lq:null,isBriefOnly:Vb?!1:CH'''
-locator_kind = "literal"
-expected_matches = 1
+locator_kind = "ast_transform"
 
-replacement = '''isLoading:V7,streamingText:V7&&!Vb?Lq:null,streamingThinking:r4,isBriefOnly:Vb?!1:CH'''
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "r4"
 
 [[patches.tests]]
 kind = "static"

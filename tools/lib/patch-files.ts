@@ -125,6 +125,7 @@ function astLocator(value: unknown, field: string, file: string): AstLocator {
       string_literal: optionalString(match.string_literal, `${field}.match.string_literal`, file),
       direct_string_literal: optionalString(match.direct_string_literal, `${field}.match.direct_string_literal`, file),
       object_property: optionalString(match.object_property, `${field}.match.object_property`, file),
+      object_property_direct: optionalString(match.object_property_direct, `${field}.match.object_property_direct`, file),
       function_name: optionalString(match.function_name, `${field}.match.function_name`, file),
       method_name: optionalString(match.method_name, `${field}.match.method_name`, file),
       body_statement_count: optionalNumber(match.body_statement_count, `${field}.match.body_statement_count`, file),

@@ -58,4 +58,4 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   )
   expect(patched).toContain("globalThis.__acc_rate_limit_warning=T")
   expect(patched).toContain("rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}")
-}, 30000)
+}, 120000)

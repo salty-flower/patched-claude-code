@@ -492,6 +492,31 @@ name = "statusline display still follows upstream presence check in 2.1.139"
 assert_contains = '''function qvK(H){return H?.statusLine!==void 0}'''
 
 [[patches]]
+name = "statusline-footer-control-terminal-columns-2-1-139"
+applies_to = ">=2.1.139 <2.2.0"
+rationale = """
+Forward the live TUI width into custom statusLine commands.
+
+StatusLine commands run as hooks with piped stdio, so terminal-size probes
+inside the command can fall back to 80 columns even while Claude Code is
+rendering in a wider TTY. Custom right-aligned status lines then pad to the
+wrong width and leave a large gap on the right. Upstream already tracks the
+interactive terminal width in `process.stdout.columns`; patched bundles expose
+that width as `COLUMNS` for StatusLine hooks only. Cleanup condition: upstream
+adds terminal dimensions to the statusLine payload or hook environment.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/hooks.ts#L881-L885"
+locator_pattern = '''let C=!G&&!W&&process.env.CLAUDE_CODE_SHELL_PREFIX?YT6(process.env.CLAUDE_CODE_SHELL_PREFIX,L):L,I=H.timeout?H.timeout*1000:W5,u={...lh(),CLAUDE_PROJECT_DIR:Z(k)},b=l66();'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''let C=!G&&!W&&process.env.CLAUDE_CODE_SHELL_PREFIX?YT6(process.env.CLAUDE_CODE_SHELL_PREFIX,L):L,I=H.timeout?H.timeout*1000:W5,u={...lh(),CLAUDE_PROJECT_DIR:Z(k)};if(_==="StatusLine"&&process.stdout.columns)u.COLUMNS=String(process.stdout.columns);let b=l66();'''
+
+[[patches.tests]]
+kind = "static"
+name = "statusline hooks receive terminal columns in 2.1.139"
+assert_contains = '''if(_==="StatusLine"&&process.stdout.columns)u.COLUMNS=String(process.stdout.columns)'''
+
+[[patches]]
 name = "statusline-footer-control-teammate-spinner-gap"
 applies_to = ">=2.1.133 <2.1.137"
 rationale = """

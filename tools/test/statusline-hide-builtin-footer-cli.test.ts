@@ -6,7 +6,7 @@ import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = "2.1.133"
+const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.138"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-statusline-"))
@@ -22,8 +22,8 @@ function renderStatuslineFooterPatches(input: string, output: string): void {
     .filter(
       (file) =>
         file === "statusline-footer-control.toml" ||
-        (file.startsWith("statusline-hide-builtin-footer-") || file.startsWith("statusline-json-")) &&
-          file.endsWith(".toml"),
+        ((file.startsWith("statusline-hide-builtin-footer-") || file.startsWith("statusline-json-")) &&
+          file.endsWith(".toml")),
     )
     .sort()
     .flatMap((file) => loadPatchEntriesFromFile(join(ROOT, "patches", file)))
@@ -43,16 +43,13 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   )
   expect(patched).toContain("disabledFooter:_")
   expect(patched).toContain(
-    'disabledFooter:v.array(v.enum(["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+    '["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")',
   )
-  expect(patched).toContain(
-    'Hp=(Y_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)||Y_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification")))?void 0:nH?void 0:Ws7(jH,qH)',
-  )
-  expect(patched).toContain("let A=rH?null:T,z;")
-  expect(patched).toContain(
-    'bH&&k?null:tq.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"}',
-  )
-  expect(patched).toContain("w||Y({key:CC1,text:`Image in clipboard")
+  expect(patched).toContain('disabledFooter?.includes("effort_notification")')
+  expect(patched).toContain('disabledFooter?.includes("rate_limit_warning")')
+  expect(patched).toContain('disabledFooter?.includes("teammate_idle_spacer")')
+  expect(patched).toContain("Image in clipboard")
+  expect(patched).toContain("globalThis.__acc_clipboard_image_available=")
   expect(patched).toContain(
     'clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}',
   )

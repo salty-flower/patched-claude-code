@@ -1,13 +1,15 @@
 #!/usr/bin/env bun
 // Execute tests embedded in patches/*.toml against a rendered patched bundle.
 
-import { existsSync, readFileSync, readdirSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { patchApplies } from "../lib/apply-patches"
 import { createCommand } from "../lib/cli"
+import { loadPatchEntriesFromToml } from "../lib/patch-files"
 import {
+  type CliPatchTest,
   evaluateStaticPatchTests,
   loadPatchTestsFromToml,
-  type CliPatchTest,
   type PatchTest,
   type PtyPatchTest,
 } from "../lib/patch-tests"
@@ -16,6 +18,7 @@ const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 type Args = {
   bundle?: string
+  version?: string
   patches: string[]
 }
 
@@ -23,10 +26,15 @@ export function parseArgs(argv: string[]): Args {
   const program = createCommand("run-patch-tests")
     .argument("[patches...]", "patch TOML files")
     .option("--bundle <cli.patched.js>")
+    .option("--version <ver>", "target version for applies_to-filtered patch tests")
     .parse(argv, { from: "user" })
-  const options = program.opts<{ bundle?: string }>()
+  const options = program.opts<{ bundle?: string; version?: string }>()
 
-  return { patches: program.args, ...(options.bundle ? { bundle: options.bundle } : {}) }
+  return {
+    patches: program.args,
+    ...(options.bundle ? { bundle: options.bundle } : {}),
+    ...(options.version ? { version: options.version } : {}),
+  }
 }
 
 function defaultPatchFiles(): string[] {
@@ -88,6 +96,16 @@ function runPtyTest(bundle: string, test: PtyPatchTest): { ok: boolean; message:
   return { ok: true, message: "PTY assertion passed" }
 }
 
+function inferVersionFromBundle(bundle: string): string | undefined {
+  return bundle.match(/(?:^|\/)staging\/([^/]+)\/cli\.patched\.js$/)?.[1]
+}
+
+function patchTestsForTarget(rawToml: string, version?: string): PatchTest[] {
+  if (!version) return loadPatchTestsFromToml(rawToml)
+  const entries = loadPatchEntriesFromToml(rawToml, "<inline>")
+  return entries.filter((entry) => patchApplies(entry, version)).flatMap((entry) => entry.tests ?? [])
+}
+
 function main(): number {
   const args = parseArgs(process.argv.slice(2))
   if (!args.bundle) {
@@ -100,11 +118,12 @@ function main(): number {
   }
 
   const bundleText = readFileSync(args.bundle, "utf8")
+  const targetVersion = args.version ?? inferVersionFromBundle(args.bundle)
   const patchFiles = args.patches.length > 0 ? args.patches : defaultPatchFiles()
   let allOk = true
 
   for (const patchFile of patchFiles) {
-    const tests = loadPatchTestsFromToml(readFileSync(patchFile, "utf8"))
+    const tests = patchTestsForTarget(readFileSync(patchFile, "utf8"), targetVersion)
     if (tests.length === 0) {
       console.log(`[FAIL] ${patchFile}: no [[tests]] entries`)
       allOk = false

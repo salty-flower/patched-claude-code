@@ -1,5 +1,5 @@
-import { join } from "node:path"
 import { expect, test } from "bun:test"
+import { join } from "node:path"
 import { parseArgs as parseCreateSourceTagArgs } from "../patch/create-source-tag"
 import { parseArgs as parseDetectUpstreamArgs } from "../patch/detect-upstream"
 import { parseArgs as parseFormatStagedCliArgs } from "../patch/format-staged-cli"
@@ -56,9 +56,11 @@ test("write-source-release requires version and defaults release metadata", () =
 })
 
 test("create-source-tag parses parent toggles", () => {
-  expect(parseCreateSourceTagArgs(["--version", "2.1.133", "--release-id", "patch.1", "--no-parent"], {
-    GITHUB_SHA: "abc123",
-  })).toEqual({
+  expect(
+    parseCreateSourceTagArgs(["--version", "2.1.133", "--release-id", "patch.1", "--no-parent"], {
+      GITHUB_SHA: "abc123",
+    }),
+  ).toEqual({
     version: "2.1.133",
     releaseId: "patch.1",
     parent: null,
@@ -96,9 +98,12 @@ test("stage-claude-code parses positional version and source options", () => {
   })
 })
 
-test("run-patch-tests parses bundle and patch file list", () => {
-  expect(parseRunPatchTestsArgs(["--bundle", "staging/2.1.133/cli.patched.js", "patches/a.toml"])).toEqual({
-    bundle: "staging/2.1.133/cli.patched.js",
+test("run-patch-tests parses target version, bundle, and patch file list", () => {
+  expect(
+    parseRunPatchTestsArgs(["--version", "2.1.138", "--bundle", "staging/2.1.138/cli.patched.js", "patches/a.toml"]),
+  ).toEqual({
+    version: "2.1.138",
+    bundle: "staging/2.1.138/cli.patched.js",
     patches: ["patches/a.toml"],
   })
 })

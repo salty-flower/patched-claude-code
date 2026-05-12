@@ -25,10 +25,10 @@ smoke-rendered version=target:
   bun "staging/{{version}}/cli.patched.js" --version
 
 patch-test version=target source=source: (render version source)
-  bun run tools/test/run-patch-tests.ts --bundle "staging/{{version}}/cli.patched.js"
+  bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
 
 patch-test-rendered version=target:
-  bun run tools/test/run-patch-tests.ts --bundle "staging/{{version}}/cli.patched.js"
+  bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
 
 package version=target release_id=release_id source=source: (render version source)
   bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"

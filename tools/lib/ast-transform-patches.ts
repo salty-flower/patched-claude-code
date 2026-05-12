@@ -25,6 +25,7 @@ export type AstMatch = {
   source?: string
   string?: string
   strings?: string[]
+  parent_node?: string
 }
 
 export type AstLocator = {
@@ -252,11 +253,36 @@ function rangeForMatches(matches: AstNode[]): { start?: number; end?: number } {
 }
 
 function findMatches(root: Record<string, unknown>, source: string, match: AstMatch): AstNode[] {
+  const parentMap = buildParentMap(root)
   const matches: AstNode[] = []
   visit(root, (node) => {
-    if (matchesAstMatch(node, source, match)) matches.push(node)
+    if (matchesAstMatch(node, source, match, parentMap)) matches.push(node)
   })
   return matches
+}
+
+function buildParentMap(root: Record<string, unknown>): Map<AstNode, AstNode> {
+  const map = new Map<AstNode, AstNode>()
+  visitWithParent(root, null, map)
+  return map
+}
+
+function visitWithParent(node: unknown, parent: AstNode | null, map: Map<AstNode, AstNode>): void {
+  if (!node || typeof node !== "object") return
+  if (Array.isArray(node)) {
+    for (const item of node) visitWithParent(item, parent, map)
+    return
+  }
+  const record = node as Record<string, unknown>
+  if (typeof record.type === "string" && typeof record.start === "number" && typeof record.end === "number") {
+    const astNode = record as AstNode
+    if (parent) map.set(astNode, parent)
+    parent = astNode
+  }
+  for (const key of Object.keys(record)) {
+    if (IGNORED_KEYS.has(key)) continue
+    visitWithParent(record[key], parent, map)
+  }
 }
 
 function visit(node: unknown, onNode: (node: AstNode) => void): void {
@@ -276,7 +302,7 @@ function visit(node: unknown, onNode: (node: AstNode) => void): void {
   }
 }
 
-function matchesAstMatch(node: AstNode, source: string, match: AstMatch): boolean {
+function matchesAstMatch(node: AstNode, source: string, match: AstMatch, parentMap?: Map<AstNode, AstNode>): boolean {
   if (node.type !== match.node) return false
   if (match.callee_property && !hasCalleeProperty(node, match.callee_property)) return false
   if (match.string_literal && !hasStringLiteral(node, match.string_literal)) return false
@@ -293,6 +319,10 @@ function matchesAstMatch(node: AstNode, source: string, match: AstMatch): boolea
     for (const s of match.strings) {
       if (!nodeSource.includes(s)) return false
     }
+  }
+  if (match.parent_node) {
+    const parent = parentMap?.get(node)
+    if (!parent || parent.type !== match.parent_node) return false
   }
   return true
 }

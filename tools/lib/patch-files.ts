@@ -132,6 +132,7 @@ function astLocator(value: unknown, field: string, file: string): AstLocator {
       source: optionalString(match.source, `${field}.match.source`, file),
       string: optionalString(match.string, `${field}.match.string`, file),
       strings: optionalStrings(match.strings, `${field}.match.strings`, file),
+      parent_node: optionalString(match.parent_node, `${field}.match.parent_node`, file),
     },
   }
 }

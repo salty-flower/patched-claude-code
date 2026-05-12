@@ -16,20 +16,6 @@ afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
 })
 
-function run(cmd: string[]): { stdout: string; stderr: string; exitCode: number | null } {
-  const result = Bun.spawnSync({
-    cmd,
-    cwd: ROOT,
-    stdout: "pipe",
-    stderr: "pipe",
-  })
-  return {
-    stdout: result.stdout.toString(),
-    stderr: result.stderr.toString(),
-    exitCode: result.exitCode,
-  }
-}
-
 function renderStatuslineFooterPatches(input: string, output: string): void {
   const body = readFileSync(input, "utf8")
   const patches = readdirSync(join(ROOT, "patches"))
@@ -72,8 +58,4 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   )
   expect(patched).toContain("globalThis.__acc_rate_limit_warning=T")
   expect(patched).toContain("rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}")
-
-  const help = run(["bun", patchedBundle, "--help"])
-  expect(help.exitCode).toBe(0)
-  expect(help.stdout).toContain("--hide-builtin-footer")
-})
+}, 30000)

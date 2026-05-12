@@ -48,10 +48,16 @@ settings files unchanged. Cleanup condition: upstream ships an official CLI
 flag or runtime option for hiding built-in footer items.
 """
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
-locator_pattern = '''F$={settings:m8(),tasks:{},taskDecorations:{}'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''F$={settings:Y.hideBuiltinFooter?(()=>{let H=m8(),_=Y.hideBuiltinFooter===!0||Y.hideBuiltinFooter==="all"?["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(Y.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);return{...H,statusLine:{...H.statusLine,disabledFooter:_}}})():m8(),tasks:{},taskDecorations:{}'''
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "settings", strings = ["tasks", "taskDecorations"], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "set_object_property"
+property = "settings"
+value = 'Y.hideBuiltinFooter?(()=>{let H=m8(),_=Y.hideBuiltinFooter===!0||Y.hideBuiltinFooter==="all"?["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(Y.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);return{...H,statusLine:{...H.statusLine,disabledFooter:_}}})():m8()'
 
 [[patches.tests]]
 kind = "static"
@@ -69,10 +75,16 @@ This is the 2.1.137 minified-symbol variant of
 official CLI flag or runtime option for hiding built-in footer items.
 """
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
-locator_pattern = '''K3={settings:m8(),tasks:{},taskDecorations:{}'''
-locator_kind = "literal"
-expected_matches = 1
-replacement = '''K3={settings:A.hideBuiltinFooter?(()=>{let H=m8(),_=A.hideBuiltinFooter===!0||A.hideBuiltinFooter==="all"?["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(A.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);return{...H,statusLine:{...H.statusLine,disabledFooter:_}}})():m8(),tasks:{},taskDecorations:{}'''
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "settings", strings = ["tasks", "taskDecorations"], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "set_object_property"
+property = "settings"
+value = 'A.hideBuiltinFooter?(()=>{let H=m8(),_=A.hideBuiltinFooter===!0||A.hideBuiltinFooter==="all"?["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(A.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);return{...H,statusLine:{...H.statusLine,disabledFooter:_}}})():m8()'
 
 [[patches.tests]]
 kind = "static"
@@ -279,15 +291,10 @@ This is the 2.1.137 minified-symbol variant of
 official setting or flag for hiding the built-in footer status line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
-locator_kind = "ast_transform"
-
-[patches.ast]
-schema = 1
-match = { node = "CallExpression", callee_property = "createElement", strings = ["exitMessage", "isInputEmpty", "onOpenTasksDialog"] }
-
-[patches.transform]
-op = "wrap_expression"
-template = 'l?.statusLine?.hideBuiltinFooter||l?.statusLine?.disabledFooter?.includes("footer")?null:%%EXPR%%'
+locator_pattern = '''F3.createElement(OSK,{exitMessage:q,leftArrowPending:K,vimMode:O,hideVimModeIndicator:!t&&a&&(l?.statusLine?.hideVimModeIndicator??!1),mode:T,toolPermissionContext:D,suppressHint:o,isInputEmpty:!f,isLoading:X,tasksSelected:$H,teamsSelected:G,teammateFooterIndex:k,tmuxSelected:R,isPasting:h,showExpandPasteHint:S,isSearching:E,historyQuery:p,setHistoryQuery:F,historyFailedMatch:g,onOpenTasksDialog:Q})'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''l?.statusLine?.hideBuiltinFooter||l?.statusLine?.disabledFooter?.includes("footer")?null:F3.createElement(OSK,{exitMessage:q,leftArrowPending:K,vimMode:O,hideVimModeIndicator:!t&&a&&(l?.statusLine?.hideVimModeIndicator??!1),mode:T,toolPermissionContext:D,suppressHint:o,isInputEmpty:!f,isLoading:X,tasksSelected:$H,teamsSelected:G,teammateFooterIndex:k,tmuxSelected:R,isPasting:h,showExpandPasteHint:S,isSearching:E,historyQuery:p,setHistoryQuery:F,historyFailedMatch:g,onOpenTasksDialog:Q})'''
 
 [[patches.tests]]
 kind = "static"

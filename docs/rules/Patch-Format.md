@@ -99,6 +99,7 @@ AST match fields are conjunctive:
 | `source` | Exact source text for the matched node. |
 | `string` | Substring contained in the matched node source. |
 | `strings` | Array of substrings; ALL must be contained in the matched node source. |
+| `parent_node` | Immediate parent Babel node type. |
 
 Supported transform ops:
 

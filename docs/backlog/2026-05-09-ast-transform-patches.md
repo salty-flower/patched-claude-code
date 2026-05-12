@@ -7,7 +7,7 @@
 - Phase 3 (control-flow patches) is complete. `thinking-display.toml` has zero
   legacy locators remaining.
 - Phase 4 (statusline footer controls) is partially done.
-  `statusline-footer-control-schema` is converted; 20 legacy locators remain.
+  `statusline-footer-control-schema` is converted; 9 legacy locators remain.
 - This file tracks only genuinely pending migration work.
 
 ## Pending Work
@@ -16,14 +16,14 @@
 
 | Family | AST patches | Legacy remaining | Notes |
 |--------|------------|------------------|-------|
-| `statusline-footer-control` | 6 | **15** (13 literal + 2 regex) | Schema, render, permission-mode, clipboard-image-refresh, and refresh-effect converted. Remaining patches inject CLI options, mutate settings objects, or rewrite function bodies. Many require version-specific minified variable names in replacements even with drift-resistant locators. |
+| `statusline-footer-control` | 10 | **9** (8 literal + 1 regex) | Schema, render, permission-mode, clipboard-image-refresh, refresh-effect, and cli-settings converted. Remaining patches inject CLI options, mutate function bodies, or rewrite large sections. Many require version-specific minified variable names in replacements even with drift-resistant locators. |
 
 Remaining patches by category:
 
 | Category | Count | Convertibility |
 |----------|-------|----------------|
 | CLI option injection (`statusline-footer-control-cli-option`) | 1 regex | Hard: needs to match a method chain (`addOption(...).option(...)`). May need `call_chain` selector extension. |
-| Settings object mutation (`cli-settings`, `cli-settings-2-1-137`) | 2 literal | Medium: could use `replace_function_body` on the enclosing function if the minified variable names for `hideBuiltinFooter` can be derived. |
+| Settings object mutation (`cli-settings`, `cli-settings-2-1-137`) | 0 | Converted to `set_object_property` on `ObjectExpression` with `parent_node = "VariableDeclarator"` to disambiguate. |
 | Clipboard image hint (`clipboard-image-hint`, `*-2-1-137`) | 2 literal | Hard: replaces entire function bodies. Would need multi-statement `replace_function_body` or a sequence-aware transform. |
 | Effort notification (`effort-notification`, `*-2-1-137`) | 2 literal | Medium: prepends a conditional to a variable declaration. Could use `replace_substring` on the assignment if the left-hand side identifier is stable. |
 | Rate limit warning (`rate-limit-warning`, `*-2-1-137`) | 2 literal | Hard: injects statements into the middle of a function. |

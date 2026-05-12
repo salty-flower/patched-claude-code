@@ -16,11 +16,24 @@ test("ci release audit target declares shared staged-bundle work once", () => {
   const recipe = recipeBlock("ci-release-audit")
 
   expect(recipe).toContain("(tool-test version source)")
-  expect(recipe).toContain("(smoke version source)")
-  expect(recipe).toContain("(patch-test version source)")
-  expect(recipe).toContain("(package version release_id source)")
-  expect(recipe).toContain("(release-source version release_id source)")
+  expect(recipe).toContain("(render version source)")
+  expect(recipe).toContain("(smoke-rendered version)")
+  expect(recipe).toContain("(patch-test-rendered version)")
+  expect(recipe).toContain("(package-rendered version release_id)")
+  expect(recipe).toContain("(release-source-rendered version release_id)")
   expect(recipe).toContain("git ls-tree -r --name-only")
+})
+
+test("release dry target reuses the rendered bundle", () => {
+  const recipe = recipeBlock("release-dry")
+
+  expect(recipe).toContain("(render version source)")
+  expect(recipe).toContain("(smoke-rendered version)")
+  expect(recipe).toContain("(patch-test-rendered version)")
+  expect(recipe).toContain("(package-rendered version release_id)")
+  expect(recipe).not.toContain("(smoke version source)")
+  expect(recipe).not.toContain("(patch-test version source)")
+  expect(recipe).not.toContain("(package version release_id source)")
 })
 
 test("render target depends on verify but skips render-patched internal verification", () => {

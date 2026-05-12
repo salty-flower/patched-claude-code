@@ -79,13 +79,6 @@ jobs:
         if: steps.detect.outputs.action != 'none'
         run: just typecheck
 
-      - name: Stage candidate
-        if: steps.detect.outputs.action != 'none'
-        env:
-          TARGET_SOURCE: ${{ steps.detect.outputs.action == 'promote' && 'canonical' || steps.detect.outputs.source }}
-          TARGET_PLATFORM: darwin-arm64
-        run: just stage "${{ steps.detect.outputs.version }}"
-
       - name: Verify, render, smoke, and package
         if: steps.detect.outputs.action != 'none'
         env:
@@ -93,11 +86,10 @@ jobs:
           TARGET_PLATFORM: darwin-arm64
         run: |
           set -euo pipefail
-          just verify "${{ steps.detect.outputs.version }}"
           just render "${{ steps.detect.outputs.version }}"
-          just smoke "${{ steps.detect.outputs.version }}"
-          just patch-test "${{ steps.detect.outputs.version }}"
-          just package "${{ steps.detect.outputs.version }}" "patch.1"
+          just smoke-rendered "${{ steps.detect.outputs.version }}"
+          just patch-test-rendered "${{ steps.detect.outputs.version }}"
+          just package-rendered "${{ steps.detect.outputs.version }}" "patch.1"
 
       - name: Check canonical platform merge before promotion
         if: steps.detect.outputs.action == 'promote'
@@ -113,7 +105,7 @@ jobs:
           tag="claude-code-${{ steps.detect.outputs.version }}-patch.1"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          just release-source "${{ steps.detect.outputs.version }}" "patch.1"
+          just release-source-rendered "${{ steps.detect.outputs.version }}" "patch.1"
           bun ./cli.js --version
           git push origin "refs/tags/$tag" --force
           git push origin "refs/tags/$tag:refs/heads/claude-code-latest" --force

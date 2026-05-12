@@ -105,42 +105,24 @@ jobs:
       - name: Typecheck tools
         run: just typecheck
 
-      - name: Stage target bundle
-        env:
-          TARGET_SOURCE: canonical
-        run: just stage "${{ steps.coord.outputs.version }}"
-
-      - name: Verify patches and contracts
-        env:
-          TARGET_SOURCE: canonical
-        run: just verify "${{ steps.coord.outputs.version }}"
-
-      - name: Render patched bundle
+      - name: Verify and render patched bundle
         env:
           TARGET_SOURCE: canonical
         run: just render "${{ steps.coord.outputs.version }}"
 
       - name: Smoke patched bundle
-        env:
-          TARGET_SOURCE: canonical
-        run: just smoke "${{ steps.coord.outputs.version }}"
+        run: just smoke-rendered "${{ steps.coord.outputs.version }}"
 
       - name: Patch tests
-        env:
-          TARGET_SOURCE: canonical
-        run: just patch-test "${{ steps.coord.outputs.version }}"
+        run: just patch-test-rendered "${{ steps.coord.outputs.version }}"
 
       - name: Package release artifact
-        env:
-          TARGET_SOURCE: canonical
-        run: just package "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
+        run: just package-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
 
       - name: Create Nix source tag
-        env:
-          TARGET_SOURCE: canonical
         run: |
           set -euo pipefail
-          just release-source "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
+          just release-source-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
           bun ./cli.js --version
 
       - name: Push Nix source refs

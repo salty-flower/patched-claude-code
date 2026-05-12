@@ -21,10 +21,19 @@ tool-test version=target source=source: (stage version source)
 smoke version=target source=source: (render version source)
   bun "staging/{{version}}/cli.patched.js" --version
 
+smoke-rendered version=target:
+  bun "staging/{{version}}/cli.patched.js" --version
+
 patch-test version=target source=source: (render version source)
   bun run tools/test/run-patch-tests.ts --bundle "staging/{{version}}/cli.patched.js"
 
+patch-test-rendered version=target:
+  bun run tools/test/run-patch-tests.ts --bundle "staging/{{version}}/cli.patched.js"
+
 package version=target release_id=release_id source=source: (render version source)
+  bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"
+
+package-rendered version=target release_id=release_id:
   bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"
 
 release-source version=target release_id=release_id source=source: \
@@ -32,12 +41,17 @@ release-source version=target release_id=release_id source=source: \
   (_release-payload version release_id) \
   (_release-tag version release_id)
 
+release-source-rendered version=target release_id=release_id: \
+  (_release-payload version release_id) \
+  (_release-tag version release_id)
+
 ci-release-audit version=target release_id=release_id source=source: \
   (tool-test version source) \
-  (smoke version source) \
-  (patch-test version source) \
-  (package version release_id source) \
-  (release-source version release_id source)
+  (render version source) \
+  (smoke-rendered version) \
+  (patch-test-rendered version) \
+  (package-rendered version release_id) \
+  (release-source-rendered version release_id)
   test -s cli.js
   test -s manifest.json
   test -s package.json
@@ -59,9 +73,10 @@ check:
   prek run --all-files
 
 release-dry version=target release_id=release_id source=source: \
-  (smoke version source) \
-  (patch-test version source) \
-  (package version release_id source)
+  (render version source) \
+  (smoke-rendered version) \
+  (patch-test-rendered version) \
+  (package-rendered version release_id)
 
 platform-audit version=target:
   bun run tools/platform/platform-audit.ts --version "{{version}}"

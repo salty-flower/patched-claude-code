@@ -134,10 +134,10 @@ loading memory files.
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L626-L648"
 
 locator_kind = "regex"
-locator_pattern = '''let\{resolvedPath:z,isSymlink:\$\}=([a-zA-Z0-9_$]+)\(([a-zA-Z0-9_$]+\(\),[a-zA-Z0-9_$]+)\);if\(q\.add\(A\),\$\)q\.add\(([a-zA-Z0-9_$]+)\(z\)\);let\{info:Y,includePaths:w\}=await ([a-zA-Z0-9_$]+)\(H,_,z\)'''
+locator_pattern = '''let\{resolvedPath:([a-zA-Z0-9_$]+),isSymlink:([a-zA-Z0-9_$]+)\}=([a-zA-Z0-9_$]+)\(([a-zA-Z0-9_$]+\(\),[a-zA-Z0-9_$]+)\);if\(q\.add\(([a-zA-Z0-9_$]+)\),\2\)q\.add\(([a-zA-Z0-9_$]+)\(\1\)\);let\{info:([a-zA-Z0-9_$]+),includePaths:([a-zA-Z0-9_$]+)\}=await ([a-zA-Z0-9_$]+)\(H,_,\1\)'''
 expected_matches = 1
 
-replacement = '''let{resolvedPath:z,isSymlink:$}=$1($2),YH=$3(z);if($$&&q.has(YH))return[];if(q.add(A),$)q.add(YH);let{info:Y,includePaths:w}=await $4(H,_,z)'''
+replacement = '''let{resolvedPath:$1,isSymlink:$2}=$3($4),YH=$6($1);if($2&&q.has(YH))return[];if(q.add($5),$2)q.add(YH);let{info:$7,includePaths:$8}=await $9(H,_,$1)'''
 
 [[patches.tests]]
 kind = "static"

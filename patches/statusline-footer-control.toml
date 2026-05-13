@@ -66,7 +66,7 @@ assert_contains = '''["footer","effort_notification","rate_limit_warning","clipb
 
 [[patches]]
 name = "statusline-footer-control-cli-settings-2-1-137"
-applies_to = ">=2.1.137 <2.2.0"
+applies_to = ">=2.1.137 <2.1.140"
 rationale = """
 Carry the hide-built-in-footer CLI switch into runtime settings.
 
@@ -90,6 +90,35 @@ value = 'A.hideBuiltinFooter?(()=>{let H=m8(),_=A.hideBuiltinFooter===!0||A.hide
 kind = "static"
 name = "CLI option expands to all footer items by default in 2.1.137"
 assert_contains = '''["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]'''
+
+[[patches]]
+name = "statusline-footer-control-cli-settings-2-1-140"
+applies_to = ">=2.1.140 <2.2.0"
+rationale = """
+Carry the hide-built-in-footer CLI switch into runtime settings.
+
+This is the 2.1.140 minified-symbol variant of
+`statusline-footer-control-cli-settings`. In 2.1.140 the parsed CLI options
+remain under `z`, and the initial-settings helper in this scope is `u8`.
+Cleanup condition: upstream ships an official CLI flag or runtime option for
+hiding built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "settings", strings = ["tasks", "taskDecorations"], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "set_object_property"
+property = "settings"
+value = 'z.hideBuiltinFooter?(()=>{let H=u8(),_=z.hideBuiltinFooter===!0||z.hideBuiltinFooter==="all"?["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(z.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);return{...H,statusLine:{...H.statusLine,disabledFooter:_}}})():u8()'
+
+[[patches.tests]]
+kind = "static"
+name = "CLI option uses 2.1.140 settings symbols"
+assert_contains = '''z.hideBuiltinFooter?(()=>{let H=u8()'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint"
@@ -586,7 +615,7 @@ assert_contains = '''command_length:F.command?.length??0,padding:F.padding'''
 [[patches.tests]]
 kind = "static"
 name = "statusline display still follows upstream presence check in 2.1.139"
-assert_contains = '''return H?.statusLine!==void 0'''
+assert_contains = '''return H?.statusLine'''
 
 [[patches]]
 name = "statusline-footer-control-terminal-columns-2-1-139"

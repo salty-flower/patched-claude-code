@@ -31,6 +31,21 @@ function renderStatuslineFooterPatches(input: string, output: string): void {
   writeFileSync(output, applyPatchEntries(body, patches, TARGET_VERSION).source)
 }
 
+function isVersionAtLeast(version: string, floor: string): boolean {
+  const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
+  const current = parts(version)
+  const minimum = parts(floor)
+
+  for (let index = 0; index < Math.max(current.length, minimum.length); index += 1) {
+    const currentPart = current[index] ?? 0
+    const minimumPart = minimum[index] ?? 0
+    if (currentPart > minimumPart) return true
+    if (currentPart < minimumPart) return false
+  }
+
+  return true
+}
+
 test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
@@ -55,4 +70,10 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   )
   expect(patched).toContain("globalThis.__acc_rate_limit_warning=T")
   expect(patched).toContain("rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}")
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.140")) {
+    expect(patched).toContain("z.hideBuiltinFooter")
+    expect(patched).toContain("let H=u8()")
+    expect(patched).not.toContain("A.hideBuiltinFooter?(()=>{let H=m8()")
+  }
 }, 120000)

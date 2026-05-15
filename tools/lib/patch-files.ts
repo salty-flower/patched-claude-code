@@ -130,6 +130,7 @@ function astLocator(value: unknown, field: string, file: string): AstLocator {
       method_name: optionalString(match.method_name, `${field}.match.method_name`, file),
       body_statement_count: optionalNumber(match.body_statement_count, `${field}.match.body_statement_count`, file),
       source: optionalString(match.source, `${field}.match.source`, file),
+      source_regex: optionalString(match.source_regex, `${field}.match.source_regex`, file),
       string: optionalString(match.string, `${field}.match.string`, file),
       strings: optionalStrings(match.strings, `${field}.match.strings`, file),
       parent_node: optionalString(match.parent_node, `${field}.match.parent_node`, file),

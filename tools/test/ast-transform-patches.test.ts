@@ -50,6 +50,18 @@ test("source matches the exact node source", () => {
   expect(result.source).toBe('switch(t){case"outer":switch(u){case"inner":{return ok()}}}')
 })
 
+test("source_regex matches against the node source", () => {
+  const result = applyAstTransformPatches("var outer=()=>{let C={target:1}};let C={target:2}", [
+    {
+      name: "replace top-level let",
+      ast: { schema: 1, match: { node: "VariableDeclaration", source_regex: "^let C=\\{target:2\\}", string: "target" } },
+      transform: { op: "replace_node", value: "let C={target:3}" },
+    },
+  ])
+
+  expect(result.source).toBe("var outer=()=>{let C={target:1}};let C={target:3}")
+})
+
 test("set_call_arg replaces an existing positional argument", () => {
   const result = applyAstTransformPatches("const out=L4.createElement(yr5,{key:J,item:w,verbose:q})", [
     {

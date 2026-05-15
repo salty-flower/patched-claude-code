@@ -23,6 +23,7 @@ export type AstMatch = {
   method_name?: string
   body_statement_count?: number
   source?: string
+  source_regex?: string
   string?: string
   strings?: string[]
   parent_node?: string
@@ -312,10 +313,11 @@ function matchesAstMatch(node: AstNode, source: string, match: AstMatch, parentM
   if (match.function_name && !hasFunctionName(node, match.function_name)) return false
   if (match.method_name && propertyKeyName(node) !== match.method_name) return false
   if (match.body_statement_count !== undefined && bodyStatementCount(node) !== match.body_statement_count) return false
-  if (match.source && source.slice(node.start, node.end) !== match.source) return false
-  if (match.string && !source.slice(node.start, node.end).includes(match.string)) return false
+  const nodeSource = source.slice(node.start, node.end)
+  if (match.source && nodeSource !== match.source) return false
+  if (match.source_regex && !new RegExp(match.source_regex).test(nodeSource)) return false
+  if (match.string && !nodeSource.includes(match.string)) return false
   if (match.strings && match.strings.length > 0) {
-    const nodeSource = source.slice(node.start, node.end)
     for (const s of match.strings) {
       if (!nodeSource.includes(s)) return false
     }

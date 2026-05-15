@@ -97,6 +97,7 @@ AST match fields are conjunctive:
 | `method_name` | Object/class method key. |
 | `body_statement_count` | Number of top-level statements in a block body. |
 | `source` | Exact source text for the matched node. |
+| `source_regex` | JavaScript regular expression tested against the matched node source. |
 | `string` | Substring contained in the matched node source. |
 | `strings` | Array of substrings; ALL must be contained in the matched node source. |
 | `parent_node` | Immediate parent Babel node type. |

@@ -1277,6 +1277,38 @@ name = "statusline JSON includes footer state"
 assert_contains = '''permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''
 
 [[patches]]
+name = "statusline-json-effort-level"
+applies_to = ">=2.1.133 <2.2.0"
+rationale = """
+Expose the effective effort level to custom statusLine commands as a stable
+top-level field.
+
+Recent upstream bundles include an `effort.level` object for models that
+support effort selection. Status line scripts often want the selected level as
+a direct scalar beside `fast_mode` and `thinking.enabled`; patched bundles add
+`effort_level` using the same effective display-level helper while preserving
+the upstream nested `effort` object. Unsupported models receive `null` instead
+of omitting the top-level field.
+Cleanup condition: upstream adds an equivalent scalar statusLine field.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ReturnStatement", strings = ["cwd:", "session_name:", "model:", "display_name:"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(fast_mode:q,)\\.\\.\\.(\\w+)\\(M\\)&&\\{effort:\\{level:(\\w+)\\(M,w\\)\\}\\}"
+value = "$1effort_level:$2(M)?$3(M,w):null,...$2(M)&&{effort:{level:$3(M,w)}}"
+
+[[patches.tests]]
+kind = "static"
+name = "statusline JSON includes effort level"
+assert_contains = '''fast_mode:q,effort_level:'''
+
+[[patches]]
 name = "statusline-json-clipboard-image-refresh-2-1-137"
 applies_to = ">=2.1.137 <2.1.140"
 rationale = """

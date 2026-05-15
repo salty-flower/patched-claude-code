@@ -235,7 +235,7 @@ assert_not_contains = '''case"redacted_thinking":{if(!1)return null;'''
 [[patches]]
 name = "thinking-render-blocks-2-1-141"
 target_version = "2.1.141"
-applies_to = ">=2.1.141 <2.2.0"
+applies_to = ">=2.1.141 <2.1.142"
 
 rationale = """
 Render only the latest thinking block outside transcript or verbose mode.
@@ -270,6 +270,46 @@ assert_contains = '''case"redacted_thinking":{if(!D&&!z)return null;'''
 [[patches.tests]]
 kind = "static"
 name = "old normal-mode all-thinking override is absent in 2.1.141"
+assert_not_contains = '''case"redacted_thinking":{if(!1)return null;'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-142"
+target_version = "2.1.142"
+applies_to = ">=2.1.142 <2.2.0"
+
+rationale = """
+Render only the latest thinking block outside transcript or verbose mode.
+
+This is the 2.1.142 minified-symbol variant of `thinking-render-blocks`.
+Cleanup condition: upstream exposes an official interactive display setting
+for latest-thinking blocks.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string = 'case"thinking":{if(!D&&!$)return null' }
+
+[patches.transform]
+op = "replace_substring"
+find = "if(!D&&!$)return null;let L=D&&!(!P||X===P)"
+value = "if(!1)return null;let L=!D&&!$&&!(!P||X===P)"
+
+[[patches.tests]]
+kind = "static"
+name = "normal rendering keeps only latest thinking in 2.1.142"
+assert_contains = '''if(!1)return null;let L=!D&&!$&&!(!P||X===P)'''
+
+[[patches.tests]]
+kind = "static"
+name = "redacted thinking stays detailed-only in 2.1.142"
+assert_contains = '''case"redacted_thinking":{if(!D&&!$)return null;'''
+
+[[patches.tests]]
+kind = "static"
+name = "old normal-mode all-thinking override is absent in 2.1.142"
 assert_not_contains = '''case"redacted_thinking":{if(!1)return null;'''
 
 [[patches]]

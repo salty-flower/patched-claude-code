@@ -23,7 +23,7 @@ or exposes a configurable project-memory filename list.
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
 
 locator_kind = "regex"
-locator_pattern = '''let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);K\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\1,"Project",q,!1\)\);let\s+([a-zA-Z0-9_$]+)=\2\(\3,"\.claude","CLAUDE\.md"\)'''
+locator_pattern = '''let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.$]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);K\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\1,"Project",q,!1\)\);let\s+([a-zA-Z0-9_$]+)=\2\(\3,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
 replacement = '''let $1=$2($3,"CLAUDE.md");K.push(...await $4($1,"Project",q,!1));let AGENTS_MD=$2($3,"AGENTS.md");K.push(...await $4(AGENTS_MD,"Project",q,!1));let $5=$2($3,".claude","CLAUDE.md")'''
@@ -51,7 +51,7 @@ project-memory filename list.
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L886-L910"
 
 locator_kind = "regex"
-locator_pattern = '''(for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\.reverse\(\)\)\{.{0,600}?)let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\2,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\3\(\4,"\.claude","CLAUDE\.md"\)'''
+locator_pattern = '''(for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\.reverse\(\)\)\{.{0,600}?)let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.$]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\2,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\3\(\4,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
 replacement = '''$1let $2=$3($4,"CLAUDE.md");q.push(...await $5($2,"Project",$6));let AGENTS_MD=$3($4,"AGENTS.md");q.push(...await $5(AGENTS_MD,"Project",$6));let $7=$3($4,".claude","CLAUDE.md")'''
@@ -79,7 +79,7 @@ configurable project-memory filename list.
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
 
 locator_kind = "regex"
-locator_pattern = '''(CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD\)\)\{.{0,400}?for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\)\{.{0,300}?)let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\2,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\3\(\4,"\.claude","CLAUDE\.md"\)'''
+locator_pattern = '''(CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD\)\)\{.{0,400}?for\(let [a-zA-Z0-9_$]+ of [a-zA-Z0-9_$]+\)\{.{0,300}?)let\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_.$]+)\(([a-zA-Z0-9_$]+),"CLAUDE\.md"\);q\.push\(\.\.\.await\s+([a-zA-Z0-9_$]+)\(\2,"Project",([^)]+)\)\);let\s+([a-zA-Z0-9_$]+)=\3\(\4,"\.claude","CLAUDE\.md"\)'''
 expected_matches = 1
 
 replacement = '''$1let $2=$3($4,"CLAUDE.md");q.push(...await $5($2,"Project",$6));let AGENTS_MD=$3($4,"AGENTS.md");q.push(...await $5(AGENTS_MD,"Project",$6));let $7=$3($4,".claude","CLAUDE.md")'''
@@ -106,7 +106,7 @@ memory file or exposes a configurable project-memory filename list.
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
 
 locator_kind = "regex"
-locator_pattern = '''function ([a-zA-Z0-9_$]+)\(H\)\{let _=([a-zA-Z0-9_.]+)\.basename\(H\);if\(_==="CLAUDE\.md"\|\|_==="CLAUDE\.local\.md"\)return!0;'''
+locator_pattern = '''function ([a-zA-Z0-9_$]+)\(H\)\{let _=([a-zA-Z0-9_.$]+)\.basename\(H\);if\(_==="CLAUDE\.md"\|\|_==="CLAUDE\.local\.md"\)return!0;'''
 expected_matches = 1
 
 replacement = '''function $1(H){let _=$2.basename(H);if(_==="CLAUDE.md"||_==="CLAUDE.local.md"||_==="AGENTS.md")return!0;'''
@@ -119,7 +119,7 @@ assert_contains = '''||_==="AGENTS.md")return!0;'''
 [[patches]]
 name = "memory-file-realpath-overlap-dedup"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.142"
 
 rationale = """
 Deduplicate memory files only when their resolved filesystem targets overlap.

@@ -98,5 +98,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).not.toContain(
       'A_((m)=>m.settings.statusLine?.hideBuiltinFooter)||A_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
     )
+    expect(patched).toContain("OD.useEffect(()=>{m()},[__cci,m]);")
+    expect(patched).not.toContain("KD.useEffect(()=>{p()},[__cci,p]);")
   }
 }, 120000)

@@ -31,19 +31,27 @@ function renderStatuslineFooterPatches(input: string, output: string): void {
   writeFileSync(output, applyPatchEntries(body, patches, TARGET_VERSION).source)
 }
 
-function isVersionAtLeast(version: string, floor: string): boolean {
+function compareVersions(left: string, right: string): number {
   const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
-  const current = parts(version)
-  const minimum = parts(floor)
+  const leftParts = parts(left)
+  const rightParts = parts(right)
 
-  for (let index = 0; index < Math.max(current.length, minimum.length); index += 1) {
-    const currentPart = current[index] ?? 0
-    const minimumPart = minimum[index] ?? 0
-    if (currentPart > minimumPart) return true
-    if (currentPart < minimumPart) return false
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const leftPart = leftParts[index] ?? 0
+    const rightPart = rightParts[index] ?? 0
+    if (leftPart > rightPart) return 1
+    if (leftPart < rightPart) return -1
   }
 
-  return true
+  return 0
+}
+
+function isVersionAtLeast(version: string, floor: string): boolean {
+  return compareVersions(version, floor) >= 0
+}
+
+function isVersionBefore(version: string, ceiling: string): boolean {
+  return compareVersions(version, ceiling) < 0
 }
 
 test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", () => {
@@ -71,9 +79,24 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   expect(patched).toContain("globalThis.__acc_rate_limit_warning=T")
   expect(patched).toContain("rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.140")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.140") && isVersionBefore(TARGET_VERSION, "2.1.142")) {
     expect(patched).toContain("z.hideBuiltinFooter")
     expect(patched).toContain("let H=u8()")
     expect(patched).not.toContain("A.hideBuiltinFooter?(()=>{let H=m8()")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.142")) {
+    expect(patched).toContain("$.hideBuiltinFooter")
+    expect(patched).toContain("let H=m8()")
+    expect(patched).not.toContain("z.hideBuiltinFooter?(()=>{let H=u8()")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.143")) {
+    expect(patched).toContain(
+      'Y_((m)=>m.settings.statusLine?.hideBuiltinFooter)||Y_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
+    )
+    expect(patched).not.toContain(
+      'A_((m)=>m.settings.statusLine?.hideBuiltinFooter)||A_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
+    )
   }
 }, 120000)

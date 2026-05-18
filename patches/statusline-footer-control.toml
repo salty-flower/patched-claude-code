@@ -614,7 +614,7 @@ assert_contains = '''globalThis.__acc_rate_limit_warning=T'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-142"
-applies_to = ">=2.1.142 <2.2.0"
+applies_to = ">=2.1.142 <2.1.143"
 rationale = """
 Hide rate-limit warning banners when the rate_limit_warning item is disabled.
 
@@ -638,6 +638,38 @@ assert_contains = '''disabledFooter?.includes("rate_limit_warning"))'''
 kind = "static"
 name = "rate limit warning is available to statusline in 2.1.142"
 assert_contains = '''globalThis.__acc_rate_limit_warning=T'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-143"
+applies_to = ">=2.1.143 <2.2.0"
+rationale = """
+Hide rate-limit warning banners when the rate_limit_warning item is disabled.
+
+This is the 2.1.143 minified-symbol variant of
+`statusline-footer-control-rate-limit-warning`. Cleanup condition: upstream
+ships official footer item controls while exposing equivalent state to custom
+status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_pattern = '''let $=T,z;if(_[3]!==K||_[4]!==O||_[5]!==H)'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''let rH=Y_((m)=>m.settings.statusLine?.hideBuiltinFooter)||Y_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning")),$=(globalThis.__acc_rate_limit_warning=T,rH?null:T),z;if(_[3]!==K||_[4]!==O||_[5]!==H)'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is controlled by disabledFooter in 2.1.143"
+assert_contains = '''Y_((m)=>m.settings.statusLine?.hideBuiltinFooter)||Y_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is available to statusline in 2.1.143"
+assert_contains = '''globalThis.__acc_rate_limit_warning=T'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.142 rate limit selector is absent in 2.1.143"
+assert_not_contains = '''A_((m)=>m.settings.statusLine?.hideBuiltinFooter)||A_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))'''
 
 [[patches]]
 name = "statusline-footer-control-render"

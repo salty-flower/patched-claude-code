@@ -107,7 +107,7 @@ assert_contains = '''streamingThinking:'''
 [[patches]]
 name = "thinking-render-live-main-2-1-137"
 target_version = "2.1.137"
-applies_to = ">=2.1.137 <2.2.0"
+applies_to = ">=2.1.137 <2.1.146"
 
 rationale = """
 Pass live thinking state to the main interactive message renderer.
@@ -133,6 +133,45 @@ value = "r4"
 kind = "static"
 name = "main message renderer receives live thinking in 2.1.137"
 assert_contains = '''streamingThinking:'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-146"
+target_version = "2.1.146"
+applies_to = ">=2.1.146 <2.2.0"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.146 minified-symbol variant of `thinking-render-live-main`.
+The streaming thinking state moved from `r4` to `oT`; the transcript renderer
+still passes `streamingThinking:oT`, and the main-screen renderer must use the
+same state value.
+
+Cleanup condition: upstream renders live thinking summaries on the main
+interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "oT"
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.146"
+assert_contains = '''streamingThinking:oT'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer does not use the stale 2.1.137 state symbol"
+assert_not_contains = '''streamingThinking:r4'''
 
 [[patches]]
 name = "thinking-render-live-complete"

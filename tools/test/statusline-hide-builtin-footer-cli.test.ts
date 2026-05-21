@@ -16,19 +16,27 @@ afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
 })
 
-function renderStatuslineFooterPatches(input: string, output: string): void {
+function renderPatchFiles(input: string, output: string, files: string[]): void {
   const body = readFileSync(input, "utf8")
   const patches = readdirSync(join(ROOT, "patches"))
-    .filter(
-      (file) =>
-        file === "statusline-footer-control.toml" ||
-        ((file.startsWith("statusline-hide-builtin-footer-") || file.startsWith("statusline-json-")) &&
-          file.endsWith(".toml")),
-    )
+    .filter((file) => files.includes(file))
     .sort()
     .flatMap((file) => loadPatchEntriesFromFile(join(ROOT, "patches", file)))
 
   writeFileSync(output, applyPatchEntries(body, patches, TARGET_VERSION).source)
+}
+
+function renderStatuslineFooterPatches(input: string, output: string): void {
+  renderPatchFiles(
+    input,
+    output,
+    readdirSync(join(ROOT, "patches")).filter(
+      (file) =>
+        file === "statusline-footer-control.toml" ||
+        ((file.startsWith("statusline-hide-builtin-footer-") || file.startsWith("statusline-json-")) &&
+          file.endsWith(".toml")),
+    ),
+  )
 }
 
 function compareVersions(left: string, right: string): number {
@@ -111,5 +119,18 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       'f_((m)=>m.settings.statusLine?.hideBuiltinFooter)||f_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
     )
+  }
+}, 120000)
+
+test("thinking display wires main-screen streaming thinking to the current REPL state", () => {
+  expect(existsSync(TARGET_BUNDLE)).toBe(true)
+
+  renderPatchFiles(TARGET_BUNDLE, patchedBundle, ["thinking-display.toml"])
+
+  const patched = readFileSync(patchedBundle, "utf8")
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.146")) {
+    expect(patched).toContain("streamingThinking:oT")
+    expect(patched).not.toContain("streamingThinking:r4")
   }
 }, 120000)

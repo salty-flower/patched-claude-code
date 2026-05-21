@@ -93,10 +93,18 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).not.toContain("A.hideBuiltinFooter?(()=>{let H=m8()")
   }
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.142")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.142") && isVersionBefore(TARGET_VERSION, "2.1.146")) {
     expect(patched).toContain("$.hideBuiltinFooter")
     expect(patched).toContain("let H=m8()")
     expect(patched).not.toContain("z.hideBuiltinFooter?(()=>{let H=u8()")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.146")) {
+    expect(patched).toContain("z.hideBuiltinFooter")
+    expect(patched).toContain("let H=e8()")
+    expect(patched).not.toContain("$.hideBuiltinFooter?(()=>{let H=m8()")
+    expect(patched).toContain("__cci=f_((c)=>c.clipboardImageAvailable??!1)")
+    expect(patched).not.toContain("__cci=z_((c)=>c.clipboardImageAvailable??!1)")
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.143")) {
@@ -119,6 +127,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       'f_((m)=>m.settings.statusLine?.hideBuiltinFooter)||f_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
     )
+    expect(patched).toContain("rJ.useEffect(()=>{m()},[__cci,m]);")
+    expect(patched).not.toContain("OD.useEffect(()=>{m()},[__cci,m]);")
   }
 }, 120000)
 

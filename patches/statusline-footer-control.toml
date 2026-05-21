@@ -122,7 +122,7 @@ assert_contains = '''z.hideBuiltinFooter?(()=>{let H=u8()'''
 
 [[patches]]
 name = "statusline-footer-control-cli-settings-2-1-142"
-applies_to = ">=2.1.142 <2.2.0"
+applies_to = ">=2.1.142 <2.1.146"
 rationale = """
 Carry the hide-built-in-footer CLI switch into runtime settings.
 
@@ -153,6 +153,40 @@ assert_contains = '''$.hideBuiltinFooter?(()=>{let H=m8()'''
 kind = "static"
 name = "old 2.1.140 settings symbols are absent in 2.1.142"
 assert_not_contains = '''z.hideBuiltinFooter?(()=>{let H=u8()'''
+
+[[patches]]
+name = "statusline-footer-control-cli-settings-2-1-146"
+applies_to = ">=2.1.146 <2.2.0"
+rationale = """
+Carry the hide-built-in-footer CLI switch into runtime settings.
+
+This is the 2.1.146 minified-symbol variant of
+`statusline-footer-control-cli-settings`. In 2.1.146 the parsed CLI options
+are under `z`, and the initial-settings helper in this scope is `e8`.
+Cleanup condition: upstream ships an official CLI flag or runtime option for
+hiding built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "settings", strings = ["tasks", "taskDecorations"], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "set_object_property"
+property = "settings"
+value = 'z.hideBuiltinFooter?(()=>{let H=e8(),_=z.hideBuiltinFooter===!0||z.hideBuiltinFooter==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(z.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);return{...H,statusLine:{...H.statusLine,disabledFooter:_}}})():e8()'
+
+[[patches.tests]]
+kind = "static"
+name = "CLI option uses 2.1.146 settings symbols"
+assert_contains = '''z.hideBuiltinFooter?(()=>{let H=e8()'''
+
+[[patches.tests]]
+kind = "static"
+name = "old 2.1.142 settings symbols are absent in 2.1.146"
+assert_not_contains = '''$.hideBuiltinFooter?(()=>{let H=m8()'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint"
@@ -1525,7 +1559,7 @@ assert_contains = '''KD.useEffect(()=>{p()}'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-effect-2-1-143"
-applies_to = ">=2.1.143 <2.2.0"
+applies_to = ">=2.1.143 <2.1.146"
 rationale = """
 Trigger a custom statusLine rerender on clipboard image state changes.
 
@@ -1557,6 +1591,40 @@ assert_contains = '''OD.useEffect(()=>{m()}'''
 kind = "static"
 name = "stale 2.1.141 clipboard refresh effect is absent in 2.1.143"
 assert_not_contains = '''KD.useEffect(()=>{p()}'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-effect-2-1-146"
+applies_to = ">=2.1.146 <2.2.0"
+rationale = """
+Trigger a custom statusLine rerender on clipboard image state changes.
+
+This is the 2.1.146 minified-symbol variant of
+`statusline-json-clipboard-image-refresh-effect`. The 2.1.146 StatusLine
+component still uses `m` for the debounced refresh callback, but React hooks
+are under `rJ`. Cleanup condition: upstream adds official statusLine fields
+and refresh triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", string = "statusLine?.refreshInterval" }
+
+[patches.transform]
+op = "insert_before_node"
+code = 'rJ.useEffect(()=>{m()},[__cci,m]);'
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image state triggers statusline refresh in 2.1.146"
+assert_contains = '''rJ.useEffect(()=>{m()}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.143 clipboard refresh effect is absent in 2.1.146"
+assert_not_contains = '''OD.useEffect(()=>{m()}'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh"
@@ -1748,7 +1816,7 @@ assert_contains = '''permission_mode:H,clipboard_image:{available:globalThis.__a
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-2-1-141"
-applies_to = ">=2.1.141 <2.2.0"
+applies_to = ">=2.1.141 <2.1.146"
 rationale = """
 Refresh custom statusLine output when clipboard image availability changes.
 
@@ -1776,4 +1844,42 @@ assert_contains = '''__cci=z_((c)=>c.clipboardImageAvailable??!1)'''
 [[patches.tests]]
 kind = "static"
 name = "statusline JSON includes footer state in 2.1.141"
+assert_contains = '''permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-2-1-146"
+applies_to = ">=2.1.146 <2.2.0"
+rationale = """
+Refresh custom statusLine output when clipboard image availability changes.
+
+This is the 2.1.146 minified-symbol variant of
+`statusline-json-clipboard-image-refresh`. The StatusLine component selector
+helper moved from `z_` to `f_`. Cleanup condition: upstream adds official
+statusLine fields and refresh triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["thinkingEnabled", "useRef(void 0)", "toolPermissionContext", "addNotification"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = ",(\\w+=\\w+\\.useRef\\(\\w+\\));$"
+value = ",__cci=f_((c)=>c.clipboardImageAvailable??!1),$1;"
+
+[[patches.tests]]
+kind = "static"
+name = "statusline observes clipboard image state in 2.1.146"
+assert_contains = '''__cci=f_((c)=>c.clipboardImageAvailable??!1)'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale clipboard image state selector is absent in 2.1.146"
+assert_not_contains = '''__cci=z_((c)=>c.clipboardImageAvailable??!1)'''
+
+[[patches.tests]]
+kind = "static"
+name = "statusline JSON includes footer state in 2.1.146"
 assert_contains = '''permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''

@@ -62,11 +62,11 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   const patched = readFileSync(patchedBundle, "utf8")
   expect(patched).toContain("--hide-builtin-footer")
   expect(patched).toContain(
-    '["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
+    '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
   )
   expect(patched).toContain("disabledFooter:_")
   expect(patched).toContain(
-    '["footer","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")',
+    '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")',
   )
   expect(patched).toContain('disabledFooter?.includes("effort_notification")')
   expect(patched).toContain('disabledFooter?.includes("rate_limit_warning")')
@@ -92,6 +92,11 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.143")) {
+    expect(patched).toContain('disabledFooter?.includes("permission_mode")')
+    expect(patched).toContain('disabledFooter?.includes("mode")')
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.143") && isVersionBefore(TARGET_VERSION, "2.1.146")) {
     expect(patched).toContain(
       'Y_((m)=>m.settings.statusLine?.hideBuiltinFooter)||Y_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
     )
@@ -100,5 +105,11 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     )
     expect(patched).toContain("OD.useEffect(()=>{m()},[__cci,m]);")
     expect(patched).not.toContain("KD.useEffect(()=>{p()},[__cci,p]);")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.146")) {
+    expect(patched).toContain(
+      'f_((m)=>m.settings.statusLine?.hideBuiltinFooter)||f_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
+    )
   }
 }, 120000)

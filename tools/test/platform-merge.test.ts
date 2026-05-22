@@ -210,6 +210,19 @@ test("reports semantic union validation failures for unresolved free identifiers
   ])
 })
 
+test("allows runtime performance global in semantic unions", () => {
+  const result = mergePlatformJavaScript({
+    version: "test",
+    basePlatform: "darwin-arm64",
+    baseSource: "function entry(){return 1}\n",
+    otherPlatform: "linux-x64",
+    otherSource: "function y(){return performance.now()}\n",
+  })
+
+  expect(result.ok).toBe(true)
+  expect(result.report.unclassifiedDrift).toEqual([])
+})
+
 test("does not report catch bindings or optional member names as free identifiers", () => {
   const result = mergePlatformJavaScript({
     version: "test",

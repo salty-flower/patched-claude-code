@@ -72,6 +72,7 @@ const BASE_GLOBALS = new Set([
   "module",
   "parseFloat",
   "parseInt",
+  "performance",
   "process",
   "queueMicrotask",
   "require",

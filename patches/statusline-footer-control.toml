@@ -1739,7 +1739,7 @@ assert_not_contains = '''KD.useEffect(()=>{p()}'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-effect-2-1-146"
-applies_to = ">=2.1.146 <2.2.0"
+applies_to = ">=2.1.146 <2.1.148"
 rationale = """
 Trigger a custom statusLine rerender on clipboard image state changes.
 
@@ -1770,6 +1770,40 @@ assert_contains = '''rJ.useEffect(()=>{m()}'''
 kind = "static"
 name = "stale 2.1.143 clipboard refresh effect is absent in 2.1.146"
 assert_not_contains = '''OD.useEffect(()=>{m()}'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-effect-2-1-148"
+applies_to = ">=2.1.148 <2.2.0"
+rationale = """
+Trigger a custom statusLine rerender on clipboard image state changes.
+
+This is the 2.1.148 minified-symbol variant of
+`statusline-json-clipboard-image-refresh-effect`. The 2.1.148 StatusLine
+component uses `S` for the debounced refresh callback and `OM` for React hooks.
+Cleanup condition: upstream adds official statusLine fields and refresh
+triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", string = "statusLine?.refreshInterval" }
+
+[patches.transform]
+op = "insert_before_node"
+code = 'OM.useEffect(()=>{S()},[__cci,S]);'
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image state triggers statusline refresh in 2.1.148"
+assert_contains = '''OM.useEffect(()=>{S()}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.146 clipboard refresh effect is absent in 2.1.148"
+assert_not_contains = '''rJ.useEffect(()=>{m()}'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh"

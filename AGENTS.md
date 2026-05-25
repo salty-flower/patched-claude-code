@@ -38,6 +38,12 @@ You MUST:
 - Run `just verify` before committing any change under
   `patches/`. The script confirms each patch's locator still hits exactly
   once on the latest staged target bundle.
+- Before declaring a patch successful, run the rendered bundle in the
+  interactive TUI path for the affected flags; do not rely only on `--print`,
+  static patch tests, or `just verify`. If the TUI shows a render-boundary
+  `TypeError`/`ReferenceError` or stale minified-symbol error, immediately
+  check
+  [`docs/records/2026-05-12-v2.1.139-statusline-footer-lessons.md`](docs/records/2026-05-12-v2.1.139-statusline-footer-lessons.md).
 - Keep one logical feature per patch TOML when adding or modifying
   patch-backed behavior; use ordered `[[patches]]` entries for multiple
   locators in the same feature.

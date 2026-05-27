@@ -139,8 +139,13 @@ test("thinking display wires main-screen streaming thinking to the current REPL 
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.146")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.146") && isVersionBefore(TARGET_VERSION, "2.1.150")) {
     expect(patched).toContain("streamingThinking:oT")
     expect(patched).not.toContain("streamingThinking:r4")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.150")) {
+    expect(patched).toContain("streamingThinking:cO")
+    expect(patched).not.toContain("streamingThinking:oT")
   }
 }, 120000)

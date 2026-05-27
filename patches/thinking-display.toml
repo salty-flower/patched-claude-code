@@ -137,7 +137,7 @@ assert_contains = '''streamingThinking:'''
 [[patches]]
 name = "thinking-render-live-main-2-1-146"
 target_version = "2.1.146"
-applies_to = ">=2.1.146 <2.2.0"
+applies_to = ">=2.1.146 <2.1.150"
 
 rationale = """
 Pass live thinking state to the main interactive message renderer.
@@ -172,6 +172,87 @@ assert_contains = '''streamingThinking:oT'''
 kind = "static"
 name = "main message renderer does not use the stale 2.1.137 state symbol"
 assert_not_contains = '''streamingThinking:r4'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-150"
+target_version = "2.1.150"
+applies_to = ">=2.1.150 <2.1.151"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.150 minified-symbol variant of
+`thinking-render-live-main`. The streaming thinking state moved from `oT` to
+`cO`; the transcript renderer passes `streamingThinking:cO`, and the
+main-screen renderer must use the same state value so thinking_delta updates
+render before the completed assistant block arrives.
+
+Cleanup condition: upstream renders live thinking summaries on the main
+interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "cO"
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.150"
+assert_contains = '''streamingThinking:cO'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer does not use the stale 2.1.146 state symbol"
+assert_not_contains = '''streamingThinking:oT'''
+
+[[patches]]
+name = "thinking-render-live-brief-2-1-150"
+target_version = "2.1.150"
+applies_to = ">=2.1.150 <2.1.151"
+
+rationale = """
+Render live thinking even when the main interactive UI is in brief mode.
+
+The reference Messages component suppresses both streaming text and streaming
+thinking with the brief-mode gate. That keeps normal assistant text hidden,
+but it also prevents the patched live thinking buffer from appearing while
+the token counter is advancing. For this inspection build, live thinking
+should remain visible in brief mode; completed thinking blocks already render
+after the stream, so this only removes the live-rendering delay.
+
+Cleanup condition: upstream exposes an official interactive display setting
+for live thinking blocks in brief mode.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", strings = ['zH&&X&&!b&&m4.createElement(B,{marginTop:1}', "hideInTranscript:!1"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''zH&&X&&!b&&m4.createElement(B,{marginTop:1}'''
+value = '''zH&&X&&m4.createElement(B,{marginTop:1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "live thinking is visible in brief mode in 2.1.150"
+assert_contains = '''zH&&X&&m4.createElement(B,{marginTop:1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "live thinking no longer uses the brief-mode gate in 2.1.150"
+assert_not_contains = '''zH&&X&&!b&&m4.createElement(B,{marginTop:1}'''
 
 [[patches]]
 name = "thinking-render-live-complete"

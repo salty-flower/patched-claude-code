@@ -45,3 +45,18 @@ test("2.1.150 live thinking rendering is not suppressed by brief mode", () => {
   expect(patched).toContain("zH&&X&&m4.createElement(B,{marginTop:1}")
   expect(patched).not.toContain("zH&&X&&!b&&m4.createElement(B,{marginTop:1}")
 }, 120000)
+
+test("2.1.150 live thinking is cleared before the next streamed content block", () => {
+  expect(existsSync(TARGET_BUNDLE)).toBe(true)
+
+  renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
+
+  const patched = readFileSync(patchedBundle, "utf8")
+
+  expect(patched).toContain(
+    'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),$?.(()=>null),H.event.content_block.type){',
+  )
+  expect(patched).not.toContain(
+    'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),H.event.content_block.type){',
+  )
+}, 120000)

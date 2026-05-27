@@ -70,6 +70,43 @@ name = "thinking deltas update streaming thinking in 2.1.146"
 assert_contains = '''$?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))'''
 
 [[patches]]
+name = "thinking-clear-live-on-next-block-2-1-150"
+target_version = "2.1.150"
+applies_to = ">=2.1.150 <2.1.151"
+
+rationale = """
+Clear the transient live thinking buffer when the next streamed content block
+starts.
+
+After `thinking_delta` updates are rendered live, the buffer must not remain
+visible while a following text or tool-use block streams. The stream handler
+already clears streaming text at every content-block boundary; clearing live
+thinking at the same boundary keeps thinking scoped to the active thinking
+block and prevents stale thinking from occupying the live-output slot while
+normal assistant text or tool calls are appearing.
+
+Cleanup condition: upstream scopes live thinking rendering to the active
+thinking content block.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L3031-L3068"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "content_block_start", string = '''A?.({type:"content_block_start"}),Y?.(()=>null),H.event.content_block.type''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),H.event.content_block.type){'''
+value = '''case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),$?.(()=>null),H.event.content_block.type){'''
+
+[[patches.tests]]
+kind = "static"
+name = "live thinking clears at the next content block in 2.1.150"
+assert_contains = '''case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),$?.(()=>null),H.event.content_block.type){'''
+
+[[patches]]
 name = "thinking-render-live-main"
 target_version = "2.1.133"
 applies_to = ">=2.1.133 <2.1.137"

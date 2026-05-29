@@ -6,7 +6,7 @@ import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.150"
+const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.156"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-thinking-"))
@@ -23,40 +23,75 @@ function renderThinkingPatch(input: string, output: string): void {
   writeFileSync(output, applyPatchEntries(body, patches, TARGET_VERSION).source)
 }
 
-test("2.1.150 main-screen thinking display uses the same live state as transcript rendering", () => {
+function compareVersions(left: string, right: string): number {
+  const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
+  const leftParts = parts(left)
+  const rightParts = parts(right)
+
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const leftPart = leftParts[index] ?? 0
+    const rightPart = rightParts[index] ?? 0
+    if (leftPart > rightPart) return 1
+    if (leftPart < rightPart) return -1
+  }
+
+  return 0
+}
+
+function isVersionAtLeast(version: string, floor: string): boolean {
+  return compareVersions(version, floor) >= 0
+}
+
+test("main-screen thinking display uses the same live state as transcript rendering", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
   renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
 
   const patched = readFileSync(patchedBundle, "utf8")
-  const liveStateUses = patched.match(/streamingThinking:cO/g)?.length ?? 0
+  const streamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "d7" : "cO"
+  const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "cO" : "oT"
+  const liveStateUses = patched.match(new RegExp(`streamingThinking:${streamingThinkingState}`, "g"))?.length ?? 0
 
   expect(liveStateUses).toBeGreaterThanOrEqual(2)
-  expect(patched).not.toContain("streamingThinking:oT")
+  expect(patched).not.toContain(`streamingThinking:${staleStreamingThinkingState}`)
 }, 120000)
 
-test("2.1.150 live thinking rendering is not suppressed by brief mode", () => {
+test("live thinking rendering is not suppressed by brief mode", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
   renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  expect(patched).toContain("zH&&X&&m4.createElement(B,{marginTop:1}")
-  expect(patched).not.toContain("zH&&X&&!b&&m4.createElement(B,{marginTop:1}")
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    expect(patched).toContain("qH&&X&&U4.createElement(B,{marginTop:1}")
+    expect(patched).not.toContain("qH&&X&&!I&&U4.createElement(B,{marginTop:1}")
+  } else {
+    expect(patched).toContain("zH&&X&&m4.createElement(B,{marginTop:1}")
+    expect(patched).not.toContain("zH&&X&&!b&&m4.createElement(B,{marginTop:1}")
+  }
 }, 120000)
 
-test("2.1.150 live thinking is cleared before the next streamed content block", () => {
+test("live thinking is cleared before the next streamed content block", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
   renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  expect(patched).toContain(
-    'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),$?.(()=>null),H.event.content_block.type){',
-  )
-  expect(patched).not.toContain(
-    'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),H.event.content_block.type){',
-  )
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    expect(patched).toContain(
+      'case"content_block_start":switch(Y?.({type:"content_block_start"}),A?.(()=>null),z?.(()=>null),H.event.content_block.type){',
+    )
+    expect(patched).not.toContain(
+      'case"content_block_start":switch(Y?.({type:"content_block_start"}),A?.(()=>null),H.event.content_block.type){',
+    )
+  } else {
+    expect(patched).toContain(
+      'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),$?.(()=>null),H.event.content_block.type){',
+    )
+    expect(patched).not.toContain(
+      'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),H.event.content_block.type){',
+    )
+  }
 }, 120000)

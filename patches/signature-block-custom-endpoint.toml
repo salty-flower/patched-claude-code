@@ -25,6 +25,7 @@ transcripts.
 
 [[patches]]
 name = "strip-signatures-for-custom-base-url"
+applies_to = ">=2.1.150 <2.1.156"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "literal"
 locator_pattern = '''let v=Cq()==="bedrock"?DfK(H,YP(T.model)):H,'''
@@ -39,3 +40,22 @@ assert_contains = '''let v=!DO()?bx8(H):DfK(H,YP(T.model)),'''
 kind = "static"
 name = "old bedrock-only cleanup gate is removed"
 assert_not_contains = '''let v=Cq()==="bedrock"?DfK(H,YP(T.model)):H,'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-156"
+target_version = "2.1.156"
+applies_to = ">=2.1.156 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "literal"
+locator_pattern = '''let v=tZK(H,NP(T.model)),'''
+replacement = '''let v=!CO()?eZK(H):tZK(H,NP(T.model)),'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.156"
+assert_contains = '''let v=!CO()?eZK(H):tZK(H,NP(T.model)),'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-only cleanup is no longer used for custom base URLs"
+assert_not_contains = '''let v=tZK(H,NP(T.model)),'''

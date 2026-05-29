@@ -6,7 +6,7 @@ import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.138"
+const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.156"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-statusline-"))
@@ -99,12 +99,22 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).not.toContain("z.hideBuiltinFooter?(()=>{let H=u8()")
   }
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.146")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.146") && isVersionBefore(TARGET_VERSION, "2.1.156")) {
     expect(patched).toContain("z.hideBuiltinFooter")
     expect(patched).toContain("let H=e8()")
     expect(patched).not.toContain("$.hideBuiltinFooter?(()=>{let H=m8()")
-    expect(patched).toContain("__cci=f_((c)=>c.clipboardImageAvailable??!1)")
-    expect(patched).not.toContain("__cci=z_((c)=>c.clipboardImageAvailable??!1)")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    expect(patched).toContain("$.hideBuiltinFooter")
+    expect(patched).toContain("let H=i8()")
+    expect(patched).not.toContain("z.hideBuiltinFooter?(()=>{let H=e8()")
+    expect(patched).toContain(
+      'hideBuiltinFooter:h.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:h.array(h.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+    )
+    expect(patched).not.toContain(
+      'hideBuiltinFooter:y.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:y.array(y.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+    )
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.143")) {
@@ -123,12 +133,33 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).not.toContain("KD.useEffect(()=>{p()},[__cci,p]);")
   }
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.146")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.146") && isVersionBefore(TARGET_VERSION, "2.1.156")) {
     expect(patched).toContain(
       'f_((m)=>m.settings.statusLine?.hideBuiltinFooter)||f_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
     )
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    expect(patched).toContain(
+      'M_((m)=>m.settings.statusLine?.hideBuiltinFooter)||M_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
+    )
+    expect(patched).toContain(
+      "__acc_hide_effort_all=M_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)",
+    )
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.146") && isVersionBefore(TARGET_VERSION, "2.1.156")) {
+    expect(patched).toContain("__cci=f_((c)=>c.clipboardImageAvailable??!1)")
+    expect(patched).not.toContain("__cci=z_((c)=>c.clipboardImageAvailable??!1)")
     expect(patched).toContain("rJ.useEffect(()=>{m()},[__cci,m]);")
     expect(patched).not.toContain("OD.useEffect(()=>{m()},[__cci,m]);")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    expect(patched).toContain("__cci=M_((c)=>c.clipboardImageAvailable??!1)")
+    expect(patched).not.toContain("__cci=f_((c)=>c.clipboardImageAvailable??!1)")
+    expect(patched).toContain("EM.useEffect(()=>{S()},[__cci,S]);")
+    expect(patched).not.toContain("wD.useEffect(()=>{S()},[__cci,S]);")
   }
 }, 120000)
 
@@ -144,8 +175,13 @@ test("thinking display wires main-screen streaming thinking to the current REPL 
     expect(patched).not.toContain("streamingThinking:r4")
   }
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.150")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.150") && isVersionBefore(TARGET_VERSION, "2.1.156")) {
     expect(patched).toContain("streamingThinking:cO")
     expect(patched).not.toContain("streamingThinking:oT")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    expect(patched).toContain("streamingThinking:d7")
+    expect(patched).not.toContain("streamingThinking:cO")
   }
 }, 120000)

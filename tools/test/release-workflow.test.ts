@@ -29,3 +29,9 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(packageStep).toContain('just package-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"')
   expect(sourceStep).toContain('just release-source-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"')
 })
+
+test("release workflow defaults to the current target version", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "release.yml"), "utf8")
+
+  expect(workflow).toContain('default: "2.1.156"')
+})

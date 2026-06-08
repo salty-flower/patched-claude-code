@@ -13,20 +13,62 @@ condition: upstream stops showing this warning for wrapper-managed or
 third-party-packaged launches, or the patched release pipeline switches to an
 upstream-supported native installer package.
 """
+[[patches]]
+name = "suppress-npm-native-installer-warning-compute"
 rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
-
 locator_kind = "ast_transform"
 
-[ast]
+[patches.ast]
 schema = 1
 match = { node = "ObjectExpression", string_literal = "npm-deprecation" }
 
-[transform]
+[patches.transform]
 op = "set_object_property"
 property = "compute"
 value = "async()=>null"
 
-[[tests]]
+[[patches.tests]]
 kind = "static"
-name = "replacement is rendered"
-assert_contains = '''{id:"npm-deprecation",compute:async()=>null}'''
+name = "npm deprecation notification remains targeted"
+assert_contains = '''id:"npm-deprecation"'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement compute is rendered"
+assert_contains = '''compute:async()=>null'''
+
+[[patches]]
+name = "suppress-npm-native-installer-warning-setup-card-2-1-168"
+applies_to = ">=2.1.168 <2.2.0"
+rationale = """
+Suppress the startup setup-issue card for the npm-to-native-installer warning.
+
+In 2.1.168 the warning can still render from setup issue state even after the
+notification compute hook is disabled. Patched bundles are intentionally
+distributed through this repo's wrapper and release pipeline, so the native
+installer migration prompt remains noisy and unactionable for this path.
+Cleanup condition: upstream stops showing this warning for wrapper-managed or
+third-party-packaged launches, or the patched release pipeline switches to an
+upstream-supported native installer package.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", string_literal = "Installed via npm (deprecated)" }
+
+[patches.transform]
+op = "set_object_property"
+property = "isActive"
+value = "()=>!1"
+
+[[patches.tests]]
+kind = "static"
+name = "npm setup card remains targeted in 2.1.168"
+assert_contains = '''id:"npm-deprecation"'''
+
+[[patches.tests]]
+kind = "static"
+name = "npm setup card is inactive in 2.1.168"
+assert_contains = '''isActive:()=>!1,render:()=>'''

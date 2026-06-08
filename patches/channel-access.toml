@@ -38,7 +38,7 @@ expected_matches = 3
 
 [patches.ast]
 schema = 1
-match = { node = "ObjectMethod", method_name = "isEnabled", string = "return!1;return!0" }
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["nj().length>0&&B8()", "return!1;return!0"] }
 
 [patches.transform]
 op = "replace_function_body"
@@ -52,7 +52,7 @@ assert_contains = '''isEnabled(){return!0}'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-156"
 target_version = "2.1.156"
-applies_to = ">=2.1.156 <2.2.0"
+applies_to = ">=2.1.156 <2.1.168"
 
 rationale = """
 Re-enable AskUserQuestion / EnterPlanMode / ExitPlanMode when --channels is
@@ -82,6 +82,41 @@ body = "{return!0}"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered in 2.1.156"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-168"
+target_version = "2.1.168"
+applies_to = ">=2.1.168 <2.2.0"
+
+rationale = """
+Re-enable AskUserQuestion / EnterPlanMode / ExitPlanMode when --channels is
+populated.
+
+This is the 2.1.168 gate-locator variant of
+`ask-user-question-channels-gate`. The minified channel-length predicate
+matches the pre-2.1.156 symbol shape again, while the 2.1.156 locator remains
+scoped to its own symbol range.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 3
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["nj().length>0&&B8()", "return!1;return!0"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.168"
 assert_contains = '''isEnabled(){return!0}'''
 
 [[patches]]

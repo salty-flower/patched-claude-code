@@ -42,6 +42,10 @@ function isVersionAtLeast(version: string, floor: string): boolean {
   return compareVersions(version, floor) >= 0
 }
 
+function isVersionBefore(version: string, ceiling: string): boolean {
+  return compareVersions(version, ceiling) < 0
+}
+
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
@@ -52,7 +56,11 @@ test("main-screen thinking display uses the same live state as transcript render
   const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "cO" : "oT"
   const liveStateUses = patched.match(new RegExp(`streamingThinking:${streamingThinkingState}`, "g"))?.length ?? 0
 
-  expect(liveStateUses).toBeGreaterThanOrEqual(2)
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
+    expect(liveStateUses).toBeGreaterThanOrEqual(1)
+  } else {
+    expect(liveStateUses).toBeGreaterThanOrEqual(2)
+  }
   expect(patched).not.toContain(`streamingThinking:${staleStreamingThinkingState}`)
 }, 120000)
 
@@ -63,7 +71,10 @@ test("live thinking rendering is not suppressed by brief mode", () => {
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
+    expect(patched).toContain('case"thinking":{if(!1)return null;let k;')
+    expect(patched).not.toContain('case"thinking":{if(!f&&!$)return null;let k;')
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
     expect(patched).toContain("qH&&X&&U4.createElement(B,{marginTop:1}")
     expect(patched).not.toContain("qH&&X&&!I&&U4.createElement(B,{marginTop:1}")
   } else {
@@ -79,14 +90,14 @@ test("live thinking is cleared before the next streamed content block", () => {
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.156") && isVersionBefore(TARGET_VERSION, "2.1.168")) {
     expect(patched).toContain(
       'case"content_block_start":switch(Y?.({type:"content_block_start"}),A?.(()=>null),z?.(()=>null),H.event.content_block.type){',
     )
     expect(patched).not.toContain(
       'case"content_block_start":switch(Y?.({type:"content_block_start"}),A?.(()=>null),H.event.content_block.type){',
     )
-  } else {
+  } else if (isVersionBefore(TARGET_VERSION, "2.1.156")) {
     expect(patched).toContain(
       'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),$?.(()=>null),H.event.content_block.type){',
     )

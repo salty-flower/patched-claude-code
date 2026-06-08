@@ -24,6 +24,12 @@ test("ci release audit target declares shared staged-bundle work once", () => {
   expect(recipe).toContain("git ls-tree -r --name-only")
 })
 
+test("tool tests receive the selected target version", () => {
+  const recipe = recipeBlock("tool-test")
+
+  expect(recipe).toContain('TARGET_VERSION="{{version}}" bun run --cwd tools test')
+})
+
 test("release dry target reuses the rendered bundle", () => {
   const recipe = recipeBlock("release-dry")
 

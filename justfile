@@ -16,7 +16,7 @@ render version=target source=source: (verify version source)
   bun run tools/patch/render-patched.ts "{{version}}" --skip-verify
 
 tool-test version=target source=source: (stage version source)
-  bun run --cwd tools test
+  TARGET_VERSION="{{version}}" bun run --cwd tools test
 
 smoke version=target source=source: (render version source)
   bun "staging/{{version}}/cli.patched.js" --version

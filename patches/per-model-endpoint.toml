@@ -18,6 +18,15 @@ Example:
 This enables mixing providers within a single session — route different
 models to different API endpoints, each with its own credentials.
 
+Important: Model names with the [1m] suffix (e.g. "deepseek-v4-flash[1m]")
+have the suffix stripped by Claude Code before the API call. The env var
+key must use the stripped name. For example:
+
+  ANTHROPIC_MODEL_BASE_URL_deepseek_v4_flash=https://...
+
+(The injection occurs after suffix stripping, so O.model / H.model
+already reflects the canonical name.)
+
 Scope: per-model routing applies to model-inference calls that carry a
 `model` parameter — Messages.create() and Messages.countTokens(), both
 beta and non-beta. Model-catalog calls (models.list, models.retrieve)

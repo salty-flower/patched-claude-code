@@ -351,7 +351,7 @@ assert_not_contains = '''streamingThinking:oT'''
 [[patches]]
 name = "thinking-render-live-main-2-1-156"
 target_version = "2.1.156"
-applies_to = ">=2.1.156 <2.2.0"
+applies_to = ">=2.1.156 <2.1.168"
 
 rationale = """
 Pass live thinking state to the main interactive message renderer.
@@ -387,6 +387,43 @@ assert_contains = '''streamingThinking:d7'''
 kind = "static"
 name = "main message renderer does not use the stale 2.1.150 state symbol"
 assert_not_contains = '''streamingThinking:cO'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-168"
+target_version = "2.1.168"
+applies_to = ">=2.1.168 <2.2.0"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.168 minified-symbol variant of
+`thinking-render-live-main`. The stream event bridge passes live thinking
+updates to `onStreamingThinking:TK`, and that setter owns the `EK` state used
+by the main-screen message renderer. Cleanup condition: upstream renders live
+thinking summaries on the main interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "EK"
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.168"
+assert_contains = '''streamingThinking:EK'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer does not use the stale 2.1.156 state symbol"
+assert_not_contains = '''streamingThinking:d7'''
 
 [[patches]]
 name = "thinking-render-live-brief-2-1-150"
@@ -463,6 +500,67 @@ assert_contains = '''qH&&X&&U4.createElement(B,{marginTop:1}'''
 kind = "static"
 name = "live thinking no longer uses the brief-mode gate in 2.1.156"
 assert_not_contains = '''qH&&X&&!I&&U4.createElement(B,{marginTop:1}'''
+
+[[patches]]
+name = "thinking-render-live-row-2-1-168"
+target_version = "2.1.168"
+applies_to = ">=2.1.168 <2.2.0"
+
+rationale = """
+Render the live thinking buffer in the main Messages component.
+
+In 2.1.168 the REPL can pass a `streamingThinking` prop, but the minified
+Messages component no longer destructures or renders it. Reintroduce the
+live-only row after streaming assistant text and keep it independent of the
+brief/summarized gate. Completed thinking blocks are still controlled by the
+normal message rendering patches, so summarized mode can stream live thinking
+and collapse it again after completion.
+
+Cleanup condition: upstream restores an official interactive live thinking
+row or exposes a supported display setting for it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+
+locator_kind = "literal"
+expected_matches = 1
+locator_pattern = '''streamingText:M,isBriefOnly:X=!1'''
+replacement = '''streamingText:M,streamingThinking:__acc_streamingThinking,isBriefOnly:X=!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "main Messages component accepts live thinking in 2.1.168"
+assert_contains = '''streamingText:M,streamingThinking:__acc_streamingThinking,isBriefOnly:X=!1'''
+
+[[patches]]
+name = "thinking-render-live-row-output-2-1-168"
+target_version = "2.1.168"
+applies_to = ">=2.1.168 <2.2.0"
+
+rationale = """
+Render the live thinking buffer in the main Messages component.
+
+This is the output-site half of `thinking-render-live-row-2-1-168`. It inserts
+an `rk6` thinking row after streaming assistant text and deliberately does
+not include the brief/summarized `C` gate. Cleanup condition: upstream
+restores an official interactive live thinking row or exposes a supported
+display setting for it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+
+locator_kind = "literal"
+expected_matches = 1
+locator_pattern = '''i1.createElement(p,{flexDirection:"column"},i1.createElement(lU7,null,M)))))},Oy3'''
+replacement = '''i1.createElement(p,{flexDirection:"column"},i1.createElement(lU7,null,M)))),__acc_streamingThinking?.thinking&&i1.createElement(p,{marginTop:1},i1.createElement(rk6,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:K})))},Oy3'''
+
+[[patches.tests]]
+kind = "static"
+name = "main Messages component renders live thinking in 2.1.168"
+assert_contains = '''__acc_streamingThinking?.thinking&&i1.createElement(p,{marginTop:1},i1.createElement(rk6,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:K}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "live thinking row is not suppressed by summarized brief gate in 2.1.168"
+assert_not_contains = '''__acc_streamingThinking?.thinking&&!C'''
 
 [[patches]]
 name = "thinking-render-live-complete"

@@ -1351,19 +1351,27 @@ rationale = """
 Hide the built-in footer line when the footer item is disabled.
 
 This is the 2.1.168 minified-symbol variant of
-`statusline-footer-control-render`. Cleanup condition: upstream ships an
-official setting or flag for hiding the built-in footer status line.
+`statusline-footer-control-render`. The prompt/footer component has early
+returns for slash/help overlays, so the patch must reuse the existing `OH=DJ()`
+settings read instead of adding another selector hook. Cleanup condition:
+upstream ships an official setting or flag for hiding the built-in footer
+status line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
-locator_pattern = '''pH=gj.createElement(R24,{exitMessage:O,leftArrowPending:T,leftArrowDetachAvailable:$,vimMode:z,hideVimModeIndicator:q_,mode:A,toolPermissionContext:Z,suppressHint:vH,isInputEmpty:z_,isLoading:k,tasksSelected:NH,teamsSelected:E,teammateFooterIndex:S,tmuxSelected:C,isPasting:s,showExpandPasteHint:AH,isSearching:r,historyQuery:a,setHistoryQuery:n,historyFailedMatch:t,onOpenTasksDialog:HH})'''
+locator_pattern = '''let q_=!XH&&IH&&(OH?.statusLine?.hideVimModeIndicator??!1),z_=!R,pH;if(_[31]!==O||_[32]!==t||_[33]!==a||_[34]!==k||_[35]!==s||_[36]!==r||_[37]!==$||_[38]!==T||_[39]!==A||_[40]!==HH||_[41]!==NH||_[42]!==n||_[43]!==AH||_[44]!==vH||_[45]!==q_||_[46]!==z_||_[47]!==S||_[48]!==E||_[49]!==C||_[50]!==Z||_[51]!==z)pH=gj.createElement(R24,{exitMessage:O,leftArrowPending:T,leftArrowDetachAvailable:$,vimMode:z,hideVimModeIndicator:q_,mode:A,toolPermissionContext:Z,suppressHint:vH,isInputEmpty:z_,isLoading:k,tasksSelected:NH,teamsSelected:E,teammateFooterIndex:S,tmuxSelected:C,isPasting:s,showExpandPasteHint:AH,isSearching:r,historyQuery:a,setHistoryQuery:n,historyFailedMatch:t,onOpenTasksDialog:HH}),_[31]=O,_[32]=t,_[33]=a,_[34]=k,_[35]=s,_[36]=r,_[37]=$,_[38]=T,_[39]=A,_[40]=HH,_[41]=NH,_[42]=n,_[43]=AH,_[44]=vH,_[45]=q_,_[46]=z_,_[47]=S,_[48]=E,_[49]=C,_[50]=Z,_[51]=z,_[52]=pH;else pH=_[52]'''
 locator_kind = "literal"
 expected_matches = 1
-replacement = '''pH=OH?.statusLine?.hideBuiltinFooter||OH?.statusLine?.disabledFooter?.includes("footer")?null:gj.createElement(R24,{exitMessage:O,leftArrowPending:T,leftArrowDetachAvailable:$,vimMode:z,hideVimModeIndicator:q_,mode:A,toolPermissionContext:Z,suppressHint:vH,isInputEmpty:z_,isLoading:k,tasksSelected:NH,teamsSelected:E,teammateFooterIndex:S,tmuxSelected:C,isPasting:s,showExpandPasteHint:AH,isSearching:r,historyQuery:a,setHistoryQuery:n,historyFailedMatch:t,onOpenTasksDialog:HH})'''
+replacement = '''let __acc_hide_footer=OH?.statusLine?.hideBuiltinFooter||OH?.statusLine?.disabledFooter?.includes("footer"),q_=!XH&&IH&&(OH?.statusLine?.hideVimModeIndicator??!1),z_=!R,pH;if(_[31]!==O||_[32]!==t||_[33]!==a||_[34]!==k||_[35]!==s||_[36]!==r||_[37]!==$||_[38]!==T||_[39]!==A||_[40]!==HH||_[41]!==NH||_[42]!==n||_[43]!==AH||_[44]!==vH||_[45]!==q_||_[46]!==z_||_[47]!==S||_[48]!==E||_[49]!==C||_[50]!==Z||_[51]!==z)pH=gj.createElement(R24,{exitMessage:O,leftArrowPending:T,leftArrowDetachAvailable:$,vimMode:z,hideVimModeIndicator:q_,mode:A,toolPermissionContext:Z,suppressHint:vH,isInputEmpty:z_,isLoading:k,tasksSelected:NH,teamsSelected:E,teammateFooterIndex:S,tmuxSelected:C,isPasting:s,showExpandPasteHint:AH,isSearching:r,historyQuery:a,setHistoryQuery:n,historyFailedMatch:t,onOpenTasksDialog:HH}),_[31]=O,_[32]=t,_[33]=a,_[34]=k,_[35]=s,_[36]=r,_[37]=$,_[38]=T,_[39]=A,_[40]=HH,_[41]=NH,_[42]=n,_[43]=AH,_[44]=vH,_[45]=q_,_[46]=z_,_[47]=S,_[48]=E,_[49]=C,_[50]=Z,_[51]=z,_[52]=pH;else pH=_[52];if(__acc_hide_footer)pH=null'''
 
 [[patches.tests]]
 kind = "static"
 name = "footer row is controlled by disabledFooter in 2.1.168"
-assert_contains = '''disabledFooter?.includes("footer")?null:'''
+assert_contains = '''if(__acc_hide_footer)pH=null'''
+
+[[patches.tests]]
+kind = "static"
+name = "footer row reuses existing AppState settings read in 2.1.168"
+assert_contains = '''__acc_hide_footer=OH?.statusLine?.hideBuiltinFooter||OH?.statusLine?.disabledFooter?.includes("footer")'''
 
 [[patches]]
 name = "statusline-footer-control-mode-hint"

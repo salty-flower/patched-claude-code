@@ -52,8 +52,16 @@ test("main-screen thinking display uses the same live state as transcript render
   renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
 
   const patched = readFileSync(patchedBundle, "utf8")
-  const streamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "d7" : "cO"
-  const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "cO" : "oT"
+  const streamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.168")
+    ? "EK"
+    : isVersionAtLeast(TARGET_VERSION, "2.1.156")
+      ? "d7"
+      : "cO"
+  const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.168")
+    ? "d7"
+    : isVersionAtLeast(TARGET_VERSION, "2.1.156")
+      ? "cO"
+      : "oT"
   const liveStateUses = patched.match(new RegExp(`streamingThinking:${streamingThinkingState}`, "g"))?.length ?? 0
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
@@ -74,6 +82,11 @@ test("live thinking rendering is not suppressed by brief mode", () => {
   if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
     expect(patched).toContain('case"thinking":{if(!1)return null;let k;')
     expect(patched).not.toContain('case"thinking":{if(!f&&!$)return null;let k;')
+    expect(patched).toContain("streamingText:M,streamingThinking:__acc_streamingThinking,isBriefOnly:X=!1")
+    expect(patched).toContain(
+      '__acc_streamingThinking?.thinking&&i1.createElement(p,{marginTop:1},i1.createElement(rk6,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:K}))',
+    )
+    expect(patched).not.toContain("__acc_streamingThinking?.thinking&&!C")
   } else if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
     expect(patched).toContain("qH&&X&&U4.createElement(B,{marginTop:1}")
     expect(patched).not.toContain("qH&&X&&!I&&U4.createElement(B,{marginTop:1}")

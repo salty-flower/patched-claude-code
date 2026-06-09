@@ -115,6 +115,11 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain("$.hideBuiltinFooter")
     expect(patched).toContain("let H=l8()")
     expect(patched).not.toContain("z.hideBuiltinFooter?(()=>{let H=e8()")
+    expect(patched).toContain(
+      '__acc_hide_footer=OH?.statusLine?.hideBuiltinFooter||OH?.statusLine?.disabledFooter?.includes("footer")',
+    )
+    expect(patched).toContain("if(__acc_hide_footer)pH=null")
+    expect(patched).not.toContain("__acc_hide_footer=j_(")
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
@@ -206,6 +211,11 @@ test("thinking display wires main-screen streaming thinking to the current REPL 
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
+      expect(patched).toContain("streamingThinking:EK")
+      expect(patched).not.toContain("streamingThinking:d7")
+      return
+    }
     expect(patched).toContain("streamingThinking:d7")
     expect(patched).not.toContain("streamingThinking:cO")
   }

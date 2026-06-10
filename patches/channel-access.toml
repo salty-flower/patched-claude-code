@@ -87,7 +87,7 @@ assert_contains = '''isEnabled(){return!0}'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-168"
 target_version = "2.1.168"
-applies_to = ">=2.1.168 <2.2.0"
+applies_to = ">=2.1.168 <2.1.170"
 
 rationale = """
 Re-enable AskUserQuestion / EnterPlanMode / ExitPlanMode when --channels is
@@ -117,6 +117,40 @@ body = "{return!0}"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered in 2.1.168"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-170"
+target_version = "2.1.170"
+applies_to = ">=2.1.170 <2.2.0"
+
+rationale = """
+Re-enable AskUserQuestion / EnterPlanMode / ExitPlanMode when --channels is
+populated.
+
+This is the 2.1.170 gate-locator variant of
+`ask-user-question-channels-gate`. The shared channel-length predicate now
+minifies to `Hf().length>0&&F8()` across the same three tool definitions.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 3
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["Hf().length>0&&F8()", "return!1;return!0"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.170"
 assert_contains = '''isEnabled(){return!0}'''
 
 [[patches]]

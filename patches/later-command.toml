@@ -1,0 +1,47 @@
+name = "later-command"
+target_version = "2.1.172"
+applies_to = ">=2.1.172 <2.2.0"
+
+rationale = """
+Group delayed prompt submission patches.
+"""
+
+[[patches]]
+name = "later-command-submit-hook"
+rationale = """
+Add a session-only delayed prompt command for busy interactive sessions.
+
+Claude Code already supports queued prompts when a turn is active, and its
+scheduled-task path can enqueue prompts from session-only cron tasks without
+persisting them to disk. Patched bundles add a small `/later <delay> <prompt>`
+front door in the typed-prompt submit path so a user can stage a prompt to run
+after the current estimated wait without creating a durable scheduled task.
+Cleanup condition: upstream exposes an interactive delayed-send or one-shot
+prompt queue command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L313-L350"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(v.trim()==="")return;''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(C==="prompt"&&!R){let __later=v.trim().match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i);if(__later){let __unit=__later[2].toLowerCase(),__delay=Number(__later[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit],__prompt=__later[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){H.addNotification?.({key:"later-usage",kind:"error",text:"Usage: /later 10m <prompt> (minimum 60s)",priority:"immediate"});return}let __when=new Date(Date.now()+__delay),__cron=`${__when.getMinutes()} ${__when.getHours()} ${__when.getDate()} ${__when.getMonth()+1} *`;oF();let __id=await gsH(__cron,__prompt,!1,!1,void 0);bo(!0);H.addNotification?.({key:`later-${__id}`,kind:"feedback",text:`Scheduled ${__id} for ${__when.toLocaleString()}`,priority:"immediate"});T("");h(0);z({});E();y();return}if(v.trim().startsWith("/later")){H.addNotification?.({key:"later-usage",kind:"error",text:"Usage: /later 10m <prompt> (minimum 60s)",priority:"immediate"});return}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command schedules session-only cron"
+assert_contains = '''await gsH(__cron,__prompt,!1,!1,void 0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command enables scheduled task polling"
+assert_contains = '''bo(!0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command remains interactive-only"
+assert_contains = '''if(C==="prompt"&&!R)'''

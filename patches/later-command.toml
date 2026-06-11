@@ -14,8 +14,9 @@ Add a session-only delayed prompt command for busy interactive sessions.
 Claude Code already supports queued prompts when a turn is active, and its
 scheduled-task path can enqueue prompts from session-only cron tasks without
 persisting them to disk. Patched bundles add a small `/later <delay> <prompt>`
-front door in the typed-prompt submit path so a user can stage a prompt to run
-after the current estimated wait without creating a durable scheduled task.
+front door in the typed-prompt submit path, plus `/later list` for pending
+delayed prompts, so a user can stage a prompt to run after the current
+estimated wait without creating a durable scheduled task.
 Cleanup condition: upstream exposes an interactive delayed-send or one-shot
 prompt queue command.
 """
@@ -29,7 +30,12 @@ match = { node = "IfStatement", source = '''if(v.trim()==="")return;''' }
 
 [patches.transform]
 op = "insert_after_node"
-code = '''if(C==="prompt"&&!R){let __later=v.trim().match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i);if(__later){let __unit=__later[2].toLowerCase(),__delay=Number(__later[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit],__prompt=__later[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){H.addNotification?.({key:"later-usage",kind:"error",text:"Usage: /later 10m <prompt> (minimum 60s)",priority:"immediate"});return}let __when=new Date(Date.now()+__delay),__cron=`${__when.getMinutes()} ${__when.getHours()} ${__when.getDate()} ${__when.getMonth()+1} *`;oF();let __id=await gsH(__cron,__prompt,!1,!1,void 0);bo(!0);H.addNotification?.({key:`later-${__id}`,kind:"feedback",text:`Scheduled ${__id} for ${__when.toLocaleString()}`,priority:"immediate"});T("");h(0);z({});E();y();return}if(v.trim().startsWith("/later")){H.addNotification?.({key:"later-usage",kind:"error",text:"Usage: /later 10m <prompt> (minimum 60s)",priority:"immediate"});return}}'''
+code = '''if(C==="prompt"&&!R){let __trim=v.trim(),__usage="Usage: /later 10m <prompt> | /later list (minimum 60s)";if(__trim==="/later list"){oF();let __jobs=YR().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t)=>{let __at=UsH(__t.cron,__t.createdAt),__when=__at?new Date(__at).toLocaleString():"unknown time",__text=String(__t.prompt).replace(/\s+/g," ").slice(0,80);return `${__t.id} ${__when} ${__text}`});if(__jobs.length>10)__lines.push(`+${__jobs.length-10} more`);H.addNotification?.({key:"later-list",kind:"feedback",text:__lines.length?`Pending /later prompts:\n${__lines.join("\n")}`:"No pending /later prompts",priority:"immediate"});T("");h(0);z({});E();y();return}let __later=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i);if(__later){let __unit=__later[2].toLowerCase(),__delay=Number(__later[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit],__prompt=__later[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){H.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __when=new Date(Date.now()+__delay),__cron=`${__when.getMinutes()} ${__when.getHours()} ${__when.getDate()} ${__when.getMonth()+1} *`;oF();let __id=await gsH(__cron,__prompt,!1,!1,void 0),__task=YR().find((__t)=>__t.id===__id);if(__task)__task.later=!0;bo(!0);H.addNotification?.({key:`later-${__id}`,kind:"feedback",text:`Scheduled ${__id} for ${__when.toLocaleString()}`,priority:"immediate"});T("");h(0);z({});E();y();return}if(__trim.startsWith("/later")){H.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command lists marked session tasks"
+assert_contains = '''YR().filter((__t)=>__t.later===!0&&!__t.recurring)'''
 
 [[patches.tests]]
 kind = "static"
@@ -45,3 +51,32 @@ assert_contains = '''bo(!0)'''
 kind = "static"
 name = "later command remains interactive-only"
 assert_contains = '''if(C==="prompt"&&!R)'''
+
+[[patches]]
+name = "later-command-suggestion-metadata"
+rationale = """
+Expose `/later` through the existing slash-command suggestion pipeline.
+
+Claude Code's input dropdown is driven by getCommands(), not by the prompt
+submit hook. Patched bundles inject a small local command record after
+availability filtering so `/later` appears with syntax help while the submit
+hook above continues to handle `/later <delay> <prompt>` and `/later list`
+before normal slash-command execution.
+Cleanup condition: upstream exposes an interactive delayed-send command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let _=await tF6(H),q=XuK().concat(m0H()?jXK():[]),K=_.filter((A)=>Gp_(A)&&TV(A));''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!K.some((A)=>A.name==="later"))K.push({type:"local",name:"later",description:"Schedule a prompt for later; use /later 10m <prompt> or /later list",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command suggestion metadata is rendered"
+assert_contains = '''name:"later",description:"Schedule a prompt for later; use /later 10m <prompt> or /later list"'''

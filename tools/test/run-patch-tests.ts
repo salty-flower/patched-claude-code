@@ -106,6 +106,17 @@ function patchTestsForTarget(rawToml: string, version?: string): PatchTest[] {
   return entries.filter((entry) => patchApplies(entry, version)).flatMap((entry) => entry.tests ?? [])
 }
 
+export function selectPatchTestsForTarget(
+  rawToml: string,
+  version?: string,
+): { tests: PatchTest[]; skipped: boolean } {
+  if (!version) return { tests: patchTestsForTarget(rawToml), skipped: false }
+  const entries = loadPatchEntriesFromToml(rawToml, "<inline>")
+  const applicableEntries = entries.filter((entry) => patchApplies(entry, version))
+  if (applicableEntries.length === 0) return { tests: [], skipped: true }
+  return { tests: applicableEntries.flatMap((entry) => entry.tests ?? []), skipped: false }
+}
+
 function main(): number {
   const args = parseArgs(process.argv.slice(2))
   if (!args.bundle) {
@@ -123,7 +134,12 @@ function main(): number {
   let allOk = true
 
   for (const patchFile of patchFiles) {
-    const tests = patchTestsForTarget(readFileSync(patchFile, "utf8"), targetVersion)
+    const selection = selectPatchTestsForTarget(readFileSync(patchFile, "utf8"), targetVersion)
+    const tests = selection.tests
+    if (selection.skipped) {
+      console.log(`[skip] ${patchFile}: no patch entries apply to ${targetVersion}`)
+      continue
+    }
     if (tests.length === 0) {
       console.log(`[FAIL] ${patchFile}: no [[tests]] entries`)
       allOk = false

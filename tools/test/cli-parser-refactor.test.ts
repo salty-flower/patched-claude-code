@@ -8,7 +8,7 @@ import { parseArgs as parseStageClaudeCodeArgs } from "../patch/stage-claude-cod
 import { parseArgs as parseStageTargetArgs } from "../patch/stage-target"
 import { parseArgs as parseVerifyPatchesArgs } from "../patch/verify-patches"
 import { parseArgs as parseWriteSourceReleaseArgs } from "../patch/write-source-release"
-import { parseArgs as parseRunPatchTestsArgs } from "./run-patch-tests"
+import { parseArgs as parseRunPatchTestsArgs, selectPatchTestsForTarget } from "./run-patch-tests"
 
 const ROOT = join(import.meta.dir, "..", "..")
 
@@ -106,4 +106,45 @@ test("run-patch-tests parses target version, bundle, and patch file list", () =>
     bundle: "staging/2.1.138/cli.patched.js",
     patches: ["patches/a.toml"],
   })
+})
+
+test("run-patch-tests skips files with no entries for the target version", () => {
+  const toml = `
+name = "old-file"
+target_version = "2.1.170"
+rationale = "test fixture"
+
+[[patches]]
+name = "old-only"
+applies_to = ">=2.1.170 <2.1.172"
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L1-L1"
+locator_kind = "literal"
+locator_pattern = "old"
+replacement = "new"
+
+[[patches.tests]]
+kind = "static"
+name = "old test"
+assert_contains = "new"
+`
+
+  expect(selectPatchTestsForTarget(toml, "2.1.172")).toEqual({ tests: [], skipped: true })
+})
+
+test("run-patch-tests still fails applicable entries without tests", () => {
+  const toml = `
+name = "active-file"
+target_version = "2.1.172"
+rationale = "test fixture"
+
+[[patches]]
+name = "active-without-tests"
+applies_to = ">=2.1.172 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L1-L1"
+locator_kind = "literal"
+locator_pattern = "old"
+replacement = "new"
+`
+
+  expect(selectPatchTestsForTarget(toml, "2.1.172")).toEqual({ tests: [], skipped: false })
 })

@@ -1,0 +1,73 @@
+name = "resume-1m-model-defaults"
+target_version = "2.1.170"
+applies_to = ">=2.1.170 <2.1.172"
+
+rationale = """
+Preserve 1M context when model defaults are expressed through aliases.
+
+Claude Code lets ANTHROPIC_DEFAULT_OPUS_MODEL point at a custom Opus model,
+and the model picker uses that value to show custom/default choices. When the
+default already carries [1m], resolving the alias opus[1m] appended a second
+[1m]. Resume restoration had the opposite problem: transcripts record the
+canonical response model without [1m], and the resume path only restored the
+suffix when the raw current setting already included [1m]. As a result, a
+stable config of model=opus plus ANTHROPIC_DEFAULT_OPUS_MODEL=... [1m] could
+start new sessions with 1M context but resume old sessions at the base window.
+
+The patch deduplicates the Opus alias suffix and makes resume decide whether
+the current default is 1M after alias resolution. ANTHROPIC_MODEL remains an
+override for different model families, but same-family env defaults may restore
+the transcript model with its 1M suffix. Cleanup condition: upstream normalizes
+alias suffixes and carries 1M context across resume for same-family defaults.
+"""
+
+[[patches]]
+name = "dedupe-opus-alias-1m-suffix"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L440-L465"
+locator_kind = "literal"
+locator_pattern = '''case"opus":return qR()+(K?"[1m]":"");case"best"'''
+replacement = '''case"opus":{let T=qR();return T.replace(/\[1m\]$/i,"")+(K||_J(T)?"[1m]":"")}case"best"'''
+
+[[patches.tests]]
+kind = "static"
+name = "opus alias avoids duplicate 1m suffix"
+assert_contains = '''case"opus":{let T=qR();return T.replace(/\[1m\]$/i,"")+(K||_J(T)?"[1m]":"")}case"best"'''
+
+[[patches.tests]]
+kind = "static"
+name = "old opus alias suffix append is removed"
+assert_not_contains = '''case"opus":return qR()+(K?"[1m]":"");case"best"'''
+
+[[patches]]
+name = "resume-allows-same-family-anthropic-model-default"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "literal"
+locator_pattern = '''if(sj()!==void 0||process.env.ANTHROPIC_MODEL||!j3())return;let O=PN4(H,_);'''
+replacement = '''if(sj()!==void 0||!j3())return;let O=PN4(H,_);if(process.env.ANTHROPIC_MODEL&&(O.kind!=="ok"||W9(U7(process.env.ANTHROPIC_MODEL))!==W9(O.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "same-family ANTHROPIC_MODEL defaults can restore resume model"
+assert_contains = '''if(sj()!==void 0||!j3())return;let O=PN4(H,_);if(process.env.ANTHROPIC_MODEL&&(O.kind!=="ok"||W9(U7(process.env.ANTHROPIC_MODEL))!==W9(O.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "old ANTHROPIC_MODEL resume short circuit is removed"
+assert_not_contains = '''if(sj()!==void 0||process.env.ANTHROPIC_MODEL||!j3())return;let O=PN4(H,_);'''
+
+[[patches]]
+name = "resume-detects-1m-after-alias-resolution"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "literal"
+locator_pattern = '''if(_&&_J(_)&&bU(T)&&W9(U7(G$(_)))===W9(T))return{kind:"ok",model:T+"[1m]"};'''
+replacement = '''if(_&&_J(U7(_))&&bU(T)&&W9(U7(G$(_)))===W9(T))return{kind:"ok",model:T+"[1m]"};'''
+
+[[patches.tests]]
+kind = "static"
+name = "resume checks resolved default for 1m context"
+assert_contains = '''if(_&&_J(U7(_))&&bU(T)&&W9(U7(G$(_)))===W9(T))return{kind:"ok",model:T+"[1m]"};'''
+
+[[patches.tests]]
+kind = "static"
+name = "old raw-setting-only 1m resume check is removed"
+assert_not_contains = '''if(_&&_J(_)&&bU(T)&&W9(U7(G$(_)))===W9(T))return{kind:"ok",model:T+"[1m]"};'''

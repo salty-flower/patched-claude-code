@@ -49,6 +49,9 @@ test("/later list renders pending delayed prompts", () => {
   expect(patched).toContain("Pending /later prompts:")
   expect(patched).toContain("No pending /later prompts")
   expect(patched).toContain("YR().filter((__t)=>__t.later===!0&&!__t.recurring)")
+  expect(patched).toContain('__raw.length>20?`${__raw.slice(0,17)}...`:__raw')
+  expect(patched).toContain('return `${__i+1}. ${__text} @ ${__when}`')
+  expect(patched).not.toContain("return `${__t.id} ${__when} ${__text}`")
 }, 120000)
 
 test("/later appears in slash command suggestions", () => {

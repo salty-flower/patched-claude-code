@@ -98,7 +98,7 @@ assert_not_contains = '''let E=SFK(H,G$(f??T.model));'''
 
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "literal"
 locator_pattern = '''let C=ncK(H,S$(D));'''
@@ -113,3 +113,21 @@ assert_contains = '''let C=!wO()?c_q(H):ncK(H,S$(D));'''
 kind = "static"
 name = "old model-mismatch-only cleanup gate is removed in 2.1.172"
 assert_not_contains = '''let C=ncK(H,S$(D));'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "literal"
+locator_pattern = '''let S=XaK(H,gO(M));'''
+replacement = '''let S=!T3()?u9q(H):XaK(H,gO(M));'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.177"
+assert_contains = '''let S=!T3()?u9q(H):XaK(H,gO(M));'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.177"
+assert_not_contains = '''let S=XaK(H,gO(M));'''

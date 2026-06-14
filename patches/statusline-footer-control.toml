@@ -298,7 +298,7 @@ assert_not_contains = '''settings:z.hideBuiltinFooter'''
 
 [[patches]]
 name = "statusline-footer-control-cli-global-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Carry the hide-built-in-footer CLI switch into runtime footer controls.
 
@@ -318,6 +318,29 @@ replacement = '''VP=void 0;if(z.hideBuiltinFooter){let H=z.hideBuiltinFooter===!
 kind = "static"
 name = "CLI option records a 2.1.172 session footer override"
 assert_contains = '''if(z.hideBuiltinFooter){let H=z.hideBuiltinFooter===!0||z.hideBuiltinFooter==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(z.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);globalThis.__acc_disabled_footer=H}let I1={settings:U8(),tasks:{},taskDecorations:{},'''
+
+[[patches]]
+name = "statusline-footer-control-cli-global-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Carry the hide-built-in-footer CLI switch into runtime footer controls.
+
+This is the 2.1.177 startup-state variant of
+`statusline-footer-control-cli-global-2-1-170`. The initial AppState local
+changed from `I1`/`U8()` to `uf`/`n8()`, while CLI options remain in `z`.
+Cleanup condition: upstream ships an official CLI flag or runtime option for
+hiding built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+locator_pattern = '''Tf=void 0,uf=\{settings:n8\(\),tasks:\{\},taskDecorations:\{\},'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''Tf=void 0;if(z.hideBuiltinFooter){let H=z.hideBuiltinFooter===!0||z.hideBuiltinFooter==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(z.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);globalThis.__acc_disabled_footer=H}let uf={settings:n8(),tasks:{},taskDecorations:{},'''
+
+[[patches.tests]]
+kind = "static"
+name = "CLI option records a 2.1.177 session footer override"
+assert_contains = '''if(z.hideBuiltinFooter){let H=z.hideBuiltinFooter===!0||z.hideBuiltinFooter==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(z.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);globalThis.__acc_disabled_footer=H}let uf={settings:n8(),tasks:{},taskDecorations:{},'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint"
@@ -681,7 +704,7 @@ assert_contains = '''globalThis.__acc_clipboard_image_available=Y'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Keep clipboard image availability state exported for custom status lines.
 
@@ -700,6 +723,28 @@ replacement = '''function EA6(H,_){let{addNotification:q}=_K(),K=NaH.useRef(H),O
 kind = "static"
 name = "clipboard image hint state remains available in 2.1.172"
 assert_contains = '''globalThis.__acc_clipboard_image_available=Y'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Keep clipboard image availability state exported for custom status lines.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-footer-control-clipboard-image-hint`. Cleanup condition: upstream
+ships official footer item controls while exposing equivalent state to custom
+status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_pattern = '''function Tf6\(H,_\)\{let\{addNotification:q\}=r7\(\),K=ftH\.useRef\(H\),O=ftH\.useRef\(0\),T=ftH\.useRef\(null\),z=u9\(\);ftH\.useEffect\(\(\)=>\{let \$=K\.current;if\(K\.current=H,!_\|\|!H\|\|\$\)return;if\(T\.current\)T\.current\(\);return T\.current=z\.setTimeout\(async\(\)=>\{T\.current=null;let Y=Date\.now\(\);if\(Y-O\.current<_q3\)return;if\(await XM7\(\)\)O\.current=Y,q\(\{key:e83,kind:"contextual",text:`Image in clipboard \\xB7 \$\{XP\("chat:imagePaste","Chat","ctrl\+v"\)\} to paste`,priority:"immediate",timeoutMs:8000\}\)\},Hq3\),\(\)=>\{if\(T\.current\)T\.current\(\),T\.current=null\}\},\[H,_,q,z\]\)\}'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''function Tf6(H,_){let{addNotification:q}=r7(),K=ftH.useRef(H),O=ftH.useRef(0),T=ftH.useRef(null),z=u9();ftH.useEffect(()=>{let $=K.current;if(K.current=H,!_||!H||$)return;if(T.current)T.current();return T.current=z.setTimeout(async()=>{T.current=null;let Y=Date.now(),A=await XM7();globalThis.__acc_clipboard_image_available=A;if(Y-O.current<_q3)return;if(A)O.current=Y,q({key:e83,kind:"contextual",text:`Image in clipboard \xB7 ${XP("chat:imagePaste","Chat","ctrl+v")} to paste`,priority:"immediate",timeoutMs:8000})},Hq3),()=>{if(T.current)T.current(),T.current=null}},[H,_,q,z])}'''
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image hint state remains available in 2.1.177"
+assert_contains = '''globalThis.__acc_clipboard_image_available=A'''
 
 [[patches]]
 name = "statusline-footer-control-effort-notification"
@@ -979,7 +1024,7 @@ assert_contains = '''D_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("
 
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Hide the effort footer notification when the effort_notification item is disabled.
 
@@ -997,6 +1042,27 @@ replacement = '''__acc_hide_effort_all=X_((I_)=>I_.settings.statusLine?.hideBuil
 kind = "static"
 name = "effort notification is controlled by disabledFooter in 2.1.172"
 assert_contains = '''X_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Hide the effort footer notification when the effort_notification item is disabled.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-footer-control-effort-notification`. Cleanup condition: upstream
+ships an official setting or flag for built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_pattern = '''sE=kH4\(w6H,Bu\);Cq\.useEffect'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''__acc_hide_effort_all=J_((I_)=>I_.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=J_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification"),sE=(__acc_hide_effort_all||__acc_hide_effort_item||globalThis.__acc_disabled_footer?.includes("footer"))?void 0:kH4(w6H,Bu);Cq.useEffect'''
+
+[[patches.tests]]
+kind = "static"
+name = "effort notification is controlled by disabledFooter in 2.1.177"
+assert_contains = '''J_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning"
@@ -1280,7 +1346,7 @@ assert_contains = '''globalThis.__acc_rate_limit_warning=T'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Hide rate-limit warning banners when the rate_limit_warning item is disabled.
 
@@ -1305,6 +1371,35 @@ assert_contains = '''O?.statusLine?.disabledFooter?.includes("rate_limit_warning
 [[patches.tests]]
 kind = "static"
 name = "rate limit warning is available to statusline in 2.1.172"
+assert_contains = '''globalThis.__acc_rate_limit_warning=T'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Hide rate-limit warning banners when the rate_limit_warning item is disabled.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-footer-control-rate-limit-warning`. The rendered warning string is
+local `T`; the patch stores it for custom statusLine commands and nulls the
+notification input when the built-in footer item is disabled. Cleanup
+condition: upstream ships official footer item controls while exposing
+equivalent state to custom status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_pattern = '''let z=T,\$;if\(_\[3\]!==K\|\|_\[4\]!==O\|\|_\[5\]!==H\)'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''let L=iw(),z=(globalThis.__acc_rate_limit_warning=T,(L?.statusLine?.hideBuiltinFooter||L?.statusLine?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer"))?null:T),$;if(_[3]!==K||_[4]!==O||_[5]!==H)'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is controlled by disabledFooter in 2.1.177"
+assert_contains = '''L?.statusLine?.disabledFooter?.includes("rate_limit_warning")'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is available to statusline in 2.1.177"
 assert_contains = '''globalThis.__acc_rate_limit_warning=T'''
 
 [[patches]]
@@ -1607,7 +1702,7 @@ assert_contains = '''__acc_hide_footer=globalThis.__acc_disabled_footer?.include
 
 [[patches]]
 name = "statusline-footer-control-render-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Hide the built-in footer line when the footer item is disabled.
 
@@ -1633,6 +1728,35 @@ assert_contains = '''if(__acc_hide_footer)Y_=null'''
 kind = "static"
 name = "footer row reuses existing AppState settings read in 2.1.172"
 assert_contains = '''__acc_hide_footer=globalThis.__acc_disabled_footer?.includes("footer")||TH?.statusLine?.hideBuiltinFooter||TH?.statusLine?.disabledFooter?.includes("footer")'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Hide the built-in footer line when the footer item is disabled.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-footer-control-render`. The prompt/footer component has early
+returns for slash/help overlays, so the patch reuses the existing `zH=iw()`
+settings read instead of adding another selector hook. Cleanup condition:
+upstream ships an official setting or flag for hiding the built-in footer
+status line.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
+locator_pattern = '''let R_;if(_[31]!==MH||_[32]!==zH?.statusLine||_[33]!==xH)R_=!MH&&xH&&(XBH(zH?.statusLine)?.hideVimModeIndicator??!1),_[31]=MH,_[32]=zH?.statusLine,_[33]=xH,_[34]=R_;else R_=_[34];let cH=!R,z_;if(_[35]!==O||_[36]!==t||_[37]!==o||_[38]!==h||_[39]!==e||_[40]!==n||_[41]!==z||_[42]!==T||_[43]!==Y||_[44]!==a||_[45]!==PH||_[46]!==i||_[47]!==qH||_[48]!==uH||_[49]!==CH||_[50]!==R_||_[51]!==cH||_[52]!==S||_[53]!==E||_[54]!==C||_[55]!==W||_[56]!==$)z_=Zj.createElement(lb4,{exitMessage:O,leftArrowPending:T,leftArrowDetachAvailable:z,vimMode:$,hideVimModeIndicator:R_,mode:Y,toolPermissionContext:W,suppressHint:uH,suppressHintExceptStatusline:CH,isInputEmpty:cH,isLoading:h,tasksSelected:PH,teamsSelected:E,teammateFooterIndex:S,tmuxSelected:C,isPasting:e,showExpandPasteHint:qH,isSearching:n,historyQuery:o,setHistoryQuery:i,historyFailedMatch:t,onOpenTasksDialog:a}),_[35]=O,_[36]=t,_[37]=o,_[38]=h,_[39]=e,_[40]=n,_[41]=z,_[42]=T,_[43]=Y,_[44]=a,_[45]=PH,_[46]=i,_[47]=qH,_[48]=uH,_[49]=CH,_[50]=R_,_[51]=cH,_[52]=S,_[53]=E,_[54]=C,_[55]=W,_[56]=$,_[57]=z_;else z_=_[57]'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''let __acc_hide_footer=globalThis.__acc_disabled_footer?.includes("footer")||zH?.statusLine?.hideBuiltinFooter||zH?.statusLine?.disabledFooter?.includes("footer"),R_;if(_[31]!==MH||_[32]!==zH?.statusLine||_[33]!==xH)R_=!MH&&xH&&(XBH(zH?.statusLine)?.hideVimModeIndicator??!1),_[31]=MH,_[32]=zH?.statusLine,_[33]=xH,_[34]=R_;else R_=_[34];let cH=!R,z_;if(_[35]!==O||_[36]!==t||_[37]!==o||_[38]!==h||_[39]!==e||_[40]!==n||_[41]!==z||_[42]!==T||_[43]!==Y||_[44]!==a||_[45]!==PH||_[46]!==i||_[47]!==qH||_[48]!==uH||_[49]!==CH||_[50]!==R_||_[51]!==cH||_[52]!==S||_[53]!==E||_[54]!==C||_[55]!==W||_[56]!==$)z_=Zj.createElement(lb4,{exitMessage:O,leftArrowPending:T,leftArrowDetachAvailable:z,vimMode:$,hideVimModeIndicator:R_,mode:Y,toolPermissionContext:W,suppressHint:uH,suppressHintExceptStatusline:CH,isInputEmpty:cH,isLoading:h,tasksSelected:PH,teamsSelected:E,teammateFooterIndex:S,tmuxSelected:C,isPasting:e,showExpandPasteHint:qH,isSearching:n,historyQuery:o,setHistoryQuery:i,historyFailedMatch:t,onOpenTasksDialog:a}),_[35]=O,_[36]=t,_[37]=o,_[38]=h,_[39]=e,_[40]=n,_[41]=z,_[42]=T,_[43]=Y,_[44]=a,_[45]=PH,_[46]=i,_[47]=qH,_[48]=uH,_[49]=CH,_[50]=R_,_[51]=cH,_[52]=S,_[53]=E,_[54]=C,_[55]=W,_[56]=$,_[57]=z_;else z_=_[57];if(__acc_hide_footer)z_=null'''
+
+[[patches.tests]]
+kind = "static"
+name = "footer row is controlled by disabledFooter in 2.1.177"
+assert_contains = '''if(__acc_hide_footer)z_=null'''
+
+[[patches.tests]]
+kind = "static"
+name = "footer row reuses existing AppState settings read in 2.1.177"
+assert_contains = '''__acc_hide_footer=globalThis.__acc_disabled_footer?.includes("footer")||zH?.statusLine?.hideBuiltinFooter||zH?.statusLine?.disabledFooter?.includes("footer")'''
 
 [[patches]]
 name = "statusline-footer-control-mode-hint"
@@ -1856,7 +1980,7 @@ assert_contains = '''let kH=!__acc_hide_mode&&qH&&OH&&MH?'''
 
 [[patches]]
 name = "statusline-footer-control-mode-hint-state-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Hide the built-in permission mode hint when the mode item is disabled.
 
@@ -1884,7 +2008,7 @@ assert_contains = '''__acc_hide_mode=X_((FH)=>FH.settings.statusLine?.hideBuilti
 
 [[patches]]
 name = "statusline-footer-control-mode-hint-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Hide the built-in permission mode hint when the mode item is disabled.
 
@@ -1908,6 +2032,61 @@ value = '''let o6=!__acc_hide_mode&&b_&&KH?'''
 kind = "static"
 name = "permission mode hint is controlled by disabledFooter in 2.1.172"
 assert_contains = '''let o6=!__acc_hide_mode&&b_&&KH?'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Hide the built-in permission mode hint when the mode item is disabled.
+
+This is the 2.1.177 hook-site half of
+`statusline-footer-control-mode-hint`. It stores the footer hide decision
+before the component's early bash-mode return so hook order stays stable.
+Cleanup condition: upstream ships official per-item footer controls.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "RJT", strings = ['key:"mode"', "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let{columns:D}=R8();PYH();let M=Y_("tengu_copper_thistle",!1),'''
+value = '''let{columns:D}=R8();PYH();let __acc_hide_mode=J_((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),M=Y_("tengu_copper_thistle",!1),'''
+
+[[patches.tests]]
+kind = "static"
+name = "permission mode hint hide state is computed before early returns in 2.1.177"
+assert_contains = '''__acc_hide_mode=J_((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Hide the built-in permission mode hint when the mode item is disabled.
+
+This is the 2.1.177 render-site half of
+`statusline-footer-control-mode-hint`. Cleanup condition: upstream ships
+official per-item footer controls.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "RJT", strings = ['key:"mode"', "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let PH=KH&&zH&&fH?'''
+value = '''let PH=!__acc_hide_mode&&KH&&zH&&fH?'''
+
+[[patches.tests]]
+kind = "static"
+name = "permission mode hint is controlled by disabledFooter in 2.1.177"
+assert_contains = '''let PH=!__acc_hide_mode&&KH&&zH&&fH?'''
 
 [[patches]]
 name = "statusline-footer-control-schema"
@@ -2247,7 +2426,7 @@ assert_contains = '''command_length:g.command?.length??0,padding:g.padding'''
 
 [[patches]]
 name = "statusline-footer-control-command-length-mount-2-1-170"
-applies_to = ">=2.1.170 <2.2.0"
+applies_to = ">=2.1.170 <2.1.177"
 rationale = """
 Avoid crashing when footer-only statusLine settings have no command field.
 
@@ -2266,6 +2445,28 @@ replacement = '''command_length:l.command?.length??0,padding:l.padding'''
 kind = "static"
 name = "statusline mount telemetry tolerates missing command in 2.1.170"
 assert_contains = '''command_length:l.command?.length??0,padding:l.padding'''
+
+[[patches]]
+name = "statusline-footer-control-command-length-mount-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Avoid crashing when footer-only statusLine settings have no command field.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-footer-control-command-length-mount-2-1-139`. Cleanup condition:
+footer controls move out of `settings.statusLine` or upstream separates
+statusLine presence from command presence.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+locator_pattern = '''command_length:d.command.length,padding:d.padding'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''command_length:d.command?.length??0,padding:d.padding'''
+
+[[patches.tests]]
+kind = "static"
+name = "statusline mount telemetry tolerates missing command in 2.1.177"
+assert_contains = '''command_length:d.command?.length??0,padding:d.padding'''
 
 [[patches]]
 name = "statusline-footer-control-terminal-columns"
@@ -2671,7 +2872,7 @@ assert_contains = '''disabledFooter?.includes("teammate_idle_spacer"))'''
 
 [[patches]]
 name = "statusline-footer-control-teammate-spinner-gap-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Remove the idle leader spacer before teammate spinner lines when disabled.
 
@@ -2690,6 +2891,28 @@ replacement = '''let qH=K.current!==null?K.current-_.current-q.current:Date.now(
 kind = "static"
 name = "teammate tree spacer is controlled by disabledFooter in 2.1.172"
 assert_contains = '''X_((kH)=>kH.settings.statusLine?.disabledFooter?.includes("teammate_idle_spacer"))'''
+
+[[patches]]
+name = "statusline-footer-control-teammate-spinner-gap-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Remove the idle leader spacer before teammate spinner lines when disabled.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-footer-control-teammate-spinner-gap`. Cleanup condition: upstream
+removes the extra spacer or gives custom status lines an official way to own
+this layout.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Spinner.tsx#L226-L238"
+locator_pattern = '''let OH=K.current!==null\?K.current-_.current-q.current:Date.now\(\)-_.current-q.current,AH=Math.round\(O.current/4\),\$H="claude",wH="claudeShimmer",jH=T\?\?\$H,MH=z\?\?wH,TH=null,XH=Y_\("tengu_shining_fractals",!1\);if\(D&&KH&&!S\)return t9.createElement\(B,\{flexDirection:"column",width:"100%",alignItems:"flex-start"\},t9.createElement\(B,\{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"\},t9.createElement\(V,\{dimColor:!0\},t9.createElement\(V,\{"aria-hidden":!0\},Xm," "\),"Idle",!zH&&" \\xB7 teammates running"\)\),E&&t9.createElement\(GC6,\{selectedIndex:v,isInSelectionMode:C==="selecting-agent",allIdle:zH,leaderTokenCount:AH,leaderIdleText:"Idle"\}\)\);'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''let OH=K.current!==null?K.current-_.current-q.current:Date.now()-_.current-q.current,AH=Math.round(O.current/4),$H="claude",wH="claudeShimmer",jH=T??$H,MH=z??wH,TH=null,bH=J_((kH)=>kH.settings.statusLine?.hideBuiltinFooter)||J_((kH)=>kH.settings.statusLine?.disabledFooter?.includes("teammate_idle_spacer"))||globalThis.__acc_disabled_footer?.includes("teammate_idle_spacer")||globalThis.__acc_disabled_footer?.includes("footer"),XH=Y_("tengu_shining_fractals",!1);if(D&&KH&&!S)return t9.createElement(B,{flexDirection:"column",width:"100%",alignItems:"flex-start"},bH&&E?null:t9.createElement(B,{flexDirection:"row",flexWrap:"wrap",marginTop:1,width:"100%"},t9.createElement(V,{dimColor:!0},t9.createElement(V,{"aria-hidden":!0},Xm," "),"Idle",!zH&&" \xB7 teammates running")),E&&t9.createElement(GC6,{selectedIndex:v,isInSelectionMode:C==="selecting-agent",allIdle:zH,leaderTokenCount:AH,leaderIdleText:"Idle"}));'''
+
+[[patches.tests]]
+kind = "static"
+name = "teammate tree spacer is controlled by disabledFooter in 2.1.177"
+assert_contains = '''J_((kH)=>kH.settings.statusLine?.disabledFooter?.includes("teammate_idle_spacer"))'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-effect"
@@ -3377,7 +3600,7 @@ assert_contains = '''fast_mode:q,effort_level:'''
 
 [[patches]]
 name = "statusline-json-effort-level-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Expose the effective effort level to custom statusLine commands as a stable
 top-level field.
@@ -3401,6 +3624,34 @@ value = "$1effort_level:c2(X)?ak(X,j):null,...c2(X)&&{effort:{level:ak(X,j)}}"
 [[patches.tests]]
 kind = "static"
 name = "statusline JSON includes effort level in 2.1.172"
+assert_contains = '''fast_mode:q,effort_level:'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Expose the effective effort level to custom statusLine commands as a stable
+top-level field.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-json-effort-level`. Cleanup condition: upstream adds an equivalent
+scalar statusLine field.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ReturnStatement", strings = ["cwd:", "session_name:", "model:", "display_name:"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(fast_mode:q,)\\.\\.\\.zP\\(X\\)&&\\{effort:\\{level:kN\\(X,j\\)\\}\\}"
+value = "$1effort_level:zP(X)?kN(X,j):null,...zP(X)&&{effort:{level:kN(X,j)}}"
+
+[[patches.tests]]
+kind = "static"
+name = "statusline JSON includes effort level in 2.1.177"
 assert_contains = '''fast_mode:q,effort_level:'''
 
 [[patches]]

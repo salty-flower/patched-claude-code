@@ -79,7 +79,15 @@ test("live thinking rendering is not suppressed by brief mode", () => {
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.172")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.177")) {
+    expect(patched).toContain('case"thinking":{if(!1)return null;let h;')
+    expect(patched).not.toContain('case"thinking":{if(!J&&!z)return null;let h;')
+    expect(patched).toContain("streamingText:M,streamingThinking:__acc_streamingThinking,isBriefOnly:X=!1")
+    expect(patched).toContain(
+      '__acc_streamingThinking?.thinking&&v5.createElement(B,{marginTop:1},v5.createElement(lC6,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:K}))',
+    )
+    expect(patched).not.toContain("__acc_streamingThinking?.thinking&&!C")
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.172")) {
     expect(patched).toContain('case"thinking":{if(!1)return null;let h;')
     expect(patched).not.toContain('case"thinking":{if(!J&&!z)return null;let h;')
     expect(patched).toContain("streamingText:M,streamingThinking:__acc_streamingThinking,isBriefOnly:X=!1")

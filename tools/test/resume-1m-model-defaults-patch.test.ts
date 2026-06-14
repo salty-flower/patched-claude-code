@@ -65,13 +65,24 @@ test("resume restores 1m defaults after alias resolution", () => {
     return
   }
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.172")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.172") && isVersionBefore(TARGET_VERSION, "2.1.177")) {
     expect(applied).toBe(2)
     expect(patched).toContain(
       'if(Yj()!==void 0||!h3())return;let O=Sv4(H,_);if(process.env.ANTHROPIC_MODEL&&(O.kind!=="ok"||D9(Q7(process.env.ANTHROPIC_MODEL))!==D9(O.model)))return;',
     )
     expect(patched).toContain(
       'if(_&&Nj(Q7(_))&&UU(T)&&D9(Q7(S$(_)))===D9(T))return{kind:"ok",model:T+"[1m]"};',
+    )
+    return
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.177")) {
+    expect(applied).toBe(2)
+    expect(patched).toContain(
+      'if(kj()!==void 0||!OO())return;let O=Eu4(H,_);if(process.env.ANTHROPIC_MODEL&&(O.kind!=="ok"||_9(D9(process.env.ANTHROPIC_MODEL))!==_9(O.model)))return;',
+    )
+    expect(patched).toContain(
+      'if(_&&Uj(D9(_))&&bF(T)&&_9(D9(gO(_)))===_9(T))return{kind:"ok",model:T+"[1m]"};',
     )
   }
 }, 120000)

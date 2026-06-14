@@ -3867,7 +3867,7 @@ assert_contains = '''permission_mode:H,clipboard_image:{available:globalThis.__a
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-2-1-172"
-applies_to = ">=2.1.172 <2.2.0"
+applies_to = ">=2.1.172 <2.1.177"
 rationale = """
 Refresh custom statusLine output when clipboard image availability changes.
 
@@ -3901,4 +3901,42 @@ assert_not_contains = '''__cci=j_((c)=>c.clipboardImageAvailable??!1)'''
 [[patches.tests]]
 kind = "static"
 name = "statusline JSON includes footer state in 2.1.172"
+assert_contains = '''permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-2-1-177"
+applies_to = ">=2.1.177 <2.2.0"
+rationale = """
+Refresh custom statusLine output when clipboard image availability changes.
+
+This is the 2.1.177 minified-symbol variant of
+`statusline-json-clipboard-image-refresh`. The StatusLine component selector
+helper moved from `X_` to `J_`. Cleanup condition: upstream adds official
+statusLine fields and refresh triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["thinkingEnabled", "useRef(void 0)", "toolPermissionContext", "statusLineText"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = ",(\\w+=\\w+\\.useRef\\(\\w+\\));$"
+value = ",__cci=J_((c)=>c.clipboardImageAvailable??!1),$1;"
+
+[[patches.tests]]
+kind = "static"
+name = "statusline observes clipboard image state in 2.1.177"
+assert_contains = '''__cci=J_((c)=>c.clipboardImageAvailable??!1)'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale clipboard image state selector is absent in 2.1.177"
+assert_not_contains = '''__cci=X_((c)=>c.clipboardImageAvailable??!1)'''
+
+[[patches.tests]]
+kind = "static"
+name = "statusline JSON includes footer state in 2.1.177"
 assert_contains = '''permission_mode:H,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''

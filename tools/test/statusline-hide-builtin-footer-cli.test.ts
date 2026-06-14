@@ -295,9 +295,16 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).not.toContain("YD.useEffect(()=>{m()},[__cci,m]);")
   }
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.172")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.172") && isVersionBefore(TARGET_VERSION, "2.1.177")) {
     expect(patched).toContain("__cci=X_((c)=>c.clipboardImageAvailable??!1)")
     expect(patched).not.toContain("__cci=j_((c)=>c.clipboardImageAvailable??!1)")
+    expect(patched).toContain("aJ.useEffect(()=>{b()},[__cci,b]);")
+    expect(patched).not.toContain("BJ.useEffect(()=>{b()},[__cci,b]);")
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.177")) {
+    expect(patched).toContain("__cci=J_((c)=>c.clipboardImageAvailable??!1)")
+    expect(patched).not.toContain("__cci=X_((c)=>c.clipboardImageAvailable??!1)")
     expect(patched).toContain("aJ.useEffect(()=>{b()},[__cci,b]);")
     expect(patched).not.toContain("BJ.useEffect(()=>{b()},[__cci,b]);")
   }

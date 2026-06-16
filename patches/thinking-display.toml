@@ -183,7 +183,7 @@ Render thinking deltas while the current API response is still streaming.
 
 This is the 2.1.172 stream-handler variant of
 `thinking-render-live-stream`. The fallback token estimator minifies to `Dx6`
-in this bundle while the live thinking setter remains in scope as `z`.
+in this bundle while the live thinking setter is in scope as `$`.
 
 Cleanup condition: upstream renders thinking_delta content live in the
 interactive UI.
@@ -198,12 +198,12 @@ match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''ca
 
 [patches.transform]
 op = "replace_node"
-value = '''case"thinking_delta":{let{delta:f}=H.event,w=typeof f.thinking==="string"?f.thinking:"";if(w)K(w.length),z?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in f&&typeof f.estimated_tokens==="number")A?.({type:"thinking_progress",estimatedTokensDelta:f.estimated_tokens});else if(w.length>0)A?.({type:"thinking_progress",estimatedTokensDelta:Dx6(w)});return}'''
+value = '''case"thinking_delta":{let{delta:f}=H.event,w=typeof f.thinking==="string"?f.thinking:"";if(w)K(w.length),$?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in f&&typeof f.estimated_tokens==="number")A?.({type:"thinking_progress",estimatedTokensDelta:f.estimated_tokens});else if(w.length>0)A?.({type:"thinking_progress",estimatedTokensDelta:Dx6(w)});return}'''
 
 [[patches.tests]]
 kind = "static"
 name = "thinking deltas update streaming thinking in 2.1.172"
-assert_contains = '''z?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))'''
+assert_contains = '''$?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))'''
 
 [[patches.tests]]
 kind = "static"

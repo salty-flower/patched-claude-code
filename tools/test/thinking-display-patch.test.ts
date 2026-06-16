@@ -60,6 +60,44 @@ function getStreamingThinkingState(body: string): string {
   return state!
 }
 
+function getThinkingDeltaCaseAt(body: string, deltaIndex: number): string {
+  const nextCaseIndex = body.indexOf('case"', deltaIndex + 'case"thinking_delta":{'.length)
+  expect(nextCaseIndex).toBeGreaterThan(deltaIndex)
+  return body.slice(deltaIndex, nextCaseIndex)
+}
+
+function getStreamHandlerThinkingPatch(body: string): { callback: string; deltaCase: string } {
+  let searchFrom = 0
+  while (true) {
+    const deltaIndex = body.indexOf('case"thinking_delta":{', searchFrom)
+    if (deltaIndex === -1) break
+
+    const functionStart = body.lastIndexOf("function ", deltaIndex)
+    expect(functionStart).toBeGreaterThanOrEqual(0)
+
+    const functionHead = body.slice(functionStart, deltaIndex)
+    const callback = functionHead.match(/onStreamingThinking:([A-Za-z_$][\w$]*)/)?.[1]
+    if (callback) {
+      return { callback, deltaCase: getThinkingDeltaCaseAt(body, deltaIndex) }
+    }
+
+    searchFrom = deltaIndex + 1
+  }
+
+  throw new Error("Could not find stream handler thinking_delta case")
+}
+
+test("thinking deltas update the stream handler's live thinking callback", () => {
+  expect(existsSync(TARGET_BUNDLE)).toBe(true)
+
+  renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
+
+  const patched = readFileSync(patchedBundle, "utf8")
+  const { callback, deltaCase } = getStreamHandlerThinkingPatch(patched)
+
+  expect(deltaCase).toContain(`${callback}?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))`)
+}, 120000)
+
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 

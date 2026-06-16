@@ -539,7 +539,7 @@ assert_not_contains = '''streamingThinking:d7'''
 [[patches]]
 name = "thinking-render-live-main-2-1-170"
 target_version = "2.1.170"
-applies_to = ">=2.1.170 <2.2.0"
+applies_to = ">=2.1.170 <2.1.172"
 
 rationale = """
 Pass live thinking state to the main interactive message renderer.
@@ -567,6 +567,80 @@ value = "EK"
 kind = "static"
 name = "main message renderer receives live thinking in 2.1.170"
 assert_contains = '''streamingThinking:EK'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-172"
+target_version = "2.1.172"
+applies_to = ">=2.1.172 <2.1.177"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.172 minified-symbol variant of
+`thinking-render-live-main`. The stream event bridge passes live thinking
+updates to `onStreamingThinking:P9`, and that setter owns the `d4` state used
+by the main-screen message renderer. Cleanup condition: upstream renders live
+thinking summaries on the main interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "d4"
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.172"
+assert_contains = '''streamingThinking:d4'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer does not use stale 2.1.170 state in 2.1.172"
+assert_not_contains = '''streamingThinking:EK'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-177"
+target_version = "2.1.177"
+applies_to = ">=2.1.177 <2.2.0"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.177 minified-symbol variant of
+`thinking-render-live-main`. The stream event bridge passes live thinking
+updates to `onStreamingThinking:pK`, and that setter owns the `N9` state used
+by the main-screen message renderer. Cleanup condition: upstream renders live
+thinking summaries on the main interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "N9"
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.177"
+assert_contains = '''streamingThinking:N9'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer does not use stale 2.1.170 state in 2.1.177"
+assert_not_contains = '''streamingThinking:EK'''
 
 [[patches]]
 name = "thinking-render-live-brief-2-1-150"

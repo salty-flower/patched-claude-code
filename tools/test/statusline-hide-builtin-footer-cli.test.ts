@@ -62,6 +62,20 @@ function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function getStreamingThinkingState(body: string): string {
+  const setters = [...body.matchAll(/onStreamingThinking:([A-Za-z_$][\w$]*)/g)].map((match) => match[1])
+  const setter = setters.at(-1)
+  expect(setter).toBeDefined()
+
+  const state = body.match(new RegExp(`\\[([A-Za-z_$][\\w$]*),${escapeRegExp(setter!)}\\]=[A-Za-z_$][\\w$]*\\.useState\\(null\\)`))?.[1]
+  expect(state).toBeDefined()
+  return state!
+}
+
 test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
@@ -329,8 +343,12 @@ test("thinking display wires main-screen streaming thinking to the current REPL 
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
     if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
-      expect(patched).toContain("streamingThinking:EK")
+      const streamingThinkingState = getStreamingThinkingState(patched)
+      expect(patched).toContain(`streamingThinking:${streamingThinkingState}`)
       expect(patched).not.toContain("streamingThinking:d7")
+      if (streamingThinkingState !== "EK") {
+        expect(patched).not.toContain("streamingThinking:EK")
+      }
       return
     }
     expect(patched).toContain("streamingThinking:d7")

@@ -46,6 +46,20 @@ function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function getStreamingThinkingState(body: string): string {
+  const setters = [...body.matchAll(/onStreamingThinking:([A-Za-z_$][\w$]*)/g)].map((match) => match[1])
+  const setter = setters.at(-1)
+  expect(setter).toBeDefined()
+
+  const state = body.match(new RegExp(`\\[([A-Za-z_$][\\w$]*),${escapeRegExp(setter!)}\\]=[A-Za-z_$][\\w$]*\\.useState\\(null\\)`))?.[1]
+  expect(state).toBeDefined()
+  return state!
+}
+
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
@@ -53,23 +67,22 @@ test("main-screen thinking display uses the same live state as transcript render
 
   const patched = readFileSync(patchedBundle, "utf8")
   const streamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.168")
-    ? "EK"
+    ? getStreamingThinkingState(patched)
     : isVersionAtLeast(TARGET_VERSION, "2.1.156")
       ? "d7"
       : "cO"
-  const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.168")
-    ? "d7"
-    : isVersionAtLeast(TARGET_VERSION, "2.1.156")
-      ? "cO"
-      : "oT"
   const liveStateUses = patched.match(new RegExp(`streamingThinking:${streamingThinkingState}`, "g"))?.length ?? 0
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
     expect(liveStateUses).toBeGreaterThanOrEqual(1)
+    if (streamingThinkingState !== "EK") {
+      expect(patched).not.toContain("streamingThinking:EK")
+    }
   } else {
     expect(liveStateUses).toBeGreaterThanOrEqual(2)
+    const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "cO" : "oT"
+    expect(patched).not.toContain(`streamingThinking:${staleStreamingThinkingState}`)
   }
-  expect(patched).not.toContain(`streamingThinking:${staleStreamingThinkingState}`)
 }, 120000)
 
 test("live thinking rendering is not suppressed by brief mode", () => {

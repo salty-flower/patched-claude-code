@@ -1,6 +1,6 @@
 name = "mcp-result-rendering"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.181"
 
 rationale = """
 Group the MCP result rendering patches that keep array, string, and text-block result text complete.
@@ -8,7 +8,7 @@ Group the MCP result rendering patches that keep array, string, and text-block r
 [[patches]]
 name = "mcp-result-render-array-text-full"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.181"
 
 rationale = """
 Render MCP text-array results without terminal truncation.
@@ -39,9 +39,38 @@ name = "replacement is rendered"
 assert_contains = '''item:w,verbose:!0'''
 
 [[patches]]
+name = "mcp-result-render-array-text-full-2-1-181"
+target_version = "2.1.181"
+applies_to = ">=2.1.181 <2.2.0"
+
+rationale = """
+Render MCP text-array results without terminal truncation.
+
+This is the 2.1.181 minified-symbol variant of
+`mcp-result-render-array-text-full`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", string = "item:u,verbose:n" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{key:d,item:u,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.181"
+assert_contains = '''item:u,verbose:!0'''
+
+[[patches]]
 name = "mcp-result-render-string-full"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.181"
 
 rationale = """
 Render string MCP results without terminal truncation.
@@ -71,9 +100,38 @@ name = "replacement is rendered"
 assert_contains = '''content:O,verbose:!0'''
 
 [[patches]]
+name = "mcp-result-render-string-full-2-1-181"
+target_version = "2.1.181"
+applies_to = ">=2.1.181 <2.2.0"
+
+rationale = """
+Render string MCP results without terminal truncation.
+
+This is the 2.1.181 minified-symbol variant of
+`mcp-result-render-string-full`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", string = "content:o,verbose:n" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:o,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.181"
+assert_contains = '''content:o,verbose:!0'''
+
+[[patches]]
 name = "mcp-result-render-text-block-full"
 target_version = "2.1.133"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.181"
 
 rationale = """
 Render individual MCP text blocks without terminal truncation.
@@ -101,3 +159,32 @@ value = '''{content:O,verbose:!0}'''
 kind = "static"
 name = "replacement is rendered"
 assert_contains = '''content:O,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-181"
+target_version = "2.1.181"
+applies_to = ">=2.1.181 <2.2.0"
+
+rationale = """
+Render individual MCP text blocks without terminal truncation.
+
+This is the 2.1.181 minified-symbol variant of
+`mcp-result-render-text-block-full`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "createElement", string = "content:o,verbose:r" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:o,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.181"
+assert_contains = '''content:o,verbose:!0'''

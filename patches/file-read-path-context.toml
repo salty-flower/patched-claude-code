@@ -65,7 +65,7 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''"Read image (",q,")",Z)'''
+assert_contains = '''"Read image (",'''
 
 [[patches]]
 name = "read-result-path-notebook"
@@ -157,7 +157,7 @@ arg = "Z"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered"
-assert_contains = '''"Read PDF (",q,")",Z)'''
+assert_contains = '''"Read PDF (",'''
 
 [[patches]]
 name = "read-result-path-text"

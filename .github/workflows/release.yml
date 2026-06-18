@@ -105,15 +105,68 @@ jobs:
       - name: Typecheck tools
         run: just typecheck
 
+      - name: Reuse CI artifact (release-commit path)
+        id: reuse
+        if: >-
+          github.event_name == 'push' &&
+          startsWith(github.ref, 'refs/heads/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.coord.outputs.version }}"
+          artifact_name="patched-claude-code-${version}"
+
+          # Wait up to 10 min for the parallel ci.yml run to appear on this SHA
+          deadline=$((SECONDS + 600))
+          run_id=""
+          while [[ $SECONDS -lt $deadline ]]; do
+            run_id=$(gh run list \
+              --workflow=ci.yml \
+              --commit "$GITHUB_SHA" \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId // empty' 2>/dev/null || true)
+            [[ -n "$run_id" ]] && break
+            sleep 15
+          done
+
+          if [[ -z "$run_id" ]]; then
+            echo "No CI run found for this SHA — will render from scratch"
+            echo "reused=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Found CI run $run_id — waiting for completion"
+          if ! gh run watch "$run_id" --exit-status; then
+            echo "CI run failed — aborting release" >&2
+            exit 1
+          fi
+
+          if ! gh run download "$run_id" --name "$artifact_name" --dir ci-artifact 2>/dev/null; then
+            echo "Artifact not found (verify job may have been skipped) — will render from scratch"
+            echo "reused=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          cp ci-artifact/cli.js cli.js
+          cp ci-artifact/manifest.json manifest.json
+          cp ci-artifact/package.json package.json
+          install -m755 ci-artifact/bin/claude-patched bin/claude-patched
+          echo "reused=true" >> "$GITHUB_OUTPUT"
+
       - name: Verify and render patched bundle
+        if: steps.reuse.outputs.reused != 'true'
         env:
           TARGET_SOURCE: canonical
         run: just render "${{ steps.coord.outputs.version }}"
 
       - name: Smoke patched bundle
+        if: steps.reuse.outputs.reused != 'true'
         run: just smoke-rendered "${{ steps.coord.outputs.version }}"
 
       - name: Patch tests
+        if: steps.reuse.outputs.reused != 'true'
         run: just patch-test-rendered "${{ steps.coord.outputs.version }}"
 
       - name: Package release artifact

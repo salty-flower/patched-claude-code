@@ -1,0 +1,37 @@
+name = "shell-execution-real-shell"
+target_version = "2.1.181"
+applies_to = ">=2.1.181 <2.2.0"
+
+[[patches]]
+name = "disable-native-find-grep-shell-shims"
+rationale = """
+Disable the native-only find/grep shell snapshot shims in patched JS bundles.
+
+Claude Code's Bash tool still spawns a real system shell, but native Anthropic
+bundles can add shell functions that invoke the Bun executable as embedded bfs
+or ugrep through argv0 dispatch. This repo runs patched bundles as `bun cli.js`,
+where process.execPath is a plain Bun runtime, so those shims can route normal
+pipeline commands like grep into Bun instead of PATH. Cleanup condition:
+upstream gates these shims on a verified native binary that actually contains
+the embedded search tools, or this repo ships a native binary with those tools.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/bash/ShellSnapshot.ts#L107-L179"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["unalias find 2>/dev/null || true", "unalias grep 2>/dev/null || true", "bfs", "ugrep"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return null}"
+
+[[patches.tests]]
+kind = "static"
+name = "native find grep shims are disabled"
+assert_contains = '''function Eqd(){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "ugrep shell shim is absent"
+assert_not_contains = '''Fzr("grep","ugrep"'''

@@ -3,15 +3,15 @@
 // patched bytes to the given output. Intended to be invoked via
 // `bun run tools/patch/build-patched.ts`.
 //
-// Patches whose `applies_to` excludes the input version are skipped.
-// `gated_by_env` patches are skipped unless the named env var is truthy.
+// Disabled patches, patches whose `applies_to` excludes the input version, and
+// `gated_by_env` patches without a truthy env var are skipped.
 //
 // Each patch is verified to match exactly once before substitution; if any
 // patch fails to verify, the script exits non-zero without writing.
 
 import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { applyPatchEntries, patchApplies } from "../lib/apply-patches"
+import { applyPatchEntries, patchSkipReason } from "../lib/apply-patches"
 import { loadPatchEntriesFromDirectory } from "../lib/patch-files"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -28,8 +28,9 @@ function main(): number {
   console.error(`loaded ${patches.length} patch entries from patches/`)
 
   for (const p of patches) {
-    if (!patchApplies(p, version)) {
-      console.error(`[skip ] ${p.name} (does not apply to ${version})`)
+    const skipReason = patchSkipReason(p, version)
+    if (skipReason) {
+      console.error(`[skip ] ${p.name} (${skipReason})`)
       continue
     }
     console.error(`[apply] ${p.name}`)

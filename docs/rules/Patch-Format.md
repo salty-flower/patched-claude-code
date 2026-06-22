@@ -10,6 +10,7 @@ change to it must be reviewable in isolation.
 ```toml
 # Required for every file.
 name = "ask-user-question-channels"
+enabled = true                        # optional; default true; false keeps record but skips application
 target_version = "2.1.112"            # the bundle this patch was authored against
 applies_to = ">=2.1.112"              # semver range; null means same as target_version
 
@@ -141,6 +142,9 @@ Supported transform ops:
   `template`.
 - `applies_to` uses standard semver ranges. When a patch needs different
   text per range, split it into two files.
+- `enabled = false` disables a patch entry without deleting its audit record.
+  Omitted `enabled` means true. Disabled entries are skipped by render, verify,
+  and patch-test scripts.
 - Every patch entry MUST include at least one `[[patches.tests]]` entry, or
   `[[tests]]` for legacy one-entry files. Static tests run against the rendered
   bundle. CLI tests run `bun <cli.patched.js>`. PTY tests use `script(1)` plus

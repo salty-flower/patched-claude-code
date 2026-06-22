@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { applyPatchEntries } from "../lib/apply-patches"
+import { applyPatchEntries, patchSkipReason } from "../lib/apply-patches"
 import type { PatchEntry } from "../lib/patch-files"
 
 function basePatch(fields: Partial<PatchEntry>): PatchEntry {
@@ -7,6 +7,7 @@ function basePatch(fields: Partial<PatchEntry>): PatchEntry {
     file: "patches/test.toml",
     featureName: "test",
     name: "test patch",
+    enabled: true,
     target_version: "1.0.0",
     rationale: "Test patch.",
     rationale_ref: "reference/v2.1.88/sources/src/main.tsx#L1-L1",
@@ -86,4 +87,36 @@ test("skips AST transform patches outside their semver range", () => {
 
   expect(result.source).toBe('const out=tK.createElement(V,null,"Read image (",q,")")')
   expect(result.applied).toBe(0)
+})
+
+test("skips disabled patches while defaulting omitted enabled to true", () => {
+  const result = applyPatchEntries(
+    "beforeOne();beforeTwo()",
+    [
+      basePatch({
+        name: "default enabled",
+        locator_kind: "literal",
+        locator_pattern: "beforeOne()",
+        replacement: "afterOne()",
+      }),
+      basePatch({
+        name: "disabled",
+        enabled: false,
+        locator_kind: "literal",
+        locator_pattern: "beforeTwo()",
+        replacement: "afterTwo()",
+      }),
+    ],
+    "1.0.0",
+  )
+
+  expect(result.source).toBe("afterOne();beforeTwo()")
+  expect(result.applied).toBe(1)
+  expect(result.skipped.map((patch) => patch.name)).toEqual(["disabled"])
+})
+
+test("reports disabled patch skip reasons separately from semver misses", () => {
+  expect(patchSkipReason(basePatch({ enabled: false }), "1.0.0")).toBe("enabled=false")
+  expect(patchSkipReason(basePatch({ applies_to: ">=2.0.0" }), "1.0.0")).toBe("applies_to=>=2.0.0 excludes 1.0.0")
+  expect(patchSkipReason(basePatch({}), "1.0.0")).toBeUndefined()
 })

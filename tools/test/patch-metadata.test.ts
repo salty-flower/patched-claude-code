@@ -76,6 +76,7 @@ assert_contains = "afterTwo()"
       file: "patches/feature-file.toml",
       featureName: "feature-file",
       name: "first-site",
+      enabled: true,
       target_version: "2.1.133",
       applies_to: ">=2.1.133 <2.2.0",
       rationale: "Patch the first site.",
@@ -89,6 +90,7 @@ assert_contains = "afterTwo()"
       file: "patches/feature-file.toml",
       featureName: "feature-file",
       name: "second-site",
+      enabled: true,
       target_version: "2.1.133",
       applies_to: ">=2.1.133 <2.2.0",
       rationale: "Patch the second site.",
@@ -135,6 +137,7 @@ assert_contains = '"Read image (",q,")",Z'
       file: "patches/ast-feature.toml",
       featureName: "ast-feature",
       name: "append-call-arg",
+      enabled: true,
       target_version: "2.1.133",
       rationale: "Append an argument through a typed AST transform.",
       rationale_ref: "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88",
@@ -147,4 +150,44 @@ assert_contains = '"Read image (",q,")",Z'
       tests: [{ kind: "static", name: "path suffix is rendered", assert_contains: '"Read image (",q,")",Z' }],
     },
   ])
+})
+
+test("loads disabled patch entries while defaulting omitted enabled to true", () => {
+  const patches = loadPatchEntriesFromToml(
+    `
+name = "feature-file"
+target_version = "2.1.133"
+
+[[patches]]
+name = "default-enabled-site"
+rationale = "Patch the default-enabled site."
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L1-L2"
+locator_pattern = "beforeOne()"
+locator_kind = "literal"
+replacement = "afterOne()"
+
+[[patches.tests]]
+kind = "static"
+name = "first replacement"
+assert_contains = "afterOne()"
+
+[[patches]]
+name = "disabled-site"
+enabled = false
+rationale = "Keep this patch recorded but disabled."
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L3-L4"
+locator_pattern = "beforeTwo()"
+locator_kind = "literal"
+replacement = "afterTwo()"
+
+[[patches.tests]]
+kind = "static"
+name = "second replacement"
+assert_contains = "afterTwo()"
+`,
+    "patches/feature-file.toml",
+  )
+
+  expect(patches[0]?.enabled).toBe(true)
+  expect(patches[1]?.enabled).toBe(false)
 })

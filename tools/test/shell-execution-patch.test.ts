@@ -18,11 +18,21 @@ afterEach(() => {
   }
 })
 
-test("shell execution patch disables native find/grep shims for bun cli.js launches", () => {
+test("shell execution patch is disabled by default", () => {
   const source = readFileSync(TARGET_BUNDLE, "utf8")
-  const patched = applyPatchEntries(source, loadPatchEntriesFromFile(PATCH_FILE), TARGET_VERSION).source
+  const result = applyPatchEntries(source, loadPatchEntriesFromFile(PATCH_FILE), TARGET_VERSION)
 
   expect(source).toContain('Fzr("grep","ugrep"')
+  expect(result.source).toBe(source)
+  expect(result.applied).toBe(0)
+  expect(result.skipped.map((patch) => patch.name)).toEqual(["disable-native-find-grep-shell-shims"])
+}, 20_000)
+
+test("shell execution patch locator remains valid when enabled", () => {
+  const source = readFileSync(TARGET_BUNDLE, "utf8")
+  const patches = loadPatchEntriesFromFile(PATCH_FILE).map((patch) => ({ ...patch, enabled: true }))
+  const patched = applyPatchEntries(source, patches, TARGET_VERSION).source
+
   expect(patched).toContain("function Eqd(){return null}")
   expect(patched).not.toContain('function Eqd(){if(!Yw())return null;return["unalias find')
 }, 20_000)

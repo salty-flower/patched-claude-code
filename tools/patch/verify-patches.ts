@@ -18,7 +18,7 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { verifyAstTransformPatches, type AstTransformPatch } from "../lib/ast-transform-patches"
-import { patchApplies } from "../lib/apply-patches"
+import { patchApplies, patchSkipReason } from "../lib/apply-patches"
 import { createCommand } from "../lib/cli"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
@@ -186,11 +186,12 @@ function main(): number {
     for (const p of patches) {
       const tgt = target ?? defaultTarget(p)
       const targetVersion = target ? inferTargetVersion(tgt) : p.target_version
-      if (targetVersion && !patchApplies(p, targetVersion)) {
+      const skipReason = targetVersion ? patchSkipReason(p, targetVersion) : undefined
+      if (skipReason) {
         console.log(`[skip] ${p.name}`)
         console.log(`       file=${p.file}`)
         console.log(`       target=${tgt}`)
-        console.log(`       applies_to=${p.applies_to ?? p.target_version} excludes ${targetVersion}`)
+        console.log(`       ${skipReason}`)
         continue
       }
 

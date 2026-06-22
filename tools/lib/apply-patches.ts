@@ -14,15 +14,20 @@ export type ApplyPatchEntriesOptions = {
 }
 
 export function patchApplies(patch: PatchEntry, version: string): boolean {
+  return patchSkipReason(patch, version) === undefined
+}
+
+export function patchSkipReason(patch: PatchEntry, version: string): string | undefined {
+  if (!patch.enabled) return "enabled=false"
   if (patch.gated_by_env) {
     const value = process.env[patch.gated_by_env] ?? ""
-    if (!value || value === "0" || value === "false") return false
+    if (!value || value === "0" || value === "false") return `gated_by_env=${patch.gated_by_env} not truthy`
   }
   const range = patch.applies_to ?? patch.target_version
   if (semver.valid(range)) {
-    return semver.eq(version, range)
+    return semver.eq(version, range) ? undefined : `applies_to=${range} excludes ${version}`
   }
-  return semver.satisfies(version, range)
+  return semver.satisfies(version, range) ? undefined : `applies_to=${range} excludes ${version}`
 }
 
 export function applyPatchEntries(

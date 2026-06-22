@@ -10,6 +10,7 @@ export type PatchEntry = {
   file: string
   featureName: string
   name: string
+  enabled: boolean
   target_version: string
   applies_to?: string
   rationale: string
@@ -26,6 +27,7 @@ export type PatchEntry = {
 
 type PatchFields = {
   name?: unknown
+  enabled?: unknown
   target_version?: unknown
   applies_to?: unknown
   rationale?: unknown
@@ -55,6 +57,7 @@ export function loadPatchEntriesFromToml(rawToml: string, file: string): PatchEn
       file,
       featureName,
       name: requiredString(entry.name, `patches[${index}].name`, file),
+      enabled: inheritedBoolean(entry.enabled, parsed.enabled, `patches[${index}].enabled`, file),
       target_version: inheritedString(entry.target_version, parsed.target_version, "target_version", file),
       applies_to: optionalInheritedString(entry.applies_to, parsed.applies_to, "applies_to", file),
       rationale: inheritedString(entry.rationale, parsed.rationale, `patches[${index}].rationale`, file),
@@ -104,6 +107,13 @@ function optionalNumber(value: unknown, field: string, file: string): number | u
   if (value === undefined || value === null) return undefined
   if (typeof value === "number") return value
   throw new Error(`${file}: expected number field ${field}`)
+}
+
+function inheritedBoolean(value: unknown, inherited: unknown, field: string, file: string): boolean {
+  const resolved = value ?? inherited
+  if (resolved === undefined || resolved === null) return true
+  if (typeof resolved === "boolean") return resolved
+  throw new Error(`${file}: expected boolean field ${field}`)
 }
 
 function locatorKind(value: string, file: string): LocatorKind {

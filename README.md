@@ -80,7 +80,7 @@ For each new Claude Code release we want to ship, we:
 direnv allow                         # loads the Nix devShell
 bun install --cwd tools --frozen-lockfile
 prek install --overwrite
-just release-dry 2.1.132 patch.local
+just release-dry 2.1.181 patch.local
 ```
 
 Versions and patch authoring workflow: see [`docs/guides/Adding-Patches.md`](docs/guides/Adding-Patches.md).

@@ -5,7 +5,7 @@
 Use one release commit title per patched upstream Claude Code bundle:
 
 ```sh
-git commit --allow-empty -m "release: claude-code-2.1.132-patch.2"
+git commit --allow-empty -m "release: claude-code-2.1.181-patch.3"
 git push origin main
 ```
 
@@ -25,8 +25,8 @@ only; promotion creates the exact Nix source tag and moves
 Manual tag release remains supported:
 
 ```sh
-git tag claude-code-2.1.132-patch.2
-git push origin claude-code-2.1.132-patch.2
+git tag claude-code-2.1.181-patch.3
+git push origin claude-code-2.1.181-patch.3
 ```
 
 Current releases stage `staging/<version>/canonical/cli.js`, then copy it to
@@ -36,22 +36,22 @@ on `darwin-arm64` plus `linux-x64` direct-download native entrypoint JS.
 Manual dry run:
 
 ```sh
-just release-dry 2.1.132 patch.1
+just release-dry 2.1.181 patch.3
 ```
 
 Manual publish:
 
 ```sh
 gh workflow run release.yml \
-  -f target_version=2.1.132 \
-  -f release_id=patch.1 \
+  -f target_version=2.1.181 \
+  -f release_id=patch.3 \
   -f publish=true
 ```
 
 ## Local Packaging
 
 ```sh
-just release-dry 2.1.132 patch.1
+just release-dry 2.1.181 patch.3
 ```
 
 Outputs land in `dist/`:

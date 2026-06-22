@@ -93,6 +93,13 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
   renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
 
   const patched = readFileSync(patchedBundle, "utf8")
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.181")) {
+    expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:BKn(w)})')
+    return
+  }
+
   const { callback, deltaCase } = getStreamHandlerThinkingPatch(patched)
 
   expect(deltaCase).toContain(`${callback}?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))`)
@@ -130,7 +137,15 @@ test("live thinking rendering is not suppressed by brief mode", () => {
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.177")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.181")) {
+    expect(patched).toContain('case"thinking":{if(!1)return null;let C;')
+    expect(patched).not.toContain('case"thinking":{if(!m&&!i)return null;let C;')
+    expect(patched).toContain("streamingText:h,streamingThinking:__acc_streamingThinking,hideStreamingTail:g=!1,isBriefOnly:_=!1")
+    expect(patched).toContain(
+      '__acc_streamingThinking?.thinking&&Bu.createElement(B,{marginTop:1},Bu.createElement(GFn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:r}))',
+    )
+    expect(patched).not.toContain("__acc_streamingThinking?.thinking&&!C")
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.177")) {
     expect(patched).toContain('case"thinking":{if(!1)return null;let h;')
     expect(patched).not.toContain('case"thinking":{if(!J&&!z)return null;let h;')
     expect(patched).toContain("streamingText:M,streamingThinking:__acc_streamingThinking,isBriefOnly:X=!1")

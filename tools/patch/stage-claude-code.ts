@@ -26,13 +26,13 @@ export const STAGING_SUPPORT_CONTRACT = {
     condition: "package/cli.js exists in @anthropic-ai/claude-code tarball",
   },
   nativeBunStandalone: {
-    knownGoodVersions: ["2.1.132", "2.1.133"],
+    knownGoodVersions: ["2.1.132", "2.1.133", "2.1.181"],
     provisionalRange: ">=2.1.132 <2.2.0",
     condition: "wrapper package declares a platform optional dependency with a Bun standalone binary",
     layoutContract: BUN_STANDALONE_LAYOUT_CONTRACT.name,
   },
   nativeDownloadsManifest: {
-    knownGoodVersions: ["2.1.132", "2.1.133"],
+    knownGoodVersions: ["2.1.132", "2.1.133", "2.1.181"],
     condition: "Claude direct-download manifest exposes platform Bun standalone binaries",
     layoutContract: BUN_STANDALONE_LAYOUT_CONTRACT.name,
   },

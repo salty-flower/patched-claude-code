@@ -6,7 +6,7 @@ Choose the ref by update policy:
 
 | Pin | Example |
 | --- | --- |
-| Exact source tag | `claude-code-2.1.132-patch.1` |
+| Exact source tag | `claude-code-2.1.181-patch.3` |
 | Moving Nix source branch | `claude-code-latest` |
 
 Both refs point at a minimal source tree containing `cli.js`, `manifest.json`,
@@ -26,7 +26,7 @@ configured `access-tokens`:
 ```nix
 {
   inputs.patched-claude-code.url =
-    "github:salty-flower/patched-claude-code/claude-code-2.1.132-patch.1";
+    "github:salty-flower/patched-claude-code/claude-code-2.1.181-patch.3";
 }
 ```
 

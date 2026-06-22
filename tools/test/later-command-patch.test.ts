@@ -39,12 +39,13 @@ test.skipIf(!testLaterCommand)("/later schedules a session-only one-shot cron be
   expect(applied).toBe(2)
   expect(patched).toContain('__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)')
   expectContainsOneOf(patched, [
+    "await Att(__cron,__prompt,!1,!1,void 0)",
     "await gsH(__cron,__prompt,!1,!1,void 0)",
     "await hoH(__cron,__prompt,!1,!1,void 0)",
     "await SeH(__cron,__prompt,!1,!1,void 0)",
   ])
   expect(patched).toContain("if(__task)__task.later=!0")
-  expectContainsOneOf(patched, ["bo(!0)", "Or(!0)", "va(!0)"])
+  expectContainsOneOf(patched, ["uX(!0)", "bo(!0)", "Or(!0)", "va(!0)"])
   expect(patched).toContain('text:`Scheduled ${__id} for ${__when.toLocaleString()}`')
 }, 120000)
 
@@ -58,6 +59,7 @@ test.skipIf(!testLaterCommand)("/later list renders pending delayed prompts", ()
   expect(patched).toContain("Pending /later prompts:")
   expect(patched).toContain("No pending /later prompts")
   expectContainsOneOf(patched, [
+    "FI().filter((__t)=>__t.later===!0&&!__t.recurring)",
     "YR().filter((__t)=>__t.later===!0&&!__t.recurring)",
     "DG().filter((__t)=>__t.later===!0&&!__t.recurring)",
     "vR().filter((__t)=>__t.later===!0&&!__t.recurring)",

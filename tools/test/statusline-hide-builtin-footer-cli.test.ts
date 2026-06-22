@@ -82,6 +82,34 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
   renderStatuslineFooterPatches(TARGET_BUNDLE, patchedBundle)
 
   const patched = readFileSync(patchedBundle, "utf8")
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.181")) {
+    expect(patched).toContain("--hide-builtin-footer")
+    expect(patched).toContain(
+      '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
+    )
+    expect(patched).toContain("globalThis.__acc_disabled_footer=H}let Od={settings:Kr()")
+    expect(patched).toContain(
+      'hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:E.array(E.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+    )
+    expect(patched).toContain('ft((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))')
+    expect(patched).toContain('L?.statusLine?.disabledFooter?.includes("rate_limit_warning")')
+    expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
+    expect(patched).toContain("globalThis.__acc_rate_limit_warning=i")
+    expect(patched).toContain(
+      '__acc_hide_footer=ft((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
+    )
+    expect(patched).toContain("if(__acc_hide_footer)ce=null")
+    expect(patched).toContain(
+      '__acc_hide_mode=ft((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))',
+    )
+    expect(patched).toContain("let pe=!__acc_hide_mode&&V&&Y&&me?")
+    expect(patched).not.toContain(
+      'hideBuiltinFooter:k.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")',
+    )
+    return
+  }
+
   expect(patched).toContain("--hide-builtin-footer")
   expect(patched).toContain(
     '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',

@@ -33,5 +33,5 @@ test("release workflow renders once and reuses the rendered bundle", () => {
 test("release workflow defaults to the current target version", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "release.yml"), "utf8")
 
-  expect(workflow).toContain('default: "2.1.168"')
+  expect(workflow).toContain('default: "2.1.181"')
 })

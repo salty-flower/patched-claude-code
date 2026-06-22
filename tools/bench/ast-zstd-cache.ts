@@ -29,8 +29,8 @@ type Trial = {
 }
 
 const ROOT = join(import.meta.dir, "..", "..")
-const DEFAULT_INPUT = join(ROOT, "staging", "2.1.133", "cli.js")
-const DEFAULT_CACHE = join(ROOT, "staging", "2.1.133", "bench", "cli.ast.stripped.json.zst")
+const DEFAULT_INPUT = join(ROOT, "staging", "2.1.181", "cli.js")
+const DEFAULT_CACHE = join(ROOT, "staging", "2.1.181", "bench", "cli.ast.stripped.json.zst")
 const DROP_AST_KEYS = new Set(["comments", "extra", "innerComments", "leadingComments", "loc", "range", "trailingComments"])
 
 function parseArgs(argv: string[]): { command: string; input: string; cache: string; iterations: number } {

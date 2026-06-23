@@ -222,7 +222,7 @@ assert_contains = '''isEnabled(){return!0}'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-181"
 target_version = "2.1.181"
-applies_to = ">=2.1.181 <2.2.0"
+applies_to = ">=2.1.181 <2.1.186"
 
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
@@ -250,6 +250,39 @@ body = "{return!0}"
 [[patches.tests]]
 kind = "static"
 name = "replacement is rendered in 2.1.181"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-186"
+target_version = "2.1.186"
+applies_to = ">=2.1.186 <2.2.0"
+
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.186 minified-symbol variant of
+`ask-user-question-channels-gate`. The shared channel-length predicate now
+minifies to `BT().length>0&&Hr()` across the same three tool definitions.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 3
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["BT().length>0&&Hr()", "return!1;return!0"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.186"
 assert_contains = '''isEnabled(){return!0}'''
 
 [[patches]]

@@ -39,7 +39,7 @@ assert_contains = '''compute:async()=>null'''
 
 [[patches]]
 name = "suppress-npm-native-installer-warning-setup-card-2-1-168"
-applies_to = ">=2.1.168 <2.2.0"
+applies_to = ">=2.1.168 <2.1.186"
 rationale = """
 Suppress the startup setup-issue card for the npm-to-native-installer warning.
 
@@ -71,4 +71,36 @@ assert_contains = '''id:"npm-deprecation"'''
 [[patches.tests]]
 kind = "static"
 name = "npm setup card is inactive in 2.1.168"
+assert_contains = '''isActive:()=>!1,render:()=>'''
+
+[[patches]]
+name = "suppress-npm-native-installer-warning-setup-card-2-1-186"
+applies_to = ">=2.1.186 <2.2.0"
+rationale = """
+Suppress the startup setup-issue card for the npm-to-native-installer warning.
+
+This is the 2.1.186 minified-symbol variant. The rendered title also appears
+inside nested JSX props in this bundle, so this locator targets the outer
+setup-issue object by its `npm-deprecation` id.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", string = '''id:"npm-deprecation"''' }
+
+[patches.transform]
+op = "set_object_property"
+property = "isActive"
+value = "()=>!1"
+
+[[patches.tests]]
+kind = "static"
+name = "npm setup card remains targeted in 2.1.186"
+assert_contains = '''id:"npm-deprecation"'''
+
+[[patches.tests]]
+kind = "static"
+name = "npm setup card is inactive in 2.1.186"
 assert_contains = '''isActive:()=>!1,render:()=>'''

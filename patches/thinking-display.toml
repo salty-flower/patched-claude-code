@@ -720,7 +720,7 @@ assert_not_contains = '''streamingThinking:EK'''
 [[patches]]
 name = "thinking-render-live-main-2-1-181"
 target_version = "2.1.181"
-applies_to = ">=2.1.181 <2.2.0"
+applies_to = ">=2.1.181 <2.1.186"
 
 rationale = """
 Pass live thinking state to the main interactive message renderer.
@@ -753,6 +753,43 @@ assert_contains = '''streamingThinking:uo'''
 kind = "static"
 name = "main message renderer does not use stale 2.1.177 state in 2.1.181"
 assert_not_contains = '''streamingThinking:N9'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-186"
+target_version = "2.1.186"
+applies_to = ">=2.1.186 <2.2.0"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.186 minified-symbol variant of
+`thinking-render-live-main`. The stream event bridge passes live thinking
+updates to `onStreamingThinking:So`, and that setter owns the `Kr` state used
+by the main-screen message renderer. Cleanup condition: upstream renders live
+thinking summaries on the main interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "Kr"
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.186"
+assert_contains = '''streamingThinking:Kr'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer does not use stale 2.1.181 state in 2.1.186"
+assert_not_contains = '''streamingThinking:uo'''
 
 [[patches]]
 name = "thinking-render-live-brief-2-1-150"

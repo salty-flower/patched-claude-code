@@ -2676,7 +2676,7 @@ assert_not_contains = '''hideBuiltinFooter:h.boolean().optional().describe("Comp
 
 [[patches]]
 name = "statusline-footer-control-schema-2-1-181"
-applies_to = ">=2.1.181 <2.2.0"
+applies_to = ">=2.1.181 <2.1.186"
 rationale = """
 Accept statusLine settings that hide built-in footer items.
 
@@ -2709,6 +2709,42 @@ assert_contains = '''hideBuiltinFooter:E.boolean().optional().describe("Compatib
 kind = "static"
 name = "stale 2.1.170 schema symbol is absent in 2.1.181"
 assert_not_contains = '''hideBuiltinFooter:k.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-186"
+applies_to = ">=2.1.186 <2.2.0"
+rationale = """
+Accept statusLine settings that hide built-in footer items.
+
+This is the 2.1.186 minified-symbol variant of
+`statusline-footer-control-schema`; the statusLine schema object is built with
+the local schema symbol `A`. Carrying the 2.1.181 `E` symbol makes
+settings.json loading fail before the TUI can mount.
+
+Cleanup condition: upstream ships an official setting for hiding built-in
+footer items when a custom statusLine is present.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:A.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:A.array(A.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+
+[[patches.tests]]
+kind = "static"
+name = "disabledFooter schema uses 2.1.186 schema symbol"
+assert_contains = '''hideBuiltinFooter:A.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:A.array(A.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.181 schema symbol is absent in 2.1.186"
+assert_not_contains = '''hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
 
 [[patches]]
 name = "statusline-footer-control-command-length-update-2-1-139"

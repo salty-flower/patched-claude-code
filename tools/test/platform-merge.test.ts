@@ -89,6 +89,25 @@ test("rewrites platform-only declarations into runtime platform unions", () => {
   ])
 })
 
+test("inserts platform-only declarations inside compiled module wrappers with trailing newlines", () => {
+  const darwin =
+    "// @bun @bytecode @bun-cjs\n(function(exports,require,module,__filename,__dirname){function same(){return 1}})\n"
+  const linux =
+    "// @bun @bytecode @bun-cjs\n(function(exports,require,module,__filename,__dirname){function same(){return 1}function onlyLinux(){return process.platform}})\n"
+
+  const result = mergePlatformJavaScript({
+    version: "test",
+    basePlatform: "darwin-arm64",
+    baseSource: darwin,
+    otherPlatform: "linux-x64",
+    otherSource: linux,
+  })
+
+  expect(result.ok).toBe(true)
+  expect(result.canonicalSource).toContain("function __acc_linux_onlyLinux(){return process.platform}})")
+  expect(result.canonicalSource).not.toContain("})\nfunction __acc_linux_onlyLinux")
+})
+
 test("generalizes unknown string literal branches without accepting drift", () => {
   const result = mergePlatformJavaScript({
     version: "test",
@@ -112,9 +131,7 @@ test("keeps exact literal declarations aligned across platform-only loader islan
     'var d=require("audio-capture.node");\n' +
     "function same(){return 1}\n"
   const linux =
-    'var x=require("image-processor.node");\n' +
-    'var y=require("audio-capture.node");\n' +
-    "function q(){return 1}\n"
+    'var x=require("image-processor.node");\n' + 'var y=require("audio-capture.node");\n' + "function q(){return 1}\n"
 
   const result = mergePlatformJavaScript({
     version: "test",
@@ -143,9 +160,7 @@ test("rewrites free identifiers without rewriting local bindings or property key
       "function dep(){return 1}\n" +
       "function entry(){let local=dep();return {local,prop:dep(),method(){return local}}}\n",
     otherPlatform: "linux-x64",
-    otherSource:
-      "function x(){return 1}\n" +
-      "function y(){let x=2;return {x,prop:x,method(){return x}}}\n",
+    otherSource: "function x(){return 1}\n" + "function y(){let x=2;return {x,prop:x,method(){return x}}}\n",
   })
 
   expect(result.ok).toBe(true)
@@ -223,13 +238,40 @@ test("allows runtime performance global in semantic unions", () => {
   expect(result.report.unclassifiedDrift).toEqual([])
 })
 
+test("allows Bun runtime globals in semantic unions", () => {
+  const result = mergePlatformJavaScript({
+    version: "test",
+    basePlatform: "darwin-arm64",
+    baseSource: "function entry(){return 1}\n",
+    otherPlatform: "linux-x64",
+    otherSource: "function y(){let server=Bun.listen({socket:{open(){}}});return WebSocket.OPEN+server.port}\n",
+  })
+
+  expect(result.ok).toBe(true)
+  expect(result.report.unclassifiedDrift).toEqual([])
+})
+
 test("does not report catch bindings or optional member names as free identifiers", () => {
   const result = mergePlatformJavaScript({
     version: "test",
     basePlatform: "darwin-arm64",
-    baseSource: "function dep(){return {darwin:1}}\nfunction entry(){try{return dep()?.darwin}catch(err){return err}}\n",
+    baseSource:
+      "function dep(){return {darwin:1}}\nfunction entry(){try{return dep()?.darwin}catch(err){return err}}\n",
     otherPlatform: "linux-x64",
     otherSource: "function dep(){return {linux:1}}\nfunction y(){try{return dep()?.linux}catch(error){return error}}\n",
+  })
+
+  expect(result.ok).toBe(true)
+  expect(result.report.unclassifiedDrift).toEqual([])
+})
+
+test("does not report class field keys as free identifiers", () => {
+  const result = mergePlatformJavaScript({
+    version: "test",
+    basePlatform: "darwin-arm64",
+    baseSource: "function entry(){return 1}\n",
+    otherPlatform: "linux-x64",
+    otherSource: "class Y{serverName;mcpMeta;method(){return this.serverName}}\n",
   })
 
   expect(result.ok).toBe(true)

@@ -24,7 +24,7 @@ test("ci runs release audit through one declarative just target", () => {
   const auditStep = workflowStep("Run release audit")
   const ciReleaseId = "ci.$" + "{GITHUB_SHA::12}"
 
-  expect(workflow).toContain('TARGET_VERSION: "2.1.181"')
+  expect(workflow).toContain('TARGET_VERSION: "2.1.197"')
   expect(auditStep).toContain(`just ci-release-audit "$TARGET_VERSION" "${ciReleaseId}"`)
   expect(workflow).not.toContain("- name: Verify patches and contracts")
   expect(workflow).not.toContain("- name: Render patched bundle")

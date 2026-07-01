@@ -55,7 +55,9 @@ function getStreamingThinkingState(body: string): string {
   const setter = setters.at(-1)
   expect(setter).toBeDefined()
 
-  const state = body.match(new RegExp(`\\[([A-Za-z_$][\\w$]*),${escapeRegExp(setter!)}\\]=[A-Za-z_$][\\w$]*\\.useState\\(null\\)`))?.[1]
+  const state = body.match(
+    new RegExp(`\\[([A-Za-z_$][\\w$]*),${escapeRegExp(setter!)}\\]=[A-Za-z_$][\\w$]*\\.useState\\(null\\)`),
+  )?.[1]
   expect(state).toBeDefined()
   return state!
 }
@@ -93,6 +95,12 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
   renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
 
   const patched = readFileSync(patchedBundle, "utf8")
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
+    expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Ven(w)})')
+    return
+  }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.186")) {
     expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
@@ -143,10 +151,22 @@ test("live thinking rendering is not suppressed by brief mode", () => {
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.186")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
+    expect(patched).toContain('case"thinking":{if(!1)return null;let R;')
+    expect(patched).not.toContain('case"thinking":{if(!m&&!i)return null;let R;')
+    expect(patched).toContain(
+      "streamingText:g,streamingThinking:__acc_streamingThinking,hideStreamingTail:_=!1,isBriefOnly:T=!1",
+    )
+    expect(patched).toContain(
+      '__acc_streamingThinking?.thinking&&BA.jsx(B,{marginTop:1,children:BA.jsx(Fzn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:r})})',
+    )
+    expect(patched).not.toContain("__acc_streamingThinking?.thinking&&!T")
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.186")) {
     expect(patched).toContain('case"thinking":{if(!1)return null;let R;')
     expect(patched).not.toContain('case"thinking":{if(!m&&!i)return null;let C;')
-    expect(patched).toContain("streamingText:g,streamingThinking:__acc_streamingThinking,hideStreamingTail:_=!1,isBriefOnly:T=!1")
+    expect(patched).toContain(
+      "streamingText:g,streamingThinking:__acc_streamingThinking,hideStreamingTail:_=!1,isBriefOnly:T=!1",
+    )
     expect(patched).toContain(
       '__acc_streamingThinking?.thinking&&$E.jsx($,{marginTop:1,children:$E.jsx(u3n,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:r})})',
     )
@@ -154,7 +174,9 @@ test("live thinking rendering is not suppressed by brief mode", () => {
   } else if (isVersionAtLeast(TARGET_VERSION, "2.1.181")) {
     expect(patched).toContain('case"thinking":{if(!1)return null;let C;')
     expect(patched).not.toContain('case"thinking":{if(!m&&!i)return null;let C;')
-    expect(patched).toContain("streamingText:h,streamingThinking:__acc_streamingThinking,hideStreamingTail:g=!1,isBriefOnly:_=!1")
+    expect(patched).toContain(
+      "streamingText:h,streamingThinking:__acc_streamingThinking,hideStreamingTail:g=!1,isBriefOnly:_=!1",
+    )
     expect(patched).toContain(
       '__acc_streamingThinking?.thinking&&Bu.createElement(B,{marginTop:1},Bu.createElement(GFn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:r}))',
     )

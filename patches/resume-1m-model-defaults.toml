@@ -115,7 +115,7 @@ assert_not_contains = '''if(by()!==void 0||process.env.ANTHROPIC_MODEL||!Cd())re
 [[patches]]
 name = "resume-allows-same-family-anthropic-model-default-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 locator_kind = "literal"
 locator_pattern = '''function aBo(){return Boolean(hy()!==void 0||process.env.ANTHROPIC_MODEL||!Vu())}function $Ge(e,t,n,r=(o)=>o()){if(aBo())return;let o=QXl(e,t);'''
@@ -130,6 +130,33 @@ assert_contains = '''if(process.env.ANTHROPIC_MODEL&&(o.kind!=="ok"||bo(xp(proce
 kind = "static"
 name = "old ANTHROPIC_MODEL resume short circuit is removed in 2.1.186"
 assert_not_contains = '''function aBo(){return Boolean(hy()!==void 0||process.env.ANTHROPIC_MODEL||!Vu())}'''
+
+[[patches]]
+name = "resume-allows-same-family-anthropic-model-default-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = """
+This is the 2.1.197 minified-symbol variant of
+`resume-allows-same-family-anthropic-model-default`. Upstream moved the resume
+guard to `mYo` and broadened it to all model-default environment variables.
+The resolver itself now checks both raw and resolved `[1m]` settings, so this
+variant only removes the env-default early return and keeps a same-family
+`Ne.ANTHROPIC_MODEL` override guard after `Evc` resolves the transcript model.
+"""
+locator_kind = "literal"
+locator_pattern = '''function mYo(){return Boolean(ry()!==void 0||Ne.ANTHROPIC_MODEL||Ne.ANTHROPIC_DEFAULT_FABLE_MODEL||Ne.ANTHROPIC_DEFAULT_OPUS_MODEL||Ne.ANTHROPIC_DEFAULT_SONNET_MODEL||Ne.ANTHROPIC_DEFAULT_HAIKU_MODEL||!ud())}function RJe(e,t,n,r=(o)=>o()){if(mYo())return;let o=Evc(e,t);'''
+replacement = '''function mYo(){return Boolean(ry()!==void 0||!ud())}function RJe(e,t,n,r=(o)=>o()){if(mYo())return;let o=Evc(e,t);if(Ne.ANTHROPIC_MODEL&&(o.kind!=="ok"||oo(Bo(Ne.ANTHROPIC_MODEL))!==oo(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "same-family ANTHROPIC_MODEL defaults can restore resume model in 2.1.197"
+assert_contains = '''if(Ne.ANTHROPIC_MODEL&&(o.kind!=="ok"||oo(Bo(Ne.ANTHROPIC_MODEL))!==oo(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "old env-default resume short circuit is removed in 2.1.197"
+assert_not_contains = '''function mYo(){return Boolean(ry()!==void 0||Ne.ANTHROPIC_MODEL||Ne.ANTHROPIC_DEFAULT_FABLE_MODEL||Ne.ANTHROPIC_DEFAULT_OPUS_MODEL||Ne.ANTHROPIC_DEFAULT_SONNET_MODEL||Ne.ANTHROPIC_DEFAULT_HAIKU_MODEL||!ud())}'''
 
 [[patches]]
 name = "resume-detects-1m-after-alias-resolution"
@@ -208,7 +235,7 @@ assert_not_contains = '''if(t&&Ry(t)&&y8(s)&&qo(gs(Em(t)))===qo(s))return{kind:"
 [[patches]]
 name = "resume-detects-1m-after-alias-resolution-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 locator_kind = "literal"
 locator_pattern = '''if(t&&C_(t)&&J5(s)&&bo(Zo(xp(t)))===bo(s))return{kind:"ok",model:s+"[1m]"};'''

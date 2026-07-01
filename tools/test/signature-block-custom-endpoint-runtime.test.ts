@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { applyPatchEntries } from "../lib/apply-patches"
@@ -129,34 +130,106 @@ function makeJsonResponse(body: RequestBody): Response {
   )
 }
 
-function startClaudeStub(): {
-  server: ReturnType<typeof Bun.serve>
+function compareVersions(left: string, right: string): number {
+  const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
+  const leftParts = parts(left)
+  const rightParts = parts(right)
+
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const leftPart = leftParts[index] ?? 0
+    const rightPart = rightParts[index] ?? 0
+    if (leftPart > rightPart) return 1
+    if (leftPart < rightPart) return -1
+  }
+
+  return 0
+}
+
+function isVersionBefore(version: string, ceiling: string): boolean {
+  return compareVersions(version, ceiling) < 0
+}
+
+type ClaudeStub = {
+  server: {
+    stop(force?: boolean): void
+  }
   requests: RequestBody[]
   firstMessageRequest: Promise<RequestBody>
   baseUrl: string
-} {
+}
+
+function readRequestBody(request: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = ""
+    request.setEncoding("utf8")
+    request.on("data", (chunk) => {
+      body += chunk
+    })
+    request.on("end", () => resolve(body))
+    request.on("error", reject)
+  })
+}
+
+async function writeResponse(response: ServerResponse, fetchResponse: Response): Promise<void> {
+  response.statusCode = fetchResponse.status
+  fetchResponse.headers.forEach((value, key) => {
+    response.setHeader(key, value)
+  })
+  response.end(await fetchResponse.text())
+}
+
+async function listen(server: Server): Promise<number> {
+  const port = 30000 + Math.floor(Math.random() * 30000)
+  return await new Promise((resolve, reject) => {
+    server.once("error", reject)
+    server.listen(port, "127.0.0.1", () => {
+      server.off("error", reject)
+      resolve(port)
+    })
+  })
+}
+
+async function startClaudeStub(): Promise<ClaudeStub> {
   const requests: RequestBody[] = []
   let resolveFirstMessageRequest: (body: RequestBody) => void = () => {}
   const firstMessageRequest = new Promise<RequestBody>((resolve) => {
     resolveFirstMessageRequest = resolve
   })
-  const server = Bun.serve({
-    port: 0,
-    fetch: async (request) => {
-      const url = new URL(request.url)
+  const server = createServer((request, response) => {
+    void (async () => {
+      const url = new URL(request.url ?? "/", "http://127.0.0.1")
       if (request.method === "POST" && url.pathname.endsWith("/messages/count_tokens")) {
-        return Response.json({ input_tokens: 1 }, { headers: { "request-id": "req_count" } })
+        await writeResponse(response, Response.json({ input_tokens: 1 }, { headers: { "request-id": "req_count" } }))
+        return
       }
       if (request.method === "POST" && url.pathname.endsWith("/messages")) {
-        const body = (await request.json()) as RequestBody
+        const body = JSON.parse(await readRequestBody(request)) as RequestBody
         requests.push(body)
         if (requests.length === 1) resolveFirstMessageRequest(body)
-        return body.stream ? makeSseResponse(body) : makeJsonResponse(body)
+        await writeResponse(response, body.stream ? makeSseResponse(body) : makeJsonResponse(body))
+        return
       }
-      return Response.json({ error: { type: "not_found_error", message: url.pathname } }, { status: 404 })
-    },
+      await writeResponse(
+        response,
+        Response.json({ error: { type: "not_found_error", message: url.pathname } }, { status: 404 }),
+      )
+    })().catch((error) => {
+      response.statusCode = 500
+      response.end(error instanceof Error ? error.message : String(error))
+    })
   })
-  return { server, requests, firstMessageRequest, baseUrl: `http://127.0.0.1:${server.port}` }
+  const port = await listen(server)
+  return {
+    server: {
+      stop: () => {
+        server.closeAllConnections?.()
+        server.close()
+      },
+    },
+    requests,
+    firstMessageRequest,
+    baseUrl: `http://127.0.0.1:${port}`,
+  }
 }
 
 function hasSignedThinkingBlocks(body: RequestBody): boolean {
@@ -181,7 +254,7 @@ function hasAssistantText(body: RequestBody): boolean {
 
 async function runClaudeUntilMessageRequest(
   bundle: string,
-  stub: ReturnType<typeof startClaudeStub>,
+  stub: ClaudeStub,
   transcriptPath: string,
   home: string,
 ): Promise<RequestBody> {
@@ -242,17 +315,29 @@ test("patched custom base URL requests strip stale signed thinking from resumed 
   const patchedBundle = join(dir, "cli.signature-patched.js")
   renderSignaturePatch(TARGET_BUNDLE, patchedBundle)
 
-  const unpatchedStub = startClaudeStub()
+  const unpatchedStub = await startClaudeStub()
   try {
-    const request = await runClaudeUntilMessageRequest(TARGET_BUNDLE, unpatchedStub, transcript, join(dir, "home-unpatched"))
-    expect(hasSignedThinkingBlocks(request)).toBe(true)
+    const request = await runClaudeUntilMessageRequest(
+      TARGET_BUNDLE,
+      unpatchedStub,
+      transcript,
+      join(dir, "home-unpatched"),
+    )
+    if (isVersionBefore(TARGET_VERSION, "2.1.197")) {
+      expect(hasSignedThinkingBlocks(request)).toBe(true)
+    }
   } finally {
     unpatchedStub.server.stop(true)
   }
 
-  const patchedStub = startClaudeStub()
+  const patchedStub = await startClaudeStub()
   try {
-    const request = await runClaudeUntilMessageRequest(patchedBundle, patchedStub, transcript, join(dir, "home-patched"))
+    const request = await runClaudeUntilMessageRequest(
+      patchedBundle,
+      patchedStub,
+      transcript,
+      join(dir, "home-patched"),
+    )
     expect(hasAssistantText(request)).toBe(true)
     expect(hasSignedThinkingBlocks(request)).toBe(false)
   } finally {

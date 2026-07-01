@@ -287,7 +287,7 @@ assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedT
 [[patches]]
 name = "thinking-render-live-stream-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 
 rationale = """
 Render thinking deltas while the current API response is still streaming.
@@ -321,6 +321,44 @@ assert_contains = '''t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w
 kind = "static"
 name = "thinking deltas preserve fallback progress estimates in 2.1.186"
 assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:aQn(w)})'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+
+rationale = """
+Render thinking deltas while the current API response is still streaming.
+
+This is the 2.1.197 stream-handler variant of
+`thinking-render-live-stream`. The fallback token estimator now minifies to
+`Ven`, while the live thinking setter remains on the stream-handler options
+object as `onStreamingThinking`.
+
+Cleanup condition: upstream renders thinking_delta content live in the
+interactive UI.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":{let{delta:d}=e.event;if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if("thinking"in d&&typeof d.thinking==="string"&&d.thinking.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Ven(d.thinking)});return}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let{delta:d}=e.event,w=typeof d.thinking==="string"?d.thinking:"";if(w)s?.(w.length),t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Ven(w)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas update streaming thinking in 2.1.197"
+assert_contains = '''t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas preserve fallback progress estimates in 2.1.197"
+assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Ven(w)})'''
 
 [[patches]]
 name = "thinking-clear-live-on-next-block-2-1-150"
@@ -757,7 +795,7 @@ assert_not_contains = '''streamingThinking:N9'''
 [[patches]]
 name = "thinking-render-live-main-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 
 rationale = """
 Pass live thinking state to the main interactive message renderer.
@@ -790,6 +828,43 @@ assert_contains = '''streamingThinking:Kr'''
 kind = "static"
 name = "main message renderer does not use stale 2.1.181 state in 2.1.186"
 assert_not_contains = '''streamingThinking:uo'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+
+rationale = """
+Pass live thinking state to the main interactive message renderer.
+
+This is the 2.1.197 minified-symbol variant of
+`thinking-render-live-main`. The stream event bridge passes live thinking
+updates to `onStreamingThinking:_a`, and that setter owns the `ma` state used
+by the main-screen message renderer. Cleanup condition: upstream renders live
+thinking summaries on the main interactive screen.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "streamingText" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "ma"
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer receives live thinking in 2.1.197"
+assert_contains = '''streamingThinking:ma'''
+
+[[patches.tests]]
+kind = "static"
+name = "main message renderer does not use stale 2.1.186 state in 2.1.197"
+assert_not_contains = '''streamingThinking:Kr'''
 
 [[patches]]
 name = "thinking-render-live-brief-2-1-150"
@@ -1130,7 +1205,7 @@ assert_not_contains = '''__acc_streamingThinking?.thinking&&!_'''
 [[patches]]
 name = "thinking-render-live-row-output-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 
 rationale = """
 Render the live thinking buffer in the main Messages component.
@@ -1156,6 +1231,37 @@ assert_contains = '''__acc_streamingThinking?.thinking&&$E.jsx($,{marginTop:1,ch
 [[patches.tests]]
 kind = "static"
 name = "live thinking row is not suppressed by summarized brief gate in 2.1.186"
+assert_not_contains = '''__acc_streamingThinking?.thinking&&!T'''
+
+[[patches]]
+name = "thinking-render-live-row-output-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+
+rationale = """
+Render the live thinking buffer in the main Messages component.
+
+This is the 2.1.197 output-site half of
+`thinking-render-live-row-2-1-170`. It inserts an `Fzn` thinking row after
+streaming assistant text and deliberately does not include the brief/summarized
+gate. Cleanup condition: upstream restores an official interactive live
+thinking row or exposes a supported display setting for it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+
+locator_kind = "literal"
+expected_matches = 1
+locator_pattern = '''g&&!O&&BA.jsx(B,{alignItems:"flex-start",flexDirection:"row",marginTop:1,width:"100%",children:BA.jsxs(B,{flexDirection:"row",children:[BA.jsx(B,{minWidth:2,children:BA.jsx(v,{"aria-label":"claude:",color:"text",children:yc})}),BA.jsx(B,{flexDirection:"column",children:BA.jsx(Tal,{hideTrailingLine:_,children:g})})]})})'''
+replacement = '''g&&!O&&BA.jsx(B,{alignItems:"flex-start",flexDirection:"row",marginTop:1,width:"100%",children:BA.jsxs(B,{flexDirection:"row",children:[BA.jsx(B,{minWidth:2,children:BA.jsx(v,{"aria-label":"claude:",color:"text",children:yc})}),BA.jsx(B,{flexDirection:"column",children:BA.jsx(Tal,{hideTrailingLine:_,children:g})})]})}),__acc_streamingThinking?.thinking&&BA.jsx(B,{marginTop:1,children:BA.jsx(Fzn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:r})})'''
+
+[[patches.tests]]
+kind = "static"
+name = "main Messages component renders live thinking in 2.1.197"
+assert_contains = '''__acc_streamingThinking?.thinking&&BA.jsx(B,{marginTop:1,children:BA.jsx(Fzn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:r})})'''
+
+[[patches.tests]]
+kind = "static"
+name = "live thinking row is not suppressed by summarized brief gate in 2.1.197"
 assert_not_contains = '''__acc_streamingThinking?.thinking&&!T'''
 
 [[patches]]
@@ -1533,7 +1639,7 @@ assert_contains = '''case"redacted_thinking":{if(!m&&!i)return null;'''
 [[patches]]
 name = "thinking-render-blocks-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 
 rationale = """
 Render thinking blocks outside transcript or verbose mode.
@@ -1563,6 +1669,41 @@ assert_contains = '''case"thinking":{if(!1)return null;let R;'''
 [[patches.tests]]
 kind = "static"
 name = "redacted thinking stays detailed-only in 2.1.186"
+assert_contains = '''case"redacted_thinking":{if(!m&&!i)return null;'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+
+rationale = """
+Render thinking blocks outside transcript or verbose mode.
+
+This is the 2.1.197 minified-symbol variant of
+`thinking-render-blocks`. Cleanup condition: upstream exposes an official
+interactive display setting for latest-thinking blocks.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", strings = ['case"thinking":{if(!m&&!i)return null;let R;', 'OA.jsx(Fzn,{addMargin:r,param:n,isTranscriptMode:m,verbose:i})'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking":{if(!m&&!i)return null;let R;'''
+value = '''case"thinking":{if(!1)return null;let R;'''
+
+[[patches.tests]]
+kind = "static"
+name = "normal rendering keeps thinking in 2.1.197"
+assert_contains = '''case"thinking":{if(!1)return null;let R;'''
+
+[[patches.tests]]
+kind = "static"
+name = "redacted thinking stays detailed-only in 2.1.197"
 assert_contains = '''case"redacted_thinking":{if(!m&&!i)return null;'''
 
 [[patches]]
@@ -1827,7 +1968,7 @@ assert_not_contains = '''let l=o||s,c=a?1:0,u;'''
 [[patches]]
 name = "thinking-render-expanded-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 
 rationale = """
 Show full thinking message bodies in the patched interactive UI.
@@ -1860,4 +2001,42 @@ assert_contains = '''let l=!0,c=a?1:0,u;'''
 [[patches.tests]]
 kind = "static"
 name = "thinking body no longer depends on transcript or verbose mode in 2.1.186"
+assert_not_contains = '''let l=o||s,c=a?1:0,u;'''
+
+[[patches]]
+name = "thinking-render-expanded-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+
+rationale = """
+Show full thinking message bodies in the patched interactive UI.
+
+This is the 2.1.197 thinking component variant. The component uses `Fzn` and
+chooses between full and compact body text through local `l`; the patch forces
+the full body path whenever the message renderer receives a thinking block.
+
+Cleanup condition: upstream exposes an official display setting that expands
+thinking content in interactive mode.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Fzn", strings = ['{thinking:i}=n', 'i.trim().replace'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let l=o||s,c=a?1:0,u;'''
+value = '''let l=!0,c=a?1:0,u;'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking body uses expanded render path in 2.1.197"
+assert_contains = '''let l=!0,c=a?1:0,u;'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking body no longer depends on transcript or verbose mode in 2.1.197"
 assert_not_contains = '''let l=o||s,c=a?1:0,u;'''

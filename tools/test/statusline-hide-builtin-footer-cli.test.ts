@@ -83,7 +83,9 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.186")) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
+      expect(patched).toContain("globalThis.__acc_disabled_footer=H}let Z_={settings:Dr()")
+    } else if (isVersionAtLeast(TARGET_VERSION, "2.1.186")) {
       expect(patched).toContain("globalThis.__acc_disabled_footer=H}let Ed={settings:Nr()")
     } else {
       expect(patched).toContain("globalThis.__acc_disabled_footer=H}let Od={settings:Kr()")
@@ -105,7 +107,23 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     }
     expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
     expect(patched).toContain("globalThis.__acc_rate_limit_warning=i")
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.186")) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
+      expect(patched).toContain("__cci=Et((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).not.toContain("__cci=_t((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).toContain("wE.useEffect(()=>{M()},[__cci,M]);")
+      expect(patched).not.toContain("Cb.useEffect(()=>{M()},[__cci,M]);")
+      expect(patched).toContain('Et((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))')
+      expect(patched).toContain('L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning")')
+      expect(patched).toContain(
+        '__acc_hide_footer=globalThis.__acc_disabled_footer?.includes("footer")||re?.statusLine?.hideBuiltinFooter||re?.statusLine?.disabledFooter?.includes("footer")',
+      )
+      expect(patched).toContain("if(__acc_hide_footer)ot=null")
+      expect(patched).toContain(
+        '__acc_hide_mode=Et((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))',
+      )
+      expect(patched).toContain("let Pt=!__acc_hide_mode&&Ye&&Y?")
+      expect(patched).toContain("let Te=!__acc_hide_mode&&Y&&Z&&he?")
+    } else if (isVersionAtLeast(TARGET_VERSION, "2.1.186")) {
       expect(patched).toContain("__cci=_t((c)=>c.clipboardImageAvailable??!1)")
       expect(patched).not.toContain("__cci=ft((c)=>c.clipboardImageAvailable??!1)")
       expect(patched).toContain("Cb.useEffect(()=>{M()},[__cci,M]);")
@@ -283,18 +301,14 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       'M_((m)=>m.settings.statusLine?.hideBuiltinFooter)||M_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
     )
-    expect(patched).toContain(
-      "__acc_hide_effort_all=M_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)",
-    )
+    expect(patched).toContain("__acc_hide_effort_all=M_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)")
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.168") && isVersionBefore(TARGET_VERSION, "2.1.170")) {
     expect(patched).toContain(
       'j_((m)=>m.settings.statusLine?.hideBuiltinFooter)||j_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")',
     )
-    expect(patched).toContain(
-      "__acc_hide_effort_all=j_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)",
-    )
+    expect(patched).toContain("__acc_hide_effort_all=j_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)")
     expect(patched).toContain(
       '__acc_hide_effort_item=j_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")',
     )
@@ -307,9 +321,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       'D_((m)=>m.settings.statusLine?.hideBuiltinFooter)||D_((m)=>m.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")',
     )
-    expect(patched).toContain(
-      "__acc_hide_effort_all=D_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)",
-    )
+    expect(patched).toContain("__acc_hide_effort_all=D_((I_)=>I_.settings.statusLine?.hideBuiltinFooter)")
     expect(patched).toContain(
       '__acc_hide_effort_item=D_((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")',
     )

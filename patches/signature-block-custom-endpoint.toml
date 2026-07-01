@@ -154,7 +154,7 @@ assert_not_contains = '''let n=t.bodyModel??t.model,r=T1l(e,Em(n)),'''
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-186"
 target_version = "2.1.186"
-applies_to = ">=2.1.186 <2.2.0"
+applies_to = ">=2.1.186 <2.1.197"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "literal"
 locator_pattern = '''let n=t.bodyModel??t.model,r=Eql(e,xp(n)),'''
@@ -169,3 +169,22 @@ assert_contains = '''let n=t.bodyModel??t.model,r=qIm(n,t.model)?Eql(e,xp(n)):np
 kind = "static"
 name = "old model-mismatch-only cleanup gate is removed in 2.1.186"
 assert_not_contains = '''let n=t.bodyModel??t.model,r=Eql(e,xp(n)),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "literal"
+locator_pattern = '''let n=t.bodyModel??t.model,r=Opc(e,ju(n)),'''
+replacement = '''let n=t.bodyModel??t.model,r=Jlf(n,t.model)?Opc(e,ju(n)):Lpc(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.197"
+assert_contains = '''let n=t.bodyModel??t.model,r=Jlf(n,t.model)?Opc(e,ju(n)):Lpc(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.197"
+assert_not_contains = '''let n=t.bodyModel??t.model,r=Opc(e,ju(n)),'''

@@ -26,12 +26,16 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(renderStep).toContain('just render "${{ steps.coord.outputs.version }}"')
   expect(smokeStep).toContain('just smoke-rendered "${{ steps.coord.outputs.version }}"')
   expect(patchTestStep).toContain('just patch-test-rendered "${{ steps.coord.outputs.version }}"')
-  expect(packageStep).toContain('just package-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"')
-  expect(sourceStep).toContain('just release-source-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"')
+  expect(packageStep).toContain(
+    'just package-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"',
+  )
+  expect(sourceStep).toContain(
+    'just release-source-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"',
+  )
 })
 
 test("release workflow defaults to the current target version", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "release.yml"), "utf8")
 
-  expect(workflow).toContain('default: "2.1.181"')
+  expect(workflow).toContain('default: "2.1.197"')
 })

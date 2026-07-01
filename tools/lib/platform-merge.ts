@@ -22,6 +22,7 @@ const BASE_GLOBALS = new Set([
   "BigInt",
   "Boolean",
   "Buffer",
+  "Bun",
   "DataView",
   "Date",
   "Error",
@@ -59,6 +60,7 @@ const BASE_GLOBALS = new Set([
   "Uint8ClampedArray",
   "WeakMap",
   "WeakSet",
+  "WebSocket",
   "__dirname",
   "__filename",
   "atob",
@@ -562,7 +564,9 @@ function alignByAnchors(
   alignRange(base, other, i, baseEnd, j, otherEnd, pairs)
 }
 
-function buildOtherToCanonicalNameMap(pairs: Array<{ base?: TopLevelDeclaration; other?: TopLevelDeclaration }>): Map<string, string> {
+function buildOtherToCanonicalNameMap(
+  pairs: Array<{ base?: TopLevelDeclaration; other?: TopLevelDeclaration }>,
+): Map<string, string> {
   const map = new Map<string, string>()
   const baseTopLevelNames = new Set<string>()
   const otherTopLevelNames = new Set<string>()
@@ -660,7 +664,12 @@ function unionStructuralPair(
     otherRename.set(otherNames[i], linuxName)
     linuxNames.push(linuxName)
   }
-  const unionAvailableNames = new Set([...availableNames, ...baseNames, ...baseRename.values(), ...otherRename.values()])
+  const unionAvailableNames = new Set([
+    ...availableNames,
+    ...baseNames,
+    ...baseRename.values(),
+    ...otherRename.values(),
+  ])
   if (!validateFreeIdentifiers(base.node, baseRename, unionAvailableNames, baseNames.join(","), report)) return
   if (!validateFreeIdentifiers(other.node, otherRename, unionAvailableNames, baseNames.join(","), report)) return
 
@@ -668,8 +677,7 @@ function unionStructuralPair(
   const otherImpl = rewriteDeclaration(args.otherSource, other.node, otherRename)
   const dispatch = baseNames
     .map(
-      (name, index) =>
-        `var ${name}=process.platform==="darwin"?${semanticName("darwin", name)}:${linuxNames[index]};`,
+      (name, index) => `var ${name}=process.platform==="darwin"?${semanticName("darwin", name)}:${linuxNames[index]};`,
     )
     .join("")
   edits.push({ start: base.start, end: base.end, replacement: `${baseImpl}${otherImpl}${dispatch}` })
@@ -732,7 +740,8 @@ function validateFreeIdentifiers(
 }
 
 function canonicalInsertionPoint(source: string): number {
-  return source.endsWith("})") ? source.length - 2 : source.length
+  const end = source.search(/\s*$/)
+  return source.slice(0, end).endsWith("})") ? end - 2 : end
 }
 
 function semanticName(platform: "darwin" | "linux", name: string): string {
@@ -747,7 +756,8 @@ function declaredNames(node: Record<string, unknown>): string[] {
   if (node.type !== "VariableDeclaration" || !Array.isArray(node.declarations)) return []
   const names: string[] = []
   for (const declaration of node.declarations as Array<{ id?: { type?: unknown; name?: unknown } }>) {
-    if (declaration.id?.type === "Identifier" && typeof declaration.id.name === "string") names.push(declaration.id.name)
+    if (declaration.id?.type === "Identifier" && typeof declaration.id.name === "string")
+      names.push(declaration.id.name)
     else return []
   }
   return names
@@ -926,13 +936,15 @@ function visitBindingPattern(
   if (record.type === "ObjectPattern" && Array.isArray(record.properties)) {
     for (const property of record.properties) {
       const prop = property as Record<string, unknown>
-      if (prop.type === "ObjectProperty") visitBindingPattern(prop.value, rename, scopes, onIdentifier, allowBindingRewrite)
+      if (prop.type === "ObjectProperty")
+        visitBindingPattern(prop.value, rename, scopes, onIdentifier, allowBindingRewrite)
       else visitBindingPattern(prop.argument, rename, scopes, onIdentifier, allowBindingRewrite)
     }
     return
   }
   if (record.type === "ArrayPattern" && Array.isArray(record.elements)) {
-    for (const element of record.elements) visitBindingPattern(element, rename, scopes, onIdentifier, allowBindingRewrite)
+    for (const element of record.elements)
+      visitBindingPattern(element, rename, scopes, onIdentifier, allowBindingRewrite)
   }
 }
 
@@ -952,7 +964,13 @@ function shouldRewriteIdentifier(node: Record<string, unknown>, parent: Record<s
   if (parent.type === "MemberExpression" && parent.property === node && parent.computed !== true) return false
   if (parent.type === "OptionalMemberExpression" && parent.property === node && parent.computed !== true) return false
   if (
-    (parent.type === "ObjectProperty" || parent.type === "ObjectMethod" || parent.type === "ClassMethod") &&
+    (parent.type === "ObjectProperty" ||
+      parent.type === "ObjectMethod" ||
+      parent.type === "ClassMethod" ||
+      parent.type === "ClassPrivateMethod" ||
+      parent.type === "ClassProperty" ||
+      parent.type === "ClassPrivateProperty" ||
+      parent.type === "PropertyDefinition") &&
     parent.key === node &&
     parent.computed !== true
   ) {
@@ -984,7 +1002,8 @@ function collectFunctionScopeStatementBindings(node: unknown, bindings: Set<stri
     return
   }
   if (record.type === "VariableDeclaration" && record.kind === "var" && Array.isArray(record.declarations)) {
-    for (const declaration of record.declarations as Array<Record<string, unknown>>) collectPatternNames(declaration.id, bindings)
+    for (const declaration of record.declarations as Array<Record<string, unknown>>)
+      collectPatternNames(declaration.id, bindings)
   }
   for (const key of Object.keys(record)) {
     if (IGNORED_KEYS.has(key) || key === "id" || key === "params") continue
@@ -999,7 +1018,8 @@ function collectBlockScopeBindings(statements: unknown[], bindings: Set<string>)
     if (record.type === "FunctionDeclaration" || record.type === "ClassDeclaration") {
       collectPatternNames(record.id, bindings)
     } else if (record.type === "VariableDeclaration" && record.kind !== "var" && Array.isArray(record.declarations)) {
-      for (const declaration of record.declarations as Array<Record<string, unknown>>) collectPatternNames(declaration.id, bindings)
+      for (const declaration of record.declarations as Array<Record<string, unknown>>)
+        collectPatternNames(declaration.id, bindings)
     }
   }
 }
@@ -1046,7 +1066,10 @@ function collectPatternNames(node: unknown, names: Set<string>): void {
   }
 }
 
-function literalDrift(base: TopLevelDeclaration, other: TopLevelDeclaration): {
+function literalDrift(
+  base: TopLevelDeclaration,
+  other: TopLevelDeclaration,
+): {
   structuralMismatch: boolean
   literals: Array<{ baseLiteral: string; otherLiteral: string; start: number; end: number }>
 } {

@@ -48,3 +48,13 @@ test("render target depends on verify but skips render-patched internal verifica
   expect(recipe).toContain("render version=target source=source: (verify version source)")
   expect(recipe).toContain('render-patched.ts "{{version}}" --skip-verify')
 })
+
+test("api stub smoke can run with or without rendering first", () => {
+  const recipe = recipeBlock("api-stub-smoke")
+  const renderedRecipe = recipeBlock("api-stub-smoke-rendered")
+
+  expect(recipe).toContain("api-stub-smoke version=target source=source: (render version source)")
+  expect(recipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
+  expect(renderedRecipe).toContain("api-stub-smoke-rendered version=target:")
+  expect(renderedRecipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
+})

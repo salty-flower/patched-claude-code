@@ -1,10 +1,10 @@
 import { afterEach, expect, test } from "bun:test"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
-import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.156"
@@ -78,58 +78,6 @@ function renderSignaturePatch(input: string, output: string): void {
   writeFileSync(output, applyPatchEntries(source, patches, TARGET_VERSION).source)
 }
 
-function makeSseResponse(body: RequestBody): Response {
-  const model = body.model ?? "claude-sonnet-4-6"
-  const message = {
-    id: "msg_stub",
-    type: "message",
-    role: "assistant",
-    model,
-    content: [],
-    stop_reason: null,
-    stop_sequence: null,
-    usage: { input_tokens: 1, output_tokens: 1 },
-  }
-  const frames = [
-    ["message_start", { type: "message_start", message }],
-    ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }],
-    ["content_block_delta", { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: "stub" } }],
-    ["content_block_stop", { type: "content_block_stop", index: 0 }],
-    [
-      "message_delta",
-      {
-        type: "message_delta",
-        delta: { stop_reason: "end_turn", stop_sequence: null },
-        usage: { output_tokens: 1 },
-      },
-    ],
-    ["message_stop", { type: "message_stop" }],
-  ]
-  const text = frames.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join("")
-  return new Response(text, {
-    headers: {
-      "content-type": "text/event-stream",
-      "request-id": "req_stub",
-    },
-  })
-}
-
-function makeJsonResponse(body: RequestBody): Response {
-  return Response.json(
-    {
-      id: "msg_stub",
-      type: "message",
-      role: "assistant",
-      model: body.model ?? "claude-sonnet-4-6",
-      content: [{ type: "text", text: "stub" }],
-      stop_reason: "end_turn",
-      stop_sequence: null,
-      usage: { input_tokens: 1, output_tokens: 1 },
-    },
-    { headers: { "request-id": "req_stub" } },
-  )
-}
-
 function compareVersions(left: string, right: string): number {
   const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
   const leftParts = parts(left)
@@ -147,89 +95,6 @@ function compareVersions(left: string, right: string): number {
 
 function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
-}
-
-type ClaudeStub = {
-  server: {
-    stop(force?: boolean): void
-  }
-  requests: RequestBody[]
-  firstMessageRequest: Promise<RequestBody>
-  baseUrl: string
-}
-
-function readRequestBody(request: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let body = ""
-    request.setEncoding("utf8")
-    request.on("data", (chunk) => {
-      body += chunk
-    })
-    request.on("end", () => resolve(body))
-    request.on("error", reject)
-  })
-}
-
-async function writeResponse(response: ServerResponse, fetchResponse: Response): Promise<void> {
-  response.statusCode = fetchResponse.status
-  fetchResponse.headers.forEach((value, key) => {
-    response.setHeader(key, value)
-  })
-  response.end(await fetchResponse.text())
-}
-
-async function listen(server: Server): Promise<number> {
-  const port = 30000 + Math.floor(Math.random() * 30000)
-  return await new Promise((resolve, reject) => {
-    server.once("error", reject)
-    server.listen(port, "127.0.0.1", () => {
-      server.off("error", reject)
-      resolve(port)
-    })
-  })
-}
-
-async function startClaudeStub(): Promise<ClaudeStub> {
-  const requests: RequestBody[] = []
-  let resolveFirstMessageRequest: (body: RequestBody) => void = () => {}
-  const firstMessageRequest = new Promise<RequestBody>((resolve) => {
-    resolveFirstMessageRequest = resolve
-  })
-  const server = createServer((request, response) => {
-    void (async () => {
-      const url = new URL(request.url ?? "/", "http://127.0.0.1")
-      if (request.method === "POST" && url.pathname.endsWith("/messages/count_tokens")) {
-        await writeResponse(response, Response.json({ input_tokens: 1 }, { headers: { "request-id": "req_count" } }))
-        return
-      }
-      if (request.method === "POST" && url.pathname.endsWith("/messages")) {
-        const body = JSON.parse(await readRequestBody(request)) as RequestBody
-        requests.push(body)
-        if (requests.length === 1) resolveFirstMessageRequest(body)
-        await writeResponse(response, body.stream ? makeSseResponse(body) : makeJsonResponse(body))
-        return
-      }
-      await writeResponse(
-        response,
-        Response.json({ error: { type: "not_found_error", message: url.pathname } }, { status: 404 }),
-      )
-    })().catch((error) => {
-      response.statusCode = 500
-      response.end(error instanceof Error ? error.message : String(error))
-    })
-  })
-  const port = await listen(server)
-  return {
-    server: {
-      stop: () => {
-        server.closeAllConnections?.()
-        server.close()
-      },
-    },
-    requests,
-    firstMessageRequest,
-    baseUrl: `http://127.0.0.1:${port}`,
-  }
 }
 
 function hasSignedThinkingBlocks(body: RequestBody): boolean {
@@ -254,7 +119,7 @@ function hasAssistantText(body: RequestBody): boolean {
 
 async function runClaudeUntilMessageRequest(
   bundle: string,
-  stub: ClaudeStub,
+  stub: ClaudeApiStub,
   transcriptPath: string,
   home: string,
 ): Promise<RequestBody> {
@@ -290,12 +155,13 @@ async function runClaudeUntilMessageRequest(
   })
 
   let timeout: Timer | undefined
-  const timeoutPromise = new Promise<RequestBody>((_, reject) => {
+  const timeoutPromise = new Promise<ClaudeApiRequest>((_, reject) => {
     timeout = setTimeout(() => reject(new Error("timed out waiting for /v1/messages")), 20000)
   })
 
   try {
-    return await Promise.race([stub.firstMessageRequest, timeoutPromise])
+    const request = await Promise.race([stub.waitForRequest((candidate) => candidate.path.endsWith("/messages")), timeoutPromise])
+    return request.jsonBody as RequestBody
   } catch (error) {
     proc.kill()
     const stderr = proc.stderr ? await new Response(proc.stderr).text() : ""
@@ -315,7 +181,7 @@ test("patched custom base URL requests strip stale signed thinking from resumed 
   const patchedBundle = join(dir, "cli.signature-patched.js")
   renderSignaturePatch(TARGET_BUNDLE, patchedBundle)
 
-  const unpatchedStub = await startClaudeStub()
+  const unpatchedStub = await startClaudeApiStub()
   try {
     const request = await runClaudeUntilMessageRequest(
       TARGET_BUNDLE,
@@ -327,10 +193,10 @@ test("patched custom base URL requests strip stale signed thinking from resumed 
       expect(hasSignedThinkingBlocks(request)).toBe(true)
     }
   } finally {
-    unpatchedStub.server.stop(true)
+    unpatchedStub.stop()
   }
 
-  const patchedStub = await startClaudeStub()
+  const patchedStub = await startClaudeApiStub()
   try {
     const request = await runClaudeUntilMessageRequest(
       patchedBundle,
@@ -341,6 +207,6 @@ test("patched custom base URL requests strip stale signed thinking from resumed 
     expect(hasAssistantText(request)).toBe(true)
     expect(hasSignedThinkingBlocks(request)).toBe(false)
   } finally {
-    patchedStub.server.stop(true)
+    patchedStub.stop()
   }
 }, 120000)

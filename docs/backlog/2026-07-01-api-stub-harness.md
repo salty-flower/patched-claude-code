@@ -2,11 +2,13 @@
 
 ## Status
 
-- Existing coverage lives in
-  `tools/test/signature-block-custom-endpoint-runtime.test.ts`.
-- Current stub validates one resumed-transcript API replay path.
-- This file tracks planned work to make API-boundary runtime checks reusable
-  during target bumps.
+- Implemented shared coverage lives in `tools/test/helpers/claude-api-stub.ts`.
+- `signature-block-custom-endpoint` now uses the shared helper for transcript
+  replay.
+- `per-model-endpoint` has rendered-bundle runtime coverage for create and
+  count-tokens calls.
+- `just api-stub-smoke <ver>` renders the target, starts a local stub, verifies
+  a PTY launch/exit path, and verifies a stubbed rendered-bundle API response.
 
 ## Scope
 
@@ -19,14 +21,14 @@
 
 ## Priority
 
-1. **Shared `ClaudeApiStub` helper.**
+1. **Shared `ClaudeApiStub` helper.** Done.
    - Capture method, path, query, headers, raw body, parsed JSON body, request
      order, and receiving stub instance.
    - Support `/v1/messages` and `/v1/messages/count_tokens`.
    - Provide streaming SSE and non-streaming JSON responses.
    - Fail unknown paths by default.
 
-2. **`per-model-endpoint` runtime coverage.**
+2. **`per-model-endpoint` runtime coverage.** Done.
    - Start separate global and per-model stubs.
    - Set `ANTHROPIC_BASE_URL` to the global stub.
    - Set `ANTHROPIC_MODEL_BASE_URL_<sanitized_model>` to the per-model stub.
@@ -36,22 +38,22 @@
    - Assert `x-api-key` and `Authorization` precedence.
    - Cover beta and non-beta request builders when reachable.
 
-3. **PTY/TUI plus stub smoke harness.**
+3. **PTY plus stub smoke harness.** Done.
    - Launch `staging/<ver>/cli.patched.js` in a PTY.
-   - Drive a short prompt through the TUI with `ANTHROPIC_BASE_URL` pointing
-     at the local stub.
+   - Exit through `/exit` with a local-only interaction.
+   - Run the same rendered bundle in print mode with `ANTHROPIC_BASE_URL`
+     pointing at the local stub.
    - Assert the stub receives the model request.
-   - Assert the TUI renders the stub text response.
-   - Exit with a local-only interaction such as `/exit`.
+   - Assert the rendered bundle prints the stub text response.
 
-4. **Streaming and error fixtures.**
+4. **Streaming and error fixtures.** Done.
    - `text-ok`: normal `message_start` to `message_stop`.
    - `delayed-text`: delayed SSE chunks.
    - `count-tokens-ok`: minimal token-count response.
    - `api-error`: structured JSON error response.
    - `malformed-sse`: invalid frame for render-loop failure detection.
 
-5. **Transcript replay matrix.**
+5. **Transcript replay matrix.** Remaining.
    - Custom endpoint replay strips stale signed thinking.
    - Same endpoint replay preserves valid thinking blocks.
    - Model, key, or endpoint changes strip signed thinking.
@@ -61,6 +63,9 @@
 ## Verification Gates
 
 - `just tool-test <ver>` includes the shared stub helper tests.
+- `just api-stub-smoke <ver>` renders the target and runs the PTY/API smoke.
+- `just api-stub-smoke-rendered <ver>` reruns the smoke against an existing
+  `staging/<ver>/cli.patched.js`.
 - `just patch-test <ver>` remains static-only unless explicitly extended.
 - Target-bump SOP continues to require a separate PTY/TUI baseline; this
   backlog adds stub-backed coverage for token-burning paths.
@@ -70,6 +75,6 @@
 
 Promote this backlog into `docs/guides/Bumping-Target.md` only after:
 
-- A reusable stub helper exists outside one patch-specific runtime test.
-- At least one API patch family uses the helper.
-- The PTY/TUI stub smoke path is documented with a stable command.
+- The remaining transcript replay matrix is implemented.
+- At least one more API patch family uses the helper.
+- The split PTY/API smoke command has stayed stable across a target bump.

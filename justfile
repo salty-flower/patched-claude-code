@@ -30,6 +30,12 @@ patch-test version=target source=source: (render version source)
 patch-test-rendered version=target:
   bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
 
+api-stub-smoke version=target source=source: (render version source)
+  bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
+
+api-stub-smoke-rendered version=target:
+  bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
+
 package version=target release_id=release_id source=source: (render version source)
   bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"
 

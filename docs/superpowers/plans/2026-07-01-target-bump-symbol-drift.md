@@ -27,7 +27,7 @@
 - Produces: agent-facing bump protocol and patch metadata requirements.
 
 - [ ] **Step 1:** Add an AGENTS hard rule that target bumps must follow the symbol-drift protocol.
-- [ ] **Step 2:** Replace the loose bump drift bullets with locator, replacement-symbol, and TUI verification checks.
+- [ ] **Step 2:** Replace the loose bump drift bullets with locator, replacement-symbol, and mandatory PTY/TUI plus local-interaction verification checks.
 - [ ] **Step 3:** Add Patch-Format field rules for version-specific minified variants and stale-symbol negative tests.
 - [ ] **Step 4:** Review docs for duplication and line-level ambiguity.
 

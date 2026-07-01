@@ -58,13 +58,26 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    just patch-test <ver>
    ```
 
-6. **Exercise affected runtime paths.**
+6. **Exercise the rendered TUI and runtime paths.**
 
-   | Patch surface | Minimum runtime check |
+   Every target bump must include this baseline before commit:
+
+   - Launch `staging/<ver>/cli.patched.js` in a PTY-backed interactive TUI.
+   - Reach the main interactive screen. Setup, help text, or `--print` output
+     does not count.
+   - Perform at least one local-only interaction, such as a slash command or
+     `/exit`, and confirm clean exit. Do not send a model request for this
+     baseline check.
+   - If an affected path would spend tokens or call the network, exercise it
+     with a stub server or local harness.
+
+   Then cover the affected patch surface:
+
+   | Patch surface | Additional runtime check |
    | --- | --- |
-   | TUI, React hooks, prompt/footer/statusline, thinking display | PTY-backed interactive run with the affected flags. |
-   | API request construction | CLI or focused runtime test that reaches the patched request builder. |
-   | Static CLI metadata only | `just smoke-rendered <ver>` plus patch tests. |
+   | TUI, React hooks, prompt/footer/statusline, thinking display | PTY-backed interactive run with the affected flags and visible success signal. |
+   | API request construction | CLI or focused runtime test that reaches the patched request builder through a stub server or local harness. |
+   | Static CLI metadata only | `just smoke-rendered <ver>` plus patch tests, in addition to the target-bump TUI baseline. |
 
    If `--print` works but interactive TUI is blank, inspect replacement
    symbols first. See

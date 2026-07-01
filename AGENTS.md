@@ -41,6 +41,9 @@ You MUST:
 - During target bumps, treat `just verify` as locator-only proof. Follow
   [`docs/guides/Bumping-Target.md`](docs/guides/Bumping-Target.md) to prove
   every replacement's minified symbols still belong to the new bundle.
+- Every target bump must include a rendered PTY/TUI run and at least one
+  local-only interaction, such as a slash command or `/exit`, before commit.
+  Token-burning/API interactions must use a stub server or local harness.
 - Before declaring a patch successful, run the rendered bundle in the
   interactive TUI path for the affected flags; do not rely only on `--print`,
   static patch tests, or `just verify`. If the TUI shows a render-boundary

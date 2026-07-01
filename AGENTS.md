@@ -38,6 +38,9 @@ You MUST:
 - Run `just verify` before committing any change under
   `patches/`. The script confirms each patch's locator still hits exactly
   once on the latest staged target bundle.
+- During target bumps, treat `just verify` as locator-only proof. Follow
+  [`docs/guides/Bumping-Target.md`](docs/guides/Bumping-Target.md) to prove
+  every replacement's minified symbols still belong to the new bundle.
 - Before declaring a patch successful, run the rendered bundle in the
   interactive TUI path for the affected flags; do not rely only on `--print`,
   static patch tests, or `just verify`. If the TUI shows a render-boundary

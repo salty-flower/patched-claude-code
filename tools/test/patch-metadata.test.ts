@@ -1,6 +1,10 @@
 import { expect, test } from "bun:test"
-import { loadPatchEntriesFromToml } from "../lib/patch-files"
+import { join } from "node:path"
+import { lt, lte } from "semver"
+import { loadPatchEntriesFromDirectory, loadPatchEntriesFromToml, type PatchEntry } from "../lib/patch-files"
 import { evaluateStaticPatchTests, loadPatchTestsFromToml } from "../lib/patch-tests"
+
+const ROOT = join(import.meta.dir, "..", "..")
 
 test("loads embedded patch tests from TOML", () => {
   const tests = loadPatchTestsFromToml(`
@@ -191,3 +195,57 @@ assert_contains = "afterTwo()"
   expect(patches[0]?.enabled).toBe(true)
   expect(patches[1]?.enabled).toBe(false)
 })
+
+test("older version-specific patch variants are capped before later siblings", () => {
+  const targetVersion = process.env.TARGET_VERSION ?? "2.1.186"
+  const failures = []
+
+  for (const variants of versionedPatchGroups(loadPatchEntriesFromDirectory(ROOT))) {
+    const sorted = [...variants].sort((a: VersionedPatch, b: VersionedPatch) =>
+      lt(a.variantVersion, b.variantVersion) ? -1 : 1,
+    )
+
+    for (let index = 0; index < sorted.length - 1; index += 1) {
+      const variant = sorted[index]
+      const next = sorted[index + 1]
+      if (!variant || !next || !lt(variant.variantVersion, targetVersion)) continue
+
+      const upperBound = exclusiveUpperBound(variant.entry.applies_to)
+      if (!upperBound || !lte(upperBound, next.variantVersion)) {
+        failures.push(
+          `${variant.entry.file}:${variant.entry.name} applies_to=${variant.entry.applies_to ?? "<none>"} should end before ${next.variantVersion}`,
+        )
+      }
+    }
+  }
+
+  expect(failures).toEqual([])
+})
+
+type VersionedPatch = {
+  baseName: string
+  variantVersion: string
+  entry: PatchEntry
+}
+
+function versionedPatchGroups(entries: PatchEntry[]): VersionedPatch[][] {
+  const groups = new Map<string, VersionedPatch[]>()
+
+  for (const entry of entries) {
+    const match = entry.name.match(/^(?<base>.+)-(?<major>\d+)-(?<minor>\d+)-(?<patch>\d+)$/)
+    if (!match?.groups) continue
+
+    const variant: VersionedPatch = {
+      baseName: match.groups.base,
+      variantVersion: `${match.groups.major}.${match.groups.minor}.${match.groups.patch}`,
+      entry,
+    }
+    groups.set(variant.baseName, [...(groups.get(variant.baseName) ?? []), variant])
+  }
+
+  return [...groups.values()].filter((group) => group.length > 1)
+}
+
+function exclusiveUpperBound(range: string | undefined): string | undefined {
+  return range?.match(/<\s*(\d+\.\d+\.\d+)/)?.[1]
+}

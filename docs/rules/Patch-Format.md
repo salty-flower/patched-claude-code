@@ -137,11 +137,17 @@ Supported transform ops:
 - `replacement` must not contain backreferences that resurrect minified
   identifier names from the locator's capture groups. Literal and regex
   patches are deterministic substitutions, not transforms.
+- Replacement code that names local minified identifiers MUST be version-scoped.
+  Its rationale MUST state the authored target version and the symbols being
+  carried, e.g. "This is the 2.1.186 minified-symbol variant; hook namespace
+  `Cb`, selector helper `_t`."
 - `ast_transform` inserted snippets MUST be original to this repo and MUST be
   carried in typed transform fields such as `value`, `arg`, `body`, or
   `template`.
 - `applies_to` uses standard semver ranges. When a patch needs different
-  text per range, split it into two files.
+  text per range, split it into two files. Version-specific minified-symbol
+  variants MUST have an upper bound; do not leave them open-ended to `<2.2.0`
+  unless the replacement contains no local minified symbols.
 - `enabled = false` disables a patch entry without deleting its audit record.
   Omitted `enabled` means true. Disabled entries are skipped by render, verify,
   and patch-test scripts.
@@ -149,6 +155,9 @@ Supported transform ops:
   `[[tests]]` for legacy one-entry files. Static tests run against the rendered
   bundle. CLI tests run `bun <cli.patched.js>`. PTY tests use `script(1)` plus
   `timeout` and default input `/exit`.
+- Version-specific minified-symbol variants MUST include both a current-symbol
+  `assert_contains` and a previous-symbol `assert_not_contains` when replacing
+  a prior variant.
 
 ## Lifecycle
 
@@ -159,6 +168,8 @@ Supported transform ops:
 - Re-anchor (target version bump): run
   `TARGET_SOURCE=<npm|direct> just verify <target-version>`. If the locator
   fails, edit the pattern; if the replacement intent shifted, write a second
-  `applies_to` patch instead of mutating the original.
+  `applies_to` patch instead of mutating the original. If only local minified
+  symbols shifted, cap the old variant before the new target and add a new
+  variant with positive and negative static assertions.
 - Retire: delete the file when upstream behaviour makes the patch a no-op.
   The deletion commit must reference the upstream version that obsoleted it.

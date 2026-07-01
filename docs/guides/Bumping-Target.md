@@ -51,14 +51,49 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    - Prefer `ast_transform` locators when the semantic node survives but
      local identifier names drift.
 
-5. **Build and smoke.**
+5. **Run the anti-trace audit.**
+
+   Do this before rendering the patched bundle. The goal is to catch new
+   environment fingerprinting, hidden prompt markers, and content-bearing
+   telemetry before patch validation normalizes the target.
+
+   **Coordinator pass**:
+
+   - Generate one shared dossier from `staging/<ver>/cli.js`; do not ask
+     subagents to each rescan the full minified bundle.
+   - Include offsets, nearby minified snippets, decoded constants, and source
+     command lines for:
+     - system prompt and context constructors
+     - date, locale, timezone, hostname, base URL, proxy, and provider gates
+     - telemetry, tracing, OpenTelemetry, diagnostics, raw-body logging, and
+       event exporters
+     - first-party and third-party network endpoints
+   - Diff the dossier against the previous staged target when available.
+
+   **Subagent review split**:
+
+   | Review lane | Evidence package | Required decision |
+   | --- | --- | --- |
+   | Prompt markers | System-context constructors, rendered prompt fragments, Unicode/string transforms | No hidden user/environment classification reaches model context, or patch required. |
+   | Host and region fingerprinting | Base URL parsing, hostname tables, timezone/locale gates, decoded constants | No custom endpoint or regional marker is encoded into prompts or telemetry without an explicit setting, or patch required. |
+   | Telemetry and network egress | OTel/env gates, content logging switches, exporter endpoints, first-party event logging | Content-bearing logging is opt-in and documented; new default egress has a disable path. |
+
+   **Do not split by bundle chunk.** Chunk sharding loses semantic boundaries
+   and makes cross-site markers harder to prove. Use the dossier to keep one
+   bundle scan and let reviewers verify focused invariants.
+
+   Record the audit result in the commit body. If any lane needs a patch,
+   either land that patch in the same target-bump branch before release or
+   document why the new behavior is intentionally accepted.
+
+6. **Build and smoke.**
    ```sh
    just render <ver>
    just smoke <ver>
    just patch-test <ver>
    ```
 
-6. **Exercise the rendered TUI and runtime paths.**
+7. **Exercise the rendered TUI and runtime paths.**
 
    Every target bump must include this baseline before commit:
 
@@ -83,13 +118,13 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    symbols first. See
    [`../records/2026-05-12-v2.1.139-statusline-footer-lessons.md`](../records/2026-05-12-v2.1.139-statusline-footer-lessons.md).
 
-7. **Update `target_version` in patches.**
+8. **Update `target_version` in patches.**
    When a patch was authored against an older target, update its
    `target_version` only after a successful re-verify. `applies_to` may
    stay broader than `target_version` only when the patch text is not tied to
    version-local minified symbols.
 
-8. **Commit.**
+9. **Commit.**
    Use type `patches:` if any patch text changed, or `reference:` if you
    touched only metadata. The body should list every patch revisited and
    note any that needed re-anchoring or symbol splits.

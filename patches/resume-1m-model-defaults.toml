@@ -159,6 +159,34 @@ name = "old env-default resume short circuit is removed in 2.1.197"
 assert_not_contains = '''function mYo(){return Boolean(ry()!==void 0||Ne.ANTHROPIC_MODEL||Ne.ANTHROPIC_DEFAULT_FABLE_MODEL||Ne.ANTHROPIC_DEFAULT_OPUS_MODEL||Ne.ANTHROPIC_DEFAULT_SONNET_MODEL||Ne.ANTHROPIC_DEFAULT_HAIKU_MODEL||!ud())}'''
 
 [[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-197"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = """
+This is the 2.1.197 minified-symbol variant of
+`resume-detects-1m-after-alias-resolution` for the default-model path.
+Upstream's `Evc` only receives `initialMainLoopModel`, which is `null` when no
+explicit `model` setting or `ANTHROPIC_MODEL` is present. That loses the fact
+that the resolved default from `b_()` may be an Opus/Sonnet `[1m]` model. Make
+`Evc` resolve `b_()` when the raw setting is absent so resume can restore the
+transcript model with its `[1m]` suffix under default 1M configs.
+"""
+locator_kind = "literal"
+locator_pattern = '''let n=new Set(LQs.map(oo)),r=t?Bo(t):void 0,o=r?ju(r):void 0;'''
+replacement = '''let n=new Set(LQs.map(oo)),r=Bo(t??b_()),o=ju(r);'''
+
+[[patches.tests]]
+kind = "static"
+name = "resume checks resolved default for 1m context in 2.1.197"
+assert_contains = '''let n=new Set(LQs.map(oo)),r=Bo(t??b_()),o=ju(r);'''
+
+[[patches.tests]]
+kind = "static"
+name = "old absent-default resume model resolver is removed in 2.1.197"
+assert_not_contains = '''let n=new Set(LQs.map(oo)),r=t?Bo(t):void 0,o=r?ju(r):void 0;'''
+
+[[patches]]
 name = "resume-detects-1m-after-alias-resolution"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 locator_kind = "literal"

@@ -1,0 +1,165 @@
+name = "ultracode-opus46-max"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+
+rationale = """
+Allow ultracode to use max effort on Opus 4.6 when xhigh is unavailable.
+
+In v2.1.197 ultracode is modeled as xhigh effort plus dynamic workflow
+orchestration, but the public Opus 4.6 effort surface supports max rather than
+xhigh. Patched bundles keep xhigh for models that support it and fall back to
+max only when the active model supports max effort. Cleanup condition: upstream
+maps ultracode to the highest supported effort for Opus 4.6 or exposes an
+official ultracode effort compatibility layer.
+"""
+
+[[patches]]
+name = "ultracode-startup-settings-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Resolve startup settings ultracode to xhigh or max based on the active model.
+
+The v2.1.197 startup parser returns xhigh whenever settings enable ultracode,
+before the interactive command or control-request paths run. This leaves Opus
+4.6 with an unsupported xhigh value that later downgrades to high. This 2.1.197
+minified-symbol variant computes a model-aware ultracode effort from the active
+model instead. Cleanup condition: upstream normalizes ultracode effort during
+startup settings parsing.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "c2i", source = '''function c2i(e){let t=VU(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0)return"xhigh";return pHe(e.settings.effortLevel)}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=VU(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let n=Cs();return kG(n)?"xhigh":uHe(n)&&Tqe("max",n)?"max":"high"}return pHe(e.settings.effortLevel)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "startup settings ultracode can resolve to max"
+assert_contains = '''function c2i(e){let t=VU(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let n=Cs();return kG(n)?"xhigh":uHe(n)&&Tqe("max",n)?"max":"high"}return pHe(e.settings.effortLevel)}'''
+
+[[patches]]
+name = "ultracode-effort-command-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Use the active model's highest supported ultracode effort in `/effort ultracode`.
+
+The command path currently rejects Opus 4.6 because it requires xhigh support.
+This 2.1.197 minified-symbol variant keeps the dynamic-workflow gate (`ib`) and
+chooses `xhigh` when `kG(model)` is true, otherwise `max` when `uHe(model)` and
+the organization cap (`Tqe`) permit max. Cleanup condition: upstream applies the
+same model-aware ultracode effort selection.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L51-L65"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "bQm", strings = ["Ultracode needs dynamic workflows enabled", "Ultracode runs at xhigh effort"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let e=Cs(),t=kG(e)?"xhigh":uHe(e)&&Tqe("max",e)?"max":void 0;if(!ib())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${Alr(e)}`};if(!t)return{message:`Ultracode is not supported for ${e}. Valid options are: ${Alr(e)}`};let n=G6o(t,!0);J9();G("tengu_effort_command",{effort:Ve("ultracode")});let r=td()?void 0:Sqe();return r!==void 0&&r!==t?{message:`CLAUDE_CODE_EFFORT_LEVEL=${process.env.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session - clear it and ultracode takes over`,effortUpdate:{value:t,ultracode:!0}}:{message:`Set effort level to ultracode (this session only): ${t} effort + dynamic workflow orchestration${n??""}`,effortUpdate:{value:t,ultracode:!0}}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "ultracode command can choose max"
+assert_contains = '''let e=Cs(),t=kG(e)?"xhigh":uHe(e)&&Tqe("max",e)?"max":void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "ultracode command no longer requires xhigh only"
+assert_not_contains = '''Ultracode runs at xhigh effort, which'''
+
+[[patches]]
+name = "ultracode-model-picker-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Set model-picker ultracode state to xhigh or max based on the active model.
+
+The v2.1.197 model picker stores `effortValue: "xhigh"` when ultracode is
+selected for the current session. This 2.1.197 minified-symbol variant keeps
+xhigh for xhigh-capable models and uses max when the active model supports max.
+Cleanup condition: upstream stores ultracode's model-compatible effort value.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lNm", source = '''function lNm(e){return{...e,effortValue:"xhigh",ultracode:!0}}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=Cs(),n=kG(t)?"xhigh":uHe(t)&&Tqe("max",t)?"max":"high";return{...e,effortValue:n,ultracode:!0}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model picker ultracode can store max"
+assert_contains = '''function lNm(e){let t=Cs(),n=kG(t)?"xhigh":uHe(t)&&Tqe("max",t)?"max":"high";return{...e,effortValue:n,ultracode:!0}}'''
+
+[[patches]]
+name = "ultracode-flag-settings-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Set apply_flag_settings ultracode state to xhigh or max based on the active model.
+
+SDK and remote-control sessions can enable ultracode through flag settings. The
+v2.1.197 handler hard-codes xhigh in that state update, so Opus 4.6 sessions
+remain incompatible. This 2.1.197 minified-symbol variant computes the same
+model-aware effort used by the interactive command. Cleanup condition: upstream
+normalizes ultracode effort in the flag-settings control path.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "l", string = '''Ro.ultracode===ai&&(!ai||Ro.effortValue==="xhigh")''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''if(Ro.ultracode===ai&&(!ai||Ro.effortValue==="xhigh"))return Ro;return{...Ro,ultracode:ai,effortValue:ai?"xhigh":Ro.effortValue}'''
+value = '''let oa=kG($s)?"xhigh":uHe($s)&&Tqe("max",$s)?"max":"high";if(Ro.ultracode===ai&&(!ai||Ro.effortValue===oa))return Ro;return{...Ro,ultracode:ai,effortValue:ai?oa:Ro.effortValue}'''
+
+[[patches.tests]]
+kind = "static"
+name = "flag settings ultracode can store max"
+assert_contains = '''let oa=kG($s)?"xhigh":uHe($s)&&Tqe("max",$s)?"max":"high";if(Ro.ultracode===ai&&(!ai||Ro.effortValue===oa))return Ro'''
+
+[[patches]]
+name = "ultracode-settings-report-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Report ultracode as active when its effective Opus 4.6 effort is max.
+
+The v2.1.197 settings report only treats ultracode as active when the resolved
+effort is xhigh. After Opus 4.6 falls back to max, settings consumers should
+still see ultracode as active while the ultracode flag is true. Cleanup
+condition: upstream reports ultracode independently from the exact compatible
+effort string.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Mne", source = '''function Mne(e,t,n){return n===!0&&ib()&&aJ(e,t)==="xhigh"}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let r=aJ(e,t);return n===!0&&ib()&&(r==="xhigh"||r==="max"&&uHe(e))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "settings report accepts max ultracode"
+assert_contains = '''function Mne(e,t,n){let r=aJ(e,t);return n===!0&&ib()&&(r==="xhigh"||r==="max"&&uHe(e))}'''

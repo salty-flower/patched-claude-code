@@ -47,19 +47,44 @@ API error and returned control to the prompt input. A user-entered `continue`
 creates a new turn; it is not the same as the original retry loop remaining
 open.
 
+## v2.1.197 Target Finding
+
+The staged v2.1.197 bundle already contains the persistent retry branch. The
+external bundle does not contain `CLAUDE_CODE_UNATTENDED_RETRY`; the reachable
+gate is `CLAUDE_CODE_RETRY_WATCHDOG`.
+
+| Item | Finding |
+| --- | --- |
+| Gate | `pRe()` returns `ct(process.env.CLAUDE_CODE_RETRY_WATCHDOG)`. |
+| Capacity predicate | `cfc(error)` is `529 / overloaded_error OR 429`. |
+| Foreground guard | 529 background-source drop is skipped when watchdog is enabled. |
+| Repeated-529 guard | repeated 529 surfacing is skipped when watchdog is enabled. |
+| Retry cap | `h > maxRetries` does not throw when `pRe() && cfc(error)`. |
+| Backoff | persistent cap `sfc = 300000` (5 min), reset cap `jGo = 21600000` (6 hr), heartbeat chunk `Vuf = 30000` (30 sec). |
+| UI path | retries yield `system/api_error`; SDK/TUI maps that to `api_retry` status rather than returning to prompt input. |
+
+Local stub check against `staging/2.1.197/cli.patched.js`:
+
+| Run | Env | Stub behavior | Result |
+| --- | --- | --- | --- |
+| Watchdog on | `CLAUDE_CODE_MAX_RETRIES=0`, `CLAUDE_CODE_RETRY_WATCHDOG=1` | first `/messages` returns 529, second succeeds | exit 0, two message requests, output `watchdog-ok`. |
+| Watchdog off | `CLAUDE_CODE_MAX_RETRIES=0` | first `/messages` returns 529 | exit 1, one message request, visible `API Error: 529 ...`. |
+
 ## Automatic Retry Options
 
 | Option | Patch surface | Good | Bad | Verdict |
 | --- | --- | --- | --- | --- |
 | External wrapper | Shell/TUI supervisor sends `continue` after matching `API Error: 529` | No bundle patch; can ship quickly | Brittle terminal automation; duplicates user input; hard to distinguish final errors | Diagnostic only. |
-| Expose persistent retry | Patch `isPersistentRetryEnabled()` / feature gate so an env var enables provider-capacity retry for external builds | Uses upstream-designed retry loop, backoff, abort handling, and keep-alive yield path | Current upstream mode retries 429 and 529; must avoid entitlement 429s unless narrowed | Preferred patch direction. |
+| Use existing watchdog | Set `CLAUDE_CODE_RETRY_WATCHDOG=1` | No patch; uses upstream-designed retry loop, backoff, abort handling, and keep-alive yield path | Retries 429 and 529; entitlement-like 429s can wait until reset/cap | Current practical answer. |
+| Narrow watchdog patch | Add patched env gate for `529 / overloaded_error / provider 503` only | Avoids entitlement 429 retry risk | Needs locator work and provider-specific fixtures | Best patch direction if current watchdog is too broad. |
 | Query-loop synthetic continue | After an API error message, append a meta user message such as `continue` and `continue` the state loop | Matches the manual workaround; can preserve visible context | Pollutes transcript; can repeat tool-result edges; easy to retry non-capacity failures | Avoid unless persistent retry cannot be patched. |
 | Provider failover | On repeated 529/503/overload, switch model, route, region, or `ANTHROPIC_MODEL_BASE_URL_*` | Reduces wait during model-specific overload | Changes model behavior; requires configured alternatives | Optional supplement. |
 
 ## Preferred Patch Contract
 
-Patch goal: environment-gated persistent retry for provider-capacity failures,
-not blanket retry for every 429.
+Patch goal, if needed after using the existing watchdog: environment-gated
+persistent retry for provider-capacity failures, not blanket retry for every
+429.
 
 | Requirement | Constraint |
 | --- | --- |
@@ -76,15 +101,16 @@ not blanket retry for every 429.
 
 | Question | Required check |
 | --- | --- |
-| Does current staged v2.1.197 compile `UNATTENDED_RETRY` out? | Inspect rendered bundle for `CLAUDE_CODE_UNATTENDED_RETRY` and the persistent retry branch. |
-| Is the branch still reachable after minification? | Locate `isPersistentRetryEnabled()` and `isTransientCapacityError()` in `staging/2.1.197/cli.js`. |
+| Does current staged v2.1.197 compile `UNATTENDED_RETRY` out? | Answered: old env string absent; branch reachable through `CLAUDE_CODE_RETRY_WATCHDOG`. |
+| Is the branch still reachable after minification? | Answered: `pRe()` + `cfc()` are present in `staging/2.1.197/cli.formatted.js`. |
 | Should patched persistent mode include 429? | Start no: 429 mixes hard entitlement, org rate limit, shared-pool capacity, and subscription reset windows. Add only provider-specific capacity signatures. |
 | How long should unattended waits last? | Use bounded default, e.g. 15-30 minutes; allow explicit env override for longer agent runs. |
 | What should the user see? | One retry status line per heartbeat, not repeated API error blocks that force manual prompt input. |
 
 ## Decision
 
-Automatic retry is feasible. The low-risk implementation is not to synthesize
-the user's `continue` prompt. It is to expose or recreate the existing
-persistent retry loop for capacity-class errors, gated by an environment
-variable and verified against a stubbed provider.
+Automatic retry is already available in v2.1.197 through
+`CLAUDE_CODE_RETRY_WATCHDOG=1`. The low-risk implementation is not to
+synthesize the user's `continue` prompt. If the existing watchdog proves too
+broad because it also persists through 429, add a narrower patch for
+capacity-class errors only.

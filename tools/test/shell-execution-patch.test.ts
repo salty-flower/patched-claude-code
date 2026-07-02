@@ -6,7 +6,7 @@ import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = "2.1.181"
+const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.181"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const PATCH_FILE = join(ROOT, "patches", "shell-execution-real-shell.toml")
 
@@ -22,7 +22,8 @@ test("shell execution patch is disabled by default", () => {
   const source = readFileSync(TARGET_BUNDLE, "utf8")
   const result = applyPatchEntries(source, loadPatchEntriesFromFile(PATCH_FILE), TARGET_VERSION)
 
-  expect(source).toContain('Fzr("grep","ugrep"')
+  expect(source).toContain('"unalias find 2>/dev/null || true"')
+  expect(source).toContain('"unalias grep 2>/dev/null || true"')
   expect(result.source).toBe(source)
   expect(result.applied).toBe(0)
   expect(result.skipped.map((patch) => patch.name)).toEqual(["disable-native-find-grep-shell-shims"])
@@ -31,10 +32,11 @@ test("shell execution patch is disabled by default", () => {
 test("shell execution patch locator remains valid when enabled", () => {
   const source = readFileSync(TARGET_BUNDLE, "utf8")
   const patches = loadPatchEntriesFromFile(PATCH_FILE).map((patch) => ({ ...patch, enabled: true }))
-  const patched = applyPatchEntries(source, patches, TARGET_VERSION).source
+  const result = applyPatchEntries(source, patches, TARGET_VERSION)
 
-  expect(patched).toContain("function Eqd(){return null}")
-  expect(patched).not.toContain('function Eqd(){if(!Yw())return null;return["unalias find')
+  expect(result.applied).toBe(1)
+  expect(result.source).not.toContain('"unalias find 2>/dev/null || true"')
+  expect(result.source).not.toContain('"unalias grep 2>/dev/null || true"')
 }, 20_000)
 
 test("real bash preserves pipeline stdin and PATH command resolution", () => {

@@ -29,3 +29,20 @@
 - [x] **Step 3:** Run `just patch-test 2.1.197`.
 - [x] **Step 4:** Run local API-stub smoke checks for Opus 4.6 max and xhigh-capable model preservation; rendered PTY smoke was blocked by host `openpty` restrictions.
 - [x] **Step 5:** Commit with `patches:` message.
+
+### Task 2: Ultracode Effort Menu Compatibility
+
+**Files:**
+
+- Modify: `patches/ultracode-opus46-max.toml`
+
+**Interfaces:**
+
+- Consumes: target bundle symbols `ib`, `kG`, `uHe`, `Tqe`, `pTe`, `Cs`, `Arc`, `Hrc`, `KQm`.
+- Produces: `/effort` help, argument hints, and interactive slider that expose `ultracode` when the active model can use either xhigh or max.
+
+- [x] **Step 1:** Add AST patch entries for help text, valid options, typed argument parsing, slider geometry, confirmation effort preview, and argument hints.
+- [x] **Step 2:** Run `just verify 2.1.197`.
+- [x] **Step 3:** Run `just patch-test 2.1.197`.
+- [x] **Step 4:** Run local smoke checks for Opus 4.6 and an xhigh-capable model where possible; rendered PTY smoke was blocked by host `openpty` restrictions.
+- [x] **Step 5:** Commit with `patches:` message.

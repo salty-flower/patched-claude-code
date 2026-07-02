@@ -163,3 +163,250 @@ body = '''{let r=aJ(e,t);return n===!0&&ib()&&(r==="xhigh"||r==="max"&&uHe(e))}'
 kind = "static"
 name = "settings report accepts max ultracode"
 assert_contains = '''function Mne(e,t,n){let r=aJ(e,t);return n===!0&&ib()&&(r==="xhigh"||r==="max"&&uHe(e))}'''
+
+[[patches]]
+name = "ultracode-help-menu-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Show ultracode in `/effort help` for max-capable non-xhigh models.
+
+The v2.1.197 help text only appends ultracode when `kG(model)` is true, so
+Opus 4.6 can execute `/effort ultracode` after the command patch but does not
+advertise it in help. This 2.1.197 minified-symbol variant uses the same
+compatibility rule as the command path: dynamic workflows plus xhigh support,
+or dynamic workflows plus max support and org cap. Cleanup condition: upstream
+uses a model-compatible ultracode availability predicate for help text.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Rlr", strings = ["Usage: /effort", "- ultracode: xhigh + dynamic workflow orchestration"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let e=Cs(),t=ib()&&(kG(e)||uHe(e)&&Tqe("max",e)),n=pTe(e),r=kG(e)?"xhigh":"max";return`Usage: /effort [${n.join("|")}${t?"|ultracode":""}|auto]
+
+Effort levels:
+`+n.map((o)=>`- ${o}: ${_Qm[o]}
+`).join("")+(t?`- ultracode: ${r} + dynamic workflow orchestration (this session only)
+`:"")+"- auto: Use the default effort level for your model"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "help lists ultracode for max-compatible models"
+assert_contains = '''function Rlr(){let e=Cs(),t=ib()&&(kG(e)||uHe(e)&&Tqe("max",e)),n=pTe(e),r=kG(e)?"xhigh":"max";return`Usage: /effort [${n.join("|")}${t?"|ultracode":""}|auto]'''
+
+[[patches.tests]]
+kind = "static"
+name = "help describes model-compatible ultracode effort"
+assert_contains = '''- ultracode: ${r} + dynamic workflow orchestration (this session only)'''
+
+[[patches]]
+name = "ultracode-valid-options-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Include ultracode in valid-options text for max-compatible models.
+
+The v2.1.197 valid-options helper lists ultracode only for xhigh-capable models.
+After the command accepts max-compatible ultracode, invalid-argument and error
+messages should list ultracode for Opus 4.6 too. Cleanup condition: upstream
+uses a model-compatible ultracode availability predicate in valid options.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Alr", source = '''function Alr(e){let t=pTe(e),n=kG(e)?", ultracode":"";return`${t.join(", ")}${n}, auto`}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=pTe(e),n=ib()&&(kG(e)||uHe(e)&&Tqe("max",e))?", ultracode":"";return`${t.join(", ")}${n}, auto`}'''
+
+[[patches.tests]]
+kind = "static"
+name = "valid options list ultracode for max-compatible models"
+assert_contains = '''function Alr(e){let t=pTe(e),n=ib()&&(kG(e)||uHe(e)&&Tqe("max",e))?", ultracode":"";return`${t.join(", ")}${n}, auto`}'''
+
+[[patches]]
+name = "ultracode-typed-arg-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Parse typed ultracode as max for max-compatible non-xhigh models.
+
+The interactive command's typed-argument preview returns xhigh only when
+`kG(model)` is true. Opus 4.6 should preview the same compatible value that the
+command will apply. Cleanup condition: upstream parses ultracode through the
+same model-compatible effort selection as execution.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "yQm", source = '''function yQm(e,t){let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"&&kG(t))return{value:"xhigh"};let r=zit(e);return r?{value:r}:null}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"){let r=kG(t)?"xhigh":uHe(t)&&Tqe("max",t)?"max":void 0;if(ib()&&r)return{value:r}}let r=zit(e);return r?{value:r}:null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "typed ultracode parses to max when xhigh is unavailable"
+assert_contains = '''function yQm(e,t){let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"){let r=kG(t)?"xhigh":uHe(t)&&Tqe("max",t)?"max":void 0;if(ib()&&r)return{value:r}}let r=zit(e);return r?{value:r}:null}'''
+
+[[patches]]
+name = "ultracode-slider-menu-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Add ultracode to the interactive effort slider for max-compatible models.
+
+The v2.1.197 slider geometry appends the ultracode stop only when `kG(model)` is
+true, hiding it for Opus 4.6 even though the command can now apply ultracode as
+max. This 2.1.197 minified-symbol variant appends the same stop when workflows
+are enabled and the model supports xhigh or max, and labels the subline with
+the actual compatible effort. Cleanup condition: upstream uses a shared
+model-compatible ultracode availability predicate for the slider.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Arc", strings = ["xhigh + workflows", "violet-ripple"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=e?Kit(e):null,n=OQm(t?NR.indexOf(t)+1:NR.length),r=e&&o2i(e)?PQm:void 0,o=ib()&&(kG(e)||uHe(e)&&Tqe("max",e));if(o){let s=kG(e)?"xhigh":"max",i=n.width+3,a=[...n.levels,{value:"ultracode",label:"ultracode",color:"violet-ripple"}],l=i+Math.floor(4),c=[...n.spacers,l-n.width];return{levels:a,width:i+17,trianglePositions:[...n.trianglePositions,i+Math.floor(8.5)],labelStarts:W6o(a,c),spacers:c,trackChars:"\u2500".repeat(n.width+1)+"\u2506"+"\u2500".repeat(18),accentStart:n.width+2,sublabel:{text:`${s} + workflows`,start:i},capNote:r}}return{levels:n.levels,width:n.width,trianglePositions:n.trianglePositions,labelStarts:W6o(n.levels,n.spacers),spacers:n.spacers,trackChars:"\u2500".repeat(n.width),capNote:r}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "slider appends ultracode for max-compatible models"
+assert_contains = '''function Arc(e){let t=e?Kit(e):null,n=OQm(t?NR.indexOf(t)+1:NR.length),r=e&&o2i(e)?PQm:void 0,o=ib()&&(kG(e)||uHe(e)&&Tqe("max",e));if(o){let s=kG(e)?"xhigh":"max"'''
+
+[[patches.tests]]
+kind = "static"
+name = "slider labels actual ultracode effort"
+assert_contains = '''sublabel:{text:`${s} + workflows`,start:i}'''
+
+[[patches]]
+name = "ultracode-slider-confirm-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Preview max when confirming ultracode on max-compatible non-xhigh models.
+
+The v2.1.197 slider confirmation path maps the ultracode stop to xhigh for
+cache-miss confirmations and the confirmation dialog. Opus 4.6 should preview
+max while still executing through `/effort ultracode`. Cleanup condition:
+upstream derives the confirmation preview from model-compatible ultracode
+effort selection.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "KQm", strings = ['ne.value==="ultracode"?"xhigh":ne.value', 'p==="ultracode"?"xhigh":p'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''ne.value==="ultracode"?"xhigh":ne.value'''
+value = '''ne.value==="ultracode"?(kG(s)?"xhigh":"max"):ne.value'''
+
+[[patches.tests]]
+kind = "static"
+name = "slider enter previews max-compatible ultracode"
+assert_contains = '''ne.value==="ultracode"?(kG(s)?"xhigh":"max"):ne.value'''
+
+[[patches]]
+name = "ultracode-slider-dialog-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Show max in the confirmation dialog for max-compatible ultracode.
+
+The v2.1.197 dialog effort prop maps ultracode to xhigh unconditionally. Keep
+that for xhigh-capable models, and show max for Opus 4.6-style models. Cleanup
+condition: upstream derives the confirmation dialog effort from
+model-compatible ultracode effort selection.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "KQm", string = '''p==="ultracode"?"xhigh":p''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''p==="ultracode"?"xhigh":p'''
+value = '''p==="ultracode"?(kG(s)?"xhigh":"max"):p'''
+
+[[patches.tests]]
+kind = "static"
+name = "slider dialog previews max-compatible ultracode"
+assert_contains = '''p==="ultracode"?(kG(s)?"xhigh":"max"):p'''
+
+[[patches]]
+name = "ultracode-usage-hint-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Show ultracode in `/effort` usage hints for max-compatible models.
+
+The v2.1.197 command hint and thin-client usage string append ultracode only
+when `kG(model)` is true. This hides an executable option for Opus 4.6. Cleanup
+condition: upstream uses model-compatible ultracode availability in command
+usage hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Hrc", source = '''function Hrc(e,t){let n=Cs(),r=kG(n)?"|ultracode":"";return`${e}${pTe(n).join("|")}${r}|auto${t}`}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let n=Cs(),r=ib()&&(kG(n)||uHe(n)&&Tqe("max",n))?"|ultracode":"";return`${e}${pTe(n).join("|")}${r}|auto${t}`}'''
+
+[[patches.tests]]
+kind = "static"
+name = "argument hint lists max-compatible ultracode"
+assert_contains = '''function Hrc(e,t){let n=Cs(),r=ib()&&(kG(n)||uHe(n)&&Tqe("max",n))?"|ultracode":"";return`${e}${pTe(n).join("|")}${r}|auto${t}`}'''
+
+[[patches]]
+name = "ultracode-thin-client-usage-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Show ultracode in thin-client `/effort` usage for max-compatible models.
+
+The non-JSX command path has its own usage string for empty `/effort` input and
+uses the old xhigh-only predicate. This 2.1.197 minified-symbol variant updates
+that usage string without changing execution. Cleanup condition: upstream
+shares model-compatible ultracode availability across CLI/TUI usage surfaces.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "YQm", string = '''${kG(o)?"|ultracode":""}''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''${kG(o)?"|ultracode":""}'''
+value = '''${ib()&&(kG(o)||uHe(o)&&Tqe("max",o))?"|ultracode":""}'''
+
+[[patches.tests]]
+kind = "static"
+name = "thin-client usage lists max-compatible ultracode"
+assert_contains = '''${ib()&&(kG(o)||uHe(o)&&Tqe("max",o))?"|ultracode":""}'''

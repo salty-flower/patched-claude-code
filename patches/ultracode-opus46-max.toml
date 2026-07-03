@@ -8,9 +8,10 @@ Allow ultracode to use max effort on Opus 4.6 when xhigh is unavailable.
 In v2.1.197 ultracode is modeled as xhigh effort plus dynamic workflow
 orchestration, but the public Opus 4.6 effort surface supports max rather than
 xhigh. Patched bundles keep xhigh for models that support it and fall back to
-max only when the active model supports max effort. Cleanup condition: upstream
-maps ultracode to the highest supported effort for Opus 4.6 or exposes an
-official ultracode effort compatibility layer.
+max only when the active model supports max effort. Persisted xhigh settings
+follow the same runtime compatibility rule without being rewritten. Cleanup
+condition: upstream maps ultracode to the highest supported effort for Opus 4.6
+or exposes an official ultracode effort compatibility layer.
 """
 
 [[patches]]
@@ -163,6 +164,36 @@ body = '''{let r=aJ(e,t);return n===!0&&ib()&&(r==="xhigh"||r==="max"&&uHe(e))}'
 kind = "static"
 name = "settings report accepts max ultracode"
 assert_contains = '''function Mne(e,t,n){let r=aJ(e,t);return n===!0&&ib()&&(r==="xhigh"||r==="max"&&uHe(e))}'''
+
+[[patches]]
+name = "xhigh-settings-opus-max-fallback"
+target_version = "2.1.197"
+applies_to = ">=2.1.197 <2.1.198"
+rationale = """
+Resolve persisted or session xhigh to max when the active model cannot use xhigh.
+
+The v2.1.197 applied-effort resolver already clamps unsupported max to high and
+unsupported xhigh to high. When settings persist xhigh but the user selects an
+Opus 4.6-style model that supports max instead of xhigh, runtime resolution
+should keep the stored setting intact and send max as the compatible effective
+effort. Cleanup condition: upstream maps unsupported xhigh to the model's
+highest compatible effort rather than always clamping to high.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "aJ", source = '''function aJ(e,t){if(!Qv(e))return;let n=bqe(e),r=WBt(e),o=Sqe();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Kce(i))i=dHe(i,e);if(i==="max"&&!uHe(e))i="high";if(i==="xhigh"&&!Lne(e))i="high";return i}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{if(!Qv(e))return;let n=bqe(e),r=WBt(e),o=Sqe();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Kce(i))i=dHe(i,e);if(i==="max"&&!uHe(e))i="high";if(i==="xhigh"&&!Lne(e))i=uHe(e)&&Tqe("max",e)?"max":"high";return i}'''
+
+[[patches.tests]]
+kind = "static"
+name = "xhigh settings can resolve to max"
+assert_contains = '''function aJ(e,t){if(!Qv(e))return;let n=bqe(e),r=WBt(e),o=Sqe();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Kce(i))i=dHe(i,e);if(i==="max"&&!uHe(e))i="high";if(i==="xhigh"&&!Lne(e))i=uHe(e)&&Tqe("max",e)?"max":"high";return i}'''
 
 [[patches]]
 name = "ultracode-help-menu-max-fallback"

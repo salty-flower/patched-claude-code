@@ -161,7 +161,7 @@ assert_contains = '''children:["Read ",cy.jsx(v,{bold:!0,children:t.length})," c
 [[patches]]
 name = "read-result-path-notebook-2-1-197"
 target_version = "2.1.197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.199"
 
 rationale = """
 Show the file path on notebook Read result rows.
@@ -192,6 +192,36 @@ assert_contains = '''children:["Read ",Qy.jsx(v,{bold:!0,children:t.length})," c
 kind = "static"
 name = "stale 2.1.186 notebook JSX runtime is absent in 2.1.197"
 assert_not_contains = '''children:["Read ",cy.jsx(v,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches]]
+name = "read-result-path-notebook-2-1-199"
+target_version = "2.1.199"
+applies_to = ">=2.1.199 <2.2.0"
+
+rationale = """
+Show the file path on notebook Read result rows.
+
+This is the 2.1.199 JSX-runtime variant of `read-result-path-notebook`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['" cells"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",hT.jsx(v,{bold:!0,children:t.length})," cells"]'''
+value = '''children:["Read ",hT.jsx(v,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.199"
+assert_contains = '''children:["Read ",hT.jsx(v,{bold:!0,children:t.length})," cells",Z]'''
 
 [[patches]]
 name = "read-result-path-parts"
@@ -257,7 +287,7 @@ assert_contains = '''children:["Read ",cy.jsx(v,{bold:!0,children:e.file.count})
 [[patches]]
 name = "read-result-path-parts-2-1-197"
 target_version = "2.1.197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.199"
 
 rationale = """
 Show the file path on multi-part Read result rows.
@@ -288,6 +318,36 @@ assert_contains = '''children:["Read ",Qy.jsx(v,{bold:!0,children:e.file.count})
 kind = "static"
 name = "stale 2.1.186 parts JSX runtime is absent in 2.1.197"
 assert_not_contains = '''children:["Read ",cy.jsx(v,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ra(e.file.originalSize),")",Z]'''
+
+[[patches]]
+name = "read-result-path-parts-2-1-199"
+target_version = "2.1.199"
+applies_to = ">=2.1.199 <2.2.0"
+
+rationale = """
+Show the file path on multi-part Read result rows.
+
+This is the 2.1.199 JSX-runtime variant of `read-result-path-parts`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L114-L122"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = "originalSize", strings = ['"page":"pages"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",hT.jsx(v,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ia(e.file.originalSize),")"]'''
+value = '''children:["Read ",hT.jsx(v,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ia(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.199"
+assert_contains = '''children:["Read ",hT.jsx(v,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ia(e.file.originalSize),")",Z]'''
 
 [[patches]]
 name = "read-result-path-pdf"
@@ -413,7 +473,7 @@ assert_contains = '''children:["Read ",cy.jsx(v,{bold:!0,children:t})," ",t===1?
 [[patches]]
 name = "read-result-path-text-2-1-197"
 target_version = "2.1.197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.199"
 
 rationale = """
 Show the file path on text Read result rows.
@@ -444,6 +504,36 @@ assert_contains = '''children:["Read ",Qy.jsx(v,{bold:!0,children:t})," ",t===1?
 kind = "static"
 name = "stale 2.1.186 text JSX runtime is absent in 2.1.197"
 assert_not_contains = '''children:["Read ",cy.jsx(v,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches]]
+name = "read-result-path-text-2-1-199"
+target_version = "2.1.199"
+applies_to = ">=2.1.199 <2.2.0"
+
+rationale = """
+Show the file path on text Read result rows.
+
+This is the 2.1.199 JSX-runtime variant of `read-result-path-text`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L124-L134"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['"line":"lines"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",hT.jsx(v,{bold:!0,children:t})," ",t===1?"line":"lines"]'''
+value = '''children:["Read ",hT.jsx(v,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.199"
+assert_contains = '''children:["Read ",hT.jsx(v,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
 
 [[patches]]
 name = "read-result-path-unchanged"
@@ -508,7 +598,7 @@ assert_contains = '''children:["Unchanged since last read",Z]'''
 [[patches]]
 name = "read-result-path-unchanged-2-1-197"
 target_version = "2.1.197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.199"
 
 rationale = """
 Show the file path on unchanged Read result rows.
@@ -534,6 +624,36 @@ value = '''children:["Unchanged since last read",Z]'''
 kind = "static"
 name = "replacement is rendered in 2.1.197"
 assert_contains = '''children:["Unchanged since last read",Z]'''
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-199"
+target_version = "2.1.199"
+applies_to = ">=2.1.199 <2.2.0"
+
+rationale = """
+Show the file path on unchanged Read result rows.
+
+This is the 2.1.199 JSX-runtime variant of `read-result-path-unchanged`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L136-L140"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", source = 'hT.jsx(v,{dimColor:!0,children:e.source==="seeded"?`Already in context (${c9l.basename(e.file.filePath)})`:"Unchanged since last read"})' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:e.source==="seeded"?`Already in context (${c9l.basename(e.file.filePath)})`:"Unchanged since last read"'''
+value = '''children:e.source==="seeded"?[`Already in context (${c9l.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.199"
+assert_contains = '''children:e.source==="seeded"?[`Already in context (${c9l.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
 
 [[patches.tests]]
 kind = "static"

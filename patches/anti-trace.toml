@@ -105,3 +105,68 @@ assert_contains = '''function UPl(){return!1}'''
 kind = "static"
 name = "raw API body logging env gate is not rendered"
 assert_not_contains = '''function UPl(){return BPl().mode!=="disabled"}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-199"
+target_version = "2.1.199"
+applies_to = ">=2.1.199 <2.1.200"
+
+rationale = """
+Replace the v2.1.199 minified-symbol assistant-response OTel gate `Koa`.
+
+Assistant response logging still falls back to OTEL_LOG_USER_PROMPTS when
+OTEL_LOG_ASSISTANT_RESPONSES is unset. Patched bundles should require an
+explicit assistant-response opt-in instead of silently broadening an existing
+prompt-logging deployment. Cleanup condition: upstream makes
+assistant-response logging independent from user-prompt logging by default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+
+locator_kind = "literal"
+locator_pattern = '''function Koa(){return Pe.OTEL_LOG_ASSISTANT_RESPONSES??Pe.OTEL_LOG_USER_PROMPTS}'''
+expected_matches = 1
+
+replacement = '''function Koa(){return Pe.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging requires explicit opt-in"
+assert_contains = '''function Koa(){return Pe.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging no longer inherits prompt logging"
+assert_not_contains = '''function Koa(){return Pe.OTEL_LOG_ASSISTANT_RESPONSES??Pe.OTEL_LOG_USER_PROMPTS}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-199"
+target_version = "2.1.199"
+applies_to = ">=2.1.199 <2.1.200"
+
+rationale = """
+Disable the v2.1.199 minified-symbol raw-body OTel gate `E2l`.
+
+OTEL_LOG_RAW_API_BODIES can emit or write full Messages API request/response
+bodies, which include conversation history and tool results. Patched bundles
+should not provide a runtime switch that turns complete API bodies into
+telemetry payloads or local trace files. Cleanup condition: upstream removes
+raw body capture or narrows it to a documented local-only diagnostic that
+cannot export content.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+
+locator_kind = "literal"
+locator_pattern = '''function E2l(){return b2l().mode!=="disabled"}'''
+expected_matches = 1
+
+replacement = '''function E2l(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging gate is disabled"
+assert_contains = '''function E2l(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging env gate is not rendered"
+assert_not_contains = '''function E2l(){return b2l().mode!=="disabled"}'''

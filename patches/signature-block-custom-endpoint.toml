@@ -173,7 +173,7 @@ assert_not_contains = '''let n=t.bodyModel??t.model,r=Eql(e,xp(n)),'''
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-197"
 target_version = "2.1.197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.199"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "literal"
 locator_pattern = '''let n=t.bodyModel??t.model,r=Opc(e,ju(n)),'''
@@ -188,3 +188,29 @@ assert_contains = '''let n=t.bodyModel??t.model,r=Jlf(n,t.model)?Opc(e,ju(n)):Lp
 kind = "static"
 name = "old model-mismatch-only cleanup gate is removed in 2.1.197"
 assert_not_contains = '''let n=t.bodyModel??t.model,r=Opc(e,ju(n)),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-199"
+target_version = "2.1.199"
+applies_to = ">=2.1.199 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.199 minified-symbol variant of
+`strip-signatures-for-custom-base-url`. The matching-provenance path still uses
+`sbc(e,Vu(n))`; the custom-base-url path falls back to `ibc(e)`, which removes
+thinking/redacted-thinking blocks. In 2.1.199 the endpoint/model provenance
+helper is `Qbf`.
+"""
+locator_kind = "literal"
+locator_pattern = '''let n=t.bodyModel??t.model,r=sbc(e,Vu(n)),'''
+replacement = '''let n=t.bodyModel??t.model,r=Qbf(n,t.model)?sbc(e,Vu(n)):ibc(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.199"
+assert_contains = '''let n=t.bodyModel??t.model,r=Qbf(n,t.model)?sbc(e,Vu(n)):ibc(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.199"
+assert_not_contains = '''let n=t.bodyModel??t.model,r=sbc(e,Vu(n)),'''

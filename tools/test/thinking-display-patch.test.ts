@@ -96,6 +96,12 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 
   const patched = readFileSync(patchedBundle, "utf8")
 
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
+    expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:zrn(w)})')
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
     expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
     expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Ven(w)})')
@@ -132,7 +138,11 @@ test("main-screen thinking display uses the same live state as transcript render
       : "cO"
   const liveStateUses = patched.match(new RegExp(`streamingThinking:${streamingThinkingState}`, "g"))?.length ?? 0
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
+    expect(patched).toContain("streamingThinking:ma")
+    expect(patched).toContain("streamingThinking:__acc_streamingThinking")
+    expect(patched).not.toContain("streamingThinking:EK")
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
     expect(liveStateUses).toBeGreaterThanOrEqual(1)
     if (streamingThinkingState !== "EK") {
       expect(patched).not.toContain("streamingThinking:EK")
@@ -151,7 +161,17 @@ test("live thinking rendering is not suppressed by brief mode", () => {
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
+    expect(patched).toContain('case"thinking":{if(!1)return null;let R;')
+    expect(patched).not.toContain('case"thinking":{if(!m&&!i)return null;let R;')
+    expect(patched).toContain(
+      "streamingText:g,streamingThinking:__acc_streamingThinking,hideStreamingTail:_=!1,isBriefOnly:y=!1",
+    )
+    expect(patched).toContain(
+      '__acc_streamingThinking?.thinking&&YA.jsx(B,{marginTop:1,children:YA.jsx(mer,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:r})})',
+    )
+    expect(patched).not.toContain("__acc_streamingThinking?.thinking&&!y")
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
     expect(patched).toContain('case"thinking":{if(!1)return null;let R;')
     expect(patched).not.toContain('case"thinking":{if(!m&&!i)return null;let R;')
     expect(patched).toContain(

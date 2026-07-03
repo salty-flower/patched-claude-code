@@ -228,7 +228,7 @@ assert_contains = '''if(I==="prompt"&&!E)'''
 
 [[patches]]
 name = "later-command-submit-hook-2-1-197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.199"
 rationale = """
 Add a session-only delayed prompt command for busy interactive sessions.
 
@@ -272,6 +272,51 @@ assert_contains = '''if(H==="prompt"&&!E)'''
 kind = "static"
 name = "stale 2.1.186 later task symbols are absent in 2.1.197"
 assert_not_contains = '''mR().filter((__t)=>__t.later===!0&&!__t.recurring)'''
+
+[[patches]]
+name = "later-command-submit-hook-2-1-199"
+applies_to = ">=2.1.199 <2.2.0"
+rationale = """
+Add a session-only delayed prompt command for busy interactive sessions.
+
+This is the 2.1.199 minified-symbol variant of `later-command-submit-hook`.
+The older durable-task helper is no longer present at this patch site, so this
+variant pushes a one-shot session cron task through the current session-task
+helper and enables scheduled-task polling.
+Cleanup condition: upstream exposes an interactive delayed-send or one-shot
+prompt queue command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L313-L350"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(w.trim()==="")return;''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(I==="prompt"&&!r){let __trim=w.trim(),__usage="Usage: /later 10m <prompt> | /later list (minimum 60s)";if(__trim==="/later list"){let __jobs=Qv().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __at=Upt(__t.cron,__t.createdAt),__d=__at?new Date(__at):null,__when=__d?`${String(__d.getMonth()+1).padStart(2,"0")}/${String(__d.getDate()).padStart(2,"0")} ${String(__d.getHours()).padStart(2,"0")}:${String(__d.getMinutes()).padStart(2,"0")}`:"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?`${__raw.slice(0,17)}...`:__raw;return `${__i+1}. ${__text} @ ${__when}`});if(__jobs.length>10)__lines.push(`+${__jobs.length-10} more`);e.addNotification?.({key:"later-list",kind:"feedback",text:__lines.length?`Pending /later prompts:\n${__lines.join("\n")}`:"No pending /later prompts",priority:"immediate"});s("");R(0);i({});x();k();return}let __later=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i);if(__later){let __unit=__later[2].toLowerCase(),__delay=Number(__later[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit],__prompt=__later[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __when=new Date(Date.now()+__delay),__cron=`${__when.getMinutes()} ${__when.getHours()} ${__when.getDate()} ${__when.getMonth()+1} *`,__id=`later-${Date.now().toString(36)}`;__e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0});jte(!0);e.addNotification?.({key:`later-${__id}`,kind:"feedback",text:`Scheduled ${__id} for ${__when.toLocaleString()}`,priority:"immediate"});s("");R(0);i({});x();k();return}if(__trim.startsWith("/later")){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command lists marked session tasks in 2.1.199"
+assert_contains = '''Qv().filter((__t)=>__t.later===!0&&!__t.recurring)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command schedules session-only cron in 2.1.199"
+assert_contains = '''__e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command enables scheduled task polling in 2.1.199"
+assert_contains = '''jte(!0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command remains interactive-only in 2.1.199"
+assert_contains = '''if(I==="prompt"&&!r)'''
 
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-168"
@@ -416,7 +461,7 @@ assert_contains = '''name:"later",description:"Schedule a prompt for later; use 
 
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.199"
 rationale = """
 Expose `/later` through the existing slash-command suggestion pipeline.
 
@@ -439,4 +484,31 @@ code = '''if(!o.some((h)=>h.name==="later"))o.push({type:"local",name:"later",de
 [[patches.tests]]
 kind = "static"
 name = "later command suggestion metadata is rendered in 2.1.197"
+assert_contains = '''name:"later",description:"Schedule a prompt for later; use /later 10m <prompt> or /later list"'''
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-199"
+applies_to = ">=2.1.199 <2.2.0"
+rationale = """
+Expose `/later` through the existing slash-command suggestion pipeline.
+
+This is the 2.1.199 minified-symbol variant of
+`later-command-suggestion-metadata`. Cleanup condition: upstream exposes an
+interactive delayed-send command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let t=await dfr(e),n=rKa(),r=uNe()?Cbl():[],o=t.filter((h)=>Twt(h)&&Zw(h));''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!o.some((h)=>h.name==="later"))o.push({type:"local",name:"later",description:"Schedule a prompt for later; use /later 10m <prompt> or /later list",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command suggestion metadata is rendered in 2.1.199"
 assert_contains = '''name:"later",description:"Schedule a prompt for later; use /later 10m <prompt> or /later list"'''

@@ -46,9 +46,10 @@ test.skipIf(!testLaterCommand)(
       "await gsH(__cron,__prompt,!1,!1,void 0)",
       "await hoH(__cron,__prompt,!1,!1,void 0)",
       "await SeH(__cron,__prompt,!1,!1,void 0)",
+      "__e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
     ])
-    expect(patched).toContain("if(__task)__task.later=!0")
-    expectContainsOneOf(patched, ["Wee(!0)", "uX(!0)", "bo(!0)", "Or(!0)", "va(!0)"])
+    expectContainsOneOf(patched, ["if(__task)__task.later=!0", "later:!0})"])
+    expectContainsOneOf(patched, ["Wee(!0)", "uX(!0)", "bo(!0)", "Or(!0)", "va(!0)", "jte(!0)"])
     expect(patched).toContain("text:`Scheduled ${__id} for ${__when.toLocaleString()}`")
   },
   120000,
@@ -71,6 +72,7 @@ test.skipIf(!testLaterCommand)(
       "YR().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "DG().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "vR().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "Qv().filter((__t)=>__t.later===!0&&!__t.recurring)",
     ])
     expect(patched).toContain("__raw.length>20?`${__raw.slice(0,17)}...`:__raw")
     expect(patched).toContain("return `${__i+1}. ${__text} @ ${__when}`")

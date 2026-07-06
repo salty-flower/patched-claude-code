@@ -1796,6 +1796,41 @@ name = "rate limit warning is available to statusline in 2.1.199"
 assert_contains = '''globalThis.__acc_rate_limit_warning=i'''
 
 [[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-201"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
+rationale = """
+Hide rate-limit warning banners when the rate_limit_warning item is disabled.
+
+This is the 2.1.201 minified-symbol variant of
+`statusline-footer-control-rate-limit-warning`. The rendered warning string is
+local `i`; the patch stores it for custom statusLine commands and nulls the
+notification input when the built-in footer item is disabled. The selector
+helper remains `Tt`. Cleanup condition: upstream ships official footer item
+controls while exposing equivalent state to custom status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_pattern = '''if\(t\[3\]!==r\|\|t\[4\]!==o\|\|t\[5\]!==e\)'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''let __acc_hide_rate_limit_warning=Tt((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer");if(t[3]!==r||t[4]!==o||t[5]!==e)i=(globalThis.__acc_rate_limit_warning=i,__acc_hide_rate_limit_warning?null:i),'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is controlled by disabledFooter in 2.1.201"
+assert_contains = '''Tt((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is available to statusline in 2.1.201"
+assert_contains = '''globalThis.__acc_rate_limit_warning=i'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.197 rate-limit selector is absent in 2.1.201"
+assert_not_contains = '''__acc_hide_rate_limit_warning=Et((L)=>L.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-render"
 applies_to = ">=2.1.133 <2.1.137"
 rationale = """
@@ -3240,6 +3275,40 @@ assert_contains = '''hideBuiltinFooter:E.boolean().optional().describe("Compatib
 [[patches.tests]]
 kind = "static"
 name = "stale 2.1.186 schema symbol is absent in 2.1.199"
+assert_not_contains = '''hideBuiltinFooter:A.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-201"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
+rationale = """
+Accept statusLine settings that hide built-in footer items.
+
+This is the 2.1.201 minified-symbol variant of
+`statusline-footer-control-schema`; the statusLine schema object is still built
+with the local schema symbol `E`. Cleanup condition: upstream ships an official
+setting for hiding built-in footer items when a custom statusLine is present.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:E.array(E.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+
+[[patches.tests]]
+kind = "static"
+name = "disabledFooter schema uses 2.1.201 schema symbol"
+assert_contains = '''hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:E.array(E.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.186 schema symbol is absent in 2.1.201"
 assert_not_contains = '''hideBuiltinFooter:A.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
 
 [[patches]]

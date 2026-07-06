@@ -18,6 +18,7 @@ const IGNORED_KEYS = new Set([
 
 const BASE_GLOBALS = new Set([
   "AbortController",
+  "AbortSignal",
   "Array",
   "BigInt",
   "Boolean",

@@ -160,8 +160,8 @@ assert_not_contains = '''function mYo(){return Boolean(ry()!==void 0||Ne.ANTHROP
 
 [[patches]]
 name = "resume-allows-same-family-anthropic-model-default-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 rationale = """
 This is the 2.1.199 minified-symbol variant of
@@ -171,18 +171,18 @@ needs to be removed while preserving an explicit same-family
 `ANTHROPIC_MODEL` override guard after transcript-model resolution.
 """
 locator_kind = "literal"
-locator_pattern = '''function dns(){return Boolean(uy()!==void 0||Pe.ANTHROPIC_MODEL||Pe.ANTHROPIC_DEFAULT_FABLE_MODEL||Pe.ANTHROPIC_DEFAULT_OPUS_MODEL||Pe.ANTHROPIC_DEFAULT_SONNET_MODEL||Pe.ANTHROPIC_DEFAULT_HAIKU_MODEL||!cd())}function AQe(e,t,n,r=(o)=>o()){if(dns())return;let o=TLc(e,t);'''
-replacement = '''function dns(){return Boolean(uy()!==void 0||!cd())}function AQe(e,t,n,r=(o)=>o()){if(dns())return;let o=TLc(e,t);if(Pe.ANTHROPIC_MODEL&&(o.kind!=="ok"||io($o(Pe.ANTHROPIC_MODEL))!==io(o.model)))return;'''
+locator_pattern = '''function Xrs(){return Boolean(py()!==void 0||Ie.ANTHROPIC_MODEL||Ie.ANTHROPIC_DEFAULT_FABLE_MODEL||Ie.ANTHROPIC_DEFAULT_OPUS_MODEL||Ie.ANTHROPIC_DEFAULT_SONNET_MODEL||Ie.ANTHROPIC_DEFAULT_HAIKU_MODEL||!id())}function aZe(e,t,n,r=(o)=>o()){if(Xrs())return;let o=kNc(e,t);'''
+replacement = '''function Xrs(){return Boolean(py()!==void 0||!id())}function aZe(e,t,n,r=(o)=>o()){if(Xrs())return;let o=kNc(e,t);if(Ie.ANTHROPIC_MODEL&&(o.kind!=="ok"||oo(jo(Ie.ANTHROPIC_MODEL))!==oo(o.model)))return;'''
 
 [[patches.tests]]
 kind = "static"
 name = "same-family ANTHROPIC_MODEL defaults can restore resume model in 2.1.199"
-assert_contains = '''if(Pe.ANTHROPIC_MODEL&&(o.kind!=="ok"||io($o(Pe.ANTHROPIC_MODEL))!==io(o.model)))return;'''
+assert_contains = '''if(Ie.ANTHROPIC_MODEL&&(o.kind!=="ok"||oo(jo(Ie.ANTHROPIC_MODEL))!==oo(o.model)))return;'''
 
 [[patches.tests]]
 kind = "static"
 name = "old env-default resume short circuit is removed in 2.1.199"
-assert_not_contains = '''function dns(){return Boolean(uy()!==void 0||Pe.ANTHROPIC_MODEL||Pe.ANTHROPIC_DEFAULT_FABLE_MODEL||Pe.ANTHROPIC_DEFAULT_OPUS_MODEL||Pe.ANTHROPIC_DEFAULT_SONNET_MODEL||Pe.ANTHROPIC_DEFAULT_HAIKU_MODEL||!cd())}'''
+assert_not_contains = '''function Xrs(){return Boolean(py()!==void 0||Ie.ANTHROPIC_MODEL||Ie.ANTHROPIC_DEFAULT_FABLE_MODEL||Ie.ANTHROPIC_DEFAULT_OPUS_MODEL||Ie.ANTHROPIC_DEFAULT_SONNET_MODEL||Ie.ANTHROPIC_DEFAULT_HAIKU_MODEL||!id())}'''
 
 [[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-197"
@@ -214,8 +214,8 @@ assert_not_contains = '''let n=new Set(LQs.map(oo)),r=t?Bo(t):void 0,o=r?ju(r):v
 
 [[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 rationale = """
 This is the 2.1.199 minified-symbol variant of
@@ -225,18 +225,18 @@ current default through `j6()` so default 1M configs can still restore a
 transcript model with its `[1m]` suffix.
 """
 locator_kind = "literal"
-locator_pattern = '''let n=new Set(sii.map(io)),r=t?$o(t):void 0,o=r?Vu(r):void 0;'''
-replacement = '''let n=new Set(sii.map(io)),r=$o(t??j6()),o=Vu(r);'''
+locator_pattern = '''let n=new Set(rli.map(oo)),r=t?jo(t):void 0,o=r?Ud(r):void 0;'''
+replacement = '''let n=new Set(rli.map(oo)),r=jo(t??M_()),o=Ud(r);'''
 
 [[patches.tests]]
 kind = "static"
 name = "resume checks resolved default for 1m context in 2.1.199"
-assert_contains = '''let n=new Set(sii.map(io)),r=$o(t??j6()),o=Vu(r);'''
+assert_contains = '''let n=new Set(rli.map(oo)),r=jo(t??M_()),o=Ud(r);'''
 
 [[patches.tests]]
 kind = "static"
 name = "old absent-default resume model resolver is removed in 2.1.199"
-assert_not_contains = '''let n=new Set(sii.map(io)),r=t?$o(t):void 0,o=r?Vu(r):void 0;'''
+assert_not_contains = '''let n=new Set(rli.map(oo)),r=t?jo(t):void 0,o=r?Ud(r):void 0;'''
 
 [[patches]]
 name = "resume-detects-1m-after-alias-resolution"

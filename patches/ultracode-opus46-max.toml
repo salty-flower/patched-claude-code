@@ -444,8 +444,8 @@ assert_contains = '''${ib()&&(kG(o)||uHe(o)&&Tqe("max",o))?"|ultracode":""}'''
 
 [[patches]]
 name = "ultracode-startup-settings-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Resolve startup settings ultracode to xhigh or max based on the active model.
 
@@ -459,16 +459,16 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "Oji", source = '''function Oji(e){let t=c$(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0)return"xhigh";return OHe(e.settings.effortLevel)}''' }
+match = { node = "FunctionDeclaration", function_name = "Hsa", source = '''function Hsa(e){let t=B$(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0)return"xhigh";return MPe(e.settings.effortLevel)}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let t=c$(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let n=Hs();return SV(n)?"xhigh":DHe(n)&&X6e("max",n)?"max":"high"}return OHe(e.settings.effortLevel)}'''
+body = '''{let t=B$(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let n=Is();return Hoe(n)?"xhigh":FPe(n)&&eWe("max",n)?"max":"high"}return MPe(e.settings.effortLevel)}'''
 
 [[patches.tests]]
 kind = "static"
 name = "startup settings ultracode can resolve to max in 2.1.199"
-assert_contains = '''function Oji(e){let t=c$(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let n=Hs();return SV(n)?"xhigh":DHe(n)&&X6e("max",n)?"max":"high"}return OHe(e.settings.effortLevel)}'''
+assert_contains = '''function Hsa(e){let t=B$(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let n=Is();return Hoe(n)?"xhigh":FPe(n)&&eWe("max",n)?"max":"high"}return MPe(e.settings.effortLevel)}'''
 
 [[patches.tests]]
 kind = "static"
@@ -477,8 +477,8 @@ assert_not_contains = '''function c2i(e){let t=VU(e.cli.effort);if(t!==void 0)re
 
 [[patches]]
 name = "ultracode-effort-command-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Use the active model's highest supported ultracode effort in `/effort ultracode`.
 
@@ -492,16 +492,16 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "Epf", strings = ["Ultracode needs dynamic workflows enabled", "Ultracode runs at xhigh effort"] }
+match = { node = "FunctionDeclaration", function_name = "ETf", strings = ["Ultracode needs dynamic workflows enabled", "Ultracode runs at xhigh effort"] }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let t=Hs(),n=SV(t)?"xhigh":DHe(t)&&X6e("max",t)?"max":void 0;if(!SV())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${imr(t)}`};if(!n)return{message:`Ultracode is not supported for ${t}. Valid options are: ${imr(t)}`};e?.({value:n,ultracode:!0});let r=o7o(n,!0);u$();G("tengu_effort_command",{effort:Ve("ultracode"),is_remote:Gl()!==null});let o=Gl()?void 0:Q6e();return o!==void 0&&o!==n?{message:`CLAUDE_CODE_EFFORT_LEVEL=${process.env.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session - clear it and ultracode takes over`,effortUpdate:{value:n,ultracode:!0}}:{message:`Set effort level to ultracode (this session only): ${n} effort + dynamic workflow orchestration${r??""}`,effortUpdate:{value:n,ultracode:!0}}}'''
+body = '''{let t=Is(),n=Hoe(t)?"xhigh":FPe(t)&&eWe("max",t)?"max":void 0;if(!wb())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${ihr(t)}`};if(!n)return{message:`Ultracode is not supported for ${t}. Valid options are: ${ihr(t)}`};e?.({value:n,ultracode:!0});let r=nJo(n,!0);$$(),G("tengu_effort_command",{effort:Ve("ultracode"),is_remote:Gl()!==null});let o=Gl()?void 0:tWe();return o!==void 0&&o!==n?{message:`CLAUDE_CODE_EFFORT_LEVEL=${process.env.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session - clear it and ultracode takes over`,effortUpdate:{value:n,ultracode:!0}}:{message:`Set effort level to ultracode (this session only): ${n} effort + dynamic workflow orchestration${r??""}`,effortUpdate:{value:n,ultracode:!0}}}'''
 
 [[patches.tests]]
 kind = "static"
 name = "ultracode command can choose max in 2.1.199"
-assert_contains = '''let t=Hs(),n=SV(t)?"xhigh":DHe(t)&&X6e("max",t)?"max":void 0'''
+assert_contains = '''let t=Is(),n=Hoe(t)?"xhigh":FPe(t)&&eWe("max",t)?"max":void 0'''
 
 [[patches.tests]]
 kind = "static"
@@ -510,8 +510,8 @@ assert_not_contains = '''Ultracode runs at xhigh effort, which'''
 
 [[patches]]
 name = "ultracode-model-picker-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Set model-picker ultracode state to xhigh or max based on the active model.
 
@@ -525,16 +525,16 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "HWm", source = '''function HWm(e){return{...e,effortValue:"xhigh",ultracode:!0}}''' }
+match = { node = "FunctionDeclaration", function_name = "kYm", source = '''function kYm(e){return{...e,effortValue:"xhigh",ultracode:!0}}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let t=Hs(),n=SV(t)?"xhigh":DHe(t)&&X6e("max",t)?"max":"high";return{...e,effortValue:n,ultracode:!0}}'''
+body = '''{let t=Is(),n=Hoe(t)?"xhigh":FPe(t)&&eWe("max",t)?"max":"high";return{...e,effortValue:n,ultracode:!0}}'''
 
 [[patches.tests]]
 kind = "static"
 name = "model picker ultracode can store max in 2.1.199"
-assert_contains = '''function HWm(e){let t=Hs(),n=SV(t)?"xhigh":DHe(t)&&X6e("max",t)?"max":"high";return{...e,effortValue:n,ultracode:!0}}'''
+assert_contains = '''function kYm(e){let t=Is(),n=Hoe(t)?"xhigh":FPe(t)&&eWe("max",t)?"max":"high";return{...e,effortValue:n,ultracode:!0}}'''
 
 [[patches.tests]]
 kind = "static"
@@ -543,8 +543,8 @@ assert_not_contains = '''function lNm(e){let t=Cs(),n=kG(t)?"xhigh":uHe(t)&&Tqe(
 
 [[patches]]
 name = "ultracode-flag-settings-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Set apply_flag_settings ultracode state to xhigh or max based on the active model.
 
@@ -559,22 +559,22 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "ArrowFunctionExpression", source = '''(qr)=>{if(qr.ultracode===dn&&(!dn||qr.effortValue==="xhigh"))return qr;return{...qr,ultracode:dn,effortValue:dn?"xhigh":qr.effortValue}}''' }
+match = { node = "ArrowFunctionExpression", source = '''(Ar)=>{if(Ar.ultracode===Zn&&(!Zn||Ar.effortValue==="xhigh"))return Ar;return{...Ar,ultracode:Zn,effortValue:Zn?"xhigh":Ar.effortValue}}''' }
 
 [patches.transform]
 op = "replace_substring"
-find = '''if(qr.ultracode===dn&&(!dn||qr.effortValue==="xhigh"))return qr;return{...qr,ultracode:dn,effortValue:dn?"xhigh":qr.effortValue}'''
-value = '''let __acc_ultra_model=Hs(),__acc_ultra_effort=SV(__acc_ultra_model)?"xhigh":DHe(__acc_ultra_model)&&X6e("max",__acc_ultra_model)?"max":"high";if(qr.ultracode===dn&&(!dn||qr.effortValue===__acc_ultra_effort))return qr;return{...qr,ultracode:dn,effortValue:dn?__acc_ultra_effort:qr.effortValue}'''
+find = '''if(Ar.ultracode===Zn&&(!Zn||Ar.effortValue==="xhigh"))return Ar;return{...Ar,ultracode:Zn,effortValue:Zn?"xhigh":Ar.effortValue}'''
+value = '''let __acc_ultra_model=Is(),__acc_ultra_effort=Hoe(__acc_ultra_model)?"xhigh":FPe(__acc_ultra_model)&&eWe("max",__acc_ultra_model)?"max":"high";if(Ar.ultracode===Zn&&(!Zn||Ar.effortValue===__acc_ultra_effort))return Ar;return{...Ar,ultracode:Zn,effortValue:Zn?__acc_ultra_effort:Ar.effortValue}'''
 
 [[patches.tests]]
 kind = "static"
 name = "flag settings ultracode can store max in 2.1.199"
-assert_contains = '''let __acc_ultra_model=Hs(),__acc_ultra_effort=SV(__acc_ultra_model)?"xhigh":DHe(__acc_ultra_model)&&X6e("max",__acc_ultra_model)?"max":"high";if(qr.ultracode===dn&&(!dn||qr.effortValue===__acc_ultra_effort))return qr'''
+assert_contains = '''let __acc_ultra_model=Is(),__acc_ultra_effort=Hoe(__acc_ultra_model)?"xhigh":FPe(__acc_ultra_model)&&eWe("max",__acc_ultra_model)?"max":"high";if(Ar.ultracode===Zn&&(!Zn||Ar.effortValue===__acc_ultra_effort))return Ar'''
 
 [[patches]]
 name = "ultracode-settings-report-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Report ultracode as active when its effective Opus 4.6 effort is max.
 
@@ -587,21 +587,21 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "Dre", source = '''function Dre(e,t,n){return n===!0&&Sb()&&cX(e,t)==="xhigh"}''' }
+match = { node = "FunctionDeclaration", function_name = "Doe", source = '''function Doe(e,t,n){return n===!0&&wb()&&iQ(e,t)==="xhigh"}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let r=cX(e,t);return n===!0&&Sb()&&(r==="xhigh"||r==="max"&&DHe(e))}'''
+body = '''{let r=iQ(e,t);return n===!0&&wb()&&(r==="xhigh"||r==="max"&&FPe(e))}'''
 
 [[patches.tests]]
 kind = "static"
 name = "settings report accepts max ultracode in 2.1.199"
-assert_contains = '''function Dre(e,t,n){let r=cX(e,t);return n===!0&&Sb()&&(r==="xhigh"||r==="max"&&DHe(e))}'''
+assert_contains = '''function Doe(e,t,n){let r=iQ(e,t);return n===!0&&wb()&&(r==="xhigh"||r==="max"&&FPe(e))}'''
 
 [[patches]]
 name = "xhigh-settings-opus-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Resolve persisted or session xhigh to max when the active model cannot use xhigh.
 
@@ -615,21 +615,21 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "cX", source = '''function cX(e,t){if(!bw(e))return;let n=Z6e(e),r=O2t(e),o=Q6e();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Lue(i))i=PHe(i,e);if(i==="max"&&!DHe(e))i="high";if(i==="xhigh"&&!Hre(e))i="high";return i}''' }
+match = { node = "FunctionDeclaration", function_name = "iQ", source = '''function iQ(e,t){if(!jw(e))return;let n=nWe(e),r=W4t(e),o=tWe();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Ude(i))i=UPe(i,e);if(i==="max"&&!FPe(e))i="high";if(i==="xhigh"&&!Hoe(e))i="high";return i}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{if(!bw(e))return;let n=Z6e(e),r=O2t(e),o=Q6e();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Lue(i))i=PHe(i,e);if(i==="max"&&!DHe(e))i="high";if(i==="xhigh"&&!Hre(e))i=DHe(e)&&X6e("max",e)?"max":"high";return i}'''
+body = '''{if(!jw(e))return;let n=nWe(e),r=W4t(e),o=tWe();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Ude(i))i=UPe(i,e);if(i==="max"&&!FPe(e))i="high";if(i==="xhigh"&&!Hoe(e))i=FPe(e)&&eWe("max",e)?"max":"high";return i}'''
 
 [[patches.tests]]
 kind = "static"
 name = "xhigh settings can resolve to max in 2.1.199"
-assert_contains = '''function cX(e,t){if(!bw(e))return;let n=Z6e(e),r=O2t(e),o=Q6e();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Lue(i))i=PHe(i,e);if(i==="max"&&!DHe(e))i="high";if(i==="xhigh"&&!Hre(e))i=DHe(e)&&X6e("max",e)?"max":"high";return i}'''
+assert_contains = '''function iQ(e,t){if(!jw(e))return;let n=nWe(e),r=W4t(e),o=tWe();if(o===null&&!n)return;let i=o??(n?r:void 0)??t??r;if(typeof i==="string"&&Ude(i))i=UPe(i,e);if(i==="max"&&!FPe(e))i="high";if(i==="xhigh"&&!Hoe(e))i=FPe(e)&&eWe("max",e)?"max":"high";return i}'''
 
 [[patches]]
 name = "ultracode-help-menu-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Show ultracode in `/effort help` for max-capable non-xhigh models.
 
@@ -643,21 +643,21 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "lmr", strings = ["Usage: /effort", "- ultracode: xhigh + dynamic workflow orchestration"] }
+match = { node = "FunctionDeclaration", function_name = "lhr", strings = ["Usage: /effort", "- ultracode: xhigh + dynamic workflow orchestration"] }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let e=Hs(),t=SV(e)||SV()&&DHe(e)&&X6e("max",e),n=vSe(e),r=SV(e)?"xhigh":"max";return`Usage: /effort [${n.join("|")}${t?"|ultracode":""}|auto]
+body = '''{let e=Is(),t=wb()&&(oK(e)||FPe(e)&&eWe("max",e)),n=zbe(e),r=oK(e)?"xhigh":"max";return`Usage: /effort [${n.join("|")}${t?"|ultracode":""}|auto]
 
 Effort levels:
-`+n.map((o)=>`- ${o}: ${ypf[o]}
+`+n.map((o)=>`- ${o}: ${yTf[o]}
 `).join("")+(t?`- ultracode: ${r} + dynamic workflow orchestration (this session only)
 `:"")+"- auto: Use the default effort level for your model"}'''
 
 [[patches.tests]]
 kind = "static"
 name = "help lists ultracode for max-compatible models in 2.1.199"
-assert_contains = '''function lmr(){let e=Hs(),t=SV(e)||SV()&&DHe(e)&&X6e("max",e),n=vSe(e),r=SV(e)?"xhigh":"max";return`Usage: /effort [${n.join("|")}${t?"|ultracode":""}|auto]'''
+assert_contains = '''function lhr(){let e=Is(),t=wb()&&(oK(e)||FPe(e)&&eWe("max",e)),n=zbe(e),r=oK(e)?"xhigh":"max";return`Usage: /effort [${n.join("|")}${t?"|ultracode":""}|auto]'''
 
 [[patches.tests]]
 kind = "static"
@@ -666,8 +666,8 @@ assert_contains = '''- ultracode: ${r} + dynamic workflow orchestration (this se
 
 [[patches]]
 name = "ultracode-valid-options-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Include ultracode in valid-options text for max-compatible models.
 
@@ -681,21 +681,21 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "imr", source = '''function imr(e){let t=vSe(e),n=SV(e)?", ultracode":"";return`${t.join(", ")}${n}, auto`}''' }
+match = { node = "FunctionDeclaration", function_name = "ihr", source = '''function ihr(e){let t=zbe(e),n=oK(e)?", ultracode":"";return`${t.join(", ")}${n}, auto`}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let t=vSe(e),n=SV(e)||SV()&&DHe(e)&&X6e("max",e)?", ultracode":"";return`${t.join(", ")}${n}, auto`}'''
+body = '''{let t=zbe(e),n=wb()&&(oK(e)||FPe(e)&&eWe("max",e))?", ultracode":"";return`${t.join(", ")}${n}, auto`}'''
 
 [[patches.tests]]
 kind = "static"
 name = "valid options list ultracode for max-compatible models in 2.1.199"
-assert_contains = '''function imr(e){let t=vSe(e),n=SV(e)||SV()&&DHe(e)&&X6e("max",e)?", ultracode":"";return`${t.join(", ")}${n}, auto`}'''
+assert_contains = '''function ihr(e){let t=zbe(e),n=wb()&&(oK(e)||FPe(e)&&eWe("max",e))?", ultracode":"";return`${t.join(", ")}${n}, auto`}'''
 
 [[patches]]
 name = "ultracode-typed-arg-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Parse typed ultracode as max for max-compatible non-xhigh models.
 
@@ -709,21 +709,21 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "Tpf", source = '''function Tpf(e,t){let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"&&SV(t))return{value:"xhigh"};let r=tct(e);return r?{value:r}:null}''' }
+match = { node = "FunctionDeclaration", function_name = "TTf", source = '''function TTf(e,t){let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"&&oK(t))return{value:"xhigh"};let r=opt(e);return r?{value:r}:null}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"){let r=SV(t)?"xhigh":SV()&&DHe(t)&&X6e("max",t)?"max":void 0;if(r)return{value:r}}let r=tct(e);return r?{value:r}:null}'''
+body = '''{let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"){let r=oK(t)?"xhigh":wb()&&FPe(t)&&eWe("max",t)?"max":void 0;if(r)return{value:r}}let r=opt(e);return r?{value:r}:null}'''
 
 [[patches.tests]]
 kind = "static"
 name = "typed ultracode parses to max when xhigh is unavailable in 2.1.199"
-assert_contains = '''function Tpf(e,t){let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"){let r=SV(t)?"xhigh":SV()&&DHe(t)&&X6e("max",t)?"max":void 0;if(r)return{value:r}}let r=tct(e);return r?{value:r}:null}'''
+assert_contains = '''function TTf(e,t){let n=e.toLowerCase();if(n==="auto"||n==="unset")return{value:void 0};if(n==="ultracode"){let r=oK(t)?"xhigh":wb()&&FPe(t)&&eWe("max",t)?"max":void 0;if(r)return{value:r}}let r=opt(e);return r?{value:r}:null}'''
 
 [[patches]]
 name = "ultracode-slider-menu-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Add ultracode to the interactive effort slider for max-compatible models.
 
@@ -737,16 +737,16 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "tmc", strings = ["xhigh + workflows", "violet-ripple"] }
+match = { node = "FunctionDeclaration", function_name = "Wyc", strings = ["xhigh + workflows", "violet-ripple"] }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let t=e?ect(e):null,n=Lpf(t?ev.indexOf(t)+1:ev.length),r=e&&kji(e)?Opf:void 0,o=SV(e)||SV()&&DHe(e)&&X6e("max",e);if(o){let s=SV(e)?"xhigh":"max",i=n.width+3,a=[...n.levels,{value:"ultracode",label:"ultracode",color:"violet-ripple"}],l=i+Math.floor(4),c=[...n.spacers,l-n.width];return{levels:a,width:i+17,trianglePositions:[...n.trianglePositions,i+Math.floor(8.5)],labelStarts:r7o(a,c),spacers:c,trackChars:"\u2500".repeat(n.width+1)+"\u2506"+"\u2500".repeat(18),accentStart:n.width+2,sublabel:{text:`${s} + workflows`,start:i},capNote:r}}return{levels:n.levels,width:n.width,trianglePositions:n.trianglePositions,labelStarts:r7o(n.levels,n.spacers),spacers:n.spacers,trackChars:"\u2500".repeat(n.width),capNote:r}}'''
+body = '''{let t=e?rpt(e):null,n=LTf(t?pv.indexOf(t)+1:pv.length),r=e&&Fsa(e)?OTf:void 0,o=wb()&&(oK(e)||FPe(e)&&eWe("max",e));if(o){let s=oK(e)?"xhigh":"max",i=n.width+3,a=[...n.levels,{value:"ultracode",label:"ultracode",color:"violet-ripple"}],l=i+Math.floor(4),c=[...n.spacers,l-n.width];return{levels:a,width:i+17,trianglePositions:[...n.trianglePositions,i+Math.floor(8.5)],labelStarts:tJo(a,c),spacers:c,trackChars:"\u2500".repeat(n.width+1)+"\u2506"+"\u2500".repeat(18),accentStart:n.width+2,sublabel:{text:`${s} + workflows`,start:i},capNote:r}}return{levels:n.levels,width:n.width,trianglePositions:n.trianglePositions,labelStarts:tJo(n.levels,n.spacers),spacers:n.spacers,trackChars:"\u2500".repeat(n.width),capNote:r}}'''
 
 [[patches.tests]]
 kind = "static"
 name = "slider appends ultracode for max-compatible models in 2.1.199"
-assert_contains = '''function tmc(e){let t=e?ect(e):null,n=Lpf(t?ev.indexOf(t)+1:ev.length),r=e&&kji(e)?Opf:void 0,o=SV(e)||SV()&&DHe(e)&&X6e("max",e);if(o){let s=SV(e)?"xhigh":"max"'''
+assert_contains = '''function Wyc(e){let t=e?rpt(e):null,n=LTf(t?pv.indexOf(t)+1:pv.length),r=e&&Fsa(e)?OTf:void 0,o=wb()&&(oK(e)||FPe(e)&&eWe("max",e));if(o){let s=oK(e)?"xhigh":"max"'''
 
 [[patches.tests]]
 kind = "static"
@@ -755,8 +755,8 @@ assert_contains = '''sublabel:{text:`${s} + workflows`,start:i}'''
 
 [[patches]]
 name = "ultracode-slider-confirm-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Preview max when confirming ultracode on max-compatible non-xhigh models.
 
@@ -770,22 +770,22 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "zpf", strings = ['ne.value==="ultracode"?"xhigh":ne.value', 'p==="ultracode"?"xhigh":p'] }
+match = { node = "FunctionDeclaration", function_name = "zTf", strings = ['re.value==="ultracode"?"xhigh":re.value', 'p==="ultracode"?"xhigh":p'] }
 
 [patches.transform]
 op = "replace_substring"
-find = '''ne.value==="ultracode"?"xhigh":ne.value'''
-value = '''ne.value==="ultracode"?(SV(s)?"xhigh":"max"):ne.value'''
+find = '''re.value==="ultracode"?"xhigh":re.value'''
+value = '''re.value==="ultracode"?(Hoe(s)?"xhigh":"max"):re.value'''
 
 [[patches.tests]]
 kind = "static"
 name = "slider enter previews max-compatible ultracode in 2.1.199"
-assert_contains = '''ne.value==="ultracode"?(SV(s)?"xhigh":"max"):ne.value'''
+assert_contains = '''re.value==="ultracode"?(Hoe(s)?"xhigh":"max"):re.value'''
 
 [[patches]]
 name = "ultracode-slider-dialog-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Show max in the confirmation dialog for max-compatible ultracode.
 
@@ -799,22 +799,22 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "zpf", string = '''p==="ultracode"?"xhigh":p''' }
+match = { node = "FunctionDeclaration", function_name = "zTf", string = '''p==="ultracode"?"xhigh":p''' }
 
 [patches.transform]
 op = "replace_substring"
 find = '''p==="ultracode"?"xhigh":p'''
-value = '''p==="ultracode"?(SV(s)?"xhigh":"max"):p'''
+value = '''p==="ultracode"?(Hoe(s)?"xhigh":"max"):p'''
 
 [[patches.tests]]
 kind = "static"
 name = "slider dialog previews max-compatible ultracode in 2.1.199"
-assert_contains = '''p==="ultracode"?(SV(s)?"xhigh":"max"):p'''
+assert_contains = '''p==="ultracode"?(Hoe(s)?"xhigh":"max"):p'''
 
 [[patches]]
 name = "ultracode-usage-hint-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Show ultracode in `/effort` usage hints for max-compatible models.
 
@@ -828,21 +828,21 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "lmc", source = '''function lmc(e,t){let n=Hs(),r=SV(n)?"|ultracode":"";return`${e}${vSe(n).join("|")}${r}|auto${t}`}''' }
+match = { node = "FunctionDeclaration", function_name = "Xyc", source = '''function Xyc(e,t){let n=Is(),r=oK(n)?"|ultracode":"";return`${e}${zbe(n).join("|")}${r}|auto${t}`}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{let n=Hs(),r=SV(n)||SV()&&DHe(n)&&X6e("max",n)?"|ultracode":"";return`${e}${vSe(n).join("|")}${r}|auto${t}`}'''
+body = '''{let n=Is(),r=wb()&&(oK(n)||FPe(n)&&eWe("max",n))?"|ultracode":"";return`${e}${zbe(n).join("|")}${r}|auto${t}`}'''
 
 [[patches.tests]]
 kind = "static"
 name = "argument hint lists max-compatible ultracode in 2.1.199"
-assert_contains = '''function lmc(e,t){let n=Hs(),r=SV(n)||SV()&&DHe(n)&&X6e("max",n)?"|ultracode":"";return`${e}${vSe(n).join("|")}${r}|auto${t}`}'''
+assert_contains = '''function Xyc(e,t){let n=Is(),r=wb()&&(oK(n)||FPe(n)&&eWe("max",n))?"|ultracode":"";return`${e}${zbe(n).join("|")}${r}|auto${t}`}'''
 
 [[patches]]
 name = "ultracode-thin-client-usage-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Show ultracode in thin-client `/effort` usage for max-compatible models.
 
@@ -856,22 +856,22 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "Jpf", string = '''${SV(o)?"|ultracode":""}''' }
+match = { node = "FunctionDeclaration", function_name = "JTf", string = '''${oK(o)?"|ultracode":""}''' }
 
 [patches.transform]
 op = "replace_substring"
-find = '''${SV(o)?"|ultracode":""}'''
-value = '''${SV(o)||SV()&&DHe(o)&&X6e("max",o)?"|ultracode":""}'''
+find = '''${oK(o)?"|ultracode":""}'''
+value = '''${wb()&&(oK(o)||FPe(o)&&eWe("max",o))?"|ultracode":""}'''
 
 [[patches.tests]]
 kind = "static"
 name = "thin-client usage lists max-compatible ultracode in 2.1.199"
-assert_contains = '''${SV(o)||SV()&&DHe(o)&&X6e("max",o)?"|ultracode":""}'''
+assert_contains = '''${wb()&&(oK(o)||FPe(o)&&eWe("max",o))?"|ultracode":""}'''
 
 [[patches]]
 name = "ultracode-effort-notification-max-fallback-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Describe ultracode's effective Opus 4.6 effort as max in the prompt notification.
 
@@ -887,18 +887,18 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "t5l", source = '''function t5l(e,t=!1){if(!e)return;if(t)return`${kyn} ultracode \xB7 xhigh effort + dynamic workflows for maximum thoroughness`;return`${Mqo(e)} ${e} \xB7 /effort`}''' }
+match = { node = "FunctionDeclaration", function_name = "jKl", source = '''function jKl(e,t=!1,n=!1){if(!e)return;if(t)return`${n?"effort:":vTn} ultracode \xB7 xhigh effort + dynamic workflows for maximum thoroughness`;return`${n?"effort:":B5o(e)} ${e} \xB7 /effort`}''' }
 
 [patches.transform]
 op = "replace_function_body"
-body = '''{if(!e)return;if(t){let n=Hs(),r=SV(n)?"xhigh":DHe(n)&&X6e("max",n)?"max":"xhigh";return`${kyn} ultracode \xB7 ${r} effort + dynamic workflows for maximum thoroughness`}return`${Mqo(e)} ${e} \xB7 /effort`}'''
+body = '''{if(!e)return;if(t){let r=Is(),o=Hoe(r)?"xhigh":FPe(r)&&eWe("max",r)?"max":"xhigh";return`${n?"effort:":vTn} ultracode \xB7 ${o} effort + dynamic workflows for maximum thoroughness`}return`${n?"effort:":B5o(e)} ${e} \xB7 /effort`}'''
 
 [[patches.tests]]
 kind = "static"
 name = "effort notification describes max-compatible ultracode in 2.1.199"
-assert_contains = '''function t5l(e,t=!1){if(!e)return;if(t){let n=Hs(),r=SV(n)?"xhigh":DHe(n)&&X6e("max",n)?"max":"xhigh";return`${kyn} ultracode \xB7 ${r} effort + dynamic workflows for maximum thoroughness`}return`${Mqo(e)} ${e} \xB7 /effort`}'''
+assert_contains = '''function jKl(e,t=!1,n=!1){if(!e)return;if(t){let r=Is(),o=Hoe(r)?"xhigh":FPe(r)&&eWe("max",r)?"max":"xhigh";return`${n?"effort:":vTn} ultracode \xB7 ${o} effort + dynamic workflows for maximum thoroughness`}return`${n?"effort:":B5o(e)} ${e} \xB7 /effort`}'''
 
 [[patches.tests]]
 kind = "static"
 name = "effort notification no longer hard-codes xhigh ultracode in 2.1.199"
-assert_not_contains = '''function t5l(e,t=!1){if(!e)return;if(t)return`${kyn} ultracode \xB7 xhigh effort + dynamic workflows for maximum thoroughness`;return`${Mqo(e)} ${e} \xB7 /effort`}'''
+assert_not_contains = '''function jKl(e,t=!1,n=!1){if(!e)return;if(t)return`${n?"effort:":vTn} ultracode \xB7 xhigh effort + dynamic workflows for maximum thoroughness`;return`${n?"effort:":B5o(e)} ${e} \xB7 /effort`}'''

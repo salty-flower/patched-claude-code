@@ -488,7 +488,7 @@ assert_contains = '''name:"later",description:"Schedule a prompt for later; use 
 
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-199"
-applies_to = ">=2.1.199 <2.2.0"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Expose `/later` through the existing slash-command suggestion pipeline.
 
@@ -502,7 +502,7 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "VariableDeclaration", source = '''let t=await dfr(e),n=rKa(),r=uNe()?Cbl():[],o=t.filter((h)=>Twt(h)&&Zw(h));''' }
+match = { node = "VariableDeclaration", source = '''let t=await mgr(e),n=v5a(),r=W1e()?pZa():[],o=t.filter((h)=>uxt(h)&&Zw(h));''' }
 
 [patches.transform]
 op = "insert_after_node"

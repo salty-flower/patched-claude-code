@@ -112,8 +112,8 @@ assert_not_contains = '''_r()==="anthropicAws"&&Xre("fable5")'''
 
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
 
@@ -127,22 +127,22 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "eRp", strings = ['''return a.push(Oya),jmo(a,e,"opus")''', '''Joe("fable5")'''] }
+match = { node = "FunctionDeclaration", function_name = "Z9p", strings = ['''return a.push(JBa),PSo(a,e,"opus")''', '''xse("fable5")'''] }
 
 [patches.transform]
 op = "replace_substring"
-find = '''return a.push(Oya),jmo(a,e,"opus")'''
-value = '''if(Joe("fable5"))cmt(a,Wmo());return a.push(Oya),jmo(a,e,"opus")'''
+find = '''return a.push(JBa),PSo(a,e,"opus")'''
+value = '''if(xse("fable5"))$ht(a,OSo());return a.push(JBa),PSo(a,e,"opus")'''
 
 [[patches.tests]]
 kind = "static"
 name = "oauth primary picker inserts local fable before haiku in 2.1.199"
-assert_contains = '''if(Joe("fable5"))cmt(a,Wmo());return a.push(Oya),jmo(a,e,"opus")'''
+assert_contains = '''if(xse("fable5"))$ht(a,OSo());return a.push(JBa),PSo(a,e,"opus")'''
 
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
 
@@ -156,22 +156,22 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "eRp", strings = ['''return i.push(Oya),jmo(i,e,"sonnet")''', '''Joe("fable5")'''] }
+match = { node = "FunctionDeclaration", function_name = "Z9p", strings = ['''return i.push(JBa),PSo(i,e,"sonnet")''', '''xse("fable5")'''] }
 
 [patches.transform]
 op = "replace_substring"
-find = '''return i.push(Oya),jmo(i,e,"sonnet")'''
-value = '''if(Joe("fable5"))cmt(i,Wmo());return i.push(Oya),jmo(i,e,"sonnet")'''
+find = '''return i.push(JBa),PSo(i,e,"sonnet")'''
+value = '''if(xse("fable5"))$ht(i,OSo());return i.push(JBa),PSo(i,e,"sonnet")'''
 
 [[patches.tests]]
 kind = "static"
 name = "oauth standard picker inserts local fable before haiku in 2.1.199"
-assert_contains = '''if(Joe("fable5"))cmt(i,Wmo());return i.push(Oya),jmo(i,e,"sonnet")'''
+assert_contains = '''if(xse("fable5"))$ht(i,OSo());return i.push(JBa),PSo(i,e,"sonnet")'''
 
 [[patches]]
 name = "api-key-picker-shows-local-fable-2-1-199"
-target_version = "2.1.199"
-applies_to = ">=2.1.199 <2.2.0"
+target_version = "2.1.201"
+applies_to = ">=2.1.201 <2.2.0"
 rationale = """
 Show the catalog-backed Fable row for non-OAuth first-party API-key sessions.
 
@@ -186,19 +186,19 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "eRp", string = '''hr()==="anthropicAws"&&Joe("fable5")''' }
+match = { node = "FunctionDeclaration", function_name = "Z9p", string = '''mr()==="anthropicAws"&&xse("fable5")''' }
 
 [patches.transform]
 op = "replace_substring"
-find = '''hr()==="anthropicAws"&&Joe("fable5")'''
-value = '''Joe("fable5")'''
+find = '''mr()==="anthropicAws"&&xse("fable5")'''
+value = '''xse("fable5")'''
 
 [[patches.tests]]
 kind = "static"
 name = "api-key picker fable gate uses catalog mapping in 2.1.199"
-assert_contains = '''else if(Joe("fable5"))cmt(i,Wmo())'''
+assert_contains = '''else if(xse("fable5"))$ht(i,OSo())'''
 
 [[patches.tests]]
 kind = "static"
 name = "api-key picker no longer restricts fable to anthropic aws in 2.1.199"
-assert_not_contains = '''hr()==="anthropicAws"&&Joe("fable5")'''
+assert_not_contains = '''mr()==="anthropicAws"&&xse("fable5")'''

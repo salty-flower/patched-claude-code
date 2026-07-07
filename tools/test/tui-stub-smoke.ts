@@ -75,6 +75,8 @@ async function main(): Promise<number> {
         2,
       )}\n`,
     )
+    const laterScheduleInput = "/later 1m patched TUI smoke\r"
+    const laterListInput = "/later list\r"
     const exitInput = "/exit\r"
     const commandEnv = {
       HOME: home,
@@ -102,7 +104,17 @@ async function main(): Promise<number> {
       "--model",
       "sonnet",
     ].join(" ")
-    const tuiScriptCommand = makeScriptCommand(tuiCommand, ["sleep 2", `printf %s ${shellQuote(exitInput)}`].join("; "))
+    const tuiScriptCommand = makeScriptCommand(
+      tuiCommand,
+      [
+        "sleep 2",
+        `printf %s ${shellQuote(laterScheduleInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(laterListInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(exitInput)}`,
+      ].join("; "),
+    )
     const tuiResult = Bun.spawnSync({
       cmd: ["bash", "-lc", tuiScriptCommand],
       cwd: home,
@@ -117,6 +129,16 @@ async function main(): Promise<number> {
     }
     if (!tuiOutput.includes("Claude Code")) {
       console.error("PTY output did not render Claude Code")
+      console.error(tuiOutput)
+      return 1
+    }
+    if (!tuiOutput.includes("Scheduled later-")) {
+      console.error("PTY output did not confirm /later scheduling")
+      console.error(tuiOutput)
+      return 1
+    }
+    if (!tuiOutput.includes("Pending /later prompts:")) {
+      console.error("PTY output did not render /later list")
       console.error(tuiOutput)
       return 1
     }
@@ -153,7 +175,9 @@ async function main(): Promise<number> {
       console.error(stderr)
       return 1
     }
-    console.log(`ok: PTY rendered Claude Code, ${stub.requests.length} Claude API request(s), print rendered ${JSON.stringify(args.expectText)}`)
+    console.log(
+      `ok: PTY rendered Claude Code and /later, ${stub.requests.length} Claude API request(s), print rendered ${JSON.stringify(args.expectText)}`,
+    )
     return 0
   } finally {
     stub.stop()

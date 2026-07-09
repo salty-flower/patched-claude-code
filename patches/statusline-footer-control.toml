@@ -414,7 +414,7 @@ assert_contains = '''globalThis.__acc_disabled_footer=H}let Z_={settings:Dr(),ta
 [[patches]]
 name = "statusline-footer-control-cli-global-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Carry the hide-built-in-footer CLI switch into runtime footer controls.
 
@@ -435,6 +435,31 @@ replacement = '''Ny=void 0,Fy=c?.teamContext??(UTe()?await tNc():void 0),__acc_f
 kind = "static"
 name = "CLI option records a 2.1.201 session footer override"
 assert_contains = '''globalThis.__acc_disabled_footer=H})():void 0,Nm={settings:Hr(),tasks:{},transcripts:{},taskDecorations:{},'''
+
+[[patches]]
+name = "statusline-footer-control-cli-global-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Carry the hide-built-in-footer CLI switch into runtime footer controls.
+
+This is the 2.1.205 startup-state variant of
+`statusline-footer-control-cli-global-2-1-170`. The initial REPL state is now
+assembled in a local `WS` object, while CLI options remain in `a`; record the
+per-session override as part of the surrounding declaration.
+Cleanup condition: upstream ships an official CLI flag or runtime option for
+hiding built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+locator_pattern = '''IC=void 0,IP=c\?\.teamContext\?\?\(K\$e\(\)\?await M3p\(\):void 0\),WS=\{settings:Bn\(\),tasks:\{\},transcripts:\{\},taskDecorations:\{\},'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''IC=void 0,IP=c?.teamContext??(K$e()?await M3p():void 0),__acc_footer_init=a.hideBuiltinFooter?(()=>{let H=a.hideBuiltinFooter===!0||a.hideBuiltinFooter==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(a.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);globalThis.__acc_disabled_footer=H})():void 0,WS={settings:Bn(),tasks:{},transcripts:{},taskDecorations:{},'''
+
+[[patches.tests]]
+kind = "static"
+name = "CLI option records a 2.1.205 session footer override"
+assert_contains = '''globalThis.__acc_disabled_footer=H})():void 0,WS={settings:Bn(),tasks:{},transcripts:{},taskDecorations:{},'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint"
@@ -909,7 +934,7 @@ assert_contains = '''globalThis.__acc_clipboard_image_available=c'''
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Keep clipboard image availability state exported for custom status lines.
 
@@ -927,6 +952,29 @@ replacement = '''function SFn(e,t){let{addNotification:n}=ji(),r=wdt.useRef(e),o
 [[patches.tests]]
 kind = "static"
 name = "clipboard image hint state remains available in 2.1.201"
+assert_contains = '''globalThis.__acc_clipboard_image_available=c'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Keep clipboard image availability state exported for custom status lines.
+
+This is the 2.1.205 minified-symbol variant of
+`statusline-footer-control-clipboard-image-hint`. Cleanup condition: upstream
+ships official footer item controls while exposing equivalent state to custom
+status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_pattern = '''function SUn\(e,t\)\{let\{addNotification:r\}=cs\(\),n=ljt\.useRef\(e\),o=ljt\.useRef\(0\),i=ljt\.useRef\(null\),s=xi\(\);ljt\.useEffect\(\(\)=>\{let a=n\.current;if\(n\.current=e,!t\|\|!e\|\|a\)return;if\(i\.current\)i\.current\(\);return i\.current=s\.setTimeout\(async\(\)=>\{i\.current=null;let l=Date\.now\(\);if\(l-o\.current<k0h\)return;if\(await CRc\(\)\)o\.current=l,r\(\{key:R0h,kind:"contextual",text:`Image in clipboard \\xB7 \$\{yD\("chat:imagePaste","Chat","ctrl\+v"\)\} to paste`,priority:"immediate",timeoutMs:8000\}\)\},x0h\),\(\)=>\{if\(i\.current\)i\.current\(\),i\.current=null\}\},\[e,t,r,s\]\)\}'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''function SUn(e,t){let{addNotification:r}=cs(),n=ljt.useRef(e),o=ljt.useRef(0),i=ljt.useRef(null),s=xi();ljt.useEffect(()=>{let a=n.current;if(n.current=e,!t||!e||a)return;if(i.current)i.current();return i.current=s.setTimeout(async()=>{i.current=null;let l=Date.now(),c=await CRc();globalThis.__acc_clipboard_image_available=c;if(l-o.current<k0h)return;if(c)o.current=l,r({key:R0h,kind:"contextual",text:`Image in clipboard \xB7 ${yD("chat:imagePaste","Chat","ctrl+v")} to paste`,priority:"immediate",timeoutMs:8000})},x0h),()=>{if(i.current)i.current(),i.current=null}},[e,t,r,s])}'''
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image hint state remains available in 2.1.205"
 assert_contains = '''globalThis.__acc_clipboard_image_available=c'''
 
 [[patches]]
@@ -1313,7 +1361,7 @@ assert_contains = '''__acc_hide_effort_all=Et((I_)=>I_.settings.statusLine?.hide
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Hide the effort footer notification when the effort_notification item is disabled.
 
@@ -1333,6 +1381,30 @@ replacement = '''{addNotification:et,removeNotification:rn}=ji(),__acc_hide_effo
 kind = "static"
 name = "effort notification is controlled by disabledFooter in 2.1.201"
 assert_contains = '''__acc_hide_effort_all=Tt((I_)=>I_.settings.statusLine?.hideBuiltinFooter)'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Hide the effort footer notification when the effort_notification item is disabled.
+
+This is the 2.1.205 minified-symbol variant of
+`statusline-footer-control-effort-notification`. The effort notification is now
+the `ultrathink-active` feedback hook in the prompt input component.
+Cleanup condition: upstream ships an official setting or flag for built-in
+footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_pattern = '''\{addNotification:nt,removeNotification:or\}=cs\(\);Zo\.useEffect\(\(\)=>\{if\(rl\.length&&FKe\(\)\)nt\(\{key:"ultrathink-active",kind:"feedback",text:"Deeper reasoning requested for this turn",priority:"immediate",timeoutMs:5000\}\);else or\("ultrathink-active"\)\},\[nt,or,rl\.length\]\)'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''{addNotification:nt,removeNotification:or}=cs(),__acc_hide_effort_all=Ve((I_)=>I_.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=Ve((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");Zo.useEffect(()=>{if(!__acc_hide_effort_all&&!__acc_hide_effort_item&&rl.length&&FKe())nt({key:"ultrathink-active",kind:"feedback",text:"Deeper reasoning requested for this turn",priority:"immediate",timeoutMs:5000});else or("ultrathink-active")},[nt,or,rl.length,__acc_hide_effort_all,__acc_hide_effort_item])'''
+
+[[patches.tests]]
+kind = "static"
+name = "effort notification is controlled by disabledFooter in 2.1.205"
+assert_contains = '''__acc_hide_effort_all=Ve((I_)=>I_.settings.statusLine?.hideBuiltinFooter)'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning"
@@ -1798,7 +1870,7 @@ assert_contains = '''globalThis.__acc_rate_limit_warning=i'''
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-201"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Hide rate-limit warning banners when the rate_limit_warning item is disabled.
 
@@ -1829,6 +1901,36 @@ assert_contains = '''globalThis.__acc_rate_limit_warning=i'''
 kind = "static"
 name = "stale 2.1.197 rate-limit selector is absent in 2.1.201"
 assert_not_contains = '''__acc_hide_rate_limit_warning=Et((L)=>L.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Hide rate-limit warning banners when the rate_limit_warning item is disabled.
+
+This is the 2.1.205 minified-symbol variant of
+`statusline-footer-control-rate-limit-warning`. The rendered warning string is
+local `fmb`; the patch stores it for custom statusLine commands and nulls the
+notification input when the built-in footer item is disabled. The selector
+helper is `Ve`. Cleanup condition: upstream ships official footer item
+controls while exposing equivalent state to custom status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_pattern = '''if\(gpt\[3\]!==b7\|\|gpt\[4\]!==trf\|\|gpt\[5\]!==lRe\)fmb=u6i\(b7,lRe,trf\),gpt\[3\]=b7,gpt\[4\]=trf,gpt\[5\]=lRe,gpt\[6\]=fmb;'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''let __acc_hide_rate_limit_warning=Ve((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer");if(gpt[3]!==b7||gpt[4]!==trf||gpt[5]!==lRe)fmb=u6i(b7,lRe,trf),fmb=(globalThis.__acc_rate_limit_warning=fmb,__acc_hide_rate_limit_warning?null:fmb),gpt[3]=b7,gpt[4]=trf,gpt[5]=lRe,gpt[6]=fmb;'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is controlled by disabledFooter in 2.1.205"
+assert_contains = '''Ve((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning is available to statusline in 2.1.205"
+assert_contains = '''globalThis.__acc_rate_limit_warning=fmb'''
 
 [[patches]]
 name = "statusline-footer-control-render"
@@ -2321,7 +2423,7 @@ assert_contains = '''if(__acc_hide_footer)ot=null'''
 [[patches]]
 name = "statusline-footer-control-render-state-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Hide the built-in footer line when the footer item is disabled.
 
@@ -2344,7 +2446,7 @@ assert_contains = '''__acc_hide_footer=Tt((se)=>se.settings.statusLine?.hideBuil
 [[patches]]
 name = "statusline-footer-control-render-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Hide the built-in footer line when the footer item is disabled.
 
@@ -2362,6 +2464,51 @@ replacement = '''else me=t[52];if(__acc_hide_footer)me=null;let Se;'''
 kind = "static"
 name = "footer row is controlled by disabledFooter in 2.1.201"
 assert_contains = '''if(__acc_hide_footer)me=null'''
+
+[[patches]]
+name = "statusline-footer-control-render-state-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Hide the built-in footer line when the footer item is disabled.
+
+This is the 2.1.205 hook-site half of
+`statusline-footer-control-render`. It computes the hide decision before the
+footer component memoizes the child footer row. Cleanup condition: upstream
+ships an official setting or flag for hiding the built-in footer status line.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
+locator_pattern = '''const uFp=!tW_&&!bMo,dFp=!xOR&&!bMo;'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''let __acc_hide_footer=Ve((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("footer");const uFp=!tW_&&!bMo,dFp=!xOR&&!bMo;'''
+
+[[patches.tests]]
+kind = "static"
+name = "footer hide state is computed in 2.1.205"
+assert_contains = '''__acc_hide_footer=Ve((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Hide the built-in footer line when the footer item is disabled.
+
+This is the 2.1.205 render-site half of
+`statusline-footer-control-render`. Cleanup condition: upstream ships an
+official setting or flag for hiding the built-in footer status line.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
+locator_pattern = '''else sha=x_e\[52\];let fW_;'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''else sha=x_e[52];if(__acc_hide_footer)sha=null;let fW_;'''
+
+[[patches.tests]]
+kind = "static"
+name = "footer row is controlled by disabledFooter in 2.1.205"
+assert_contains = '''if(__acc_hide_footer)sha=null'''
 
 [[patches]]
 name = "statusline-footer-control-mode-hint"
@@ -2915,7 +3062,7 @@ assert_contains = '''let Te=!__acc_hide_mode&&Y&&Z&&he?'''
 [[patches]]
 name = "statusline-footer-control-mode-hint-state-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Hide the built-in permission mode hint when the mode item is disabled.
 
@@ -2944,7 +3091,7 @@ assert_contains = '''__acc_hide_mode=Tt((FH)=>FH.settings.statusLine?.hideBuilti
 [[patches]]
 name = "statusline-footer-control-mode-hint-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Hide the built-in permission mode hint when the mode item is disabled.
 
@@ -2972,7 +3119,7 @@ assert_contains = '''let kt=!__acc_hide_mode&&mt&&Q?'''
 [[patches]]
 name = "statusline-footer-control-mode-hint-narrow-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Hide the built-in permission mode hint when the mode item is disabled.
 
@@ -2996,6 +3143,91 @@ value = '''let le=!__acc_hide_mode&&Q&&ee&&me?'''
 kind = "static"
 name = "narrow permission mode hint is controlled by disabledFooter in 2.1.201"
 assert_contains = '''let le=!__acc_hide_mode&&Q&&ee&&me?'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Hide the built-in permission mode hint when the mode item is disabled.
+
+This is the 2.1.205 hook-site half of
+`statusline-footer-control-mode-hint`. It stores the footer hide decision
+before the component's early bash-mode return so hook order stays stable.
+Cleanup condition: upstream ships official per-item footer controls.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Sha", strings = ["tengu_copper_thistle", "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''Jhe();let mW_;'''
+value = '''Jhe();let __acc_hide_mode=Ve((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),mW_;'''
+
+[[patches.tests]]
+kind = "static"
+name = "permission mode hint hide state is computed before early returns in 2.1.205"
+assert_contains = '''__acc_hide_mode=Ve((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Hide the built-in permission mode hint when the mode item is disabled.
+
+This is the 2.1.205 copper-thistle render-site half of
+`statusline-footer-control-mode-hint`. Cleanup condition: upstream ships
+official per-item footer controls.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Sha", strings = ["tengu_copper_thistle", "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''Pce=pha&&JJ?'''
+value = '''Pce=!__acc_hide_mode&&pha&&JJ?'''
+
+[[patches.tests]]
+kind = "static"
+name = "permission mode hint is controlled by disabledFooter in 2.1.205"
+assert_contains = '''Pce=!__acc_hide_mode&&pha&&JJ?'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Hide the built-in permission mode hint when the mode item is disabled.
+
+This is the 2.1.205 standard render-site half of
+`statusline-footer-control-mode-hint`. Cleanup condition: upstream ships
+official per-item footer controls.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Sha", strings = ["tengu_copper_thistle", "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''i1t=JJ&&kW_?'''
+value = '''i1t=!__acc_hide_mode&&JJ&&kW_?'''
+
+[[patches.tests]]
+kind = "static"
+name = "narrow permission mode hint is controlled by disabledFooter in 2.1.205"
+assert_contains = '''i1t=!__acc_hide_mode&&JJ&&kW_?'''
 
 [[patches]]
 name = "statusline-footer-control-schema"
@@ -3280,7 +3512,7 @@ assert_not_contains = '''hideBuiltinFooter:A.boolean().optional().describe("Comp
 [[patches]]
 name = "statusline-footer-control-schema-2-1-201"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Accept statusLine settings that hide built-in footer items.
 
@@ -3310,6 +3542,40 @@ assert_contains = '''hideBuiltinFooter:E.boolean().optional().describe("Compatib
 kind = "static"
 name = "stale 2.1.186 schema symbol is absent in 2.1.201"
 assert_not_contains = '''hideBuiltinFooter:A.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Accept statusLine settings that hide built-in footer items.
+
+This is the 2.1.205 minified-symbol variant of
+`statusline-footer-control-schema`; the statusLine schema object is built with
+the local schema symbol `S`. Cleanup condition: upstream ships an official
+setting for hiding built-in footer items when a custom statusLine is present.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:S.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:S.array(S.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+
+[[patches.tests]]
+kind = "static"
+name = "disabledFooter schema uses 2.1.205 schema symbol"
+assert_contains = '''hideBuiltinFooter:S.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:S.array(S.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.201 schema symbol is absent in 2.1.205"
+assert_not_contains = '''hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
 
 [[patches]]
 name = "statusline-footer-control-command-length-update-2-1-139"
@@ -3610,7 +3876,7 @@ assert_contains = '''command_length:G.command?.length??0,padding:G.padding'''
 
 [[patches]]
 name = "statusline-footer-control-command-length-mount-2-1-197"
-applies_to = ">=2.1.197 <2.2.0"
+applies_to = ">=2.1.197 <2.1.205"
 rationale = """
 Avoid crashing when footer-only statusLine settings have no command field.
 
@@ -3629,6 +3895,28 @@ replacement = '''command_length:W.command?.length??0,padding:W.padding'''
 kind = "static"
 name = "statusline mount telemetry tolerates missing command in 2.1.197"
 assert_contains = '''command_length:W.command?.length??0,padding:W.padding'''
+
+[[patches]]
+name = "statusline-footer-control-command-length-mount-2-1-205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Avoid crashing when footer-only statusLine settings have no command field.
+
+This is the 2.1.205 minified-symbol variant of
+`statusline-footer-control-command-length-mount-2-1-139`. Cleanup condition:
+footer controls move out of `settings.statusLine` or upstream separates
+statusLine presence from command presence.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+locator_pattern = '''command_length:V\.command\.length,padding:V\.padding'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''command_length:V.command?.length??0,padding:V.padding'''
+
+[[patches.tests]]
+kind = "static"
+name = "statusline mount telemetry tolerates missing command in 2.1.205"
+assert_contains = '''command_length:V.command?.length??0,padding:V.padding'''
 
 [[patches]]
 name = "statusline-footer-control-terminal-columns"
@@ -4598,7 +4886,7 @@ assert_not_contains = '''Cb.useEffect(()=>{M()},[__cci,M]);'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-effect-2-1-199"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Trigger a custom statusLine rerender on clipboard image state changes.
 
@@ -4629,6 +4917,40 @@ assert_contains = '''zE.useEffect(()=>{N()},[__cci,N]);'''
 kind = "static"
 name = "stale 2.1.199 clipboard refresh hook is absent in 2.1.201"
 assert_not_contains = '''WE.useEffect(()=>{N()},[__cci,N]);'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-effect-2-1-205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Trigger a custom statusLine rerender on clipboard image state changes.
+
+This is the 2.1.205 minified-symbol variant of
+`statusline-json-clipboard-image-refresh-effect`. The StatusLine component uses
+`q` for the debounced refresh callback and `I0` for React hooks.
+Cleanup condition: upstream adds official statusLine fields and refresh
+triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", string = "let G=u?.refreshInterval" }
+
+[patches.transform]
+op = "insert_before_node"
+code = 'I0.useEffect(()=>{q()},[__cci,q]);'
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image state triggers statusline refresh in 2.1.205"
+assert_contains = '''I0.useEffect(()=>{q()},[__cci,q]);'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.201 clipboard refresh hook is absent in 2.1.205"
+assert_not_contains = '''zE.useEffect(()=>{N()},[__cci,N]);'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh"
@@ -5067,7 +5389,7 @@ assert_contains = '''fast_mode:n,effort_level:'''
 [[patches]]
 name = "statusline-json-effort-level-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Expose the effective effort level to custom statusLine commands as a stable
 top-level field.
@@ -5092,6 +5414,35 @@ value = "$1effort_level:jw(g)?XM(g,p):null,...jw(g)&&{effort:{level:XM(g,p)}}"
 kind = "static"
 name = "statusline JSON includes effort level in 2.1.199"
 assert_contains = '''fast_mode:n,effort_level:'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Expose the effective effort level to custom statusLine commands as a stable
+top-level field.
+
+This is the 2.1.205 minified-symbol variant of
+`statusline-json-effort-level`. Cleanup condition: upstream adds an equivalent
+scalar statusLine field.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ReturnStatement", strings = ["cwd:", "session_name:", "model:", "display_name:"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(fast_mode:r,)\\.\\.\\.kx\\(y\\)&&\\{effort:\\{level:o4\\(y,p\\)\\}\\}"
+value = "$1effort_level:kx(y)?o4(y,p):null,...kx(y)&&{effort:{level:o4(y,p)}}"
+
+[[patches.tests]]
+kind = "static"
+name = "statusline JSON includes effort level in 2.1.205"
+assert_contains = '''fast_mode:r,effort_level:'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-2-1-137"

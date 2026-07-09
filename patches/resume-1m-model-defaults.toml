@@ -161,7 +161,7 @@ assert_not_contains = '''function mYo(){return Boolean(ry()!==void 0||Ne.ANTHROP
 [[patches]]
 name = "resume-allows-same-family-anthropic-model-default-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 rationale = """
 This is the 2.1.199 minified-symbol variant of
@@ -183,6 +183,37 @@ assert_contains = '''if(Ie.ANTHROPIC_MODEL&&(o.kind!=="ok"||oo(jo(Ie.ANTHROPIC_M
 kind = "static"
 name = "old env-default resume short circuit is removed in 2.1.199"
 assert_not_contains = '''function Xrs(){return Boolean(py()!==void 0||Ie.ANTHROPIC_MODEL||Ie.ANTHROPIC_DEFAULT_FABLE_MODEL||Ie.ANTHROPIC_DEFAULT_OPUS_MODEL||Ie.ANTHROPIC_DEFAULT_SONNET_MODEL||Ie.ANTHROPIC_DEFAULT_HAIKU_MODEL||!id())}'''
+
+[[patches]]
+name = "resume-allows-same-family-anthropic-model-default-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = """
+This is the 2.1.205 minified-symbol variant of
+`resume-allows-same-family-anthropic-model-default`. Upstream moved the resume
+guard to `$ya` and the resolver to `L4p`; the env-default short circuit still
+needs to be removed while preserving an explicit same-family
+`ANTHROPIC_MODEL` override guard after transcript-model resolution.
+"""
+locator_kind = "literal"
+locator_pattern = '''function $ya(){return Boolean(ME()!==void 0||Ce.ANTHROPIC_MODEL||Ce.ANTHROPIC_DEFAULT_FABLE_MODEL||Ce.ANTHROPIC_DEFAULT_OPUS_MODEL||Ce.ANTHROPIC_DEFAULT_SONNET_MODEL||Ce.ANTHROPIC_DEFAULT_HAIKU_MODEL||!Tp())}function w1t(e,t,r,n=(o)=>o()){if($ya())return;let o=L4p(e,t);'''
+replacement = '''function $ya(){return Boolean(ME()!==void 0||!Tp())}function w1t(e,t,r,n=(o)=>o()){if($ya())return;let o=L4p(e,t);if(Ce.ANTHROPIC_MODEL&&(o.kind!=="ok"||ao(oi(Ce.ANTHROPIC_MODEL))!==ao(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "same-family ANTHROPIC_MODEL defaults can restore resume model in 2.1.205"
+assert_contains = '''if(Ce.ANTHROPIC_MODEL&&(o.kind!=="ok"||ao(oi(Ce.ANTHROPIC_MODEL))!==ao(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "old env-default resume short circuit is removed in 2.1.205"
+assert_not_contains = '''function $ya(){return Boolean(ME()!==void 0||Ce.ANTHROPIC_MODEL||Ce.ANTHROPIC_DEFAULT_FABLE_MODEL||Ce.ANTHROPIC_DEFAULT_OPUS_MODEL||Ce.ANTHROPIC_DEFAULT_SONNET_MODEL||Ce.ANTHROPIC_DEFAULT_HAIKU_MODEL||!Tp())}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.201 resume symbols are absent in 2.1.205"
+assert_not_contains = '''if(Ie.ANTHROPIC_MODEL&&(o.kind!=="ok"||oo(jo(Ie.ANTHROPIC_MODEL))!==oo(o.model)))return;'''
 
 [[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-197"
@@ -215,7 +246,7 @@ assert_not_contains = '''let n=new Set(LQs.map(oo)),r=t?Bo(t):void 0,o=r?ju(r):v
 [[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 rationale = """
 This is the 2.1.199 minified-symbol variant of
@@ -237,6 +268,37 @@ assert_contains = '''let n=new Set(rli.map(oo)),r=jo(t??M_()),o=Ud(r);'''
 kind = "static"
 name = "old absent-default resume model resolver is removed in 2.1.199"
 assert_not_contains = '''let n=new Set(rli.map(oo)),r=t?jo(t):void 0,o=r?Ud(r):void 0;'''
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = """
+This is the 2.1.205 minified-symbol variant of
+`resume-detects-1m-after-alias-resolution` for the default-model path.
+`L4p` receives `initialMainLoopModel`; when that is absent, resolve the
+current default through `lS()` so default 1M configs can still restore a
+transcript model with its `[1m]` suffix.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=new Set(Ykl.map(ao)),n=t?oi(t):void 0,o=n?Sp(n):void 0;'''
+replacement = '''let r=new Set(Ykl.map(ao)),n=oi(t??lS()),o=Sp(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "resume checks resolved default for 1m context in 2.1.205"
+assert_contains = '''let r=new Set(Ykl.map(ao)),n=oi(t??lS()),o=Sp(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "old absent-default resume model resolver is removed in 2.1.205"
+assert_not_contains = '''let r=new Set(Ykl.map(ao)),n=t?oi(t):void 0,o=n?Sp(n):void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.201 default resolver is absent in 2.1.205"
+assert_not_contains = '''let n=new Set(rli.map(oo)),r=jo(t??M_()),o=Ud(r);'''
 
 [[patches]]
 name = "resume-detects-1m-after-alias-resolution"

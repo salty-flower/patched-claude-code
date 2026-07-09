@@ -113,7 +113,7 @@ assert_not_contains = '''_r()==="anthropicAws"&&Xre("fable5")'''
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
 
@@ -142,7 +142,7 @@ assert_contains = '''if(xse("fable5"))$ht(a,OSo());return a.push(JBa),PSo(a,e,"o
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
 
@@ -171,7 +171,7 @@ assert_contains = '''if(xse("fable5"))$ht(i,OSo());return i.push(JBa),PSo(i,e,"s
 [[patches]]
 name = "api-key-picker-shows-local-fable-2-1-199"
 target_version = "2.1.201"
-applies_to = ">=2.1.201 <2.2.0"
+applies_to = ">=2.1.201 <2.1.205"
 rationale = """
 Show the catalog-backed Fable row for non-OAuth first-party API-key sessions.
 
@@ -202,3 +202,96 @@ assert_contains = '''else if(xse("fable5"))$ht(i,OSo())'''
 kind = "static"
 name = "api-key picker no longer restricts fable to anthropic aws in 2.1.199"
 assert_not_contains = '''mr()==="anthropicAws"&&xse("fable5")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
+
+This is the 2.1.205 minified-symbol variant. The model option builder is now
+`lqm`, the catalog availability helper is `$Te`, the Fable insertion helper is
+`W4t`, and the Fable row helper is `$di`. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lqm", strings = ['''return a.push(k3l),Ndi(a,e,"opus")''', '''$Te("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return a.push(k3l),Ndi(a,e,"opus")'''
+value = '''if($Te("fable5"))W4t(a,$di());return a.push(k3l),Ndi(a,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "oauth primary picker inserts local fable before haiku in 2.1.205"
+assert_contains = '''if($Te("fable5"))W4t(a,$di());return a.push(k3l),Ndi(a,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
+
+This is the 2.1.205 minified-symbol variant. The model option builder is now
+`lqm`, the catalog availability helper is `$Te`, the Fable insertion helper is
+`W4t`, and the Fable row helper is `$di`. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lqm", strings = ['''return s.push(k3l),Ndi(s,e,"sonnet")''', '''$Te("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return s.push(k3l),Ndi(s,e,"sonnet")'''
+value = '''if($Te("fable5"))W4t(s,$di());return s.push(k3l),Ndi(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "oauth standard picker inserts local fable before haiku in 2.1.205"
+assert_contains = '''if($Te("fable5"))W4t(s,$di());return s.push(k3l),Ndi(s,e,"sonnet")'''
+
+[[patches]]
+name = "api-key-picker-shows-local-fable-2-1-205"
+target_version = "2.1.205"
+applies_to = ">=2.1.205 <2.2.0"
+rationale = """
+Show the catalog-backed Fable row for non-OAuth first-party API-key sessions.
+
+This is the 2.1.205 minified-symbol variant. The provider helper is now `En`,
+the catalog availability helper is `$Te`, the Fable insertion helper is `W4t`,
+and the Fable row helper is `$di`. Cleanup condition: upstream removes the
+AWS-only picker special case or replaces it with a shared Fable availability
+predicate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lqm", string = '''En()==="anthropicAws"&&$Te("fable5")''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''En()==="anthropicAws"&&$Te("fable5")'''
+value = '''$Te("fable5")'''
+
+[[patches.tests]]
+kind = "static"
+name = "api-key picker fable gate uses catalog mapping in 2.1.205"
+assert_contains = '''else if($Te("fable5"))W4t(s,$di())'''
+
+[[patches.tests]]
+kind = "static"
+name = "api-key picker no longer restricts fable to anthropic aws in 2.1.205"
+assert_not_contains = '''En()==="anthropicAws"&&$Te("fable5")'''

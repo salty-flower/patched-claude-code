@@ -44,6 +44,14 @@ function makeScriptCommand(command: string, inputCommand: string): string {
   return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} /dev/null`
 }
 
+function normalizeTuiOutput(output: string): string {
+  return output
+    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, " ")
+    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, " ")
+    .replace(/[\x00-\x1F\x7F]+/g, " ")
+    .replace(/\s+/g, " ")
+}
+
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
   if (!existsSync(args.bundle)) {
@@ -78,6 +86,7 @@ async function main(): Promise<number> {
     const laterScheduleInput = "/later 1m patched TUI smoke\r"
     const laterListInput = "/later list\r"
     const exitInput = "/exit\r"
+    const confirmExitInput = "\r"
     const commandEnv = {
       HOME: home,
       CLAUDE_CONFIG_DIR: configDir,
@@ -113,6 +122,8 @@ async function main(): Promise<number> {
         `printf %s ${shellQuote(laterListInput)}`,
         "sleep 1",
         `printf %s ${shellQuote(exitInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(confirmExitInput)}`,
       ].join("; "),
     )
     const tuiResult = Bun.spawnSync({
@@ -122,22 +133,23 @@ async function main(): Promise<number> {
       stderr: "pipe",
     })
     const tuiOutput = `${tuiResult.stdout.toString()}\n${tuiResult.stderr.toString()}`
+    const normalizedTuiOutput = normalizeTuiOutput(tuiOutput)
     if (tuiResult.exitCode !== 0) {
       console.error(`PTY command exited ${tuiResult.exitCode}`)
       console.error(tuiOutput)
       return 1
     }
-    if (!tuiOutput.includes("Claude Code")) {
+    if (!normalizedTuiOutput.includes("Claude Code")) {
       console.error("PTY output did not render Claude Code")
       console.error(tuiOutput)
       return 1
     }
-    if (!tuiOutput.includes("Scheduled later-")) {
+    if (!normalizedTuiOutput.includes("Scheduled later-")) {
       console.error("PTY output did not confirm /later scheduling")
       console.error(tuiOutput)
       return 1
     }
-    if (!tuiOutput.includes("Pending /later prompts:")) {
+    if (!normalizedTuiOutput.includes("Pending /later prompts:")) {
       console.error("PTY output did not render /later list")
       console.error(tuiOutput)
       return 1

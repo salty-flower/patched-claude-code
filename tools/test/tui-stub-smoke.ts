@@ -110,6 +110,9 @@ async function main(): Promise<number> {
       "bun",
       shellQuote(bundle),
       "--bare",
+      "--hide-builtin-footer",
+      "--thinking-display",
+      "summarized",
       "--model",
       "sonnet",
     ].join(" ")
@@ -149,7 +152,7 @@ async function main(): Promise<number> {
       console.error(tuiOutput)
       return 1
     }
-    if (!normalizedTuiOutput.includes("Pending /later prompts:")) {
+    if (!normalizedTuiOutput.includes("1. patched TUI smoke @")) {
       console.error("PTY output did not render /later list")
       console.error(tuiOutput)
       return 1

@@ -98,6 +98,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    Every target bump must include this baseline before commit:
 
    - Launch `staging/<ver>/cli.patched.js` in a PTY-backed interactive TUI.
+   - Include a PTY-backed launch with
+     `--hide-builtin-footer --thinking-display summarized`; it may be the same
+     session as the baseline TUI check.
    - Reach the main interactive screen. Setup, help text, or `--print` output
      does not count.
    - Perform at least one local-only interaction, such as a slash command or

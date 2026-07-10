@@ -5208,7 +5208,7 @@ assert_not_contains = '''WE.useEffect(()=>{N()},[__cci,N]);'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-effect-2-1-205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 rationale = """
 Trigger a custom statusLine rerender on clipboard image state changes.
 
@@ -5239,6 +5239,42 @@ assert_contains = '''I0.useEffect(()=>{q()},[__cci,q]);'''
 kind = "static"
 name = "stale 2.1.201 clipboard refresh hook is absent in 2.1.205"
 assert_not_contains = '''zE.useEffect(()=>{N()},[__cci,N]);'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-effect-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+rationale = """
+Trigger a custom statusLine rerender on clipboard image state changes.
+
+This is the 2.1.206 minified-symbol variant of
+`statusline-json-clipboard-image-refresh-effect`. The StatusLine component uses
+`q` for the debounced refresh callback and `V0` for React hooks; the 2.1.205
+`I0` symbol is now a compiler cache object in this scope. Cleanup condition:
+upstream adds official statusLine fields and refresh triggers for current
+footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", string = "let G=u?.refreshInterval" }
+
+[patches.transform]
+op = "insert_before_node"
+code = 'V0.useEffect(()=>{q()},[__cci,q]);'
+
+[[patches.tests]]
+kind = "static"
+name = "clipboard image state triggers statusline refresh in 2.1.206"
+assert_contains = '''V0.useEffect(()=>{q()},[__cci,q]);'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.205 clipboard refresh hook is absent in 2.1.206"
+assert_not_contains = '''I0.useEffect(()=>{q()},[__cci,q]);'''
 
 [[patches]]
 name = "statusline-json-clipboard-image-refresh"
@@ -6189,7 +6225,7 @@ assert_not_contains = '''__cci=Et((c)=>c.clipboardImageAvailable??!1)'''
 [[patches]]
 name = "statusline-json-clipboard-image-refresh-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 rationale = """
 Refresh custom statusLine output when clipboard image availability changes.
 
@@ -6220,3 +6256,38 @@ assert_contains = '''__cci=Ve((c)=>c.clipboardImageAvailable??!1)'''
 kind = "static"
 name = "stale 2.1.199 clipboard image state selector is absent in 2.1.205"
 assert_not_contains = '''__cci=Tt((c)=>c.clipboardImageAvailable??!1)'''
+
+[[patches]]
+name = "statusline-json-clipboard-image-refresh-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+rationale = """
+Refresh custom statusLine output when clipboard image availability changes.
+
+This is the 2.1.206 minified-symbol variant of
+`statusline-json-clipboard-image-refresh`. The StatusLine component selector
+helper is `Ge`; the 2.1.205 `Ve` symbol is now an object in this scope, so
+calling it throws before the first TUI frame. Cleanup condition: upstream adds
+official statusLine fields and refresh triggers for current footer/input hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["thinkingEnabled", "useRef(void 0)", "toolPermissionContext", "statusLineText"] }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = ",(\\w+=\\w+\\.useRef\\(\\w+\\));$"
+value = ",__cci=Ge((c)=>c.clipboardImageAvailable??!1),$1;"
+
+[[patches.tests]]
+kind = "static"
+name = "statusline observes clipboard image state in 2.1.206"
+assert_contains = '''__cci=Ge((c)=>c.clipboardImageAvailable??!1)'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.205 clipboard image state selector is absent in 2.1.206"
+assert_not_contains = '''__cci=Ve((c)=>c.clipboardImageAvailable??!1)'''

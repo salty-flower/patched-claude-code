@@ -11,7 +11,10 @@ const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.172"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
-const targetUses201LaterSymbols = gte(TARGET_VERSION, "2.1.201")
+const targetUses206LaterSymbols = gte(TARGET_VERSION, "2.1.206")
+const targetUses205LaterSymbols = !targetUses206LaterSymbols && gte(TARGET_VERSION, "2.1.205")
+const targetUses201LaterSymbols =
+  !targetUses205LaterSymbols && !targetUses206LaterSymbols && gte(TARGET_VERSION, "2.1.201")
 const targetIs201 = TARGET_VERSION === "2.1.201"
 
 type LaterTask = {
@@ -139,9 +142,21 @@ test.skipIf(!testLaterCommand)(
       "await SeH(__cron,__prompt,!1,!1,void 0)",
       "__e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
       "F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
+      "Y2e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
+      "DFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
     ])
     expectContainsOneOf(patched, ["if(__task)__task.later=!0", "later:!0})"])
-    expectContainsOneOf(patched, ["Wee(!0)", "uX(!0)", "bo(!0)", "Or(!0)", "va(!0)", "jte(!0)", "tne(!0)"])
+    expectContainsOneOf(patched, [
+      "Wee(!0)",
+      "uX(!0)",
+      "bo(!0)",
+      "Or(!0)",
+      "va(!0)",
+      "jte(!0)",
+      "tne(!0)",
+      "ybe(!0)",
+      "tTe(!0)",
+    ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
       expect(patched).not.toContain(
@@ -149,6 +164,16 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("tne(!0)")
       expect(patched).not.toContain("jte(!0)")
+    } else if (targetUses205LaterSymbols) {
+      expect(patched).toContain("Y2e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).not.toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).toContain("ybe(!0)")
+      expect(patched).not.toContain("tne(!0)")
+    } else if (targetUses206LaterSymbols) {
+      expect(patched).toContain("DFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).not.toContain("Y2e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).toContain("tTe(!0)")
+      expect(patched).not.toContain("ybe(!0)")
     }
     expect(patched).toContain("text:`Scheduled ${__id} for ${__when.toLocaleString()}`")
   },
@@ -174,12 +199,24 @@ test.skipIf(!testLaterCommand)(
       "vR().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "Qv().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "uw().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "Jk().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "Zk().filter((__t)=>__t.later===!0&&!__t.recurring)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("uw().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).not.toContain("Qv().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("oft(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("Upt(__t.cron,__t.createdAt)")
+    } else if (targetUses205LaterSymbols) {
+      expect(patched).toContain("Jk().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("uw().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).toContain("nGt(__t.cron,__t.createdAt)")
+      expect(patched).not.toContain("oft(__t.cron,__t.createdAt)")
+    } else if (targetUses206LaterSymbols) {
+      expect(patched).toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("Jk().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).toContain("gVt(__t.cron,__t.createdAt)")
+      expect(patched).not.toContain("nGt(__t.cron,__t.createdAt)")
     }
     expect(patched).toContain("__raw.length>20?`${__raw.slice(0,17)}...`:__raw")
     expect(patched).toContain("return `${__i+1}. ${__text} @ ${__when}`")

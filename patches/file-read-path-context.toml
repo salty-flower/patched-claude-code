@@ -261,7 +261,7 @@ assert_contains = '''children:["Read ",_T.jsx(v,{bold:!0,children:t.length})," c
 [[patches]]
 name = "read-result-path-notebook-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 
 rationale = """
 Show the file path on notebook Read result rows.
@@ -292,6 +292,41 @@ assert_contains = '''children:["Read ",yv.jsx(h,{bold:!0,children:t.length})," c
 kind = "static"
 name = "stale 2.1.201 notebook JSX runtime is absent in 2.1.205"
 assert_not_contains = '''children:["Read ",_T.jsx(v,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches]]
+name = "read-result-path-notebook-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+
+rationale = """
+Show the file path on notebook Read result rows.
+
+This is the 2.1.206 JSX-runtime variant of `read-result-path-notebook`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['" cells"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",kv.jsx(h,{bold:!0,children:t.length})," cells"]'''
+value = '''children:["Read ",kv.jsx(h,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.206"
+assert_contains = '''children:["Read ",kv.jsx(h,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.205 notebook JSX runtime is absent in 2.1.206"
+assert_not_contains = '''children:["Read ",yv.jsx(h,{bold:!0,children:t.length})," cells",Z]'''
 
 [[patches]]
 name = "read-result-path-parts"
@@ -422,7 +457,7 @@ assert_contains = '''children:["Read ",_T.jsx(v,{bold:!0,children:e.file.count})
 [[patches]]
 name = "read-result-path-parts-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 
 rationale = """
 Show the file path on multi-part Read result rows.
@@ -453,6 +488,41 @@ assert_contains = '''children:["Read ",yv.jsx(h,{bold:!0,children:e.file.count})
 kind = "static"
 name = "stale 2.1.201 parts JSX runtime is absent in 2.1.205"
 assert_not_contains = '''children:["Read ",_T.jsx(v,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ia(e.file.originalSize),")",Z]'''
+
+[[patches]]
+name = "read-result-path-parts-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+
+rationale = """
+Show the file path on PDF-part Read result rows.
+
+This is the 2.1.206 JSX-runtime variant of `read-result-path-parts`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = "originalSize", strings = ['"page":"pages"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",kv.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ha(e.file.originalSize),")"]'''
+value = '''children:["Read ",kv.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ha(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.206"
+assert_contains = '''children:["Read ",kv.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ha(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.205 parts JSX runtime is absent in 2.1.206"
+assert_not_contains = '''children:["Read ",yv.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ra(e.file.originalSize),")",Z]'''
 
 [[patches]]
 name = "read-result-path-pdf"
@@ -678,7 +748,7 @@ assert_contains = '''children:["Read ",_T.jsx(v,{bold:!0,children:t})," ",t===1?
 [[patches]]
 name = "read-result-path-text-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 
 rationale = """
 Show the file path on text Read result rows.
@@ -709,6 +779,41 @@ assert_contains = '''children:["Read ",yv.jsx(h,{bold:!0,children:t})," ",t===1?
 kind = "static"
 name = "stale 2.1.201 text JSX runtime is absent in 2.1.205"
 assert_not_contains = '''children:["Read ",_T.jsx(v,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches]]
+name = "read-result-path-text-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+
+rationale = """
+Show the file path on text Read result rows.
+
+This is the 2.1.206 JSX-runtime variant of `read-result-path-text`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['"line":"lines"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",kv.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines"]'''
+value = '''children:["Read ",kv.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.206"
+assert_contains = '''children:["Read ",kv.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.205 text JSX runtime is absent in 2.1.206"
+assert_not_contains = '''children:["Read ",yv.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
 
 [[patches]]
 name = "read-result-path-unchanged"
@@ -838,7 +943,7 @@ assert_not_contains = '''cy.jsx(v,{dimColor:!0,children:["Unchanged since last r
 [[patches]]
 name = "read-result-path-unchanged-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 
 rationale = """
 Show the file path on unchanged Read result rows.
@@ -869,3 +974,38 @@ assert_contains = '''children:e.source==="seeded"?[`Already in context (${Mxd.ba
 kind = "static"
 name = "stale 2.1.201 unchanged JSX runtime is absent in 2.1.205"
 assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${Ijl.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+
+rationale = """
+Show the file path on unchanged Read result rows.
+
+This is the 2.1.206 JSX-runtime variant of `read-result-path-unchanged`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", source = 'kv.jsx(h,{dimColor:!0,children:e.source==="seeded"?`Already in context (${qDd.basename(e.file.filePath)})`:"Unchanged since last read"})' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:e.source==="seeded"?`Already in context (${qDd.basename(e.file.filePath)})`:"Unchanged since last read"'''
+value = '''children:e.source==="seeded"?[`Already in context (${qDd.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.206"
+assert_contains = '''children:e.source==="seeded"?[`Already in context (${qDd.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.205 unchanged JSX runtime is absent in 2.1.206"
+assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${Mxd.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''

@@ -83,7 +83,11 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.206")) {
+      expect(patched).toContain("globalThis.__acc_disabled_footer=H})():void 0,oS={settings:$n()")
+    } else if (isVersionAtLeast(TARGET_VERSION, "2.1.205")) {
+      expect(patched).toContain("globalThis.__acc_disabled_footer=H})():void 0,WS={settings:Bn()")
+    } else if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
       expect(patched).toContain("globalThis.__acc_disabled_footer=H}let Ny=")
     } else if (isVersionAtLeast(TARGET_VERSION, "2.1.197")) {
       expect(patched).toContain("globalThis.__acc_disabled_footer=H}let Z_={settings:Dr()")
@@ -92,7 +96,14 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     } else {
       expect(patched).toContain("globalThis.__acc_disabled_footer=H}let Od={settings:Kr()")
     }
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.205") && isVersionBefore(TARGET_VERSION, "2.1.206")) {
+      expect(patched).toContain(
+        'hideBuiltinFooter:S.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:S.array(S.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      expect(patched).not.toContain(
+        'hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:E.array(E.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+    } else if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
       expect(patched).toContain(
         'hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:E.array(E.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]))',
       )
@@ -114,9 +125,41 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         'hideBuiltinFooter:A.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")',
       )
     }
-    expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
-    expect(patched).toContain("globalThis.__acc_rate_limit_warning=i")
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.206")) {
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=yvb")
+      expect(patched).toContain("__cci=Ve((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).not.toContain("__cci=Tt((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).toContain('Ge((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))')
+      expect(patched).toContain('Ge((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))')
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=yvb")
+      expect(patched).toContain(
+        '__acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      expect(patched).toContain("if(__acc_hide_footer)T_a=null")
+      expect(patched).toContain(
+        '__acc_hide_mode=Ge((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))',
+      )
+      expect(patched).toContain("iue=!__acc_hide_mode&&A_a&&_X?")
+      expect(patched).toContain("pMt=!__acc_hide_mode&&_X&&aX_?")
+    } else if (isVersionAtLeast(TARGET_VERSION, "2.1.205")) {
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=fmb")
+      expect(patched).toContain("__cci=Ve((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).not.toContain("__cci=Tt((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).toContain('Ve((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))')
+      expect(patched).toContain('Ve((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))')
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=fmb")
+      expect(patched).toContain(
+        '__acc_hide_footer=Ve((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      expect(patched).toContain("if(__acc_hide_footer)sha=null")
+      expect(patched).toContain(
+        '__acc_hide_mode=Ve((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))',
+      )
+    } else if (isVersionAtLeast(TARGET_VERSION, "2.1.199")) {
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=i")
       expect(patched).toContain("__cci=Tt((c)=>c.clipboardImageAvailable??!1)")
       expect(patched).not.toContain("__cci=Et((c)=>c.clipboardImageAvailable??!1)")
       expect(patched).toContain("WE.useEffect(()=>{N()},[__cci,N]);")
@@ -438,6 +481,11 @@ test("thinking display wires main-screen streaming thinking to the current REPL 
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.205")) {
+      expect(patched).not.toContain("streamingThinking:_t")
+      expect(patched).not.toContain("streamingThinking:ma")
+      return
+    }
     if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
       const streamingThinkingState = getStreamingThinkingState(patched)
       expect(patched).toContain(`streamingThinking:${streamingThinkingState}`)

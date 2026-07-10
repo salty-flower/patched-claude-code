@@ -347,7 +347,7 @@ assert_contains = '''content:o,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 
 rationale = """
 Render individual MCP text blocks without terminal truncation.
@@ -377,3 +377,37 @@ assert_contains = '''content:Eou,verbose:!0'''
 kind = "static"
 name = "unpatched 2.1.205 MCP text-block call site is absent"
 assert_not_contains = '''content:Eou,verbose:Sou'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.206 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:alu,verbose:slu" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:alu,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.206"
+assert_contains = '''content:alu,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.206 MCP text-block call site is absent"
+assert_not_contains = '''content:alu,verbose:slu'''

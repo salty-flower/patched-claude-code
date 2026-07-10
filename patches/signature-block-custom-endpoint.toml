@@ -218,7 +218,7 @@ assert_not_contains = '''let n=t.bodyModel??t.model,r=njl(e,Ud(n)),'''
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.206"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.205 minified-symbol variant of
@@ -245,3 +245,34 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=axd(e,Sp(r)),'''
 kind = "static"
 name = "stale 2.1.201 signature cleanup symbols are absent in 2.1.205"
 assert_not_contains = '''let n=t.bodyModel??t.model,r=Xc()?njl(e,Ud(n)):hNo(e),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-206"
+target_version = "2.1.206"
+applies_to = ">=2.1.206 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.206 minified-symbol variant of
+`strip-signatures-for-custom-base-url`. The matching-provenance path now uses
+`fDd(e,Gp(r))`; the custom-base-url path falls back to `kfs(e)`, which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+`RIn()`, the existing actual-first-party Anthropic base URL check.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=fDd(e,Gp(r)),'''
+replacement = '''let r=t.bodyModel??t.model,n=RIn()?fDd(e,Gp(r)):kfs(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.206"
+assert_contains = '''let r=t.bodyModel??t.model,n=RIn()?fDd(e,Gp(r)):kfs(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.206"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=fDd(e,Gp(r)),'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.205 signature cleanup symbols are absent in 2.1.206"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=Dxn()?axd(e,Sp(r)):ods(e),'''

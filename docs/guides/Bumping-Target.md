@@ -103,6 +103,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
      session as the baseline TUI check.
    - Reach the main interactive screen. Setup, help text, or `--print` output
      does not count.
+   - Paste non-empty text into the chat input, press `Ctrl+C` once, and confirm
+     the TUI neither exits nor reports React error 300. Clear the input, then
+     perform another local-only interaction to prove the session remains usable.
    - Perform at least one local-only interaction, such as a slash command or
      `/exit`, and confirm clean exit. Do not send a model request for this
      baseline check.

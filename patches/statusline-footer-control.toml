@@ -2615,7 +2615,7 @@ assert_contains = '''if(__acc_hide_footer)sha=null'''
 [[patches]]
 name = "statusline-footer-control-render-state-2-1-206"
 target_version = "2.1.206"
-applies_to = ">=2.1.206 <2.2.0"
+applies_to = ">=2.1.206 <2.1.207"
 rationale = """
 Hide the built-in footer line when the footer item is disabled.
 
@@ -2639,7 +2639,7 @@ assert_contains = '''__acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuil
 [[patches]]
 name = "statusline-footer-control-render-2-1-206"
 target_version = "2.1.206"
-applies_to = ">=2.1.206 <2.2.0"
+applies_to = ">=2.1.206 <2.1.207"
 rationale = """
 Hide the built-in footer line when the footer item is disabled.
 

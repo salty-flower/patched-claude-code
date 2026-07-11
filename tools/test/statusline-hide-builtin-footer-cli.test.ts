@@ -139,8 +139,12 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       )
       const footerHookIndex = patched.indexOf("let __acc_hide_footer=Ge(")
       const exitHintIndex = patched.indexOf("h2o.show){")
+      const pasteStateIndex = patched.indexOf("if(H9R){")
+      const expandPasteIndex = patched.indexOf("if(D9R&&!ahr){")
       expect(footerHookIndex).toBeGreaterThanOrEqual(0)
       expect(exitHintIndex).toBeGreaterThan(footerHookIndex)
+      expect(pasteStateIndex).toBeGreaterThan(footerHookIndex)
+      expect(expandPasteIndex).toBeGreaterThan(footerHookIndex)
       expect(patched).not.toContain(
         'let __acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("footer");const Q3p=',
       )

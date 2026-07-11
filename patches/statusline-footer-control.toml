@@ -2621,19 +2621,20 @@ Hide the built-in footer line when the footer item is disabled.
 
 This is the 2.1.206 hook-site half of
 `statusline-footer-control-render`. It computes the hide decision before the
-footer component memoizes the child footer row. Cleanup condition: upstream
-ships an official setting or flag for hiding the built-in footer status line.
+footer's exit-hint and paste-state early returns so React observes the selector
+hook on every render. Cleanup condition: upstream ships an official setting or
+flag for hiding the built-in footer status line.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
-locator_pattern = '''const Q3p=!PJ_&&!_2o,Z3p=!P9R&&!_2o;'''
+locator_pattern = '''else jJ_=ube[20],WJ_=ube[21];if(v3.useEffect(WJ_,jJ_),h2o.show){'''
 locator_kind = "literal"
 expected_matches = 1
-replacement = '''let __acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("footer");const Q3p=!PJ_&&!_2o,Z3p=!P9R&&!_2o;'''
+replacement = '''else jJ_=ube[20],WJ_=ube[21];let __acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("footer");if(v3.useEffect(WJ_,jJ_),h2o.show){'''
 
 [[patches.tests]]
 kind = "static"
 name = "footer hide state is computed in 2.1.206"
-assert_contains = '''__acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))'''
+assert_contains = '''__acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("footer");if(v3.useEffect(WJ_,jJ_),h2o.show){'''
 
 [[patches]]
 name = "statusline-footer-control-render-2-1-206"

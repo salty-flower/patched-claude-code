@@ -128,13 +128,21 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     if (isVersionAtLeast(TARGET_VERSION, "2.1.206")) {
       expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
       expect(patched).toContain("globalThis.__acc_rate_limit_warning=yvb")
-      expect(patched).toContain("__cci=Ve((c)=>c.clipboardImageAvailable??!1)")
-      expect(patched).not.toContain("__cci=Tt((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).toContain("__cci=Ge((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).not.toContain("__cci=Ve((c)=>c.clipboardImageAvailable??!1)")
+      expect(patched).toContain("V0.useEffect(()=>{q()},[__cci,q]);")
       expect(patched).toContain('Ge((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))')
       expect(patched).toContain('Ge((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))')
       expect(patched).toContain("globalThis.__acc_rate_limit_warning=yvb")
       expect(patched).toContain(
         '__acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      const footerHookIndex = patched.indexOf("let __acc_hide_footer=Ge(")
+      const exitHintIndex = patched.indexOf("h2o.show){")
+      expect(footerHookIndex).toBeGreaterThanOrEqual(0)
+      expect(exitHintIndex).toBeGreaterThan(footerHookIndex)
+      expect(patched).not.toContain(
+        'let __acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("footer");const Q3p=',
       )
       expect(patched).toContain("if(__acc_hide_footer)T_a=null")
       expect(patched).toContain(

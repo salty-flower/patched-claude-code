@@ -85,6 +85,9 @@ async function main(): Promise<number> {
     )
     const laterScheduleInput = "/later 1m patched TUI smoke\r"
     const laterListInput = "/later list\r"
+    const pastedInput = "\x1b[200~hook-order regression\x1b[201~"
+    const cancelInput = "\x03"
+    const clearInput = "\x15"
     const exitInput = "/exit\r"
     const confirmExitInput = "\r"
     const commandEnv = {
@@ -120,6 +123,12 @@ async function main(): Promise<number> {
       tuiCommand,
       [
         "sleep 2",
+        `printf %s ${shellQuote(pastedInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(cancelInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(clearInput)}`,
+        "sleep 1",
         `printf %s ${shellQuote(laterScheduleInput)}`,
         "sleep 1",
         `printf %s ${shellQuote(laterListInput)}`,
@@ -144,6 +153,11 @@ async function main(): Promise<number> {
     }
     if (!normalizedTuiOutput.includes("Claude Code")) {
       console.error("PTY output did not render Claude Code")
+      console.error(tuiOutput)
+      return 1
+    }
+    if (normalizedTuiOutput.includes("React error #300")) {
+      console.error("PTY paste/Ctrl+C interaction violated React hook order")
       console.error(tuiOutput)
       return 1
     }

@@ -249,7 +249,7 @@ assert_not_contains = '''let n=t.bodyModel??t.model,r=Xc()?njl(e,Ud(n)):hNo(e),'
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-206"
 target_version = "2.1.206"
-applies_to = ">=2.1.206 <2.2.0"
+applies_to = ">=2.1.206 <2.1.207"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.206 minified-symbol variant of
@@ -276,3 +276,34 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=fDd(e,Gp(r)),'''
 kind = "static"
 name = "stale 2.1.205 signature cleanup symbols are absent in 2.1.206"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=Dxn()?axd(e,Sp(r)):ods(e),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-207"
+target_version = "2.1.207"
+applies_to = ">=2.1.207 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.207 minified-symbol variant of
+`strip-signatures-for-custom-base-url`. The matching-provenance path now uses
+`X1d(e,Kp(r))`; the custom-base-url path falls back to `Q1d(e)`, which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+`K1d()`, the existing actual-first-party Anthropic base URL check.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=X1d(e,Kp(r)),'''
+replacement = '''let r=t.bodyModel??t.model,n=K1d()?X1d(e,Kp(r)):Q1d(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.207"
+assert_contains = '''let r=t.bodyModel??t.model,n=K1d()?X1d(e,Kp(r)):Q1d(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.207"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=X1d(e,Kp(r)),'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.206 signature cleanup symbols are absent in 2.1.207"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=RIn()?fDd(e,Gp(r)):kfs(e),'''

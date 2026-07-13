@@ -99,7 +99,7 @@ assert_contains = '''item:u,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-array-text-full-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.207"
 
 rationale = """
 Render MCP text-array results without terminal truncation.
@@ -128,6 +128,40 @@ assert_contains = '''item:u,verbose:!0'''
 [[patches.tests]]
 kind = "static"
 name = "stale 2.1.186 MCP array verbose symbol is absent in 2.1.205"
+assert_not_contains = '''item:u,verbose:n'''
+
+[[patches]]
+name = "mcp-result-render-array-text-full-2-1-207"
+target_version = "2.1.207"
+applies_to = ">=2.1.207 <2.2.0"
+
+rationale = """
+Render MCP text-array results without terminal truncation.
+
+This is the 2.1.207 JSX-runtime minified-symbol variant of
+`mcp-result-render-array-text-full`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "item:u,verbose:r" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{item:u,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.207"
+assert_contains = '''item:u,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.186 MCP array verbose symbol is absent in 2.1.207"
 assert_not_contains = '''item:u,verbose:n'''
 
 [[patches]]
@@ -223,7 +257,7 @@ assert_contains = '''content:o,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-string-full-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.207"
 
 rationale = """
 Render string MCP results without terminal truncation.
@@ -252,6 +286,40 @@ assert_contains = '''content:o,verbose:!0'''
 [[patches.tests]]
 kind = "static"
 name = "stale 2.1.186 MCP string verbose symbol is absent in 2.1.205"
+assert_not_contains = '''content:o,verbose:n'''
+
+[[patches]]
+name = "mcp-result-render-string-full-2-1-207"
+target_version = "2.1.207"
+applies_to = ">=2.1.207 <2.2.0"
+
+rationale = """
+Render string MCP results without terminal truncation.
+
+This is the 2.1.207 JSX-runtime minified-symbol variant of
+`mcp-result-render-string-full`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:o,verbose:r" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:o,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.207"
+assert_contains = '''content:o,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.186 MCP string verbose symbol is absent in 2.1.207"
 assert_not_contains = '''content:o,verbose:n'''
 
 [[patches]]
@@ -381,7 +449,7 @@ assert_not_contains = '''content:Eou,verbose:Sou'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-206"
 target_version = "2.1.206"
-applies_to = ">=2.1.206 <2.2.0"
+applies_to = ">=2.1.206 <2.1.207"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -410,4 +478,43 @@ assert_contains = '''content:alu,verbose:!0'''
 [[patches.tests]]
 kind = "static"
 name = "unpatched 2.1.206 MCP text-block call site is absent"
+assert_not_contains = '''content:alu,verbose:slu'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-207"
+target_version = "2.1.207"
+applies_to = ">=2.1.207 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.207 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:Jdu,verbose:Ydu" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:Jdu,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.207"
+assert_contains = '''content:Jdu,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.207 MCP text-block call site is absent"
+assert_not_contains = '''content:Jdu,verbose:Ydu'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.206 MCP text-block call site is absent in 2.1.207"
 assert_not_contains = '''content:alu,verbose:slu'''

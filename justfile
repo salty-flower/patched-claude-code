@@ -4,6 +4,7 @@ target := env_var_or_default("TARGET_VERSION", "2.1.206")
 source := env_var_or_default("TARGET_SOURCE", "canonical")
 platform := env_var_or_default("TARGET_PLATFORM", "darwin-arm64")
 release_id := env_var_or_default("RELEASE_ID", "patch.local")
+resume_transcript_timeout := env_var_or_default("RESUME_TRANSCRIPT_TIMEOUT_SECONDS", "16")
 
 stage version=target source=source:
   bun run tools/patch/stage-target.ts --version "{{version}}" --source "{{source}}"
@@ -30,11 +31,19 @@ patch-test version=target source=source: (render version source)
 patch-test-rendered version=target:
   bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
 
-api-stub-smoke version=target source=source: (render version source)
+api-stub-smoke version=target source=source timeout=resume_transcript_timeout: (render version source)
   bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
+  bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"
 
-api-stub-smoke-rendered version=target:
+api-stub-smoke-rendered version=target timeout=resume_transcript_timeout:
   bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
+  bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"
+
+resume-transcript-smoke version=target source=source timeout=resume_transcript_timeout: (render version source)
+  bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"
+
+resume-transcript-smoke-rendered version=target timeout=resume_transcript_timeout:
+  bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"
 
 package version=target release_id=release_id source=source: (render version source)
   bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"

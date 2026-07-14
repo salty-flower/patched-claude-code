@@ -487,7 +487,7 @@ assert_not_contains = '''estimatedTokensDelta:con(w)'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-207"
 target_version = "2.1.207"
-applies_to = ">=2.1.207 <2.2.0"
+applies_to = ">=2.1.207 <2.1.208"
 
 rationale = """
 Render thinking deltas while the current API response is still streaming.
@@ -526,6 +526,49 @@ assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedT
 kind = "static"
 name = "stale 2.1.206 thinking token estimator is absent in 2.1.207"
 assert_not_contains = '''estimatedTokensDelta:Xin(w)'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-208"
+target_version = "2.1.208"
+applies_to = ">=2.1.208 <2.2.0"
+
+rationale = """
+Render thinking deltas while the current API response is still streaming.
+
+This is the 2.1.208 stream-handler variant of
+`thinking-render-live-stream`. The fallback token estimator now minifies to
+`pon`, while the live thinking setter remains on the stream-handler options
+object as `onStreamingThinking`.
+
+Cleanup condition: upstream renders thinking_delta content live in the
+interactive UI.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":{let{delta:d}=e.event;if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if("thinking"in d&&typeof d.thinking==="string"&&d.thinking.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:pon(d.thinking)});return}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let{delta:d}=e.event,w=typeof d.thinking==="string"?d.thinking:"";if(w)i?.(w.length),t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:pon(w)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas update streaming thinking in 2.1.208"
+assert_contains = '''t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas preserve fallback progress estimates in 2.1.208"
+assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:pon(w)})'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.207 thinking token estimator is absent in 2.1.208"
+assert_not_contains = '''estimatedTokensDelta:jan(w)'''
 
 [[patches]]
 name = "thinking-clear-live-on-next-block-2-1-150"
@@ -2038,7 +2081,7 @@ assert_contains = '''case"redacted_thinking":{if(!ost&&!dJ){return null}'''
 [[patches]]
 name = "thinking-render-blocks-2-1-207"
 target_version = "2.1.207"
-applies_to = ">=2.1.207 <2.2.0"
+applies_to = ">=2.1.207 <2.1.208"
 
 rationale = """
 Render thinking blocks in normal assistant messages.
@@ -2075,6 +2118,52 @@ assert_contains = '''case"redacted_thinking":{if(!tat&&!xJ){return null}'''
 kind = "static"
 name = "stale 2.1.206 thinking block symbols are absent in 2.1.207"
 assert_not_contains = '''case"redacted_thinking":{if(!ost&&!dJ){return null}'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-208"
+target_version = "2.1.208"
+applies_to = ">=2.1.208 <2.2.0"
+
+rationale = """
+Render thinking blocks in normal assistant messages.
+
+This is the 2.1.208 message-renderer variant. The thinking block renderer is
+`_ir`, transcript mode is `Rlt`, and verbose mode is `gX`.
+Cleanup condition: upstream exposes a normal thinking-display mode that renders
+thinking summaries in the interactive transcript.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", strings = ['case"thinking":{if(!Rlt&&!gX){return null}', 'dp.jsx(_ir,{addMargin:m8,param:GL,isTranscriptMode:Rlt,verbose:gX})'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking":{if(!Rlt&&!gX){return null}'''
+value = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "normal rendering keeps thinking in 2.1.208"
+assert_contains = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "redacted thinking stays detailed-only in 2.1.208"
+assert_contains = '''case"redacted_thinking":{if(!Rlt&&!gX){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.208 thinking block gate is absent"
+assert_not_contains = '''case"thinking":{if(!Rlt&&!gX){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.207 thinking block symbols are absent in 2.1.208"
+assert_not_contains = '''case"redacted_thinking":{if(!tat&&!xJ){return null}'''
 
 [[patches]]
 name = "thinking-render-expanded"
@@ -2526,7 +2615,7 @@ assert_not_contains = '''let RBC=tsd||rsd;'''
 [[patches]]
 name = "thinking-render-expanded-2-1-207"
 target_version = "2.1.207"
-applies_to = ">=2.1.207 <2.2.0"
+applies_to = ">=2.1.207 <2.1.208"
 rationale = """
 Render the full thinking body rather than the one-line collapsed variant.
 
@@ -2562,3 +2651,43 @@ assert_not_contains = '''let ZjC=Nud||Fud;'''
 kind = "static"
 name = "stale 2.1.206 expanded thinking symbols are absent in 2.1.207"
 assert_not_contains = '''let RBC=tsd||rsd;'''
+
+[[patches]]
+name = "thinking-render-expanded-2-1-208"
+target_version = "2.1.208"
+applies_to = ">=2.1.208 <2.2.0"
+rationale = """
+Render the full thinking body rather than the one-line collapsed variant.
+
+This is the 2.1.208 thinking component variant. The component is `_ir` and
+its transcript/verbose gate now minifies to `Mrw=hgd||ggd`.
+Cleanup condition: upstream adds a display mode that keeps thinking summaries
+expanded in the normal transcript.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "_ir", strings = ['{thinking:ygd}=Lrw', 'Tgd.trim().replace'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let Mrw=hgd||ggd;'''
+value = '''let Mrw=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking body uses expanded render path in 2.1.208"
+assert_contains = '''let Mrw=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking body no longer depends on transcript or verbose mode in 2.1.208"
+assert_not_contains = '''let Mrw=hgd||ggd;'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.207 expanded thinking symbols are absent in 2.1.208"
+assert_not_contains = '''let ZjC=Nud||Fud;'''

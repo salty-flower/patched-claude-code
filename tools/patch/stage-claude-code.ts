@@ -32,7 +32,7 @@ export const STAGING_SUPPORT_CONTRACT = {
     layoutContract: BUN_STANDALONE_LAYOUT_CONTRACT.name,
   },
   nativeDownloadsManifest: {
-    knownGoodVersions: ["2.1.132", "2.1.133", "2.1.181", "2.1.197", "2.1.199", "2.1.201"],
+    knownGoodVersions: ["2.1.132", "2.1.133", "2.1.181", "2.1.197", "2.1.199", "2.1.201", "2.1.208"],
     condition: "Claude direct-download manifest exposes platform Bun standalone binaries",
     layoutContract: BUN_STANDALONE_LAYOUT_CONTRACT.name,
   },
@@ -312,7 +312,9 @@ async function main(): Promise<number> {
   const knownGoodVersions =
     source === "wrapper-cli"
       ? STAGING_SUPPORT_CONTRACT.legacyWrapperCli.knownGoodVersions
-      : STAGING_SUPPORT_CONTRACT.nativeBunStandalone.knownGoodVersions
+      : args.source === "direct"
+        ? STAGING_SUPPORT_CONTRACT.nativeDownloadsManifest.knownGoodVersions
+        : STAGING_SUPPORT_CONTRACT.nativeBunStandalone.knownGoodVersions
   const knownGoodExtraction = (knownGoodVersions as readonly string[]).includes(version)
   if (!knownGoodExtraction) {
     console.error(`warning: staged ${version} is not listed as known-good in the extraction support contract`)

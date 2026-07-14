@@ -53,8 +53,18 @@ test("api stub smoke can run with or without rendering first", () => {
   const recipe = recipeBlock("api-stub-smoke")
   const renderedRecipe = recipeBlock("api-stub-smoke-rendered")
 
-  expect(recipe).toContain("api-stub-smoke version=target source=source: (render version source)")
+  expect(recipe).toContain(
+    "api-stub-smoke version=target source=source timeout=resume_transcript_timeout: (render version source)",
+  )
   expect(recipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
-  expect(renderedRecipe).toContain("api-stub-smoke-rendered version=target:")
+  expect(recipe).toContain(
+    'resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
+  )
+  expect(renderedRecipe).toContain(
+    "api-stub-smoke-rendered version=target timeout=resume_transcript_timeout:",
+  )
   expect(renderedRecipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
+  expect(renderedRecipe).toContain(
+    'resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
+  )
 })

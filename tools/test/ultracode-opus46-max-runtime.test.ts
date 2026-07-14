@@ -13,7 +13,7 @@ const OPUS_46 = "claude-opus-4-6"
 
 const ultracodePatches = loadPatchEntriesFromFile(ULTRACODE_PATCH)
 const testUltracodeRuntime =
-  TARGET_VERSION === "2.1.199" && ultracodePatches.some((patch) => patchApplies(patch, TARGET_VERSION))
+  TARGET_VERSION === "2.1.208" && ultracodePatches.some((patch) => patchApplies(patch, TARGET_VERSION))
 
 const tempDirs: string[] = []
 
@@ -41,29 +41,23 @@ function replaceOnce(source: string, needle: string, replacement: string): strin
 function injectUltracodeHarness(source: string): string {
   let harness = replaceOnce(
     source,
-    'function Sb(){if(KOn())return!1;if(!vji())return!1;let{available:e,defaultOn:t}=Eeo();if(!e)return!1;return qVd()??t}',
-    "function Sb(){return!0}",
+    'function EE(){if(hqt())return!1;if(!LNn())return!1;let{available:e,defaultOn:t}=WTi();if(!e)return!1;return alh()??t}',
+    "function EE(){return!0}",
   )
   harness = replaceOnce(
     harness,
-    "function Hs(){let e=j6();if(e!==void 0&&e!==null)return $o(e);return P_()}",
-    `function Hs(){return"${OPUS_46}"}`,
+    "function ki(){let e=i9();if(e!==void 0&&e!==null)return Zo(e);return SE()}",
+    `function ki(){return"${OPUS_46}"}`,
   )
   harness = replaceOnce(
     harness,
-    "function X6e(e,t){let n=ect(t);return n===null||HHe(e)<=HHe(n)}",
-    "function X6e(){return!0}",
+    "function a3e(e,t){let r=yqt(t);return r===null||dXe(e)<=dXe(r)}",
+    "function a3e(){return!0}",
   )
-  const entrypointMatches = [...harness.matchAll(/\b([A-Za-z_$][\w$]*Zf)\(\);/g)]
-  const entrypointMatch = entrypointMatches.at(-1)
-  if (!entrypointMatch?.[0]) throw new Error("could not locate CLI entrypoint call")
-  if (entrypointMatches.length > 1) {
-    const names = entrypointMatches.map((match) => match[1]).join(", ")
-    throw new Error(`expected exactly one CLI entrypoint call, found ${entrypointMatches.length}: ${names}`)
-  }
-  return harness.replace(
-    entrypointMatch[0],
-    'try{l$();let __acc_result=Epf();process.stdout.write(JSON.stringify(__acc_result)+"\\n")}catch(__acc_error){console.error(__acc_error?.stack??String(__acc_error));process.exit(1)}',
+  return replaceOnce(
+    harness,
+    "qKb();",
+    'try{zqs();let __acc_result=Es_();process.stdout.write(JSON.stringify(__acc_result)+"\\n")}catch(__acc_error){console.error(__acc_error?.stack??String(__acc_error));process.exit(1)}',
   )
 }
 
@@ -108,7 +102,7 @@ test.skipIf(!testUltracodeRuntime)(
       effortUpdate?: { value?: string; ultracode?: boolean }
     }
     expect(result.message).toContain("Set effort level to ultracode")
-    expect(result.message).toContain("max effort + dynamic workflow orchestration")
+    expect(result.message).toContain("max + dynamic workflow orchestration")
     expect(result.message).not.toContain("doesn't support")
     expect(result.effortUpdate).toEqual({ value: "max", ultracode: true })
   },

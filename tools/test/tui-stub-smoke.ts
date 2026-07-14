@@ -17,7 +17,7 @@ function parseArgs(argv: string[]): Args {
     .requiredOption("--bundle <cli.patched.js>", "rendered patched Claude Code bundle")
     .option("--prompt <text>", "prompt to submit through the stubbed API check", "hello")
     .option("--expect <text>", "text expected in print-mode output", "stub")
-    .option("--timeout-seconds <seconds>", "PTY timeout", (value) => Number.parseInt(value, 10), 45)
+    .option("--timeout-seconds <seconds>", "PTY timeout", (value) => Number.parseInt(value, 10), 75)
     .parse(argv, { from: "user" })
   const options = program.opts<{
     bundle: string
@@ -52,6 +52,11 @@ function normalizeTuiOutput(output: string): string {
     .replace(/\s+/g, " ")
 }
 
+function formatLaterTimestamp(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
   if (!existsSync(args.bundle)) {
@@ -83,7 +88,11 @@ async function main(): Promise<number> {
         2,
       )}\n`,
     )
-    const laterScheduleInput = "/later 1m patched TUI smoke\r"
+    const laterPrompt = "patched TUI smoke"
+    const laterAt = new Date(Date.now() + 35000)
+    laterAt.setMilliseconds(0)
+    const laterTimestamp = formatLaterTimestamp(laterAt)
+    const laterScheduleInput = `/later ${laterTimestamp} ${laterPrompt}\r`
     const laterListInput = "/later list\r"
     const pastedInput = "\x1b[200~hook-order regression\x1b[201~"
     const cancelInput = "\x03"
@@ -105,9 +114,10 @@ async function main(): Promise<number> {
     const envPrefix = Object.entries(commandEnv)
       .map(([key, value]) => `${key}=${shellQuote(value)}`)
       .join(" ")
+    const tuiTimeoutSeconds = Math.min(args.timeoutSeconds, 60)
     const tuiCommand = [
       "timeout",
-      `${Math.min(args.timeoutSeconds, 30)}s`,
+      `${tuiTimeoutSeconds}s`,
       "env",
       envPrefix,
       "bun",
@@ -132,22 +142,37 @@ async function main(): Promise<number> {
         `printf %s ${shellQuote(laterScheduleInput)}`,
         "sleep 1",
         `printf %s ${shellQuote(laterListInput)}`,
-        "sleep 1",
+        "sleep 33",
         `printf %s ${shellQuote(exitInput)}`,
         "sleep 1",
         `printf %s ${shellQuote(confirmExitInput)}`,
       ].join("; "),
     )
-    const tuiResult = Bun.spawnSync({
+    const laterRequestPromise = stub
+      .waitForRequest(
+        (request) => request.path.endsWith("/messages") && request.rawBody.includes(laterPrompt),
+        tuiTimeoutSeconds * 1000,
+      )
+      .then(
+        (request) => ({ ok: true as const, request, resolvedAt: Date.now() }),
+        (error: unknown) => ({ ok: false as const, error }),
+      )
+    const tuiProc = Bun.spawn({
       cmd: ["bash", "-lc", tuiScriptCommand],
       cwd: home,
       stdout: "pipe",
       stderr: "pipe",
     })
-    const tuiOutput = `${tuiResult.stdout.toString()}\n${tuiResult.stderr.toString()}`
+    const [tuiExitCode, tuiStdout, tuiStderr, laterRequestResult] = await Promise.all([
+      tuiProc.exited,
+      new Response(tuiProc.stdout).text(),
+      new Response(tuiProc.stderr).text(),
+      laterRequestPromise,
+    ])
+    const tuiOutput = `${tuiStdout}\n${tuiStderr}`
     const normalizedTuiOutput = normalizeTuiOutput(tuiOutput)
-    if (tuiResult.exitCode !== 0) {
-      console.error(`PTY command exited ${tuiResult.exitCode}`)
+    if (tuiExitCode !== 0) {
+      console.error(`PTY command exited ${tuiExitCode}`)
       console.error(tuiOutput)
       return 1
     }
@@ -166,11 +191,25 @@ async function main(): Promise<number> {
       console.error(tuiOutput)
       return 1
     }
-    if (!normalizedTuiOutput.includes("1. patched TUI smoke @")) {
-      console.error("PTY output did not render /later list")
+    if (!normalizedTuiOutput.includes(`1. ${laterPrompt} @ ${laterTimestamp}`)) {
+      console.error("PTY output did not render the exact /later timestamp")
       console.error(tuiOutput)
       return 1
     }
+    if (!laterRequestResult.ok) {
+      const detail = laterRequestResult.error instanceof Error ? laterRequestResult.error.message : String(laterRequestResult.error)
+      console.error(`absolute /later prompt did not reach the local Claude API stub: ${detail}`)
+      console.error(tuiOutput)
+      return 1
+    }
+    if (laterRequestResult.resolvedAt < laterAt.getTime()) {
+      console.error(
+        `absolute /later prompt fired ${laterAt.getTime() - laterRequestResult.resolvedAt}ms early: scheduled ${laterAt.toISOString()}, observed ${new Date(laterRequestResult.resolvedAt).toISOString()}`,
+      )
+      console.error(tuiOutput)
+      return 1
+    }
+    if (process.env.TUI_SMOKE_SHOW_OUTPUT === "1") console.log(normalizedTuiOutput)
 
     const printProc = Bun.spawn({
       cmd: [process.execPath, bundle, "--print", "--bare", "--model", "sonnet", "--max-turns", "1", args.prompt],

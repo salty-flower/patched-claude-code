@@ -12,6 +12,7 @@ const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208")
+const targetUsesNewYorkTime = process.env.TZ === "America/New_York"
 const targetUses207LaterSymbols = !targetUses208LaterSymbols && gte(TARGET_VERSION, "2.1.207")
 const targetUses206LaterSymbols =
   !targetUses207LaterSymbols && !targetUses208LaterSymbols && gte(TARGET_VERSION, "2.1.206")
@@ -32,6 +33,7 @@ type LaterTask = {
   createdAt: number
   recurring?: boolean
   later?: boolean
+  laterAt?: number
 }
 
 type LaterHookResult = {
@@ -62,6 +64,73 @@ function renderLaterCommandPatch(input: string, output: string): number {
 
 function expectContainsOneOf(body: string, snippets: string[]): void {
   expect(snippets.some((snippet) => body.includes(snippet))).toBe(true)
+}
+
+function get208SubmitCode(): string {
+  const patch = laterPatches.find((entry) => entry.name === "later-command-submit-hook-2-1-208")
+  if (!patch || patch.transform?.op !== "insert_after_node") {
+    throw new Error("2.1.208 /later submit transform is missing")
+  }
+  return patch.transform.code
+}
+
+async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Promise<LaterHookResult> {
+  const tasks = [...seedTasks]
+  const notifications: string[] = []
+  const result: LaterHookResult = {
+    cleared: false,
+    cursorOffset: null,
+    inputValue: null,
+    notifications,
+    pastedContentsCleared: false,
+    resetHistory: false,
+    scheduledTasksEnabled: false,
+    tasks,
+  }
+  const submit = new Function(
+    "e",
+    "I",
+    "P",
+    "n",
+    "FI",
+    "xVt",
+    "Z$e",
+    "ESe",
+    "i",
+    "x",
+    "s",
+    "H",
+    "k",
+    `"use strict";return async()=>{${get208SubmitCode()}}`,
+  )(
+    { addNotification: ({ text }: { text: string }) => notifications.push(text) },
+    input,
+    "prompt",
+    false,
+    () => tasks,
+    (_cron: string, createdAt: number) => createdAt + 60000,
+    (task: LaterTask) => tasks.push(task),
+    (enabled: boolean) => {
+      result.scheduledTasksEnabled = enabled
+    },
+    (value: string) => {
+      result.inputValue = value
+    },
+    (offset: number) => {
+      result.cursorOffset = offset
+    },
+    (contents: Record<string, unknown>) => {
+      result.pastedContentsCleared = Object.keys(contents).length === 0
+    },
+    () => {
+      result.resetHistory = true
+    },
+    () => {
+      result.cleared = true
+    },
+  ) as () => Promise<void>
+  await submit()
+  return result
 }
 
 async function run201LaterHook(patched: string, input: string, seedTasks: LaterTask[] = []): Promise<LaterHookResult> {
@@ -140,7 +209,7 @@ test.skipIf(!testLaterCommand)(
     const applied = renderLaterCommandPatch(TARGET_BUNDLE, patchedBundle)
     const patched = readFileSync(patchedBundle, "utf8")
 
-    expect(applied).toBe(2)
+    expect(applied).toBe(targetUses208LaterSymbols ? 3 : 2)
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
     expectContainsOneOf(patched, [
       "await xut(__cron,__prompt,!1,!1,void 0)",
@@ -154,8 +223,9 @@ test.skipIf(!testLaterCommand)(
       "DFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
       "QFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
       "Z$e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
+      "Z$e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
     ])
-    expectContainsOneOf(patched, ["if(__task)__task.later=!0", "later:!0})"])
+    expectContainsOneOf(patched, ["if(__task)__task.later=!0", "later:!0})", "later:!0,laterAt:"])
     expectContainsOneOf(patched, [
       "Wee(!0)",
       "uX(!0)",
@@ -167,7 +237,7 @@ test.skipIf(!testLaterCommand)(
       "ybe(!0)",
       "tTe(!0)",
       "DTe(!0)",
-      "jBt(!0)",
+      "ESe(!0)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
@@ -192,9 +262,13 @@ test.skipIf(!testLaterCommand)(
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
     } else if (targetUses208LaterSymbols) {
-      expect(patched).toContain("Z$e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).toContain("laterAt:__when.getTime()")
+      expect(patched).toContain(
+        "G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n",
+      )
       expect(patched).not.toContain("QFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
-      expect(patched).toContain("jBt(!0)")
+      expect(patched).toContain("ESe(!0)")
+      expect(patched).not.toContain("jBt(!0)")
       expect(patched).not.toContain("DTe(!0)")
     }
     expect(patched).toContain("text:`Scheduled ${__id} for ${__when.toLocaleString()}`")
@@ -250,6 +324,9 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("lI().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("xVt(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("E7t(__t.cron,__t.createdAt)")
+      expect(patched).toContain(
+        '`${__d.getFullYear()}-${String(__d.getMonth()+1).padStart(2,"0")}-${String(__d.getDate()).padStart(2,"0")} ${String(__d.getHours()).padStart(2,"0")}:${String(__d.getMinutes()).padStart(2,"0")}:${String(__d.getSeconds()).padStart(2,"0")}`',
+      )
     }
     expect(patched).toContain("__raw.length>20?`${__raw.slice(0,17)}...`:__raw")
     expect(patched).toContain("return `${__i+1}. ${__text} @ ${__when}`")
@@ -267,10 +344,85 @@ test.skipIf(!testLaterCommand)(
     const patched = readFileSync(patchedBundle, "utf8")
 
     expect(patched).toContain('name:"later"')
-    expect(patched).toContain('description:"Schedule a prompt for later; use /later 10m <prompt> or /later list"')
+    if (targetUses208LaterSymbols) {
+      expect(patched).toContain('description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"')
+    } else {
+      expect(patched).toContain('description:"Schedule a prompt for later; use /later 10m <prompt> or /later list"')
+    }
     expect(patched).toContain("supportsNonInteractive:!1")
   },
   120000,
+)
+
+test.skipIf(!targetUses208LaterSymbols)(
+  "/later stores exact relative and absolute fire times in 2.1.208",
+  async () => {
+    const beforeRelative = Date.now()
+    const relative = await run208LaterHook("/later 1m write the regression note")
+    expect(relative.tasks).toHaveLength(1)
+    expect(relative.tasks[0]?.laterAt).toBeGreaterThanOrEqual(beforeRelative + 60000)
+    expect(relative.tasks[0]?.laterAt).toBeLessThanOrEqual(Date.now() + 60000)
+
+    const explicitDate = new Date()
+    explicitDate.setDate(explicitDate.getDate() + 2)
+    explicitDate.setHours(12, 34, 56, 0)
+    const stamp = `${explicitDate.getFullYear()}-${String(explicitDate.getMonth() + 1).padStart(2, "0")}-${String(explicitDate.getDate()).padStart(2, "0")} 12:34:56`
+    const absolute = await run208LaterHook(`/later ${stamp} inspect the release`)
+    expect(absolute.tasks[0]?.laterAt).toBe(explicitDate.getTime())
+    expect(absolute.tasks[0]?.prompt).toBe("inspect the release")
+
+    explicitDate.setHours(12, 35, 0, 0)
+    const minuteStamp = `${explicitDate.getFullYear()}-${String(explicitDate.getMonth() + 1).padStart(2, "0")}-${String(explicitDate.getDate()).padStart(2, "0")} 12:35`
+    const minutePrecision = await run208LaterHook(`/later ${minuteStamp} default seconds`)
+    expect(minutePrecision.tasks[0]?.laterAt).toBe(explicitDate.getTime())
+  },
+)
+
+test.skipIf(!targetUses208LaterSymbols)("/later time-only form chooses the next local occurrence", async () => {
+  const now = new Date()
+  const prior = new Date(now.getTime() - 60000)
+  const time = `${String(prior.getHours()).padStart(2, "0")}:${String(prior.getMinutes()).padStart(2, "0")}:${String(prior.getSeconds()).padStart(2, "0")}`
+  const result = await run208LaterHook(`/later ${time} next occurrence`)
+  const laterAt = result.tasks[0]?.laterAt ?? 0
+  const scheduled = new Date(laterAt)
+  expect(laterAt).toBeGreaterThan(Date.now())
+  expect(laterAt).toBeLessThanOrEqual(Date.now() + 25 * 60 * 60 * 1000)
+  expect(
+    `${String(scheduled.getHours()).padStart(2, "0")}:${String(scheduled.getMinutes()).padStart(2, "0")}:${String(scheduled.getSeconds()).padStart(2, "0")}`,
+  ).toBe(time)
+})
+
+test.skipIf(!targetUses208LaterSymbols)("/later rejects invalid or past explicit timestamps", async () => {
+  for (const input of [
+    "/later 2026-02-30 12:00 impossible date",
+    "/later 2000-01-01 00:00 past date",
+    "/later 2:00 non-fixed hour",
+    "/later 24:00 invalid hour",
+    "/later 12:60 invalid minute",
+  ]) {
+    const result = await run208LaterHook(input)
+    expect(result.tasks).toHaveLength(0)
+    expect(result.notifications[0]).toContain("Usage: /later")
+    expect(result.inputValue).toBeNull()
+    expect(result.cleared).toBe(false)
+  }
+})
+
+test.skipIf(!targetUses208LaterSymbols)("/later rejects finite relative delays outside the Date range", async () => {
+  const result = await run208LaterHook("/later 100000001d outside the Date range")
+
+  expect(result.tasks).toHaveLength(0)
+  expect(result.notifications[0]).toContain("Usage: /later")
+  expect(result.scheduledTasksEnabled).toBe(false)
+})
+
+test.skipIf(!targetUses208LaterSymbols || !targetUsesNewYorkTime)(
+  "/later rejects a normalized DST-gap timestamp",
+  async () => {
+    const result = await run208LaterHook("/later 2030-03-10 02:30 skipped local time")
+    expect(result.tasks).toHaveLength(0)
+    expect(result.notifications[0]).toContain("Usage: /later")
+  },
 )
 
 test.skipIf(!testLaterCommand || !targetIs201)(

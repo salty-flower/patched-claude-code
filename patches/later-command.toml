@@ -525,14 +525,16 @@ name = "later-command-submit-hook-2-1-208"
 target_version = "2.1.208"
 applies_to = ">=2.1.208 <2.2.0"
 rationale = """
-Add a session-only delayed prompt command for busy interactive sessions.
+Add session-only relative and absolute delayed prompts for interactive sessions.
 
-This is the 2.1.208 minified-symbol variant of `later-command-submit-hook`.
-The prompt-submit locals remain `I` for the input and `P` for mode;
-session-task helpers now minify to `FI`, `Z$e`, and `jBt`, while the cron
-next-run helper is `xVt`.
-Cleanup condition: upstream exposes an interactive delayed-send or one-shot
-prompt queue command.
+The active 2.1.208 variant accepts `/later <delay> <prompt>` and process-local
+`/later [YYYY-MM-dd] HH:mm[:ss] <prompt>`, while `/later list` renders exact
+timestamps. It stores `laterAt` on the existing session task instead of using
+a parallel timer, preserving scheduler loading deferral and queue behavior.
+The prompt-submit locals are `I`, `P`, and `n`; session helpers are `FI`,
+`Z$e`, and the polling setter `ESe`, and the cron fallback helper is `xVt`.
+Remove this patch when upstream exposes an equivalent interactive one-shot
+scheduling command.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L313-L350"
 
@@ -544,7 +546,7 @@ match = { node = "IfStatement", source = '''if(I.trim()==="")return;''' }
 
 [patches.transform]
 op = "insert_after_node"
-code = '''if(P==="prompt"&&!n){let __trim=I.trim(),__usage="Usage: /later 10m <prompt> | /later list (minimum 60s)";if(__trim==="/later list"){let __jobs=FI().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __at=xVt(__t.cron,__t.createdAt),__d=__at?new Date(__at):null,__when=__d?`${String(__d.getMonth()+1).padStart(2,"0")}/${String(__d.getDate()).padStart(2,"0")} ${String(__d.getHours()).padStart(2,"0")}:${String(__d.getMinutes()).padStart(2,"0")}`:"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?`${__raw.slice(0,17)}...`:__raw;return `${__i+1}. ${__text} @ ${__when}`});if(__jobs.length>10)__lines.push(`+${__jobs.length-10} more`);e.addNotification?.({key:"later-list",kind:"feedback",text:__lines.length?`Pending /later prompts:\n${__lines.join("\n")}`:"No pending /later prompts",priority:"immediate"});i("");x(0);s({});H();k();return}let __later=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i);if(__later){let __unit=__later[2].toLowerCase(),__delay=Number(__later[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit],__prompt=__later[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __when=new Date(Date.now()+__delay),__cron=`${__when.getMinutes()} ${__when.getHours()} ${__when.getDate()} ${__when.getMonth()+1} *`,__id=`later-${Date.now().toString(36)}`;Z$e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0});jBt(!0);e.addNotification?.({key:`later-${__id}`,kind:"feedback",text:`Scheduled ${__id} for ${__when.toLocaleString()}`,priority:"immediate"});i("");x(0);s({});H();k();return}if(__trim.startsWith("/later")){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+code = '''if(P==="prompt"&&!n){let __trim=I.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list";if(__trim==="/later list"){let __jobs=FI().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __at=Number.isFinite(__t.laterAt)?__t.laterAt:xVt(__t.cron,__t.createdAt),__d=__at?new Date(__at):null,__when=__d?`${__d.getFullYear()}-${String(__d.getMonth()+1).padStart(2,"0")}-${String(__d.getDate()).padStart(2,"0")} ${String(__d.getHours()).padStart(2,"0")}:${String(__d.getMinutes()).padStart(2,"0")}:${String(__d.getSeconds()).padStart(2,"0")}`:"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?`${__raw.slice(0,17)}...`:__raw;return `${__i+1}. ${__text} @ ${__when}`});if(__jobs.length>10)__lines.push(`+${__jobs.length-10} more`);e.addNotification?.({key:"later-list",kind:"feedback",text:__lines.length?`Pending /later prompts:\n${__lines.join("\n")}`:"No pending /later prompts",priority:"immediate"});i("");x(0);s({});H();k();return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __createdAt=Date.now(),__prompt,__when;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=new Date(__createdAt+__delay)}else{__prompt=__absolute[7].trim();let __now=new Date(__createdAt),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__now.getFullYear(),__month=__hasDate?Number(__absolute[2]):__now.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__now.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__createdAt){let __nextDay=new Date(__now.getFullYear(),__now.getMonth(),__now.getDate()+1);__year=__nextDay.getFullYear();__month=__nextDay.getMonth()+1;__day=__nextDay.getDate();__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0)}let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()+1===__month&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second&&__candidate.getTime()>__createdAt;if(!__prompt||!__valid){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=__candidate}if(!Number.isFinite(__when.getTime())){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __cron=`${__when.getMinutes()} ${__when.getHours()} ${__when.getDate()} ${__when.getMonth()+1} *`,__id=`later-${Date.now().toString(36)}`;Z$e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()});ESe(!0);e.addNotification?.({key:`later-${__id}`,kind:"feedback",text:`Scheduled ${__id} for ${__when.toLocaleString()}`,priority:"immediate"});i("");x(0);s({});H();k();return}if(__trim.startsWith("/later")){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
 
 [[patches.tests]]
 kind = "static"
@@ -553,13 +555,28 @@ assert_contains = '''FI().filter((__t)=>__t.later===!0&&!__t.recurring)'''
 
 [[patches.tests]]
 kind = "static"
-name = "later command schedules session-only cron in 2.1.208"
-assert_contains = '''Z$e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})'''
+name = "later command stores exact fire time in 2.1.208"
+assert_contains = '''laterAt:__when.getTime()'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command accepts absolute local timestamps in 2.1.208"
+assert_contains = '''__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command schedules exact session-only task in 2.1.208"
+assert_contains = '''Z$e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})'''
 
 [[patches.tests]]
 kind = "static"
 name = "later command enables scheduled task polling in 2.1.208"
-assert_contains = '''jBt(!0)'''
+assert_contains = '''ESe(!0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command does not call the polling getter as a setter in 2.1.208"
+assert_not_contains = '''jBt(!0)'''
 
 [[patches.tests]]
 kind = "static"
@@ -585,6 +602,40 @@ assert_not_contains = '''DTe(!0)'''
 kind = "static"
 name = "stale 2.1.207 later next-run helper is absent in 2.1.208"
 assert_not_contains = '''E7t(__t.cron,__t.createdAt)'''
+
+[[patches]]
+name = "later-command-exact-fire-time-2-1-208"
+target_version = "2.1.208"
+applies_to = ">=2.1.208 <2.2.0"
+rationale = """
+Make `/later` one-shot session tasks honor their exact requested timestamp.
+
+This is the 2.1.208 minified-symbol variant. The scheduler task is `G`, its
+jitter config is `B`, and its recurring and one-shot helpers are `vFr` and
+`M8n`. A parallel `setTimeout` path was rejected because it would duplicate
+loading deferral, queue insertion, and one-shot cleanup. Remove this patch
+when upstream supports exact timestamps on session scheduled tasks.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/cronScheduler.ts#L253-L277"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let z=G.recurring?vFr(G.cron,G.lastFiredAt??G.createdAt,G.id,B):M8n(G.cron,G.createdAt,G.id,B);''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''let z=G.recurring?vFr(G.cron,G.lastFiredAt??G.createdAt,G.id,B):G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n(G.cron,G.createdAt,G.id,B);'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command exact fire time takes precedence in 2.1.208"
+assert_contains = '''G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n(G.cron,G.createdAt,G.id,B)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command old cron-only one-shot initializer is absent in 2.1.208"
+assert_not_contains = '''let z=G.recurring?vFr(G.cron,G.lastFiredAt??G.createdAt,G.id,B):M8n(G.cron,G.createdAt,G.id,B);'''
 
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-168"
@@ -900,12 +951,12 @@ match = { node = "VariableDeclaration", source = '''let t=await Yko(e),r=Keo(),n
 
 [patches.transform]
 op = "insert_after_node"
-code = '''if(!o.some((g)=>g.name==="later"))o.push({type:"local",name:"later",description:"Schedule a prompt for later; use /later 10m <prompt> or /later list",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+code = '''if(!o.some((g)=>g.name==="later"))o.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
 
 [[patches.tests]]
 kind = "static"
-name = "later command suggestion metadata is rendered in 2.1.208"
-assert_contains = '''name:"later",description:"Schedule a prompt for later; use /later 10m <prompt> or /later list"'''
+name = "later command absolute-time suggestion metadata is rendered in 2.1.208"
+assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"'''
 
 [[patches.tests]]
 kind = "static"

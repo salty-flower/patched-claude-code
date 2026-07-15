@@ -127,7 +127,7 @@ async function main(): Promise<number> {
       `${JSON.stringify(
         {
           env: { ANTHROPIC_BASE_URL: stub.baseUrl },
-          statusLine: { type: "command", command: "printf statusline" },
+          statusLine: { type: "command", command: "printf PATCHED_STATUSLINE_OK" },
           theme: "dark",
         },
         null,
@@ -171,6 +171,9 @@ async function main(): Promise<number> {
       envPrefix,
       "bun",
       shellQuote(bundle),
+      "--hide-builtin-footer",
+      "--thinking-display",
+      "summarized",
       "--resume",
       shellQuote(sessionId),
     ].join(" ")
@@ -188,6 +191,7 @@ async function main(): Promise<number> {
     })
     const output = `${result.stdout.toString()}\n${result.stderr.toString()}`
     const normalizedOutput = normalizeTuiOutput(output)
+    if (process.env.TUI_SMOKE_SHOW_OUTPUT === "1") console.log(normalizedOutput)
     const pattern = crashPattern(normalizedOutput)
     if (pattern) {
       console.error(`resume transcript TUI hit render crash pattern: ${pattern}`)
@@ -216,8 +220,18 @@ async function main(): Promise<number> {
       console.error(output)
       return 1
     }
+    if (!normalizedOutput.includes("PATCHED_STATUSLINE_OK")) {
+      console.error("resume transcript TUI did not render the configured status line")
+      console.error(output)
+      return 1
+    }
+    if (normalizedOutput.includes("· /effort")) {
+      console.error("resume transcript TUI rendered the built-in effort footer despite --hide-builtin-footer")
+      console.error(output)
+      return 1
+    }
     console.log(
-      `ok: resumed ${sessionId}, rendered fixture, submitted ${JSON.stringify(args.prompt)}, no render crash`,
+      `ok: resumed ${sessionId}, rendered custom status line, hid built-in footer, submitted ${JSON.stringify(args.prompt)}, no render crash`,
     )
     return 0
   } finally {

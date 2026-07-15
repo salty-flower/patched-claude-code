@@ -1755,6 +1755,36 @@ name = "stale 2.1.207 effort hook symbols are absent in 2.1.210"
 assert_not_contains = '''{addNotification:rt,removeNotification:tr}=hs(),__acc_hide_effort_all=je'''
 
 [[patches]]
+name = "statusline-footer-control-effort-level-2-1-210"
+target_version = "2.1.210"
+applies_to = ">=2.1.210 <2.2.0"
+rationale = """
+Hide the persistent effort-level footer notification when the
+effort_notification item is disabled.
+
+Claude Code 2.1.210 renders the current effort level through a separate
+`effort-level` notification in addition to the prompt-trigger notification.
+The session-wide CLI override and persistent statusLine setting must suppress
+that notification too. Cleanup condition: upstream ships an official setting
+or flag for built-in footer items.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1982"
+locator_pattern = '''HI=Bhp\(cBe,xD,DN\);_i\.useEffect\(\(\)=>\{if\(!HI\)\{Qg\("effort-level"\);return\}Qg\("effort-level"\),td\(\{key:"effort-level",kind:"feedback",text:HI,priority:"high",timeoutMs:1e4\}\)\},\[HI,td,Qg\]\)'''
+locator_kind = "regex"
+expected_matches = 1
+replacement = '''HI=Bhp(cBe,xD,DN),__acc_hide_effort_level=je((I_)=>I_.settings.statusLine?.hideBuiltinFooter||I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");_i.useEffect(()=>{if(!HI||__acc_hide_effort_level){Qg("effort-level");return}Qg("effort-level"),td({key:"effort-level",kind:"feedback",text:HI,priority:"high",timeoutMs:1e4})},[HI,td,Qg,__acc_hide_effort_level])'''
+
+[[patches.tests]]
+kind = "static"
+name = "persistent effort level is controlled by disabledFooter in 2.1.210"
+assert_contains = '''__acc_hide_effort_level=je((I_)=>I_.settings.statusLine?.hideBuiltinFooter||I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer")'''
+
+[[patches.tests]]
+kind = "static"
+name = "uncontrolled 2.1.210 effort-level notification is absent"
+assert_not_contains = '''HI=Bhp(cBe,xD,DN);_i.useEffect(()=>{if(!HI){Qg("effort-level");return}'''
+
+[[patches]]
 name = "statusline-footer-control-rate-limit-warning"
 applies_to = ">=2.1.133 <2.1.137"
 rationale = """

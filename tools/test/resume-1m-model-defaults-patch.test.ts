@@ -72,6 +72,15 @@ test("resume restores 1m defaults after alias resolution", () => {
     return
   }
 
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.210")) {
+    expect(applied).toBe(2)
+    expect(patched).toContain(
+      'if(Te.ANTHROPIC_MODEL&&(o.kind!=="ok"||uo(ri(Te.ANTHROPIC_MODEL))!==uo(o.model)))return;',
+    )
+    expect(patched).toContain("let r=new Set(x9l.map((i)=>uo(i))),n=ri(t??QO()),o=id(n);")
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.208")) {
     expect(applied).toBe(2)
     expect(patched).toContain(

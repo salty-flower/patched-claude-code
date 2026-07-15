@@ -311,7 +311,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=RIn()?fDd(e,Gp(r)):kfs(e),
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-208"
 target_version = "2.1.208"
-applies_to = ">=2.1.208 <2.2.0"
+applies_to = ">=2.1.208 <2.1.210"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.208 minified-symbol variant of
@@ -338,3 +338,38 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=y$d(e,ad(r)),'''
 kind = "static"
 name = "stale 2.1.207 signature cleanup symbols are absent in 2.1.208"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=K1d()?X1d(e,Kp(r)):Q1d(e),'''
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-210"
+target_version = "2.1.210"
+applies_to = ">=2.1.210 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.210 minified-symbol variant of
+strip-signatures-for-custom-base-url. The matching-provenance path now uses
+kZu(e,id(r)); the custom-base-url path falls back to IZu(e), which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+AZu(), the existing actual-first-party Anthropic base URL check.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=kZu(e,id(r)),'''
+replacement = '''let r=t.bodyModel??t.model,n=AZu()?kZu(e,id(r)):IZu(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.210"
+assert_contains = '''let r=t.bodyModel??t.model,n=AZu()?kZu(e,id(r)):IZu(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.210"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=kZu(e,id(r)),'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.207 signature cleanup symbols are absent in 2.1.210"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=K1d()?X1d(e,Kp(r)):Q1d(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.210 variant no longer carries 2.1.208 symbols"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=m$d()?y$d(e,ad(r)):_$d(e),'''

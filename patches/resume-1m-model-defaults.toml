@@ -520,7 +520,7 @@ assert_not_contains = '''if(t&&C_(t)&&J5(s)&&bo(Zo(xp(t)))===bo(s))return{kind:"
 [[patches]]
 name = "resume-allows-same-family-anthropic-model-default-2-1-208"
 target_version = "2.1.208"
-applies_to = ">=2.1.208 <2.2.0"
+applies_to = ">=2.1.208 <2.1.210"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 rationale = """
 This is the 2.1.208 minified-symbol variant of
@@ -549,9 +549,45 @@ name = "stale 2.1.207 resume symbols are absent in 2.1.208"
 assert_not_contains = '''if(be.ANTHROPIC_MODEL&&(o.kind!=="ok"||ao(Zo(be.ANTHROPIC_MODEL))!==ao(o.model)))return;'''
 
 [[patches]]
+name = "resume-allows-same-family-anthropic-model-default-2-1-210"
+target_version = "2.1.210"
+applies_to = ">=2.1.210 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = """
+This is the 2.1.210 minified-symbol variant of
+resume-allows-same-family-anthropic-model-default. Upstream moved the resume
+guard to UHa and the resolver to gif; remove the env-default short circuit
+while preserving an explicit same-family ANTHROPIC_MODEL override guard after
+transcript-model resolution.
+"""
+locator_kind = "literal"
+locator_pattern = '''function UHa(){return Boolean(av()!==void 0||Te.ANTHROPIC_MODEL||Te.ANTHROPIC_DEFAULT_FABLE_MODEL||Te.ANTHROPIC_DEFAULT_OPUS_MODEL||Te.ANTHROPIC_DEFAULT_SONNET_MODEL||Te.ANTHROPIC_DEFAULT_HAIKU_MODEL||!im())}function e$t(e,t,r,n=(o)=>o()){if(UHa())return;let o=gif(e,t);'''
+replacement = '''function UHa(){return Boolean(av()!==void 0||!im())}function e$t(e,t,r,n=(o)=>o()){if(UHa())return;let o=gif(e,t);if(Te.ANTHROPIC_MODEL&&(o.kind!=="ok"||uo(ri(Te.ANTHROPIC_MODEL))!==uo(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "same-family ANTHROPIC_MODEL defaults can restore resume model in 2.1.210"
+assert_contains = '''if(Te.ANTHROPIC_MODEL&&(o.kind!=="ok"||uo(ri(Te.ANTHROPIC_MODEL))!==uo(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "old env-default resume short circuit is removed in 2.1.210"
+assert_not_contains = '''function UHa(){return Boolean(av()!==void 0||Te.ANTHROPIC_MODEL||Te.ANTHROPIC_DEFAULT_FABLE_MODEL||Te.ANTHROPIC_DEFAULT_OPUS_MODEL||Te.ANTHROPIC_DEFAULT_SONNET_MODEL||Te.ANTHROPIC_DEFAULT_HAIKU_MODEL||!im())}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.207 resume symbols are absent in 2.1.210"
+assert_not_contains = '''if(be.ANTHROPIC_MODEL&&(o.kind!=="ok"||ao(ri(be.ANTHROPIC_MODEL))!==ao(o.model)))return;'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.210 variant no longer carries 2.1.208 symbols"
+assert_not_contains = '''if(Se.ANTHROPIC_MODEL&&(o.kind!=="ok"||co(Zo(Se.ANTHROPIC_MODEL))!==co(o.model)))return;'''
+[[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-208"
 target_version = "2.1.208"
-applies_to = ">=2.1.208 <2.2.0"
+applies_to = ">=2.1.208 <2.1.210"
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 rationale = """
 This is the 2.1.208 minified-symbol variant of the default-model 1M resume
@@ -576,3 +612,36 @@ assert_not_contains = '''let r=new Set(HBl.map((i)=>co(i))),n=t?Zo(t):void 0,o=n
 kind = "static"
 name = "stale 2.1.207 default resolver is absent in 2.1.208"
 assert_not_contains = '''let r=new Set(Q1l.map(ao)),n=Zo(t??rE()),o=Kp(n);'''
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-210"
+target_version = "2.1.210"
+applies_to = ">=2.1.210 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = """
+This is the 2.1.210 minified-symbol variant of the default-model 1M resume
+path. WQp receives initialMainLoopModel; when absent, resolve the current
+default through QO so default 1M configs retain the transcript model suffix.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=new Set(x9l.map((i)=>uo(i))),n=t?ri(t):void 0,o=n?id(n):void 0;'''
+replacement = '''let r=new Set(x9l.map((i)=>uo(i))),n=ri(t??QO()),o=id(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "resume checks resolved default for 1m context in 2.1.210"
+assert_contains = '''let r=new Set(x9l.map((i)=>uo(i))),n=ri(t??QO()),o=id(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "old absent-default resume model resolver is removed in 2.1.210"
+assert_not_contains = '''let r=new Set(x9l.map((i)=>uo(i))),n=t?ri(t):void 0,o=n?id(n):void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.207 default resolver is absent in 2.1.210"
+assert_not_contains = '''let r=new Set(Q1l.map(ao)),n=ri(t??rE()),o=Kp(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.210 variant no longer carries 2.1.208 symbols"
+assert_not_contains = '''let r=new Set(HBl.map((i)=>co(i))),n=Zo(t??QO()),o=ad(n);'''

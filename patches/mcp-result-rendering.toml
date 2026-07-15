@@ -590,7 +590,7 @@ assert_not_contains = '''content:alu,verbose:slu'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-208"
 target_version = "2.1.208"
-applies_to = ">=2.1.208 <2.2.0"
+applies_to = ">=2.1.208 <2.1.210"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -626,3 +626,47 @@ assert_not_contains = '''content:uyu,verbose:cyu'''
 kind = "static"
 name = "stale 2.1.207 MCP text-block symbols are absent in 2.1.208"
 assert_not_contains = '''content:Jdu,verbose:!0'''
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-210"
+target_version = "2.1.210"
+applies_to = ">=2.1.210 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.210 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`. The text and verbose locals now minify to
+`iQd` and `oQd`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:iQd,verbose:oQd" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:iQd,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.210"
+assert_contains = '''content:iQd,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.210 MCP text-block call site is absent"
+assert_not_contains = '''content:iQd,verbose:oQd'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.207 MCP text-block symbols are absent in 2.1.210"
+assert_not_contains = '''content:Jdu,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.210 variant no longer carries 2.1.208 symbols"
+assert_not_contains = '''content:uyu,verbose:!0'''

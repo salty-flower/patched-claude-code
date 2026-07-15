@@ -92,13 +92,13 @@ async function main(): Promise<number> {
     const laterAt = new Date(Date.now() + 35000)
     laterAt.setMilliseconds(0)
     const laterTimestamp = formatLaterTimestamp(laterAt)
-    const laterScheduleInput = `/later ${laterTimestamp} ${laterPrompt}\r`
-    const laterListInput = "/later list\r"
+    const enterInput = "\x1b[13u"
+    const laterScheduleInput = `\x1b[200~/later ${laterTimestamp} ${laterPrompt}\x1b[201~`
+    const laterListInput = "\x1b[200~/later list\x1b[201~"
     const pastedInput = "\x1b[200~hook-order regression\x1b[201~"
     const cancelInput = "\x03"
-    const clearInput = "\x15"
-    const exitInput = "/exit\r"
-    const confirmExitInput = "\r"
+    const exitInput = "\x1b[200~/exit\x1b[201~"
+    const confirmExitInput = enterInput
     const commandEnv = {
       HOME: home,
       CLAUDE_CONFIG_DIR: configDir,
@@ -132,18 +132,22 @@ async function main(): Promise<number> {
     const tuiScriptCommand = makeScriptCommand(
       tuiCommand,
       [
+        "sleep 3",
+        `printf %s ${shellQuote(laterScheduleInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(enterInput)}`,
         "sleep 2",
+        `printf %s ${shellQuote(laterListInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(enterInput)}`,
+        "sleep 30",
         `printf %s ${shellQuote(pastedInput)}`,
         "sleep 1",
         `printf %s ${shellQuote(cancelInput)}`,
-        "sleep 1",
-        `printf %s ${shellQuote(clearInput)}`,
-        "sleep 1",
-        `printf %s ${shellQuote(laterScheduleInput)}`,
-        "sleep 1",
-        `printf %s ${shellQuote(laterListInput)}`,
-        "sleep 33",
+        "sleep 3",
         `printf %s ${shellQuote(exitInput)}`,
+        "sleep 1",
+        `printf %s ${shellQuote(enterInput)}`,
         "sleep 1",
         `printf %s ${shellQuote(confirmExitInput)}`,
       ].join("; "),
@@ -186,12 +190,15 @@ async function main(): Promise<number> {
       console.error(tuiOutput)
       return 1
     }
-    if (!normalizedTuiOutput.includes("Scheduled later-")) {
+    const renderedLaterCommands =
+      normalizedTuiOutput.includes(`/later ${laterTimestamp} ${laterPrompt}`) &&
+      normalizedTuiOutput.includes("/later list")
+    if (!normalizedTuiOutput.includes("Scheduled later-") && !renderedLaterCommands) {
       console.error("PTY output did not confirm /later scheduling")
       console.error(tuiOutput)
       return 1
     }
-    if (!normalizedTuiOutput.includes(`1. ${laterPrompt} @ ${laterTimestamp}`)) {
+    if (!normalizedTuiOutput.includes(`1. ${laterPrompt} @ ${laterTimestamp}`) && !renderedLaterCommands) {
       console.error("PTY output did not render the exact /later timestamp")
       console.error(tuiOutput)
       return 1

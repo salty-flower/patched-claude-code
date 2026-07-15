@@ -138,8 +138,14 @@ test("patched per-model endpoint routes create and count_tokens requests to mode
 
   for (const request of perModelStub.requests) {
     expect(request.jsonBody).toMatchObject({ model: MODEL })
-    expect(request.headers["x-api-key"]).toBe("per-model-api-key")
-    expect(request.headers.authorization).toBe("Bearer per-model-auth-token")
+    expect({ request: requestKey(request), value: request.headers["x-api-key"] }).toEqual({
+      request: requestKey(request),
+      value: "per-model-api-key",
+    })
+    expect({ request: requestKey(request), value: request.headers.authorization }).toEqual({
+      request: requestKey(request),
+      value: "Bearer per-model-auth-token",
+    })
   }
 
   const betaRequests = perModelStub.requests.filter((request) => request.query === "?beta=true")

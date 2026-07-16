@@ -28,6 +28,29 @@ entrypoints or compatibility shims and documented as such. The durable path is
 to patch released bundles directly, prove each patch with byte/AST locators,
 and use reconstructed source only to explain, audit, and test behavior.
 
+## Why plain JavaScript
+
+Current official releases are Bun standalone executables: a Bun runtime plus
+an embedded JavaScript module graph. That is native *distribution packaging*,
+not evidence that the Claude Code application logic was rebuilt from complete
+source as platform-native code. The trade-off resembles Electron-style
+distribution: a self-contained install at the cost of shipping an application
+runtime with every platform artifact.
+
+This repo deliberately stops at the JavaScript boundary:
+
+| Boundary | Official standalone | Patched release |
+| --- | --- | --- |
+| Application payload | Embedded inside a platform-specific Bun executable | Plain `cli.js` |
+| Runtime | Bundled into every release artifact | Installed and managed separately |
+| Platforms | Separate application-plus-runtime binaries | One auditable JS payload; platform runtime supplied independently |
+| Inspection | Extract the Bun module graph first | Diff, search, and debug the shipped file directly |
+| Patching | Binary repacking would be required to preserve the standalone shape | Run the patched bundle without repacking |
+
+The patched release still requires a compatible Bun runtime; plain JS does not
+mean runtime-free or promise a performance improvement. The benefit is a
+smaller, transparent application artifact with an explicit runtime boundary.
+
 ## What this does
 
 For each new Claude Code release we want to ship, we:

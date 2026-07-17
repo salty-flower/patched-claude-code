@@ -341,7 +341,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=K1d()?X1d(e,Kp(r)):Q1d(e),
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-210"
 target_version = "2.1.210"
-applies_to = ">=2.1.210 <2.2.0"
+applies_to = ">=2.1.210 <2.1.212"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.210 minified-symbol variant of
@@ -373,3 +373,34 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=K1d()?X1d(e,Kp(r)):Q1d(e),
 kind = "static"
 name = "2.1.210 variant no longer carries 2.1.208 symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=m$d()?y$d(e,ad(r)):_$d(e),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-212"
+target_version = "2.1.212"
+applies_to = ">=2.1.212 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.212 minified-symbol variant of
+strip-signatures-for-custom-base-url. The matching-provenance path now uses
+ord(e,ed(r)); the custom-base-url path falls back to ird(e), which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+ep_(), the existing actual-first-party Anthropic base URL check.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=ord(e,ed(r)),'''
+replacement = '''let r=t.bodyModel??t.model,n=ep_()?ord(e,ed(r)):ird(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.212"
+assert_contains = '''let r=t.bodyModel??t.model,n=ep_()?ord(e,ed(r)):ird(e),'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.212"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=ord(e,ed(r)),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.212 signature cleanup no longer carries 2.1.210 symbols"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=AZu()?kZu(e,id(r)):IZu(e),'''

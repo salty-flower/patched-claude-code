@@ -13,7 +13,7 @@ const OPUS_46 = "claude-opus-4-6"
 
 const ultracodePatches = loadPatchEntriesFromFile(ULTRACODE_PATCH)
 const testUltracodeRuntime =
-  (TARGET_VERSION === "2.1.208" || TARGET_VERSION === "2.1.210") &&
+  (TARGET_VERSION === "2.1.208" || TARGET_VERSION === "2.1.210" || TARGET_VERSION === "2.1.212") &&
   ultracodePatches.some((patch) => patchApplies(patch, TARGET_VERSION))
 
 const tempDirs: string[] = []
@@ -40,6 +40,29 @@ function replaceOnce(source: string, needle: string, replacement: string): strin
 }
 
 function injectUltracodeHarness(source: string): string {
+  if (TARGET_VERSION === "2.1.212") {
+    let harness = replaceOnce(
+      source,
+      "function KA(){if(m8t())return!1;if(!z4n())return!1;let{available:e,defaultOn:t}=Iki();if(!e)return!1;return rL()?.settings.enableWorkflows??t}",
+      "function KA(){return!0}",
+    )
+    harness = replaceOnce(
+      harness,
+      "function xi(){let e=g3();if(e!==void 0&&e!==null)return oi(e);return KE()}",
+      `function xi(){return"${OPUS_46}"}`,
+    )
+    harness = replaceOnce(
+      harness,
+      "function v9e(e,t){let r=g8t(t);return r===null||eet(e)<=eet(r)}",
+      "function v9e(){return!0}",
+    )
+    return replaceOnce(
+      harness,
+      "hST();",
+      'try{TOp();let __acc_result=f2_();process.stdout.write(JSON.stringify(__acc_result)+"\\n")}catch(__acc_error){console.error(__acc_error?.stack??String(__acc_error));process.exit(1)}',
+    )
+  }
+
   if (TARGET_VERSION === "2.1.210") {
     let harness = replaceOnce(
       source,

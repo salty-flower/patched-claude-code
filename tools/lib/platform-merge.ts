@@ -69,6 +69,7 @@ const BASE_GLOBALS = new Set([
   "clearInterval",
   "clearTimeout",
   "console",
+  "crypto",
   "exports",
   "fetch",
   "globalThis",

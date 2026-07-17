@@ -83,6 +83,27 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.212")) {
+      expect(patched).toContain(
+        "globalThis.__acc_disabled_footer=H})():void 0,Av={settings:Kn(),tasks:{},transcripts:{},taskDecorations:{}",
+      )
+      expect(patched).toContain("getCommandLength:()=>y.current?.command?.length??0")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=")
+      expect(patched).toContain("__cci=Ve((X)=>X.clipboardImageAvailable??!1)")
+      expect(patched).not.toContain("__cci=je((X)=>X.clipboardImageAvailable??!1)")
+      for (const item of [
+        "footer",
+        "permission_mode",
+        "mode",
+        "effort_notification",
+        "rate_limit_warning",
+        "clipboard_image_hint",
+      ]) {
+        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+      }
+      return
+    }
     if (isVersionAtLeast(TARGET_VERSION, "2.1.210")) {
       expect(patched).toContain(
         "globalThis.__acc_disabled_footer=H})():void 0,td={settings:Vn(),tasks:{},transcripts:{},taskDecorations:{}",

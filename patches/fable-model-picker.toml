@@ -524,7 +524,7 @@ assert_not_contains = '''if(XSe("fable5"))d5t(a,i_i());return a.push(sXl),o_i(a,
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-210"
 target_version = "2.1.210"
-applies_to = ">=2.1.210 <2.2.0"
+applies_to = ">=2.1.210 <2.1.212"
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
 
@@ -597,7 +597,7 @@ assert_not_contains = '''if(XSe("fable5"))d5t(s,i_i());return s.push(sXl),o_i(s,
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-210"
 target_version = "2.1.210"
-applies_to = ">=2.1.210 <2.2.0"
+applies_to = ">=2.1.210 <2.1.212"
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
 
@@ -670,7 +670,7 @@ assert_not_contains = '''xn()==="anthropicAws"&&XSe("fable5")'''
 [[patches]]
 name = "api-key-picker-shows-local-fable-2-1-210"
 target_version = "2.1.210"
-applies_to = ">=2.1.210 <2.2.0"
+applies_to = ">=2.1.210 <2.1.212"
 rationale = """
 Show the catalog-backed Fable row for non-OAuth first-party API-key sessions.
 
@@ -706,3 +706,106 @@ assert_not_contains = '''xn()==="anthropicAws"&&XSe("fable5")'''
 kind = "static"
 name = "2.1.210 variant no longer carries 2.1.208 symbols"
 assert_not_contains = '''else if(qEe("fable5"))Eqt(s,oSi())'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-212"
+target_version = "2.1.212"
+applies_to = ">=2.1.212 <2.2.0"
+rationale = """
+Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
+
+This is the 2.1.212 minified-symbol variant. The model option builder is now
+`fkh`, the catalog availability helper is `mCe`, the Fable insertion helper is
+`S8t`, and the Fable row helper is `Wki`. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "fkh", strings = ['''return a.push(Fhc),jki(a,e,"opus")''', '''mCe("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return a.push(Fhc),jki(a,e,"opus")'''
+value = '''if(mCe("fable5"))S8t(a,Wki());return a.push(Fhc),jki(a,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "oauth primary picker inserts local fable before haiku in 2.1.212"
+assert_contains = '''if(mCe("fable5"))S8t(a,Wki());return a.push(Fhc),jki(a,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.212 primary picker no longer carries 2.1.210 symbols"
+assert_not_contains = '''if(pve("fable5"))Bjt(a,qvi());return a.push(Osc),Uvi(a,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-212"
+target_version = "2.1.212"
+applies_to = ">=2.1.212 <2.2.0"
+rationale = """
+Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
+
+This is the 2.1.212 minified-symbol variant. The model option builder is now
+`fkh`, the catalog availability helper is `mCe`, the Fable insertion helper is
+`S8t`, and the Fable row helper is `Wki`. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "fkh", strings = ['''return s.push(Fhc),jki(s,e,"sonnet")''', '''mCe("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return s.push(Fhc),jki(s,e,"sonnet")'''
+value = '''if(mCe("fable5"))S8t(s,Wki());return s.push(Fhc),jki(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "oauth standard picker inserts local fable before haiku in 2.1.212"
+assert_contains = '''if(mCe("fable5"))S8t(s,Wki());return s.push(Fhc),jki(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.212 standard picker no longer carries 2.1.210 symbols"
+assert_not_contains = '''if(pve("fable5"))Bjt(s,qvi());return s.push(Osc),Uvi(s,e,"sonnet")'''
+
+[[patches]]
+name = "api-key-picker-shows-local-fable-2-1-212"
+target_version = "2.1.212"
+applies_to = ">=2.1.212 <2.2.0"
+rationale = """
+Show the catalog-backed Fable row for non-OAuth first-party API-key sessions.
+
+This is the 2.1.212 minified-symbol variant. The provider helper is now `xn`,
+the catalog availability helper is `mCe`, the Fable insertion helper is `S8t`,
+and the Fable row helper is `Wki`. Cleanup condition: upstream removes the
+AWS-only picker special case or replaces it with a shared Fable availability
+predicate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "fkh", string = '''xn()==="anthropicAws"&&mCe("fable5")''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''xn()==="anthropicAws"&&mCe("fable5")'''
+value = '''mCe("fable5")'''
+
+[[patches.tests]]
+kind = "static"
+name = "api-key picker fable gate uses catalog mapping in 2.1.212"
+assert_contains = '''else if(mCe("fable5"))S8t(s,Wki())'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.212 api-key picker no longer carries 2.1.210 symbols"
+assert_not_contains = '''else if(pve("fable5"))Bjt(s,qvi())'''

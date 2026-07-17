@@ -238,6 +238,19 @@ test("allows runtime performance global in semantic unions", () => {
   expect(result.report.unclassifiedDrift).toEqual([])
 })
 
+test("allows runtime crypto global in semantic unions", () => {
+  const result = mergePlatformJavaScript({
+    version: "test",
+    basePlatform: "darwin-arm64",
+    baseSource: "function entry(){return 1}\n",
+    otherPlatform: "linux-x64",
+    otherSource: "function y(){return crypto.randomUUID()}\n",
+  })
+
+  expect(result.ok).toBe(true)
+  expect(result.report.unclassifiedDrift).toEqual([])
+})
+
 test("allows Bun runtime globals in semantic unions", () => {
   const result = mergePlatformJavaScript({
     version: "test",

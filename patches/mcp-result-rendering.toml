@@ -674,7 +674,7 @@ assert_not_contains = '''content:uyu,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-212"
 target_version = "2.1.212"
-applies_to = ">=2.1.212 <2.2.0"
+applies_to = ">=2.1.212 <2.1.215"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -710,3 +710,43 @@ assert_not_contains = '''content:Qip,verbose:Xip'''
 kind = "static"
 name = "2.1.212 variant no longer carries 2.1.210 symbols"
 assert_not_contains = '''content:iQd,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-215"
+target_version = "2.1.215"
+applies_to = ">=2.1.215 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.215 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`. The text and verbose locals now minify to
+`jup` and `qup`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:jup,verbose:qup" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:jup,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.215"
+assert_contains = '''content:jup,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.215 MCP text-block call site is absent"
+assert_not_contains = '''content:jup,verbose:qup'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.215 variant no longer carries 2.1.212 symbols"
+assert_not_contains = '''content:Qip,verbose:!0'''

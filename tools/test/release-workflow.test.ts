@@ -14,6 +14,7 @@ function workflowStep(name: string): string {
 
 test("release workflow renders once and reuses the rendered bundle", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "release.yml"), "utf8")
+  const reuseStep = workflowStep("Reuse CI artifact (release-commit path)")
   const renderStep = workflowStep("Verify and render patched bundle")
   const smokeStep = workflowStep("Smoke patched bundle")
   const patchTestStep = workflowStep("Patch tests")
@@ -23,6 +24,9 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(workflow).not.toContain("- name: Stage target bundle")
   expect(workflow).not.toContain("- name: Verify patches and contracts")
   expect(workflow).not.toContain("- name: Render patched bundle")
+  expect(workflow).toContain("permissions:\n  actions: read\n  contents: write")
+  expect(reuseStep).toContain('echo "No CI run found for release commit $GITHUB_SHA — aborting release" >&2')
+  expect(reuseStep).not.toContain("No CI run found for this SHA — will render from scratch")
   expect(renderStep).toContain('just render "${{ steps.coord.outputs.version }}"')
   expect(smokeStep).toContain('just smoke-rendered "${{ steps.coord.outputs.version }}"')
   expect(patchTestStep).toContain('just patch-test-rendered "${{ steps.coord.outputs.version }}"')

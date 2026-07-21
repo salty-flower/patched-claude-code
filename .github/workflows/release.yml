@@ -22,6 +22,7 @@ on:
         default: false
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
@@ -132,9 +133,8 @@ jobs:
           done
 
           if [[ -z "$run_id" ]]; then
-            echo "No CI run found for this SHA — will render from scratch"
-            echo "reused=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "No CI run found for release commit $GITHUB_SHA — aborting release" >&2
+            exit 1
           fi
 
           echo "Found CI run $run_id — waiting for completion"

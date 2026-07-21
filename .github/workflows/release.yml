@@ -23,6 +23,7 @@ on:
 
 permissions:
   actions: read
+  checks: read
   contents: write
 
 jobs:
@@ -152,6 +153,7 @@ jobs:
           cp ci-artifact/cli.js cli.js
           cp ci-artifact/manifest.json manifest.json
           cp ci-artifact/package.json package.json
+          mkdir -p bin
           install -m755 ci-artifact/bin/claude-patched bin/claude-patched
           echo "reused=true" >> "$GITHUB_OUTPUT"
 

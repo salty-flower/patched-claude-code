@@ -964,7 +964,7 @@ assert_not_contains = '''j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.c
 [[patches]]
 name = "later-command-exact-fire-time-2-1-215"
 target_version = "2.1.215"
-applies_to = ">=2.1.215 <2.2.0"
+applies_to = ">=2.1.215 <2.1.216"
 rationale = """
 Make `/later` one-shot session tasks honor their exact requested timestamp.
 
@@ -999,6 +999,45 @@ assert_not_contains = '''let J=G.recurring?Dqr(G.cron,G.lastFiredAt??G.createdAt
 kind = "static"
 name = "2.1.215 exact-time variant no longer carries 2.1.212 symbols"
 assert_not_contains = '''W.later===!0&&Number.isFinite(W.laterAt)&&W.laterAt>W.createdAt?W.laterAt:iJn(W.cron,W.createdAt,W.id,$)'''
+[[patches]]
+name = "later-command-exact-fire-time-2-1-216"
+target_version = "2.1.216"
+applies_to = ">=2.1.216 <2.2.0"
+rationale = """
+Make `/later` one-shot session tasks honor their exact requested timestamp.
+
+This is the 2.1.216 minified-symbol variant. The scheduler task is `U`, its
+jitter config is `B`, and its recurring and one-shot helpers are `oWr` and
+`too`. A parallel `setTimeout` path was rejected because it would duplicate
+loading deferral, queue insertion, and one-shot cleanup. Remove this patch
+when upstream supports exact timestamps on session scheduled tasks.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/cronScheduler.ts#L253-L277"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let K=U.recurring?oWr(U.cron,U.lastFiredAt??U.createdAt,U.id,B):too(U.cron,U.createdAt,U.id,B);''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''let K=U.recurring?oWr(U.cron,U.lastFiredAt??U.createdAt,U.id,B):U.later===!0&&Number.isFinite(U.laterAt)&&U.laterAt>U.createdAt?U.laterAt:too(U.cron,U.createdAt,U.id,B);'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command exact fire time takes precedence in 2.1.216"
+assert_contains = '''U.later===!0&&Number.isFinite(U.laterAt)&&U.laterAt>U.createdAt?U.laterAt:too(U.cron,U.createdAt,U.id,B)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command old cron-only one-shot initializer is absent in 2.1.216"
+assert_not_contains = '''let K=U.recurring?oWr(U.cron,U.lastFiredAt??U.createdAt,U.id,B):too(U.cron,U.createdAt,U.id,B);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.216 exact-time variant no longer carries 2.1.215 symbols"
+assert_not_contains = '''J=G.recurring?Dqr(G.cron,G.lastFiredAt??G.createdAt,G.id,B):VQn(G.cron,G.createdAt,G.id,B)'''
+
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-168"
 applies_to = ">=2.1.168 <2.1.172"
@@ -1393,7 +1432,7 @@ assert_not_contains = '''let t=await dSo(e),r=kno(),n=Uot()?SNu():[],o=t.filter(
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-215"
 target_version = "2.1.215"
-applies_to = ">=2.1.215 <2.2.0"
+applies_to = ">=2.1.215 <2.1.216"
 rationale = """
 Expose `/later` through the existing slash-command suggestion pipeline.
 
@@ -1422,3 +1461,36 @@ assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YY
 kind = "static"
 name = "2.1.215 suggestion variant no longer carries 2.1.212 loader symbols"
 assert_not_contains = '''let t=await aAo(e),r=Poo(),n=rst()?nku():[],o=t.filter((g)=>Flr(g)&&v0(g));'''
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-216"
+target_version = "2.1.216"
+applies_to = ">=2.1.216 <2.2.0"
+rationale = """
+Expose `/later` through the existing slash-command suggestion pipeline.
+
+This is the 2.1.216 minified-symbol variant of
+`later-command-suggestion-metadata`. Cleanup condition: upstream exposes an
+interactive delayed-send command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let t=await rDo(e),r=Tgo(),n=uct()?lKu():[],o=t.filter((g)=>vpr(g)&&O0(g));''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!o.some((g)=>g.name==="later"))o.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command absolute-time suggestion metadata is rendered in 2.1.216"
+assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.216 suggestion variant no longer carries 2.1.215 loader symbols"
+assert_not_contains = '''let t=await S0o(e),r=vao(),n=iat()?LPu():[],o=t.filter((g)=>wur(g)&&S0(g));'''

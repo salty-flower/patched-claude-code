@@ -3005,3 +3005,96 @@ assert_contains = '''let nFR=!0;'''
 kind = "static"
 name = "stale 2.1.212 expanded thinking symbols are absent in 2.1.215"
 assert_not_contains = '''let gRR=!0;'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-216"
+target_version = "2.1.216"
+applies_to = ">=2.1.216 <2.1.217"
+rationale = """
+Preserve streamed thinking text for live rendering while retaining upstream
+progress accounting. This is the 2.1.216 stream-handler symbol variant; the
+handler is `Rbs`, the token estimator is `s2s`, and the options object remains
+`t`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":{let{delta:d}=e.event;if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if("thinking"in d&&typeof d.thinking==="string"&&d.thinking.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:s2s(d.thinking)});return}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let{delta:d}=e.event,w=typeof d.thinking==="string"?d.thinking:"";if(w)i?.(w.length),t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:s2s(w)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas use the 2.1.216 estimator and stream callback"
+assert_contains = '''t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.215 thinking estimator is absent in 2.1.216"
+assert_not_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Mrn(w)})'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-216"
+target_version = "2.1.216"
+applies_to = ">=2.1.216 <2.1.217"
+rationale = """
+Keep normal thinking blocks visible outside transcript or verbose mode. This
+is the 2.1.216 message-renderer symbol variant; the current render gate uses
+`iht` and `oee`, and the thinking component is `O_r`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", strings = ['''case"thinking":{if(!iht&&!oee){return null}''', '''kp.jsx(O_r,{addMargin:I8,param:YM,isTranscriptMode:iht,verbose:oee})'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking":{if(!iht&&!oee){return null}'''
+value = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "normal thinking rendering uses 2.1.216 symbols"
+assert_contains = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.215 thinking gate is absent in 2.1.216"
+assert_not_contains = '''case"thinking":{if(!imt&&!nZ){return null}'''
+
+[[patches]]
+name = "thinking-render-expanded-2-1-216"
+target_version = "2.1.216"
+applies_to = ">=2.1.216 <2.1.217"
+rationale = """
+Render the complete thinking body in normal interactive output. This is the
+2.1.216 thinking-component variant; component `O_r` derives its expanded gate
+as `G7R=Svp||Tvp`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "O_r", strings = ["{thinking:Evp}=j7R", "wvp.trim().replace"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let G7R=Svp||Tvp;'''
+value = '''let G7R=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking body uses expanded 2.1.216 path"
+assert_contains = '''let G7R=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.215 expanded thinking symbols are absent in 2.1.216"
+assert_not_contains = '''let nFR=!0;'''

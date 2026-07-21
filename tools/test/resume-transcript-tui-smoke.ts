@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { createCommand } from "../lib/cli"
@@ -12,6 +12,12 @@ type Args = {
   fixture: string
   prompt: string
   timeoutSeconds: number
+  startupDelaySeconds: number
+  hideBuiltinFooter: boolean
+  statusLine: boolean
+  thinkingDisplay?: string
+  submitPrompt: boolean
+  captureResumeError: boolean
 }
 
 type TranscriptEvent = {
@@ -26,18 +32,37 @@ export function parseArgs(argv: string[]): Args {
     .option("--fixture <jsonl>", "resume transcript JSONL fixture", DEFAULT_FIXTURE)
     .option("--prompt <text>", "prompt to submit through the resumed TUI", "ping")
     .option("--timeout-seconds <seconds>", "PTY timeout", (value) => Number.parseInt(value, 10), 30)
+    .option("--startup-delay-seconds <seconds>", "delay before submitting the prompt", (value) => Number.parseInt(value, 10), 4)
+    .option("--no-hide-builtin-footer", "do not pass --hide-builtin-footer")
+    .option("--no-status-line", "omit the custom statusLine setting")
+    .option("--thinking-display <mode>", "thinking display mode to pass to the resumed TUI", "summarized")
+    .option("--no-thinking-display", "do not pass --thinking-display")
+    .option("--no-submit-prompt", "only verify initial resumed rendering")
+    .option("--capture-resume-error", "allow local debug logging of a resume failure")
     .parse(argv, { from: "user" })
   const options = program.opts<{
     bundle: string
     fixture: string
     prompt: string
     timeoutSeconds: number
+    startupDelaySeconds: number
+    hideBuiltinFooter: boolean
+    statusLine: boolean
+    thinkingDisplay?: string | false
+    submitPrompt: boolean
+    captureResumeError: boolean
   }>()
   return {
     bundle: options.bundle,
     fixture: options.fixture,
     prompt: options.prompt,
     timeoutSeconds: options.timeoutSeconds,
+    startupDelaySeconds: options.startupDelaySeconds,
+    hideBuiltinFooter: options.hideBuiltinFooter,
+    statusLine: options.statusLine,
+    thinkingDisplay: options.thinkingDisplay || undefined,
+    submitPrompt: options.submitPrompt,
+    captureResumeError: options.captureResumeError,
   }
 }
 
@@ -82,6 +107,17 @@ function stringField(value: unknown, field: string): string {
   return value
 }
 
+function relocateFixtureCwd(raw: string, cwd: string): string {
+  return `${raw
+    .trimEnd()
+    .split("\n")
+    .map((line) => {
+      const event = JSON.parse(line) as Record<string, unknown>
+      return JSON.stringify("cwd" in event ? { ...event, cwd } : event)
+    })
+    .join("\n")}\n`
+}
+
 function crashPattern(output: string): string | null {
   const patterns = [
     "ERROR",
@@ -121,18 +157,19 @@ async function main(): Promise<number> {
     const configDir = join(home, ".claude")
     const projectDir = join(configDir, "projects", projectKeyFromCwd(workDir))
     mkdirSync(projectDir, { recursive: true })
-    writeFileSync(join(projectDir, `${sessionId}.jsonl`), fixtureRaw)
+    writeFileSync(join(projectDir, `${sessionId}.jsonl`), relocateFixtureCwd(fixtureRaw, workDir))
+    const settings: {
+      env: { ANTHROPIC_BASE_URL: string }
+      statusLine?: { type: "command"; command: string }
+      theme: "dark"
+    } = {
+      env: { ANTHROPIC_BASE_URL: stub.baseUrl },
+      theme: "dark",
+    }
+    if (args.statusLine) settings.statusLine = { type: "command", command: "printf PATCHED_STATUSLINE_OK" }
     writeFileSync(
       join(configDir, "settings.json"),
-      `${JSON.stringify(
-        {
-          env: { ANTHROPIC_BASE_URL: stub.baseUrl },
-          statusLine: { type: "command", command: "printf PATCHED_STATUSLINE_OK" },
-          theme: "dark",
-        },
-        null,
-        2,
-      )}\n`,
+      `${JSON.stringify(settings, null, 2)}\n`,
     )
     writeFileSync(
       join(configDir, ".claude.json"),
@@ -154,13 +191,17 @@ async function main(): Promise<number> {
       CLAUDE_CONFIG_DIR: configDir,
       ANTHROPIC_API_KEY: "stub-api-key",
       ANTHROPIC_BASE_URL: stub.baseUrl,
-      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
+      // Claude's error logger is disabled with nonessential traffic, including its
+      // local debug-file sink. The diagnostic path removes this variable entirely.
+      ...(args.captureResumeError ? {} : { CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1" }),
+      CLAUDE_CODE_ENABLE_TELEMETRY: "0",
       CLAUDE_CODE_SKIP_ONBOARDING: "1",
       CLAUDE_CODE_SKIP_PROMPT_HISTORY: "1",
       DISABLE_PROMPT_CACHING: "1",
       FORCE_COLOR: "0",
       TERM: "xterm-256color",
     }
+    const debugPath = join(home, "resume-debug.log")
     const envPrefix = Object.entries(commandEnv)
       .map(([key, value]) => `${key}=${shellQuote(value)}`)
       .join(" ")
@@ -168,21 +209,26 @@ async function main(): Promise<number> {
       "timeout",
       `${Math.min(args.timeoutSeconds, 45)}s`,
       "env",
+      ...(args.captureResumeError ? ["-u", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] : []),
       envPrefix,
       "bun",
       shellQuote(bundle),
-      "--hide-builtin-footer",
-      "--thinking-display",
-      "summarized",
+      ...(args.hideBuiltinFooter ? ["--hide-builtin-footer"] : []),
+      ...(args.thinkingDisplay ? ["--thinking-display", args.thinkingDisplay] : []),
+      ...(args.captureResumeError ? ["--debug-file", shellQuote(debugPath)] : []),
       "--resume",
       shellQuote(sessionId),
     ].join(" ")
-    const inputCommand = [
-      "sleep 4",
-      `printf %s ${shellQuote(`${args.prompt}\r`)}`,
-      "sleep 5",
-      "printf '\\003'",
-    ].join("; ")
+    const inputCommand = args.submitPrompt
+      ? [
+          `sleep ${args.startupDelaySeconds}`,
+          `printf %s ${shellQuote(`\x1b[200~${args.prompt}\x1b[201~`)}`,
+          "sleep 1",
+          `printf %s ${shellQuote("\x1b[13u")}`,
+          "sleep 5",
+          "printf '\\003'",
+        ].join("; ")
+      : `sleep ${Math.min(args.timeoutSeconds, 45) + 1}`
     const result = Bun.spawnSync({
       cmd: ["bash", "-lc", makeScriptCommand(command, inputCommand)],
       cwd: workDir,
@@ -203,6 +249,28 @@ async function main(): Promise<number> {
     if (result.exitCode !== 0 && result.exitCode !== 124) {
       console.error(`resume transcript TUI exited ${result.exitCode}`)
       console.error(output)
+      if (existsSync(debugPath)) console.error(readFileSync(debugPath, "utf8"))
+      const diagnosticProc = Bun.spawn({
+        cmd: [process.execPath, bundle, "--print", "--resume", sessionId, "--max-turns", "1"],
+        cwd: workDir,
+        env: {
+          ...process.env,
+          ...commandEnv,
+          ...(args.captureResumeError ? { CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: undefined } : {}),
+        },
+        stdout: "pipe",
+        stderr: "pipe",
+      })
+      const diagnosticTimeout = setTimeout(() => diagnosticProc.kill(), 15000)
+      const [diagnosticExitCode, diagnosticStdout, diagnosticStderr] = await Promise.all([
+        diagnosticProc.exited,
+        new Response(diagnosticProc.stdout).text(),
+        new Response(diagnosticProc.stderr).text(),
+      ])
+      clearTimeout(diagnosticTimeout)
+      console.error(`resume diagnostic exited ${diagnosticExitCode}`)
+      console.error(diagnosticStdout)
+      console.error(diagnosticStderr)
       return 1
     }
     if (!normalizedOutput.includes("Claude Code")) {
@@ -215,23 +283,27 @@ async function main(): Promise<number> {
       console.error(output)
       return 1
     }
-    if (!normalizedOutput.includes(args.prompt)) {
+    if (args.submitPrompt && !normalizedOutput.includes(args.prompt)) {
       console.error(`resume transcript TUI did not echo submitted prompt: ${args.prompt}`)
       console.error(output)
       return 1
     }
-    if (!normalizedOutput.includes("PATCHED_STATUSLINE_OK")) {
+    if (args.statusLine && !normalizedOutput.includes("PATCHED_STATUSLINE_OK")) {
       console.error("resume transcript TUI did not render the configured status line")
       console.error(output)
       return 1
     }
-    if (normalizedOutput.includes("· /effort")) {
+    // `script` captures every redraw. Check after the submitted prompt so an
+    // earlier startup frame cannot be mistaken for the final footer state.
+    const lastPromptIndex = args.submitPrompt ? normalizedOutput.lastIndexOf(args.prompt) : -1
+    const finalOutput = lastPromptIndex >= 0 ? normalizedOutput.slice(lastPromptIndex) : normalizedOutput
+    if (args.hideBuiltinFooter && finalOutput.includes("· /effort")) {
       console.error("resume transcript TUI rendered the built-in effort footer despite --hide-builtin-footer")
       console.error(output)
       return 1
     }
     console.log(
-      `ok: resumed ${sessionId}, rendered custom status line, hid built-in footer, submitted ${JSON.stringify(args.prompt)}, no render crash`,
+      `ok: resumed ${sessionId}, custom status line=${args.statusLine}, built-in footer hidden=${args.hideBuiltinFooter}, prompt submitted=${args.submitPrompt}, no render crash`,
     )
     return 0
   } finally {

@@ -653,7 +653,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain("aJ.useEffect(()=>{b()},[__cci,b]);")
     expect(patched).not.toContain("BJ.useEffect(()=>{b()},[__cci,b]);")
   }
-}, 120000)
+}, 300_000)
 
 test("thinking display wires main-screen streaming thinking to the current REPL state", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)

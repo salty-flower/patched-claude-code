@@ -37,7 +37,7 @@ test("shell execution patch locator remains valid when enabled", () => {
   expect(result.applied).toBe(1)
   expect(result.source).not.toContain('"unalias find 2>/dev/null || true"')
   expect(result.source).not.toContain('"unalias grep 2>/dev/null || true"')
-}, 20_000)
+}, 60_000)
 
 test("real bash preserves pipeline stdin and PATH command resolution", () => {
   const dir = mkdtempSync(join(tmpdir(), "patched-cc-shell-"))

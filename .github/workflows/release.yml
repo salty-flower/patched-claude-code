@@ -153,7 +153,8 @@ jobs:
           cp ci-artifact/cli.js cli.js
           cp ci-artifact/manifest.json manifest.json
           cp ci-artifact/package.json package.json
-          mkdir -p bin
+          mkdir -p bin "staging/$version"
+          cp ci-artifact/cli.js "staging/$version/cli.patched.js"
           install -m755 ci-artifact/bin/claude-patched bin/claude-patched
           echo "reused=true" >> "$GITHUB_OUTPUT"
 

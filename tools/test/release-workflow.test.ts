@@ -27,6 +27,7 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(workflow).toContain("permissions:\n  actions: read\n  checks: read\n  contents: write")
   expect(reuseStep).toContain('echo "No CI run found for release commit $GITHUB_SHA — aborting release" >&2')
   expect(reuseStep).not.toContain("No CI run found for this SHA — will render from scratch")
+  expect(reuseStep).toContain("deadline=$((SECONDS + 1800))")
   expect(reuseStep).toContain('mkdir -p bin runtime "staging/$version"')
   expect(reuseStep).toContain('cp ci-artifact/cli.js "staging/$version/cli.patched.js"')
   expect(reuseStep).toContain("install -m755 ci-artifact/bin/claude-patched bin/claude-patched")

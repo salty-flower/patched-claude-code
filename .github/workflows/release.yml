@@ -119,8 +119,8 @@ jobs:
           version="${{ steps.coord.outputs.version }}"
           artifact_name="patched-claude-code-${version}"
 
-          # Wait up to 10 min for the parallel ci.yml run to appear on this SHA
-          deadline=$((SECONDS + 600))
+          # Full release audit can exceed 10 min on GitHub runners.
+          deadline=$((SECONDS + 1800))
           run_id=""
           while [[ $SECONDS -lt $deadline ]]; do
             run_id=$(gh run list \

@@ -176,16 +176,18 @@ test("rendered bridge preserves no-op requests, applies one override, and reject
 
   const staleManifest = { ...manifest, target: { ...manifest.target, bundleSha256: "sha256-stale" } }
   writeFileSync(manifestPath, `${JSON.stringify(staleManifest, null, 2)}\n`)
-  const requestsBeforeFailure = stub.requests.length
+  const staleStub = await startClaudeApiStub({ text: "stale run must not reach the stub" })
+  stubs.push(staleStub)
+  const staleEnv = configureHome(home, staleStub.baseUrl)
   const staleResult = await runPrint([join(payload, "bin", "claude-patched")], home, {
-    ...env,
+    ...staleEnv,
     PATCHED_CLAUDE_CODE_PROMPT_DIR: promptRoot,
   })
   expect(staleResult.exitCode).not.toBe(0)
   const staleOutput = `${staleResult.stdout}\n${staleResult.stderr}`
   expect(staleOutput).toContain(manifestPath)
   expect(staleOutput).toContain("bundle SHA-256 mismatch")
-  expect(stub.requests).toHaveLength(requestsBeforeFailure)
+  expect(staleStub.requests).toHaveLength(0)
 }, 180000)
 
 test("packaged launcher rejects a bundle that no longer matches its release manifest", async () => {

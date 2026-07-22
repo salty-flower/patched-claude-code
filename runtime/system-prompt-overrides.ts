@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { basename, dirname, join } from "node:path"
 
@@ -70,6 +70,7 @@ export function createSystemPromptOverrideHook(
   options: SystemPromptOverrideOptions,
 ): (input: SystemPromptBridgeInput) => SystemPromptBridgeOutput {
   let snapshot = readOverrideSnapshot(options.promptRoot)
+  validateSnapshotCoordinates(snapshot, options.targetVersion, options.bundleSha256)
   let invocation = 0
 
   return ({ orderedSections }: SystemPromptBridgeInput): SystemPromptBridgeOutput => {
@@ -218,18 +219,7 @@ function applyOverrides(baseline: PromptManifest, orderedSections: string[], sna
 }
 
 function validateManifest(manifest: PromptManifest, baseline: PromptManifest, snapshot: OverrideSnapshot): void {
-  if (manifest.target.version !== baseline.target.version) {
-    fail(
-      snapshot.manifestPath,
-      `target version mismatch: expected ${baseline.target.version}, got ${manifest.target.version}`,
-    )
-  }
-  if (manifest.target.bundleSha256 !== baseline.target.bundleSha256) {
-    fail(
-      snapshot.manifestPath,
-      `bundle SHA-256 mismatch: expected ${baseline.target.bundleSha256}, got ${manifest.target.bundleSha256}`,
-    )
-  }
+  validateManifestCoordinates(manifest, baseline.target, snapshot)
   if (manifest.sections.length !== baseline.sections.length) {
     fail(
       snapshot.manifestPath,
@@ -261,6 +251,28 @@ function validateManifest(manifest: PromptManifest, baseline: PromptManifest, sn
     fail(
       snapshot.manifestPath,
       `baseline vector SHA-256 mismatch: expected ${baseline.baselineVectorSha256}, got ${manifest.baselineVectorSha256}`,
+    )
+  }
+}
+
+function validateSnapshotCoordinates(snapshot: OverrideSnapshot, targetVersion: string, bundleSha256: string): void {
+  if (snapshot.files.size === 0) return
+  if (!snapshot.manifest) fail(snapshot.manifestPath, "manifest is missing")
+  validateManifestCoordinates(snapshot.manifest, { version: targetVersion, bundleSha256 }, snapshot)
+}
+
+function validateManifestCoordinates(
+  manifest: PromptManifest,
+  target: PromptManifest["target"],
+  snapshot: OverrideSnapshot,
+): void {
+  if (manifest.target.version !== target.version) {
+    fail(snapshot.manifestPath, `target version mismatch: expected ${target.version}, got ${manifest.target.version}`)
+  }
+  if (manifest.target.bundleSha256 !== target.bundleSha256) {
+    fail(
+      snapshot.manifestPath,
+      `bundle SHA-256 mismatch: expected ${target.bundleSha256}, got ${manifest.target.bundleSha256}`,
     )
   }
 }

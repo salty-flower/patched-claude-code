@@ -147,6 +147,30 @@ test("malformed UTF-8 is rejected during the process-start snapshot", () => {
   })
 })
 
+test("stale override coordinates are rejected during the process-start snapshot", () => {
+  withPromptRoot((root) => {
+    const manifest = exportPrompt(root, ["# Intro\nOriginal"])
+    const section = manifest.sections[0]
+    if (!section) throw new Error("exported prompt manifest has no sections")
+    writeOverride(root, section.id, "local")
+
+    expect(() =>
+      createSystemPromptOverrideHook({
+        targetVersion: "2.1.218",
+        bundleSha256: BUNDLE_SHA256,
+        promptRoot: root,
+      }),
+    ).toThrow("target version mismatch")
+    expect(() =>
+      createSystemPromptOverrideHook({
+        targetVersion: VERSION,
+        bundleSha256: "sha256-new-bundle",
+        promptRoot: root,
+      }),
+    ).toThrow("bundle SHA-256 mismatch")
+  })
+})
+
 test("plain export preserves stale override baselines while explicit rebase updates them", () => {
   withPromptRoot((root) => {
     const original = ["# Intro\nOriginal"]

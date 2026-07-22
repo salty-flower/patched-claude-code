@@ -96,6 +96,15 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 
   const patched = readFileSync(patchedBundle, "utf8")
 
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.217")) {
+    expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:BBs(w)})')
+    expect(patched).not.toContain(
+      'else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:s2s(w)})',
+    )
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.216")) {
     expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
     expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:s2s(w)})')
@@ -226,7 +235,12 @@ test("live thinking rendering is not suppressed by brief mode", () => {
 
   const patched = readFileSync(patchedBundle, "utf8")
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.216")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.217")) {
+    expect(patched).toContain('case"thinking":{if(!1){return null}')
+    expect(patched).not.toContain('case"thinking":{if(!Aht&&!Eee){return null}')
+    expect(patched).toContain("let Pr0=!0;")
+    expect(patched).not.toContain("let Pr0=BRp||URp;")
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.216")) {
     expect(patched).toContain('case"thinking":{if(!1){return null}')
     expect(patched).not.toContain('case"thinking":{if(!iht&&!oee){return null}')
     expect(patched).toContain("let G7R=!0;")

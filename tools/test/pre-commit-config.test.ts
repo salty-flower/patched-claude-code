@@ -15,7 +15,7 @@ function hookBlock(id: string): string {
 test("pre-commit runs tool tests for workflow and hook wiring edits", () => {
   const toolsTest = hookBlock("tools-test")
 
-  expect(toolsTest).toContain('TARGET_VERSION="${TARGET_VERSION:-2.1.216}"')
+  expect(toolsTest).toContain('TARGET_VERSION="${TARGET_VERSION:-2.1.217}"')
   expect(toolsTest).toContain("\\.github/workflows/.*\\.ya?ml")
   expect(toolsTest).toContain("\\.pre-commit-config\\.yaml")
 })

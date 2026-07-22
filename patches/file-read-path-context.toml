@@ -532,7 +532,7 @@ assert_not_contains = '''children:["Read ",cC.jsx(h,{bold:!0,children:t.length})
 [[patches]]
 name = "read-result-path-notebook-2-1-216"
 target_version = "2.1.216"
-applies_to = ">=2.1.216 <2.2.0"
+applies_to = ">=2.1.216 <2.1.217"
 
 rationale = """
 Show the file path on notebook Read result rows.
@@ -568,6 +568,46 @@ assert_not_contains = '''children:["Read ",yC.jsx(h,{bold:!0,children:t.length})
 kind = "static"
 name = "2.1.216 notebook variant no longer carries 2.1.215 symbols"
 assert_not_contains = '''children:["Read ",lC.jsx(h,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches]]
+name = "read-result-path-notebook-2-1-217"
+target_version = "2.1.217"
+applies_to = ">=2.1.217 <2.2.0"
+
+rationale = """
+Show the file path on notebook Read result rows.
+
+This is the 2.1.217 JSX-runtime variant of `read-result-path-notebook`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['" cells"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",AC.jsx(h,{bold:!0,children:t.length})," cells"]'''
+value = '''children:["Read ",AC.jsx(h,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.217"
+assert_contains = '''children:["Read ",AC.jsx(h,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.217 notebook path row is absent"
+assert_not_contains = '''children:["Read ",AC.jsx(h,{bold:!0,children:t.length})," cells"]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.217 notebook variant no longer carries 2.1.216 symbols"
+assert_not_contains = '''children:["Read ",yC.jsx(h,{bold:!0,children:t.length})," cells",Z]'''
 
 [[patches]]
 name = "read-result-path-parts"
@@ -969,7 +1009,7 @@ assert_not_contains = '''children:["Read ",cC.jsx(h,{bold:!0,children:e.file.cou
 [[patches]]
 name = "read-result-path-parts-2-1-216"
 target_version = "2.1.216"
-applies_to = ">=2.1.216 <2.2.0"
+applies_to = ">=2.1.216 <2.1.217"
 
 rationale = """
 Show the file path on PDF-part Read result rows.
@@ -1005,6 +1045,46 @@ assert_not_contains = '''children:["Read ",yC.jsx(h,{bold:!0,children:e.file.cou
 kind = "static"
 name = "2.1.216 parts variant no longer carries 2.1.215 symbols"
 assert_not_contains = '''children:["Read ",lC.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ba(e.file.originalSize),")",Z]'''
+
+[[patches]]
+name = "read-result-path-parts-2-1-217"
+target_version = "2.1.217"
+applies_to = ">=2.1.217 <2.2.0"
+
+rationale = """
+Show the file path on PDF-part Read result rows.
+
+This is the 2.1.217 JSX-runtime variant of `read-result-path-parts`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = "originalSize", strings = ['"page":"pages"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",AC.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",nl(e.file.originalSize),")"]'''
+value = '''children:["Read ",AC.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",nl(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.217"
+assert_contains = '''children:["Read ",AC.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",nl(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.217 parts path row is absent"
+assert_not_contains = '''children:["Read ",AC.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",nl(e.file.originalSize),")"]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.217 parts variant no longer carries 2.1.216 symbols"
+assert_not_contains = '''children:["Read ",yC.jsx(h,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",tl(e.file.originalSize),")",Z]'''
 
 [[patches]]
 name = "read-result-path-pdf"
@@ -1501,7 +1581,7 @@ assert_not_contains = '''children:["Read ",cC.jsx(h,{bold:!0,children:t})," ",t=
 [[patches]]
 name = "read-result-path-text-2-1-216"
 target_version = "2.1.216"
-applies_to = ">=2.1.216 <2.2.0"
+applies_to = ">=2.1.216 <2.1.217"
 
 rationale = """
 Show the file path on text Read result rows.
@@ -1537,6 +1617,46 @@ assert_not_contains = '''children:["Read ",yC.jsx(h,{bold:!0,children:t})," ",t=
 kind = "static"
 name = "2.1.216 text variant no longer carries 2.1.215 symbols"
 assert_not_contains = '''children:["Read ",lC.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches]]
+name = "read-result-path-text-2-1-217"
+target_version = "2.1.217"
+applies_to = ">=2.1.217 <2.2.0"
+
+rationale = """
+Show the file path on text Read result rows.
+
+This is the 2.1.217 JSX-runtime variant of `read-result-path-text`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['"line":"lines"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",AC.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines"]'''
+value = '''children:["Read ",AC.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.217"
+assert_contains = '''children:["Read ",AC.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.217 text path row is absent"
+assert_not_contains = '''children:["Read ",AC.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines"]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.217 text variant no longer carries 2.1.216 symbols"
+assert_not_contains = '''children:["Read ",yC.jsx(h,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
 
 [[patches]]
 name = "read-result-path-unchanged"
@@ -1935,7 +2055,7 @@ assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${Nd
 [[patches]]
 name = "read-result-path-unchanged-2-1-216"
 target_version = "2.1.216"
-applies_to = ">=2.1.216 <2.2.0"
+applies_to = ">=2.1.216 <2.1.217"
 
 rationale = """
 Show the file path on unchanged Read result rows.
@@ -1971,3 +2091,43 @@ assert_not_contains = '''children:e.source==="seeded"?`Already in context (${Swp
 kind = "static"
 name = "2.1.216 unchanged variant no longer carries 2.1.215 symbols"
 assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${xgp.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-217"
+target_version = "2.1.217"
+applies_to = ">=2.1.217 <2.2.0"
+
+rationale = """
+Show the file path on unchanged Read result rows.
+
+This is the 2.1.217 JSX-runtime variant of `read-result-path-unchanged`.
+Cleanup condition: upstream includes the file path in Read tool result rows or
+provides equivalent transcript context.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", source = 'AC.jsx(h,{dimColor:!0,children:e.source==="seeded"?`Already in context (${Bxp.basename(e.file.filePath)})`:"Unchanged since last read"})' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:e.source==="seeded"?`Already in context (${Bxp.basename(e.file.filePath)})`:"Unchanged since last read"'''
+value = '''children:e.source==="seeded"?[`Already in context (${Bxp.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.217"
+assert_contains = '''children:e.source==="seeded"?[`Already in context (${Bxp.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.217 unchanged path row is absent"
+assert_not_contains = '''children:e.source==="seeded"?`Already in context (${Bxp.basename(e.file.filePath)})`:"Unchanged since last read"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.217 unchanged variant no longer carries 2.1.216 symbols"
+assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${Swp.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''

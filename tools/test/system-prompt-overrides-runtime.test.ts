@@ -9,6 +9,8 @@ import {
 } from "../../runtime/system-prompt-overrides"
 import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { inspectPromptIdentityObservations } from "../lib/prompt-catalog"
+import { bootstrapPromptIdentityFiles } from "../lib/prompt-identity"
 import { writeReleasePayload } from "../lib/release-payload"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
@@ -190,13 +192,17 @@ test("packaged launcher rejects a bundle that no longer matches its release mani
   const work = makeTempDir("patched-cc-prompt-bundle-hash-")
   const input = join(work, "input.js")
   const payload = join(work, "payload")
-  writeFileSync(input, 'process.stdout.write("bundle ran\\n")\n')
+  const source = 'process.stdout.write("bundle ran\\n")\n'
+  writeFileSync(input, source)
+  const identityRoot = join(work, "prompt-identities")
+  bootstrapPromptIdentityFiles(identityRoot, TARGET_VERSION, inspectPromptIdentityObservations(source, TARGET_VERSION))
   writeReleasePayload({
     root: ROOT,
     version: TARGET_VERSION,
     releaseId: "bundle-hash.test",
     input,
     upstreamInput: input,
+    promptIdentityRoot: identityRoot,
     outDir: payload,
   })
   const packagedBundle = join(payload, "cli.js")

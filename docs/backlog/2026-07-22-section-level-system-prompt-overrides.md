@@ -22,6 +22,7 @@ Billing attribution remains controlled by upstream's
 | Unit and local-stub request proofs | Passed |
 | Release payload and Nix wiring | Passed |
 | Public static prompt catalog | Passed: tar, source tag, workflow, and Nix payload |
+| Cross-version catalog lineage | Passed: registry, version ledger, hierarchical render |
 | Rendered helper-preloaded PTY/TUI | Blocked in current `darwin-overlay`: `openpty` denied |
 | First subsequent target revalidation | Pending next target |
 | Promotion to `docs/rules/` | Blocked by the two pending gates above |

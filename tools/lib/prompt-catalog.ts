@@ -1,16 +1,8 @@
 import { createHash } from "node:crypto"
-import {
-  cpSync,
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs"
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, resolve, sep } from "node:path"
 import * as parser from "@babel/parser"
+import { loadPromptIdentityResolution, type PromptIdentityObservation } from "./prompt-identity"
 
 const IGNORED_AST_KEYS = new Set([
   "comments",
@@ -39,14 +31,16 @@ const PROMPT_SIGNALS = [
   { id: "xml-tag", pattern: /<[a-z][^>]*>/i },
 ] as const
 
+const PROMPT_MINHASH_COMPONENTS = 32
+
 const RULESET = {
-  schema: 1,
+  schema: 3,
   candidateNodes: ["StringLiteral", "TemplateLiteral"],
   minimumCharacters: 160,
   minimumSignals: 2,
   signals: PROMPT_SIGNALS.map(({ id, pattern }) => ({ id, source: pattern.source, flags: pattern.flags })),
   contextualTemplatePolicy: "gap",
-  identity: "version-scoped-source-order",
+  identity: "checked-in-lineage-with-non-authoritative-partial-ranking",
 } as const
 
 export const PROMPT_CATALOG_RULESET_SHA256 = digest(JSON.stringify(RULESET))
@@ -63,10 +57,13 @@ type PromptCandidate = {
   signals: string[]
   staticText?: string
   expressionCount: number
+  astContextSha256: string
 }
 
 export type PromptCatalogEntry = {
   id: string
+  lineageId: string
+  occurrenceId: string
   familyId: string
   callsiteId: string
   role: "system" | "tool" | "user" | "unknown"
@@ -88,6 +85,9 @@ export type PromptCatalogEntry = {
 
 export type PromptCatalogGap = {
   id: string
+  lineageId?: string
+  occurrenceId?: string
+  catalogPath?: string
   familyId: string
   callsiteId: string
   role: "system" | "tool" | "user" | "unknown"
@@ -107,7 +107,7 @@ export type PromptCatalogGap = {
 }
 
 export type PromptCatalogManifest = {
-  schema: 1
+  schema: 2
   scope: "static-prompt-catalog"
   completeness: "partial"
   target: {
@@ -118,9 +118,14 @@ export type PromptCatalogManifest = {
     patchSetSha256: string
   }
   extractor: {
-    schemaVersion: 1
+    schemaVersion: 3
     rulesetSha256: string
     method: typeof RULESET
+  }
+  identity: {
+    schemaVersion: 2
+    lineageSetSha256: string
+    ledgerSha256: string
   }
   entries: PromptCatalogEntry[]
   gapsFile: "gaps.json"
@@ -148,6 +153,7 @@ export type WritePromptCatalogOptions = PromptCatalogCoordinates & {
   upstreamBundlePath: string
   patchedBundlePath: string
   outDir: string
+  identityRoot: string
 }
 
 export type PromptCatalogResult = {
@@ -164,17 +170,23 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
   const patchedSource = decodeUtf8(patchedBytes, options.patchedBundlePath)
 
   const candidates = discoverPromptCandidates(patchedSource)
+  const observations = promptIdentityObservations(candidates, patchedSource, options.upstreamVersion)
+  const identity = loadPromptIdentityResolution(options.identityRoot, options.upstreamVersion, observations)
   const entries: PromptCatalogEntry[] = []
   const gaps: PromptCatalogGap[] = []
   prepareOutputDirectory(options.outDir)
   mkdirSync(join(options.outDir, "entries"), { recursive: true })
 
   candidates.forEach((candidate, ordinal) => {
-    const id = `v${options.upstreamVersion}-${String(ordinal).padStart(4, "0")}`
+    const observation = observations[ordinal]!
+    const resolvedIdentity = identity.byOccurrenceId.get(observation.occurrenceId)
+    if (!resolvedIdentity) throw new Error(`prompt identity missing after validation: ${observation.occurrenceId}`)
+    const { lineage } = resolvedIdentity
+    const id = lineage.lineageId
     const sourceText = patchedSource.slice(candidate.node.start, candidate.node.end)
     const provenance = inferProvenance(candidate, sourceText, upstreamSource)
-    const familyId = inferFamily(candidate.detectorText)
-    const role = inferRole(candidate.detectorText, familyId)
+    const familyId = lineage.family
+    const role = lineage.role
     const callsiteId = `patched:${candidate.node.start}-${candidate.node.end}`
     const source = {
       bundle: "patched" as const,
@@ -185,11 +197,14 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
 
     if (candidate.staticText !== undefined) {
       assertNoRuntimeLeak(candidate.staticText, options)
-      const contentFile = `entries/${id}.md`
+      const contentFile = lineage.catalogPath
       const content = Buffer.from(candidate.staticText, "utf8")
+      mkdirSync(dirname(join(options.outDir, contentFile)), { recursive: true })
       writeFileSync(join(options.outDir, contentFile), content, { mode: 0o644 })
       entries.push({
         id,
+        lineageId: lineage.lineageId,
+        occurrenceId: observation.occurrenceId,
         familyId,
         callsiteId,
         role,
@@ -208,6 +223,9 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
 
     gaps.push({
       id,
+      lineageId: lineage.lineageId,
+      occurrenceId: observation.occurrenceId,
+      catalogPath: lineage.catalogPath,
       familyId,
       callsiteId,
       role,
@@ -223,7 +241,7 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
   })
 
   gaps.push({
-    id: `v${options.upstreamVersion}-scan-scope`,
+    id: "catalog-scope",
     familyId: "catalog-scope",
     callsiteId: "ruleset:outside-static-literal-candidates",
     role: "unknown",
@@ -239,7 +257,7 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
   writeFileSync(join(options.outDir, "gaps.json"), gapsBytes, { mode: 0o644 })
   const contentTreeSha256 = hashCatalogTree(options.outDir)
   const manifestWithoutHash = {
-    schema: 1 as const,
+    schema: 2 as const,
     scope: "static-prompt-catalog" as const,
     completeness: "partial" as const,
     target: {
@@ -250,9 +268,14 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
       patchSetSha256: options.patchSetSha256,
     },
     extractor: {
-      schemaVersion: 1 as const,
+      schemaVersion: 3 as const,
       rulesetSha256: PROMPT_CATALOG_RULESET_SHA256,
       method: RULESET,
+    },
+    identity: {
+      schemaVersion: 2 as const,
+      lineageSetSha256: identity.lineageSetSha256,
+      ledgerSha256: identity.ledgerSha256,
     },
     entries,
     gapsFile: "gaps.json" as const,
@@ -267,7 +290,7 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
     limitations: [
       "The catalog covers only candidates selected by the declared static literal ruleset.",
       "Contextual gaps do not represent effective requests or canonical sample prompts.",
-      "Catalog identities are version-scoped audit identities, not runtime override identities.",
+      "Lineage identities are stable across versions but remain separate from runtime override section identities.",
     ],
   }
   const manifest: PromptCatalogManifest = {
@@ -323,10 +346,11 @@ export function readPromptCatalogManifest(root: string): PromptCatalogManifest {
   const path = join(root, "manifest.json")
   const value = JSON.parse(decodeUtf8(readFileSync(path), path)) as PromptCatalogManifest
   if (
-    value.schema !== 1 ||
+    value.schema !== 2 ||
     value.scope !== "static-prompt-catalog" ||
     value.completeness !== "partial" ||
     !Array.isArray(value.entries) ||
+    value.identity?.schemaVersion !== 2 ||
     value.extractor?.rulesetSha256 !== PROMPT_CATALOG_RULESET_SHA256
   ) {
     throw new Error(`invalid prompt catalog manifest: ${path}`)
@@ -357,7 +381,9 @@ export function validateCatalogContents(root: string, manifest = readPromptCatal
     callsites.add(item.callsiteId)
   }
   for (const entry of manifest.entries) {
-    if (contentFiles.has(entry.contentFile)) throw new Error(`duplicate prompt catalog content path: ${entry.contentFile}`)
+    if (entry.id !== entry.lineageId) throw new Error(`prompt catalog entry identity mismatch: ${entry.id}`)
+    if (contentFiles.has(entry.contentFile))
+      throw new Error(`duplicate prompt catalog content path: ${entry.contentFile}`)
     contentFiles.add(entry.contentFile)
     const contentPath = resolveCatalogPath(root, entry.contentFile)
     const content = readFileSync(contentPath)
@@ -399,6 +425,39 @@ export function hashCatalogTree(root: string, excluded = new Set<string>()): str
   return `sha256-${hash.digest("base64")}`
 }
 
+export function inspectPromptIdentityObservations(
+  source: string,
+  upstreamVersion: string,
+): PromptIdentityObservation[] {
+  const candidates = discoverPromptCandidates(source)
+  return promptIdentityObservations(candidates, source, upstreamVersion)
+}
+
+function promptIdentityObservations(
+  candidates: PromptCandidate[],
+  source: string,
+  upstreamVersion: string,
+): PromptIdentityObservation[] {
+  return candidates.map((candidate, ordinal) => {
+    const occurrenceId = `v${upstreamVersion}-${String(ordinal).padStart(4, "0")}`
+    const familyHint = inferFamily(candidate.detectorText)
+    const normalizedTokens = normalizedPromptTokens(candidate.staticText ?? candidate.detectorText)
+    return {
+      occurrenceId,
+      ordinal,
+      familyHint,
+      roleHint: inferRole(candidate.detectorText, familyHint),
+      classification: candidate.staticText === undefined ? "contextual-gap" : "static",
+      detectorSha256: digest(candidate.detectorText),
+      revisionSha256: candidate.staticText === undefined ? null : digest(candidate.staticText),
+      sourceSha256: digest(source.slice(candidate.node.start, candidate.node.end)),
+      textMinHash: promptTextMinHash(normalizedTokens),
+      normalizedTokenCount: normalizedTokens.length,
+      astContextSha256: candidate.astContextSha256,
+    }
+  })
+}
+
 function discoverPromptCandidates(source: string): PromptCandidate[] {
   const ast = parser.parse(source, {
     allowReturnOutsideFunction: true,
@@ -407,12 +466,12 @@ function discoverPromptCandidates(source: string): PromptCandidate[] {
     sourceType: "script",
   })
   const candidates: PromptCandidate[] = []
-  visit(ast.program, (node) => {
+  visit(ast.program, (node, astPath) => {
     const material = candidateMaterial(node)
     if (!material || material.detectorText.length < RULESET.minimumCharacters) return
     const signals = PROMPT_SIGNALS.filter(({ pattern }) => pattern.test(material.detectorText)).map(({ id }) => id)
     if (signals.length < RULESET.minimumSignals) return
-    candidates.push({ node, signals, ...material })
+    candidates.push({ node, signals, astContextSha256: digest([...astPath, node.type].join("/")), ...material })
   })
   return candidates.sort((left, right) => left.node.start - right.node.start)
 }
@@ -439,6 +498,42 @@ function candidateMaterial(
     ...(expressions.length === 0 ? { staticText: values.join("") } : {}),
     expressionCount: expressions.length,
   }
+}
+
+function normalizedPromptTokens(text: string): string[] {
+  return (
+    text
+      .normalize("NFKC")
+      .toLocaleLowerCase("en-US")
+      .match(/[\p{L}\p{N}_-]+|[^\s]/gu) ?? []
+  )
+}
+
+function promptTextMinHash(tokens: string[]): string {
+  const shingles = new Set<string>()
+  if (tokens.length < 3) {
+    for (const token of tokens) shingles.add(token)
+  } else {
+    for (let index = 0; index <= tokens.length - 3; index += 1) {
+      shingles.add(`${tokens[index]}\u001f${tokens[index + 1]}\u001f${tokens[index + 2]}`)
+    }
+  }
+  const minima = new Uint32Array(PROMPT_MINHASH_COMPONENTS)
+  minima.fill(0xffffffff)
+  for (const shingle of shingles) {
+    const hash = createHash("sha256").update(shingle).digest()
+    const first = hash.readUInt32BE(0)
+    const step = hash.readUInt32BE(4) | 1
+    for (let component = 0; component < PROMPT_MINHASH_COMPONENTS; component += 1) {
+      const value = (first + Math.imul(component, step)) >>> 0
+      if (value < (minima[component] ?? 0xffffffff)) minima[component] = value
+    }
+  }
+  const signature = Buffer.alloc(PROMPT_MINHASH_COMPONENTS * 4)
+  minima.forEach((value, index) => {
+    signature.writeUInt32BE(value, index * 4)
+  })
+  return signature.toString("base64")
 }
 
 function inferFamily(text: string): string {
@@ -476,7 +571,11 @@ function inferProvenance(
 }
 
 function assertNoRuntimeLeak(content: string, options: WritePromptCatalogOptions): void {
-  const forbidden = [resolve(options.upstreamBundlePath), resolve(options.patchedBundlePath), dirname(resolve(options.outDir))]
+  const forbidden = [
+    resolve(options.upstreamBundlePath),
+    resolve(options.patchedBundlePath),
+    dirname(resolve(options.outDir)),
+  ]
   for (const value of forbidden) {
     if (value.length >= 8 && content.includes(value)) {
       throw new Error(`prompt catalog candidate contains a release-host path: ${value}`)
@@ -557,19 +656,21 @@ function updateLengthPrefixed(hash: ReturnType<typeof createHash>, bytes: Buffer
   hash.update(bytes)
 }
 
-function visit(node: unknown, onNode: (node: AstNode) => void): void {
+function visit(node: unknown, onNode: (node: AstNode, astPath: string[]) => void, astPath: string[] = []): void {
   if (!node || typeof node !== "object") return
   if (Array.isArray(node)) {
-    for (const item of node) visit(item, onNode)
+    for (const item of node) visit(item, onNode, astPath)
     return
   }
   const record = node as Record<string, unknown>
   if (typeof record.type === "string" && typeof record.start === "number" && typeof record.end === "number") {
-    onNode(record as AstNode)
+    onNode(record as AstNode, astPath)
   }
   for (const key of Object.keys(record)) {
     if (IGNORED_AST_KEYS.has(key)) continue
-    visit(record[key], onNode)
+    astPath.push(`${String(record.type ?? "Object")}.${key}`)
+    visit(record[key], onNode, astPath)
+    astPath.pop()
   }
 }
 

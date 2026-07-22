@@ -93,7 +93,26 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    just patch-test <ver>
    ```
 
-7. **Exercise the rendered TUI and runtime paths.**
+7. **Reconcile prompt identities.**
+
+   ```sh
+   just prompt-identity-draft <ver> <previous-ver>
+   ```
+
+   Review every unresolved occurrence, finalize the draft, and commit the new
+   version ledger before packaging:
+
+   ```sh
+   just prompt-identity-finalize dist/prompt-identities-<ver>.draft.json
+   ```
+
+   Unique exact observations may carry automatically. Changed or duplicated
+   prompts, split/merge relations, and new lineages require a hash-bound
+   maintainer decision. Use ranked `candidateMatches` to locate partial
+   successors; never promote a score directly. See
+   [`Prompt-Catalog.md`](Prompt-Catalog.md#target-upgrade).
+
+8. **Exercise the rendered TUI and runtime paths.**
 
    Every target bump must include this baseline before commit:
 
@@ -124,7 +143,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    symbols first. See
    [`../records/2026-05-12-v2.1.139-statusline-footer-lessons.md`](../records/2026-05-12-v2.1.139-statusline-footer-lessons.md).
 
-8. **Update `target_version` in patches.**
+9. **Update `target_version` in patches.**
    When a patch was authored against an older target, update its
    `target_version` only after a successful re-verify. `applies_to` may
    stay broader than `target_version` only when the patch text is not tied to
@@ -133,7 +152,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    If `system-prompt-section-overrides.toml` is active, repeat every gate in
    [`../backlog/2026-07-22-section-level-system-prompt-overrides.md`](../backlog/2026-07-22-section-level-system-prompt-overrides.md#promotion-gate).
 
-9. **Commit.**
+10. **Commit.**
    Use type `patches:` if any patch text changed, or `reference:` if you
    touched only metadata. The body should list every patch revisited and
    note any that needed re-anchoring or symbol splits.

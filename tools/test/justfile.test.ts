@@ -23,6 +23,8 @@ test("ci release audit target declares shared staged-bundle work once", () => {
   expect(recipe).toContain("(package-rendered version release_id)")
   expect(recipe).toContain("(release-source-rendered version release_id)")
   expect(recipe).toContain("git ls-tree -r --name-only")
+  expect(recipe).toContain("shopt -s nullglob globstar")
+  expect(recipe).toContain("prompts/catalog/entries/**/*.md")
 })
 
 test("tool tests receive the selected target version", () => {

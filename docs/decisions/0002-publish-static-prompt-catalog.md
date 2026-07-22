@@ -22,7 +22,7 @@ The extractor passes one closed `prompts/catalog/` tree:
 prompts/catalog/
 ├── manifest.json
 ├── entries/
-│   └── <catalog-entry-id>.md
+│   └── <family>/<role>/<lineage-id>.md
 └── gaps.json
 ```
 

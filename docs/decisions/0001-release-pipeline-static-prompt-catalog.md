@@ -23,7 +23,7 @@ catalog extractor.
 | Release pipeline provides | Extractor returns |
 | --- | --- |
 | Upstream version and release ID | Immutable catalog tree |
-| Upstream and patched bundle paths and hashes | Versioned entry identities |
+| Upstream and patched bundle paths and hashes | Version-local occurrence identities |
 | Patch-set and extraction-ruleset hashes | Content hashes and provenance |
 | Required source anchors | Explicit classified gaps |
 
@@ -44,6 +44,7 @@ an explicit gap, with release, bundle, source, and content evidence.
 The catalog is not an exhaustive representation of runtime-effective prompts.
 Context-dependent values and explicitly unrecoverable candidates may remain
 partial. Semantic entry identity need not survive an upstream version change.
+ADR-0003 supersedes this clause with checked-in prompt lineages.
 
 ### Owner
 

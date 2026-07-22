@@ -17,6 +17,7 @@ type Args = {
   patched?: string
   patchSetSha256?: string
   outDir?: string
+  identityRoot?: string
 }
 
 export function parseArgs(argv: string[]): Args {
@@ -28,6 +29,7 @@ export function parseArgs(argv: string[]): Args {
     .option("--patched <cli.patched.js>", "patched bundle input")
     .option("--patch-set-sha256 <sri>", "patch-set identity for local extraction")
     .option("-o, --out-dir <directory>", "catalog output directory")
+    .option("--identity-root <directory>", "checked-in prompt identity registry")
     .parse(argv, { from: "user" })
     .opts<Args>()
 }
@@ -51,6 +53,7 @@ function main(): number {
     patchedBundleSha256: sha256(readFileSync(patched)).sri,
     patchSetSha256: args.patchSetSha256 ?? "sha256-unspecified-local-extraction",
     outDir,
+    identityRoot: args.identityRoot ?? join(ROOT, "prompt-identities"),
   })
   console.error(
     `wrote ${outDir} (${result.manifest.summary.staticEntries} entries, ${result.manifest.summary.contextualGaps} contextual gaps, ${result.treeSha256})`,

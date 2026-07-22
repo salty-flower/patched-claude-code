@@ -48,6 +48,14 @@ hashes. Classified contextual and opaque gaps MAY ship. Missing catalogs,
 unclassified discovered candidates, hash mismatches, or artifact parity drift
 MUST block release.
 
+Every discovered prompt occurrence MUST have exactly one committed lineage
+decision in `prompt-identities/`. Missing, stale, ambiguous, duplicate, or
+digest-mismatched decisions MUST block release. Lineage IDs MUST NOT be derived
+from versions, ordinals, offsets, prompt bytes, or current inferred paths. See
+[`../guides/Prompt-Catalog.md`](../guides/Prompt-Catalog.md).
+Partial-match candidates and similarity scores MUST NOT authorize lineage
+assignment without a committed maintainer rule.
+
 ## Automation
 
 Pushing a commit to `main` with title

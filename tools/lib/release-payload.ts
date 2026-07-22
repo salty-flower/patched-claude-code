@@ -76,7 +76,7 @@ export type ReleaseManifest = {
   }
   promptCatalog: {
     path: "prompts/catalog"
-    schema: 1
+    schema: 2
     completeness: "partial"
     rulesetSha256: string
     entries: number
@@ -102,6 +102,7 @@ export type ReleasePayloadOptions = {
   input: string
   upstreamInput?: string
   promptCatalogInput?: string
+  promptIdentityRoot?: string
   outDir: string
   tag?: string | null
   gitCommit?: string | null
@@ -160,6 +161,7 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
         upstreamBundleSha256: sha256(readFileSync(upstreamInput)).sri,
         patchedBundlePath: options.input,
         outDir: catalogOutput,
+        identityRoot: options.promptIdentityRoot ?? join(options.root, "prompt-identities"),
       })
     : existsSync(join(existingCatalog, "manifest.json"))
       ? rebindPromptCatalog(existingCatalog, catalogOutput, {

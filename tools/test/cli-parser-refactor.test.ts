@@ -1,10 +1,13 @@
 import { expect, test } from "bun:test"
 import { join } from "node:path"
+import { parseArgs as parsePromptIdentityHistoryAuditArgs } from "../patch/audit-prompt-identity-history"
 import { parseArgs as parseCreateSourceTagArgs } from "../patch/create-source-tag"
 import { parseArgs as parseDetectUpstreamArgs } from "../patch/detect-upstream"
 import { parseArgs as parseExtractPromptCatalogArgs } from "../patch/extract-prompt-catalog"
+import { parseArgs as parseFinalizePromptIdentitiesArgs } from "../patch/finalize-prompt-identities"
 import { parseArgs as parseFormatStagedCliArgs } from "../patch/format-staged-cli"
 import { parseArgs as parsePackageReleaseArgs } from "../patch/package-release"
+import { parseArgs as parseReconcilePromptIdentitiesArgs } from "../patch/reconcile-prompt-identities"
 import { parseArgs as parseStageClaudeCodeArgs } from "../patch/stage-claude-code"
 import { parseArgs as parseStageTargetArgs } from "../patch/stage-target"
 import { parseArgs as parseVerifyPatchesArgs } from "../patch/verify-patches"
@@ -102,6 +105,49 @@ test("extract-prompt-catalog parses release inputs and conventional output optio
     upstream: "cli.js",
     patched: "cli.patched.js",
     outDir: "catalog",
+  })
+})
+
+test("prompt identity CLIs parse explicit draft and finalize paths", () => {
+  expect(
+    parsePromptIdentityHistoryAuditArgs([
+      "--version",
+      "2.1.216",
+      "--version",
+      "2.1.217",
+      "--staging-root",
+      "fixtures",
+      "--bundle-name",
+      "cli.patched.js",
+      "-o",
+      "audit.json",
+    ]),
+  ).toEqual({
+    version: ["2.1.216", "2.1.217"],
+    stagingRoot: "fixtures",
+    bundleName: "cli.patched.js",
+    outFile: "audit.json",
+  })
+  expect(
+    parseReconcilePromptIdentitiesArgs([
+      "--version",
+      "2.1.218",
+      "--previous-version",
+      "2.1.217",
+      "--identity-root",
+      "identities",
+      "-o",
+      "review.json",
+    ]),
+  ).toEqual({
+    version: "2.1.218",
+    previousVersion: "2.1.217",
+    identityRoot: "identities",
+    outFile: "review.json",
+  })
+  expect(parseFinalizePromptIdentitiesArgs(["review.json", "--identity-root", "identities"])).toEqual({
+    draft: "review.json",
+    identityRoot: "identities",
   })
 })
 

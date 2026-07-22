@@ -2,6 +2,12 @@ import { createHash } from "node:crypto"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { isAbsolute, join, relative, resolve, sep } from "node:path"
 import { loadPatchEntriesFromToml, type PatchEntry } from "./patch-files"
+import {
+  PROMPT_CATALOG_RULESET_SHA256,
+  readPromptCatalogManifest,
+  rebindPromptCatalog,
+  writePromptCatalog,
+} from "./prompt-catalog"
 
 export const RELEASE_NAME = "patched-claude-code"
 export const UPSTREAM_PACKAGE = "@anthropic-ai/claude-code"
@@ -36,7 +42,7 @@ export type StageManifest = {
 }
 
 export type ReleaseManifest = {
-  schema: 1
+  schema: 2
   name: typeof RELEASE_NAME
   upstream: {
     package: typeof UPSTREAM_PACKAGE
@@ -68,6 +74,16 @@ export type ReleaseManifest = {
     bytes: number
     sha256: string
   }
+  promptCatalog: {
+    path: "prompts/catalog"
+    schema: 1
+    completeness: "partial"
+    rulesetSha256: string
+    entries: number
+    contextualGaps: number
+    opaqueGaps: number
+    sha256: string
+  }
 }
 
 export type ReleasePayload = {
@@ -84,6 +100,8 @@ export type ReleasePayloadOptions = {
   version: string
   releaseId: string
   input: string
+  upstreamInput?: string
+  promptCatalogInput?: string
   outDir: string
   tag?: string | null
   gitCommit?: string | null
@@ -124,7 +142,46 @@ export function loadStageManifest(root: string, version: string): StageManifest 
 export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayload {
   const cliBytes = readFileSync(options.input)
   const cliHash = sha256(cliBytes)
-  const manifest = buildReleaseManifest(options, cliBytes, cliHash)
+  const baseManifest = buildReleaseManifest(options, cliBytes, cliHash)
+  const catalogOutput = join(options.outDir, "prompts", "catalog")
+  const upstreamInput = options.upstreamInput ?? join(options.root, "staging", options.version, "cli.js")
+  const existingCatalog = options.promptCatalogInput ?? join(options.root, "prompts", "catalog")
+  const coordinates = {
+    upstreamVersion: options.version,
+    releaseId: options.releaseId,
+    upstreamBundleSha256: "",
+    patchedBundleSha256: cliHash.sri,
+    patchSetSha256: baseManifest.patchSet.sha256,
+  }
+  const catalog = existsSync(upstreamInput)
+    ? writePromptCatalog({
+        ...coordinates,
+        upstreamBundlePath: upstreamInput,
+        upstreamBundleSha256: sha256(readFileSync(upstreamInput)).sri,
+        patchedBundlePath: options.input,
+        outDir: catalogOutput,
+      })
+    : existsSync(join(existingCatalog, "manifest.json"))
+      ? rebindPromptCatalog(existingCatalog, catalogOutput, {
+          ...coordinates,
+          upstreamBundleSha256: readPromptCatalogManifest(existingCatalog).target.upstreamBundleSha256,
+        })
+      : (() => {
+          throw new Error(`upstream bundle and reusable prompt catalog are both missing: ${upstreamInput}`)
+        })()
+  const manifest: ReleaseManifest = {
+    ...baseManifest,
+    promptCatalog: {
+      path: "prompts/catalog",
+      schema: catalog.manifest.schema,
+      completeness: catalog.manifest.completeness,
+      rulesetSha256: PROMPT_CATALOG_RULESET_SHA256,
+      entries: catalog.manifest.summary.staticEntries,
+      contextualGaps: catalog.manifest.summary.contextualGaps,
+      opaqueGaps: catalog.manifest.summary.opaqueGaps,
+      sha256: catalog.treeSha256,
+    },
+  }
   const runtimeSource = join(options.root, "runtime", "system-prompt-overrides.ts")
   const runtimeOutput = join(options.outDir, "runtime", "system-prompt-overrides.ts")
   if (!existsSync(runtimeSource)) throw new Error(`runtime helper missing: ${runtimeSource}`)
@@ -157,13 +214,13 @@ function buildReleaseManifest(
   options: ReleasePayloadOptions,
   cliBytes: Buffer,
   cliHash: { hex: string; sri: string },
-): ReleaseManifest {
+): Omit<ReleaseManifest, "promptCatalog"> {
   const patches = loadPatches(options.root)
   const stageManifest = sanitizeStageManifest(options.root, loadStageManifest(options.root, options.version))
   const patchSetSource = patches.map(({ patch, raw }) => `${patch.name}\0${raw}`).join("\n")
 
   return {
-    schema: 1,
+    schema: 2,
     name: RELEASE_NAME,
     upstream: {
       package: UPSTREAM_PACKAGE,

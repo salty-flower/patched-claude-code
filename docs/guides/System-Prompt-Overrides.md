@@ -7,6 +7,10 @@
 The prototype applies only to the normal main-session prompt. It excludes
 `--bare`, compact, title/rename, subagent, and auxiliary model calls.
 
+Release artifacts separately contain a partial static prompt catalog. Catalog
+entries are audit evidence, not override files; see
+[`Prompt-Catalog.md`](Prompt-Catalog.md).
+
 ## Export
 
 Set the export flag on a process that composes the normal main prompt:

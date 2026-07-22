@@ -121,6 +121,7 @@ test("rendered bridge preserves no-op requests, applies one override, and reject
     version: TARGET_VERSION,
     releaseId: "runtime.test",
     input: bundle,
+    upstreamInput: bundle,
     outDir: payload,
   })
 
@@ -195,6 +196,7 @@ test("packaged launcher rejects a bundle that no longer matches its release mani
     version: TARGET_VERSION,
     releaseId: "bundle-hash.test",
     input,
+    upstreamInput: input,
     outDir: payload,
   })
   const packagedBundle = join(payload, "cli.js")

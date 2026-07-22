@@ -21,6 +21,7 @@ Billing attribution remains controlled by upstream's
 | 2.1.217 central locator | Passed |
 | Unit and local-stub request proofs | Passed |
 | Release payload and Nix wiring | Passed |
+| Public static prompt catalog | Passed: tar, source tag, workflow, and Nix payload |
 | Rendered helper-preloaded PTY/TUI | Blocked in current `darwin-overlay`: `openpty` denied |
 | First subsequent target revalidation | Pending next target |
 | Promotion to `docs/rules/` | Blocked by the two pending gates above |
@@ -77,8 +78,12 @@ prompts/
     └── <section-id>.md
 ```
 
-Exported prompt text MUST NOT enter this repository, release tags, or release
-artifacts.
+Runtime-effective exports remain user-local. Release payloads MUST include the
+separate static audit catalog defined by
+[`../decisions/0001-release-pipeline-static-prompt-catalog.md`](../decisions/0001-release-pipeline-static-prompt-catalog.md)
+and
+[`../decisions/0002-publish-static-prompt-catalog.md`](../decisions/0002-publish-static-prompt-catalog.md).
+Catalog identities MUST NOT become override identities implicitly.
 
 Plain export MUST refuse to overwrite a changed baseline while override files
 exist. The user MUST diff the existing `sections/` content before requesting

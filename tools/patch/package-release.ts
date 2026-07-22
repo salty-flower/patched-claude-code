@@ -115,6 +115,7 @@ Commit: \`${gitCommit}\`
 Artifact:
 - \`${basename(tarball)}\`
 - raw tarball hash: \`${tarHash.sri}\`
+- static prompt catalog: \`prompts/catalog/\` (${payload.manifest.promptCatalog.entries} recovered entries, ${payload.manifest.promptCatalog.contextualGaps + payload.manifest.promptCatalog.opaqueGaps} explicit gaps)
 
 Nix/Home Manager should use the source tag \`github:${githubSlug}/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:${githubSlug}/claude-code-latest\` when \`nix flake update\` should follow the latest patched source.
 The tarball remains available for non-flake/manual installs.

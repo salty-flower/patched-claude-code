@@ -50,6 +50,9 @@ function main(): number {
   console.error(`wrote ${join(args.outDir, "manifest.json")} (${payload.cliHash.sri})`)
   console.error(`wrote ${join(args.outDir, "package.json")}`)
   console.error(`wrote ${join(args.outDir, "bin", "claude-patched")}`)
+  console.error(
+    `wrote ${join(args.outDir, "prompts", "catalog")} (${payload.manifest.promptCatalog.entries} entries)`,
+  )
   return 0
 }
 

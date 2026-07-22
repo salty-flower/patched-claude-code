@@ -10,10 +10,11 @@ version.
 | Tag | `claude-code-<upstream-version>-patch.<n>` |
 | Moving Nix ref | `claude-code-latest` |
 | Release commit title | `release: claude-code-<upstream-version>-patch.<n>` |
-| Nix source | Tagged git tree containing `cli.js`, `manifest.json`, `package.json`, `bin/claude-patched`, `runtime/system-prompt-overrides.ts`, and flake files |
+| Nix source | Tagged git tree containing the runtime payload, `prompts/catalog/`, and flake files |
 | Artifact | `patched-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
 | Bundle | `cli.js` at the release tag root and inside the artifact |
 | Runtime helper | `runtime/system-prompt-overrides.ts` at the release tag root and inside the artifact |
+| Prompt catalog | Partial static audit catalog at `prompts/catalog/` on every release surface |
 | Runtime | Bun supplied by the consumer |
 | Native package | Canonicalized from Claude direct-download `darwin-arm64` and `linux-x64` native binaries |
 | Manifest | `manifest.json` in the tagged tree and artifact, plus `<artifact>.manifest.json` beside it |
@@ -41,6 +42,11 @@ fetching. Nix consumers SHOULD use the native
 `github:<owner>/<repo>/<ref>` flake fetcher. Use the source tag for immutable
 pinning. Use `claude-code-latest` when `nix flake update` should follow the
 latest patched source commit.
+
+The prompt catalog MUST be bound to the exact upstream and patched bundle
+hashes. Classified contextual and opaque gaps MAY ship. Missing catalogs,
+unclassified discovered candidates, hash mismatches, or artifact parity drift
+MUST block release.
 
 ## Automation
 
@@ -73,4 +79,5 @@ structural islands block promotion until merged by a deterministic transform.
 
 GitHub release artifacts and source tags are for this private repo's owner. Do
 not publish reference files, staged raw bundles, or reconstructed source trees
-as release assets.
+as release assets. Static prompt catalog Markdown is an explicit exception; it
+is generated from released bundle bytes and included by ADR-0002.

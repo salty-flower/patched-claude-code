@@ -22,7 +22,8 @@
           && builtins.pathExists ./manifest.json
           && builtins.pathExists ./package.json
           && builtins.pathExists ./bin/claude-patched
-          && builtins.pathExists ./runtime/system-prompt-overrides.ts;
+          && builtins.pathExists ./runtime/system-prompt-overrides.ts
+          && builtins.pathExists ./prompts/catalog/manifest.json;
         releaseManifest =
           if builtins.pathExists ./manifest.json then
             builtins.fromJSON (builtins.readFile ./manifest.json)
@@ -47,7 +48,10 @@
             || path == "${root}/bin"
             || path == "${root}/bin/claude-patched"
             || path == "${root}/runtime"
-            || path == "${root}/runtime/system-prompt-overrides.ts";
+            || path == "${root}/runtime/system-prompt-overrides.ts"
+            || path == "${root}/prompts"
+            || path == "${root}/prompts/catalog"
+            || builtins.match "${root}/prompts/catalog/.*" path != null;
         };
         patchedClaudeCode =
           if hasReleasePayload then
@@ -66,6 +70,8 @@
                 install -Dm0644 runtime/system-prompt-overrides.ts "$out/lib/patched-claude-code/system-prompt-overrides.ts"
                 install -Dm0644 manifest.json "$out/share/patched-claude-code/manifest.json"
                 install -Dm0644 package.json "$out/share/patched-claude-code/package.json"
+                mkdir -p "$out/share/patched-claude-code/prompts"
+                cp -R prompts/catalog "$out/share/patched-claude-code/prompts/catalog"
                 makeWrapper ${pkgs.bun}/bin/bun "$out/bin/claude-patched" \
                   --set PATCHED_CLAUDE_CODE_RELEASE_MANIFEST "$out/share/patched-claude-code/manifest.json" \
                   --set PATCHED_CLAUDE_CODE_BUNDLE "$out/lib/patched-claude-code/cli.js" \

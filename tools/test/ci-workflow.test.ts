@@ -26,6 +26,7 @@ test("ci runs release audit through one declarative just target", () => {
 
   expect(workflow).toContain('TARGET_VERSION: "2.1.217"')
   expect(auditStep).toContain(`just ci-release-audit "$TARGET_VERSION" "${ciReleaseId}"`)
+  expect(workflow).toContain("prompts/catalog/")
   expect(workflow).not.toContain("- name: Verify patches and contracts")
   expect(workflow).not.toContain("- name: Render patched bundle")
   expect(workflow).not.toContain("- name: Smoke patched bundle")

@@ -74,6 +74,7 @@ and scheduled promotion also move `claude-code-latest` to that tag commit.
 | `package.json` | Minimal package metadata and `claude-patched` bin declaration |
 | `bin/claude-patched` | Bun wrapper for direct shell use |
 | `runtime/system-prompt-overrides.ts` | Preloaded section-override helper |
+| `prompts/catalog/` | Partial, version-bound static prompt audit catalog |
 
 ## Bump Rules
 

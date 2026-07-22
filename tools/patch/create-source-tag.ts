@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Create a minimal git tag commit containing only the Nix source payload.
 
-import { existsSync, rmSync } from "node:fs"
+import { existsSync, readdirSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createCommand } from "../lib/cli"
@@ -19,6 +19,19 @@ type TagFile = {
   path: string
   mode: "100644" | "100755"
   required: boolean
+}
+
+function payloadFiles(path: string): TagFile[] {
+  const absolute = join(ROOT, path)
+  if (!existsSync(absolute)) return []
+  return readdirSync(absolute, { withFileTypes: true })
+    .sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0))
+    .flatMap((entry) => {
+      const child = `${path}/${entry.name}`
+      return entry.isDirectory()
+        ? payloadFiles(child)
+        : [{ path: child, mode: "100644" as const, required: true }]
+    })
 }
 
 export function parseArgs(argv: string[], env: Record<string, string | undefined> = process.env): Args {
@@ -68,6 +81,9 @@ function main(): number {
   if (!version) throw new Error("missing version")
   const releaseId = args.releaseId ?? "patch.local"
   const tag = releaseTag(version, releaseId)
+  if (!existsSync(join(ROOT, "prompts", "catalog", "manifest.json"))) {
+    throw new Error("source tag payload missing: prompts/catalog/manifest.json")
+  }
   const files: TagFile[] = [
     { path: "cli.js", mode: "100644", required: true },
     { path: "manifest.json", mode: "100644", required: true },
@@ -76,6 +92,7 @@ function main(): number {
     { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
     { path: "flake.nix", mode: "100644", required: true },
     { path: "flake.lock", mode: "100644", required: false },
+    ...payloadFiles("prompts/catalog"),
   ]
   for (const file of files) {
     if (file.required && !existsSync(join(ROOT, file.path))) {

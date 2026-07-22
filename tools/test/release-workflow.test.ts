@@ -31,6 +31,7 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(reuseStep).toContain('cp ci-artifact/cli.js "staging/$version/cli.patched.js"')
   expect(reuseStep).toContain("install -m755 ci-artifact/bin/claude-patched bin/claude-patched")
   expect(reuseStep).toContain("cp ci-artifact/runtime/system-prompt-overrides.ts runtime/system-prompt-overrides.ts")
+  expect(reuseStep).toContain("cp -R ci-artifact/prompts/catalog prompts/catalog")
   expect(renderStep).toContain('just render "${{ steps.coord.outputs.version }}"')
   expect(smokeStep).toContain('just smoke-rendered "${{ steps.coord.outputs.version }}"')
   expect(patchTestStep).toContain('just patch-test-rendered "${{ steps.coord.outputs.version }}"')
@@ -40,6 +41,7 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(sourceStep).toContain(
     'just release-source-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"',
   )
+  expect(workflow).toContain("prompts/catalog/")
 })
 
 test("release workflow defaults to the current target version", () => {

@@ -80,9 +80,14 @@ ci-release-audit version=target release_id=release_id source=source: \
   test -s manifest.json
   test -s package.json
   test -x bin/claude-patched
+  test -s prompts/catalog/manifest.json
   bun ./cli.js --version
   git ls-tree -r --name-only "claude-code-{{version}}-{{release_id}}" > source-tag-files.txt
-  diff -u <(printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/system-prompt-overrides.ts) source-tag-files.txt
+  shopt -s nullglob; catalog_files=(prompts/catalog/manifest.json prompts/catalog/gaps.json prompts/catalog/entries/*.md); { printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/system-prompt-overrides.ts; printf '%s\n' "${catalog_files[@]}"; } | sort > expected-source-tag-files.txt
+  diff -u expected-source-tag-files.txt source-tag-files.txt
+
+prompt-catalog version=target release_id=release_id:
+  bun run tools/patch/extract-prompt-catalog.ts --version "{{version}}" --release-id "{{release_id}}"
 
 _release-payload version=target release_id=release_id:
   bun run tools/patch/write-source-release.ts --version "{{version}}" --release-id "{{release_id}}"

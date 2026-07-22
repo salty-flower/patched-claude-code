@@ -72,6 +72,18 @@ npm latest or direct latest exposes an unhandled version. Prereleases are
 artifact-only: they MUST NOT run `just release-source`, MUST NOT publish the
 generated Nix source tag, and MUST NOT update `refs/heads/claude-code-latest`.
 
+Before packaging a new upstream version, scheduled polling MUST prepare prompt
+identity state against the newest lower finalized ledger:
+
+- **Existing valid ledger**: continue packaging.
+- **Unique exact carries only; no missing predecessor**: finalize the ledger,
+  push it to `automation/prompt-identities-<version>`, open a PR, and defer the
+  release until that PR reaches the base branch.
+- **Changed, ambiguous, new, or missing occurrence**: upload the draft and
+  audit result, then block. Partial scores MUST NOT enter the bot commit path.
+
+The workflow MUST NOT publish from an unmerged generated ledger.
+
 Scheduled polling MUST promote that tag only after npm latest and direct latest
 converge and `TARGET_SOURCE=canonical just release-dry <version> patch.1`
 succeeds. Promotion MUST run `just release-source <version> patch.1`, publish

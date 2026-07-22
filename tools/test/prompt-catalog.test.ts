@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
@@ -15,6 +15,7 @@ import {
   finalizePromptIdentityDraft,
 } from "../lib/prompt-identity"
 import { summarizePromptIdentityDraft } from "../lib/prompt-identity-audit"
+import { latestPreviousLedgerVersion, preparePromptIdentityBump } from "../lib/prompt-identity-bump"
 import { loadPatches, sha256, writeReleasePayload } from "../lib/release-payload"
 
 const ROOT = join(import.meta.dir, "..", "..")
@@ -162,6 +163,76 @@ test("identity draft carries unique exact observations and leaves changes or dup
         .filter(({ revisionSha256 }) => revisionSha256 !== null)
         .map(({ candidateMatches }) => candidateMatches[0]?.textSimilarity),
     ).toEqual([1, 1])
+  })
+})
+
+test("prompt identity bump preparation auto-finalizes only exact complete transitions", () => {
+  withTempDir((root) => {
+    const { patched, identityRoot } = writeFixture(root)
+    const observations = inspectPromptIdentityObservations(readFileSync(patched, "utf8"), "2.1.218")
+    const draftFile = join(root, "2.1.218.draft.json")
+
+    expect(latestPreviousLedgerVersion(identityRoot, "2.1.218")).toBe("2.1.217")
+    const prepared = preparePromptIdentityBump({
+      identityRoot,
+      upstreamVersion: "2.1.218",
+      observations,
+      draftFile,
+    })
+    expect(prepared).toMatchObject({
+      status: "finalized-exact-only",
+      previousVersion: "2.1.217",
+      reviewReasons: [],
+      draftSummary: { carried: 2, unresolved: 0, unmatchedPriorLineages: [] },
+    })
+    expect(existsSync(join(identityRoot, "versions", "2.1.218.json"))).toBe(true)
+    expect(
+      preparePromptIdentityBump({
+        identityRoot,
+        upstreamVersion: "2.1.218",
+        observations,
+        draftFile,
+      }).status,
+    ).toBe("ready-existing")
+  })
+})
+
+test("prompt identity bump preparation blocks changes and removed predecessors", () => {
+  withTempDir((root) => {
+    const { patched, identityRoot } = writeFixture(root)
+    const source = readFileSync(patched, "utf8")
+    const changed = preparePromptIdentityBump({
+      identityRoot,
+      upstreamVersion: "2.1.218",
+      observations: inspectPromptIdentityObservations(
+        source.replace("contextual assistant", "contextual audit assistant"),
+        "2.1.218",
+      ),
+      draftFile: join(root, "changed.draft.json"),
+    })
+    expect(changed).toMatchObject({
+      status: "review-required",
+      reviewReasons: ["unresolved-current-occurrences", "unmatched-prior-lineages"],
+      draftSummary: { carried: 1, unresolved: 1 },
+    })
+    expect(existsSync(join(identityRoot, "versions", "2.1.218.json"))).toBe(false)
+  })
+
+  withTempDir((root) => {
+    const { identityRoot } = writeFixture(root)
+    const removedSource = `const staticPrompt=${JSON.stringify(STATIC_PROMPT)};\n`
+    const removed = preparePromptIdentityBump({
+      identityRoot,
+      upstreamVersion: "2.1.218",
+      observations: inspectPromptIdentityObservations(removedSource, "2.1.218"),
+      draftFile: join(root, "removed.draft.json"),
+    })
+    expect(removed).toMatchObject({
+      status: "review-required",
+      reviewReasons: ["unmatched-prior-lineages"],
+      draftSummary: { carried: 1, unresolved: 0, unmatchedPriorLineages: ["prompt-000002"] },
+    })
+    expect(existsSync(join(identityRoot, "versions", "2.1.218.json"))).toBe(false)
   })
 })
 

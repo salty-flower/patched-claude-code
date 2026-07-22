@@ -19,8 +19,13 @@ that same source commit for `nix flake update` users.
 The scheduled `auto-release` workflow may publish a prerelease from a one-sided
 npm or direct-download candidate. It promotes only after npm latest and direct
 latest converge and canonical staging succeeds. Prereleases upload artifacts
-only; promotion creates the exact Nix source tag and moves
+only. A new version's prompt ledger must first reach the base branch; exact-only
+transitions receive an automated ledger PR, while all other transitions block
+with a review artifact. Promotion creates the exact Nix source tag and moves
 `claude-code-latest`.
+
+The repository must permit `GITHUB_TOKEN` pull-request creation for the
+exact-only ledger path.
 
 Manual tag release remains supported:
 

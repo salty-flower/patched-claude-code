@@ -1,6 +1,6 @@
+import { expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
-import { expect, test } from "bun:test"
 
 const ROOT = join(import.meta.dir, "..", "..")
 
@@ -13,16 +13,18 @@ function workflowStep(name: string): string {
 }
 
 test("auto-release only creates Nix source refs after canonical promotion", () => {
-  const packageStep = workflowStep("Verify, render, smoke, and package")
-  expect(packageStep).not.toContain("just release-source")
-  expect(packageStep).not.toContain("bun ./cli.js --version")
+  const renderStep = workflowStep("Verify, render, and smoke")
+  expect(renderStep).not.toContain("just release-source")
+  expect(renderStep).not.toContain("bun ./cli.js --version")
 
   const pushRefs = workflowStep("Create and push Nix source refs")
   const lines = pushRefs.split("\n").map((line) => line.trim())
   const exactTagPush = 'git push origin "refs/tags/$tag" --force'
   const latestPush = 'git push origin "refs/tags/$tag:refs/heads/claude-code-latest" --force'
 
-  expect(lines).toContain("if: steps.detect.outputs.action == 'promote'")
+  expect(lines).toContain(
+    "if: steps.detect.outputs.action == 'promote' && steps.identity.outputs.status == 'ready-existing'",
+  )
   expect(lines).toContain('just release-source-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
   expect(lines).toContain("bun ./cli.js --version")
   expect(lines).toContain(exactTagPush)
@@ -31,15 +33,34 @@ test("auto-release only creates Nix source refs after canonical promotion", () =
 
 test("auto-release reuses rendered bundle across release checks", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "auto-release.yml"), "utf8")
-  const packageStep = workflowStep("Verify, render, smoke, and package")
+  const renderStep = workflowStep("Verify, render, and smoke")
+  const packageStep = workflowStep("Package release artifact")
 
   expect(workflow).not.toContain("- name: Stage candidate")
-  expect(packageStep).toContain('just render "${{ steps.detect.outputs.version }}"')
-  expect(packageStep).toContain('just smoke-rendered "${{ steps.detect.outputs.version }}"')
-  expect(packageStep).toContain('just patch-test-rendered "${{ steps.detect.outputs.version }}"')
+  expect(renderStep).toContain('just render "${{ steps.detect.outputs.version }}"')
+  expect(renderStep).toContain('just smoke-rendered "${{ steps.detect.outputs.version }}"')
+  expect(renderStep).toContain('just patch-test-rendered "${{ steps.detect.outputs.version }}"')
   expect(packageStep).toContain('just package-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
-  expect(packageStep).not.toContain('just verify "${{ steps.detect.outputs.version }}"')
-  expect(packageStep).not.toContain('just smoke "${{ steps.detect.outputs.version }}"')
-  expect(packageStep).not.toContain('just patch-test "${{ steps.detect.outputs.version }}"')
-  expect(packageStep).not.toContain('just package "${{ steps.detect.outputs.version }}" "patch.1"')
+  expect(packageStep).toContain("steps.identity.outputs.status == 'ready-existing'")
+})
+
+test("auto-release commits only exact-only identity transitions to a bot PR", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "auto-release.yml"), "utf8")
+  const prepareStep = workflowStep("Prepare prompt identity ledger")
+  const uploadStep = workflowStep("Upload prompt identity review")
+  const commitStep = workflowStep("Commit exact-only prompt identity ledger")
+  const blockStep = workflowStep("Block unresolved prompt identities")
+
+  expect(workflow).toContain("pull-requests: write")
+  expect(workflow).toContain("group: auto-release")
+  expect(workflow).toContain("cancel-in-progress: false")
+  expect(prepareStep).toContain('just prompt-identity-prepare "$version"')
+  expect(uploadStep).toContain("actions/upload-artifact@v6")
+  expect(commitStep).toContain("if: steps.identity.outputs.status == 'finalized-exact-only'")
+  expect(commitStep).toContain('branch="automation/prompt-identities-$version"')
+  expect(commitStep).toContain('git push origin "HEAD:refs/heads/$branch"')
+  expect(commitStep).not.toContain("--force")
+  expect(commitStep).toContain("gh pr create")
+  expect(blockStep).toContain("if: steps.identity.outputs.status == 'review-required'")
+  expect(blockStep).toContain("exit 1")
 })

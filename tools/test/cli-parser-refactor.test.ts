@@ -7,6 +7,8 @@ import { parseArgs as parseExtractPromptCatalogArgs } from "../patch/extract-pro
 import { parseArgs as parseFinalizePromptIdentitiesArgs } from "../patch/finalize-prompt-identities"
 import { parseArgs as parseFormatStagedCliArgs } from "../patch/format-staged-cli"
 import { parseArgs as parsePackageReleaseArgs } from "../patch/package-release"
+import { parseArgs as parsePreparePromptIdentityBumpArgs } from "../patch/prepare-prompt-identity-bump"
+import { parseArgs as parsePrepareTargetBumpArgs } from "../patch/prepare-target-bump"
 import { parseArgs as parseReconcilePromptIdentitiesArgs } from "../patch/reconcile-prompt-identities"
 import { parseArgs as parseStageClaudeCodeArgs } from "../patch/stage-claude-code"
 import { parseArgs as parseStageTargetArgs } from "../patch/stage-target"
@@ -28,6 +30,14 @@ test("stage-target parses typed options with environment defaults", () => {
     platform: "linux-x64",
     platformPackage: "@example/cli",
     canonicalBase: "linux-x64",
+  })
+})
+
+test("prepare-target-bump parses a source and report output", () => {
+  expect(parsePrepareTargetBumpArgs(["--version", "2.1.218", "--source", "direct", "-o", "bump.json"])).toEqual({
+    version: "2.1.218",
+    source: "direct",
+    outFile: "bump.json",
   })
 })
 
@@ -109,6 +119,29 @@ test("extract-prompt-catalog parses release inputs and conventional output optio
 })
 
 test("prompt identity CLIs parse explicit draft and finalize paths", () => {
+  expect(
+    parsePreparePromptIdentityBumpArgs([
+      "--version",
+      "2.1.218",
+      "--previous-version",
+      "2.1.217",
+      "--patched",
+      "cli.patched.js",
+      "--identity-root",
+      "identities",
+      "--draft-file",
+      "review.json",
+      "--result-file",
+      "result.json",
+    ]),
+  ).toEqual({
+    version: "2.1.218",
+    previousVersion: "2.1.217",
+    patched: "cli.patched.js",
+    identityRoot: "identities",
+    draftFile: "review.json",
+    resultFile: "result.json",
+  })
   expect(
     parsePromptIdentityHistoryAuditArgs([
       "--version",

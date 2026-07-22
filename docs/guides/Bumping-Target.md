@@ -4,33 +4,47 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 (currently v2.1.88) is the audit baseline and changes rarely; see
 [`../rules/Reference-Versions.md`](../rules/Reference-Versions.md).
 
+## Governing Split
+
+> Automated evidence first; semantic acceptance remains manual.
+
+| Automated by `bump-prepare` | Manual gate |
+| --- | --- |
+| Stage, locator/native verification, tool tests | Drift classification and replacement-symbol proof |
+| Render, version smoke, rendered patch tests | Anti-trace dossier generation and invariant review |
+| Prompt identity preparation and report | Unresolved lineage decisions |
+| Machine-readable handoff | PTY/TUI exercise, metadata update, commit |
+
 ## Workflow
 
-1. **Stage the new bundle.**
-   ```sh
-   just stage <ver>
-   ```
-   Use `latest` instead of `<ver>` only when intentionally moving to the
-   current channel pointer. For `TARGET_SOURCE=npm`, `latest` means the npm
-   dist-tag; for `TARGET_SOURCE=direct`, it means Claude's direct latest
-   object. The
-   stager handles both old packages with
-   `package/cli.js` and current native packages whose JS entrypoint is
-   embedded in a Bun standalone binary. Repacking back to a binary is **not
-   in scope** — patched JS runs on a separately-installed Bun runtime.
-   Native extraction validity is governed by
-   [`../rules/Native-Bundle-Extraction.md`](../rules/Native-Bundle-Extraction.md);
-   update that rule when a new staged native version is smoke-tested.
+1. **Run the automated lane once.**
 
-2. **Re-verify locators against the new bundle.**
    ```sh
-   TARGET_SOURCE=<npm|direct> just verify <ver>
+   just bump-prepare <ver> <canonical|npm|direct>
    ```
-   `just verify` proves locator counts and `rationale_ref` resolution only.
-   It does **not** prove replacement symbols are valid in the new minified
-   scope.
 
-3. **Classify every drift.**
+   `<ver>` MUST be an explicit semver, not `latest`. The command writes
+   `dist/target-bump-<ver>.json`, stores full step output under
+   `dist/target-bump-<ver>.logs/`, and stops dependent work after the first
+   failed step. The terminal stays compact and prints a bounded log tail on
+   failure.
+
+   | Exit | Meaning | Next action |
+   | --- | --- | --- |
+   | `0` | Automated checks passed | Complete the manual gates below |
+   | `1` | Stage, verify, test, render, or smoke failed | Fix the first failed report step; rerun |
+   | `2` | Prompt identity review required | Resolve the emitted draft; rerun |
+
+   The stager supports legacy `package/cli.js` packages and native Bun
+   standalone entrypoints. Patched JS still runs on a separate Bun runtime;
+   repacking is out of scope. Update
+   [`../rules/Native-Bundle-Extraction.md`](../rules/Native-Bundle-Extraction.md)
+   when a new native version is smoke-tested.
+
+2. **Classify drift and prove replacement symbols.**
+
+   `bump-prepare` proves locator counts and `rationale_ref` resolution. It does
+   **not** prove that version-local minified symbols retain their meaning.
 
    | Signal | Action |
    | --- | --- |
@@ -38,8 +52,6 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    | Locator matches multiple sites | Tighten the locator, or raise `expected_matches` only for intentional duplicated gates. |
    | Replacement uses local minified helpers, hooks, state, or JSX runtime symbols | Treat as symbol drift even when `just verify` passes. |
    | Upstream rewrote the behavior | Add a new patch entry with its own `rationale_ref`; do not mutate old intent. |
-
-4. **Prove replacement symbols.**
 
    For each version-specific minified variant:
 
@@ -51,11 +63,11 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    - Prefer `ast_transform` locators when the semantic node survives but
      local identifier names drift.
 
-5. **Run the anti-trace audit.**
+3. **Run the anti-trace audit.**
 
-   Do this before rendering the patched bundle. The goal is to catch new
-   environment fingerprinting, hidden prompt markers, and content-bearing
-   telemetry before patch validation normalizes the target.
+   Review the staged unpatched bundle before accepting the rendered result.
+   The goal is to catch new environment fingerprinting, hidden prompt markers,
+   and content-bearing telemetry before patch behavior masks the change.
 
    **Coordinator pass**:
 
@@ -86,21 +98,11 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    either land that patch in the same target-bump branch before release or
    document why the new behavior is intentionally accepted.
 
-6. **Build and smoke.**
-   ```sh
-   just render <ver>
-   just smoke <ver>
-   just patch-test <ver>
-   ```
+4. **Resolve prompt identities only when requested.**
 
-7. **Reconcile prompt identities.**
-
-   ```sh
-   just prompt-identity-draft <ver> <previous-ver>
-   ```
-
-   Review every unresolved occurrence, finalize the draft, and commit the new
-   version ledger before packaging:
+   `bump-prepare` selects the newest lower finalized ledger. Unique exact,
+   complete transitions finalize automatically. Exit `2` supplies a draft;
+   resolve every occurrence as `new`, `carry`, `split`, or `merge`, then run:
 
    ```sh
    just prompt-identity-finalize dist/prompt-identities-<ver>.draft.json
@@ -112,7 +114,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    successors; never promote a score directly. See
    [`Prompt-Catalog.md`](Prompt-Catalog.md#target-upgrade).
 
-8. **Exercise the rendered TUI and runtime paths.**
+5. **Exercise the rendered TUI and runtime paths.**
 
    Every target bump must include this baseline before commit:
 
@@ -143,7 +145,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    symbols first. See
    [`../records/2026-05-12-v2.1.139-statusline-footer-lessons.md`](../records/2026-05-12-v2.1.139-statusline-footer-lessons.md).
 
-9. **Update `target_version` in patches.**
+6. **Update `target_version` in patches.**
    When a patch was authored against an older target, update its
    `target_version` only after a successful re-verify. `applies_to` may
    stay broader than `target_version` only when the patch text is not tied to
@@ -152,7 +154,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    If `system-prompt-section-overrides.toml` is active, repeat every gate in
    [`../backlog/2026-07-22-section-level-system-prompt-overrides.md`](../backlog/2026-07-22-section-level-system-prompt-overrides.md#promotion-gate).
 
-10. **Commit.**
+7. **Commit.**
    Use type `patches:` if any patch text changed, or `reference:` if you
    touched only metadata. The body should list every patch revisited and
    note any that needed re-anchoring or symbol splits.

@@ -92,11 +92,17 @@ prompt-catalog version=target release_id=release_id:
 prompt-identity-draft version previous_version:
   bun run tools/patch/reconcile-prompt-identities.ts --version "{{version}}" --previous-version "{{previous_version}}"
 
+prompt-identity-prepare version=target:
+  bun run tools/patch/prepare-prompt-identity-bump.ts --version "{{version}}"
+
 prompt-identity-audit *args:
   bun run tools/patch/audit-prompt-identity-history.ts {{args}}
 
 prompt-identity-finalize draft:
   bun run tools/patch/finalize-prompt-identities.ts "{{draft}}"
+
+bump-prepare version=target source=source:
+  bun run tools/patch/prepare-target-bump.ts --version "{{version}}" --source "{{source}}"
 
 _release-payload version=target release_id=release_id:
   bun run tools/patch/write-source-release.ts --version "{{version}}" --release-id "{{release_id}}"

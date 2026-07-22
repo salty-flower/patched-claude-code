@@ -12,10 +12,11 @@ function hookBlock(id: string): string {
   return config.slice(start, next === -1 ? config.length : next)
 }
 
-test("pre-commit runs tool tests for workflow and hook wiring edits", () => {
+test("pre-commit runs tool tests for runtime, workflow, and hook wiring edits", () => {
   const toolsTest = hookBlock("tools-test")
 
   expect(toolsTest).toContain('TARGET_VERSION="${TARGET_VERSION:-2.1.217}"')
+  expect(toolsTest).toContain("runtime/")
   expect(toolsTest).toContain("\\.github/workflows/.*\\.ya?ml")
   expect(toolsTest).toContain("\\.pre-commit-config\\.yaml")
 })

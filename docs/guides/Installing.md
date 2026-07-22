@@ -10,8 +10,8 @@ Choose the ref by update policy:
 | Moving Nix source branch | `claude-code-latest` |
 
 Both refs point at a minimal source tree containing `cli.js`, `manifest.json`,
-`package.json`, `bin/claude-patched`, and a flake package. It expects Bun from
-Nix.
+`package.json`, `bin/claude-patched`, the prompt-override preload helper, and a
+flake package. It expects Bun from Nix.
 
 Use an exact source tag for immutable release pinning. Use
 `claude-code-latest` when `nix flake update` should advance to the latest
@@ -53,3 +53,9 @@ Then consume the package:
 
 GitHub release tarballs remain available for manual installs, but Nix configs
 SHOULD NOT depend on release asset URLs.
+
+## Section Prompt Overrides
+
+See [`System-Prompt-Overrides.md`](System-Prompt-Overrides.md)
+for export, override, diagnostics, and explicit rebase controls. Exported
+prompt content stays under the user's config directory and is never packaged.

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto"
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
-import { isAbsolute, join, relative, sep } from "node:path"
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { isAbsolute, join, relative, resolve, sep } from "node:path"
 import { loadPatchEntriesFromToml, type PatchEntry } from "./patch-files"
 
 export const RELEASE_NAME = "patched-claude-code"
@@ -56,6 +56,7 @@ export type ReleaseManifest = {
   runtime: {
     command: "bun"
     entrypoint: "cli.js"
+    preload: "runtime/system-prompt-overrides.ts"
   }
   patchSet: {
     count: number
@@ -124,8 +125,13 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
   const cliBytes = readFileSync(options.input)
   const cliHash = sha256(cliBytes)
   const manifest = buildReleaseManifest(options, cliBytes, cliHash)
+  const runtimeSource = join(options.root, "runtime", "system-prompt-overrides.ts")
+  const runtimeOutput = join(options.outDir, "runtime", "system-prompt-overrides.ts")
+  if (!existsSync(runtimeSource)) throw new Error(`runtime helper missing: ${runtimeSource}`)
 
   mkdirSync(join(options.outDir, "bin"), { recursive: true })
+  mkdirSync(join(options.outDir, "runtime"), { recursive: true })
+  if (resolve(runtimeSource) !== resolve(runtimeOutput)) copyFileSync(runtimeSource, runtimeOutput)
   writeFileSync(join(options.outDir, "cli.js"), cliBytes, { mode: 0o644 })
   writeFileSync(join(options.outDir, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n")
   writeFileSync(
@@ -137,7 +143,9 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
     `#!/usr/bin/env sh
 set -eu
 dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-exec bun "$dir/cli.js" "$@"
+export PATCHED_CLAUDE_CODE_RELEASE_MANIFEST="$dir/manifest.json"
+export PATCHED_CLAUDE_CODE_BUNDLE="$dir/cli.js"
+exec bun --preload "$dir/runtime/system-prompt-overrides.ts" "$dir/cli.js" "$@"
 `,
     { mode: 0o755 },
   )
@@ -175,6 +183,7 @@ function buildReleaseManifest(
     runtime: {
       command: "bun",
       entrypoint: "cli.js",
+      preload: "runtime/system-prompt-overrides.ts",
     },
     patchSet: {
       count: patches.length,

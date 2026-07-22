@@ -130,6 +130,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    stay broader than `target_version` only when the patch text is not tied to
    version-local minified symbols.
 
+   If `system-prompt-section-overrides.toml` is active, repeat every gate in
+   [`../backlog/2026-07-22-section-level-system-prompt-overrides.md`](../backlog/2026-07-22-section-level-system-prompt-overrides.md#promotion-gate).
+
 9. **Commit.**
    Use type `patches:` if any patch text changed, or `reference:` if you
    touched only metadata. The body should list every patch revisited and

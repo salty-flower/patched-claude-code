@@ -69,6 +69,7 @@ For each new Claude Code release we want to ship, we:
 | `tools/platform/` | Native Linux/Darwin extracted-JS comparison and canonical bundle merge |
 | `tools/test/` | TOML-driven patch tests and PTY/CLI harnesses |
 | `tools/lib/` | Shared TOML, release detection, extraction, hashing, and helper code |
+| `runtime/` | Repo-owned helpers preloaded beside the patched bundle |
 | `patches/` | TOML-described patches with rationale references |
 | `docs/rules/` | Strict policies agents must follow |
 | `docs/guides/` | Operational how-to for humans |

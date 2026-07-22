@@ -82,7 +82,7 @@ ci-release-audit version=target release_id=release_id source=source: \
   test -x bin/claude-patched
   bun ./cli.js --version
   git ls-tree -r --name-only "claude-code-{{version}}-{{release_id}}" > source-tag-files.txt
-  diff -u <(printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json) source-tag-files.txt
+  diff -u <(printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/system-prompt-overrides.ts) source-tag-files.txt
 
 _release-payload version=target release_id=release_id:
   bun run tools/patch/write-source-release.ts --version "{{version}}" --release-id "{{release_id}}"

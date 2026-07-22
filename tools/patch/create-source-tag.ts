@@ -51,7 +51,9 @@ function gitIdentityEnv(): Record<string, string> {
   const actor = process.env.GITHUB_ACTOR || "github-actions[bot]"
   const name = process.env.GIT_AUTHOR_NAME || process.env.GIT_COMMITTER_NAME || actor
   const email =
-    process.env.GIT_AUTHOR_EMAIL || process.env.GIT_COMMITTER_EMAIL || "41898282+github-actions[bot]@users.noreply.github.com"
+    process.env.GIT_AUTHOR_EMAIL ||
+    process.env.GIT_COMMITTER_EMAIL ||
+    "41898282+github-actions[bot]@users.noreply.github.com"
   return {
     GIT_AUTHOR_NAME: name,
     GIT_AUTHOR_EMAIL: email,
@@ -71,6 +73,7 @@ function main(): number {
     { path: "manifest.json", mode: "100644", required: true },
     { path: "package.json", mode: "100644", required: true },
     { path: "bin/claude-patched", mode: "100755", required: true },
+    { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
     { path: "flake.nix", mode: "100644", required: true },
     { path: "flake.lock", mode: "100644", required: false },
   ]

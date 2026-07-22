@@ -21,7 +21,8 @@
           builtins.pathExists ./cli.js
           && builtins.pathExists ./manifest.json
           && builtins.pathExists ./package.json
-          && builtins.pathExists ./bin/claude-patched;
+          && builtins.pathExists ./bin/claude-patched
+          && builtins.pathExists ./runtime/system-prompt-overrides.ts;
         releaseManifest =
           if builtins.pathExists ./manifest.json then
             builtins.fromJSON (builtins.readFile ./manifest.json)
@@ -44,7 +45,9 @@
             || path == "${root}/manifest.json"
             || path == "${root}/package.json"
             || path == "${root}/bin"
-            || path == "${root}/bin/claude-patched";
+            || path == "${root}/bin/claude-patched"
+            || path == "${root}/runtime"
+            || path == "${root}/runtime/system-prompt-overrides.ts";
         };
         patchedClaudeCode =
           if hasReleasePayload then
@@ -60,9 +63,14 @@
               installPhase = ''
                 runHook preInstall
                 install -Dm0644 cli.js "$out/lib/patched-claude-code/cli.js"
+                install -Dm0644 runtime/system-prompt-overrides.ts "$out/lib/patched-claude-code/system-prompt-overrides.ts"
                 install -Dm0644 manifest.json "$out/share/patched-claude-code/manifest.json"
                 install -Dm0644 package.json "$out/share/patched-claude-code/package.json"
                 makeWrapper ${pkgs.bun}/bin/bun "$out/bin/claude-patched" \
+                  --set PATCHED_CLAUDE_CODE_RELEASE_MANIFEST "$out/share/patched-claude-code/manifest.json" \
+                  --set PATCHED_CLAUDE_CODE_BUNDLE "$out/lib/patched-claude-code/cli.js" \
+                  --add-flags "--preload" \
+                  --add-flags "$out/lib/patched-claude-code/system-prompt-overrides.ts" \
                   --add-flags "$out/lib/patched-claude-code/cli.js"
                 runHook postInstall
               '';

@@ -10,9 +10,10 @@ version.
 | Tag | `claude-code-<upstream-version>-patch.<n>` |
 | Moving Nix ref | `claude-code-latest` |
 | Release commit title | `release: claude-code-<upstream-version>-patch.<n>` |
-| Nix source | Tagged git tree containing `cli.js`, `manifest.json`, `package.json`, `bin/claude-patched`, and flake files |
+| Nix source | Tagged git tree containing `cli.js`, `manifest.json`, `package.json`, `bin/claude-patched`, `runtime/system-prompt-overrides.ts`, and flake files |
 | Artifact | `patched-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
 | Bundle | `cli.js` at the release tag root and inside the artifact |
+| Runtime helper | `runtime/system-prompt-overrides.ts` at the release tag root and inside the artifact |
 | Runtime | Bun supplied by the consumer |
 | Native package | Canonicalized from Claude direct-download `darwin-arm64` and `linux-x64` native binaries |
 | Manifest | `manifest.json` in the tagged tree and artifact, plus `<artifact>.manifest.json` beside it |

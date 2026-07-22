@@ -64,6 +64,10 @@ jobs:
                   full=true
                   typecheck=true
                   ;;
+                runtime/*)
+                  full=true
+                  typecheck=true
+                  ;;
                 tools/lib/*|tools/patch/*|tools/platform/*|tools/test/*)
                   full=true
                   typecheck=true
@@ -292,4 +296,5 @@ jobs:
             manifest.json
             package.json
             bin/claude-patched
+            runtime/system-prompt-overrides.ts
           if-no-files-found: error

@@ -14,14 +14,14 @@ repos:
         name: tools TypeScript typecheck
         entry: bun run --cwd tools typecheck
         language: system
-        files: ^tools/
+        files: ^(runtime/|tools/)
         pass_filenames: false
 
       - id: tools-test
         name: tools Bun tests
         entry: bash -euo pipefail -c 'TARGET_VERSION="${TARGET_VERSION:-2.1.217}" bun run --cwd tools test'
         language: system
-        files: ^(tools/(lib|patch|platform|test)/|\.github/workflows/.*\.ya?ml|\.pre-commit-config\.yaml)
+        files: ^(runtime/|tools/(lib|patch|platform|test)/|\.github/workflows/.*\.ya?ml|\.pre-commit-config\.yaml)
         pass_filenames: false
 
       - id: actionlint

@@ -189,7 +189,7 @@ assert_not_contains = '''let i=nS.join(e,"CLAUDE.md");n.push(...await wce(i,"Pro
 [[patches]]
 name = "agents-memory-nested-directory-2-1-217"
 target_version = "2.1.217"
-applies_to = ">=2.1.217 <2.2.0"
+applies_to = ">=2.1.217 <2.1.218"
 
 rationale = """
 Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
@@ -227,6 +227,48 @@ assert_not_contains = '''let i=SS.join(e,"CLAUDE.md");n.push(...await Wue(i,"Pro
 kind = "static"
 name = "2.1.217 nested loader no longer carries 2.1.216 symbols"
 assert_not_contains = '''let i=gS.join(e,"CLAUDE.md");n.push(...await Iue(i,"Project",r,!1));let AGENTS_MD=gS.join(e,"AGENTS.md");n.push(...await Iue(AGENTS_MD,"Project",r,!1));let s=gS.join(e,".claude","CLAUDE.md")'''
+
+[[patches]]
+name = "agents-memory-nested-directory-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.2.0"
+
+rationale = """
+Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
+
+This is the 2.1.218 minified-symbol variant of
+`agents-memory-nested-directory`. The nested loader is now `Vuo`; its path
+namespace is `FT`, accumulator is `n`, memory loader is `tpe`, and processed
+path set is `r`. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Vuo", strings = ['''CLAUDE_CODE_DISABLE_CLAUDE_MDS''', '''let i=FT.join(e,"CLAUDE.md");n.push(...await tpe(i,"Project",r,!1));let s=FT.join(e,".claude","CLAUDE.md")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let i=FT.join(e,"CLAUDE.md");n.push(...await tpe(i,"Project",r,!1));let s=FT.join(e,".claude","CLAUDE.md")'''
+value = '''let i=FT.join(e,"CLAUDE.md");n.push(...await tpe(i,"Project",r,!1));let AGENTS_MD=FT.join(e,"AGENTS.md");n.push(...await tpe(AGENTS_MD,"Project",r,!1));let s=FT.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "nested-directory AGENTS.md loader is rendered in 2.1.218"
+assert_contains = '''let i=FT.join(e,"CLAUDE.md");n.push(...await tpe(i,"Project",r,!1));let AGENTS_MD=FT.join(e,"AGENTS.md");n.push(...await tpe(AGENTS_MD,"Project",r,!1));let s=FT.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.218 nested-memory sequence is absent"
+assert_not_contains = '''let i=FT.join(e,"CLAUDE.md");n.push(...await tpe(i,"Project",r,!1));let s=FT.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.218 nested loader no longer carries 2.1.217 symbols"
+assert_not_contains = '''let i=SS.join(e,"CLAUDE.md");n.push(...await Wue(i,"Project",r,!1));let AGENTS_MD=SS.join(e,"AGENTS.md");n.push(...await Wue(AGENTS_MD,"Project",r,!1));let s=SS.join(e,".claude","CLAUDE.md")'''
 
 [[patches]]
 name = "agents-memory-ancestor-directories"
@@ -457,7 +499,7 @@ assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(Fn
 [[patches]]
 name = "agents-memory-file-detection-2-1-217"
 target_version = "2.1.217"
-applies_to = ">=2.1.217 <2.2.0"
+applies_to = ">=2.1.217 <2.1.218"
 
 rationale = """
 Treat AGENTS.md as a memory file for nested-memory propagation checks.
@@ -490,6 +532,43 @@ assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(yie.basename(Z
 kind = "static"
 name = "2.1.217 allowlist no longer carries 2.1.216 symbols"
 assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(eie.basename(Vo))'''
+
+[[patches]]
+name = "agents-memory-file-detection-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.2.0"
+
+rationale = """
+Treat AGENTS.md as a memory file for nested-memory propagation checks.
+
+This is the 2.1.218 minified-symbol variant. The filename allowlist now uses
+path namespace `wse` and loaded-memory path variable `Kt`; add AGENTS.md so
+loaded project memory continues to participate in cache and invalidation
+propagation. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
+
+locator_kind = "literal"
+locator_pattern = '''["CLAUDE.md","CLAUDE.local.md"].includes(wse.basename(Kt))'''
+expected_matches = 1
+
+replacement = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(wse.basename(Kt))'''
+
+[[patches.tests]]
+kind = "static"
+name = "AGENTS.md participates in nested-memory propagation in 2.1.218"
+assert_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(wse.basename(Kt))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.218 allowlist no longer carries the stale two-file predicate"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(wse.basename(Kt))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.218 allowlist no longer carries 2.1.217 symbols"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(yie.basename(Zo))'''
 
 [[patches]]
 name = "memory-file-realpath-overlap-dedup"

@@ -470,7 +470,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=Iad(e,zu(r)),o='''
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-217"
 target_version = "2.1.217"
-applies_to = ">=2.1.217 <2.2.0"
+applies_to = ">=2.1.217 <2.1.218"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.217 minified-symbol variant of
@@ -497,3 +497,34 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=N9d(e,od(r));if(t.traceSou
 kind = "static"
 name = "2.1.217 signature cleanup no longer carries 2.1.216 symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=Bry()?wBd(e,nd(r)):DqB(e);if(t.traceSources)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.218 minified-symbol variant of
+strip-signatures-for-custom-base-url. The matching-provenance path now uses
+IJd(e,pd(r)); the custom-base-url path falls back to DJd(e), which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+Xky(), the existing actual-first-party Anthropic base URL check.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=IJd(e,pd(r));if(t.traceSources)'''
+replacement = '''let r=t.bodyModel??t.model,n=Xky()?IJd(e,pd(r)):DJd(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.218"
+assert_contains = '''let r=t.bodyModel??t.model,n=Xky()?IJd(e,pd(r)):DJd(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.218"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=IJd(e,pd(r));if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.218 signature cleanup no longer carries 2.1.217 symbols"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=rcy()?N9d(e,od(r)):M9d(e);if(t.traceSources)'''

@@ -3102,7 +3102,7 @@ assert_not_contains = '''let nFR=!0;'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-217"
 target_version = "2.1.217"
-applies_to = ">=2.1.217 <2.2.0"
+applies_to = ">=2.1.217 <2.1.218"
 rationale = """
 Preserve streamed thinking text for live rendering while retaining upstream
 progress accounting. This is the 2.1.217 stream-handler symbol variant; the
@@ -3132,7 +3132,7 @@ assert_not_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estima
 [[patches]]
 name = "thinking-render-blocks-2-1-217"
 target_version = "2.1.217"
-applies_to = ">=2.1.217 <2.2.0"
+applies_to = ">=2.1.217 <2.1.218"
 rationale = """
 Keep normal thinking blocks visible outside transcript or verbose mode. This
 is the 2.1.217 message-renderer symbol variant; the gate uses `Aht` and `Eee`,
@@ -3163,7 +3163,7 @@ assert_not_contains = '''case"thinking":{if(!iht&&!oee){return null}'''
 [[patches]]
 name = "thinking-render-expanded-2-1-217"
 target_version = "2.1.217"
-applies_to = ">=2.1.217 <2.2.0"
+applies_to = ">=2.1.217 <2.1.218"
 rationale = """
 Render the complete thinking body in normal interactive output. This is the
 2.1.217 thinking-component variant; component `Ayr` derives its expanded gate
@@ -3190,3 +3190,95 @@ assert_contains = '''let Pr0=!0;'''
 kind = "static"
 name = "stale 2.1.216 expanded thinking symbols are absent in 2.1.217"
 assert_not_contains = '''let G7R=!0;'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.1.219"
+rationale = """
+Preserve streamed thinking text for live rendering while retaining upstream
+progress accounting. This is the 2.1.218 stream-handler symbol variant; the
+token estimator is `Ijs` and the options object remains `t`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":{let{delta:d}=e.event;if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if("thinking"in d&&typeof d.thinking==="string"&&d.thinking.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Ijs(d.thinking)});return}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let{delta:d}=e.event,w=typeof d.thinking==="string"?d.thinking:"";if(w)i?.(w.length),t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in d&&typeof d.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:d.estimated_tokens});else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Ijs(w)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas use the 2.1.218 estimator and stream callback"
+assert_contains = '''t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.217 thinking estimator is absent in 2.1.218"
+assert_not_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:BBs(w)})'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.1.219"
+rationale = """
+Keep normal thinking blocks visible outside transcript or verbose mode. This
+is the 2.1.218 message-renderer symbol variant; the gate uses `W_t` and `Ute`,
+and the thinking component is `lEr`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", strings = ['''case"thinking":{if(!W_t&&!Ute){return null}''', '''Kp.jsx(lEr,{addMargin:YV,param:D1,isTranscriptMode:W_t,verbose:Ute})'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking":{if(!W_t&&!Ute){return null}'''
+value = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "normal thinking rendering uses 2.1.218 symbols"
+assert_contains = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.217 thinking gate is absent in 2.1.218"
+assert_not_contains = '''case"thinking":{if(!Aht&&!Eee){return null}'''
+
+[[patches]]
+name = "thinking-render-expanded-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.1.219"
+rationale = """
+Render the complete thinking body in normal interactive output. This is the
+2.1.218 thinking-component variant; component `lEr` derives its expanded gate
+as `UO0=zFp||KFp`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lEr", strings = ["{thinking:YFp}=$O0", "QFp.trim().replace"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let UO0=zFp||KFp;'''
+value = '''let UO0=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking body uses expanded 2.1.218 path"
+assert_contains = '''let UO0=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.217 expanded thinking symbols are absent in 2.1.218"
+assert_not_contains = '''let Pr0=!0;'''

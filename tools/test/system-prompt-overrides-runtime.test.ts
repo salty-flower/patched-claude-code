@@ -15,7 +15,7 @@ import { writeReleasePayload } from "../lib/release-payload"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.217"
+const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.218"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const PATCH_FILE = join(ROOT, "patches", "system-prompt-section-overrides.toml")
 const tempDirs: string[] = []

@@ -6,7 +6,7 @@ applies_to = ">=2.1.217 <2.2.0"
 [[patches]]
 name = "system-prompt-section-override-bridge-2-1-217"
 target_version = "2.1.217"
-applies_to = "2.1.217"
+applies_to = ">=2.1.217 <2.1.218"
 rationale = """
 Hand the normally composed main-session prompt vector to the repo-owned preload helper, then recover only its effective vector. This 2.1.217 bridge uses a structural final-filter locator and no version-local symbol in inserted code; it remains exact-version scoped because later targets must re-prove the main prompt seam. Remove it when upstream provides native section export and sparse override support.
 """

@@ -9324,6 +9324,37 @@ name = "stale 2.1.216 effort level symbols are absent in 2.1.217"
 assert_not_contains = '''effort_level:zk(_)?p4(_,p):null'''
 
 [[patches]]
+name = "statusline-footer-control-schema-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.2.0"
+rationale = """
+Accept statusLine settings that hide built-in footer items.
+
+This is the 2.1.218 minified-symbol variant; the statusLine schema object is
+built with local schema symbol `b`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:b.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:b.array(b.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+
+[[patches.tests]]
+kind = "static"
+name = "disabledFooter schema uses 2.1.218 schema symbol"
+assert_contains = '''hideBuiltinFooter:b.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:b.array(b.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.217 schema symbol is absent in 2.1.218"
+assert_not_contains = '''hideBuiltinFooter:v.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
+
+[[patches]]
 name = "statusline-footer-control-cli-global-2-1-218"
 target_version = "2.1.218"
 applies_to = ">=2.1.218 <2.2.0"
@@ -9482,6 +9513,34 @@ assert_contains = '''globalThis.__acc_clipboard_image_available=c'''
 kind = "static"
 name = "stale 2.1.217 clipboard hint symbols are absent in 2.1.218"
 assert_not_contains = '''function FMo(e,t){let{addNotification:r}=Ss(),n=ihr.useRef(e)'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.2.0"
+rationale = """
+Hide built-in rate-limit warnings when requested while preserving the warning
+text for custom status lines.
+
+This is the 2.1.218 `tul` hook variant. The computed warning is `zVT`, the
+effective warning consumed by the notification effect is `AHr`, and AppState
+selection uses `ze`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_pattern = '''else zVT=Mvt[2];let AHr=zVT,KVT;'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''else zVT=Mvt[2];let __acc_hide_rate_limit_warning=ze((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer"),AHr=(globalThis.__acc_rate_limit_warning=zVT,__acc_hide_rate_limit_warning?null:zVT),KVT;'''
+
+[[patches.tests]]
+kind = "static"
+name = "rate limit warning uses 2.1.218 symbols"
+assert_contains = '''globalThis.__acc_rate_limit_warning=zVT,__acc_hide_rate_limit_warning?null:zVT'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.217 rate limit symbols are absent in 2.1.218"
+assert_not_contains = '''globalThis.__acc_rate_limit_warning=vOS,__acc_hide_rate_limit_warning?null:vOS'''
 
 [[patches]]
 name = "statusline-footer-control-mode-hint-state-2-1-218"

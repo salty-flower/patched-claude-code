@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from "bun:test"
+import { afterAll, beforeAll, expect, test } from "bun:test"
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -56,6 +56,15 @@ type LaterHookResult = {
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-later-command-"))
 const patchedBundle = join(tempDir, "cli.patched.js")
+let applied = 0
+let patched = ""
+
+beforeAll(() => {
+  if (!testLaterCommand) return
+  expect(existsSync(TARGET_BUNDLE)).toBe(true)
+  applied = renderLaterCommandPatch(TARGET_BUNDLE, patchedBundle)
+  patched = readFileSync(patchedBundle, "utf8")
+}, 120000)
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
@@ -108,10 +117,9 @@ async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Prom
             : targetUses210LaterSymbols
               ? ["OI", "Yzt", "PBe", "jSe"]
               : ["FI", "xVt", "Z$e", "ESe"]
-  const [inputName, modeName, skipName, clearBufferName, resetHistoryName] =
-    targetUses218LaterSymbols
-      ? ["x", "O", "n", "I", "D"]
-      : targetUses217LaterSymbols || targetUses216LaterSymbols
+  const [inputName, modeName, skipName, clearBufferName, resetHistoryName] = targetUses218LaterSymbols
+    ? ["x", "O", "n", "I", "D"]
+    : targetUses217LaterSymbols || targetUses216LaterSymbols
       ? ["k", "H", "n", "I", "D"]
       : targetUses215LaterSymbols || targetUses212LaterSymbols
         ? ["k", "O", "A", "I", "D"]
@@ -196,16 +204,7 @@ async function run201LaterHook(patched: string, input: string, seedTasks: LaterT
     scheduledTasksEnabled: false,
     tasks,
   }
-  const factory = new Function(
-    "GM",
-    "lA",
-    "AJe",
-    "uw",
-    "oft",
-    "F_e",
-    "tne",
-    `${functionSource}; return pSr;`,
-  )
+  const factory = new Function("GM", "lA", "AJe", "uw", "oft", "F_e", "tne", `${functionSource}; return pSr;`)
   const submit = factory(
     () => [],
     (contents: Record<string, unknown>) => contents,
@@ -248,11 +247,6 @@ async function run201LaterHook(patched: string, input: string, seedTasks: LaterT
 test.skipIf(!testLaterCommand)(
   "/later schedules a session-only one-shot cron before prompt queueing",
   () => {
-    expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
-    const applied = renderLaterCommandPatch(TARGET_BUNDLE, patchedBundle)
-    const patched = readFileSync(patchedBundle, "utf8")
-
     expect(applied).toBe(targetUsesAbsoluteLater ? 3 : 2)
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
     expectContainsOneOf(patched, [
@@ -304,85 +298,67 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("jte(!0)")
     } else if (targetUses205LaterSymbols) {
       expect(patched).toContain("Y2e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
-      expect(patched).not.toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).not.toContain(
+        "F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
+      )
       expect(patched).toContain("ybe(!0)")
       expect(patched).not.toContain("tne(!0)")
     } else if (targetUses206LaterSymbols) {
       expect(patched).toContain("DFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
-      expect(patched).not.toContain("Y2e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).not.toContain(
+        "Y2e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
+      )
       expect(patched).toContain("tTe(!0)")
       expect(patched).not.toContain("ybe(!0)")
     } else if (targetUses207LaterSymbols) {
       expect(patched).toContain("QFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
-      expect(patched).not.toContain("DFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
+      expect(patched).not.toContain(
+        "DFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
+      )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
     } else if (targetUses218LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:buo",
-      )
-      expect(patched).not.toContain(
-        "q.later===!0&&Number.isFinite(q.laterAt)&&q.laterAt>q.createdAt?q.laterAt:Wio",
-      )
+      expect(patched).toContain("j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:buo")
+      expect(patched).not.toContain("q.later===!0&&Number.isFinite(q.laterAt)&&q.laterAt>q.createdAt?q.laterAt:Wio")
       expect(patched).toContain("Zwe(!0)")
       expect(patched).not.toContain("KCe(!0)")
     } else if (targetUses217LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "q.later===!0&&Number.isFinite(q.laterAt)&&q.laterAt>q.createdAt?q.laterAt:Wio",
-      )
-      expect(patched).not.toContain(
-        "U.later===!0&&Number.isFinite(U.laterAt)&&U.laterAt>U.createdAt?U.laterAt:too",
-      )
+      expect(patched).toContain("q.later===!0&&Number.isFinite(q.laterAt)&&q.laterAt>q.createdAt?q.laterAt:Wio")
+      expect(patched).not.toContain("U.later===!0&&Number.isFinite(U.laterAt)&&U.laterAt>U.createdAt?U.laterAt:too")
       expect(patched).toContain("KCe(!0)")
       expect(patched).not.toContain("xCe(!0)")
     } else if (targetUses216LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "U.later===!0&&Number.isFinite(U.laterAt)&&U.laterAt>U.createdAt?U.laterAt:too",
-      )
-      expect(patched).not.toContain(
-        "G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:VQn",
-      )
+      expect(patched).toContain("U.later===!0&&Number.isFinite(U.laterAt)&&U.laterAt>U.createdAt?U.laterAt:too")
+      expect(patched).not.toContain("G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:VQn")
       expect(patched).toContain("xCe(!0)")
       expect(patched).not.toContain("Dve(!0)")
     } else if (targetUses215LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:VQn",
-      )
-      expect(patched).not.toContain(
-        "W.later===!0&&Number.isFinite(W.laterAt)&&W.laterAt>W.createdAt?W.laterAt:iJn",
-      )
+      expect(patched).toContain("G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:VQn")
+      expect(patched).not.toContain("W.later===!0&&Number.isFinite(W.laterAt)&&W.laterAt>W.createdAt?W.laterAt:iJn")
       expect(patched).toContain("Dve(!0)")
       expect(patched).not.toContain("VEe(!0)")
     } else if (targetUses212LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "W.later===!0&&Number.isFinite(W.laterAt)&&W.laterAt>W.createdAt?W.laterAt:iJn",
-      )
-      expect(patched).not.toContain(
-        "j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:XGn",
-      )
+      expect(patched).toContain("W.later===!0&&Number.isFinite(W.laterAt)&&W.laterAt>W.createdAt?W.laterAt:iJn")
+      expect(patched).not.toContain("j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:XGn")
       expect(patched).toContain("VEe(!0)")
       expect(patched).not.toContain("jSe(!0)")
     } else if (targetUses210LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:XGn",
-      )
-      expect(patched).not.toContain(
-        "G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n",
-      )
+      expect(patched).toContain("j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:XGn")
+      expect(patched).not.toContain("G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n")
       expect(patched).toContain("jSe(!0)")
       expect(patched).not.toContain("ESe(!0)")
     } else if (targetUsesAbsoluteLater) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n",
+      expect(patched).toContain("G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n")
+      expect(patched).not.toContain(
+        "QFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
       )
-      expect(patched).not.toContain("QFe({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
       expect(patched).toContain("ESe(!0)")
       expect(patched).not.toContain("jBt(!0)")
       expect(patched).not.toContain("DTe(!0)")
@@ -395,11 +371,6 @@ test.skipIf(!testLaterCommand)(
 test.skipIf(!testLaterCommand)(
   "/later list renders pending delayed prompts",
   () => {
-    expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
-    renderLaterCommandPatch(TARGET_BUNDLE, patchedBundle)
-    const patched = readFileSync(patchedBundle, "utf8")
-
     expect(patched).toContain('__trim==="/later list"')
     expect(patched).toContain("Pending /later prompts:")
     expect(patched).toContain("No pending /later prompts")
@@ -490,11 +461,6 @@ test.skipIf(!testLaterCommand)(
 test.skipIf(!testLaterCommand)(
   "/later appears in slash command suggestions",
   () => {
-    expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
-    renderLaterCommandPatch(TARGET_BUNDLE, patchedBundle)
-    const patched = readFileSync(patchedBundle, "utf8")
-
     expect(patched).toContain('name:"later"')
     if (targetUsesAbsoluteLater) {
       expect(patched).toContain('description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"')
@@ -506,29 +472,26 @@ test.skipIf(!testLaterCommand)(
   120000,
 )
 
-test.skipIf(!targetUsesAbsoluteLater)(
-  "/later stores exact relative and absolute fire times in 2.1.208+",
-  async () => {
-    const beforeRelative = Date.now()
-    const relative = await run208LaterHook("/later 1m write the regression note")
-    expect(relative.tasks).toHaveLength(1)
-    expect(relative.tasks[0]?.laterAt).toBeGreaterThanOrEqual(beforeRelative + 60000)
-    expect(relative.tasks[0]?.laterAt).toBeLessThanOrEqual(Date.now() + 60000)
+test.skipIf(!targetUsesAbsoluteLater)("/later stores exact relative and absolute fire times in 2.1.208+", async () => {
+  const beforeRelative = Date.now()
+  const relative = await run208LaterHook("/later 1m write the regression note")
+  expect(relative.tasks).toHaveLength(1)
+  expect(relative.tasks[0]?.laterAt).toBeGreaterThanOrEqual(beforeRelative + 60000)
+  expect(relative.tasks[0]?.laterAt).toBeLessThanOrEqual(Date.now() + 60000)
 
-    const explicitDate = new Date()
-    explicitDate.setDate(explicitDate.getDate() + 2)
-    explicitDate.setHours(12, 34, 56, 0)
-    const stamp = `${explicitDate.getFullYear()}-${String(explicitDate.getMonth() + 1).padStart(2, "0")}-${String(explicitDate.getDate()).padStart(2, "0")} 12:34:56`
-    const absolute = await run208LaterHook(`/later ${stamp} inspect the release`)
-    expect(absolute.tasks[0]?.laterAt).toBe(explicitDate.getTime())
-    expect(absolute.tasks[0]?.prompt).toBe("inspect the release")
+  const explicitDate = new Date()
+  explicitDate.setDate(explicitDate.getDate() + 2)
+  explicitDate.setHours(12, 34, 56, 0)
+  const stamp = `${explicitDate.getFullYear()}-${String(explicitDate.getMonth() + 1).padStart(2, "0")}-${String(explicitDate.getDate()).padStart(2, "0")} 12:34:56`
+  const absolute = await run208LaterHook(`/later ${stamp} inspect the release`)
+  expect(absolute.tasks[0]?.laterAt).toBe(explicitDate.getTime())
+  expect(absolute.tasks[0]?.prompt).toBe("inspect the release")
 
-    explicitDate.setHours(12, 35, 0, 0)
-    const minuteStamp = `${explicitDate.getFullYear()}-${String(explicitDate.getMonth() + 1).padStart(2, "0")}-${String(explicitDate.getDate()).padStart(2, "0")} 12:35`
-    const minutePrecision = await run208LaterHook(`/later ${minuteStamp} default seconds`)
-    expect(minutePrecision.tasks[0]?.laterAt).toBe(explicitDate.getTime())
-  },
-)
+  explicitDate.setHours(12, 35, 0, 0)
+  const minuteStamp = `${explicitDate.getFullYear()}-${String(explicitDate.getMonth() + 1).padStart(2, "0")}-${String(explicitDate.getDate()).padStart(2, "0")} 12:35`
+  const minutePrecision = await run208LaterHook(`/later ${minuteStamp} default seconds`)
+  expect(minutePrecision.tasks[0]?.laterAt).toBe(explicitDate.getTime())
+})
 
 test.skipIf(!targetUsesAbsoluteLater)("/later time-only form chooses the next local occurrence", async () => {
   const now = new Date()
@@ -580,11 +543,6 @@ test.skipIf(!targetUsesAbsoluteLater || !targetUsesNewYorkTime)(
 test.skipIf(!testLaterCommand || !targetIs201)(
   "/later submit hook executes 2.1.201 session-task helpers",
   async () => {
-    expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
-    renderLaterCommandPatch(TARGET_BUNDLE, patchedBundle)
-    const patched = readFileSync(patchedBundle, "utf8")
-
     const scheduled = await run201LaterHook(patched, "/later 1m write the regression note")
     expect(scheduled.tasks).toHaveLength(1)
     expect(scheduled.tasks[0]).toMatchObject({

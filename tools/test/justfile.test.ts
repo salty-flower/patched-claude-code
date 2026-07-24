@@ -19,7 +19,7 @@ test("ci release audit target declares shared staged-bundle work once", () => {
   expect(recipe).toContain("(render version source)")
   expect(recipe).toContain("(smoke-rendered version)")
   expect(recipe).toContain("(patch-test-rendered version)")
-  expect(recipe).toContain("(oauth-fable-smoke-rendered version resume_transcript_timeout)")
+  expect(recipe).toContain("(_api-stub-smoke-rendered version resume_transcript_timeout)")
   expect(recipe).toContain("(package-rendered version release_id)")
   expect(recipe).toContain("(release-source-rendered version release_id)")
   expect(recipe).toContain("git ls-tree -r --name-only")
@@ -60,21 +60,14 @@ test("target bumps expose one automated preparation entrypoint", () => {
   expect(recipe).toContain('--source "{{source}}"')
 })
 
-test("api stub smoke can run with or without rendering first", () => {
+test("api stub smoke renders once and runs the complete local PTY matrix", () => {
   const recipe = recipeBlock("api-stub-smoke")
-  const renderedRecipe = recipeBlock("api-stub-smoke-rendered")
+  const renderedRecipe = recipeBlock("_api-stub-smoke-rendered")
 
-  expect(recipe).toContain(
-    "api-stub-smoke version=target source=source timeout=resume_transcript_timeout: (render version source)",
-  )
-  expect(recipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
-  expect(recipe).toContain(
-    'oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
-  )
-  expect(recipe).toContain(
-    'resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
-  )
-  expect(renderedRecipe).toContain("api-stub-smoke-rendered version=target timeout=resume_transcript_timeout:")
+  expect(recipe).toContain("api-stub-smoke version=target source=source timeout=resume_transcript_timeout:")
+  expect(recipe).toContain("(render version source)")
+  expect(recipe).toContain("(_api-stub-smoke-rendered version timeout)")
+  expect(renderedRecipe).toContain("_api-stub-smoke-rendered version=target timeout=resume_transcript_timeout:")
   expect(renderedRecipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
   expect(renderedRecipe).toContain(
     'oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
@@ -82,16 +75,7 @@ test("api stub smoke can run with or without rendering first", () => {
   expect(renderedRecipe).toContain(
     'resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
   )
-})
-
-test("OAuth Fable smoke can run with or without rendering first", () => {
-  const recipe = recipeBlock("oauth-fable-smoke")
-  const renderedRecipe = recipeBlock("oauth-fable-smoke-rendered")
-
-  expect(recipe).toContain(
-    "oauth-fable-smoke version=target source=source timeout=resume_transcript_timeout: (render version source)",
+  expect(renderedRecipe).toContain(
+    'background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
   )
-  expect(recipe).toContain('oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
-  expect(renderedRecipe).toContain("oauth-fable-smoke-rendered version=target timeout=resume_transcript_timeout:")
-  expect(renderedRecipe).toContain('oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
 })

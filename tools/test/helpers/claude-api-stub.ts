@@ -1,4 +1,10 @@
-import { createServer, type IncomingHttpHeaders, type IncomingMessage, type Server, type ServerResponse } from "node:http"
+import {
+  createServer,
+  type IncomingHttpHeaders,
+  type IncomingMessage,
+  type Server,
+  type ServerResponse,
+} from "node:http"
 
 export type ClaudeApiRequest = {
   stub: ClaudeApiStub
@@ -11,9 +17,8 @@ export type ClaudeApiRequest = {
   jsonBody: unknown
 }
 
-export type ClaudeApiFixture = "text-ok" | "delayed-text" | "count-tokens-ok" | "api-error" | "malformed-sse"
-
 type RequestPredicate = (request: ClaudeApiRequest) => boolean
+export type ClaudeApiResponder = (request: ClaudeApiRequest) => Response | Promise<Response>
 
 type RequestWaiter = {
   predicate: RequestPredicate
@@ -23,7 +28,7 @@ type RequestWaiter = {
 }
 
 export type ClaudeApiStubOptions = {
-  fixture?: ClaudeApiFixture
+  responder?: ClaudeApiResponder
   text?: string
 }
 
@@ -61,7 +66,21 @@ async function writeResponse(response: ServerResponse, fetchResponse: Response):
   fetchResponse.headers.forEach((value, key) => {
     response.setHeader(key, value)
   })
-  response.end(await fetchResponse.text())
+  if (!fetchResponse.body) {
+    response.end()
+    return
+  }
+
+  const reader = fetchResponse.body.getReader()
+  response.once("close", () => {
+    void reader.cancel()
+  })
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    response.write(value)
+  }
+  response.end()
 }
 
 async function listen(server: Server): Promise<number> {
@@ -140,56 +159,31 @@ function sseFrames(body: unknown, text: string): string {
   return frames.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join("")
 }
 
-function makeMessageSse(body: unknown, text: string, delayed: boolean): Response {
-  const content = sseFrames(body, text)
-  if (!delayed) {
-    return new Response(content, { headers: { "content-type": "text/event-stream", "request-id": "req_stub" } })
-  }
-
-  const chunks = content.match(/.{1,96}/gs) ?? [content]
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const encoder = new TextEncoder()
-      for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(chunk))
-        await new Promise((resolve) => setTimeout(resolve, 5))
-      }
-      controller.close()
-    },
+function makeMessageSse(body: unknown, text: string): Response {
+  return new Response(sseFrames(body, text), {
+    headers: { "content-type": "text/event-stream", "request-id": "req_stub" },
   })
-  return new Response(stream, { headers: { "content-type": "text/event-stream", "request-id": "req_stub" } })
 }
 
-function fixtureResponse(fixture: ClaudeApiFixture, request: ClaudeApiRequest, text: string): Response {
-  if (fixture === "api-error") {
-    return Response.json(
-      { type: "error", error: { type: "invalid_request_error", message: "stub api error" } },
-      { status: 400, headers: { "request-id": "req_error" } },
-    )
-  }
-  if (fixture === "malformed-sse") {
-    return new Response("event: message_start\ndata: {\n\n", {
-      headers: { "content-type": "text/event-stream", "request-id": "req_malformed" },
-    })
-  }
+function defaultResponse(request: ClaudeApiRequest, text: string): Response {
   if (request.path.endsWith("/messages/count_tokens")) {
     return Response.json({ input_tokens: 1 }, { headers: { "request-id": "req_count" } })
   }
-  if (jsonBodyStream(request.jsonBody)) return makeMessageSse(request.jsonBody, text, fixture === "delayed-text")
+  if (jsonBodyStream(request.jsonBody)) return makeMessageSse(request.jsonBody, text)
   return makeMessageJson(request.jsonBody, text)
 }
 
 export class ClaudeApiStub {
   readonly requests: ClaudeApiRequest[] = []
   readonly text: string
-  readonly fixture: ClaudeApiFixture
+  readonly responder?: ClaudeApiResponder
   #server: Server
   #waiters: RequestWaiter[] = []
   #order = 0
   #port = 0
 
   private constructor(options: ClaudeApiStubOptions = {}) {
-    this.fixture = options.fixture ?? "text-ok"
+    this.responder = options.responder
     this.text = options.text ?? "stub"
     this.#server = createServer((request, response) => {
       void this.#handleRequest(request, response)
@@ -252,7 +246,10 @@ export class ClaudeApiStub {
         )
         return
       }
-      await writeResponse(response, fixtureResponse(this.fixture, captured, this.text))
+      await writeResponse(
+        response,
+        this.responder ? await this.responder(captured) : defaultResponse(captured, this.text),
+      )
     } catch (error) {
       response.statusCode = 500
       response.end(error instanceof Error ? error.message : String(error))

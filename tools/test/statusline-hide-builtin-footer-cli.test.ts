@@ -62,15 +62,6 @@ function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
 }
 
-function getStreamingThinkingState(body: string): string {
-  const states = [...body.matchAll(/streamingThinking:([A-Za-z_$][\w$]*)/g)]
-    .map((match) => match[1])
-    .filter((state) => state !== "__acc_streamingThinking")
-  const state = states.at(-1)
-  expect(state).toBeDefined()
-  return state!
-}
-
 test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", () => {
   expect(existsSync(TARGET_BUNDLE)).toBe(true)
 
@@ -382,7 +373,9 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       expect(patched).not.toContain("__cci=Ve((c)=>c.clipboardImageAvailable??!1)")
       expect(patched).toContain("V0.useEffect(()=>{q()},[__cci,q]);")
       expect(patched).toContain('Ge((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))')
-      expect(patched).toContain('Ge((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))')
+      expect(patched).toContain(
+        'Ge((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
+      )
       expect(patched).toContain("globalThis.__acc_rate_limit_warning=yvb")
       expect(patched).toContain(
         '__acc_hide_footer=Ge((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
@@ -410,7 +403,9 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       expect(patched).toContain("__cci=Ve((c)=>c.clipboardImageAvailable??!1)")
       expect(patched).not.toContain("__cci=Tt((c)=>c.clipboardImageAvailable??!1)")
       expect(patched).toContain('Ve((I_)=>I_.settings.statusLine?.disabledFooter?.includes("effort_notification"))')
-      expect(patched).toContain('Ve((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))')
+      expect(patched).toContain(
+        'Ve((L)=>L.settings.statusLine?.hideBuiltinFooter||L.settings.statusLine?.disabledFooter?.includes("rate_limit_warning"))',
+      )
       expect(patched).toContain("globalThis.__acc_rate_limit_warning=fmb")
       expect(patched).toContain(
         '__acc_hide_footer=Ve((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
@@ -724,40 +719,3 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).not.toContain("BJ.useEffect(()=>{b()},[__cci,b]);")
   }
 }, 300_000)
-
-test("thinking display wires main-screen streaming thinking to the current REPL state", () => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
-  renderPatchFiles(TARGET_BUNDLE, patchedBundle, ["thinking-display.toml"])
-
-  const patched = readFileSync(patchedBundle, "utf8")
-
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.146") && isVersionBefore(TARGET_VERSION, "2.1.150")) {
-    expect(patched).toContain("streamingThinking:oT")
-    expect(patched).not.toContain("streamingThinking:r4")
-  }
-
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.150") && isVersionBefore(TARGET_VERSION, "2.1.156")) {
-    expect(patched).toContain("streamingThinking:cO")
-    expect(patched).not.toContain("streamingThinking:oT")
-  }
-
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.156")) {
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.205")) {
-      expect(patched).not.toContain("streamingThinking:_t")
-      expect(patched).not.toContain("streamingThinking:ma")
-      return
-    }
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.168")) {
-      const streamingThinkingState = getStreamingThinkingState(patched)
-      expect(patched).toContain(`streamingThinking:${streamingThinkingState}`)
-      expect(patched).not.toContain("streamingThinking:d7")
-      if (streamingThinkingState !== "EK") {
-        expect(patched).not.toContain("streamingThinking:EK")
-      }
-      return
-    }
-    expect(patched).toContain("streamingThinking:d7")
-    expect(patched).not.toContain("streamingThinking:cO")
-  }
-}, 120000)

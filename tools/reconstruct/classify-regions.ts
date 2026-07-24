@@ -12,7 +12,7 @@
 // reconstructed/<v112>/ verbatim. They need no LLM work.
 //
 // Usage:
-//   bun run tools/classify-regions.ts [--copy-identical] [--summary]
+//   bun run tools/reconstruct/classify-regions.ts [--copy-identical] [--summary]
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync, copyFileSync } from "node:fs"
 import { join, dirname } from "node:path"

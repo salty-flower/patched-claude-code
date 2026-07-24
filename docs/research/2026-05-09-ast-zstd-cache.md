@@ -18,11 +18,8 @@ Target bundle:
 - environment: local ai-sandbox session, so process launch and filesystem
   access include sandbox overhead
 
-Benchmark script:
-
-- `tools/bench/ast-zstd-cache.ts`
-- command: `bun run tools/bench/ast-zstd-cache.ts bench --iterations 3`
-- cache artifact: stripped Babel AST JSON compressed with `zstd -3`
+Benchmark implementation: retired after the measurements below were frozen.
+Recreate it only when AST-cache work is promoted into the active pipeline.
 
 Measured modes:
 

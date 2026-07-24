@@ -24,10 +24,10 @@
 **Interfaces:**
 
 - Consumes: `startClaudeApiStub` from `tools/test/helpers/claude-api-stub.ts`.
-- Produces: `just resume-transcript-smoke <version>` and `just resume-transcript-smoke-rendered <version>`.
+- Produces: resume coverage within `just api-stub-smoke <version>`.
 
 - [x] **Step 1:** Add the one-line minimized `away_summary` JSONL fixture.
 - [x] **Step 2:** Add a Bun CLI accepting `--bundle`, `--fixture`, `--prompt`, and `--timeout-seconds`.
 - [x] **Step 3:** The CLI creates a temp `HOME`/`CLAUDE_CONFIG_DIR`, installs the fixture under the encoded project directory, starts a local stub to prevent real network calls if the prompt reaches the API path, resumes the session in a PTY, submits the prompt, interrupts, and asserts no render crash.
-- [x] **Step 4:** Add `just` recipes and include the replay check in `api-stub-smoke` and `api-stub-smoke-rendered`.
+- [x] **Step 4:** Include the replay check in the consolidated `api-stub-smoke` matrix.
 - [x] **Step 5:** Verify with `bun run --cwd tools typecheck`, targeted smoke, and `just verify 2.1.206`.

@@ -12,12 +12,12 @@
 //   {"id": 0, "dir": "src/tools", "files": [...], "size_bytes": 123456, "n_files": 7}
 //
 // Usage:
-//   bun run tools/chunk-work.ts                               # all drifted+partial
-//   bun run tools/chunk-work.ts --bucket drifted              # one bucket
-//   bun run tools/chunk-work.ts --prefix src/tools/           # only this prefix
-//   bun run tools/chunk-work.ts --cap 200000                  # byte cap per chunk
-//   bun run tools/chunk-work.ts --out chunks.json             # write file
-//   bun run tools/chunk-work.ts --max-chunks 8                # produce only first N
+//   bun run tools/reconstruct/chunk-work.ts                    # all drifted+partial
+//   bun run tools/reconstruct/chunk-work.ts --bucket drifted
+//   bun run tools/reconstruct/chunk-work.ts --prefix src/tools/
+//   bun run tools/reconstruct/chunk-work.ts --cap 200000
+//   bun run tools/reconstruct/chunk-work.ts --out chunks.json
+//   bun run tools/reconstruct/chunk-work.ts --max-chunks 8
 
 import { readFileSync, writeFileSync, statSync } from "node:fs"
 import { join, dirname } from "node:path"

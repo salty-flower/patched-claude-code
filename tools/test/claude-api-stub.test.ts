@@ -60,3 +60,22 @@ test("ClaudeApiStub supports count_tokens and rejects unknown paths", async () =
   const unknownResponse = await fetch(`${stub.baseUrl}/v1/unknown`, { method: "POST" })
   expect(unknownResponse.status).toBe(404)
 })
+
+test("ClaudeApiStub supports request-aware response overrides", async () => {
+  const stub = await startClaudeApiStub({
+    responder: (request) =>
+      Response.json(
+        { path: request.path, model: (request.jsonBody as { model?: string } | undefined)?.model },
+        { status: 202 },
+      ),
+  })
+  stubs.push(stub)
+
+  const response = await fetch(`${stub.baseUrl}/v1/messages`, {
+    method: "POST",
+    body: JSON.stringify({ model: "claude-test" }),
+  })
+
+  expect(response.status).toBe(202)
+  expect(await response.json()).toEqual({ path: "/v1/messages", model: "claude-test" })
+})

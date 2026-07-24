@@ -5,7 +5,6 @@ import { parseArgs as parseCreateSourceTagArgs } from "../patch/create-source-ta
 import { parseArgs as parseDetectUpstreamArgs } from "../patch/detect-upstream"
 import { parseArgs as parseExtractPromptCatalogArgs } from "../patch/extract-prompt-catalog"
 import { parseArgs as parseFinalizePromptIdentitiesArgs } from "../patch/finalize-prompt-identities"
-import { parseArgs as parseFormatStagedCliArgs } from "../patch/format-staged-cli"
 import { parseArgs as parsePackageReleaseArgs } from "../patch/package-release"
 import { parseArgs as parsePreparePromptIdentityBumpArgs } from "../patch/prepare-prompt-identity-bump"
 import { parseArgs as parsePrepareTargetBumpArgs } from "../patch/prepare-target-bump"
@@ -181,14 +180,6 @@ test("prompt identity CLIs parse explicit draft and finalize paths", () => {
   expect(parseFinalizePromptIdentitiesArgs(["review.json", "--identity-root", "identities"])).toEqual({
     draft: "review.json",
     identityRoot: "identities",
-  })
-})
-
-test("format-staged-cli parses positional version and optional paths", () => {
-  expect(parseFormatStagedCliArgs(["2.1.133", "--input", "cli.js", "--output", "cli.formatted.js"])).toEqual({
-    version: "2.1.133",
-    input: "cli.js",
-    output: "cli.formatted.js",
   })
 })
 

@@ -2,10 +2,10 @@ import { afterEach, expect, test } from "bun:test"
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries, patchApplies } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { applyPatchEntries, patchApplies } from "../../lib/apply-patches"
+import { loadPatchEntriesFromFile } from "../../lib/patch-files"
 
-const ROOT = join(import.meta.dir, "..", "..")
+const ROOT = join(import.meta.dir, "..", "..", "..")
 const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.199"
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const ULTRACODE_PATCH = join(ROOT, "patches", "ultracode-opus46-max.toml")
@@ -114,7 +114,7 @@ function injectUltracodeHarness(source: string): string {
 
   let harness = replaceOnce(
     source,
-    'function EE(){if(hqt())return!1;if(!LNn())return!1;let{available:e,defaultOn:t}=WTi();if(!e)return!1;return alh()??t}',
+    "function EE(){if(hqt())return!1;if(!LNn())return!1;let{available:e,defaultOn:t}=WTi();if(!e)return!1;return alh()??t}",
     "function EE(){return!0}",
   )
   harness = replaceOnce(

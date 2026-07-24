@@ -46,12 +46,10 @@
    - Assert the stub receives the model request.
    - Assert the rendered bundle prints the stub text response.
 
-4. **Streaming and error fixtures.** Done.
-   - `text-ok`: normal `message_start` to `message_stop`.
-   - `delayed-text`: delayed SSE chunks.
-   - `count-tokens-ok`: minimal token-count response.
-   - `api-error`: structured JSON error response.
-   - `malformed-sse`: invalid frame for render-loop failure detection.
+4. **Request-aware response overrides.** Done.
+   - Default message and count-token responses.
+   - Per-request responder for stateful PTY scenarios.
+   - No unused named fixture modes.
 
 5. **Transcript replay matrix.** Remaining.
    - Custom endpoint replay strips stale signed thinking.
@@ -63,9 +61,8 @@
 ## Verification Gates
 
 - `just tool-test <ver>` includes the shared stub helper tests.
-- `just api-stub-smoke <ver>` renders the target and runs the PTY/API smoke.
-- `just api-stub-smoke-rendered <ver>` reruns the smoke against an existing
-  `staging/<ver>/cli.patched.js`.
+- `just api-stub-smoke <ver>` renders the target and runs the complete local
+  PTY/API matrix; it is the sole public smoke entrypoint.
 - `just patch-test <ver>` remains static-only unless explicitly extended.
 - Target-bump SOP continues to require a separate PTY/TUI baseline; this
   backlog adds stub-backed coverage for token-burning paths.
@@ -77,4 +74,5 @@ Promote this backlog into `docs/guides/Bumping-Target.md` only after:
 
 - The remaining transcript replay matrix is implemented.
 - At least one more API patch family uses the helper.
-- The split PTY/API smoke command has stayed stable across a target bump.
+- The consolidated PTY/API smoke command has stayed stable across a target
+  bump.

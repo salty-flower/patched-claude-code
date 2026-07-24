@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
-import { createServer } from "node:http"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { createCommand } from "../lib/cli"
+import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
 type Args = { bundle: string; timeoutSeconds: number }
 
@@ -53,7 +53,7 @@ function isMainAgentToolResult(body: unknown): boolean {
       "content" in message &&
       Array.isArray(message.content) &&
       message.content.some(
-        (block) =>
+        (block: unknown) =>
           typeof block === "object" &&
           block !== null &&
           "type" in block &&
@@ -94,18 +94,24 @@ function sse(body: unknown, content: Record<string, unknown>[], stopReason: stri
     stop_reason: null,
     usage: { input_tokens: 1, output_tokens: 1 },
   }
-  const frames: Array<[string, Record<string, unknown>]> = [
-    ["message_start", { type: "message_start", message }],
-  ]
+  const frames: Array<[string, Record<string, unknown>]> = [["message_start", { type: "message_start", message }]]
   content.forEach((block, index) => {
     if (block.type === "tool_use") {
       frames.push([
         "content_block_start",
-        { type: "content_block_start", index, content_block: { type: "tool_use", id: block.id, name: block.name, input: {} } },
+        {
+          type: "content_block_start",
+          index,
+          content_block: { type: "tool_use", id: block.id, name: block.name, input: {} },
+        },
       ])
       frames.push([
         "content_block_delta",
-        { type: "content_block_delta", index, delta: { type: "input_json_delta", partial_json: JSON.stringify(block.input) } },
+        {
+          type: "content_block_delta",
+          index,
+          delta: { type: "input_json_delta", partial_json: JSON.stringify(block.input) },
+        },
       ])
     } else {
       frames.push([
@@ -127,6 +133,22 @@ function sse(body: unknown, content: Record<string, unknown>[], stopReason: stri
   return frames.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join("")
 }
 
+type SseFrame = [event: string, data: Record<string, unknown>]
+
+function hangingSse(frames: SseFrame[]): Response {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(frames.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join("")),
+      )
+    },
+  })
+  return new Response(stream, {
+    headers: { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" },
+  })
+}
+
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
   if (!existsSync(args.bundle)) {
@@ -140,87 +162,99 @@ async function main(): Promise<number> {
   mkdirSync(configDir, { recursive: true })
   let requestCount = 0
   let subagentStarted = false
-  let subagentDisconnected = false
-  const server = createServer(async (request, response) => {
-    const url = new URL(request.url ?? "/", "http://127.0.0.1")
-    const rawBody = await new Promise<string>((resolveBody, reject) => {
-      let body = ""
-      request.setEncoding("utf8")
-      request.on("data", (chunk: string) => (body += chunk))
-      request.on("end", () => resolveBody(body))
-      request.on("error", reject)
-    })
-    if (url.pathname.endsWith("/messages/count_tokens")) {
-      response.writeHead(200, { "content-type": "application/json" })
-      response.end(JSON.stringify({ input_tokens: 1 }))
-      return
-    }
-    if (!url.pathname.endsWith("/messages")) {
-      response.writeHead(404)
-      response.end()
-      return
-    }
+  let stub: ClaudeApiStub | undefined
+  const responder = (request: ClaudeApiRequest): Response => {
+    if (request.path.endsWith("/messages/count_tokens")) return Response.json({ input_tokens: 1 })
 
-    const body = (() => {
-      try {
-        return JSON.parse(rawBody) as unknown
-      } catch {
-        return undefined
-      }
-    })()
+    const body = request.jsonBody
     const hasToolResult = isMainAgentToolResult(body)
-    const isTitleRequest = rawBody.includes("Write the title in the predominant language")
+    const isTitleRequest = request.rawBody.includes("Write the title in the predominant language")
     if (isTitleRequest) {
-      const payload = { id: "msg_stub_title", type: "message", role: "assistant", model: modelName(body), content: [{ type: "text", text: "Background agent interrupt PTY" }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } }
-      if (isStream(body)) {
-        response.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache" })
-        response.end(sse(body, payload.content as Record<string, unknown>[], "end_turn"))
-      } else {
-        response.writeHead(200, { "content-type": "application/json" })
-        response.end(JSON.stringify(payload))
+      const payload = {
+        id: "msg_stub_title",
+        type: "message",
+        role: "assistant",
+        model: modelName(body),
+        content: [{ type: "text", text: "Background agent interrupt PTY" }],
+        stop_reason: "end_turn",
+        stop_sequence: null,
+        usage: { input_tokens: 1, output_tokens: 1 },
       }
-      return
+      if (isStream(body)) {
+        return new Response(sse(body, payload.content as Record<string, unknown>[], "end_turn"), {
+          headers: { "content-type": "text/event-stream", "cache-control": "no-cache" },
+        })
+      }
+      return Response.json(payload)
     }
     requestCount += 1
-    writeFileSync(join(home, `request-${requestCount}.json`), rawBody)
+    writeFileSync(join(home, `request-${requestCount}.json`), request.rawBody)
 
     if (requestCount === 1) {
       const payload = toolUseJson(body)
       if (isStream(body)) {
-        response.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache" })
-        response.end(sse(body, payload.content as Record<string, unknown>[], "tool_use"))
-      } else {
-        response.writeHead(200, { "content-type": "application/json" })
-        response.end(JSON.stringify(payload))
+        return new Response(sse(body, payload.content as Record<string, unknown>[], "tool_use"), {
+          headers: { "content-type": "text/event-stream", "cache-control": "no-cache" },
+        })
       }
-      return
+      return Response.json(payload)
     }
 
     if (hasToolResult) {
-      response.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" })
-      response.write(`event: message_start\ndata: ${JSON.stringify({ type: "message_start", message: { id: "msg_stub_followup", type: "message", role: "assistant", model: modelName(body), content: [], stop_reason: null, usage: { input_tokens: 1, output_tokens: 1 } } })}\n\n`)
-      response.write(`event: content_block_start\ndata: ${JSON.stringify({ type: "content_block_start", index: 0, content_block: { type: "text", text: "" } })}\n\n`)
-      response.write(`event: content_block_delta\ndata: ${JSON.stringify({ type: "content_block_delta", index: 0, delta: { type: "text_delta", text: "Background agent is running." } })}\n\n`)
-      return
+      return hangingSse([
+        [
+          "message_start",
+          {
+            type: "message_start",
+            message: {
+              id: "msg_stub_followup",
+              type: "message",
+              role: "assistant",
+              model: modelName(body),
+              content: [],
+              stop_reason: null,
+              usage: { input_tokens: 1, output_tokens: 1 },
+            },
+          },
+        ],
+        ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }],
+        [
+          "content_block_delta",
+          {
+            type: "content_block_delta",
+            index: 0,
+            delta: { type: "text_delta", text: "Background agent is running." },
+          },
+        ],
+      ])
     }
 
     subagentStarted = true
     writeFileSync(readyFile, "ready\n")
-    response.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" })
-    response.write(`event: message_start\ndata: ${JSON.stringify({ type: "message_start", message: { id: "msg_stub_agent", type: "message", role: "assistant", model: modelName(body), content: [], stop_reason: null, usage: { input_tokens: 1, output_tokens: 1 } } })}\n\n`)
-    request.once("close", () => {
-      subagentDisconnected = true
-    })
-  })
-
-  await new Promise<void>((resolveListen, rejectListen) => {
-    server.once("error", rejectListen)
-    server.listen(0, "127.0.0.1", () => resolveListen())
-  })
-  const address = server.address()
-  if (address === null || typeof address === "string") throw new Error("stub server did not expose a TCP address")
-  const baseUrl = `http://127.0.0.1:${address.port}`
-  writeFileSync(join(configDir, "settings.json"), `${JSON.stringify({ env: { ANTHROPIC_BASE_URL: baseUrl }, theme: "dark" }, null, 2)}\n`)
+    return hangingSse([
+      [
+        "message_start",
+        {
+          type: "message_start",
+          message: {
+            id: "msg_stub_agent",
+            type: "message",
+            role: "assistant",
+            model: modelName(body),
+            content: [],
+            stop_reason: null,
+            usage: { input_tokens: 1, output_tokens: 1 },
+          },
+        },
+      ],
+    ])
+  }
+  stub = await startClaudeApiStub({ responder })
+  const baseUrl = stub.baseUrl
+  writeFileSync(
+    join(configDir, "settings.json"),
+    `${JSON.stringify({ env: { ANTHROPIC_BASE_URL: baseUrl }, theme: "dark" }, null, 2)}\n`,
+  )
   writeFileSync(
     join(configDir, ".claude.json"),
     `${JSON.stringify({ customApiKeyResponses: { approved: ["stub-api-key"], rejected: [] }, env: { ANTHROPIC_BASE_URL: baseUrl }, hasCompletedOnboarding: true, projects: { [home]: { hasTrustDialogAccepted: true } }, theme: "dark" }, null, 2)}\n`,
@@ -239,10 +273,25 @@ async function main(): Promise<number> {
       FORCE_COLOR: "0",
       TERM: "xterm-256color",
     }
-    const envPrefix = Object.entries(commandEnv).map(([key, value]) => `${key}=${shellQuote(value)}`).join(" ")
+    const envPrefix = Object.entries(commandEnv)
+      .map(([key, value]) => `${key}=${shellQuote(value)}`)
+      .join(" ")
     const bundle = resolve(args.bundle)
     const timeoutSeconds = Math.max(30, Math.min(args.timeoutSeconds, 75))
-    const command = ["timeout", `${timeoutSeconds}s`, "env", envPrefix, "bun", shellQuote(bundle), "--permission-mode", "acceptEdits", "--thinking-display", "summarized", "--model", "sonnet"].join(" ")
+    const command = [
+      "timeout",
+      `${timeoutSeconds}s`,
+      "env",
+      envPrefix,
+      "bun",
+      shellQuote(bundle),
+      "--permission-mode",
+      "acceptEdits",
+      "--thinking-display",
+      "summarized",
+      "--model",
+      "sonnet",
+    ].join(" ")
     const enter = "\\x1b[13u"
     const prompt = "\\x1b[200~Start a background agent and keep it running.\\x1b[201~"
     const exit = "\\x1b[200~/exit\\x1b[201~"
@@ -269,7 +318,11 @@ async function main(): Promise<number> {
       stdout: "pipe",
       stderr: "pipe",
     })
-    const [exitCode, stdout, stderr] = await Promise.all([child.exited, new Response(child.stdout).text(), new Response(child.stderr).text()])
+    const [exitCode, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ])
     const output = `${stdout}\n${stderr}`
     const normalized = normalizeTuiOutput(output)
     if (exitCode !== 0) {
@@ -282,7 +335,11 @@ async function main(): Promise<number> {
       console.error(output)
       return 1
     }
-    if (normalized.includes("TypeError") || normalized.includes("ReferenceError") || normalized.includes("Minified React error")) {
+    if (
+      normalized.includes("TypeError") ||
+      normalized.includes("ReferenceError") ||
+      normalized.includes("Minified React error")
+    ) {
       console.error("PTY hit a render/runtime error")
       console.error(output)
       return 1
@@ -296,20 +353,23 @@ async function main(): Promise<number> {
     const transcriptFiles: string[] = []
     const projectsDir = join(home, ".claude", "projects")
     const findJsonl = async (directory: string): Promise<void> => {
-      for await (const entry of new Bun.Glob("**/*.jsonl").scan({ cwd: directory, absolute: true })) transcriptFiles.push(entry)
+      for await (const entry of new Bun.Glob("**/*.jsonl").scan({ cwd: directory, absolute: true }))
+        transcriptFiles.push(entry)
     }
     if (existsSync(projectsDir)) await findJsonl(projectsDir)
     const transcriptText = transcriptFiles.map((file) => readFileSync(file, "utf8")).join("\n")
-    if (transcriptText.includes('"subtype":"agents_killed"') || transcriptText.includes("background agents were stopped by the user")) {
+    if (
+      transcriptText.includes('"subtype":"agents_killed"') ||
+      transcriptText.includes("background agents were stopped by the user")
+    ) {
       console.error("double-Esc killed a background agent")
       console.error(normalized)
       return 1
     }
-    console.log(`ok: PTY spawned a background subagent; double-Esc did not emit agents_killed (disconnect=${subagentDisconnected})`)
+    console.log("ok: PTY spawned a background subagent; double-Esc did not emit agents_killed")
     return 0
   } finally {
-    server.closeAllConnections?.()
-    server.close()
+    stub?.stop()
     if (process.env.KEEP_AGENT_PTY_HOME !== "1") rmSync(home, { recursive: true, force: true })
   }
 }

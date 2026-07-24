@@ -78,7 +78,7 @@ function isHumanish(s: string): boolean {
   return letters / s.length >= 0.5
 }
 
-function fingerprintAt(node: any, src: string): Fp {
+function fingerprintAt(node: any, _src: string): Fp {
   const counts: Record<string, number> = {}
   const lits = new Set<string>()
   let arity = 0

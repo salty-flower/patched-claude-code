@@ -23,16 +23,16 @@
 // single run, so batch invocation is cheap.
 //
 // Usage:
-//   bun run tools/extract-region.ts <v88_src_path> [--out <dir>]
-//   bun run tools/extract-region.ts --batch <v88_src_dir> [--out <dir>]
-//   bun run tools/extract-region.ts --list <v88_src_dir>      # just print files
+//   bun run tools/reconstruct/extract-region.ts <v88_src_path> [--out <dir>]
+//   bun run tools/reconstruct/extract-region.ts --batch <v88_src_dir> [--out <dir>]
+//   bun run tools/reconstruct/extract-region.ts --list <v88_src_dir>
 //
 // Exit non-zero only on hard failures (missing files, parse errors). A source
 // path with no matching gen positions or no v112 match produces region.json
 // with status="unmatched" and an empty slice; the run continues.
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from "node:fs"
-import { join, dirname, extname, relative } from "node:path"
+import { extname, join } from "node:path"
 import * as parser from "@babel/parser"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")

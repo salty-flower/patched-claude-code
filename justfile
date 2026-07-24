@@ -19,40 +19,42 @@ render version=target source=source: (verify version source)
 tool-test version=target source=source: (stage version source)
   TARGET_VERSION="{{version}}" bun run --cwd tools test
 
-smoke version=target source=source: (render version source)
-  bun "staging/{{version}}/cli.patched.js" --version
+smoke version=target source=source: \
+  (render version source) \
+  (smoke-rendered version)
 
 smoke-rendered version=target:
   bun "staging/{{version}}/cli.patched.js" --version
 
-patch-test version=target source=source: (render version source)
-  bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
-
-patch-test-rendered version=target:
-  bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
-
-api-stub-smoke version=target source=source timeout=resume_transcript_timeout: \
+patch-test version=target source=source: \
   (render version source) \
-  (_api-stub-smoke-rendered version timeout)
+  (_patch-test-rendered version)
 
-_api-stub-smoke-rendered version=target timeout=resume_transcript_timeout:
-  bun run tools/test/oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"
+_patch-test-rendered version=target:
+  bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
+
+api-stub-smoke version=target source=source resume_timeout=resume_transcript_timeout: \
+  (render version source) \
+  (_api-stub-smoke-rendered version resume_timeout)
+
+_api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout:
+  bun run tools/test/oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
-  bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"
-  bun run tools/test/background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"
+  bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{resume_timeout}}"
+  bun run tools/test/background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js"
 
-package version=target release_id=release_id source=source: (render version source)
-  bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"
+package version=target release_id=release_id source=source: \
+  (render version source) \
+  (_package-rendered version release_id)
 
-package-rendered version=target release_id=release_id:
+_package-rendered version=target release_id=release_id:
   bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"
 
 release-source version=target release_id=release_id source=source: \
   (render version source) \
-  (_release-payload version release_id) \
-  (_release-tag version release_id)
+  (_release-source-rendered version release_id)
 
-release-source-rendered version=target release_id=release_id: \
+_release-source-rendered version=target release_id=release_id: \
   (_release-payload version release_id) \
   (_release-tag version release_id)
 
@@ -60,10 +62,10 @@ ci-release-audit version=target release_id=release_id source=source: \
   (tool-test version source) \
   (render version source) \
   (smoke-rendered version) \
-  (patch-test-rendered version) \
+  (_patch-test-rendered version) \
   (_api-stub-smoke-rendered version resume_transcript_timeout) \
-  (package-rendered version release_id) \
-  (release-source-rendered version release_id)
+  (_package-rendered version release_id) \
+  (_release-source-rendered version release_id)
   test -s cli.js
   test -s manifest.json
   test -s package.json
@@ -107,8 +109,8 @@ check:
 release-dry version=target release_id=release_id source=source: \
   (render version source) \
   (smoke-rendered version) \
-  (patch-test-rendered version) \
-  (package-rendered version release_id)
+  (_patch-test-rendered version) \
+  (_package-rendered version release_id)
 
 platform-audit version=target:
   bun run tools/platform/platform-audit.ts --version "{{version}}"

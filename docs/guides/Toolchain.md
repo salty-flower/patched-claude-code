@@ -12,6 +12,7 @@ Use the root `justfile` as the command facade:
 | `just render [version] [source]` | Stage and verify if needed, then render `staging/<version>/cli.patched.js`. |
 | `just smoke [version] [source]` | Run the patched bundle with `--version`. |
 | `just patch-test [version] [source]` | Execute `[[tests]]` from every patch TOML. |
+| `just api-stub-smoke [version] [source]` | Run the local-only OAuth, TUI, resume, and background-agent PTY matrix. |
 | `just package [version] [release_id] [source]` | Build `dist/` release artifacts. |
 | `just release-source [version] [release_id] [source]` | Write the Nix source payload and create the matching minimal source tag. |
 | `just detect-upstream [args...]` | Compare npm and Claude direct-download latest channels. |
@@ -26,7 +27,7 @@ Use environment variables for default coordinates:
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `TARGET_VERSION` | `2.1.201` | Version used when a recipe omits `[version]`. |
+| `TARGET_VERSION` | `2.1.218` | Version used when a recipe omits `[version]`. |
 | `TARGET_SOURCE` | `canonical` | Staging channel: `canonical`, `npm`, or `direct`. |
 | `TARGET_PLATFORM_PACKAGE` | `@anthropic-ai/claude-code-darwin-arm64` | npm native package for npm staging. |
 | `TARGET_PLATFORM` | `darwin-arm64` | Direct-download platform for native staging. |

@@ -18,10 +18,10 @@ test("ci release audit target declares shared staged-bundle work once", () => {
   expect(recipe).toContain("(tool-test version source)")
   expect(recipe).toContain("(render version source)")
   expect(recipe).toContain("(smoke-rendered version)")
-  expect(recipe).toContain("(patch-test-rendered version)")
+  expect(recipe).toContain("(_patch-test-rendered version)")
   expect(recipe).toContain("(_api-stub-smoke-rendered version resume_transcript_timeout)")
-  expect(recipe).toContain("(package-rendered version release_id)")
-  expect(recipe).toContain("(release-source-rendered version release_id)")
+  expect(recipe).toContain("(_package-rendered version release_id)")
+  expect(recipe).toContain("(_release-source-rendered version release_id)")
   expect(recipe).toContain("git ls-tree -r --name-only")
   expect(recipe).toContain("shopt -s nullglob globstar")
   expect(recipe).toContain("prompts/catalog/entries/**/*.md")
@@ -38,8 +38,8 @@ test("release dry target reuses the rendered bundle", () => {
 
   expect(recipe).toContain("(render version source)")
   expect(recipe).toContain("(smoke-rendered version)")
-  expect(recipe).toContain("(patch-test-rendered version)")
-  expect(recipe).toContain("(package-rendered version release_id)")
+  expect(recipe).toContain("(_patch-test-rendered version)")
+  expect(recipe).toContain("(_package-rendered version release_id)")
   expect(recipe).not.toContain("(smoke version source)")
   expect(recipe).not.toContain("(patch-test version source)")
   expect(recipe).not.toContain("(package version release_id source)")
@@ -64,18 +64,27 @@ test("api stub smoke renders once and runs the complete local PTY matrix", () =>
   const recipe = recipeBlock("api-stub-smoke")
   const renderedRecipe = recipeBlock("_api-stub-smoke-rendered")
 
-  expect(recipe).toContain("api-stub-smoke version=target source=source timeout=resume_transcript_timeout:")
+  expect(recipe).toContain("api-stub-smoke version=target source=source resume_timeout=resume_transcript_timeout:")
   expect(recipe).toContain("(render version source)")
-  expect(recipe).toContain("(_api-stub-smoke-rendered version timeout)")
-  expect(renderedRecipe).toContain("_api-stub-smoke-rendered version=target timeout=resume_transcript_timeout:")
+  expect(recipe).toContain("(_api-stub-smoke-rendered version resume_timeout)")
+  expect(renderedRecipe).toContain(
+    "_api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout:",
+  )
+  expect(renderedRecipe).toContain('oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
   expect(renderedRecipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
   expect(renderedRecipe).toContain(
-    'oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
+    'resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{resume_timeout}}"',
   )
-  expect(renderedRecipe).toContain(
-    'resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
+  expect(renderedRecipe).toContain('background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js"')
+  expect(renderedRecipe).not.toContain('oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout')
+  expect(renderedRecipe).not.toContain(
+    'background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js" --timeout',
   )
-  expect(renderedRecipe).toContain(
-    'background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{timeout}}"',
-  )
+})
+
+test("public lifecycle recipes delegate rendered work to one implementation", () => {
+  expect(recipeBlock("smoke")).toContain("(smoke-rendered version)")
+  expect(recipeBlock("patch-test")).toContain("(_patch-test-rendered version)")
+  expect(recipeBlock("package")).toContain("(_package-rendered version release_id)")
+  expect(recipeBlock("release-source")).toContain("(_release-source-rendered version release_id)")
 })

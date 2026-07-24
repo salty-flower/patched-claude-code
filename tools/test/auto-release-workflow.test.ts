@@ -25,7 +25,7 @@ test("auto-release only creates Nix source refs after canonical promotion", () =
   expect(lines).toContain(
     "if: steps.detect.outputs.action == 'promote' && steps.identity.outputs.status == 'ready-existing'",
   )
-  expect(lines).toContain('just release-source-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
+  expect(lines).toContain('just _release-source-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
   expect(lines).toContain("bun ./cli.js --version")
   expect(lines).toContain(exactTagPush)
   expect(lines.filter((line) => line === latestPush)).toHaveLength(1)
@@ -39,8 +39,8 @@ test("auto-release reuses rendered bundle across release checks", () => {
   expect(workflow).not.toContain("- name: Stage candidate")
   expect(renderStep).toContain('just render "${{ steps.detect.outputs.version }}"')
   expect(renderStep).toContain('just smoke-rendered "${{ steps.detect.outputs.version }}"')
-  expect(renderStep).toContain('just patch-test-rendered "${{ steps.detect.outputs.version }}"')
-  expect(packageStep).toContain('just package-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
+  expect(renderStep).toContain('just _patch-test-rendered "${{ steps.detect.outputs.version }}"')
+  expect(packageStep).toContain('just _package-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
   expect(packageStep).toContain("steps.identity.outputs.status == 'ready-existing'")
 })
 

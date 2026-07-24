@@ -93,7 +93,7 @@ jobs:
           set -euo pipefail
           just render "${{ steps.detect.outputs.version }}"
           just smoke-rendered "${{ steps.detect.outputs.version }}"
-          just patch-test-rendered "${{ steps.detect.outputs.version }}"
+          just _patch-test-rendered "${{ steps.detect.outputs.version }}"
 
       - name: Prepare prompt identity ledger
         id: identity
@@ -152,7 +152,7 @@ jobs:
         if: steps.detect.outputs.action != 'none' && steps.identity.outputs.status == 'ready-existing'
         run: |
           set -euo pipefail
-          just package-rendered "${{ steps.detect.outputs.version }}" "patch.1"
+          just _package-rendered "${{ steps.detect.outputs.version }}" "patch.1"
 
       - name: Check canonical platform merge before promotion
         if: steps.detect.outputs.action == 'promote' && steps.identity.outputs.status == 'ready-existing'
@@ -168,7 +168,7 @@ jobs:
           tag="claude-code-${{ steps.detect.outputs.version }}-patch.1"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          just release-source-rendered "${{ steps.detect.outputs.version }}" "patch.1"
+          just _release-source-rendered "${{ steps.detect.outputs.version }}" "patch.1"
           bun ./cli.js --version
           git push origin "refs/tags/$tag" --force
           git push origin "refs/tags/$tag:refs/heads/claude-code-latest" --force

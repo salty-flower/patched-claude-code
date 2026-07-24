@@ -114,7 +114,17 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    successors; never promote a score directly. See
    [`Prompt-Catalog.md`](Prompt-Catalog.md#target-upgrade).
 
-5. **Exercise the rendered TUI and runtime paths.**
+5. **Run local PTY smokes, then exercise the rendered TUI.**
+
+   Run the complete local API-stub matrix:
+
+   ```sh
+   just api-stub-smoke <ver> <canonical|npm|direct>
+   ```
+
+   This covers OAuth setup, the baseline stub-backed TUI, transcript resume,
+   and background-agent interrupt handling without sending model requests.
+   Passing the matrix does not replace the manual rendered-TUI baseline.
 
    Every target bump must include this baseline before commit:
 

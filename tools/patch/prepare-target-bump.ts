@@ -3,10 +3,10 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { CommanderError } from "commander"
 import { valid } from "semver"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import type { PromptIdentityBumpPreparation } from "../lib/prompt-identity-bump"
+import { parseTargetSource, parseTargetSourceOption, type TargetSource } from "../lib/target"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -19,7 +19,7 @@ const MANUAL_GATES = [
 
 type Args = {
   version?: string
-  source: string
+  source: TargetSource
   outFile?: string
 }
 
@@ -42,7 +42,7 @@ export type TargetBumpPreparationReport = {
   scope: "target-bump-preparation"
   target: {
     version: string
-    source: string
+    source: TargetSource
   }
   status: "manual-review-ready" | "prompt-review-required" | "failed"
   steps: TargetBumpStepResult[]
@@ -58,13 +58,18 @@ export function parseArgs(argv: string[], env: Record<string, string | undefined
   return createCommand("prepare-target-bump")
     .description("Run deterministic target-bump preparation and write a review handoff report")
     .requiredOption("--version <ver>", "target upstream version")
-    .option("--source <source>", "bundle source: canonical, npm, or direct", env.TARGET_SOURCE ?? "canonical")
+    .option(
+      "--source <source>",
+      "bundle source: canonical, npm, or direct",
+      parseTargetSourceOption,
+      parseTargetSource(env.TARGET_SOURCE ?? "canonical"),
+    )
     .option("-o, --out-file <file>", "machine-readable bump preparation report")
     .parse(argv, { from: "user" })
     .opts<Args>()
 }
 
-export function buildTargetBumpSteps(root: string, version: string, source: string): TargetBumpStep[] {
+export function buildTargetBumpSteps(root: string, version: string, source: TargetSource): TargetBumpStep[] {
   const upstream = join("staging", version, "cli.js")
   const patched = join("staging", version, "cli.patched.js")
   const identityDraft = join("dist", `prompt-identities-${version}.draft.json`)
@@ -263,11 +268,4 @@ function formatDuration(durationMs: number): string {
   return `${(durationMs / 1000).toFixed(1)}s`
 }
 
-if (import.meta.main) {
-  try {
-    process.exit(main())
-  } catch (error) {
-    if (error instanceof CommanderError && error.code === "commander.helpDisplayed") process.exit(error.exitCode)
-    throw error
-  }
-}
+if (import.meta.main) await runCli(main)

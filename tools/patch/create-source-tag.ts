@@ -4,7 +4,8 @@
 import { existsSync, readdirSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
+import { captureChecked } from "../lib/process"
 import { releaseTag } from "../lib/release-payload"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -28,9 +29,7 @@ function payloadFiles(path: string): TagFile[] {
     .sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0))
     .flatMap((entry) => {
       const child = `${path}/${entry.name}`
-      return entry.isDirectory()
-        ? payloadFiles(child)
-        : [{ path: child, mode: "100644" as const, required: true }]
+      return entry.isDirectory() ? payloadFiles(child) : [{ path: child, mode: "100644" as const, required: true }]
     })
 }
 
@@ -47,17 +46,10 @@ export function parseArgs(argv: string[], env: Record<string, string | undefined
 }
 
 function run(cmd: string[], env: Record<string, string | undefined> = {}): string {
-  const result = Bun.spawnSync({
-    cmd,
+  return captureChecked(cmd, {
     cwd: ROOT,
-    env: { ...process.env, ...gitIdentityEnv(), ...env },
-    stdout: "pipe",
-    stderr: "inherit",
+    env: { ...gitIdentityEnv(), ...env },
   })
-  if (!result.success) {
-    throw new Error(`command failed (${result.exitCode}): ${cmd.join(" ")}`)
-  }
-  return new TextDecoder().decode(result.stdout).trim()
 }
 
 function gitIdentityEnv(): Record<string, string> {
@@ -123,6 +115,4 @@ function main(): number {
   return 0
 }
 
-if (import.meta.main) {
-  process.exit(main())
-}
+if (import.meta.main) await runCli(main)

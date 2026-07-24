@@ -4,9 +4,10 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { targetVersion } from "../lib/target"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.156"
+const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-resume-1m-"))
@@ -74,45 +75,35 @@ test("resume restores 1m defaults after alias resolution", () => {
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.218")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||yo(Si(Z.ANTHROPIC_MODEL))!==yo(o.model)))return;',
-    )
+    expect(patched).toContain('if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||yo(Si(Z.ANTHROPIC_MODEL))!==yo(o.model)))return;')
     expect(patched).toContain("let r=new Set(Gmc.map((i)=>yo(i))),n=Si(t??Wv()),o=pd(n);")
     return
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.217")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||po(fi(Z.ANTHROPIC_MODEL))!==po(o.model)))return;',
-    )
+    expect(patched).toContain('if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||po(fi(Z.ANTHROPIC_MODEL))!==po(o.model)))return;')
     expect(patched).toContain("let r=new Set(Lsc.map((i)=>po(i))),n=fi(t??Ev()),o=od(n);")
     return
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.216")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||po(mi(Z.ANTHROPIC_MODEL))!==po(o.model)))return;',
-    )
+    expect(patched).toContain('if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||po(mi(Z.ANTHROPIC_MODEL))!==po(o.model)))return;')
     expect(patched).toContain("let r=new Set(vnc.map((i)=>po(i))),n=mi(t??gv()),o=nd(n);")
     return
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.215")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||so(ri(Z.ANTHROPIC_MODEL))!==so(o.model)))return;',
-    )
+    expect(patched).toContain('if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||so(ri(Z.ANTHROPIC_MODEL))!==so(o.model)))return;')
     expect(patched).toContain("let r=new Set(LJl.map((i)=>so(i))),n=ri(t??yi()),o=zu(n);")
     return
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.212")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||lo(oi(Z.ANTHROPIC_MODEL))!==lo(o.model)))return;',
-    )
+    expect(patched).toContain('if(Z.ANTHROPIC_MODEL&&(o.kind!=="ok"||lo(oi(Z.ANTHROPIC_MODEL))!==lo(o.model)))return;')
     expect(patched).toContain("let r=new Set(Czl.map((i)=>lo(i))),n=oi(t??xi()),o=ed(n);")
     return
   }

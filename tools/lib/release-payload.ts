@@ -8,6 +8,7 @@ import {
   rebindPromptCatalog,
   writePromptCatalog,
 } from "./prompt-catalog"
+import { loadStageManifest, type StageManifest } from "./stage-manifest"
 
 export const RELEASE_NAME = "patched-claude-code"
 export const UPSTREAM_PACKAGE = "@anthropic-ai/claude-code"
@@ -17,28 +18,6 @@ export type Patch = PatchEntry
 export type PatchFile = {
   patch: Patch
   raw: string
-}
-
-export type StageManifest = {
-  source?: string
-  platformPackage?: string
-  nativeTarball?: string
-  canonical?: {
-    cliPath: string
-    reportPath: string
-    bytes: number
-    sha256: string
-    structuralSha256?: string
-    structuralParseErrors?: number
-    mergePolicy: string
-  }
-  platforms?: Array<{
-    platform: string
-    binaryUrl: string
-    binarySha256: string
-    entrypointSha256: string
-    entrypointBytes: number
-  }>
 }
 
 export type ReleaseManifest = {
@@ -132,12 +111,6 @@ export function loadPatches(root: string): PatchFile[] {
       return loadPatchEntriesFromToml(raw, join(patchDir, file)).map((patch) => ({ patch, raw }))
     })
     .flat()
-}
-
-export function loadStageManifest(root: string, version: string): StageManifest | null {
-  const path = join(root, "staging", version, "stage-manifest.json")
-  if (!existsSync(path)) return null
-  return JSON.parse(readFileSync(path, "utf8")) as StageManifest
 }
 
 export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayload {

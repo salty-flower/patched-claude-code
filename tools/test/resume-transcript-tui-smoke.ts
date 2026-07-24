@@ -2,8 +2,9 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
+import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 
 const DEFAULT_FIXTURE = join(import.meta.dir, "fixtures", "resume-transcripts", "away-summary-only.jsonl")
 
@@ -32,7 +33,12 @@ export function parseArgs(argv: string[]): Args {
     .option("--fixture <jsonl>", "resume transcript JSONL fixture", DEFAULT_FIXTURE)
     .option("--prompt <text>", "prompt to submit through the resumed TUI", "ping")
     .option("--timeout-seconds <seconds>", "PTY timeout", (value) => Number.parseInt(value, 10), 30)
-    .option("--startup-delay-seconds <seconds>", "delay before submitting the prompt", (value) => Number.parseInt(value, 10), 4)
+    .option(
+      "--startup-delay-seconds <seconds>",
+      "delay before submitting the prompt",
+      (value) => Number.parseInt(value, 10),
+      4,
+    )
     .option("--no-hide-builtin-footer", "do not pass --hide-builtin-footer")
     .option("--no-status-line", "omit the custom statusLine setting")
     .option("--thinking-display <mode>", "thinking display mode to pass to the resumed TUI", "summarized")
@@ -64,25 +70,6 @@ export function parseArgs(argv: string[]): Args {
     submitPrompt: options.submitPrompt,
     captureResumeError: options.captureResumeError,
   }
-}
-
-function shellQuote(value: string): string {
-  return `'${value.replaceAll("'", "'\\''")}'`
-}
-
-function makeScriptCommand(command: string, inputCommand: string): string {
-  if (process.platform === "darwin") {
-    return `(${inputCommand}) | script -q -e /dev/null bash -lc ${shellQuote(command)}`
-  }
-  return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} /dev/null`
-}
-
-function normalizeTuiOutput(output: string): string {
-  return output
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, " ")
-    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, " ")
-    .replace(/[\x00-\x1F\x7F]+/g, " ")
-    .replace(/\s+/g, " ")
 }
 
 function projectKeyFromCwd(cwd: string): string {
@@ -167,10 +154,7 @@ async function main(): Promise<number> {
       theme: "dark",
     }
     if (args.statusLine) settings.statusLine = { type: "command", command: "printf PATCHED_STATUSLINE_OK" }
-    writeFileSync(
-      join(configDir, "settings.json"),
-      `${JSON.stringify(settings, null, 2)}\n`,
-    )
+    writeFileSync(join(configDir, "settings.json"), `${JSON.stringify(settings, null, 2)}\n`)
     writeFileSync(
       join(configDir, ".claude.json"),
       `${JSON.stringify(
@@ -202,9 +186,7 @@ async function main(): Promise<number> {
       TERM: "xterm-256color",
     }
     const debugPath = join(home, "resume-debug.log")
-    const envPrefix = Object.entries(commandEnv)
-      .map(([key, value]) => `${key}=${shellQuote(value)}`)
-      .join(" ")
+    const envPrefix = shellEnvironment(commandEnv)
     const command = [
       "timeout",
       `${Math.min(args.timeoutSeconds, 45)}s`,
@@ -313,6 +295,4 @@ async function main(): Promise<number> {
   }
 }
 
-if (import.meta.main) {
-  process.exit(await main())
-}
+if (import.meta.main) await runCli(main)

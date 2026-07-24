@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { lt, lte } from "semver"
 import { loadPatchEntriesFromDirectory, loadPatchEntriesFromToml, type PatchEntry } from "../lib/patch-files"
 import { evaluateStaticPatchTests, loadPatchTestsFromToml } from "../lib/patch-tests"
+import { targetVersion } from "../lib/target"
 
 const ROOT = join(import.meta.dir, "..", "..")
 
@@ -197,7 +198,7 @@ assert_contains = "afterTwo()"
 })
 
 test("older version-specific patch variants are capped before later siblings", () => {
-  const targetVersion = process.env.TARGET_VERSION ?? "2.1.186"
+  const activeTargetVersion = targetVersion()
   const failures = []
 
   for (const variants of versionedPatchGroups(loadPatchEntriesFromDirectory(ROOT))) {
@@ -208,7 +209,7 @@ test("older version-specific patch variants are capped before later siblings", (
     for (let index = 0; index < sorted.length - 1; index += 1) {
       const variant = sorted[index]
       const next = sorted[index + 1]
-      if (!variant || !next || !lt(variant.variantVersion, targetVersion)) continue
+      if (!variant || !next || !lt(variant.variantVersion, activeTargetVersion)) continue
 
       const upperBound = exclusiveUpperBound(variant.entry.applies_to)
       if (!upperBound || !lte(upperBound, next.variantVersion)) {

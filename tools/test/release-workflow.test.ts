@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { expect, test } from "bun:test"
+import { DEFAULT_TARGET_VERSION } from "../lib/target"
 
 const ROOT = join(import.meta.dir, "..", "..")
 
@@ -48,5 +49,5 @@ test("release workflow renders once and reuses the rendered bundle", () => {
 test("release workflow defaults to the current target version", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "release.yml"), "utf8")
 
-  expect(workflow).toContain('default: "2.1.218"')
+  expect(workflow).toContain(`default: "${DEFAULT_TARGET_VERSION}"`)
 })

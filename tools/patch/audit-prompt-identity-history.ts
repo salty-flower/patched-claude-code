@@ -3,9 +3,8 @@
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { CommanderError } from "commander"
 import { compare, valid } from "semver"
-import { collectOption, createCommand } from "../lib/cli"
+import { collectOption, createCommand, runCli } from "../lib/cli"
 import { inspectPromptIdentityObservations } from "../lib/prompt-catalog"
 import { auditPromptIdentityTransition, type PromptIdentityTransitionAudit } from "../lib/prompt-identity-audit"
 
@@ -106,11 +105,4 @@ function formatScore(score: number | null): string {
   return score === null ? "-" : score.toFixed(4)
 }
 
-if (import.meta.main) {
-  try {
-    process.exit(main())
-  } catch (error) {
-    if (error instanceof CommanderError && error.code === "commander.helpDisplayed") process.exit(error.exitCode)
-    throw error
-  }
-}
+if (import.meta.main) await runCli(main)

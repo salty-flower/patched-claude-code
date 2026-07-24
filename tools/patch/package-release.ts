@@ -3,7 +3,8 @@
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { basename, join } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
+import { captureChecked, runChecked } from "../lib/process"
 import { UPSTREAM_PACKAGE, artifactBase, sha256, writeReleasePayload } from "../lib/release-payload"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -35,21 +36,6 @@ export function parseArgs(argv: string[], env: Record<string, string | undefined
   return args
 }
 
-function run(cmd: string[], cwd = ROOT): void {
-  const result = Bun.spawnSync({ cmd, cwd, stdout: "inherit", stderr: "inherit" })
-  if (!result.success) {
-    throw new Error(`command failed (${result.exitCode}): ${cmd.join(" ")}`)
-  }
-}
-
-function output(cmd: string[], cwd = ROOT): string {
-  const result = Bun.spawnSync({ cmd, cwd, stdout: "pipe", stderr: "inherit" })
-  if (!result.success) {
-    throw new Error(`command failed (${result.exitCode}): ${cmd.join(" ")}`)
-  }
-  return new TextDecoder().decode(result.stdout).trim()
-}
-
 function main(): number {
   const args = parseArgs(process.argv.slice(2))
   const version = args.version
@@ -67,8 +53,8 @@ function main(): number {
   rmSync(workDir, { recursive: true, force: true })
   mkdirSync(args.outDir, { recursive: true })
 
-  const gitCommit = process.env.GITHUB_SHA || output(["git", "rev-parse", "HEAD"])
-  const remoteUrl = output(["git", "remote", "get-url", "origin"])
+  const gitCommit = process.env.GITHUB_SHA || captureChecked(["git", "rev-parse", "HEAD"], { cwd: ROOT })
+  const remoteUrl = captureChecked(["git", "remote", "get-url", "origin"], { cwd: ROOT })
   const remoteMatch = remoteUrl.match(/[:/]([^/]+\/[^/]+?)(?:\.git)?$/)
   const githubSlug = process.env.GITHUB_REPOSITORY || remoteMatch?.[1] || "<owner>/patched-claude-code"
   const tag = process.env.GITHUB_REF_NAME
@@ -84,7 +70,7 @@ function main(): number {
   })
 
   rmSync(tarball, { force: true })
-  run(["tar", "-czf", tarball, "-C", args.outDir, base])
+  runChecked(["tar", "-czf", tarball, "-C", args.outDir, base], { cwd: ROOT })
   const tarBytes = readFileSync(tarball)
   const tarHash = sha256(tarBytes)
   writeFileSync(join(args.outDir, `${basename(tarball)}.sha256`), `${tarHash.hex}  ${basename(tarball)}\n`)
@@ -128,6 +114,4 @@ The tarball remains available for non-flake/manual installs.
   return 0
 }
 
-if (import.meta.main) {
-  process.exit(main())
-}
+if (import.meta.main) await runCli(main)

@@ -4,10 +4,11 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.199"
+const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const PER_MODEL_PATCH = join(ROOT, "patches", "per-model-endpoint.toml")
 const MODEL = "claude-sonnet-4-6"
@@ -51,9 +52,7 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
 function injectSdkHarness(source: string): string {
   const { init, client } = findBundledAnthropicClientSymbols(source)
   const replacement = `${init}();(async()=>{try{let e=new ${client}({baseURL:process.env.ANTHROPIC_BASE_URL,apiKey:process.env.ANTHROPIC_API_KEY,authToken:process.env.ANTHROPIC_AUTH_TOKEN,maxRetries:0}),t={model:process.env.CLAUDE_STUB_HARNESS_MODEL,max_tokens:1,messages:[{role:"user",content:"hello"}]},n={headers:{"x-api-key":"caller-key",Authorization:"Bearer caller-token"}};await e.messages.create({...t,stream:false},n);await e.beta.messages.create({...t,stream:false,betas:["token-counting-2024-11-01"]},n);await e.messages.countTokens(t,n);await e.beta.messages.countTokens({...t,betas:["token-counting-2024-11-01"]},n);process.stdout.write("ok\\n")}catch(r){console.error(r?.stack??String(r));process.exit(1)}})();`
-  const entrypointMatches = [
-    ...source.matchAll(/\b([A-Za-z_$][\w$]*\(\));var __acc_linux_[A-Za-z_$][\w$]*=/g),
-  ]
+  const entrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*\(\));var __acc_linux_[A-Za-z_$][\w$]*=/g)]
   const legacyEntrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*Zf\(\));/g)]
   const matches = entrypointMatches.length > 0 ? entrypointMatches : legacyEntrypointMatches
   const entrypointMatch = matches.at(-1)

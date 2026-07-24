@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
+import { DEFAULT_TARGET_VERSION } from "../lib/target"
 
 const ROOT = join(import.meta.dir, "..", "..")
 
@@ -11,6 +12,11 @@ function recipeBlock(name: string): string {
   const next = justfile.indexOf("\n\n", start + 1)
   return justfile.slice(start + 1, next === -1 ? justfile.length : next)
 }
+
+test("Just defaults to the shared active target", () => {
+  const justfile = readFileSync(join(ROOT, "justfile"), "utf8")
+  expect(justfile).toContain(`target := env_var_or_default("TARGET_VERSION", "${DEFAULT_TARGET_VERSION}")`)
+})
 
 test("ci release audit target declares shared staged-bundle work once", () => {
   const recipe = recipeBlock("ci-release-audit")
@@ -67,16 +73,16 @@ test("api stub smoke renders once and runs the complete local PTY matrix", () =>
   expect(recipe).toContain("api-stub-smoke version=target source=source resume_timeout=resume_transcript_timeout:")
   expect(recipe).toContain("(render version source)")
   expect(recipe).toContain("(_api-stub-smoke-rendered version resume_timeout)")
-  expect(renderedRecipe).toContain(
-    "_api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout:",
-  )
+  expect(renderedRecipe).toContain("_api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout:")
   expect(renderedRecipe).toContain('oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
   expect(renderedRecipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
   expect(renderedRecipe).toContain(
     'resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{resume_timeout}}"',
   )
   expect(renderedRecipe).toContain('background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js"')
-  expect(renderedRecipe).not.toContain('oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout')
+  expect(renderedRecipe).not.toContain(
+    'oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout',
+  )
   expect(renderedRecipe).not.toContain(
     'background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js" --timeout',
   )

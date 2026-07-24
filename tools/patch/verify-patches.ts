@@ -19,7 +19,7 @@ import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { verifyAstTransformPatches, type AstTransformPatch } from "../lib/ast-transform-patches"
 import { patchApplies, patchSkipReason } from "../lib/apply-patches"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
 
@@ -41,7 +41,7 @@ export function parseArgs(argv: string[]): { patches: string[]; target?: string 
     const dir = join(ROOT, "patches")
     patches.push(
       ...readdirSync(dir)
-      .filter((f) => f.endsWith(".toml"))
+        .filter((f) => f.endsWith(".toml"))
         .map((f) => join(dir, f)),
     )
   }
@@ -222,6 +222,4 @@ function main(): number {
   return allOk ? 0 : 1
 }
 
-if (import.meta.main) {
-  process.exit(main())
-}
+if (import.meta.main) await runCli(main)

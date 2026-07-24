@@ -2,8 +2,7 @@
 // Commit a fully reviewed prompt identity draft to the registry and version ledger.
 
 import { join } from "node:path"
-import { CommanderError } from "commander"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { finalizePromptIdentityDraft } from "../lib/prompt-identity"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -33,11 +32,4 @@ function main(): number {
   return 0
 }
 
-if (import.meta.main) {
-  try {
-    process.exit(main())
-  } catch (error) {
-    if (error instanceof CommanderError && error.code === "commander.helpDisplayed") process.exit(error.exitCode)
-    throw error
-  }
-}
+if (import.meta.main) await runCli(main)

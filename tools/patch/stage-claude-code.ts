@@ -7,8 +7,9 @@
 import { createHash } from "node:crypto"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { BUN_STANDALONE_LAYOUT_CONTRACT, extractStandalone } from "../lib/extract-bun-standalone"
+import { runChecked } from "../lib/process"
 import {
   DIRECT_LATEST_URL,
   DIRECT_RELEASE_BASE,
@@ -141,13 +142,6 @@ function sha256Hex(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex")
 }
 
-function run(cmd: string[], cwd: string): void {
-  const result = Bun.spawnSync({ cmd, cwd, stdout: "inherit", stderr: "inherit" })
-  if (!result.success) {
-    throw new Error(`command failed (${result.exitCode}): ${cmd.join(" ")}`)
-  }
-}
-
 function currentPlatformPackage(optionalDependencies: Record<string, string> = {}): string {
   const cpu = process.arch === "x64" ? "x64" : process.arch === "arm64" ? "arm64" : process.arch
   const key = `${process.platform}-${cpu}`
@@ -264,7 +258,7 @@ async function main(): Promise<number> {
     const wrapperTgz = join(downloadsDir, "claude-code.tgz")
     await download(wrapper!.dist.tarball, wrapperTgz)
     mkdirSync(wrapperDir, { recursive: true })
-    run(["tar", "-xzf", wrapperTgz, "-C", wrapperDir], ROOT)
+    runChecked(["tar", "-xzf", wrapperTgz, "-C", wrapperDir], { cwd: ROOT })
   }
 
   const wrapperCli = join(wrapperDir, "package", "cli.js")
@@ -318,7 +312,7 @@ async function main(): Promise<number> {
     const nativeTgz = join(downloadsDir, `${platformPackage.split("/").pop()}.tgz`)
     await download(nativeTarball, nativeTgz)
     mkdirSync(nativeDir, { recursive: true })
-    run(["tar", "-xzf", nativeTgz, "-C", nativeDir], ROOT)
+    runChecked(["tar", "-xzf", nativeTgz, "-C", nativeDir], { cwd: ROOT })
 
     nativeBinary = findNativeBinary(nativeDir)
     const extracted = await extractNativeBinaryToCli({
@@ -389,6 +383,4 @@ async function main(): Promise<number> {
   return 0
 }
 
-if (import.meta.main) {
-  process.exit(await main())
-}
+if (import.meta.main) await runCli(main)

@@ -3,7 +3,8 @@
 
 import { existsSync, mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
+import { runChecked } from "../lib/process"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -32,13 +33,6 @@ export function parseArgs(argv: string[]): Args {
   }
 }
 
-function run(cmd: string[]): void {
-  const result = Bun.spawnSync({ cmd, cwd: ROOT, stdout: "inherit", stderr: "inherit" })
-  if (!result.success) {
-    throw new Error(`command failed (${result.exitCode}): ${cmd.join(" ")}`)
-  }
-}
-
 function main(): number {
   const args = parseArgs(process.argv.slice(2))
   if (!args.version) {
@@ -57,13 +51,13 @@ function main(): number {
 
   mkdirSync(dirname(output), { recursive: true })
   if (!args.skipVerify) {
-    run(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input])
+    runChecked(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input], { cwd: ROOT })
   }
-  run(["bun", "run", join(ROOT, "tools", "patch", "build-patched.ts"), input, output, args.version])
+  runChecked(["bun", "run", join(ROOT, "tools", "patch", "build-patched.ts"), input, output, args.version], {
+    cwd: ROOT,
+  })
   console.error(`rendered patched bundle -> ${output}`)
   return 0
 }
 
-if (import.meta.main) {
-  process.exit(main())
-}
+if (import.meta.main) await runCli(main)

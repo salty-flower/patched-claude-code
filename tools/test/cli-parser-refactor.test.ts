@@ -17,6 +17,43 @@ import { parseArgs as parseRunPatchTestsArgs, selectPatchTestsForTarget } from "
 
 const ROOT = join(import.meta.dir, "..", "..")
 
+function runCliScript(script: string, args: string[]): { exitCode: number; stdout: string; stderr: string } {
+  const result = Bun.spawnSync({
+    cmd: [process.execPath, join(ROOT, script), ...args],
+    cwd: ROOT,
+    stdout: "pipe",
+    stderr: "pipe",
+  })
+  return {
+    exitCode: result.exitCode,
+    stdout: result.stdout.toString(),
+    stderr: result.stderr.toString(),
+  }
+}
+
+test("CLI entrypoints render help and argument errors without Commander stack traces", () => {
+  const help = runCliScript("tools/patch/stage-target.ts", ["--help"])
+  expect(help.exitCode).toBe(0)
+  expect(help.stdout).toContain("Usage: stage-target")
+  expect(help.stderr).toBe("")
+
+  const asyncHelp = runCliScript("tools/test/resume-transcript-tui-smoke.ts", ["--help"])
+  expect(asyncHelp.exitCode).toBe(0)
+  expect(asyncHelp.stdout).toContain("Usage: resume-transcript-tui-smoke")
+  expect(asyncHelp.stderr).toBe("")
+
+  const invalid = runCliScript("tools/patch/package-release.ts", ["--definitely-invalid"])
+  expect(invalid.exitCode).toBe(1)
+  expect(invalid.stderr).toContain("error: unknown option '--definitely-invalid'")
+  expect(invalid.stderr).not.toContain("CommanderError")
+  expect(invalid.stderr).not.toContain("node_modules/commander")
+
+  const invalidSource = runCliScript("tools/patch/stage-target.ts", ["--version", "2.1.218", "--source", "mirror"])
+  expect(invalidSource.exitCode).toBe(1)
+  expect(invalidSource.stderr).toContain("expected one of: canonical, npm, direct")
+  expect(invalidSource.stderr).not.toContain("InvalidArgumentError")
+})
+
 test("stage-target parses typed options with environment defaults", () => {
   const args = parseStageTargetArgs(["--version", "2.1.133", "--source", "direct", "--platform", "linux-x64"], {
     TARGET_PLATFORM_PACKAGE: "@example/cli",

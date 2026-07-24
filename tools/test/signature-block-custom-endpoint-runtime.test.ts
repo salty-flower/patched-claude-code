@@ -4,10 +4,11 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.156"
+const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const SIGNATURE_PATCH = join(ROOT, "patches", "signature-block-custom-endpoint.toml")
 
@@ -160,7 +161,10 @@ async function runClaudeUntilMessageRequest(
   })
 
   try {
-    const request = await Promise.race([stub.waitForRequest((candidate) => candidate.path.endsWith("/messages")), timeoutPromise])
+    const request = await Promise.race([
+      stub.waitForRequest((candidate) => candidate.path.endsWith("/messages")),
+      timeoutPromise,
+    ])
     return request.jsonBody as RequestBody
   } catch (error) {
     proc.kill()

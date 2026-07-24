@@ -3,8 +3,7 @@
 
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { CommanderError } from "commander"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { writePromptCatalog } from "../lib/prompt-catalog"
 import { sha256 } from "../lib/release-payload"
 
@@ -61,13 +60,4 @@ function main(): number {
   return 0
 }
 
-if (import.meta.main) {
-  try {
-    process.exit(main())
-  } catch (error) {
-    if (error instanceof CommanderError && error.code === "commander.helpDisplayed") {
-      process.exit(error.exitCode)
-    }
-    throw error
-  }
-}
+if (import.meta.main) await runCli(main)

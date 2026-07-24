@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { loadPatchEntriesFromToml } from "../lib/patch-files"
 import {
   type CliPatchTest,
@@ -106,10 +106,7 @@ function patchTestsForTarget(rawToml: string, version?: string): PatchTest[] {
   return entries.filter((entry) => patchApplies(entry, version)).flatMap((entry) => entry.tests ?? [])
 }
 
-export function selectPatchTestsForTarget(
-  rawToml: string,
-  version?: string,
-): { tests: PatchTest[]; skipped: boolean } {
+export function selectPatchTestsForTarget(rawToml: string, version?: string): { tests: PatchTest[]; skipped: boolean } {
   if (!version) return { tests: patchTestsForTarget(rawToml), skipped: false }
   const entries = loadPatchEntriesFromToml(rawToml, "<inline>")
   const applicableEntries = entries.filter((entry) => patchApplies(entry, version))
@@ -166,6 +163,4 @@ function main(): number {
   return allOk ? 0 : 1
 }
 
-if (import.meta.main) {
-  process.exit(main())
-}
+if (import.meta.main) await runCli(main)

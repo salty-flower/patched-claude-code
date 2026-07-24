@@ -2,8 +2,9 @@
 import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
+import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 
 type Args = {
   bundle: string
@@ -16,25 +17,6 @@ function parseArgs(argv: string[]): Args {
     .option("--timeout-seconds <seconds>", "PTY timeout", (value) => Number.parseInt(value, 10), 15)
     .parse(argv, { from: "user" })
   return program.opts<Args>()
-}
-
-function shellQuote(value: string): string {
-  return `'${value.replaceAll("'", "'\\''")}'`
-}
-
-function makeScriptCommand(command: string, inputCommand: string): string {
-  if (process.platform === "darwin") {
-    return `(${inputCommand}) | script -q -e /dev/null bash -lc ${shellQuote(command)}`
-  }
-  return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} /dev/null`
-}
-
-function normalizeTuiOutput(output: string): string {
-  return output
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, " ")
-    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, " ")
-    .replace(/[\x00-\x1F\x7F]+/g, " ")
-    .replace(/\s+/g, " ")
 }
 
 function crashPattern(output: string): string | null {
@@ -88,9 +70,7 @@ async function main(): Promise<number> {
       FORCE_COLOR: "0",
       TERM: "xterm-256color",
     }
-    const envPrefix = Object.entries(commandEnv)
-      .map(([key, value]) => `${key}=${shellQuote(value)}`)
-      .join(" ")
+    const envPrefix = shellEnvironment(commandEnv)
     const unsetEnvironment = [
       "ANTHROPIC_API_KEY",
       "ANTHROPIC_AUTH_TOKEN",
@@ -171,6 +151,4 @@ async function main(): Promise<number> {
   }
 }
 
-if (import.meta.main) {
-  process.exit(await main())
-}
+if (import.meta.main) await runCli(main)

@@ -5,9 +5,10 @@ import { join } from "node:path"
 import { gte, lt } from "semver"
 import { applyPatchEntries, patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { targetVersion } from "../lib/target"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.172"
+const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))

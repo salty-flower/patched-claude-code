@@ -2,8 +2,9 @@
 import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
+import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 
 type Args = {
   bundle: string
@@ -31,25 +32,6 @@ function parseArgs(argv: string[]): Args {
     expectText: options.expect,
     timeoutSeconds: options.timeoutSeconds,
   }
-}
-
-function shellQuote(value: string): string {
-  return `'${value.replaceAll("'", "'\\''")}'`
-}
-
-function makeScriptCommand(command: string, inputCommand: string): string {
-  if (process.platform === "darwin") {
-    return `(${inputCommand}) | script -q -e /dev/null bash -lc ${shellQuote(command)}`
-  }
-  return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} /dev/null`
-}
-
-function normalizeTuiOutput(output: string): string {
-  return output
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, " ")
-    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, " ")
-    .replace(/[\x00-\x1F\x7F]+/g, " ")
-    .replace(/\s+/g, " ")
 }
 
 function formatLaterTimestamp(date: Date): string {
@@ -111,9 +93,7 @@ async function main(): Promise<number> {
       FORCE_COLOR: "0",
       TERM: "xterm-256color",
     }
-    const envPrefix = Object.entries(commandEnv)
-      .map(([key, value]) => `${key}=${shellQuote(value)}`)
-      .join(" ")
+    const envPrefix = shellEnvironment(commandEnv)
     const tuiTimeoutSeconds = Math.min(args.timeoutSeconds, 60)
     const tuiCommand = [
       "timeout",
@@ -204,7 +184,8 @@ async function main(): Promise<number> {
       return 1
     }
     if (!laterRequestResult.ok) {
-      const detail = laterRequestResult.error instanceof Error ? laterRequestResult.error.message : String(laterRequestResult.error)
+      const detail =
+        laterRequestResult.error instanceof Error ? laterRequestResult.error.message : String(laterRequestResult.error)
       console.error(`absolute /later prompt did not reach the local Claude API stub: ${detail}`)
       console.error(tuiOutput)
       return 1
@@ -260,6 +241,4 @@ async function main(): Promise<number> {
   }
 }
 
-if (import.meta.main) {
-  process.exit(await main())
-}
+if (import.meta.main) await runCli(main)

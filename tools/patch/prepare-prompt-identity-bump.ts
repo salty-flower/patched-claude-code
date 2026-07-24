@@ -3,8 +3,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { CommanderError } from "commander"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { inspectPromptIdentityObservations } from "../lib/prompt-catalog"
 import { preparePromptIdentityBump } from "../lib/prompt-identity-bump"
 
@@ -60,11 +59,4 @@ function main(): number {
   return 0
 }
 
-if (import.meta.main) {
-  try {
-    process.exit(main())
-  } catch (error) {
-    if (error instanceof CommanderError && error.code === "commander.helpDisplayed") process.exit(error.exitCode)
-    throw error
-  }
-}
+if (import.meta.main) await runCli(main)

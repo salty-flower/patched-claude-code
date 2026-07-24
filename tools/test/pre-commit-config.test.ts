@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { expect, test } from "bun:test"
+import { DEFAULT_TARGET_VERSION } from "../lib/target"
 
 const ROOT = join(import.meta.dir, "..", "..")
 
@@ -15,7 +16,7 @@ function hookBlock(id: string): string {
 test("pre-commit runs tool tests for runtime, workflow, and hook wiring edits", () => {
   const toolsTest = hookBlock("tools-test")
 
-  expect(toolsTest).toContain('TARGET_VERSION="${TARGET_VERSION:-2.1.218}"')
+  expect(toolsTest).toContain(`TARGET_VERSION="\${TARGET_VERSION:-${DEFAULT_TARGET_VERSION}}"`)
   expect(toolsTest).toContain("runtime/")
   expect(toolsTest).toContain("\\.github/workflows/.*\\.ya?ml")
   expect(toolsTest).toContain("\\.pre-commit-config\\.yaml")

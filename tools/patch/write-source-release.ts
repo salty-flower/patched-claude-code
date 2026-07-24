@@ -3,7 +3,7 @@
 
 import { existsSync } from "node:fs"
 import { join } from "node:path"
-import { createCommand } from "../lib/cli"
+import { createCommand, runCli } from "../lib/cli"
 import { releaseTag, writeReleasePayload } from "../lib/release-payload"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -50,12 +50,8 @@ function main(): number {
   console.error(`wrote ${join(args.outDir, "manifest.json")} (${payload.cliHash.sri})`)
   console.error(`wrote ${join(args.outDir, "package.json")}`)
   console.error(`wrote ${join(args.outDir, "bin", "claude-patched")}`)
-  console.error(
-    `wrote ${join(args.outDir, "prompts", "catalog")} (${payload.manifest.promptCatalog.entries} entries)`,
-  )
+  console.error(`wrote ${join(args.outDir, "prompts", "catalog")} (${payload.manifest.promptCatalog.entries} entries)`)
   return 0
 }
 
-if (import.meta.main) {
-  process.exit(main())
-}
+if (import.meta.main) await runCli(main)

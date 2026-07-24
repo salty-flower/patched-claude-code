@@ -12,10 +12,11 @@ import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { inspectPromptIdentityObservations } from "../lib/prompt-catalog"
 import { bootstrapPromptIdentityFiles } from "../lib/prompt-identity"
 import { writeReleasePayload } from "../lib/release-payload"
+import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.218"
+const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const PATCH_FILE = join(ROOT, "patches", "system-prompt-section-overrides.toml")
 const tempDirs: string[] = []

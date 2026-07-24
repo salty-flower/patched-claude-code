@@ -2,7 +2,7 @@
 // Detect whether npm or the native downloads channel exposes a Claude Code
 // version that this repository has not released yet.
 
-import { collectOption, createCommand } from "../lib/cli"
+import { collectOption, createCommand, runCli } from "../lib/cli"
 import { classifyReleaseCandidate, parseHandledReleaseTags } from "../lib/release-detection"
 import { DIRECT_LATEST_URL, NPM_REGISTRY_PACKAGE_URL } from "../lib/upstream-channels"
 
@@ -58,6 +58,4 @@ async function main(): Promise<number> {
   return 0
 }
 
-if (import.meta.main) {
-  process.exit(await main())
-}
+if (import.meta.main) await runCli(main)

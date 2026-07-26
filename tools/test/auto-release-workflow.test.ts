@@ -34,12 +34,15 @@ test("auto-release only creates Nix source refs after canonical promotion", () =
 test("auto-release reuses rendered bundle across release checks", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "auto-release.yml"), "utf8")
   const renderStep = workflowStep("Verify, render, and smoke")
+  const previousCatalogStep = workflowStep("Fetch previous prompt catalog source tag")
   const packageStep = workflowStep("Package release artifact")
 
   expect(workflow).not.toContain("- name: Stage candidate")
   expect(renderStep).toContain('just render "${{ steps.detect.outputs.version }}"')
   expect(renderStep).toContain('just smoke-rendered "${{ steps.detect.outputs.version }}"')
   expect(renderStep).toContain('just _patch-test-rendered "${{ steps.detect.outputs.version }}"')
+  expect(previousCatalogStep).toContain("git ls-remote --tags origin")
+  expect(previousCatalogStep).toContain("git fetch --no-tags origin")
   expect(packageStep).toContain('just _package-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
   expect(packageStep).toContain("steps.identity.outputs.status == 'ready-existing'")
 })

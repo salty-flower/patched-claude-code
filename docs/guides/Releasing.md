@@ -66,7 +66,13 @@ Outputs land in `dist/`:
 | `patched-claude-code-<version>-patch.<n>.tar.gz` | Installable release artifact |
 | `*.sha256` | Raw tarball hash in hex form |
 | `*.manifest.json` | Machine-readable release metadata, including SRI hash |
-| `release-notes.md` | GitHub release notes |
+| `release-notes.md` | GitHub release notes, including the bundle-bound prompt review |
+
+Packaging derives the prompt-review section from the rendered bundle's catalog
+and the checked-in identity ledger. When a lower ledger exists, make its
+`claude-code-<version>-patch.<n>` source tag available locally so packaging can
+render traced side-by-side changes; otherwise the notes report metadata-only
+trace status.
 
 `just release-source <version> patch.<n>` writes the Nix-native payload to the
 repo root and creates the matching minimal source tag. Manual release publish

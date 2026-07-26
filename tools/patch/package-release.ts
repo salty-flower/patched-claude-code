@@ -5,7 +5,8 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { basename, join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
 import { captureChecked, runChecked } from "../lib/process"
-import { UPSTREAM_PACKAGE, artifactBase, sha256, writeReleasePayload } from "../lib/release-payload"
+import { materializePreviousPromptCatalog, renderPromptReviewMarkdown } from "../lib/prompt-review"
+import { artifactBase, sha256, UPSTREAM_PACKAGE, writeReleasePayload } from "../lib/release-payload"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const DEFAULT_TAG_PATTERN = /^claude-code-(\d+\.\d+\.\d+)-(.+)$/
@@ -14,6 +15,7 @@ type Args = {
   version?: string
   releaseId?: string
   input?: string
+  previousCatalog?: string
   outDir: string
 }
 
@@ -22,6 +24,7 @@ export function parseArgs(argv: string[], env: Record<string, string | undefined
     .option("--version <ver>")
     .option("--release-id <id>")
     .option("--input <cli.patched.js>")
+    .option("--previous-catalog <prompts/catalog>", "previous release prompt catalog for side-by-side review")
     .option("--out-dir <dist>", "artifact output directory", join(ROOT, "dist"))
     .parse(argv, { from: "user" })
   const args = program.opts<Args>()
@@ -69,6 +72,23 @@ function main(): number {
     builtAt: new Date().toISOString(),
   })
 
+  const configuredPreviousCatalog = args.previousCatalog ?? process.env.PATCHED_CC_PREVIOUS_PROMPT_CATALOG
+  const materializedPreviousCatalog = configuredPreviousCatalog
+    ? null
+    : materializePreviousPromptCatalog(ROOT, join(ROOT, "prompt-identities"), version)
+  const previousCatalog = configuredPreviousCatalog ?? materializedPreviousCatalog?.path
+  let promptReview: string
+  try {
+    promptReview = renderPromptReviewMarkdown({
+      catalogDir: join(workDir, "prompts", "catalog"),
+      identityRoot: join(ROOT, "prompt-identities"),
+      upstreamVersion: version,
+      ...(previousCatalog ? { previousCatalogDir: previousCatalog } : {}),
+    }).markdown
+  } finally {
+    materializedPreviousCatalog?.cleanup()
+  }
+
   rmSync(tarball, { force: true })
   runChecked(["tar", "-czf", tarball, "-C", args.outDir, base], { cwd: ROOT })
   const tarBytes = readFileSync(tarball)
@@ -105,6 +125,8 @@ Artifact:
 
 Nix/Home Manager should use the source tag \`github:${githubSlug}/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:${githubSlug}/claude-code-latest\` when \`nix flake update\` should follow the latest patched source.
 The tarball remains available for non-flake/manual installs.
+
+${promptReview}
 `,
   )
 

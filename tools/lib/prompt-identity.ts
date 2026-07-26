@@ -456,6 +456,12 @@ function readLedger(path: string): PromptOccurrenceLedger {
   return ledger
 }
 
+export function readPromptIdentityLedger(identityRoot: string, upstreamVersion: string): PromptOccurrenceLedger {
+  const path = join(identityRoot, "versions", `${upstreamVersion}.json`)
+  if (!existsSync(path)) throw new Error(`prompt occurrence ledger missing: ${path}`)
+  return readLedger(path)
+}
+
 function assertDecisionMatchesObservation(
   decision: PromptOccurrenceDecision,
   observation: PromptIdentityObservation,

@@ -175,6 +175,32 @@ jobs:
         if: steps.reuse.outputs.reused != 'true'
         run: just _patch-test-rendered "${{ steps.coord.outputs.version }}"
 
+      - name: Fetch previous prompt catalog source tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.coord.outputs.version }}"
+          previous_version="$(
+            for path in prompt-identities/versions/*.json; do
+              basename "$path" .json
+            done | sort -V | awk -v current="$version" '$0 < current { previous=$0 } END { print previous }'
+          )"
+          if [[ -z "$previous_version" ]]; then
+            echo "No lower prompt identity ledger for $version; prompt review will use baseline semantics."
+            exit 0
+          fi
+          tag="$(
+            git ls-remote --tags origin "refs/tags/claude-code-${previous_version}-patch.*" |
+              awk 'index($2, "^{}") == 0 { sub("refs/tags/", "", $2); print $2 }' |
+              sort -V | tail -n1
+          )"
+          if [[ -z "$tag" ]]; then
+            echo "Previous prompt catalog source tag not found for $previous_version" >&2
+            exit 1
+          fi
+          git fetch --no-tags origin "refs/tags/$tag:refs/tags/$tag"
+          echo "Fetched $tag for structured prompt review"
+
       - name: Package release artifact
         run: just _package-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"
 

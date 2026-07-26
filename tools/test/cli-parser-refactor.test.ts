@@ -125,6 +125,23 @@ test("package-release parses options and falls back to release tag metadata", ()
   })
 })
 
+test("package-release accepts an explicit previous prompt catalog", () => {
+  expect(
+    parsePackageReleaseArgs([
+      "--version",
+      "2.1.220",
+      "--release-id",
+      "patch.1",
+      "--previous-catalog",
+      "dist/previous/prompts/catalog",
+    ]),
+  ).toMatchObject({
+    version: "2.1.220",
+    releaseId: "patch.1",
+    previousCatalog: "dist/previous/prompts/catalog",
+  })
+})
+
 test("write-source-release requires version and defaults release metadata", () => {
   expect(parseWriteSourceReleaseArgs(["--version", "2.1.133"])).toEqual({
     version: "2.1.133",

@@ -19,6 +19,7 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   const renderStep = workflowStep("Verify and render patched bundle")
   const smokeStep = workflowStep("Smoke patched bundle")
   const patchTestStep = workflowStep("Patch tests")
+  const previousCatalogStep = workflowStep("Fetch previous prompt catalog source tag")
   const packageStep = workflowStep("Package release artifact")
   const sourceStep = workflowStep("Create Nix source tag")
 
@@ -37,6 +38,8 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(renderStep).toContain('just render "${{ steps.coord.outputs.version }}"')
   expect(smokeStep).toContain('just smoke-rendered "${{ steps.coord.outputs.version }}"')
   expect(patchTestStep).toContain('just _patch-test-rendered "${{ steps.coord.outputs.version }}"')
+  expect(previousCatalogStep).toContain("git ls-remote --tags origin")
+  expect(previousCatalogStep).toContain("git fetch --no-tags origin")
   expect(packageStep).toContain(
     'just _package-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"',
   )

@@ -4,6 +4,7 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import { runChecked } from "../lib/process"
 import { loadStageManifest, type StageManifest } from "../lib/stage-manifest"
 import { parseTargetSource, parseTargetSourceOption, type TargetSource } from "../lib/target"
@@ -105,4 +106,4 @@ function main(): number {
   return 0
 }
 
-if (import.meta.main) await runCli(main)
+if (import.meta.main) await runWithHeavyLock(ROOT, () => runCli(main))

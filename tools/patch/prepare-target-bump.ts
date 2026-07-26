@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { valid } from "semver"
 import { createCommand, runCli } from "../lib/cli"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import type { PromptIdentityBumpPreparation } from "../lib/prompt-identity-bump"
 import { parseTargetSource, parseTargetSourceOption, type TargetSource } from "../lib/target"
 
@@ -268,4 +269,4 @@ function formatDuration(durationMs: number): string {
   return `${(durationMs / 1000).toFixed(1)}s`
 }
 
-if (import.meta.main) await runCli(main)
+if (import.meta.main) await runWithHeavyLock(ROOT, () => runCli(main))

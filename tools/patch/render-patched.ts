@@ -4,6 +4,7 @@
 import { existsSync, mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import { runChecked } from "../lib/process"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -60,4 +61,4 @@ function main(): number {
   return 0
 }
 
-if (import.meta.main) await runCli(main)
+if (import.meta.main) await runWithHeavyLock(ROOT, () => runCli(main))

@@ -7,14 +7,14 @@ release_id := env_var_or_default("RELEASE_ID", "patch.local")
 resume_transcript_timeout := env_var_or_default("RESUME_TRANSCRIPT_TIMEOUT_SECONDS", "16")
 
 stage version=target source=source:
-  bun run tools/patch/stage-target.ts --version "{{version}}" --source "{{source}}"
+  tools/patch/resource-guard.sh bun run tools/patch/stage-target.ts --version "{{version}}" --source "{{source}}"
 
 verify version=target source=source: (stage version source)
-  bun run tools/patch/verify-patches.ts --against "staging/{{version}}/cli.js"
+  tools/patch/resource-guard.sh bun run tools/patch/verify-patches.ts --against "staging/{{version}}/cli.js"
   bun run tools/patch/check-native-extraction-contract.ts
 
 render version=target source=source: (verify version source)
-  bun run tools/patch/render-patched.ts "{{version}}" --skip-verify
+  tools/patch/resource-guard.sh bun run tools/patch/render-patched.ts "{{version}}" --skip-verify
 
 tool-test version=target source=source: (stage version source)
   TARGET_VERSION="{{version}}" bun run --cwd tools test
@@ -31,7 +31,7 @@ patch-test version=target source=source: \
   (_patch-test-rendered version)
 
 _patch-test-rendered version=target:
-  bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
+  tools/patch/resource-guard.sh bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
 
 api-stub-smoke version=target source=source resume_timeout=resume_transcript_timeout: \
   (render version source) \
@@ -95,7 +95,7 @@ prompt-identity-finalize draft:
   bun run tools/patch/finalize-prompt-identities.ts "{{draft}}"
 
 bump-prepare version=target source=source:
-  bun run tools/patch/prepare-target-bump.ts --version "{{version}}" --source "{{source}}"
+  tools/patch/resource-guard.sh bun run tools/patch/prepare-target-bump.ts --version "{{version}}" --source "{{source}}"
 
 _release-payload version=target release_id=release_id:
   bun run tools/patch/write-source-release.ts --version "{{version}}" --release-id "{{release_id}}"
@@ -109,11 +109,21 @@ detect-upstream *args:
 check:
   prek run --all-files
 
-release-dry version=target release_id=release_id source=source: \
-  (render version source) \
-  (smoke-rendered version) \
-  (_patch-test-rendered version) \
-  (_package-rendered version release_id)
+release-dry version=target release_id=release_id source=source:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  exec tools/patch/resource-guard.sh bash -c '
+    set -euo pipefail
+    lock_path="${PATCHED_CC_HEAVY_LOCK_PATH:-${TMPDIR:-/tmp}/patched-claude-code-heavy.lock}"
+    exec 9>"$lock_path"
+    echo "waiting for heavy-build lock: $lock_path" >&2
+    flock -w 3600 9
+    export PATCHED_CC_HEAVY_LOCK_HELD=1 PATCHED_CC_HEAVY_LOCK_PATH="$lock_path"
+    just render "{{version}}" "{{source}}"
+    just smoke-rendered "{{version}}"
+    just _patch-test-rendered "{{version}}"
+    just _package-rendered "{{version}}" "{{release_id}}"
+  '
 
 platform-audit version=target:
   bun run tools/platform/platform-audit.ts --version "{{version}}"

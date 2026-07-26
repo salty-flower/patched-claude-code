@@ -20,6 +20,7 @@ import { join } from "node:path"
 import { verifyAstTransformPatches, type AstTransformPatch } from "../lib/ast-transform-patches"
 import { patchApplies, patchSkipReason } from "../lib/apply-patches"
 import { createCommand, runCli } from "../lib/cli"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
 
@@ -222,4 +223,4 @@ function main(): number {
   return allOk ? 0 : 1
 }
 
-if (import.meta.main) await runCli(main)
+if (import.meta.main) await runWithHeavyLock(ROOT, () => runCli(main))

@@ -5,6 +5,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
 import { createCommand, runCli } from "../lib/cli"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromToml } from "../lib/patch-files"
 import {
   type CliPatchTest,
@@ -163,4 +164,4 @@ function main(): number {
   return allOk ? 0 : 1
 }
 
-if (import.meta.main) await runCli(main)
+if (import.meta.main) await runWithHeavyLock(ROOT, () => runCli(main))

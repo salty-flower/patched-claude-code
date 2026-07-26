@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { applyPatchEntries, patchSkipReason } from "../lib/apply-patches"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromDirectory } from "../lib/patch-files"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -43,4 +44,4 @@ function main(): number {
   return 0
 }
 
-process.exit(main())
+if (import.meta.main) await runWithHeavyLock(ROOT, main)

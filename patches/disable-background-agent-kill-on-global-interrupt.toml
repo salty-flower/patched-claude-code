@@ -1,9 +1,11 @@
 name = "disable-background-agent-kill-on-global-interrupt"
-target_version = "2.1.218"
-applies_to = ">=2.1.218 <2.1.219"
+target_version = "2.1.220"
+applies_to = ">=2.1.218 <2.1.221"
 
 [[patches]]
-name = "global-interrupt-cancel-only"
+name = "global-interrupt-cancel-only-2-1-218"
+target_version = "2.1.218"
+applies_to = ">=2.1.218 <2.1.220"
 rationale = """
 Keep global interrupt and Escape cancellation from stopping unrelated background
 agents. The 2.1.218 bundle routes the global interrupt callback through the
@@ -27,3 +29,36 @@ assert_contains = "H(!0)},[W,m,_,g,P,q,D,H]"
 kind = "static"
 name = "global interrupt no longer calls default kill-enabled mode"
 assert_not_contains = "H()},[W,m,_,g,P,q,D,H]"
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-220"
+target_version = "2.1.220"
+applies_to = ">=2.1.220 <2.1.221"
+rationale = """
+Keep global interrupt and Escape cancellation from stopping unrelated background
+agents. The 2.1.220 bundle still routes the global interrupt callback through
+the default kill-enabled cancel path, so an Escape double-press can emit the
+aggregate stopped-agents notification and abort active subagents. Force this
+callback into the existing cancel-only mode; the explicit chat:killAgents
+binding remains the deliberate agent-stop control. Remove when upstream scopes
+the kill path to teammate view as in the reference implementation.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''H\(\)\},\[G,m,_,g,P,U,D,H\]'''
+locator_kind = "regex"
+replacement = "H(!0)},[G,m,_,g,P,U,D,H]"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.220 global interrupt uses cancel-only mode"
+assert_contains = "H(!0)},[G,m,_,g,P,U,D,H]"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.220 global interrupt no longer calls default kill-enabled mode"
+assert_not_contains = "H()},[G,m,_,g,P,U,D,H]"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.220 variant does not carry 2.1.218 interrupt symbols"
+assert_not_contains = "H(!0)},[W,m,_,g,P,q,D,H]"

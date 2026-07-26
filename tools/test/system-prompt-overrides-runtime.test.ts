@@ -150,6 +150,12 @@ test("rendered bridge preserves no-op requests, applies one override, and reject
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as PromptManifest
   const selected = manifest.sections[0]
   if (!selected) throw new Error("exported prompt manifest has no sections")
+  const baselineSections = manifest.sections.map((section) => readFileSync(join(promptRoot, section.file), "utf8"))
+  const baselineBody = baselineSections.join("\n\n")
+  const directFinalBody = requestSystem(directRequest).at(-1)?.text
+  if (directFinalBody === undefined) throw new Error("direct request has no final system block")
+  expect(directFinalBody.startsWith(baselineBody)).toBe(true)
+  const runtimeSuffix = directFinalBody.slice(baselineBody.length)
   const overrideMarker = "PATCHED_CC_SECTION_OVERRIDE_RUNTIME_MARKER"
   writeFileSync(join(promptRoot, "overrides", `${selected.id}.md`), `# Local override\n${overrideMarker}\n`)
 
@@ -172,7 +178,7 @@ test("rendered bridge preserves no-op requests, applies one override, and reject
       ? `# Local override\n${overrideMarker}\n`
       : readFileSync(join(promptRoot, section.file), "utf8"),
   )
-  expect(effectiveSystem.at(-1)?.text).toBe(expectedEffectiveSections.join("\n\n"))
+  expect(effectiveSystem.at(-1)?.text).toBe(`${expectedEffectiveSections.join("\n\n")}${runtimeSuffix}`)
   expect(diagnostic.effectiveVectorSha256).toBe(hashSectionVector(expectedEffectiveSections))
 
   const staleManifest = { ...manifest, target: { ...manifest.target, bundleSha256: "sha256-stale" } }

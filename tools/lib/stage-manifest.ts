@@ -24,6 +24,7 @@ export type StageManifest = {
   version?: string
   channel?: TargetSource
   source?: string
+  basePlatform?: string
   platformPackage?: string
   directPlatform?: string
   nativeTarball?: string
@@ -52,6 +53,7 @@ export function parseStageManifest(value: unknown, path = "stage-manifest.json")
     version: optionalString(manifest.version, `${path}.version`),
     channel: channel === undefined ? undefined : parseTargetSource(channel),
     source: optionalString(manifest.source, `${path}.source`),
+    basePlatform: optionalString(manifest.basePlatform, `${path}.basePlatform`),
     platformPackage: optionalString(manifest.platformPackage, `${path}.platformPackage`),
     directPlatform: optionalString(manifest.directPlatform, `${path}.directPlatform`),
     nativeTarball: optionalString(manifest.nativeTarball, `${path}.nativeTarball`),

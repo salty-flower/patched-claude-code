@@ -27,7 +27,7 @@ Use environment variables for default coordinates:
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `TARGET_VERSION` | `2.1.218` | Version used when a recipe omits `[version]`. |
+| `TARGET_VERSION` | `2.1.220` | Version used when a recipe omits `[version]`. |
 | `TARGET_SOURCE` | `canonical` | Staging channel: `canonical`, `npm`, or `direct`. |
 | `TARGET_PLATFORM_PACKAGE` | `@anthropic-ai/claude-code-darwin-arm64` | npm native package for npm staging. |
 | `TARGET_PLATFORM` | `darwin-arm64` | Direct-download platform for native staging. |

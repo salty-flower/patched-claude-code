@@ -1,6 +1,6 @@
 name = "system-prompt-section-overrides"
 enabled = true
-target_version = "2.1.218"
+target_version = "2.1.220"
 applies_to = ">=2.1.217 <2.2.0"
 
 [[patches]]
@@ -29,7 +29,7 @@ assert_contains = '''Symbol.for("patched-claude-code.system-prompt-overrides.v1"
 [[patches]]
 name = "system-prompt-section-override-bridge-2-1-218"
 target_version = "2.1.218"
-applies_to = ">=2.1.218 <2.2.0"
+applies_to = ">=2.1.218 <2.1.220"
 rationale = """
 Hand the normally composed main-session prompt vector to the repo-owned preload helper, then recover only its effective vector. This 2.1.218 bridge uses a structural final-filter locator and no version-local symbol in inserted code; it remains exact-version scoped because later targets must re-prove the main prompt seam. Remove it when upstream provides native section export and sparse override support.
 """
@@ -47,4 +47,27 @@ template = '''((orderedSections)=>globalThis[Symbol.for("patched-claude-code.sys
 [[patches.tests]]
 kind = "static"
 name = "main prompt vector crosses the versioned override bridge in 2.1.218"
+assert_contains = '''Symbol.for("patched-claude-code.system-prompt-overrides.v1")'''
+
+[[patches]]
+name = "system-prompt-section-override-bridge-2-1-220"
+target_version = "2.1.220"
+applies_to = ">=2.1.220 <2.1.221"
+rationale = """
+Hand the normally composed main-session prompt vector to the repo-owned preload helper, then recover only its effective vector. This 2.1.220 bridge uses a structural final-filter locator and no version-local symbol in inserted code; it remains exact-version scoped because later targets must re-prove the main prompt seam. Remove it when upstream provides native section export and sparse override support.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "filter", source_regex = "excludeDynamicSections.*!==null" }
+
+[patches.transform]
+op = "wrap_expression"
+template = '''((orderedSections)=>globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v1")]?.({orderedSections})?.effectiveSections??orderedSections)(%%EXPR%%)'''
+
+[[patches.tests]]
+kind = "static"
+name = "main prompt vector crosses the versioned override bridge in 2.1.220"
 assert_contains = '''Symbol.for("patched-claude-code.system-prompt-overrides.v1")'''

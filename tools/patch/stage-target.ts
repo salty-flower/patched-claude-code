@@ -5,7 +5,7 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
 import { runChecked } from "../lib/process"
-import { loadStageManifest } from "../lib/stage-manifest"
+import { loadStageManifest, type StageManifest } from "../lib/stage-manifest"
 import { parseTargetSource, parseTargetSourceOption, type TargetSource } from "../lib/target"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -45,14 +45,17 @@ function hasCurrentStage(args: Args): boolean {
   if (!version || !existsSync(join(ROOT, "staging", version, "cli.js"))) return false
   const manifest = loadStageManifest(ROOT, version)
   if (!manifest) return false
+  return stageManifestMatchesArgs(args, manifest)
+}
 
+export function stageManifestMatchesArgs(args: Args, manifest: StageManifest): boolean {
   if (args.source === "npm") {
     return (manifest.channel ?? "npm") === "npm" && (manifest.platformPackage ?? "") === args.platformPackage
   }
   if (args.source === "direct") {
     return manifest.channel === "direct" && (manifest.directPlatform ?? "") === args.platform
   }
-  return false
+  return manifest.channel === "canonical" && manifest.basePlatform === args.canonicalBase && manifest.canonical !== undefined
 }
 
 function main(): number {

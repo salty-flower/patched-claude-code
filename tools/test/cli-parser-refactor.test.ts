@@ -10,7 +10,7 @@ import { parseArgs as parsePreparePromptIdentityBumpArgs } from "../patch/prepar
 import { parseArgs as parsePrepareTargetBumpArgs } from "../patch/prepare-target-bump"
 import { parseArgs as parseReconcilePromptIdentitiesArgs } from "../patch/reconcile-prompt-identities"
 import { parseArgs as parseStageClaudeCodeArgs } from "../patch/stage-claude-code"
-import { parseArgs as parseStageTargetArgs } from "../patch/stage-target"
+import { parseArgs as parseStageTargetArgs, stageManifestMatchesArgs } from "../patch/stage-target"
 import { parseArgs as parseVerifyPatchesArgs } from "../patch/verify-patches"
 import { parseArgs as parseWriteSourceReleaseArgs } from "../patch/write-source-release"
 import { parseArgs as parseRunPatchTestsArgs, selectPatchTestsForTarget } from "./run-patch-tests"
@@ -67,6 +67,34 @@ test("stage-target parses typed options with environment defaults", () => {
     platformPackage: "@example/cli",
     canonicalBase: "linux-x64",
   })
+})
+
+test("stage-target reuses a matching canonical platform merge", () => {
+  const args = parseStageTargetArgs(["--version", "2.1.220", "--source", "canonical"], {})
+  const canonical = {
+    cliPath: "staging/2.1.220/canonical/cli.js",
+    reportPath: "staging/2.1.220/canonical/platform-merge-report.json",
+    bytes: 1,
+    sha256: "sha256",
+    mergePolicy: "canonical-platform-merge-v1",
+  }
+
+  expect(
+    stageManifestMatchesArgs(args, {
+      version: "2.1.220",
+      channel: "canonical",
+      basePlatform: "darwin-arm64",
+      canonical,
+    }),
+  ).toBe(true)
+  expect(
+    stageManifestMatchesArgs(args, {
+      version: "2.1.220",
+      channel: "canonical",
+      basePlatform: "linux-x64",
+      canonical,
+    }),
+  ).toBe(false)
 })
 
 test("prepare-target-bump parses a source and report output", () => {

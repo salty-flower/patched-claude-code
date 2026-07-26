@@ -501,7 +501,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=Bry()?wBd(e,nd(r)):DqB(e);
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-218"
 target_version = "2.1.218"
-applies_to = ">=2.1.218 <2.2.0"
+applies_to = ">=2.1.218 <2.1.220"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.218 minified-symbol variant of
@@ -528,3 +528,34 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=IJd(e,pd(r));if(t.traceSou
 kind = "static"
 name = "2.1.218 signature cleanup no longer carries 2.1.217 symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=rcy()?N9d(e,od(r)):M9d(e);if(t.traceSources)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-220"
+target_version = "2.1.220"
+applies_to = ">=2.1.220 <2.1.221"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.220 minified-symbol variant of
+strip-signatures-for-custom-base-url. The matching-provenance path now uses
+orp(e,Wu(r)); the custom-base-url path falls back to irp(e), which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+Yd(), the existing actual-first-party Anthropic base URL check.
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=orp(e,Wu(r));if(t.traceSources)'''
+replacement = '''let r=t.bodyModel??t.model,n=Yd()?orp(e,Wu(r)):irp(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.220"
+assert_contains = '''let r=t.bodyModel??t.model,n=Yd()?orp(e,Wu(r)):irp(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.220"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=orp(e,Wu(r));if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.220 signature cleanup no longer carries 2.1.218 symbols"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=Xky()?IJd(e,pd(r)):DJd(e);if(t.traceSources)'''

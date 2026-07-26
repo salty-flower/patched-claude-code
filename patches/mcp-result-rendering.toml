@@ -834,7 +834,7 @@ assert_not_contains = '''content:aHp,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-218"
 target_version = "2.1.218"
-applies_to = ">=2.1.218 <2.2.0"
+applies_to = ">=2.1.218 <2.1.220"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -870,3 +870,43 @@ assert_not_contains = '''content:aMp,verbose:sMp'''
 kind = "static"
 name = "stale 2.1.217 MCP text-block symbols are absent in 2.1.218"
 assert_not_contains = '''content:eCp,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-220"
+target_version = "2.1.220"
+applies_to = ">=2.1.220 <2.1.221"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.220 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`. The text and verbose locals now minify to
+`Y$p` and `K$p`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:Y$p,verbose:K$p" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:Y$p,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.220"
+assert_contains = '''content:Y$p,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.220 MCP text-block call site is absent"
+assert_not_contains = '''content:Y$p,verbose:K$p'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.218 MCP text-block symbols are absent in 2.1.220"
+assert_not_contains = '''content:aMp,verbose:!0'''

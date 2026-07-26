@@ -12,7 +12,8 @@ const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
-const targetUses218LaterSymbols = gte(TARGET_VERSION, "2.1.218")
+const targetUses220LaterSymbols = gte(TARGET_VERSION, "2.1.220") && lt(TARGET_VERSION, "2.1.221")
+const targetUses218LaterSymbols = gte(TARGET_VERSION, "2.1.218") && lt(TARGET_VERSION, "2.1.220")
 const targetUses217LaterSymbols = gte(TARGET_VERSION, "2.1.217") && lt(TARGET_VERSION, "2.1.218")
 const targetUses216LaterSymbols = gte(TARGET_VERSION, "2.1.216") && lt(TARGET_VERSION, "2.1.217")
 const targetUses215LaterSymbols = gte(TARGET_VERSION, "2.1.215") && lt(TARGET_VERSION, "2.1.216")
@@ -20,6 +21,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses220LaterSymbols ||
   targetUses218LaterSymbols ||
   targetUses217LaterSymbols ||
   targetUses216LaterSymbols ||
@@ -84,8 +86,10 @@ function expectContainsOneOf(body: string, snippets: string[]): void {
 }
 
 function getAbsoluteSubmitCode(): string {
-  const suffix = targetUses218LaterSymbols
-    ? "2-1-218"
+  const suffix = targetUses220LaterSymbols
+    ? "2-1-220"
+    : targetUses218LaterSymbols
+      ? "2-1-218"
     : targetUses217LaterSymbols
       ? "2-1-217"
       : targetUses216LaterSymbols
@@ -105,8 +109,10 @@ function getAbsoluteSubmitCode(): string {
 }
 
 async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Promise<LaterHookResult> {
-  const [taskGetter, nextRun, addTask, enablePolling] = targetUses218LaterSymbols
-    ? ["nO", "Unr", "l5e", "Zwe"]
+  const [taskGetter, nextRun, addTask, enablePolling] = targetUses220LaterSymbols
+    ? ["iO", "hir", "W5e", "DAe"]
+    : targetUses218LaterSymbols
+      ? ["nO", "Unr", "l5e", "Zwe"]
     : targetUses217LaterSymbols
       ? ["vD", "Zer", "D9e", "KCe"]
       : targetUses216LaterSymbols
@@ -118,14 +124,16 @@ async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Prom
             : targetUses210LaterSymbols
               ? ["OI", "Yzt", "PBe", "jSe"]
               : ["FI", "xVt", "Z$e", "ESe"]
-  const [inputName, modeName, skipName, clearBufferName, resetHistoryName] = targetUses218LaterSymbols
+  const [inputName, modeName, skipName, clearBufferName, resetHistoryName] =
+    targetUses220LaterSymbols || targetUses218LaterSymbols
     ? ["x", "O", "n", "I", "D"]
     : targetUses217LaterSymbols || targetUses216LaterSymbols
       ? ["k", "H", "n", "I", "D"]
       : targetUses215LaterSymbols || targetUses212LaterSymbols
         ? ["k", "O", "A", "I", "D"]
         : ["I", "P", "n", "H", "k"]
-  const [inputSetterName, cursorSetterName, pastedContentsSetterName] = targetUses218LaterSymbols
+  const [inputSetterName, cursorSetterName, pastedContentsSetterName] =
+    targetUses220LaterSymbols || targetUses218LaterSymbols
     ? ["i", "A", "s"]
     : ["i", "x", "s"]
   const tasks = [...seedTasks]
@@ -269,6 +277,7 @@ test.skipIf(!testLaterCommand)(
       "o9e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "D9e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "l5e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
+      "W5e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
     ])
     expectContainsOneOf(patched, ["if(__task)__task.later=!0", "later:!0})", "later:!0,laterAt:"])
     expectContainsOneOf(patched, [
@@ -289,6 +298,7 @@ test.skipIf(!testLaterCommand)(
       "xCe(!0)",
       "KCe(!0)",
       "Zwe(!0)",
+      "DAe(!0)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
@@ -318,6 +328,12 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses220LaterSymbols) {
+      expect(patched).toContain("laterAt:__when.getTime()")
+      expect(patched).toContain("q.later===!0&&Number.isFinite(q.laterAt)&&q.laterAt>q.createdAt?q.laterAt:Npo")
+      expect(patched).not.toContain("j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:buo")
+      expect(patched).toContain("DAe(!0)")
+      expect(patched).not.toContain("Zwe(!0)")
     } else if (targetUses218LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
       expect(patched).toContain("j.later===!0&&Number.isFinite(j.laterAt)&&j.laterAt>j.createdAt?j.laterAt:buo")
@@ -392,6 +408,7 @@ test.skipIf(!testLaterCommand)(
       "hD().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "vD().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "nO().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "iO().filter((__t)=>__t.later===!0&&!__t.recurring)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("uw().filter((__t)=>__t.later===!0&&!__t.recurring)")
@@ -413,6 +430,11 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("E7t(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("gVt(__t.cron,__t.createdAt)")
+    } else if (targetUses220LaterSymbols) {
+      expect(patched).toContain("iO().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("nO().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).toContain("hir(__t.cron,__t.createdAt)")
+      expect(patched).not.toContain("Unr(__t.cron,__t.createdAt)")
     } else if (targetUses218LaterSymbols) {
       expect(patched).toContain("nO().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).not.toContain("vD().filter((__t)=>__t.later===!0&&!__t.recurring)")

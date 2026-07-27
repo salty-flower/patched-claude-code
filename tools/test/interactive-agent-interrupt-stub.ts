@@ -6,14 +6,17 @@ import { join, resolve } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
-type Args = { bundle: string }
+type Args = { agents: number; background: boolean; bundle: string }
 
 function parseArgs(argv: string[]): Args {
-  return createCommand("interactive-background-agent-stub")
-    .description("Launch a local API stub and hand an interactive Claude Code TUI to the terminal")
+  const options = createCommand("interactive-agent-interrupt-stub")
+    .description("Explore Agent interrupt behavior in an interactive Claude Code TUI backed by a local API stub")
     .requiredOption("--bundle <cli.patched.js>", "rendered Claude Code bundle")
+    .option("--agents <count>", "number of concurrent agents to launch", (value) => Number.parseInt(value, 10), 3)
+    .option("--background", "launch agents in the background from the start instead of synchronously")
     .parse(argv, { from: "user" })
     .opts<Args>()
+  return { ...options, background: options.background === true }
 }
 
 function isStream(body: unknown): boolean {
@@ -26,7 +29,7 @@ function modelName(body: unknown): string {
     : "claude-sonnet-4-6"
 }
 
-function hasMainAgentResult(body: unknown): boolean {
+function hasAgentToolResult(body: unknown): boolean {
   if (typeof body !== "object" || body === null || !("messages" in body) || !Array.isArray(body.messages)) return false
   return body.messages.some(
     (message) =>
@@ -41,25 +44,33 @@ function hasMainAgentResult(body: unknown): boolean {
           "type" in block &&
           block.type === "tool_result" &&
           "tool_use_id" in block &&
-          block.tool_use_id === "toolu_agent_1",
+          typeof block.tool_use_id === "string" &&
+          block.tool_use_id.startsWith("toolu_agent_"),
       ),
   )
 }
 
-const agentInput = {
-  description: "hold background agent",
-  prompt: "Stay active while you investigate the requested task. Do not finish until interrupted.",
-  subagent_type: "general-purpose",
-  run_in_background: true,
+function agentMarker(index: number): string {
+  return `INTERRUPT_PLAYGROUND_AGENT_${index + 1}`
 }
 
-function toolUseResponse(body: unknown): Record<string, unknown> {
+function toolUseResponse(body: unknown, agentCount: number, runInBackground: boolean): Record<string, unknown> {
   return {
     id: "msg_interactive_main",
     type: "message",
     role: "assistant",
     model: modelName(body),
-    content: [{ type: "tool_use", id: "toolu_agent_1", name: "Agent", input: agentInput }],
+    content: Array.from({ length: agentCount }, (_, index) => ({
+      type: "tool_use",
+      id: `toolu_agent_${index + 1}`,
+      name: "Agent",
+      input: {
+        description: `hold ${runInBackground ? "background" : "synchronous"} agent ${index + 1}`,
+        prompt: `${agentMarker(index)} Stay active until the user exits the interrupt playground.`,
+        subagent_type: "general-purpose",
+        run_in_background: runInBackground,
+      },
+    })),
     stop_reason: "tool_use",
     stop_sequence: null,
     usage: { input_tokens: 1, output_tokens: 1 },
@@ -179,11 +190,16 @@ async function main(): Promise<number> {
     console.error(`bundle missing: ${args.bundle}`)
     return 2
   }
+  if (!Number.isInteger(args.agents) || args.agents < 1 || args.agents > 8) {
+    console.error("--agents must be an integer from 1 through 8")
+    return 2
+  }
 
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-agent-playground-")))
   const configDir = join(home, ".claude")
   mkdirSync(configDir, { recursive: true })
   let ordinaryRequests = 0
+  const connectedAgents = new Set<number>()
   let stub: ClaudeApiStub | undefined
   const responder = (request: ClaudeApiRequest): Response => {
     if (request.path.endsWith("/messages/count_tokens")) return Response.json({ input_tokens: 1 })
@@ -191,16 +207,26 @@ async function main(): Promise<number> {
 
     ordinaryRequests += 1
     if (ordinaryRequests === 1) {
-      const payload = toolUseResponse(request.jsonBody)
+      const payload = toolUseResponse(request.jsonBody, args.agents, args.background)
       if (!isStream(request.jsonBody)) return Response.json(payload)
       return completedSse(request.jsonBody, payload.content as Record<string, unknown>[], "tool_use")
     }
-    if (hasMainAgentResult(request.jsonBody)) {
-      console.error("[stub] main turn is now held open; press Esc twice to test the interrupt path")
-      return hangingSse(request.jsonBody, "msg_interactive_followup", "Background agent is running.")
+
+    const agentIndex = Array.from({ length: args.agents }, (_, index) => index).find((index) =>
+      request.rawBody.includes(agentMarker(index)),
+    )
+    if (agentIndex !== undefined) {
+      connectedAgents.add(agentIndex)
+      return hangingSse(request.jsonBody, `msg_interactive_subagent_${agentIndex + 1}`)
     }
-    console.error("[stub] background subagent connected; its response is held open")
-    return hangingSse(request.jsonBody, "msg_interactive_subagent")
+    if (hasAgentToolResult(request.jsonBody)) {
+      return hangingSse(
+        request.jsonBody,
+        "msg_interactive_followup",
+        `${args.agents} Agent ${args.agents === 1 ? "task is" : "tasks are"} running.`,
+      )
+    }
+    return completedSse(request.jsonBody, [{ type: "text", text: "The local playground is ready." }], "end_turn")
   }
 
   stub = await startClaudeApiStub({ responder })
@@ -214,13 +240,21 @@ async function main(): Promise<number> {
     `${JSON.stringify({ customApiKeyResponses: { approved: ["stub-api-key"], rejected: [] }, env: { ANTHROPIC_BASE_URL: baseUrl }, hasCompletedOnboarding: true, projects: { [home]: { hasTrustDialogAccepted: true } }, theme: "dark" }, null, 2)}\n`,
   )
 
-  console.error(`\n[stub] API endpoint: ${baseUrl}`)
-  console.error(`[stub] Temporary HOME/transcript root: ${home}`)
+  const mode = args.background ? "background" : "synchronous foreground"
+  console.error(`\n[playground] Local stub only; no real model API calls will be made.`)
+  console.error(`[playground] API endpoint: ${baseUrl}`)
+  console.error(`[playground] Temporary HOME/transcript root: ${home}`)
   console.error(
-    "[stub] Start the CLI below. Type any prompt; the first ordinary request creates a hanging background Agent.",
+    `[playground] Any prompt launches ${args.agents} ${mode} Agent ${args.agents === 1 ? "task" : "tasks"}.`,
   )
-  console.error('[stub] Suggested prompt: "Start a background agent and keep it running."')
-  console.error("[stub] After the stub reports both connections, press Esc twice. Use /exit when finished.\n")
+  if (args.background) {
+    console.error("[playground] Press Esc twice while they run; the Agent tasks should remain active.")
+  } else {
+    console.error(`[playground] Wait for “Running ${args.agents} agents…”, then press Esc once.`)
+    console.error(`[playground] Expected: “${args.agents} background agents launched” and an interrupted main turn.`)
+    console.error("[playground] Press Esc again; the background Agent tasks should remain active.")
+  }
+  console.error("[playground] Use /exit when finished and choose “Exit anyway”.\n")
 
   const child = Bun.spawn(
     [
@@ -258,7 +292,10 @@ async function main(): Promise<number> {
     return await child.exited
   } finally {
     stub.stop()
-    console.error(`\n[stub] CLI exited (status ${child.exitCode}). Transcript root was ${home}`)
+    console.error(
+      `\n[playground] CLI exited (status ${child.exitCode}); observed ${connectedAgents.size}/${args.agents} Agent API streams.`,
+    )
+    console.error(`[playground] Transcript root: ${home}`)
   }
 }
 

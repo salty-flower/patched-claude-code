@@ -43,6 +43,9 @@ _api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout
   bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{resume_timeout}}"
   bun run tools/test/background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js"
 
+agent-interrupt-playground version=target source=source: (render version source)
+  bun run tools/test/interactive-agent-interrupt-stub.ts --bundle "staging/{{version}}/cli.patched.js"
+
 package version=target release_id=release_id source=source: \
   (render version source) \
   (_package-rendered version release_id)

@@ -88,6 +88,14 @@ test("api stub smoke renders once and runs the complete local PTY matrix", () =>
   )
 })
 
+test("Agent interrupt playground renders once and opens the interactive local stub", () => {
+  const recipe = recipeBlock("agent-interrupt-playground")
+
+  expect(recipe).toContain("agent-interrupt-playground version=target source=source:")
+  expect(recipe).toContain("(render version source)")
+  expect(recipe).toContain('interactive-agent-interrupt-stub.ts --bundle "staging/{{version}}/cli.patched.js"')
+})
+
 test("public lifecycle recipes delegate rendered work to one implementation", () => {
   expect(recipeBlock("smoke")).toContain("(smoke-rendered version)")
   expect(recipeBlock("patch-test")).toContain("(_patch-test-rendered version)")

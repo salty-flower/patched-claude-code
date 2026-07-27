@@ -31,6 +31,38 @@ name = "global interrupt no longer calls default kill-enabled mode"
 assert_not_contains = "H()},[W,m,_,g,P,q,D,H]"
 
 [[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-220"
+target_version = "2.1.220"
+applies_to = ">=2.1.220 <2.1.221"
+rationale = """
+Hand synchronous foreground agents off to the background before Escape aborts
+their shared parent request. Without this transition, concurrent Agent tool
+calls inherit the parent abort signal and all stop together even though the
+global interrupt already uses cancel-only mode. Keeping every Agent call async
+was rejected because it would change foreground result semantics.
+
+This is the 2.1.220 minified-symbol variant: `_` is the task registry, `hc`
+identifies local-agent tasks, and `san` performs the supported foreground to
+background handoff. The zero-delay cancel lets those handoff promises settle
+before the shared parent signal is aborted. Remove when upstream detaches
+foreground agents from parent cancellation before handling Escape.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''if(i!==void 0&&!i.aborted||s){M("tengu_cancel",oe),t();return}'''
+locator_kind = "literal"
+replacement = '''if(i!==void 0&&!i.aborted||s){let se=!1;for(let[ne,ee]of Object.entries(_.all()))if(hc(ee)&&!ee.isBackgrounded)se=san(ne,_)||se;M("tengu_cancel",oe),se?setTimeout(t,0):t();return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.220 Escape hands foreground agents off before parent cancellation"
+assert_contains = '''se=san(ne,_)||se;M("tengu_cancel",oe),se?setTimeout(t,0):t();return'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.220 Escape no longer aborts shared foreground agents immediately"
+assert_not_contains = '''if(i!==void 0&&!i.aborted||s){M("tengu_cancel",oe),t();return}'''
+
+[[patches]]
 name = "global-interrupt-cancel-only-2-1-220"
 target_version = "2.1.220"
 applies_to = ">=2.1.220 <2.1.221"

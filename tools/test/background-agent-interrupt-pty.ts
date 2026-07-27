@@ -26,7 +26,10 @@ function modelName(body: unknown): string {
     : "claude-sonnet-4-6"
 }
 
-function isMainAgentToolResult(body: unknown): boolean {
+const agentToolIds = ["toolu_agent_1", "toolu_agent_2", "toolu_agent_3"] as const
+const agentPromptMarkers = ["SYNC_AGENT_1", "SYNC_AGENT_2", "SYNC_AGENT_3"] as const
+
+function hasAgentToolResult(body: unknown): boolean {
   if (typeof body !== "object" || body === null || !("messages" in body) || !Array.isArray(body.messages)) return false
   return body.messages.some(
     (message) =>
@@ -41,16 +44,10 @@ function isMainAgentToolResult(body: unknown): boolean {
           "type" in block &&
           block.type === "tool_result" &&
           "tool_use_id" in block &&
-          block.tool_use_id === "toolu_agent_1",
+          typeof block.tool_use_id === "string" &&
+          agentToolIds.includes(block.tool_use_id as (typeof agentToolIds)[number]),
       ),
   )
-}
-
-const agentInput = {
-  description: "hold background agent",
-  prompt: "Stay active while you investigate the requested task. Do not finish until interrupted.",
-  subagent_type: "general-purpose",
-  run_in_background: true,
 }
 
 function toolUseJson(body: unknown): Record<string, unknown> {
@@ -59,7 +56,17 @@ function toolUseJson(body: unknown): Record<string, unknown> {
     type: "message",
     role: "assistant",
     model: modelName(body),
-    content: [{ type: "tool_use", id: "toolu_agent_1", name: "Agent", input: agentInput }],
+    content: agentToolIds.map((id, index) => ({
+      type: "tool_use",
+      id,
+      name: "Agent",
+      input: {
+        description: `hold synchronous agent ${index + 1}`,
+        prompt: `${agentPromptMarkers[index]} Stay active until foreground cancellation hands you off.`,
+        subagent_type: "general-purpose",
+        run_in_background: false,
+      },
+    })),
     stop_reason: "tool_use",
     stop_sequence: null,
     usage: { input_tokens: 1, output_tokens: 1 },
@@ -117,13 +124,16 @@ function sse(body: unknown, content: Record<string, unknown>[], stopReason: stri
 
 type SseFrame = [event: string, data: Record<string, unknown>]
 
-function hangingSse(frames: SseFrame[]): Response {
+function hangingSse(frames: SseFrame[], onCancel?: () => void): Response {
   const encoder = new TextEncoder()
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       controller.enqueue(
         encoder.encode(frames.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join("")),
       )
+    },
+    cancel() {
+      onCancel?.()
     },
   })
   return new Response(stream, {
@@ -140,16 +150,18 @@ async function main(): Promise<number> {
 
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-agent-pty-home-")))
   const configDir = join(home, ".claude")
-  const readyFile = join(home, "subagent-ready")
+  const foregroundReadyFiles = agentPromptMarkers.map((_, index) => join(home, `foreground-agent-${index + 1}-ready`))
+  const exitStartedFile = join(home, "exit-started")
   mkdirSync(configDir, { recursive: true })
   let requestCount = 0
-  let subagentStarted = false
+  const subagentRequestCounts = [0, 0, 0]
+  let prematureAgentDisconnects = 0
   let stub: ClaudeApiStub | undefined
   const responder = (request: ClaudeApiRequest): Response => {
     if (request.path.endsWith("/messages/count_tokens")) return Response.json({ input_tokens: 1 })
 
     const body = request.jsonBody
-    const hasToolResult = isMainAgentToolResult(body)
+    const hasToolResult = hasAgentToolResult(body)
     const isTitleRequest = request.rawBody.includes("Write the title in the predominant language")
     if (isTitleRequest) {
       const payload = {
@@ -182,6 +194,35 @@ async function main(): Promise<number> {
       return Response.json(payload)
     }
 
+    const agentIndex = agentPromptMarkers.findIndex((marker) => request.rawBody.includes(marker))
+    if (agentIndex >= 0) {
+      subagentRequestCounts[agentIndex] += 1
+      const occurrence = subagentRequestCounts[agentIndex]
+      writeFileSync(foregroundReadyFiles[agentIndex], "ready\n")
+      return hangingSse(
+        [
+          [
+            "message_start",
+            {
+              type: "message_start",
+              message: {
+                id: `msg_stub_agent_${agentIndex + 1}_${occurrence}`,
+                type: "message",
+                role: "assistant",
+                model: modelName(body),
+                content: [],
+                stop_reason: null,
+                usage: { input_tokens: 1, output_tokens: 1 },
+              },
+            },
+          ],
+        ],
+        () => {
+          if (!existsSync(exitStartedFile)) prematureAgentDisconnects += 1
+        },
+      )
+    }
+
     if (hasToolResult) {
       return hangingSse([
         [
@@ -211,25 +252,9 @@ async function main(): Promise<number> {
       ])
     }
 
-    subagentStarted = true
-    writeFileSync(readyFile, "ready\n")
-    return hangingSse([
-      [
-        "message_start",
-        {
-          type: "message_start",
-          message: {
-            id: "msg_stub_agent",
-            type: "message",
-            role: "assistant",
-            model: modelName(body),
-            content: [],
-            stop_reason: null,
-            usage: { input_tokens: 1, output_tokens: 1 },
-          },
-        },
-      ],
-    ])
+    return new Response(sse(body, [{ type: "text", text: "Stub follow-up complete." }], "end_turn"), {
+      headers: { "content-type": "text/event-stream", "cache-control": "no-cache" },
+    })
   }
   stub = await startClaudeApiStub({ responder })
   const baseUrl = stub.baseUrl
@@ -273,19 +298,22 @@ async function main(): Promise<number> {
       "sonnet",
     ].join(" ")
     const enter = "\\x1b[13u"
-    const prompt = "\\x1b[200~Start a background agent and keep it running.\\x1b[201~"
+    const prompt = "\\x1b[200~Start three synchronous agents in parallel and keep them running.\\x1b[201~"
     const exit = "\\x1b[200~/exit\\x1b[201~"
+    const waitForFiles = (files: string[]) =>
+      `for i in $(seq 1 160); do ${files.map((file) => `test -f ${shellQuote(file)}`).join(" && ")} && break; sleep 0.1; done`
     const inputCommand = [
       "sleep 2",
       `printf %b ${shellQuote(prompt)}`,
       "sleep 1",
       `printf %b ${shellQuote(enter)}`,
-      `for i in $(seq 1 120); do test -f ${shellQuote(readyFile)} && break; sleep 0.1; done`,
+      waitForFiles(foregroundReadyFiles),
       "sleep 1",
-      `printf '\\033'; sleep 2; printf '\\033'`,
-      "sleep 1",
-      `printf '\\003'`,
-      "sleep 1",
+      `printf '\\033'`,
+      "sleep 3",
+      `printf '\\033'`,
+      "sleep 2",
+      `touch ${shellQuote(exitStartedFile)}`,
       `printf %b ${shellQuote(exit)}`,
       "sleep 1",
       `printf %b ${shellQuote(enter)}`,
@@ -324,8 +352,18 @@ async function main(): Promise<number> {
       console.error(output)
       return 1
     }
-    if (!subagentStarted) {
-      console.error("stub never received the background subagent request")
+    if (subagentRequestCounts.some((count) => count !== 1)) {
+      console.error(`expected one live request per synchronous agent: ${subagentRequestCounts.join(",")}`)
+      console.error(output)
+      return 1
+    }
+    if (!output.includes("agents launched")) {
+      console.error("Escape did not render the three-agent background handoff")
+      console.error(output)
+      return 1
+    }
+    if (prematureAgentDisconnects !== 0) {
+      console.error(`Esc disconnected ${prematureAgentDisconnects} handed-off agent streams`)
       console.error(output)
       return 1
     }
@@ -346,7 +384,7 @@ async function main(): Promise<number> {
       console.error(normalized)
       return 1
     }
-    console.log("ok: PTY spawned a background subagent; double-Esc did not emit agents_killed")
+    console.log("ok: Esc handed off three synchronous agents; a second Esc left all background streams connected")
     return 0
   } finally {
     stub?.stop()

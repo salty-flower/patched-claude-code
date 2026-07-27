@@ -218,7 +218,8 @@ jobs:
               --clobber \
               dist/*.tar.gz \
               dist/*.sha256 \
-              dist/*.manifest.json
+              dist/*.manifest.json \
+              dist/prompt-review.md
           else
             gh release create "$tag" \
               --repo "$GITHUB_REPOSITORY" \
@@ -228,7 +229,8 @@ jobs:
               --target "$GITHUB_SHA" \
               dist/*.tar.gz \
               dist/*.sha256 \
-              dist/*.manifest.json
+              dist/*.manifest.json \
+              dist/prompt-review.md
           fi
 
       - name: Promote prerelease
@@ -244,7 +246,8 @@ jobs:
               --clobber \
               dist/*.tar.gz \
               dist/*.sha256 \
-              dist/*.manifest.json
+              dist/*.manifest.json \
+              dist/prompt-review.md
           else
             gh release create "$tag" \
               --repo "$GITHUB_REPOSITORY" \
@@ -253,7 +256,8 @@ jobs:
               --latest \
               dist/*.tar.gz \
               dist/*.sha256 \
-              dist/*.manifest.json
+              dist/*.manifest.json \
+              dist/prompt-review.md
           fi
           release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" --jq .id)"
           gh api \

@@ -62,6 +62,7 @@ type DiffOperation =
 
 export function renderPromptReviewMarkdown(options: PromptReviewOptions): {
   markdown: string
+  releaseMarkdown: string
   summary: PromptReviewSummary
 } {
   const currentManifest = readPromptCatalogManifest(options.catalogDir)
@@ -96,7 +97,7 @@ export function renderPromptReviewMarkdown(options: PromptReviewOptions): {
     if (!previousDecision) {
       throw new Error(`prompt review predecessor missing: ${predecessorOccurrenceId}`)
     }
-    if (decision.revisionSha256 === previousDecision.revisionSha256) {
+    if (reviewFingerprint(decision) === reviewFingerprint(previousDecision)) {
       unchanged.push(decision.lineageId)
       continue
     }
@@ -123,7 +124,15 @@ export function renderPromptReviewMarkdown(options: PromptReviewOptions): {
     newOrSplit: additions.length,
     previousCatalogAvailable: previousCatalog !== null,
   }
-  return { markdown: renderMarkdown(summary, unchanged, changes, additions), summary }
+  return {
+    markdown: renderMarkdown(summary, unchanged, changes, additions, false),
+    releaseMarkdown: renderMarkdown(summary, unchanged, changes, additions, true),
+    summary,
+  }
+}
+
+function reviewFingerprint(decision: PromptOccurrenceDecision): string {
+  return `${decision.classification}\0${decision.revisionSha256 ?? decision.detectorSha256}`
 }
 
 export function materializePreviousPromptCatalog(
@@ -177,6 +186,7 @@ function renderMarkdown(
   unchanged: string[],
   changes: ReviewChange[],
   additions: PromptOccurrenceDecision[],
+  compact: boolean,
 ): string {
   const lines = [
     "## Prompt review",
@@ -202,7 +212,7 @@ function renderMarkdown(
     "",
   ]
 
-  for (const change of changes) lines.push(renderChange(change), "")
+  for (const change of changes) lines.push(renderChange(change, compact), "")
 
   lines.push(`### New and split (${summary.newOrSplit})`, "")
   if (additions.length === 0) {
@@ -219,7 +229,7 @@ function renderMarkdown(
   return `${lines.join("\n")}\n`
 }
 
-function renderChange(change: ReviewChange): string {
+function renderChange(change: ReviewChange, compact: boolean): string {
   const title = `<details>\n<summary><code>${change.id}</code> · ${change.family}/${change.role} · predecessor <code>${change.predecessorOccurrenceId}</code></summary>`
   const trace = `Trace: \`${change.currentOccurrenceId}\` ← \`${change.predecessorOccurrenceId}\` · relation \`${change.relation}\``
   const currentText = change.currentItem?.kind === "entry" ? change.currentItem.text : null
@@ -235,6 +245,7 @@ function renderChange(change: ReviewChange): string {
         currentText,
         occurrenceVersion(change.previousDecision.occurrenceId),
         occurrenceVersion(change.currentDecision.occurrenceId),
+        compact,
       ),
       "",
       "</details>",
@@ -264,6 +275,7 @@ function renderSideBySide(
   currentText: string,
   previousVersion: string,
   currentVersion: string,
+  compact: boolean,
 ): string {
   const previousLines = splitLines(previousText)
   const currentLines = splitLines(currentText)
@@ -299,18 +311,32 @@ function renderSideBySide(
     `<thead><tr><th>${escapeHtml(previousVersion)}</th><th>${escapeHtml(currentVersion)}</th></tr></thead>`,
     "<tbody>",
   ]
+  const renderedRows: Array<{ previous: DiffLine | undefined; current: DiffLine | undefined }> = []
   for (const item of groups) {
     const count = Math.max(item.deletes.length, item.inserts.length)
     for (let index = 0; index < count; index += 1) {
-      const previous = item.deletes[index]
-      const current = item.inserts[index]
-      rows.push(
-        `<tr><td><pre>${escapeHtml(previous ? `L${previous.number}\n${previous.text}` : "—")}</pre></td><td><pre>${escapeHtml(current ? `L${current.number}\n${current.text}` : "—")}</pre></td></tr>`,
-      )
+      renderedRows.push({ previous: item.deletes[index], current: item.inserts[index] })
     }
+  }
+  const visibleRows = compact ? renderedRows.slice(0, 5) : renderedRows
+  for (const item of visibleRows) {
+    rows.push(
+      `<tr><td><pre>${renderDiffCell(item.previous, compact)}</pre></td><td><pre>${renderDiffCell(item.current, compact)}</pre></td></tr>`,
+    )
+  }
+  if (visibleRows.length < renderedRows.length) {
+    rows.push(
+      `<tr><td colspan="2"><em>${renderedRows.length - visibleRows.length} more changed rows; see the prompt-review.md release asset for the complete diff.</em></td></tr>`,
+    )
   }
   rows.push("</tbody>", "</table>")
   return rows.join("\n")
+}
+
+function renderDiffCell(line: DiffLine | undefined, compact: boolean): string {
+  if (!line) return "—"
+  const value = `L${line.number}\n${line.text}`
+  return compact ? escapeHtmlLimited(value, 240) : escapeHtml(value)
 }
 
 function diffLines(previous: string[], current: string[]): DiffOperation[] {
@@ -438,6 +464,16 @@ function escapeInline(value: string): string {
 
 function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")
+}
+
+function escapeHtmlLimited(value: string, limit: number): string {
+  let escaped = ""
+  for (const character of value) {
+    const encoded = escapeHtml(character)
+    if (escaped.length + encoded.length > limit - 1) return `${escaped}…`
+    escaped += encoded
+  }
+  return escaped
 }
 
 function comparePatchTags(left: string, right: string): number {

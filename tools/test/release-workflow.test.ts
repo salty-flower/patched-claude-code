@@ -47,6 +47,7 @@ test("release workflow renders once and reuses the rendered bundle", () => {
     'just _release-source-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"',
   )
   expect(workflow).toContain("prompts/catalog/")
+  expect(workflow).toContain("dist/prompt-review.md")
 })
 
 test("release workflow defaults to the current target version", () => {

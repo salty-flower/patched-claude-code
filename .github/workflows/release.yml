@@ -229,6 +229,7 @@ jobs:
             dist/*.sha256
             dist/*.manifest.json
             dist/release-notes.md
+            dist/prompt-review.md
             cli.js
             manifest.json
             package.json
@@ -253,7 +254,8 @@ jobs:
               --clobber \
               dist/*.tar.gz \
               dist/*.sha256 \
-              dist/*.manifest.json
+              dist/*.manifest.json \
+              dist/prompt-review.md
           else
             gh release create "$tag" \
               --repo "$GITHUB_REPOSITORY" \
@@ -261,5 +263,6 @@ jobs:
               --notes-file dist/release-notes.md \
               dist/*.tar.gz \
               dist/*.sha256 \
-              dist/*.manifest.json
+              dist/*.manifest.json \
+              dist/prompt-review.md
           fi

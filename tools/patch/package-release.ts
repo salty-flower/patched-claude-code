@@ -10,6 +10,7 @@ import { artifactBase, sha256, UPSTREAM_PACKAGE, writeReleasePayload } from "../
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const DEFAULT_TAG_PATTERN = /^claude-code-(\d+\.\d+\.\d+)-(.+)$/
+const GITHUB_RELEASE_BODY_MAX_CHARACTERS = 125_000
 
 type Args = {
   version?: string
@@ -52,6 +53,7 @@ function main(): number {
   const tarball = join(args.outDir, `${base}.tar.gz`)
   const releaseManifestPath = join(args.outDir, `${base}.manifest.json`)
   const notesPath = join(args.outDir, "release-notes.md")
+  const promptReviewPath = join(args.outDir, "prompt-review.md")
 
   rmSync(workDir, { recursive: true, force: true })
   mkdirSync(args.outDir, { recursive: true })
@@ -78,16 +80,25 @@ function main(): number {
     : materializePreviousPromptCatalog(ROOT, join(ROOT, "prompt-identities"), version)
   const previousCatalog = configuredPreviousCatalog ?? materializedPreviousCatalog?.path
   let promptReview: string
+  let promptReviewBody: string
   try {
-    promptReview = renderPromptReviewMarkdown({
+    const promptReviewResult = renderPromptReviewMarkdown({
       catalogDir: join(workDir, "prompts", "catalog"),
       identityRoot: join(ROOT, "prompt-identities"),
       upstreamVersion: version,
       ...(previousCatalog ? { previousCatalogDir: previousCatalog } : {}),
-    }).markdown
+    })
+    if (promptReviewResult.summary.previousVersion && !promptReviewResult.summary.previousCatalogAvailable) {
+      throw new Error(
+        `previous prompt catalog unavailable for ${promptReviewResult.summary.previousVersion}; fetch its source tag before packaging`,
+      )
+    }
+    promptReview = promptReviewResult.markdown
+    promptReviewBody = promptReviewResult.releaseMarkdown
   } finally {
     materializedPreviousCatalog?.cleanup()
   }
+  writeFileSync(promptReviewPath, promptReview)
 
   rmSync(tarball, { force: true })
   runChecked(["tar", "-czf", tarball, "-C", args.outDir, base], { cwd: ROOT })
@@ -110,9 +121,9 @@ function main(): number {
       2,
     ) + "\n",
   )
-  writeFileSync(
-    notesPath,
-    `# ${base}
+  const releaseTag = `claude-code-${version}-${releaseId}`
+  const promptReviewUrl = `https://github.com/${githubSlug}/releases/download/${releaseTag}/prompt-review.md`
+  const releaseNotes = `# ${base}
 
 Target: \`${UPSTREAM_PACKAGE}@${version}\`
 Patch release: \`${releaseId}\`
@@ -126,13 +137,21 @@ Artifact:
 Nix/Home Manager should use the source tag \`github:${githubSlug}/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:${githubSlug}/claude-code-latest\` when \`nix flake update\` should follow the latest patched source.
 The tarball remains available for non-flake/manual installs.
 
-${promptReview}
-`,
-  )
+Full structured prompt review: [\`prompt-review.md\`](${promptReviewUrl})
+
+${promptReviewBody}
+`
+  if (releaseNotes.length > GITHUB_RELEASE_BODY_MAX_CHARACTERS) {
+    throw new Error(
+      `release notes exceed GitHub's ${GITHUB_RELEASE_BODY_MAX_CHARACTERS}-character body limit: ${releaseNotes.length}`,
+    )
+  }
+  writeFileSync(notesPath, releaseNotes)
 
   console.error(`wrote ${tarball}`)
   console.error(`wrote ${releaseManifestPath}`)
   console.error(`wrote ${notesPath}`)
+  console.error(`wrote ${promptReviewPath}`)
   return 0
 }
 

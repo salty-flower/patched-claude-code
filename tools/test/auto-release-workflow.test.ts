@@ -45,6 +45,7 @@ test("auto-release reuses rendered bundle across release checks", () => {
   expect(previousCatalogStep).toContain("git fetch --no-tags origin")
   expect(packageStep).toContain('just _package-rendered "${{ steps.detect.outputs.version }}" "patch.1"')
   expect(packageStep).toContain("steps.identity.outputs.status == 'ready-existing'")
+  expect(workflow).toContain("dist/prompt-review.md")
 })
 
 test("auto-release commits only exact-only identity transitions to a bot PR", () => {

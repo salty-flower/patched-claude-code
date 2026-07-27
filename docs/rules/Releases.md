@@ -15,6 +15,7 @@ version.
 | Bundle | `cli.js` at the release tag root and inside the artifact |
 | Runtime helper | `runtime/system-prompt-overrides.ts` at the release tag root and inside the artifact |
 | Prompt catalog | Partial static audit catalog at `prompts/catalog/` on every release surface |
+| Release notes | Size-bounded `release-notes.md` plus complete bundle-bound `prompt-review.md` |
 | Runtime | Bun supplied by the consumer |
 | Native package | Canonicalized from Claude direct-download `darwin-arm64` and `linux-x64` native binaries |
 | Manifest | `manifest.json` in the tagged tree and artifact, plus `<artifact>.manifest.json` beside it |
@@ -35,6 +36,7 @@ A release MUST pass:
 | Smoke | `just smoke <version>` |
 | Patch tests | `just patch-test <version>` |
 | Package | `just package <version> patch.<n>` |
+| Prompt review notes | `test -s dist/release-notes.md` and `rg -q '^## Prompt review$' dist/release-notes.md` |
 | Source tag | `just release-source <version> patch.<n>` |
 
 Release artifacts MUST include a raw SHA-256 hash for non-flake fixed-output
@@ -47,6 +49,15 @@ The prompt catalog MUST be bound to the exact upstream and patched bundle
 hashes. Classified contextual and opaque gaps MAY ship. Missing catalogs,
 unclassified discovered candidates, hash mismatches, or artifact parity drift
 MUST block release.
+
+Release notes MUST be generated from the patched bundle's prompt catalog and
+the checked-in identity ledger. They MUST include one inline unchanged list and
+collapsible side-by-side hunks for changed, traced lineages. When a lower
+identity ledger exists, CI and release workflows MUST fetch its newest source
+tag before packaging; a missing previous catalog MUST block the release.
+The GitHub release body MUST remain below the API's 125,000-character limit.
+Large diff rows MAY be clipped in that body only when the complete generated
+review is published as the `prompt-review.md` release asset.
 
 Every discovered prompt occurrence MUST have exactly one committed lineage
 decision in `prompt-identities/`. Missing, stale, ambiguous, duplicate, or
@@ -83,6 +94,11 @@ identity state against the newest lower finalized ledger:
   audit result, then block. Partial scores MUST NOT enter the bot commit path.
 
 The workflow MUST NOT publish from an unmerged generated ledger.
+
+CI MUST run the release audit's prompt-review check and upload both
+`dist/release-notes.md` and `dist/prompt-review.md` with the patched-bundle
+artifact. Release and auto-release workflows MUST use the same generated notes
+for GitHub publishing and attach the complete prompt review.
 
 Scheduled polling MUST promote that tag only after npm latest and direct latest
 converge and `TARGET_SOURCE=canonical just release-dry <version> patch.1`

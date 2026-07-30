@@ -22,6 +22,7 @@
           && builtins.pathExists ./manifest.json
           && builtins.pathExists ./package.json
           && builtins.pathExists ./bin/claude-patched
+          && builtins.pathExists ./runtime/macos-keychain.ts
           && builtins.pathExists ./runtime/system-prompt-overrides.ts
           && builtins.pathExists ./prompts/catalog/manifest.json;
         releaseManifest =
@@ -48,6 +49,7 @@
             || path == "${root}/bin"
             || path == "${root}/bin/claude-patched"
             || path == "${root}/runtime"
+            || path == "${root}/runtime/macos-keychain.ts"
             || path == "${root}/runtime/system-prompt-overrides.ts"
             || path == "${root}/prompts"
             || path == "${root}/prompts/catalog"
@@ -67,6 +69,7 @@
               installPhase = ''
                 runHook preInstall
                 install -Dm0644 cli.js "$out/lib/patched-claude-code/cli.js"
+                install -Dm0644 runtime/macos-keychain.ts "$out/lib/patched-claude-code/macos-keychain.ts"
                 install -Dm0644 runtime/system-prompt-overrides.ts "$out/lib/patched-claude-code/system-prompt-overrides.ts"
                 install -Dm0644 manifest.json "$out/share/patched-claude-code/manifest.json"
                 install -Dm0644 package.json "$out/share/patched-claude-code/package.json"

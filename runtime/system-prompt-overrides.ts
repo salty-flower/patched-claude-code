@@ -1,3 +1,5 @@
+import "./macos-keychain"
+
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"

@@ -110,3 +110,5 @@ just release-dry 2.1.181 patch.local
 Versions and patch authoring workflow: see [`docs/guides/Adding-Patches.md`](docs/guides/Adding-Patches.md).
 Release and installation workflow: see [`docs/guides/Releasing.md`](docs/guides/Releasing.md)
 and [`docs/guides/Installing.md`](docs/guides/Installing.md).
+Per-process macOS credential isolation: see
+[`docs/guides/macOS-Keychain-Isolation.md`](docs/guides/macOS-Keychain-Isolation.md).

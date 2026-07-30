@@ -157,13 +157,19 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
       sha256: catalog.treeSha256,
     },
   }
-  const runtimeSource = join(options.root, "runtime", "system-prompt-overrides.ts")
-  const runtimeOutput = join(options.outDir, "runtime", "system-prompt-overrides.ts")
-  if (!existsSync(runtimeSource)) throw new Error(`runtime helper missing: ${runtimeSource}`)
+  const runtimeFiles = ["macos-keychain.ts", "system-prompt-overrides.ts"]
+  for (const file of runtimeFiles) {
+    const source = join(options.root, "runtime", file)
+    if (!existsSync(source)) throw new Error(`runtime helper missing: ${source}`)
+  }
 
   mkdirSync(join(options.outDir, "bin"), { recursive: true })
   mkdirSync(join(options.outDir, "runtime"), { recursive: true })
-  if (resolve(runtimeSource) !== resolve(runtimeOutput)) copyFileSync(runtimeSource, runtimeOutput)
+  for (const file of runtimeFiles) {
+    const source = join(options.root, "runtime", file)
+    const output = join(options.outDir, "runtime", file)
+    if (resolve(source) !== resolve(output)) copyFileSync(source, output)
+  }
   writeFileSync(join(options.outDir, "cli.js"), cliBytes, { mode: 0o644 })
   writeFileSync(join(options.outDir, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n")
   writeFileSync(

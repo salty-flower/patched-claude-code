@@ -52,6 +52,10 @@ jobs:
               head="$SHA"
             fi
 
+            if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+              base="$(git rev-parse "${head}^")"
+            fi
+
             git diff --name-only "$base" "$head" > changed-files.txt
             if [[ ! -s changed-files.txt ]]; then
               full=true
@@ -129,12 +133,18 @@ jobs:
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             base="$PR_BASE_SHA"
             head="$PR_HEAD_SHA"
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            head="$SHA"
+            base="$(git rev-parse "${head}^")"
           elif [[ -n "${BEFORE:-}" && ! "$BEFORE" =~ ^0+$ ]]; then
             base="$BEFORE"
             head="$SHA"
           else
             base="$(git rev-list --max-parents=0 "$SHA")"
             head="$SHA"
+          fi
+          if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            base="$(git rev-parse "${head}^")"
           fi
           git diff --check "$base" "$head"
 
@@ -188,11 +198,15 @@ jobs:
           jq -e '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
             "staging/${TARGET_VERSION}/canonical/platform-merge-report.json"
 
-      - name: Upload canonical report
+      - name: Upload canonical stage
         uses: actions/upload-artifact@v6
         with:
-          name: canonical-platform-merge-ubuntu-24.04-${{ env.TARGET_VERSION }}
-          path: staging/${{ env.TARGET_VERSION }}/canonical/platform-merge-report.json
+          name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
+          path: |
+            staging/${{ env.TARGET_VERSION }}/cli.js
+            staging/${{ env.TARGET_VERSION }}/stage-manifest.json
+            staging/${{ env.TARGET_VERSION }}/canonical/cli.js
+            staging/${{ env.TARGET_VERSION }}/canonical/platform-merge-report.json
           if-no-files-found: error
 
   canonical-platform-merge-macos:
@@ -245,7 +259,7 @@ jobs:
           if-no-files-found: error
 
   verify:
-    needs: changes
+    needs: [changes, canonical-platform-merge]
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-24.04
     steps:
@@ -258,7 +272,7 @@ jobs:
       - name: Install missing Ubuntu tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y just
+          sudo apt-get install -y just ripgrep
 
       - name: Tool availability
         run: |
@@ -270,6 +284,7 @@ jobs:
           git --version
           tar --version
           curl --version
+          rg --version
           sha256sum --version
           node --version
           npm --version
@@ -280,6 +295,12 @@ jobs:
 
       - name: Typecheck tools
         run: just typecheck
+
+      - name: Reuse canonical stage
+        uses: actions/download-artifact@v6
+        with:
+          name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
+          path: staging/${{ env.TARGET_VERSION }}
 
       - name: Fetch previous prompt catalog source tag
         shell: bash
@@ -332,6 +353,7 @@ jobs:
             manifest.json
             package.json
             bin/claude-patched
+            runtime/macos-keychain.ts
             runtime/system-prompt-overrides.ts
             prompts/catalog/
           if-no-files-found: error

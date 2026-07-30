@@ -42,10 +42,10 @@ test("tool tests receive the selected target version", () => {
 test("release dry target reuses the rendered bundle", () => {
   const recipe = recipeBlock("release-dry")
 
-  expect(recipe).toContain("(render version source)")
-  expect(recipe).toContain("(smoke-rendered version)")
-  expect(recipe).toContain("(_patch-test-rendered version)")
-  expect(recipe).toContain("(_package-rendered version release_id)")
+  expect(recipe).toContain('just render "{{version}}" "{{source}}"')
+  expect(recipe).toContain('just smoke-rendered "{{version}}"')
+  expect(recipe).toContain('just _patch-test-rendered "{{version}}"')
+  expect(recipe).toContain('just _package-rendered "{{version}}" "{{release_id}}"')
   expect(recipe).not.toContain("(smoke version source)")
   expect(recipe).not.toContain("(patch-test version source)")
   expect(recipe).not.toContain("(package version release_id source)")

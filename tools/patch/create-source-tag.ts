@@ -81,6 +81,7 @@ function main(): number {
     { path: "manifest.json", mode: "100644", required: true },
     { path: "package.json", mode: "100644", required: true },
     { path: "bin/claude-patched", mode: "100755", required: true },
+    { path: "runtime/macos-keychain.ts", mode: "100644", required: true },
     { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
     { path: "flake.nix", mode: "100644", required: true },
     { path: "flake.lock", mode: "100644", required: false },

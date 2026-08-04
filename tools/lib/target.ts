@@ -1,6 +1,6 @@
 import { InvalidArgumentError } from "commander"
 
-export const DEFAULT_TARGET_VERSION = "2.1.220"
+export const DEFAULT_TARGET_VERSION = "2.1.221"
 export const TARGET_SOURCES = ["canonical", "npm", "direct"] as const
 
 export type TargetSource = (typeof TARGET_SOURCES)[number]

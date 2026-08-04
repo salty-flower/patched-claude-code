@@ -824,6 +824,98 @@ name = "2.1.220 ask-user gate no longer carries 2.1.218 symbols"
 assert_not_contains = '''wR().length>0&&_n()'''
 
 [[patches]]
+name = "ask-user-question-channels-gate-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.221 minified-symbol variant of
+`ask-user-question-channels-gate`. The shared channel predicate now minifies
+to `rk().length>0&&Tn()` (rk reads Ft.allowedChannels, Tn is !Ft.isInteractive)
+with an added middle predicate `if(Tn()&&!Ype())return!1`, and remains inline
+on the ExitPlanMode tool definition. EnterPlanMode mirrors ExitPlanMode via
+`isEnabled(){return Sj.isEnabled()}` and is covered transitively. AskUserQuestion
+now delegates to the shared helper `W_t` and is patched by the sibling
+`ask-user-question-channels-gate-2-1-221-askuser` entry; `W_t` itself also
+gates whiteboard/prototype skill availability and plan-mode instructions, so
+its body is intentionally left intact.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["rk().length>0&&Tn()", "return!1;return!0"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.221"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 ask-user gate no longer carries 2.1.220 symbols"
+assert_not_contains = '''k0().length>0&&_n()'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-221-askuser"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.221 AskUserQuestion delegation-site variant of
+`ask-user-question-channels-gate`. In 2.1.221 AskUserQuestion's isEnabled
+delegates to the shared channel predicate helper `W_t` as
+`isEnabled(){return W_t()}` instead of inlining the gate. This entry replaces
+that delegation site so AskUserQuestion stays available when --channels is
+populated. The `W_t` body is left intact because the same helper gates
+whiteboard/prototype skill availability and plan-mode instructions.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", string = "return W_t()" }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.221"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "AskUserQuestion delegation site is replaced in 2.1.221"
+assert_not_contains = '''return W_t()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 ask-user gate no longer carries 2.1.220 symbols"
+assert_not_contains = '''k0().length>0&&_n()'''
+
+[[patches]]
 name = "channels-feature-gate"
 target_version = "2.1.133"
 applies_to = ">=2.1.133 <2.2.0"

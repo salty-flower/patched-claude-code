@@ -98,6 +98,13 @@ function getStreamHandlerThinkingPatch(body: string): { callback: string; deltaC
 }
 
 test("thinking deltas update the stream handler's live thinking callback", () => {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.221")) {
+    expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:xma(w)})')
+    expect(patched).not.toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:HVs(w)})')
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.220")) {
     expect(patched).toContain('t.onStreamingThinking?.((p)=>({thinking:(p?.thinking??"")+w,isStreaming:!0}))')
     expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:HVs(w)})')
@@ -233,7 +240,12 @@ test("main-screen thinking display uses the same live state as transcript render
 }, 120000)
 
 test("live thinking rendering is not suppressed by brief mode", () => {
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.220")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.221")) {
+    expect(patched).toContain('case"thinking":{if(!1){return null}')
+    expect(patched).not.toContain('case"thinking":{if(!Uwt&&!$oe){return null}')
+    expect(patched).toContain("let ZVk=!0;")
+    expect(patched).not.toContain("let ZVk=xCf||ICf;")
+  } else if (isVersionAtLeast(TARGET_VERSION, "2.1.220")) {
     expect(patched).toContain('case"thinking":{if(!1){return null}')
     expect(patched).not.toContain('case"thinking":{if(!Vyt&&!gre){return null}')
     expect(patched).toContain("let K4R=!0;")

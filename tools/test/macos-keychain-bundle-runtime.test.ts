@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
 import { join } from "node:path"
 import { targetVersion } from "../lib/target"
@@ -9,9 +9,32 @@ import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } f
 
 const ROOT = join(import.meta.dir, "..", "..")
 const BUNDLE = join(ROOT, "staging", targetVersion(), "cli.patched.js")
+// These tests exercise the rendered patched bundle. The bump lane runs the
+// tool-test step before render, so skip when the rendered bundle is absent;
+// CI and the release lane always render before tests.
+const RENDERED = existsSync(BUNDLE)
 const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
 const tempDirs: string[] = []
+
+function compareVersions(left: string, right: string): number {
+  const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
+  const leftParts = parts(left)
+  const rightParts = parts(right)
+
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const leftPart = leftParts[index] ?? 0
+    const rightPart = rightParts[index] ?? 0
+    if (leftPart > rightPart) return 1
+    if (leftPart < rightPart) return -1
+  }
+
+  return 0
+}
+
+function isVersionAtLeast(version: string, floor: string): boolean {
+  return compareVersions(version, floor) >= 0
+}
 
 type SecurityResult = {
   exitCode: number
@@ -162,26 +185,26 @@ async function runBundle(
 }
 
 function injectCredentialHarness(source: string): string {
-  const entrypoint = /\bsTT\(\);var __acc_linux_/
+  const entrypoint = /\bQhv\(\);var __acc_linux_/
   const matches = source.match(new RegExp(entrypoint.source, "g")) ?? []
   if (matches.length !== 1) {
-    throw new Error(`expected one 2.1.220 CLI entrypoint, found ${matches.length}`)
+    throw new Error(`expected one ${targetVersion()} CLI entrypoint, found ${matches.length}`)
   }
 
-  const harness = String.raw`vyi();(async()=>{try{
-    await dze();
+  const harness = String.raw`OV();(async()=>{try{
+    await ZJe();
     let e=process.env.CLAUDE_KEYCHAIN_HARNESS_ACTION,t=(r)=>{process.stdout.write(JSON.stringify(r)+"\n");process.exit(0)};
-    if(e==="oauth-write-refresh"){let r={accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_A,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_A,expiresAt:Date.now()+36e5,scopes:["user:inference","user:profile"],subscriptionType:"pro",rateLimitTier:null},n=await Wer(r),o=await Wer({...r,accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_B,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_B}),i=await(zs().readAsyncStrict?.()??zs().readAsync());return t({first:n.success,second:o.success,stored:i?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_ACCESS_B})}
-    if(e==="oauth-read"){let r=await(zs().readAsyncStrict?.()??zs().readAsync());return t({empty:Object.keys(r??{}).length===0,selected:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
-    if(e==="secure-delete"){let r=await zs().delete(),n=await(zs().readAsyncStrict?.()??zs().readAsync());return t({deleted:r,empty:Object.keys(n??{}).length===0})}
-    if(e==="mutate"){let r=process.env.CLAUDE_KEYCHAIN_MUTATION_FIELD,n=process.env.CLAUDE_KEYCHAIN_MUTATION_VALUE;if(!r||!n)throw Error("missing mutation input");let o=await zs().mutate((i)=>{let s=Date.now()+250;while(Date.now()<s){}return{...i,[r]:n}});return t({success:o.success})}
-    if(e==="legacy-write"){await dJi(process.env.CLAUDE_KEYCHAIN_LEGACY_KEY);let r=QIt();return t({stored:r?.key===process.env.CLAUDE_KEYCHAIN_LEGACY_KEY})}
-    if(e==="legacy-delete"){await Meu();let r=QIt();return t({deleted:r===null})}
-    if(e==="legacy-read"){let r=QIt(),n=await oGr(),o=process.env.CLAUDE_KEYCHAIN_LEGACY_KEY;return t({sync:r?.key===o,async:n?.key===o})}
-    if(e==="legacy-guard"){let r=QIt(),n=await oGr();return t({sync:r===null,async:n===null})}
-    if(e==="session-resume"){zmp();let r=await Bmp({load:async()=>[{}]},globalThis.crypto.randomUUID(),process.cwd(),process.env);if(!r)throw Error("SessionStore resume did not materialize");let n;try{let o=JSON.parse(await Bun.file(r+"/.credentials.json").text());n={selected:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS,refreshStripped:o?.claudeAiOauth?.refreshToken===void 0}}finally{await c4o(r)}return t(n)}
-    if(e==="plugin-eval"){aOp();let r=process.env.CLAUDE_KEYCHAIN_PLUGIN_CONFIG_DIR;if(!r)throw Error("missing plugin config directory");await yP.mkdir(r,{recursive:!0});await sOp({configDir:r});let n=JSON.parse(await Bun.file(r+"/.credentials.json").text());return t({selected:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
-    if(e==="doctor-probe"){let r=await I9y();return t({healthy:r===null})}
+    if(e==="oauth-write-refresh"){let r={accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_A,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_A,expiresAt:Date.now()+36e5,scopes:["user:inference","user:profile"],subscriptionType:"pro",rateLimitTier:null},n=await Ulr(r),o=await Ulr({...r,accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_B,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_B}),i=await(oa().readAsyncStrict?.()??oa().readAsync());return t({first:n.success,second:o.success,stored:i?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_ACCESS_B})}
+    if(e==="oauth-read"){let r=await(oa().readAsyncStrict?.()??oa().readAsync());return t({empty:Object.keys(r??{}).length===0,selected:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
+    if(e==="secure-delete"){let r=await oa().delete(),n=await(oa().readAsyncStrict?.()??oa().readAsync());return t({deleted:r,empty:Object.keys(n??{}).length===0})}
+    if(e==="mutate"){let r=process.env.CLAUDE_KEYCHAIN_MUTATION_FIELD,n=process.env.CLAUDE_KEYCHAIN_MUTATION_VALUE;if(!r||!n)throw Error("missing mutation input");let o=await oa().mutate((i)=>{let s=Date.now()+250;while(Date.now()<s){}return{...i,[r]:n}});return t({success:o.success})}
+    if(e==="legacy-write"){await ups(process.env.CLAUDE_KEYCHAIN_LEGACY_KEY);let r=qLt();return t({stored:r?.key===process.env.CLAUDE_KEYCHAIN_LEGACY_KEY})}
+    if(e==="legacy-delete"){await iwu();let r=qLt();return t({deleted:r===null})}
+    if(e==="legacy-read"){let r=qLt(),n=await IZr(),o=process.env.CLAUDE_KEYCHAIN_LEGACY_KEY;return t({sync:r?.key===o,async:n?.key===o})}
+    if(e==="legacy-guard"){let r=qLt(),n=await IZr();return t({sync:r===null,async:n===null})}
+    if(e==="session-resume"){$Vp();let r=await IVp({load:async()=>[{}]},globalThis.crypto.randomUUID(),process.cwd(),process.env);if(!r)throw Error("SessionStore resume did not materialize");let n;try{let o=JSON.parse(await Bun.file(r+"/.credentials.json").text());n={selected:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS,refreshStripped:o?.claudeAiOauth?.refreshToken===void 0}}finally{await OXo(r)}return t(n)}
+    if(e==="plugin-eval"){Kuf();let r=process.env.CLAUDE_KEYCHAIN_PLUGIN_CONFIG_DIR;if(!r)throw Error("missing plugin config directory");await rM.mkdir(r,{recursive:!0});await Vuf({configDir:r});let n=JSON.parse(await Bun.file(r+"/.credentials.json").text());return t({selected:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
+    if(e==="doctor-probe"){let r=await h2b();return t({healthy:r===null})}
     throw Error("unknown harness action")
   }catch(e){console.error(e?.stack??String(e));process.exit(1)}})()`
   return source.replace(entrypoint, `${harness};var __acc_linux_`)
@@ -193,7 +216,7 @@ function writeHarnessBundle(dir: string): string {
   return path
 }
 
-test.skipIf(process.platform !== "darwin")(
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
   "raw and preloaded bundles fail closed before credential lookup",
   async () => {
     const home = makeTempDir("patched-cc-keychain-raw-")
@@ -244,7 +267,7 @@ test.skipIf(process.platform !== "darwin")(
   30_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
   "public Keychain selection outranks materialized mode for OAuth lookup",
   async () => {
     const home = makeTempDir("patched-cc-keychain-oauth-priority-")
@@ -288,8 +311,8 @@ test.skipIf(process.platform !== "darwin")(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
-  "rendered 2.1.220 OAuth saver refresh and delete use only the selected Keychain",
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
+  `rendered ${targetVersion()} OAuth saver refresh and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-saver-")
     const configDir = prepareProfile(home)
@@ -340,8 +363,8 @@ test.skipIf(process.platform !== "darwin")(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
-  "rendered 2.1.220 serializes concurrent secure-storage mutations across processes",
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
+  `rendered ${targetVersion()} serializes concurrent secure-storage mutations across processes`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-atomic-")
     const configDir = prepareProfile(home)
@@ -377,8 +400,8 @@ test.skipIf(process.platform !== "darwin")(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
-  "rendered 2.1.220 SessionStore resume and plugin eval materialize only selected credentials",
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
+  `rendered ${targetVersion()} SessionStore resume and plugin eval materialize only selected credentials`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialize-")
     const configDir = prepareProfile(home)
@@ -449,7 +472,7 @@ test.skipIf(process.platform !== "darwin")(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
   "real plugin eval child uses materialized selected-Keychain credentials without preload",
   async () => {
     const home = makeTempDir("patched-cc-keychain-plugin-eval-")
@@ -529,8 +552,8 @@ test.skipIf(process.platform !== "darwin")(
   90_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
-  "rendered 2.1.220 legacy API-key save lookup and delete use only the selected Keychain",
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
+  `rendered ${targetVersion()} legacy API-key save lookup and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-legacy-")
     const configDir = prepareProfile(home)
@@ -593,7 +616,7 @@ test.skipIf(process.platform !== "darwin")(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
   "materialized mode rejects default-Keychain legacy mutations and doctor probes",
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialized-closed-")
@@ -645,8 +668,8 @@ test.skipIf(process.platform !== "darwin")(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
-  "rendered 2.1.220 doctor probe never touches the default Keychain",
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
+  `rendered ${targetVersion()} doctor probe never touches the default Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-doctor-")
     prepareProfile(home)
@@ -675,8 +698,8 @@ test.skipIf(process.platform !== "darwin")(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin")(
-  "rendered 2.1.220 auth lookup and TUI startup use the process-selected Keychain",
+test.skipIf(process.platform !== "darwin" || !RENDERED)(
+  `rendered ${targetVersion()} auth lookup and TUI startup use the process-selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-tui-")
     const configDir = prepareProfile(home)
@@ -714,9 +737,12 @@ test.skipIf(process.platform !== "darwin")(
         stderr: "pipe",
       })
       expect(status.exitCode).toBe(0)
+      // 2.1.221 upstream renamed the auth status shape: authMethod now reports
+      // the credential type ("oauth_token") alongside apiProvider "firstParty".
+      const expectedAuthMethod = isVersionAtLeast(targetVersion(), "2.1.221") ? "oauth_token" : "claude.ai"
       expect(JSON.parse(status.stdout.toString())).toMatchObject({
         loggedIn: true,
-        authMethod: "claude.ai",
+        authMethod: expectedAuthMethod,
       })
 
       const env = shellEnvironment({

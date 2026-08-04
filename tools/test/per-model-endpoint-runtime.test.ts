@@ -40,7 +40,7 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
     throw new Error("could not locate bundled Anthropic client symbols")
   }
   const initializerMatches = [
-    ...source.slice(0, classMatch.index).matchAll(/var ([A-Za-z_$][\w$]*)=(?:b|T|S)\(\(\)=>\{/g),
+    ...source.slice(0, classMatch.index).matchAll(/var ([A-Za-z_$][\w$]*)=(?:b|T|S|v)\(\(\)=>\{/g),
   ]
   const initializerMatch = initializerMatches.at(-1)
   if (!initializerMatch?.[1]) {

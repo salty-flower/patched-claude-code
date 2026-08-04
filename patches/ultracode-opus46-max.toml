@@ -4228,3 +4228,507 @@ assert_contains = '''let n=yi(),o=dJ(n)?"xhigh":dJ()&&C6e(n)&&A6e("max",n)?"max"
 kind = "static"
 name = "2.1.215 effort notification drops 2.1.212 symbols"
 assert_not_contains = '''let n=xi(),o=$Y(n)?"xhigh":$Y()&&E9e(n)&&v9e("max",n)?"max":"xhigh"'''
+
+[[patches]]
+name = "ultracode-startup-settings-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Resolve startup settings ultracode to xhigh or max based on the active model.
+
+This is the 2.1.221 minified-symbol variant. The startup parser is now `lrs`,
+active model resolution is `Gi`, xhigh support is `bTe`, workflow availability
+is `Ate()`, max support is `eVe`, and organization cap checking is `tVe`.
+Cleanup condition: upstream normalizes ultracode effort during startup settings
+parsing.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lrs", source = '''function lrs(e){let t=qW(e.cli.effort)??Glo(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0)return"xhigh";return Qze(e.settings.effortLevel)}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=qW(e.cli.effort)??Glo(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let r=Gi();return bTe(r)?"xhigh":Ate()&&eVe(r)&&tVe("max",r)?"max":"high"}return Qze(e.settings.effortLevel)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "startup settings use 2.1.221 ultracode symbols"
+assert_contains = '''function lrs(e){let t=qW(e.cli.effort)??Glo(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let r=Gi();return bTe(r)?"xhigh"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 startup variant drops 2.1.215 symbols"
+assert_not_contains = '''function eOi(e){let t=C6(e.cli.effort)??oqn(e.cli.effort)'''
+
+[[patches]]
+name = "ultracode-effort-command-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Use the active model's highest supported ultracode effort in `/effort ultracode`.
+
+This is the 2.1.221 minified-symbol variant. The command helper is now `$Rb`;
+workflow availability is `Ate()`, xhigh support is `bTe`, max support is `eVe`,
+organization cap checking is `tVe`, and valid options come from `K7o`. Cleanup
+condition: upstream applies the same model-aware ultracode effort selection.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L51-L65"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$Rb", strings = ["Ultracode needs dynamic workflows enabled", "Ultracode runs at xhigh effort"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let r=Gi(),n=bTe(r)?"xhigh":Ate()&&eVe(r)&&tVe("max",r)?"max":void 0;if(!Ate())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${K7o(r)}`};if(!n)return{message:`Ultracode is not supported for ${r}. Valid options are: ${K7o(r)}`};if(!e&&Qxe(r))return{message:`Not applied: the launch-effort pin holds effort at ${iut(r)} this session, and ultracode needs ${n}. Run /effort ultracode in an interactive terminal to release the pin.`};t?.({value:n,ultracode:!0});let o=Aua(n,!0);if(e)jW();N("tengu_effort_command",{effort:Re("ultracode"),is_remote:Tu()!==null});let s=Tu()?void 0:nut();return s!==void 0&&s!==n?{message:`CLAUDE_CODE_EFFORT_LEVEL=${process.env.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session \u2014 clear it and ultracode takes over`,effortUpdate:{value:n,ultracode:!0}}:{message:`Set effort level to ultracode (this session only): ${n} + dynamic workflow orchestration${o??""}`,effortUpdate:{value:n,ultracode:!0}}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "effort command uses 2.1.221 ultracode symbols"
+assert_contains = '''function $Rb(e,t){let r=Gi(),n=bTe(r)?"xhigh":Ate()&&eVe(r)&&tVe("max",r)?"max":void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 effort command drops 2.1.215 symbols"
+assert_not_contains = '''function q5_(e,t){let r=yi(),n=dJ(r)?"xhigh"'''
+
+[[patches]]
+name = "ultracode-model-picker-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Set model-picker ultracode state to xhigh or max based on the active model.
+
+This is the 2.1.221 minified-symbol variant. The model picker helper is now
+`wIS`; model and effort compatibility are resolved through `Gi`, `bTe`, `Ate`,
+`eVe`, and `tVe`. Cleanup condition: upstream stores ultracode's
+model-compatible effort value.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wIS", source = '''function wIS(ZOx){return{...ZOx,effortValue:"xhigh",ultracode:!0}}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=Gi(),r=bTe(t)?"xhigh":Ate()&&eVe(t)&&tVe("max",t)?"max":"high";return{...ZOx,effortValue:r,ultracode:!0}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model picker uses 2.1.221 ultracode symbols"
+assert_contains = '''function wIS(ZOx){let t=Gi(),r=bTe(t)?"xhigh"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 model picker drops 2.1.215 symbols"
+assert_not_contains = '''function O5y(pg0){let t=yi(),r=dJ(t)?"xhigh"'''
+
+[[patches]]
+name = "ultracode-flag-settings-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Set apply_flag_settings ultracode state to xhigh or max based on the active model.
+
+This is the 2.1.221 minified-symbol variant. The control-request state update
+uses locals `ia` and `td`; the replacement computes the compatible effort from
+the current active model with `Gi`, `bTe`, `Ate`, `eVe`, and `tVe`. Cleanup
+condition: upstream normalizes ultracode effort in the flag-settings control
+path.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", source = '''(ia)=>{if(ia.ultracode===td&&(!td||ia.effortValue==="xhigh"))return ia;return{...ia,ultracode:td,effortValue:td?"xhigh":ia.effortValue}}''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''if(ia.ultracode===td&&(!td||ia.effortValue==="xhigh"))return ia;return{...ia,ultracode:td,effortValue:td?"xhigh":ia.effortValue}'''
+value = '''let __acc_ultra_model=Gi(),__acc_ultra_effort=bTe(__acc_ultra_model)?"xhigh":Ate()&&eVe(__acc_ultra_model)&&tVe("max",__acc_ultra_model)?"max":"high";if(ia.ultracode===td&&(!td||ia.effortValue===__acc_ultra_effort))return ia;return{...ia,ultracode:td,effortValue:td?__acc_ultra_effort:ia.effortValue}'''
+
+[[patches.tests]]
+kind = "static"
+name = "flag settings use 2.1.221 ultracode symbols"
+assert_contains = '''let __acc_ultra_model=Gi(),__acc_ultra_effort=bTe(__acc_ultra_model)?"xhigh"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 flag settings drop 2.1.215 symbols"
+assert_not_contains = '''let __acc_ultra_model=yi(),__acc_ultra_effort=dJ(__acc_ultra_model)?"xhigh"'''
+
+[[patches]]
+name = "ultracode-settings-report-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Report ultracode as active when its effective Opus 4.6 effort is max.
+
+This is the 2.1.221 minified-symbol variant. The settings report helper is now
+`$J`, the effective effort resolver is `hae`, workflow availability is `Ate()`,
+and max support is `eVe`. Cleanup condition: upstream reports ultracode
+independently from the exact compatible effort string.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$J", source = '''function $J(e,t,r){return r===!0&&oR()&&hae(e,t)==="xhigh"}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let n=hae(e,t);return r===!0&&Ate()&&(n==="xhigh"||n==="max"&&eVe(e))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "settings report uses 2.1.221 ultracode symbols"
+assert_contains = '''function $J(e,t,r){let n=hae(e,t);return r===!0&&Ate()&&(n==="xhigh"||n==="max"&&eVe(e))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 settings report drops 2.1.215 symbols"
+assert_not_contains = '''function qte(e,t,r){let n=Ute(e,t);return r===!0&&dJ()'''
+
+[[patches]]
+name = "xhigh-settings-opus-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Resolve persisted or session xhigh to max when the active model cannot use xhigh.
+
+This is the 2.1.221 minified-symbol variant. The applied-effort resolver is now
+`hae`, xhigh support is `bTe`, max support is `eVe`, and organization cap
+checking is `tVe`. Cleanup condition: upstream maps unsupported xhigh to the
+model's highest compatible effort rather than always clamping to high.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "hae", source = '''function hae(e,t){if(!gO(e))return;let r=Qxe(e),n=iut(e),o=nut();if(o===null&&!r)return;let s=o??(r?n:void 0)??t??n;if(typeof s==="string"&&Jxe(s))s=Xxe(s,e);if(s==="max"&&!eVe(e))s="high";if(s==="xhigh"&&!bTe(e))s="high";return s}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{if(!gO(e))return;let r=Qxe(e),n=iut(e),o=nut();if(o===null&&!r)return;let s=o??(r?n:void 0)??t??n;if(typeof s==="string"&&Jxe(s))s=Xxe(s,e);if(s==="max"&&!eVe(e))s="high";if(s==="xhigh"&&!bTe(e))s=eVe(e)&&tVe("max",e)?"max":"high";return s}'''
+
+[[patches.tests]]
+kind = "static"
+name = "xhigh settings use 2.1.221 effort symbols"
+assert_contains = '''if(s==="xhigh"&&!bTe(e))s=eVe(e)&&tVe("max",e)?"max":"high"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 applied effort drops 2.1.215 symbols"
+assert_not_contains = '''if(s==="xhigh"&&!$he(e))s=C6e(e)&&A6e("max",e)?"max":"high"'''
+
+[[patches]]
+name = "ultracode-help-menu-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Show ultracode in `/effort help` for max-capable non-xhigh models.
+
+This is the 2.1.221 minified-symbol variant. The help function is now `Y7o`;
+valid efforts come from `PFe`, xhigh compatibility from `bTe`, workflow
+availability from `Ate()`, max support from `eVe`, and organization cap checking
+from `tVe`. Cleanup condition: upstream uses a model-compatible ultracode
+availability predicate for help text.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Y7o", strings = ["Usage: /effort", "- ultracode: xhigh + dynamic workflow orchestration"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let e=Gi(),t=bTe(e)||Ate()&&eVe(e)&&tVe("max",e),r=PFe(e),n=bTe(e)?"xhigh":"max";return`Usage: /effort [${r.join("|")}${t?"|ultracode":""}|auto]\n\nEffort levels:\n`+r.map((o)=>`- ${o}: ${MRb[o]}\n`).join("")+(t?`- ultracode: ${n} + dynamic workflow orchestration (this session only)\n`:"")+"- auto: Use the default effort level for your model"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "effort help uses 2.1.221 ultracode symbols"
+assert_contains = '''function Y7o(){let e=Gi(),t=bTe(e)||Ate()&&eVe(e)&&tVe("max",e)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 effort help drops 2.1.215 symbols"
+assert_not_contains = '''function WRo(){let e=yi(),t=dJ(e)||dJ()&&C6e(e)&&A6e("max",e)'''
+
+[[patches]]
+name = "ultracode-valid-options-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Include ultracode in valid-options text for max-compatible models.
+
+This is the 2.1.221 minified-symbol variant. The valid-options helper is now
+`K7o`, with valid efforts from `PFe` and compatibility from `bTe`, `Ate`,
+`eVe`, and `tVe`. Cleanup condition: upstream uses a model-compatible ultracode
+availability predicate in valid options.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "K7o", source = '''function K7o(e){let t=PFe(e),r=Ate(e)?", ultracode":"";return`${t.join(", ")}${r}, auto`}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=PFe(e),r=bTe(e)||Ate()&&eVe(e)&&tVe("max",e)?", ultracode":"";return`${t.join(", ")}${r}, auto`}'''
+
+[[patches.tests]]
+kind = "static"
+name = "valid options use 2.1.221 ultracode symbols"
+assert_contains = '''function K7o(e){let t=PFe(e),r=bTe(e)||Ate()&&eVe(e)&&tVe("max",e)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 valid options drop 2.1.215 symbols"
+assert_not_contains = '''function GRo(e){let t=RPe(e),r=dJ(e)||dJ()&&C6e(e)&&A6e("max",e)'''
+
+[[patches]]
+name = "ultracode-typed-arg-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Parse typed ultracode as max for max-compatible non-xhigh models.
+
+This is the 2.1.221 minified-symbol variant. The typed parser is now `Cua`, and
+it must use the same `bTe`/`Ate`/`eVe`/`tVe` compatibility rule as execution.
+Cleanup condition: upstream parses ultracode through the same model-compatible
+effort selection as execution.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Cua", source = '''function Cua(e,t){let r=e.toLowerCase();if(r==="auto"||r==="unset")return{value:void 0};if(r==="ultracode"&&Ate(t))return{value:"xhigh"};let n=QHt(e);return n?{value:n}:null}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let r=e.toLowerCase();if(r==="auto"||r==="unset")return{value:void 0};if(r==="ultracode"){let n=bTe(t)?"xhigh":Ate()&&eVe(t)&&tVe("max",t)?"max":void 0;if(n)return{value:n}}let n=QHt(e);return n?{value:n}:null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "typed ultracode uses 2.1.221 symbols"
+assert_contains = '''function Cua(e,t){let r=e.toLowerCase();if(r==="auto"||r==="unset")return{value:void 0};if(r==="ultracode"){let n=bTe(t)?"xhigh"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 typed parser drops 2.1.215 symbols"
+assert_not_contains = '''function PIs(e,t){let r=e.toLowerCase();if(r==="auto"||r==="unset")return{value:void 0};if(r==="ultracode"){let n=dJ(t)?"xhigh"'''
+
+[[patches]]
+name = "ultracode-slider-menu-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Add ultracode to the interactive effort slider for max-compatible models.
+
+This is the 2.1.221 minified-symbol variant. The slider geometry function is
+now `$jf`; compatibility is resolved through `bTe`, `Ate`, `eVe`, and `tVe`,
+and label positions still use `XGa`. Cleanup condition: upstream uses a shared
+model-compatible ultracode availability predicate for the slider.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$jf", strings = ["xhigh + workflows", "violet-ripple"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=e?ysr(e):null,r=H$S(t?QD.indexOf(t)+1:QD.length),n=e&&qtu(e)?D$S:void 0,o=bTe(e)||Ate()&&eVe(e)&&tVe("max",e);if(o){let s=bTe(e)?"xhigh":"max",a=r.width+3,l=17,c=[...r.levels,{value:"ultracode",label:"ultracode",color:"violet-ripple"}],u=a+Math.floor(4),d=[...r.spacers,u-r.width];return{levels:c,width:a+17,trianglePositions:[...r.trianglePositions,a+Math.floor(8.5)],labelStarts:XGa(c,d),spacers:d,trackChars:"\u2500".repeat(r.width+1)+"\u2506"+"\u2500".repeat(18),accentStart:r.width+2,sublabel:{text:`${s} + workflows`,start:a},capNote:n}}return{levels:r.levels,width:r.width,trianglePositions:r.trianglePositions,labelStarts:XGa(r.levels,r.spacers),spacers:r.spacers,trackChars:"\u2500".repeat(r.width),capNote:n}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "slider menu uses 2.1.221 ultracode symbols"
+assert_contains = '''function $jf(e){let t=e?ysr(e):null,r=H$S(t?QD.indexOf(t)+1:QD.length)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 slider menu drops 2.1.215 symbols"
+assert_not_contains = '''function mNp(e){let t=e?VVt(e):null,r=qYy(t?hD.indexOf(t)+1:hD.length)'''
+
+[[patches]]
+name = "ultracode-slider-confirm-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Preview max when confirming ultracode on max-compatible non-xhigh models.
+
+This is the 2.1.221 minified-symbol variant. The slider component is now `W$S`;
+the selected model is local `i`, and the selected level object is local `ae`.
+Cleanup condition: upstream derives the confirmation preview from
+model-compatible ultracode effort selection.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "W$S", strings = ['''ae.value==="ultracode"?"xhigh":ae.value''', '''p==="ultracode"?"xhigh":p'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''ae.value==="ultracode"?"xhigh":ae.value'''
+value = '''ae.value==="ultracode"?(bTe(i)?"xhigh":"max"):ae.value'''
+
+[[patches.tests]]
+kind = "static"
+name = "slider confirmation uses 2.1.221 ultracode symbols"
+assert_contains = '''ae.value==="ultracode"?(bTe(i)?"xhigh":"max"):ae.value'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 slider confirmation drops 2.1.215 symbols"
+assert_not_contains = '''ee.value==="ultracode"?(dJ(i)?"xhigh":"max"):ee.value'''
+
+[[patches]]
+name = "ultracode-slider-dialog-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Show max in the confirmation dialog for max-compatible ultracode.
+
+This is the 2.1.221 minified-symbol variant. The slider component is now `W$S`,
+the selected model is local `i`, and the pending selected value is local `p`.
+Cleanup condition: upstream derives the confirmation dialog effort from
+model-compatible ultracode effort selection.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "W$S", string = '''p==="ultracode"?"xhigh":p''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''p==="ultracode"?"xhigh":p'''
+value = '''p==="ultracode"?(bTe(i)?"xhigh":"max"):p'''
+
+[[patches.tests]]
+kind = "static"
+name = "slider dialog uses 2.1.221 ultracode symbols"
+assert_contains = '''p==="ultracode"?(bTe(i)?"xhigh":"max"):p'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 slider dialog drops 2.1.215 symbols"
+assert_not_contains = '''p==="ultracode"?(dJ(i)?"xhigh":"max"):p'''
+
+[[patches]]
+name = "ultracode-usage-hint-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Show ultracode in `/effort` usage hints for max-compatible models.
+
+This is the 2.1.221 minified-symbol variant. The command hint helper is now
+`k2p`, and compatibility is resolved through `bTe`, `Ate`, `eVe`, and `tVe`.
+Cleanup condition: upstream uses model-compatible ultracode availability in
+command usage hints.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "k2p", source = '''function k2p(e,t){let r=Gi(),n=Ate(r)?"|ultracode":"";return`${e}${PFe(r).join("|")}${n}|auto${t}`}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let r=Gi(),n=bTe(r)||Ate()&&eVe(r)&&tVe("max",r)?"|ultracode":"";return`${e}${PFe(r).join("|")}${n}|auto${t}`}'''
+
+[[patches.tests]]
+kind = "static"
+name = "usage hint uses 2.1.221 ultracode symbols"
+assert_contains = '''function k2p(e,t){let r=Gi(),n=bTe(r)||Ate()&&eVe(r)&&tVe("max",r)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 usage hint drops 2.1.215 symbols"
+assert_not_contains = '''function _Hd(e,t){let r=yi(),n=dJ(r)||dJ()&&C6e(r)&&A6e("max",r)'''
+
+[[patches]]
+name = "ultracode-thin-client-usage-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Show ultracode in thin-client `/effort` usage for max-compatible models.
+
+This is the 2.1.221 minified-symbol variant. The thin-client command path is
+now `BRb`, with local model `o`; compatibility is resolved through `bTe`,
+`Ate`, `eVe`, and `tVe`. Cleanup condition: upstream shares model-compatible
+ultracode availability across CLI/TUI usage surfaces.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "BRb", string = '''${Ate(o)?"|ultracode":""}''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''${Ate(o)?"|ultracode":""}'''
+value = '''${bTe(o)||Ate()&&eVe(o)&&tVe("max",o)?"|ultracode":""}'''
+
+[[patches.tests]]
+kind = "static"
+name = "thin-client usage uses 2.1.221 ultracode symbols"
+assert_contains = '''${bTe(o)||Ate()&&eVe(o)&&tVe("max",o)?"|ultracode":""}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 thin-client usage drops 2.1.212 symbols"
+assert_not_contains = '''${$Y()&&(the(o)&&v9e("xhigh",o)||E9e(o)&&v9e("max",o))?"|ultracode":""}'''
+
+[[patches]]
+name = "ultracode-effort-notification-max-fallback-2-1-221"
+target_version = "2.1.221"
+applies_to = ">=2.1.221 <2.2.0"
+rationale = """
+Describe ultracode's effective Opus 4.6 effort as max in the prompt notification.
+
+This is the 2.1.221 minified-symbol variant. The prompt notification helper is
+now `oUf`; it receives the effective effort and ultracode flag but not the
+session model, so it resolves the active model through `Gi` and uses the same
+`bTe`/`Ate`/`eVe`/`tVe` compatibility rule as the command path. Cleanup
+condition: upstream makes the ultracode notification text reflect the
+model-compatible effort instead of hard-coding xhigh.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1977"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oUf", source = '''function oUf(e,t=!1,r=!1){if(!e)return;if(t)return`${r?"effort:":Tzr} ultracode \xB7 xhigh effort + dynamic workflows for maximum thoroughness`;return`${r?"effort:":sui(e)} ${e} \xB7 /effort`}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{if(!e)return;if(t){let n=Gi(),o=bTe(n)?"xhigh":Ate()&&eVe(n)&&tVe("max",n)?"max":"xhigh";return`${r?"effort:":Tzr} ultracode \xB7 ${o} effort + dynamic workflows for maximum thoroughness`}return`${r?"effort:":sui(e)} ${e} \xB7 /effort`}'''
+
+[[patches.tests]]
+kind = "static"
+name = "effort notification uses 2.1.221 ultracode symbols"
+assert_contains = '''let n=Gi(),o=bTe(n)?"xhigh":Ate()&&eVe(n)&&tVe("max",n)?"max":"xhigh"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.221 effort notification drops 2.1.215 symbols"
+assert_not_contains = '''let n=yi(),o=dJ(n)?"xhigh":dJ()&&C6e(n)&&A6e("max",n)?"max":"xhigh"'''

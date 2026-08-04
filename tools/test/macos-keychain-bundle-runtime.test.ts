@@ -17,25 +17,6 @@ const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
 const tempDirs: string[] = []
 
-function compareVersions(left: string, right: string): number {
-  const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
-  const leftParts = parts(left)
-  const rightParts = parts(right)
-
-  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
-    const leftPart = leftParts[index] ?? 0
-    const rightPart = rightParts[index] ?? 0
-    if (leftPart > rightPart) return 1
-    if (leftPart < rightPart) return -1
-  }
-
-  return 0
-}
-
-function isVersionAtLeast(version: string, floor: string): boolean {
-  return compareVersions(version, floor) >= 0
-}
-
 type SecurityResult = {
   exitCode: number
   stdout: string
@@ -737,12 +718,9 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
         stderr: "pipe",
       })
       expect(status.exitCode).toBe(0)
-      // 2.1.221 upstream renamed the auth status shape: authMethod now reports
-      // the credential type ("oauth_token") alongside apiProvider "firstParty".
-      const expectedAuthMethod = isVersionAtLeast(targetVersion(), "2.1.221") ? "oauth_token" : "claude.ai"
       expect(JSON.parse(status.stdout.toString())).toMatchObject({
         loggedIn: true,
-        authMethod: expectedAuthMethod,
+        authMethod: "claude.ai",
       })
 
       const env = shellEnvironment({

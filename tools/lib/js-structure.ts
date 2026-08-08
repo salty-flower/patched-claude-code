@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import * as parser from "@babel/parser"
+import { parseSync } from "oxc-parser"
 
 const IGNORED_KEYS = new Set([
   "comments",
@@ -35,10 +35,13 @@ function visit(node: unknown, tokens: string[]): void {
   const record = node as Record<string, unknown>
   if (typeof record.type === "string") {
     tokens.push(record.type)
-    if (record.type === "StringLiteral") tokens.push(`str:${String(record.value)}`)
-    else if (record.type === "NumericLiteral") tokens.push(`num:${String(record.value)}`)
-    else if (record.type === "BooleanLiteral") tokens.push(`bool:${String(record.value)}`)
-    else if (record.type === "NullLiteral") tokens.push("null")
+    if (record.type === "StringLiteral" || (record.type === "Literal" && typeof record.value === "string"))
+      tokens.push(`str:${String(record.value)}`)
+    else if (record.type === "NumericLiteral" || (record.type === "Literal" && typeof record.value === "number"))
+      tokens.push(`num:${String(record.value)}`)
+    else if (record.type === "BooleanLiteral" || (record.type === "Literal" && typeof record.value === "boolean"))
+      tokens.push(`bool:${String(record.value)}`)
+    else if (record.type === "NullLiteral" || (record.type === "Literal" && record.value === null)) tokens.push("null")
     else if (record.type === "RegExpLiteral") tokens.push(`re:${String(record.pattern)}/${String(record.flags)}`)
   }
 
@@ -50,10 +53,10 @@ function visit(node: unknown, tokens: string[]): void {
 }
 
 export function structuralJavaScriptHash(source: string): StructuralJavaScriptHash {
-  const ast = parser.parse(source, {
-    allowReturnOutsideFunction: true,
-    errorRecovery: true,
-    plugins: ["jsx", "typescript"],
+  const ast = parseSync("structural-hash.js", source, {
+    astType: "js",
+    lang: "js",
+    preserveParens: true,
     sourceType: "script",
   })
   const tokens: string[] = []

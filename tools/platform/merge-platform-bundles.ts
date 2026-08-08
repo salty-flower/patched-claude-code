@@ -176,8 +176,10 @@ async function main(): Promise<number> {
     version,
     basePlatform: base.platform,
     baseSource: base.source,
+    basePath: base.cliPath,
     otherPlatform: others[0].platform,
     otherSource: others[0].source,
+    otherPath: others[0].cliPath,
     generalizeUnknownStringLiterals: args.generalizeUnknownStringLiterals,
   })
 

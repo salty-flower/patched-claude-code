@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import * as parser from "@babel/parser"
+import { parseSync } from "oxc-parser"
 
 const IGNORED_KEYS = new Set([
   "comments",
@@ -165,12 +165,15 @@ export type PlatformMergeResult = {
 }
 
 type TopLevelDeclaration = {
-  node: Record<string, unknown>
+  node?: Record<string, unknown>
+  source: string
   index: number
   start: number
   end: number
   structuralHash: string
   literalHash: string
+  declaredNames?: string[]
+  freeIdentifierList?: string[]
 }
 
 type LiteralReplacement = LiteralReplacementReport & {
@@ -187,14 +190,16 @@ type MergeArgs = {
   version: string
   basePlatform: string
   baseSource: string
+  basePath?: string
   otherPlatform: string
   otherSource: string
+  otherPath?: string
   generalizeUnknownStringLiterals?: boolean
 }
 
 export function mergePlatformJavaScript(args: MergeArgs): PlatformMergeResult {
-  const base = topLevelDeclarations(args.baseSource)
-  const other = topLevelDeclarations(args.otherSource)
+  const base = topLevelDeclarations(args.baseSource, args.basePath)
+  const other = topLevelDeclarations(args.otherSource, args.otherPath)
   const report: PlatformMergeReport = {
     schema: 1,
     mergePolicy: "canonical-platform-merge-v1",
@@ -323,40 +328,116 @@ function overlapsAnyEdit(start: number, end: number, edits: SourceEdit[]): boole
   return edits.some((edit) => start < edit.end && end > edit.start)
 }
 
-function parseProgram(source: string): parser.ParseResult<any> {
-  return parser.parse(source, {
-    allowReturnOutsideFunction: true,
-    errorRecovery: true,
-    plugins: ["jsx", "typescript"],
-    sourceType: "script",
-  })
+type ParsedProgram = {
+  program: { body: unknown[] }
+  errors: unknown[]
 }
 
-function topLevelDeclarations(source: string): TopLevelDeclaration[] {
+export function parseProgram(source: string): ParsedProgram {
+  return parseSync("platform-merge.js", source, {
+    astType: "js",
+    lang: "js",
+    preserveParens: true,
+    sourceType: "script",
+  }) as unknown as ParsedProgram
+}
+
+function topLevelDeclarations(source: string, sourcePath?: string): TopLevelDeclaration[] {
+  if (sourcePath) return analyzeWithNativeParser(source, sourcePath)
   const ast = parseProgram(source)
   const body = unwrapCompiledModuleBody(ast.program.body)
-  return body
-    .filter((node: Record<string, unknown>) => typeof node.start === "number" && typeof node.end === "number")
-    .map((node: Record<string, unknown>, index: number) => ({
+  const result = body
+    .filter(
+      (node): node is Record<string, unknown> =>
+        isRecord(node) && typeof node.start === "number" && typeof node.end === "number",
+    )
+    .map((node, index) => ({
       node,
+      source,
       index,
       start: node.start as number,
       end: node.end as number,
       structuralHash: fingerprint(node, false),
       literalHash: fingerprint(node, true),
     }))
+  return result
 }
 
-function unwrapCompiledModuleBody(body: any[]): any[] {
+function isRecord(node: unknown): node is Record<string, unknown> {
+  return Boolean(node && typeof node === "object" && !Array.isArray(node))
+}
+
+export function unwrapCompiledModuleBody(body: unknown[]): unknown[] {
   if (body.length !== 1) return body
-  const only = body[0]
+  const only = body[0] as Record<string, unknown> | undefined
   const expression = only?.type === "ExpressionStatement" ? only.expression : undefined
-  const wrapper = expression?.type === "CallExpression" ? expression.callee : expression
+  const unparenthesized = (node: unknown): Record<string, unknown> | undefined => {
+    if (!node || typeof node !== "object") return undefined
+    const record = node as Record<string, unknown>
+    return record.type === "ParenthesizedExpression" ? unparenthesized(record.expression) : record
+  }
+  const unwrappedExpression = unparenthesized(expression)
+  const wrapper =
+    unwrappedExpression?.type === "CallExpression" ? unparenthesized(unwrappedExpression.callee) : unwrappedExpression
   if (wrapper?.type !== "FunctionExpression" && wrapper?.type !== "ArrowFunctionExpression") return body
-  return wrapper.body?.type === "BlockStatement" && Array.isArray(wrapper.body.body) ? wrapper.body.body : body
+  const wrapperBody = wrapper.body as Record<string, unknown> | undefined
+  return wrapperBody?.type === "BlockStatement" && Array.isArray(wrapperBody.body) ? wrapperBody.body : body
 }
 
-function fingerprint(node: unknown, includeLiterals: boolean): string {
+function analyzeWithNativeParser(source: string, sourcePath: string): TopLevelDeclaration[] {
+  const helper = new URL("../platform/analyze-bundle.ts", import.meta.url).pathname
+  const result = Bun.spawnSync({
+    cmd: [process.execPath, helper, sourcePath],
+    stdout: "pipe",
+    stderr: "inherit",
+  })
+  if (!result.success) throw new Error(`native platform analysis failed for ${sourcePath} (${result.exitCode})`)
+  const payload = JSON.parse(new TextDecoder().decode(result.stdout)) as {
+    declarations: Array<{
+      index: number
+      start: number
+      end: number
+      structuralHash: string
+      literalHash: string
+      declaredNames: string[]
+      freeIdentifierList: string[]
+    }>
+  }
+  return payload.declarations.map((declaration) => ({ ...declaration, source }))
+}
+
+function declarationNode(declaration: TopLevelDeclaration): Record<string, unknown> {
+  if (declaration.node) return declaration.node
+  const parsed = parseProgram(declaration.source.slice(declaration.start, declaration.end))
+  const node = parsed.program.body[0]
+  if (!node || typeof node !== "object") throw new Error(`failed to parse declaration ${declaration.index}`)
+  shiftAstOffsets(node, declaration.start)
+  declaration.node = node as Record<string, unknown>
+  return declaration.node
+}
+
+function shiftAstOffsets(node: unknown, offset: number): void {
+  if (!node || typeof node !== "object") return
+  if (Array.isArray(node)) {
+    for (const item of node) shiftAstOffsets(item, offset)
+    return
+  }
+  const record = node as Record<string, unknown>
+  for (const key of ["start", "end"]) {
+    if (typeof record[key] === "number") record[key] = (record[key] as number) + offset
+  }
+  for (const value of Object.values(record)) shiftAstOffsets(value, offset)
+}
+
+function declaredNamesFor(declaration: TopLevelDeclaration): string[] {
+  return declaration.declaredNames ?? declaredNames(declarationNode(declaration))
+}
+
+function freeIdentifierListFor(declaration: TopLevelDeclaration): string[] {
+  return declaration.freeIdentifierList ?? freeIdentifierList(declarationNode(declaration))
+}
+
+export function fingerprint(node: unknown, includeLiterals: boolean): string {
   const tokens: string[] = []
   visitFingerprint(node, tokens, includeLiterals)
   return createHash("sha256").update(tokens.join("\x1f")).digest("hex")
@@ -375,10 +456,14 @@ function visitFingerprint(node: unknown, tokens: string[], includeLiterals: bool
   if (typeof record.type === "string") {
     tokens.push(record.type)
     if (includeLiterals) {
-      if (record.type === "StringLiteral") tokens.push(`str:${String(record.value)}`)
-      else if (record.type === "NumericLiteral") tokens.push(`num:${String(record.value)}`)
-      else if (record.type === "BooleanLiteral") tokens.push(`bool:${String(record.value)}`)
-      else if (record.type === "NullLiteral") tokens.push("null")
+      if (record.type === "StringLiteral" || (record.type === "Literal" && typeof record.value === "string"))
+        tokens.push(`str:${String(record.value)}`)
+      else if (record.type === "NumericLiteral" || (record.type === "Literal" && typeof record.value === "number"))
+        tokens.push(`num:${String(record.value)}`)
+      else if (record.type === "BooleanLiteral" || (record.type === "Literal" && typeof record.value === "boolean"))
+        tokens.push(`bool:${String(record.value)}`)
+      else if (record.type === "NullLiteral" || (record.type === "Literal" && record.value === null))
+        tokens.push("null")
       else if (record.type === "RegExpLiteral") tokens.push(`re:${String(record.pattern)}/${String(record.flags)}`)
     }
   }
@@ -573,18 +658,18 @@ function buildOtherToCanonicalNameMap(
   const baseTopLevelNames = new Set<string>()
   const otherTopLevelNames = new Set<string>()
   for (const pair of pairs) {
-    if (pair.base) for (const name of declaredNames(pair.base.node)) baseTopLevelNames.add(name)
-    if (pair.other) for (const name of declaredNames(pair.other.node)) otherTopLevelNames.add(name)
+    if (pair.base) for (const name of declaredNamesFor(pair.base)) baseTopLevelNames.add(name)
+    if (pair.other) for (const name of declaredNamesFor(pair.other)) otherTopLevelNames.add(name)
   }
 
   for (const pair of pairs) {
     if (!pair.other) continue
-    const otherNames = declaredNames(pair.other.node)
+    const otherNames = declaredNamesFor(pair.other)
     if (!pair.base) {
       for (const name of otherNames) map.set(name, semanticName("linux", name))
       continue
     }
-    const baseNames = declaredNames(pair.base.node)
+    const baseNames = declaredNamesFor(pair.base)
     if (baseNames.length === otherNames.length) {
       for (let i = 0; i < baseNames.length; i++) {
         map.set(otherNames[i], baseNames[i])
@@ -596,8 +681,8 @@ function buildOtherToCanonicalNameMap(
 
   for (const pair of pairs) {
     if (!pair.base || !pair.other || pair.base.structuralHash !== pair.other.structuralHash) continue
-    const baseReferences = freeIdentifierList(pair.base.node)
-    const otherReferences = freeIdentifierList(pair.other.node)
+    const baseReferences = freeIdentifierListFor(pair.base)
+    const otherReferences = freeIdentifierListFor(pair.other)
     const count = Math.min(baseReferences.length, otherReferences.length)
     for (let i = 0; i < count; i++) {
       const baseName = baseReferences[i]
@@ -616,7 +701,7 @@ function buildOtherToCanonicalNameMap(
 function canonicalAvailableNames(base: TopLevelDeclaration[], otherToCanonical: Map<string, string>): Set<string> {
   return new Set([
     ...BASE_GLOBALS,
-    ...base.flatMap((declaration) => declaredNames(declaration.node)),
+    ...base.flatMap((declaration) => declaredNamesFor(declaration)),
     ...otherToCanonical.values(),
   ])
 }
@@ -630,8 +715,10 @@ function unionStructuralPair(
   edits: SourceEdit[],
   report: PlatformMergeReport,
 ): void {
-  const baseNames = declaredNames(base.node)
-  const otherNames = declaredNames(other.node)
+  const baseNode = declarationNode(base)
+  const otherNode = declarationNode(other)
+  const baseNames = declaredNamesFor(base)
+  const otherNames = declaredNamesFor(other)
   if (baseNames.length === 0 || baseNames.length !== otherNames.length) {
     if (otherNames.length === 0) {
       report.unclassifiedDrift.push({
@@ -646,11 +733,11 @@ function unionStructuralPair(
     const rename = new Map(otherToCanonical)
     const canonicalNames = otherNames.map((name) => semanticName("linux", name))
     for (let i = 0; i < otherNames.length; i++) rename.set(otherNames[i], canonicalNames[i])
-    if (!validateFreeIdentifiers(other.node, rename, availableNames, canonicalNames.join(","), report)) return
+    if (!validateFreeIdentifiers(otherNode, rename, availableNames, canonicalNames.join(","), report)) return
     edits.push({
       start: base.end,
       end: base.end,
-      replacement: rewriteDeclaration(args.otherSource, other.node, rename),
+      replacement: rewriteDeclaration(args.otherSource, otherNode, rename),
     })
     report.semanticUnions.push({ kind: "other-only-island", index: other.index, names: canonicalNames })
     return
@@ -672,11 +759,11 @@ function unionStructuralPair(
     ...baseRename.values(),
     ...otherRename.values(),
   ])
-  if (!validateFreeIdentifiers(base.node, baseRename, unionAvailableNames, baseNames.join(","), report)) return
-  if (!validateFreeIdentifiers(other.node, otherRename, unionAvailableNames, baseNames.join(","), report)) return
+  if (!validateFreeIdentifiers(baseNode, baseRename, unionAvailableNames, baseNames.join(","), report)) return
+  if (!validateFreeIdentifiers(otherNode, otherRename, unionAvailableNames, baseNames.join(","), report)) return
 
-  const baseImpl = rewriteDeclaration(args.baseSource, base.node, baseRename)
-  const otherImpl = rewriteDeclaration(args.otherSource, other.node, otherRename)
+  const baseImpl = rewriteDeclaration(args.baseSource, baseNode, baseRename)
+  const otherImpl = rewriteDeclaration(args.otherSource, otherNode, otherRename)
   const dispatch = baseNames
     .map(
       (name, index) => `var ${name}=process.platform==="darwin"?${semanticName("darwin", name)}:${linuxNames[index]};`,
@@ -699,7 +786,8 @@ function insertOtherOnlyDeclaration(
   edits: SourceEdit[],
   report: PlatformMergeReport,
 ): void {
-  const names = declaredNames(other.node)
+  const otherNode = declarationNode(other)
+  const names = declaredNamesFor(other)
   if (names.length === 0) {
     report.unclassifiedDrift.push({
       kind: "other-only-island",
@@ -712,12 +800,12 @@ function insertOtherOnlyDeclaration(
   const rename = new Map(otherToCanonical)
   const canonicalNames = names.map((name) => semanticName("linux", name))
   for (let i = 0; i < names.length; i++) rename.set(names[i], canonicalNames[i])
-  if (!validateFreeIdentifiers(other.node, rename, availableNames, canonicalNames.join(","), report)) return
+  if (!validateFreeIdentifiers(otherNode, rename, availableNames, canonicalNames.join(","), report)) return
   const insertionPoint = canonicalInsertionPoint(args.baseSource)
   edits.push({
     start: insertionPoint,
     end: insertionPoint,
-    replacement: rewriteDeclaration(args.otherSource, other.node, rename),
+    replacement: rewriteDeclaration(args.otherSource, otherNode, rename),
   })
   report.semanticUnions.push({ kind: "other-only-island", index: other.index, names: canonicalNames })
 }
@@ -750,7 +838,7 @@ function semanticName(platform: "darwin" | "linux", name: string): string {
   return `__acc_${platform}_${name}`
 }
 
-function declaredNames(node: Record<string, unknown>): string[] {
+export function declaredNames(node: Record<string, unknown>): string[] {
   if (node.type === "FunctionDeclaration" || node.type === "ClassDeclaration") {
     const id = node.id as { name?: unknown } | undefined
     return typeof id?.name === "string" ? [id.name] : []
@@ -794,7 +882,7 @@ function freeIdentifiers(node: Record<string, unknown>, rename: Map<string, stri
   return names
 }
 
-function freeIdentifierList(node: Record<string, unknown>): string[] {
+export function freeIdentifierList(node: Record<string, unknown>): string[] {
   const names: string[] = []
   walkScoped(node, new Map(), (_identifier, name, kind) => {
     if (kind === "reference") names.push(name)
@@ -938,7 +1026,7 @@ function visitBindingPattern(
   if (record.type === "ObjectPattern" && Array.isArray(record.properties)) {
     for (const property of record.properties) {
       const prop = property as Record<string, unknown>
-      if (prop.type === "ObjectProperty")
+      if (prop.type === "ObjectProperty" || prop.type === "Property")
         visitBindingPattern(prop.value, rename, scopes, onIdentifier, allowBindingRewrite)
       else visitBindingPattern(prop.argument, rename, scopes, onIdentifier, allowBindingRewrite)
     }
@@ -967,8 +1055,10 @@ function shouldRewriteIdentifier(node: Record<string, unknown>, parent: Record<s
   if (parent.type === "OptionalMemberExpression" && parent.property === node && parent.computed !== true) return false
   if (
     (parent.type === "ObjectProperty" ||
+      parent.type === "Property" ||
       parent.type === "ObjectMethod" ||
       parent.type === "ClassMethod" ||
+      parent.type === "MethodDefinition" ||
       parent.type === "ClassPrivateMethod" ||
       parent.type === "ClassProperty" ||
       parent.type === "ClassPrivateProperty" ||
@@ -1059,7 +1149,10 @@ function collectPatternNames(node: unknown, names: Set<string>): void {
   if (record.type === "ObjectPattern" && Array.isArray(record.properties)) {
     for (const property of record.properties) {
       const prop = property as Record<string, unknown>
-      collectPatternNames(prop.type === "ObjectProperty" ? prop.value : prop.argument, names)
+      collectPatternNames(
+        prop.type === "ObjectProperty" || prop.type === "Property" ? prop.value : prop.argument,
+        names,
+      )
     }
     return
   }
@@ -1076,7 +1169,7 @@ function literalDrift(
   literals: Array<{ baseLiteral: string; otherLiteral: string; start: number; end: number }>
 } {
   const literals: Array<{ baseLiteral: string; otherLiteral: string; start: number; end: number }> = []
-  const structuralMismatch = !walkLiteralDrift(base.node, other.node, literals)
+  const structuralMismatch = !walkLiteralDrift(declarationNode(base), declarationNode(other), literals)
   return { structuralMismatch, literals }
 }
 
@@ -1098,8 +1191,8 @@ function walkLiteralDrift(
   const otherRecord = other as Record<string, unknown>
   if (baseRecord.type !== otherRecord.type) return false
   if (
-    baseRecord.type === "StringLiteral" &&
-    otherRecord.type === "StringLiteral" &&
+    (baseRecord.type === "StringLiteral" || baseRecord.type === "Literal") &&
+    (otherRecord.type === "StringLiteral" || otherRecord.type === "Literal") &&
     typeof baseRecord.value === "string" &&
     typeof otherRecord.value === "string"
   ) {

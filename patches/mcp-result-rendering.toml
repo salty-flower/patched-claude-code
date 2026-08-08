@@ -914,7 +914,7 @@ assert_not_contains = '''content:aMp,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -950,3 +950,44 @@ assert_not_contains = '''content:HTf,verbose:DTf'''
 kind = "static"
 name = "stale 2.1.220 MCP text-block symbols are absent in 2.1.221"
 assert_not_contains = '''content:Y$p,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.226 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`. The text-block helper was extracted into
+a memoized component whose textContent local is `Bzf` and whose verbose prop
+destructures as `Fzf`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:Bzf,verbose:Fzf" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:Bzf,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.226"
+assert_contains = '''content:Bzf,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.226 MCP text-block call site is absent"
+assert_not_contains = '''content:Bzf,verbose:Fzf'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 MCP text-block symbols are absent in 2.1.226"
+assert_not_contains = '''content:HTf,verbose:!0'''

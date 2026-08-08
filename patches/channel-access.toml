@@ -826,7 +826,7 @@ assert_not_contains = '''wR().length>0&&_n()'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
@@ -871,7 +871,7 @@ assert_not_contains = '''k0().length>0&&_n()'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-221-askuser"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
@@ -985,3 +985,96 @@ value = '''if(!1)return{action:"skip",kind:"provider",reason:"channels are not a
 kind = "static"
 name = "replacement is rendered"
 assert_contains = '''if(!1)return{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"};'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.226 gate-locator variant of
+`ask-user-question-channels-gate`. The shared channel-length predicate now
+minifies to `hx().length>0&&Ln()` (hx reads or.allowedChannels, Ln is
+!or.isInteractive) with an added middle predicate
+`if(Ln()&&!Xhe())return!1` (Xhe reads or.permissionPromptToolName), and remains
+inline on the ExitPlanMode tool definition. EnterPlanMode mirrors ExitPlanMode
+via `isEnabled(){return _5.isEnabled()}` and is covered transitively.
+AskUserQuestion now delegates to the shared helper `pCt` and is patched by the
+sibling `ask-user-question-channels-gate-2-1-226-askuser` entry; `pCt` itself
+also gates whiteboard/prototype skill availability and plan-mode instructions,
+so its body is intentionally left intact.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["hx().length>0&&Ln()", "return!1;return!0"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.226"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 ask-user gate no longer carries 2.1.221 symbols"
+assert_not_contains = '''rk().length>0&&Tn()'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-226-askuser"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.226 AskUserQuestion delegation-site variant of
+`ask-user-question-channels-gate`. In 2.1.226 AskUserQuestion's isEnabled
+delegates to the shared channel predicate helper `pCt` as
+`isEnabled(){return pCt()}` instead of inlining the gate. This entry replaces
+that delegation site so AskUserQuestion stays available when --channels is
+populated. The `pCt` body is left intact because the same helper gates
+whiteboard/prototype skill availability and plan-mode instructions.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", string = "return pCt()" }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.226"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "AskUserQuestion delegation site is replaced in 2.1.226"
+assert_not_contains = '''return pCt()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 ask-user gate no longer carries 2.1.221 symbols"
+assert_not_contains = '''rk().length>0&&Tn()'''

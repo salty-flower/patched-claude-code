@@ -1775,7 +1775,7 @@ assert_not_contains = '''headers:Cs([t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),..
 [[patches]]
 name = "inject-per-model-into-beta-create-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Inject per-model defaultBaseURL and auth into beta Messages.create().
 
@@ -1800,7 +1800,7 @@ assert_not_contains = '''headers:As([{...n?.toString()!=null?{"anthropic-beta":n
 [[patches]]
 name = "inject-per-model-into-nonbeta-create-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Inject per-model defaultBaseURL and auth into non-beta Messages.create().
 
@@ -1825,7 +1825,7 @@ assert_not_contains = '''headers:As([n,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),
 [[patches]]
 name = "inject-per-model-into-beta-count-tokens-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Inject per-model defaultBaseURL and auth into beta Messages.countTokens().
 
@@ -1850,7 +1850,7 @@ assert_not_contains = '''headers:As([{"anthropic-beta":[...n??[],"token-counting
 [[patches]]
 name = "inject-per-model-into-nonbeta-count-tokens-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Inject per-model defaultBaseURL and auth into non-beta Messages.countTokens().
 
@@ -1872,3 +1872,109 @@ assert_contains = '''headers:Ms([t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt
 kind = "static"
 name = "stale 2.1.220 non-beta countTokens header helper is absent in 2.1.221"
 assert_not_contains = '''headers:As([t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-beta-create-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Inject per-model defaultBaseURL and auth into beta Messages.create().
+
+This is the 2.1.226 symbol variant. The SDK header merge helper moved from `Ms`
+to `ca`; the in-scope locals (o = request body, i = timeout, n = betas,
+s = x-stainless-helper headers, t = caller options, r = normalized input) are
+unchanged from the 2.1.221 variant.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages?beta=true",{body:o,timeout:i??600000,...t,headers:ca([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0},s,t?.headers]),stream:r.stream??!1})'''
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages?beta=true",{body:o,timeout:i??600000,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:ca([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0},s,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])]),stream:r.stream??!1})'''
+
+[[patches.tests]]
+kind = "static"
+name = "beta create injects per-model headers in 2.1.226"
+assert_contains = '''headers:ca([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0},s,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 beta create header helper is absent in 2.1.226"
+assert_not_contains = '''headers:Ms([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0},s,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-create-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Inject per-model defaultBaseURL and auth into non-beta Messages.create().
+
+This is the 2.1.226 symbol variant. The SDK header merge helper moved from `Ms`
+to `ca`; the in-scope locals (e = request body, r = timeout, n = x-stainless
+helper headers, t = caller options) are unchanged from the 2.1.221 variant.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages",{body:e,timeout:r??600000,...t,headers:ca([n,t?.headers]),stream:e.stream??!1})'''
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+e.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+e.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+e.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages",{body:e,timeout:r??600000,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:ca([n,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])]),stream:e.stream??!1})'''
+
+[[patches.tests]]
+kind = "static"
+name = "non-beta create injects per-model headers in 2.1.226"
+assert_contains = '''headers:ca([n,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 non-beta create header helper is absent in 2.1.226"
+assert_not_contains = '''headers:Ms([n,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-beta-count-tokens-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Inject per-model defaultBaseURL and auth into beta Messages.countTokens().
+
+This is the 2.1.226 symbol variant. The SDK header merge helper moved from `Ms`
+to `ca`; the in-scope locals (o = request body, n = betas, t = caller options)
+are unchanged from the 2.1.221 variant.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens?beta=true",{body:o,...t,headers:ca([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString()},t?.headers])})'''
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens?beta=true",{body:o,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:ca([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString()},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+
+[[patches.tests]]
+kind = "static"
+name = "beta countTokens injects per-model headers in 2.1.226"
+assert_contains = '''headers:ca([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString()},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 beta countTokens header helper is absent in 2.1.226"
+assert_not_contains = '''headers:Ms([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString()},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-count-tokens-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Inject per-model defaultBaseURL and auth into non-beta Messages.countTokens().
+
+This is the 2.1.226 symbol variant. The SDK header merge helper moved from `Ms`
+to `ca`; the in-scope locals (e = request body, t = caller options) are
+unchanged from the 2.1.221 variant, where countTokens() still does not merge
+headers itself.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens",{body:e,...t})'''
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+e.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+e.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+e.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens",{body:e,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:ca([t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+
+[[patches.tests]]
+kind = "static"
+name = "non-beta countTokens injects per-model headers in 2.1.226"
+assert_contains = '''headers:ca([t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 non-beta countTokens header helper is absent in 2.1.226"
+assert_not_contains = '''headers:Ms([t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''

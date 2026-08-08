@@ -52,9 +52,15 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
 function injectSdkHarness(source: string): string {
   const { init, client } = findBundledAnthropicClientSymbols(source)
   const replacement = `${init}();(async()=>{try{let e=new ${client}({baseURL:process.env.ANTHROPIC_BASE_URL,apiKey:process.env.ANTHROPIC_API_KEY,authToken:process.env.ANTHROPIC_AUTH_TOKEN,maxRetries:0}),t={model:process.env.CLAUDE_STUB_HARNESS_MODEL,max_tokens:1,messages:[{role:"user",content:"hello"}]},n={headers:{"x-api-key":"caller-key",Authorization:"Bearer caller-token"}};await e.messages.create({...t,stream:false},n);await e.beta.messages.create({...t,stream:false,betas:["token-counting-2024-11-01"]},n);await e.messages.countTokens(t,n);await e.beta.messages.countTokens({...t,betas:["token-counting-2024-11-01"]},n);process.stdout.write("ok\\n")}catch(r){console.error(r?.stack??String(r));process.exit(1)}})();`
+  const finalEntrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*\(\));(?=\}\)\s*$)/g)]
   const entrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*\(\));var __acc_linux_[A-Za-z_$][\w$]*=/g)]
   const legacyEntrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*Zf\(\));/g)]
-  const matches = entrypointMatches.length > 0 ? entrypointMatches : legacyEntrypointMatches
+  const matches =
+    finalEntrypointMatches.length > 0
+      ? finalEntrypointMatches
+      : entrypointMatches.length > 0
+        ? entrypointMatches
+        : legacyEntrypointMatches
   const entrypointMatch = matches.at(-1)
   if (!entrypointMatch?.[0]) throw new Error("could not locate CLI entrypoint call")
   if (matches.length > 1) {

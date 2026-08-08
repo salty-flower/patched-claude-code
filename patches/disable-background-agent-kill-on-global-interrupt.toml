@@ -65,7 +65,7 @@ assert_not_contains = '''if(i!==void 0&&!i.aborted||s){M("tengu_cancel",oe),t();
 [[patches]]
 name = "foreground-agent-handoff-before-cancel-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Hand synchronous foreground agents off to the background before Escape aborts
 their shared parent request. Without this transition, concurrent Agent tool
@@ -135,7 +135,7 @@ assert_not_contains = "H(!0)},[W,m,_,g,P,q,D,H]"
 [[patches]]
 name = "global-interrupt-cancel-only-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Keep global interrupt and Escape cancellation from stopping unrelated background
 agents. The 2.1.221 bundle still routes the global interrupt callback through
@@ -168,3 +168,81 @@ assert_not_contains = "M()},[j,m,g,h,q,V,P,M]"
 kind = "static"
 name = "2.1.221 variant does not carry 2.1.220 interrupt symbols"
 assert_not_contains = "H(!0)},[G,m,_,g,P,U,D,H]"
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Hand synchronous foreground agents off to the background before Escape aborts
+their shared parent request. Without this transition, concurrent Agent tool
+calls inherit the parent abort signal and all stop together even though the
+global interrupt already uses cancel-only mode. Keeping every Agent call async
+was rejected because it would change foreground result semantics.
+
+This is the 2.1.226 handoff symbol variant: `g` is the task registry, `hu`
+identifies local-agent tasks, and `xbn` performs the supported foreground to
+background handoff; the accumulator is `ke` because `se` is the cancel-props
+object in this bundle. The zero-delay cancel lets those handoff promises
+settle before the shared parent signal is aborted. Remove when upstream
+detaches foreground agents from parent cancellation before handling Escape.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''if(i!==void 0&&!i.aborted||s){L("tengu_cancel",se),t();return}'''
+locator_kind = "literal"
+replacement = '''if(i!==void 0&&!i.aborted||s){let ke=!1;for(let[ne,ee]of Object.entries(g.all()))if(hu(ee)&&!ee.isBackgrounded)ke=xbn(ne,g)||ke;L("tengu_cancel",se),ke?setTimeout(t,0):t();return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 Escape hands foreground agents off before parent cancellation"
+assert_contains = '''ke=xbn(ne,g)||ke;L("tengu_cancel",se),ke?setTimeout(t,0):t();return'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 Escape no longer aborts shared foreground agents immediately"
+assert_not_contains = '''if(i!==void 0&&!i.aborted||s){L("tengu_cancel",se),t();return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 variant does not carry 2.1.221 handoff symbols"
+assert_not_contains = '''se=yyn(ne,g)||se;N("tengu_cancel",ce),se?setTimeout(t,0):t();return'''
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Keep global interrupt and Escape cancellation from stopping unrelated background
+agents. The 2.1.226 interrupt handler scopes its direct kill calls (`Bzr`/`Bme`)
+to teammate view, but the main-prompt fall-through still invokes the cancel
+callback in the default kill-enabled mode: the unguarded `H()` reaches the
+`!q` branch that calls the kill-all callback `O()` and can emit the aggregate
+stopped-agents notification. Force this fall-through into the existing
+cancel-only mode; the explicit chat:killAgents binding remains the deliberate
+agent-stop control. Remove when upstream scopes the kill path to teammate view
+as in the reference implementation.
+
+This is the 2.1.226 interrupt-symbol variant: `H` is the cancel callback whose
+first argument selects cancel-only mode, `j` is viewing-agent state, and `g`
+is the task registry. The interrupt fall-through must pass `!0` to skip the
+kill path.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''H\(\)\},\[j,m,g,h,B,V,k,H\]'''
+locator_kind = "regex"
+replacement = "H(!0)},[j,m,g,h,B,V,k,H]"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 global interrupt uses cancel-only mode"
+assert_contains = "H(!0)},[j,m,g,h,B,V,k,H]"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 global interrupt no longer calls default kill-enabled mode"
+assert_not_contains = "H()},[j,m,g,h,B,V,k,H]"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.226 variant does not carry 2.1.221 interrupt symbols"
+assert_not_contains = "M(!0)},[j,m,g,h,q,V,P,M]"

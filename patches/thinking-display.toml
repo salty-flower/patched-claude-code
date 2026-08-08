@@ -3378,7 +3378,7 @@ assert_not_contains = '''let UO0=!0;'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Preserve streamed thinking text for live rendering while retaining upstream
 progress accounting. This is the 2.1.221 stream-handler symbol variant; the
@@ -3408,7 +3408,7 @@ assert_not_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estima
 [[patches]]
 name = "thinking-render-blocks-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Keep normal thinking blocks visible outside transcript or verbose mode. This
 is the 2.1.221 message-renderer symbol variant; the gate uses `Uwt` and `$oe`,
@@ -3439,7 +3439,7 @@ assert_not_contains = '''case"thinking":{if(!Vyt&&!gre){return null}'''
 [[patches]]
 name = "thinking-render-expanded-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.2.0"
+applies_to = ">=2.1.221 <2.1.226"
 rationale = """
 Render the complete thinking body in normal interactive output. This is the
 2.1.221 thinking-component variant; component `pOr` derives its expanded gate
@@ -3466,3 +3466,116 @@ assert_contains = '''let ZVk=!0;'''
 kind = "static"
 name = "stale 2.1.220 expanded thinking symbols are absent in 2.1.221"
 assert_not_contains = '''let K4R=!0;'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Preserve streamed thinking text for live rendering while retaining upstream
+progress accounting. This is the 2.1.226 stream-handler symbol variant; the
+handler is `Nma`, the token estimator is `HCa`, and the delta variable is now
+`p`. The accumulated-buffer callback parameter is renamed to `v` so it does
+not shadow the delta variable `p`.
+
+Cleanup condition: upstream renders thinking_delta content live in the
+interactive UI.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":{let{delta:p}=e.event;if("estimated_tokens"in p&&typeof p.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:p.estimated_tokens});else if("thinking"in p&&typeof p.thinking==="string"&&p.thinking.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:HCa(p.thinking)});return}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let{delta:p}=e.event,w=typeof p.thinking==="string"?p.thinking:"";if(w)i?.(w.length),t.onStreamingThinking?.((v)=>({thinking:(v?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in p&&typeof p.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:p.estimated_tokens});else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:HCa(w)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas use the 2.1.226 estimator and stream callback"
+assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:HCa(w)})'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking deltas update streaming thinking in 2.1.226"
+assert_contains = '''t.onStreamingThinking?.((v)=>({thinking:(v?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 thinking estimator is absent in 2.1.226"
+assert_not_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:xma(w)})'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Keep normal thinking blocks visible outside transcript or verbose mode. This
+is the 2.1.226 message-renderer symbol variant; the gate uses `txt` and `fae`,
+and the thinking component is `RFr`.
+
+Cleanup condition: upstream exposes a normal thinking-display mode that renders
+thinking summaries in the interactive transcript.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", strings = ['''case"thinking":{if(!txt&&!fae){return null}''', '''mm.jsx(RFr,{addMargin:$J,param:_2,isTranscriptMode:txt,verbose:fae})'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking":{if(!txt&&!fae){return null}'''
+value = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "normal thinking rendering uses 2.1.226 symbols"
+assert_contains = '''case"thinking":{if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "redacted thinking stays detailed-only in 2.1.226"
+assert_contains = '''case"redacted_thinking":{if(!txt&&!fae){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 thinking gate is absent in 2.1.226"
+assert_not_contains = '''case"thinking":{if(!Uwt&&!$oe){return null}'''
+
+[[patches]]
+name = "thinking-render-expanded-2-1-226"
+target_version = "2.1.226"
+applies_to = ">=2.1.226 <2.2.0"
+rationale = """
+Render the complete thinking body in normal interactive output. This is the
+2.1.226 thinking-component variant; component `RFr` derives its expanded gate
+as `z6x=M8f||L8f`.
+
+Cleanup condition: upstream exposes an official display setting that expands
+thinking content in interactive mode.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "RFr", strings = ["{thinking:N8f}=j6x", "B8f.trim().replace"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let z6x=M8f||L8f;'''
+value = '''let z6x=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "thinking body uses expanded 2.1.226 path"
+assert_contains = '''let z6x=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.221 expanded thinking symbols are absent in 2.1.226"
+assert_not_contains = '''let ZVk=!0;'''

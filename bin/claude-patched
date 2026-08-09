@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+export PATCHED_CLAUDE_CODE_RELEASE_MANIFEST="$dir/manifest.json"
+export PATCHED_CLAUDE_CODE_BUNDLE="$dir/cli.js"
+exec bun --preload "$dir/runtime/system-prompt-overrides.ts" "$dir/cli.js" "$@"

@@ -1061,7 +1061,8 @@ Materialized plugin-eval children also skip prefetch because their temporary
 plaintext store is their only credential source.
 
 This is the 2.1.226 minified-symbol variant. The platform-split prefetch
-entrypoint is now `n_s`; the 2.1.221 variant named `__acc_darwin_ers` and the
+entrypoint is now `n_s`, emitted as `__acc_darwin_n_s` by canonical merge; the
+2.1.221 variant named `__acc_darwin_ers` and the
 2.1.220 variant `__acc_darwin_rqi`. The `__acc_darwin_*` split was removed in
 2.1.226. Remove it with the storage bridge when upstream makes the prefetch
 consume the explicit secure-storage target.
@@ -1071,7 +1072,7 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "n_s", string = "Promise.all" }
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_n_s", string = "Promise.all" }
 
 [patches.transform]
 op = "prepend_function_body"
@@ -1311,6 +1312,7 @@ filesystem fallback.
 Materialized children reject legacy writes before the upstream default path.
 
 This is the 2.1.226 minified-symbol variant. It names Darwin saver `FOa`,
+emitted as `__acc_darwin_FOa` by canonical merge,
 service helper `T7`, account helper `CG`, telemetry `L`, and its API-key
 parameter `e`. Upstream now throws on keychain-save failure instead of
 swallowing it; the explicit branch still short-circuits the default path.
@@ -1321,7 +1323,7 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "FOa", strings = ["Invalid API key format", "tengu_api_key_saved_to_keychain"] }
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_FOa", strings = ["Invalid API key format", "tengu_api_key_saved_to_keychain"] }
 
 [patches.transform]
 op = "replace_substring"
@@ -1348,7 +1350,8 @@ before the upstream shell command can target the default login Keychain.
 Materialized children reject deletion instead of reaching that default path.
 
 This is the 2.1.226 minified-symbol variant. It names Darwin deletion
-entrypoint `vrp`, service helper `T7`, and account helper `CG`. The 2.1.221
+entrypoint `vrp`, emitted as `__acc_darwin_vrp` by canonical merge, service
+helper `T7`, and account helper `CG`. The 2.1.221
 variant named `__acc_darwin_iwu`, `bV`, and `UW`.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/authPortable.ts#L1-L17"
@@ -1356,7 +1359,7 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "vrp", string = "Failed to delete keychain entry" }
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_vrp", string = "Failed to delete keychain entry" }
 
 [patches.transform]
 op = "prepend_function_body"
@@ -1421,7 +1424,8 @@ Materialized children return an unsupported diagnostic without probing any
 Keychain.
 
 This is the 2.1.226 minified-symbol variant. It names Darwin doctor probe
-`GwS` and account helper `CG`. The 2.1.221 variant named `__acc_darwin_h2b`
+`GwS`, emitted as `__acc_darwin_GwS` by canonical merge, and account helper
+`CG`. The 2.1.221 variant named `__acc_darwin_h2b`
 and `UW`. Remove it when upstream's doctor accepts a secure-storage target.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/macOsKeychainStorage.ts#L97-L175"
@@ -1429,7 +1433,7 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "GwS", strings = ["Claude Code-doctor-probe", "macOS Keychain is not writable"] }
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_GwS", strings = ["Claude Code-doctor-probe", "macOS Keychain is not writable"] }
 
 [patches.transform]
 op = "prepend_function_body"

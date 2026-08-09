@@ -1,4 +1,5 @@
 import * as parser from "@babel/parser"
+import { parseSync as parseWithOxc } from "oxc-parser"
 
 const IGNORED_KEYS = new Set([
   "comments",
@@ -116,7 +117,7 @@ export function applyAstTransformPatches(
   rejectOverlappingEdits(edits)
 
   const current = applyEdits(source, edits)
-  parseProgram(current, options, "final")
+  validateFinalProgram(current, options)
 
   return {
     source: current,
@@ -157,9 +158,10 @@ export function verifyAstTransformPatches(
 
   const results: AstTransformVerifyResult[] = []
   const successfulEdits: SourceEdit[] = []
+  const parentMap = buildParentMap(ast.program as Record<string, unknown>)
 
   for (const patch of patches) {
-    const matches = findMatches(ast.program as Record<string, unknown>, source, patch.ast.match)
+    const matches = findMatches(ast.program as Record<string, unknown>, source, patch.ast.match, parentMap)
     const expected = patch.expectedMatches ?? 1
     if (matches.length !== expected) {
       results.push({
@@ -193,7 +195,7 @@ export function verifyAstTransformPatches(
   try {
     rejectOverlappingEdits(successfulEdits)
     const transformed = applyEdits(source, successfulEdits)
-    parseProgram(transformed, options, "final")
+    validateFinalProgram(transformed, options)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     return results.map((result) => (result.ok ? { ...result, ok: false, message } : result))
@@ -207,8 +209,9 @@ function planAstTransformPatches(
   root: Record<string, unknown>,
   patches: AstTransformPatch[],
 ): PlannedAstTransform[] {
+  const parentMap = buildParentMap(root)
   return patches.map((patch) => {
-    const matches = findMatches(root, source, patch.ast.match)
+    const matches = findMatches(root, source, patch.ast.match, parentMap)
     const expected = patch.expectedMatches ?? 1
     if (matches.length !== expected) {
       throw new Error(`expected ${expected} AST match(es) for ${patch.name}, got ${matches.length}`)
@@ -217,6 +220,20 @@ function planAstTransformPatches(
     rejectOverlappingEdits(edits)
     return { patch, matches, edits }
   })
+}
+
+function validateFinalProgram(source: string, options: AstTransformOptions): void {
+  options.onParse?.("final")
+  const ast = parseWithOxc("patched-bundle.js", source, {
+    astType: "js",
+    lang: "js",
+    preserveParens: true,
+    sourceType: "script",
+  })
+  const errors = ast.errors.filter((error) => !error.message.includes("A 'return' statement can only be used within a function body"))
+  if (errors.length > 0) {
+    throw new Error(`JavaScript parse failed with ${errors.length} error(s)`)
+  }
 }
 
 function parseProgram(
@@ -253,8 +270,12 @@ function rangeForMatches(matches: AstNode[]): { start?: number; end?: number } {
   }
 }
 
-function findMatches(root: Record<string, unknown>, source: string, match: AstMatch): AstNode[] {
-  const parentMap = buildParentMap(root)
+function findMatches(
+  root: Record<string, unknown>,
+  source: string,
+  match: AstMatch,
+  parentMap: Map<AstNode, AstNode>,
+): AstNode[] {
   const matches: AstNode[] = []
   visit(root, (node) => {
     if (matchesAstMatch(node, source, match, parentMap)) matches.push(node)

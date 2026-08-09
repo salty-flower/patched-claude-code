@@ -92,6 +92,8 @@ type AstNode = Record<string, unknown> & {
   end: number
 }
 
+type AstNodeIndex = Map<string, AstNode[]>
+
 type SourceEdit = {
   start: number
   end: number
@@ -158,10 +160,10 @@ export function verifyAstTransformPatches(
 
   const results: AstTransformVerifyResult[] = []
   const successfulEdits: SourceEdit[] = []
-  const parentMap = buildParentMap(ast.program as Record<string, unknown>)
+  const { parentMap, nodesByType } = buildAstIndexes(ast.program as Record<string, unknown>)
 
   for (const patch of patches) {
-    const matches = findMatches(ast.program as Record<string, unknown>, source, patch.ast.match, parentMap)
+    const matches = findMatches(source, patch.ast.match, parentMap, nodesByType)
     const expected = patch.expectedMatches ?? 1
     if (matches.length !== expected) {
       results.push({
@@ -209,9 +211,9 @@ function planAstTransformPatches(
   root: Record<string, unknown>,
   patches: AstTransformPatch[],
 ): PlannedAstTransform[] {
-  const parentMap = buildParentMap(root)
+  const { parentMap, nodesByType } = buildAstIndexes(root)
   return patches.map((patch) => {
-    const matches = findMatches(root, source, patch.ast.match, parentMap)
+    const matches = findMatches(source, patch.ast.match, parentMap, nodesByType)
     const expected = patch.expectedMatches ?? 1
     if (matches.length !== expected) {
       throw new Error(`expected ${expected} AST match(es) for ${patch.name}, got ${matches.length}`)
@@ -271,39 +273,44 @@ function rangeForMatches(matches: AstNode[]): { start?: number; end?: number } {
 }
 
 function findMatches(
-  root: Record<string, unknown>,
   source: string,
   match: AstMatch,
   parentMap: Map<AstNode, AstNode>,
+  nodesByType: AstNodeIndex,
 ): AstNode[] {
-  const matches: AstNode[] = []
-  visit(root, (node) => {
-    if (matchesAstMatch(node, source, match, parentMap)) matches.push(node)
-  })
-  return matches
+  return (nodesByType.get(match.node) ?? []).filter((node) => matchesAstMatch(node, source, match, parentMap))
 }
 
-function buildParentMap(root: Record<string, unknown>): Map<AstNode, AstNode> {
+function buildAstIndexes(root: Record<string, unknown>): { parentMap: Map<AstNode, AstNode>; nodesByType: AstNodeIndex } {
   const map = new Map<AstNode, AstNode>()
-  visitWithParent(root, null, map)
-  return map
+  const nodesByType: AstNodeIndex = new Map()
+  visitWithParent(root, null, map, nodesByType)
+  return { parentMap: map, nodesByType }
 }
 
-function visitWithParent(node: unknown, parent: AstNode | null, map: Map<AstNode, AstNode>): void {
+function visitWithParent(
+  node: unknown,
+  parent: AstNode | null,
+  map: Map<AstNode, AstNode>,
+  nodesByType: AstNodeIndex,
+): void {
   if (!node || typeof node !== "object") return
   if (Array.isArray(node)) {
-    for (const item of node) visitWithParent(item, parent, map)
+    for (const item of node) visitWithParent(item, parent, map, nodesByType)
     return
   }
   const record = node as Record<string, unknown>
   if (typeof record.type === "string" && typeof record.start === "number" && typeof record.end === "number") {
     const astNode = record as AstNode
     if (parent) map.set(astNode, parent)
+    const nodes = nodesByType.get(astNode.type)
+    if (nodes) nodes.push(astNode)
+    else nodesByType.set(astNode.type, [astNode])
     parent = astNode
   }
   for (const key of Object.keys(record)) {
     if (IGNORED_KEYS.has(key)) continue
-    visitWithParent(record[key], parent, map)
+    visitWithParent(record[key], parent, map, nodesByType)
   }
 }
 

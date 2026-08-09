@@ -1081,7 +1081,7 @@ code = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED
 [[patches.tests]]
 kind = "static"
 name = "2.1.226 explicit selection suppresses default-Keychain prefetch"
-assert_contains = '''function n_s(){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return;'''
+assert_contains = '''function __acc_darwin_n_s(){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return;'''
 
 [[patches.tests]]
 kind = "static"

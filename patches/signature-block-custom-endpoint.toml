@@ -563,7 +563,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=Xky()?IJd(e,pd(r)):DJd(e);
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.1.226"
+applies_to = ">=2.1.221 <2.1.227"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.221 minified-symbol variant of
@@ -592,33 +592,64 @@ name = "2.1.221 signature cleanup no longer carries 2.1.220 symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=Yd()?orp(e,Wu(r)):irp(e);if(t.traceSources)'''
 
 [[patches]]
-name = "strip-signatures-for-custom-base-url-2-1-226"
-target_version = "2.1.226"
-applies_to = ">=2.1.226 <2.2.0"
+name = "strip-signatures-for-custom-base-url-2-1-227"
+target_version = "2.1.227"
+applies_to = ">=2.1.227 <2.1.228"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
-This is the 2.1.226 minified-symbol variant of
+This is the 2.1.227 minified-symbol variant of
 strip-signatures-for-custom-base-url. The matching-provenance path now uses
-N9p(e,dd(r)); the custom-base-url path falls back to $9p(e), which removes
+fzp(e,Xu(r)); the custom-base-url path falls back to mzp(e), which removes
 thinking/redacted-thinking blocks with signatures. The endpoint predicate is
-hf(), the existing actual-first-party Anthropic base URL check. The model
-string is ANSI-normalized by dd() before the provenance comparison.
+hf(), the existing actual-first-party Anthropic base URL check.
 """
 locator_kind = "literal"
-locator_pattern = '''let r=t.bodyModel??t.model,n=N9p(e,dd(r));if(t.traceSources)'''
-replacement = '''let r=t.bodyModel??t.model,n=hf()?N9p(e,dd(r)):$9p(e);if(t.traceSources)'''
+locator_pattern = '''let r=t.bodyModel??t.model,n=fzp(e,Xu(r));if(t.traceSources)'''
+replacement = '''let r=t.bodyModel??t.model,n=hf()?fzp(e,Xu(r)):mzp(e);if(t.traceSources)'''
 
 [[patches.tests]]
 kind = "static"
-name = "custom base URL strips signed blocks in 2.1.226"
-assert_contains = '''let r=t.bodyModel??t.model,n=hf()?N9p(e,dd(r)):$9p(e);if(t.traceSources)'''
+name = "custom base URL strips signed blocks in 2.1.227"
+assert_contains = '''let r=t.bodyModel??t.model,n=hf()?fzp(e,Xu(r)):mzp(e);if(t.traceSources)'''
 
 [[patches.tests]]
 kind = "static"
-name = "old model-mismatch-only cleanup gate is removed in 2.1.226"
-assert_not_contains = '''let r=t.bodyModel??t.model,n=N9p(e,dd(r));if(t.traceSources)'''
+name = "old model-mismatch-only cleanup gate is removed in 2.1.227"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=fzp(e,Xu(r));if(t.traceSources)'''
 
 [[patches.tests]]
 kind = "static"
-name = "2.1.226 signature cleanup no longer carries 2.1.221 symbols"
+name = "2.1.227 signature cleanup no longer carries 2.1.221 symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=Op()?JBp(e,rd(r)):XBp(e);if(t.traceSources)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-228"
+target_version = "2.1.228"
+applies_to = ">=2.1.228 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.228 minified-symbol variant of
+strip-signatures-for-custom-base-url. The matching-provenance path now uses
+U3p(e,cd(r)); the custom-base-url path falls back to j3p(e), which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+Tf(), the existing actual-first-party Anthropic base URL check (backed by
+Zan(), which compares against api.anthropic.com).
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=U3p(e,cd(r));if(t.traceSources)'''
+replacement = '''let r=t.bodyModel??t.model,n=Tf()?U3p(e,cd(r)):j3p(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.228"
+assert_contains = '''let r=t.bodyModel??t.model,n=Tf()?U3p(e,cd(r)):j3p(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.228"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=U3p(e,cd(r));if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.228 signature cleanup no longer carries 2.1.227 symbols"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=hf()?fzp(e,Xu(r)):mzp(e);if(t.traceSources)'''

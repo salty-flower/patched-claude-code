@@ -1074,7 +1074,7 @@ assert_not_contains = '''function vid(){return!1}'''
 [[patches]]
 name = "require-explicit-assistant-response-otel-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.1.226"
+applies_to = ">=2.1.221 <2.1.227"
 
 rationale = """
 Replace the v2.1.221 minified-symbol assistant-response OTel gate `PIu`.
@@ -1111,9 +1111,48 @@ name = "2.1.221 assistant-response gate no longer carries 2.1.220 symbols"
 assert_not_contains = '''function plu(){return Z.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
 
 [[patches]]
+name = "require-explicit-assistant-response-otel-2-1-227"
+target_version = "2.1.227"
+applies_to = ">=2.1.227 <2.1.228"
+
+rationale = """
+Replace the v2.1.227 minified-symbol assistant-response OTel gate `$0u`.
+
+Assistant response logging still falls back to OTEL_LOG_USER_PROMPTS when
+OTEL_LOG_ASSISTANT_RESPONSES is unset. This is the 2.1.227 minified-symbol
+variant; the gate drifted from `PIu` to `$0u` while the telemetry env
+namespace remains `re`. Patched bundles should require an explicit
+assistant-response opt-in instead of silently broadening an existing
+prompt-logging deployment. Cleanup condition: upstream makes
+assistant-response logging independent from user-prompt logging by default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+
+locator_kind = "literal"
+locator_pattern = '''function $0u(){return re.OTEL_LOG_ASSISTANT_RESPONSES??re.OTEL_LOG_USER_PROMPTS}'''
+expected_matches = 1
+
+replacement = '''function $0u(){return re.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging requires explicit opt-in in 2.1.227"
+assert_contains = '''function $0u(){return re.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging no longer inherits prompt logging in 2.1.227"
+assert_not_contains = '''function $0u(){return re.OTEL_LOG_ASSISTANT_RESPONSES??re.OTEL_LOG_USER_PROMPTS}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.227 assistant-response gate no longer carries 2.1.221 symbols"
+assert_not_contains = '''function PIu(){return re.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
 name = "disable-raw-api-body-otel-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.1.226"
+applies_to = ">=2.1.221 <2.1.227"
 
 rationale = """
 Disable the v2.1.221 minified-symbol raw-body OTel gate `Zjd`.
@@ -1150,79 +1189,118 @@ name = "2.1.221 raw-body gate no longer carries 2.1.220 symbols"
 assert_not_contains = '''function Uud(){return!1}'''
 
 [[patches]]
-name = "require-explicit-assistant-response-otel-2-1-226"
-target_version = "2.1.226"
-applies_to = ">=2.1.226 <2.2.0"
+name = "disable-raw-api-body-otel-2-1-227"
+target_version = "2.1.227"
+applies_to = ">=2.1.227 <2.1.228"
 
 rationale = """
-Replace the v2.1.226 minified-symbol assistant-response OTel gate `Pxu`.
+Disable the v2.1.227 minified-symbol raw-body OTel gate `b5d`.
+
+OTEL_LOG_RAW_API_BODIES can emit or write full Messages API request/response
+bodies, which include conversation history and tool results. This is the
+2.1.227 minified-symbol variant; the config getter drifted from `Qjd` to
+`_5d` and the gate from `Zjd` to `b5d`. Patched bundles should not provide
+a runtime switch that turns complete API bodies into telemetry payloads or
+local trace files. Cleanup condition: upstream removes raw body capture or
+narrows it to a documented local-only diagnostic that cannot export content.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+
+locator_kind = "literal"
+locator_pattern = '''function b5d(){return _5d().mode!=="disabled"}'''
+expected_matches = 1
+
+replacement = '''function b5d(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging gate is disabled in 2.1.227"
+assert_contains = '''function b5d(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging env gate is not rendered in 2.1.227"
+assert_not_contains = '''function b5d(){return _5d().mode!=="disabled"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.227 raw-body gate no longer carries 2.1.221 symbols"
+assert_not_contains = '''function Zjd(){return!1}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-228"
+target_version = "2.1.228"
+applies_to = ">=2.1.228 <2.2.0"
+
+rationale = """
+Replace the v2.1.228 minified-symbol assistant-response OTel gate `$$u`.
 
 Assistant response logging still falls back to OTEL_LOG_USER_PROMPTS when
-OTEL_LOG_ASSISTANT_RESPONSES is unset. This is the 2.1.226 assistant-response
-symbol variant; the gate drifted from `PIu` to `Pxu` and the telemetry env
-namespace from `re` to `te`. Patched bundles should require an explicit
-assistant-response opt-in instead of silently broadening an existing
+OTEL_LOG_ASSISTANT_RESPONSES is unset. This is the 2.1.228 minified-symbol
+variant; the gate drifted from `$0u` to `$$u` while the telemetry env
+namespace drifted from `re` to `X`. Patched bundles should require an
+explicit assistant-response opt-in instead of silently broadening an existing
 prompt-logging deployment. Cleanup condition: upstream makes
 assistant-response logging independent from user-prompt logging by default.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
 
 locator_kind = "literal"
-locator_pattern = '''function Pxu(){return te.OTEL_LOG_ASSISTANT_RESPONSES??te.OTEL_LOG_USER_PROMPTS}'''
+locator_pattern = '''function $$u(){return X.OTEL_LOG_ASSISTANT_RESPONSES??X.OTEL_LOG_USER_PROMPTS}'''
 expected_matches = 1
 
-replacement = '''function Pxu(){return te.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+replacement = '''function $$u(){return X.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
 
 [[patches.tests]]
 kind = "static"
-name = "assistant response logging requires explicit opt-in in 2.1.226"
-assert_contains = '''function Pxu(){return te.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+name = "assistant response logging requires explicit opt-in in 2.1.228"
+assert_contains = '''function $$u(){return X.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
 
 [[patches.tests]]
 kind = "static"
-name = "assistant response logging no longer inherits prompt logging in 2.1.226"
-assert_not_contains = '''function Pxu(){return te.OTEL_LOG_ASSISTANT_RESPONSES??te.OTEL_LOG_USER_PROMPTS}'''
+name = "assistant response logging no longer inherits prompt logging in 2.1.228"
+assert_not_contains = '''function $$u(){return X.OTEL_LOG_ASSISTANT_RESPONSES??X.OTEL_LOG_USER_PROMPTS}'''
 
 [[patches.tests]]
 kind = "static"
-name = "2.1.226 assistant-response gate no longer carries 2.1.221 symbols"
-assert_not_contains = '''function PIu(){return re.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+name = "2.1.228 assistant-response gate no longer carries 2.1.227 symbols"
+assert_not_contains = '''function $0u(){return re.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
 
 [[patches]]
-name = "disable-raw-api-body-otel-2-1-226"
-target_version = "2.1.226"
-applies_to = ">=2.1.226 <2.2.0"
+name = "disable-raw-api-body-otel-2-1-228"
+target_version = "2.1.228"
+applies_to = ">=2.1.228 <2.2.0"
 
 rationale = """
-Disable the v2.1.226 minified-symbol raw-body OTel gate `S6d`.
+Disable the v2.1.228 minified-symbol raw-body OTel gate `Yrp`.
 
 OTEL_LOG_RAW_API_BODIES can emit or write full Messages API request/response
 bodies, which include conversation history and tool results. This is the
-2.1.226 raw-api-body symbol variant; the gate drifted from `Zjd` to `S6d` and
-the config getter from `Qjd` to `b6d`. Patched bundles should not provide a
-runtime switch that turns complete API bodies into telemetry payloads or local
-trace files. Cleanup condition: upstream removes raw body capture or narrows
-it to a documented local-only diagnostic that cannot export content.
+2.1.228 minified-symbol variant; the config getter drifted from `_5d` to
+`Krp` and the gate from `b5d` to `Yrp`. Patched bundles should not provide
+a runtime switch that turns complete API bodies into telemetry payloads or
+local trace files. Cleanup condition: upstream removes raw body capture or
+narrows it to a documented local-only diagnostic that cannot export content.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
 
 locator_kind = "literal"
-locator_pattern = '''function S6d(){return b6d().mode!=="disabled"}'''
+locator_pattern = '''function Yrp(){return Krp().mode!=="disabled"}'''
 expected_matches = 1
 
-replacement = '''function S6d(){return!1}'''
+replacement = '''function Yrp(){return!1}'''
 
 [[patches.tests]]
 kind = "static"
-name = "raw API body logging gate is disabled in 2.1.226"
-assert_contains = '''function S6d(){return!1}'''
+name = "raw API body logging gate is disabled in 2.1.228"
+assert_contains = '''function Yrp(){return!1}'''
 
 [[patches.tests]]
 kind = "static"
-name = "raw API body logging env gate is not rendered in 2.1.226"
-assert_not_contains = '''function S6d(){return b6d().mode!=="disabled"}'''
+name = "raw API body logging env gate is not rendered in 2.1.228"
+assert_not_contains = '''function Yrp(){return Krp().mode!=="disabled"}'''
 
 [[patches.tests]]
 kind = "static"
-name = "2.1.226 raw-body gate no longer carries 2.1.221 symbols"
-assert_not_contains = '''function Zjd(){return!1}'''
+name = "2.1.228 raw-body gate no longer carries 2.1.227 symbols"
+assert_not_contains = '''function b5d(){return!1}'''

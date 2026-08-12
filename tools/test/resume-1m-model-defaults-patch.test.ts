@@ -73,10 +73,21 @@ test("resume restores 1m defaults after alias resolution", () => {
     return
   }
 
-  if (isVersionAtLeast(TARGET_VERSION, "2.1.226")) {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.228")) {
     expect(applied).toBe(2)
-    expect(patched).toContain('if(te.ANTHROPIC_MODEL&&(o.kind!=="ok"||Eo(ns(te.ANTHROPIC_MODEL))!==Eo(o.model)))return;')
-    expect(patched).toContain("let r=new Set(qZc.map((i)=>Eo(i))),n=ns(t??ls()),o=dd(n);")
+    expect(patched).toContain(
+      'if(X.ANTHROPIC_MODEL&&(o.kind!=="ok"||Do(as(X.ANTHROPIC_MODEL))!==Do(o.model)))return;',
+    )
+    expect(patched).toContain("let r=new Set(Kcu.map((i)=>Do(i))),n=as(t??fs()),o=cd(n);")
+    return
+  }
+
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.227")) {
+    expect(applied).toBe(2)
+    expect(patched).toContain(
+      'if(re.ANTHROPIC_MODEL&&(o.kind!=="ok"||Ro(ns(re.ANTHROPIC_MODEL))!==Ro(o.model)))return;',
+    )
+    expect(patched).toContain("let r=new Set(qXc.map((i)=>Ro(i))),n=ns(t??ls()),o=Xu(n);")
     return
   }
 

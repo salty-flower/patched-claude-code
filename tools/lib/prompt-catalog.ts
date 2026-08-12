@@ -60,6 +60,8 @@ type PromptCandidate = {
   astContextSha256: string
 }
 
+export type { PromptCandidate }
+
 export type PromptCatalogEntry = {
   id: string
   lineageId: string
@@ -458,7 +460,7 @@ function promptIdentityObservations(
   })
 }
 
-function discoverPromptCandidates(source: string): PromptCandidate[] {
+export function discoverPromptCandidates(source: string): PromptCandidate[] {
   const ast = parser.parse(source, {
     allowReturnOutsideFunction: true,
     errorRecovery: false,

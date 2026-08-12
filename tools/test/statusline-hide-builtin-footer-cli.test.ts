@@ -75,44 +75,41 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.226")) {
-      expect(patched).toContain(
-        "globalThis.__acc_disabled_footer=H})():void 0,vt={settings:Ao(),tasks:{},attentionBudget:mSo,transcripts:{},taskDecorations:{}",
-      )
-      expect(patched).not.toContain(
-        "globalThis.__acc_disabled_footer=H})():void 0,Ct={settings:lo(),tasks:{},transcripts:{},taskDecorations:{}",
-      )
-      expect(patched).toContain("getCommandLength:()=>_.current?.command?.length??0")
-      expect(patched).toContain("command_length:$.command?.length??0,padding:$.padding")
-      expect(patched).not.toContain("command_length:F.command?.length??0,padding:F.padding")
-      expect(patched).toContain(
-        "globalThis.__acc_clipboard_image_available=c,g((u)=>u.clipboardImageAvailable===c?u:{...u,clipboardImageAvailable:c})",
-      )
-      expect(patched).toContain("globalThis.__acc_rate_limit_warning=GBv")
-      expect(patched).not.toContain("globalThis.__acc_rate_limit_warning=VJT")
-      expect(patched).toContain(
-        "let __cci=ot((X)=>X.clipboardImageAvailable??!1);gI.useEffect(()=>{B()},[__cci,B]);let K=u?.refreshInterval;",
-      )
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.228")) {
+      expect(patched).toContain('globalThis.__acc_disabled_footer=q,_}).option("-c, --continue"')
+      expect(patched).toContain("tr={settings:Ho(),tasks:{},attentionBudget:tCo")
+      expect(patched).not.toContain("Wt={settings:Io(),tasks:{},attentionBudget:jbo")
+      expect(patched).toContain("getCommandLength:()=>y.current?.command?.length??0")
+      expect(patched).toContain("command_length:F.command?.length??0,padding:F.padding")
+      expect(patched).not.toContain("command_length:B.command?.length??0,padding:B.padding")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=MdE")
+      expect(patched).not.toContain("globalThis.__acc_rate_limit_warning=WGv")
+      expect(patched).toContain("__cci=ot((X)=>X.clipboardImageAvailable??!1)")
       expect(patched).not.toContain("__cci=Ye((X)=>X.clipboardImageAvailable??!1)")
-      expect(patched).toContain("gI.useEffect(()=>{B()},[__cci,B]);")
+      expect(patched).toContain(
+        'function F3i(XmD){let __acc_hide_footer=it((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      expect(patched).not.toContain(
+        'function Y1i(j3O){let __acc_hide_footer=ot((se)=>se.settings.statusLine?.hideBuiltinFooter',
+      )
+      expect(patched).toContain("return __acc_hide_footer?null:dqv")
+      expect(patched).not.toContain("return __acc_hide_footer?null:MRv")
+      expect(patched).toContain(
+        'hideBuiltinFooter:qt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:ft(Dr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      expect(patched).not.toContain(
+        'hideBuiltinFooter:Ut().optional().describe("Compatibility alias for hiding all built-in footer items.")',
+      )
+      expect(patched).toContain("YP.useEffect(()=>{j()},[__cci,j]);")
+      expect(patched).not.toContain("EP.useEffect(()=>{$()},[__cci,$]);")
       expect(patched).not.toContain("Xk.useEffect(()=>{q()},[__cci,q]);")
-      expect(patched).toContain(
-        'function n$i(pbO){let __acc_hide_footer=ot((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
-      )
-      expect(patched).not.toContain(
-        'function TCi(gwP){let __acc_hide_footer=Ye((se)=>se.settings.statusLine?.hideBuiltinFooter',
-      )
-      expect(patched).toContain("return __acc_hide_footer?null:Ogv")
-      expect(patched).toContain(
-        'hideBuiltinFooter:Ut().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:dt(Nr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
-      )
-      expect(patched).not.toContain(
-        'hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")',
-      )
-      expect(patched).toContain("effort_level:jI(g)?bz(g,p):null")
-      expect(patched).not.toContain("effort_level:gO(g)?xq(g,p):null")
-      expect(patched).toContain("let sle=__acc_hide_mode?void 0:SbO?.mode,")
-      expect(patched).not.toContain("else yI=!__acc_hide_mode&&arr&&!fBe")
+      expect(patched).toContain("effort_level:AO(g)?yW(g,p):null")
+      expect(patched).not.toContain("effort_level:KP(g)?k5(g,p):null")
+      expect(patched).toContain("let Lzl=!__acc_hide_mode&&!!Vue&&Mqv;")
+      expect(patched).not.toContain("let Z$l=!__acc_hide_mode&&!!Vce&&i0v;")
+      expect(patched).toContain("c8=!__acc_hide_mode&&Lzl&&Vue?")
+      expect(patched).not.toContain("DG=!__acc_hide_mode&&Z$l&&Vce?")
       for (const item of [
         "footer",
         "permission_mode",
@@ -125,7 +122,53 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       }
       return
     }
-
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.227")) {
+      expect(patched).toContain('globalThis.__acc_disabled_footer=q,_}).option("-c, --continue"')
+      expect(patched).toContain("Wt={settings:Io(),tasks:{},attentionBudget:jbo")
+      expect(patched).not.toContain(
+        "globalThis.__acc_disabled_footer=H})():void 0,Ct={settings:lo(),tasks:{},transcripts:{},taskDecorations:{}",
+      )
+      expect(patched).toContain("getCommandLength:()=>y.current?.command?.length??0")
+      expect(patched).toContain("command_length:B.command?.length??0,padding:B.padding")
+      expect(patched).not.toContain("command_length:F.command?.length??0,padding:F.padding")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=WGv")
+      expect(patched).not.toContain("globalThis.__acc_rate_limit_warning=VJT")
+      expect(patched).toContain("__cci=ot((X)=>X.clipboardImageAvailable??!1)")
+      expect(patched).not.toContain("__cci=Ye((X)=>X.clipboardImageAvailable??!1)")
+      expect(patched).toContain(
+        'function Y1i(j3O){let __acc_hide_footer=ot((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      expect(patched).not.toContain(
+        'function TCi(gwP){let __acc_hide_footer=Ye((se)=>se.settings.statusLine?.hideBuiltinFooter',
+      )
+      expect(patched).toContain("return __acc_hide_footer?null:MRv")
+      expect(patched).toContain(
+        'hideBuiltinFooter:E.boolean().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:E.array(E.enum(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      expect(patched).not.toContain(
+        'hideBuiltinFooter:b.boolean().optional().describe("Compatibility alias for hiding all built-in footer items.")',
+      )
+      expect(patched).toContain("EP.useEffect(()=>{$()},[__cci,$]);")
+      expect(patched).not.toContain("Xk.useEffect(()=>{q()},[__cci,q]);")
+      expect(patched).toContain("effort_level:KP(g)?k5(g,p):null")
+      expect(patched).not.toContain("effort_level:gO(g)?xq(g,p):null")
+      expect(patched).toContain("let Z$l=!__acc_hide_mode&&!!Vce&&i0v;")
+      expect(patched).not.toContain("let pwl=!__acc_hide_mode&&!!Hie&&cPT;")
+      expect(patched).toContain("DG=!__acc_hide_mode&&Z$l&&Vce?")
+      expect(patched).not.toContain("E5=!__acc_hide_mode&&pwl&&Hie?")
+      for (const item of [
+        "footer",
+        "permission_mode",
+        "mode",
+        "effort_notification",
+        "rate_limit_warning",
+        "clipboard_image_hint",
+      ]) {
+        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+      }
+      return
+    }
     if (isVersionAtLeast(TARGET_VERSION, "2.1.221")) {
       expect(patched).toContain(
         "globalThis.__acc_disabled_footer=H})():void 0,Ct={settings:lo(),tasks:{},transcripts:{},taskDecorations:{}",

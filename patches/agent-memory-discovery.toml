@@ -315,7 +315,7 @@ assert_not_contains = '''let i=FT.join(e,"CLAUDE.md");n.push(...await tpe(i,"Pro
 [[patches]]
 name = "agents-memory-nested-directory-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.1.226"
+applies_to = ">=2.1.221 <2.1.227"
 
 rationale = """
 Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
@@ -353,6 +353,90 @@ assert_not_contains = '''let i=jT.join(e,"CLAUDE.md");n.push(...await dhe(i,"Pro
 kind = "static"
 name = "2.1.221 nested loader no longer carries 2.1.220 symbols"
 assert_not_contains = '''let i=qS.join(e,"CLAUDE.md");n.push(...await Lpe(i,"Project",r,!1));let AGENTS_MD=qS.join(e,"AGENTS.md");n.push(...await Lpe(AGENTS_MD,"Project",r,!1));let s=qS.join(e,".claude","CLAUDE.md")'''
+
+[[patches]]
+name = "agents-memory-nested-directory-2-1-227"
+target_version = "2.1.227"
+applies_to = ">=2.1.227 <2.1.228"
+
+rationale = """
+Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
+
+This is the 2.1.227 minified-symbol variant of
+`agents-memory-nested-directory`. The nested loader is now `kIo`; its path
+namespace is `Hv`, accumulator is `o`, memory loader is `$be`, and processed
+path set is `r`. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "kIo", strings = ['''CLAUDE_CODE_DISABLE_CLAUDE_MDS''', '''let s=Hv.join(e,"CLAUDE.md");o.push(...await $be(s,"Project",r,!1));let a=Hv.join(e,".claude","CLAUDE.md")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let s=Hv.join(e,"CLAUDE.md");o.push(...await $be(s,"Project",r,!1));let a=Hv.join(e,".claude","CLAUDE.md")'''
+value = '''let s=Hv.join(e,"CLAUDE.md");o.push(...await $be(s,"Project",r,!1));let AGENTS_MD=Hv.join(e,"AGENTS.md");o.push(...await $be(AGENTS_MD,"Project",r,!1));let a=Hv.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "nested-directory AGENTS.md loader is rendered in 2.1.227"
+assert_contains = '''let s=Hv.join(e,"CLAUDE.md");o.push(...await $be(s,"Project",r,!1));let AGENTS_MD=Hv.join(e,"AGENTS.md");o.push(...await $be(AGENTS_MD,"Project",r,!1));let a=Hv.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.227 nested-memory sequence is absent"
+assert_not_contains = '''let s=Hv.join(e,"CLAUDE.md");o.push(...await $be(s,"Project",r,!1));let a=Hv.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.227 nested loader no longer carries 2.1.221 symbols"
+assert_not_contains = '''let i=jT.join(e,"CLAUDE.md");n.push(...await dhe(i,"Project",r,!1));let AGENTS_MD=jT.join(e,"AGENTS.md");n.push(...await dhe(AGENTS_MD,"Project",r,!1));let s=jT.join(e,".claude","CLAUDE.md")'''
+
+[[patches]]
+name = "agents-memory-nested-directory-2-1-228"
+target_version = "2.1.228"
+applies_to = ">=2.1.228 <2.2.0"
+
+rationale = """
+Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
+
+This is the 2.1.228 minified-symbol variant of
+`agents-memory-nested-directory`. The nested loader is now `f1o`; its path
+namespace is `Kv`, accumulator is `o`, memory loader is `uTe`, and processed
+path set is `r`. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "f1o", strings = ['''CLAUDE_CODE_DISABLE_CLAUDE_MDS''', '''let s=Kv.join(e,"CLAUDE.md");o.push(...await uTe(s,"Project",r,!1));let a=Kv.join(e,".claude","CLAUDE.md")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let s=Kv.join(e,"CLAUDE.md");o.push(...await uTe(s,"Project",r,!1));let a=Kv.join(e,".claude","CLAUDE.md")'''
+value = '''let s=Kv.join(e,"CLAUDE.md");o.push(...await uTe(s,"Project",r,!1));let AGENTS_MD=Kv.join(e,"AGENTS.md");o.push(...await uTe(AGENTS_MD,"Project",r,!1));let a=Kv.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "nested-directory AGENTS.md loader is rendered in 2.1.228"
+assert_contains = '''let s=Kv.join(e,"CLAUDE.md");o.push(...await uTe(s,"Project",r,!1));let AGENTS_MD=Kv.join(e,"AGENTS.md");o.push(...await uTe(AGENTS_MD,"Project",r,!1));let a=Kv.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.228 nested-memory sequence is absent"
+assert_not_contains = '''let s=Kv.join(e,"CLAUDE.md");o.push(...await uTe(s,"Project",r,!1));let a=Kv.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.228 nested loader no longer carries 2.1.227 symbols"
+assert_not_contains = '''let s=Hv.join(e,"CLAUDE.md");o.push(...await $be(s,"Project",r,!1));let AGENTS_MD=Hv.join(e,"AGENTS.md");o.push(...await $be(AGENTS_MD,"Project",r,!1));let a=Hv.join(e,".claude","CLAUDE.md")'''
 
 [[patches]]
 name = "agents-memory-ancestor-directories"
@@ -694,7 +778,7 @@ assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(ws
 [[patches]]
 name = "agents-memory-file-detection-2-1-221"
 target_version = "2.1.221"
-applies_to = ">=2.1.221 <2.1.226"
+applies_to = ">=2.1.221 <2.1.227"
 
 rationale = """
 Treat AGENTS.md as a memory file for nested-memory propagation checks.
@@ -729,6 +813,80 @@ name = "2.1.221 allowlist no longer carries 2.1.220 symbols"
 assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(tae.basename(Vt))'''
 
 [[patches]]
+name = "agents-memory-file-detection-2-1-227"
+target_version = "2.1.227"
+applies_to = ">=2.1.227 <2.1.228"
+
+rationale = """
+Treat AGENTS.md as a memory file for nested-memory propagation checks.
+
+This is the 2.1.227 minified-symbol variant. The filename allowlist now uses
+path namespace `Fme` and loaded-memory path variable `Nr`; add AGENTS.md so
+loaded project memory continues to participate in cache and invalidation
+propagation. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
+
+locator_kind = "literal"
+locator_pattern = '''["CLAUDE.md","CLAUDE.local.md"].includes(Fme.basename(Nr))'''
+expected_matches = 1
+
+replacement = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(Fme.basename(Nr))'''
+
+[[patches.tests]]
+kind = "static"
+name = "AGENTS.md participates in nested-memory propagation in 2.1.227"
+assert_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(Fme.basename(Nr))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.227 allowlist no longer carries the stale two-file predicate"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(Fme.basename(Nr))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.227 allowlist no longer carries 2.1.221 symbols"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(xce.basename(Yt))'''
+
+[[patches]]
+name = "agents-memory-file-detection-2-1-228"
+target_version = "2.1.228"
+applies_to = ">=2.1.228 <2.2.0"
+
+rationale = """
+Treat AGENTS.md as a memory file for nested-memory propagation checks.
+
+This is the 2.1.228 minified-symbol variant. The filename allowlist now uses
+path namespace `yhe` and loaded-memory path variable `hr`; add AGENTS.md so
+loaded project memory continues to participate in cache and invalidation
+propagation. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
+
+locator_kind = "literal"
+locator_pattern = '''["CLAUDE.md","CLAUDE.local.md"].includes(yhe.basename(hr))'''
+expected_matches = 1
+
+replacement = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(yhe.basename(hr))'''
+
+[[patches.tests]]
+kind = "static"
+name = "AGENTS.md participates in nested-memory propagation in 2.1.228"
+assert_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(yhe.basename(hr))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.228 allowlist no longer carries the stale two-file predicate"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(yhe.basename(hr))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.228 allowlist no longer carries 2.1.227 symbols"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(Fme.basename(Nr))'''
+
+[[patches]]
 name = "memory-file-realpath-overlap-dedup"
 target_version = "2.1.133"
 applies_to = ">=2.1.133 <2.1.142"
@@ -755,82 +913,3 @@ replacement = '''let{resolvedPath:$1,isSymlink:$2}=$3($4),YH=$6($1);if($2&&q.has
 kind = "static"
 name = "replacement is rendered"
 assert_contains = '''if($&&q.has(YH))return[];'''
-
-[[patches]]
-name = "agents-memory-nested-directory-2-1-226"
-target_version = "2.1.226"
-applies_to = ">=2.1.226 <2.2.0"
-
-rationale = """
-Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
-
-This is the 2.1.226 minified-symbol variant of
-`agents-memory-nested-directory`. The nested loader is now `nPo`; its path
-namespace is `Jv`, accumulator is `n`, memory loader is `tye`, and processed
-path set is `r`. Cleanup condition: upstream supports AGENTS.md as an official
-memory file or exposes a configurable project-memory filename list.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
-
-locator_kind = "ast_transform"
-
-[patches.ast]
-schema = 1
-match = { node = "FunctionDeclaration", function_name = "nPo", strings = ['''CLAUDE_CODE_DISABLE_CLAUDE_MDS''', '''let i=Jv.join(e,"CLAUDE.md");n.push(...await tye(i,"Project",r,!1));let s=Jv.join(e,".claude","CLAUDE.md")'''] }
-
-[patches.transform]
-op = "replace_substring"
-find = '''let i=Jv.join(e,"CLAUDE.md");n.push(...await tye(i,"Project",r,!1));let s=Jv.join(e,".claude","CLAUDE.md")'''
-value = '''let i=Jv.join(e,"CLAUDE.md");n.push(...await tye(i,"Project",r,!1));let AGENTS_MD=Jv.join(e,"AGENTS.md");n.push(...await tye(AGENTS_MD,"Project",r,!1));let s=Jv.join(e,".claude","CLAUDE.md")'''
-
-[[patches.tests]]
-kind = "static"
-name = "nested-directory AGENTS.md loader is rendered in 2.1.226"
-assert_contains = '''let i=Jv.join(e,"CLAUDE.md");n.push(...await tye(i,"Project",r,!1));let AGENTS_MD=Jv.join(e,"AGENTS.md");n.push(...await tye(AGENTS_MD,"Project",r,!1));let s=Jv.join(e,".claude","CLAUDE.md")'''
-
-[[patches.tests]]
-kind = "static"
-name = "unpatched 2.1.226 nested-memory sequence is absent"
-assert_not_contains = '''let i=Jv.join(e,"CLAUDE.md");n.push(...await tye(i,"Project",r,!1));let s=Jv.join(e,".claude","CLAUDE.md")'''
-
-[[patches.tests]]
-kind = "static"
-name = "2.1.226 nested loader no longer carries 2.1.221 symbols"
-assert_not_contains = '''let i=jT.join(e,"CLAUDE.md");n.push(...await dhe(i,"Project",r,!1));let AGENTS_MD=jT.join(e,"AGENTS.md");n.push(...await dhe(AGENTS_MD,"Project",r,!1));let s=jT.join(e,".claude","CLAUDE.md")'''
-
-[[patches]]
-name = "agents-memory-file-detection-2-1-226"
-target_version = "2.1.226"
-applies_to = ">=2.1.226 <2.2.0"
-
-rationale = """
-Treat AGENTS.md as a memory file for nested-memory propagation checks.
-
-This is the 2.1.226 minified-symbol variant. The filename allowlist now uses
-path namespace `$pe` and loaded-memory path variable `nn`; add AGENTS.md so
-loaded project memory continues to participate in cache and invalidation
-propagation. Cleanup condition: upstream supports AGENTS.md as an official
-memory file or exposes a configurable project-memory filename list.
-"""
-rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
-
-locator_kind = "literal"
-locator_pattern = '''["CLAUDE.md","CLAUDE.local.md"].includes($pe.basename(nn))'''
-expected_matches = 1
-
-replacement = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes($pe.basename(nn))'''
-
-[[patches.tests]]
-kind = "static"
-name = "AGENTS.md participates in nested-memory propagation in 2.1.226"
-assert_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes($pe.basename(nn))'''
-
-[[patches.tests]]
-kind = "static"
-name = "2.1.226 allowlist no longer carries the stale two-file predicate"
-assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes($pe.basename(nn))'''
-
-[[patches.tests]]
-kind = "static"
-name = "2.1.226 allowlist no longer carries 2.1.221 symbols"
-assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(xce.basename(Yt))'''

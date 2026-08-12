@@ -12,7 +12,9 @@ const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
-const targetUses226LaterSymbols = gte(TARGET_VERSION, "2.1.226") && lt(TARGET_VERSION, "2.2.0")
+const targetUses228LaterSymbols = gte(TARGET_VERSION, "2.1.228")
+const targetUses227LaterSymbols = gte(TARGET_VERSION, "2.1.227") && lt(TARGET_VERSION, "2.1.228")
+const targetUses228ExactFireSymbols = targetUses228LaterSymbols
 const targetUses221LaterSymbols = gte(TARGET_VERSION, "2.1.221") && lt(TARGET_VERSION, "2.1.222")
 const targetUses220LaterSymbols = gte(TARGET_VERSION, "2.1.220") && lt(TARGET_VERSION, "2.1.221")
 const targetUses218LaterSymbols = gte(TARGET_VERSION, "2.1.218") && lt(TARGET_VERSION, "2.1.220")
@@ -23,7 +25,8 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
-  targetUses226LaterSymbols ||
+  targetUses228LaterSymbols ||
+  targetUses227LaterSymbols ||
   targetUses221LaterSymbols ||
   targetUses220LaterSymbols ||
   targetUses218LaterSymbols ||
@@ -90,8 +93,10 @@ function expectContainsOneOf(body: string, snippets: string[]): void {
 }
 
 function getAbsoluteSubmitCode(): string {
-  const suffix = targetUses226LaterSymbols
-    ? "2-1-226"
+  const suffix = targetUses228LaterSymbols
+    ? "2-1-228"
+    : targetUses227LaterSymbols
+    ? "2-1-227"
     : targetUses221LaterSymbols
     ? "2-1-221"
     : targetUses220LaterSymbols
@@ -117,8 +122,10 @@ function getAbsoluteSubmitCode(): string {
 }
 
 async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Promise<LaterHookResult> {
-  const [taskGetter, nextRun, addTask, enablePolling] = targetUses226LaterSymbols
-    ? ["yM", "Ayr", "XKe", "lOe"]
+  const [taskGetter, nextRun, addTask, enablePolling] = targetUses228LaterSymbols
+    ? ["UL", "ZEr", "sQe", "dMe"]
+    : targetUses227LaterSymbols
+    ? ["wL", "ySr", "SJe", "NDe"]
     : targetUses221LaterSymbols
     ? ["DD", "Sfr", "VGe", "xke"]
     : targetUses220LaterSymbols
@@ -137,7 +144,7 @@ async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Prom
               ? ["OI", "Yzt", "PBe", "jSe"]
               : ["FI", "xVt", "Z$e", "ESe"]
   const [inputName, modeName, skipName, clearBufferName, resetHistoryName] =
-    targetUses226LaterSymbols
+    targetUses228LaterSymbols || targetUses227LaterSymbols
     ? ["R", "P", "n", "A", "k"]
     : targetUses221LaterSymbols
     ? ["k", "O", "n", "R", "P"]
@@ -149,7 +156,7 @@ async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Prom
         ? ["k", "O", "A", "I", "D"]
         : ["I", "P", "n", "H", "k"]
   const [inputSetterName, cursorSetterName, pastedContentsSetterName] =
-    targetUses226LaterSymbols
+    targetUses228LaterSymbols || targetUses227LaterSymbols
     ? ["i", "C", "s"]
     : targetUses221LaterSymbols || targetUses220LaterSymbols || targetUses218LaterSymbols
     ? ["i", "A", "s"]
@@ -297,7 +304,8 @@ test.skipIf(!testLaterCommand)(
       "l5e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "W5e({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "VGe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
-      "XKe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
+      "SJe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
+      "sQe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
     ])
     expectContainsOneOf(patched, ["if(__task)__task.later=!0", "later:!0})", "later:!0,laterAt:"])
     expectContainsOneOf(patched, [
@@ -320,7 +328,8 @@ test.skipIf(!testLaterCommand)(
       "Zwe(!0)",
       "DAe(!0)",
       "xke(!0)",
-      "lOe(!0)",
+      "NDe(!0)",
+      "dMe(!0)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
@@ -350,15 +359,17 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
-    } else if (targetUses226LaterSymbols) {
+    } else if (targetUses228ExactFireSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
-      expect(patched).toContain(
-        "$.later===!0&&Number.isFinite($.laterAt)&&$.laterAt>$.createdAt?$.laterAt:uIo",
-      )
-      expect(patched).not.toContain(
-        "F.later===!0&&Number.isFinite(F.laterAt)&&F.laterAt>F.createdAt?F.laterAt:jwo",
-      )
-      expect(patched).toContain("lOe(!0)")
+      expect(patched).toContain("F.later===!0&&Number.isFinite(F.laterAt)&&F.laterAt>F.createdAt?F.laterAt:FMo")
+      expect(patched).not.toContain("B.later===!0&&Number.isFinite(B.laterAt)&&B.laterAt>B.createdAt?B.laterAt:Sxo")
+      expect(patched).toContain("dMe(!0)")
+      expect(patched).not.toContain("xke(!0)")
+    } else if (targetUses227LaterSymbols) {
+      expect(patched).toContain("laterAt:__when.getTime()")
+      expect(patched).toContain("B.later===!0&&Number.isFinite(B.laterAt)&&B.laterAt>B.createdAt?B.laterAt:Sxo")
+      expect(patched).not.toContain("F.later===!0&&Number.isFinite(F.laterAt)&&F.laterAt>F.createdAt?F.laterAt:jwo")
+      expect(patched).toContain("NDe(!0)")
       expect(patched).not.toContain("xke(!0)")
     } else if (targetUses221LaterSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
@@ -448,7 +459,8 @@ test.skipIf(!testLaterCommand)(
       "nO().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "iO().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "DD().filter((__t)=>__t.later===!0&&!__t.recurring)",
-      "yM().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "wL().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "UL().filter((__t)=>__t.later===!0&&!__t.recurring)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("uw().filter((__t)=>__t.later===!0&&!__t.recurring)")
@@ -470,10 +482,15 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("E7t(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("gVt(__t.cron,__t.createdAt)")
-    } else if (targetUses226LaterSymbols) {
-      expect(patched).toContain("yM().filter((__t)=>__t.later===!0&&!__t.recurring)")
+    } else if (targetUses228LaterSymbols) {
+      expect(patched).toContain("UL().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("wL().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).toContain("ZEr(__t.cron,__t.createdAt)")
+      expect(patched).not.toContain("ySr(__t.cron,__t.createdAt)")
+    } else if (targetUses227LaterSymbols) {
+      expect(patched).toContain("wL().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).not.toContain("DD().filter((__t)=>__t.later===!0&&!__t.recurring)")
-      expect(patched).toContain("Ayr(__t.cron,__t.createdAt)")
+      expect(patched).toContain("ySr(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("Sfr(__t.cron,__t.createdAt)")
     } else if (targetUses221LaterSymbols) {
       expect(patched).toContain("DD().filter((__t)=>__t.later===!0&&!__t.recurring)")

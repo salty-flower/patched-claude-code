@@ -17,6 +17,90 @@ const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
 const tempDirs: string[] = []
 
+function compareVersions(left: string, right: string): number {
+  const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
+  const leftParts = parts(left)
+  const rightParts = parts(right)
+
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const leftPart = leftParts[index] ?? 0
+    const rightPart = rightParts[index] ?? 0
+    if (leftPart > rightPart) return 1
+    if (leftPart < rightPart) return -1
+  }
+
+  return 0
+}
+
+function isVersionAtLeast(version: string, floor: string): boolean {
+  return compareVersions(version, floor) >= 0
+}
+
+// Every upstream bump re-minifies the bundle and renames these module-level
+// identifiers; the harness must reference the names of the staged target.
+// The 2.1.228 bump renamed all of them, so targets at or above 2.1.228 use the
+// new symbol set while older targets keep the 2.1.221-era names.
+type HarnessSymbols = {
+  entrypoint: RegExp
+  telemetry: string
+  enableConfigs: string
+  oauthSaver: string
+  accessor: string
+  legacyWrite: string
+  legacyReadSync: string
+  legacyDelete: string
+  legacyReadAsync: string
+  sessionStore: string
+  resume: string
+  cleanup: string
+  pluginEvalInit: string
+  pluginFs: string
+  pluginEval: string
+  doctor: string
+}
+
+const HARNESS_SYMBOLS_2_1_228: HarnessSymbols = {
+  entrypoint: /\bpLE\(\);var __acc_linux_/,
+  telemetry: "IW",
+  enableConfigs: "Gat",
+  oauthSaver: "Dgi",
+  accessor: "La",
+  legacyWrite: "u$a",
+  legacyReadSync: "$Qt",
+  legacyDelete: "k6p",
+  legacyReadAsync: "$$n",
+  sessionStore: "SFf",
+  resume: "pFf",
+  cleanup: "Kyi",
+  pluginEvalInit: "_Yf",
+  pluginFs: "rN",
+  pluginEval: "yYf",
+  doctor: "S8S",
+}
+
+const HARNESS_SYMBOLS_LEGACY: HarnessSymbols = {
+  entrypoint: /\bQhv\(\);var __acc_linux_/,
+  telemetry: "OV",
+  enableConfigs: "ZJe",
+  oauthSaver: "Ulr",
+  accessor: "oa",
+  legacyWrite: "ups",
+  legacyReadSync: "qLt",
+  legacyDelete: "iwu",
+  legacyReadAsync: "IZr",
+  sessionStore: "$Vp",
+  resume: "IVp",
+  cleanup: "OXo",
+  pluginEvalInit: "Kuf",
+  pluginFs: "rM",
+  pluginEval: "Vuf",
+  doctor: "h2b",
+}
+
+function harnessSymbols(): HarnessSymbols {
+  return isVersionAtLeast(targetVersion(), "2.1.228") ? HARNESS_SYMBOLS_2_1_228 : HARNESS_SYMBOLS_LEGACY
+}
+
 type SecurityResult = {
   exitCode: number
   stdout: string
@@ -166,29 +250,33 @@ async function runBundle(
 }
 
 function injectCredentialHarness(source: string): string {
-  const entrypoint = /\bQhv\(\);var __acc_linux_/
+  const symbols = harnessSymbols()
+  const entrypoint = symbols.entrypoint
   const matches = source.match(new RegExp(entrypoint.source, "g")) ?? []
   if (matches.length !== 1) {
     throw new Error(`expected one ${targetVersion()} CLI entrypoint, found ${matches.length}`)
   }
 
-  const harness = String.raw`OV();(async()=>{try{
-    await ZJe();
+  const harness = String.raw`${symbols.telemetry}();(async()=>{try{
+    await ${symbols.enableConfigs}();
     let e=process.env.CLAUDE_KEYCHAIN_HARNESS_ACTION,t=(r)=>{process.stdout.write(JSON.stringify(r)+"\n");process.exit(0)};
-    if(e==="oauth-write-refresh"){let r={accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_A,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_A,expiresAt:Date.now()+36e5,scopes:["user:inference","user:profile"],subscriptionType:"pro",rateLimitTier:null},n=await Ulr(r),o=await Ulr({...r,accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_B,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_B}),i=await(oa().readAsyncStrict?.()??oa().readAsync());return t({first:n.success,second:o.success,stored:i?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_ACCESS_B})}
-    if(e==="oauth-read"){let r=await(oa().readAsyncStrict?.()??oa().readAsync());return t({empty:Object.keys(r??{}).length===0,selected:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
-    if(e==="secure-delete"){let r=await oa().delete(),n=await(oa().readAsyncStrict?.()??oa().readAsync());return t({deleted:r,empty:Object.keys(n??{}).length===0})}
-    if(e==="mutate"){let r=process.env.CLAUDE_KEYCHAIN_MUTATION_FIELD,n=process.env.CLAUDE_KEYCHAIN_MUTATION_VALUE;if(!r||!n)throw Error("missing mutation input");let o=await oa().mutate((i)=>{let s=Date.now()+250;while(Date.now()<s){}return{...i,[r]:n}});return t({success:o.success})}
-    if(e==="legacy-write"){await ups(process.env.CLAUDE_KEYCHAIN_LEGACY_KEY);let r=qLt();return t({stored:r?.key===process.env.CLAUDE_KEYCHAIN_LEGACY_KEY})}
-    if(e==="legacy-delete"){await iwu();let r=qLt();return t({deleted:r===null})}
-    if(e==="legacy-read"){let r=qLt(),n=await IZr(),o=process.env.CLAUDE_KEYCHAIN_LEGACY_KEY;return t({sync:r?.key===o,async:n?.key===o})}
-    if(e==="legacy-guard"){let r=qLt(),n=await IZr();return t({sync:r===null,async:n===null})}
-    if(e==="session-resume"){$Vp();let r=await IVp({load:async()=>[{}]},globalThis.crypto.randomUUID(),process.cwd(),process.env);if(!r)throw Error("SessionStore resume did not materialize");let n;try{let o=JSON.parse(await Bun.file(r+"/.credentials.json").text());n={selected:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS,refreshStripped:o?.claudeAiOauth?.refreshToken===void 0}}finally{await OXo(r)}return t(n)}
-    if(e==="plugin-eval"){Kuf();let r=process.env.CLAUDE_KEYCHAIN_PLUGIN_CONFIG_DIR;if(!r)throw Error("missing plugin config directory");await rM.mkdir(r,{recursive:!0});await Vuf({configDir:r});let n=JSON.parse(await Bun.file(r+"/.credentials.json").text());return t({selected:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
-    if(e==="doctor-probe"){let r=await h2b();return t({healthy:r===null})}
+    if(e==="oauth-write-refresh"){let r={accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_A,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_A,expiresAt:Date.now()+36e5,scopes:["user:inference","user:profile"],subscriptionType:"pro",rateLimitTier:null},n=await ${symbols.oauthSaver}(r),o=await ${symbols.oauthSaver}({...r,accessToken:process.env.CLAUDE_KEYCHAIN_ACCESS_B,refreshToken:process.env.CLAUDE_KEYCHAIN_REFRESH_B}),i=await(${symbols.accessor}().readAsyncStrict?.()??${symbols.accessor}().readAsync());return t({first:n.success,second:o.success,stored:i?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_ACCESS_B})}
+    if(e==="oauth-read"){let r=await(${symbols.accessor}().readAsyncStrict?.()??${symbols.accessor}().readAsync());return t({empty:Object.keys(r??{}).length===0,selected:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:r?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
+    if(e==="secure-delete"){let r=await ${symbols.accessor}().delete(),n=await(${symbols.accessor}().readAsyncStrict?.()??${symbols.accessor}().readAsync());return t({deleted:r,empty:Object.keys(n??{}).length===0})}
+    if(e==="mutate"){let r=process.env.CLAUDE_KEYCHAIN_MUTATION_FIELD,n=process.env.CLAUDE_KEYCHAIN_MUTATION_VALUE;if(!r||!n)throw Error("missing mutation input");let o=await ${symbols.accessor}().mutate((i)=>{let s=Date.now()+250;while(Date.now()<s){}return{...i,[r]:n}});return t({success:o.success})}
+    if(e==="legacy-write"){await ${symbols.legacyWrite}(process.env.CLAUDE_KEYCHAIN_LEGACY_KEY);let r=${symbols.legacyReadSync}();return t({stored:r?.key===process.env.CLAUDE_KEYCHAIN_LEGACY_KEY})}
+    if(e==="legacy-delete"){await ${symbols.legacyDelete}();let r=${symbols.legacyReadSync}();return t({deleted:r===null})}
+    if(e==="legacy-read"){let r=${symbols.legacyReadSync}(),n=await ${symbols.legacyReadAsync}(),o=process.env.CLAUDE_KEYCHAIN_LEGACY_KEY;return t({sync:r?.key===o,async:n?.key===o})}
+    if(e==="legacy-guard"){let r=${symbols.legacyReadSync}(),n=await ${symbols.legacyReadAsync}();return t({sync:r===null,async:n===null})}
+    if(e==="session-resume"){${symbols.sessionStore}();let r=await ${symbols.resume}({load:async()=>[{}]},globalThis.crypto.randomUUID(),process.cwd(),process.env);if(!r)throw Error("SessionStore resume did not materialize");let n;try{let o=JSON.parse(await Bun.file(r+"/.credentials.json").text());n={selected:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:o?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS,refreshStripped:o?.claudeAiOauth?.refreshToken===void 0}}finally{await ${symbols.cleanup}(r)}return t(n)}
+    if(e==="plugin-eval"){${symbols.pluginEvalInit}();let r=process.env.CLAUDE_KEYCHAIN_PLUGIN_CONFIG_DIR;if(!r)throw Error("missing plugin config directory");await ${symbols.pluginFs}.mkdir(r,{recursive:!0});await ${symbols.pluginEval}({configDir:r});let n=JSON.parse(await Bun.file(r+"/.credentials.json").text());return t({selected:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:n?.claudeAiOauth?.accessToken===process.env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS})}
+    if(e==="doctor-probe"){let r=await ${symbols.doctor}();return t({healthy:r===null})}
     throw Error("unknown harness action")
   }catch(e){console.error(e?.stack??String(e));process.exit(1)}})()`
-  return source.replace(entrypoint, `${harness};var __acc_linux_`)
+  // Function-form replacement: string replacements process `$` patterns
+  // (e.g. `$$` -> `$`), which would corrupt double-dollar minified symbols
+  // like `$$n` in the harness. A function return value is inserted verbatim.
+  return source.replace(entrypoint, () => `${harness};var __acc_linux_`)
 }
 
 function writeHarnessBundle(dir: string): string {
@@ -718,10 +806,12 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
         stderr: "pipe",
       })
       expect(status.exitCode).toBe(0)
-      expect(JSON.parse(status.stdout.toString())).toMatchObject({
-        loggedIn: true,
-        authMethod: "claude.ai",
-      })
+      // 2.1.228 includes the first-party provider in the status shape while
+      // retaining the public auth method label used by older targets.
+      const expectedStatusShape = isVersionAtLeast(targetVersion(), "2.1.228")
+        ? { loggedIn: true, apiProvider: "firstParty", authMethod: "claude.ai" }
+        : { loggedIn: true, authMethod: "claude.ai" }
+      expect(JSON.parse(status.stdout.toString())).toMatchObject(expectedStatusShape)
 
       const env = shellEnvironment({
         HOME: home,

@@ -59,6 +59,25 @@ type HarnessSymbols = {
   doctor: string
 }
 
+const HARNESS_SYMBOLS_2_1_229: HarnessSymbols = {
+  entrypoint: /\bC5w\(\);var __acc_linux_/,
+  telemetry: "Dn",
+  enableConfigs: "art",
+  oauthSaver: "wxo",
+  accessor: "Oa",
+  legacyWrite: "OAs",
+  legacyReadSync: "q5t",
+  legacyDelete: "OOu",
+  legacyReadAsync: "imn",
+  sessionStore: "Sjf",
+  resume: "pjf",
+  cleanup: "nvi",
+  pluginEvalInit: "Rrm",
+  pluginFs: "wN",
+  pluginEval: "krm",
+  doctor: "xtv",
+}
+
 const HARNESS_SYMBOLS_2_1_228: HarnessSymbols = {
   entrypoint: /\bpLE\(\);var __acc_linux_/,
   telemetry: "IW",
@@ -98,6 +117,7 @@ const HARNESS_SYMBOLS_LEGACY: HarnessSymbols = {
 }
 
 function harnessSymbols(): HarnessSymbols {
+  if (isVersionAtLeast(targetVersion(), "2.1.229")) return HARNESS_SYMBOLS_2_1_229
   return isVersionAtLeast(targetVersion(), "2.1.228") ? HARNESS_SYMBOLS_2_1_228 : HARNESS_SYMBOLS_LEGACY
 }
 

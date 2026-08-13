@@ -997,7 +997,7 @@ assert_not_contains = '''content:HTf,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-228"
 target_version = "2.1.228"
-applies_to = ">=2.1.228 <2.2.0"
+applies_to = ">=2.1.228 <2.1.229"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -1036,3 +1036,46 @@ assert_not_contains = '''content:osm,verbose:nsm'''
 kind = "static"
 name = "stale 2.1.227 MCP text-block symbols are absent in 2.1.228"
 assert_not_contains = '''content:E8f,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-229"
+target_version = "2.1.229"
+applies_to = ">=2.1.229 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.229 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`. The map callback now delegates each
+non-image block to the extracted per-block component `hfm`, whose
+text-extraction body passes the caller's verbose local through to the shared
+renderer `EH` as `content:ffm,verbose:pfm`; the patch forces that call to
+`verbose:!0`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:ffm,verbose:pfm" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:ffm,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.229"
+assert_contains = '''content:ffm,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.229 MCP text-block call site is absent"
+assert_not_contains = '''content:ffm,verbose:pfm'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.228 MCP text-block symbols are absent in 2.1.229"
+assert_not_contains = '''content:osm,verbose:!0'''

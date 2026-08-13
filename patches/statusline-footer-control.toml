@@ -11110,9 +11110,43 @@ name = "stale 2.1.221 clipboard hook symbol is absent in 2.1.227"
 assert_not_contains = '''__cci=Ye((X)=>X.clipboardImageAvailable??!1)'''
 
 [[patches]]
+name = "statusline-json-clipboard-image-refresh-2-1-229"
+target_version = "2.1.229"
+applies_to = ">=2.1.229 <2.2.0"
+rationale = """
+Subscribe the status-line component to clipboard image availability so its
+JSON payload refreshes when clipboard state changes.
+
+This is the 2.1.229 selector variant. The StatusLine component is `WzT`, its
+refresh interval binding is `Y`, and its state selector drifted from the
+2.1.227 `ot` helper to `st`. The selector declaration must accompany the
+refresh effect; otherwise the resume TUI throws `__cci is not defined`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", string = "let o=iO.useRef(void 0)" }
+
+[patches.transform]
+op = "insert_before_node"
+code = 'let __cci=st((X)=>X.clipboardImageAvailable??!1);'
+
+[[patches.tests]]
+kind = "static"
+name = "statusline observes clipboard image state with 2.1.229 symbols"
+assert_contains = '''let __cci=st((X)=>X.clipboardImageAvailable??!1)'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.227 clipboard hook symbol is absent in 2.1.229"
+assert_not_contains = '''let __cci=ot((X)=>X.clipboardImageAvailable??!1)'''
+
+[[patches]]
 name = "statusline-footer-control-schema-2-1-228"
 target_version = "2.1.228"
-applies_to = ">=2.1.228 <2.2.0"
+applies_to = ">=2.1.228 <2.1.229"
 rationale = """
 Accept statusLine settings that hide built-in footer items.
 
@@ -11141,6 +11175,39 @@ assert_contains = '''hideBuiltinFooter:qt().optional().describe("Compatibility a
 kind = "static"
 name = "stale 2.1.226 schema helpers are absent in 2.1.228"
 assert_not_contains = '''hideBuiltinFooter:Ut().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:dt(Nr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-229"
+target_version = "2.1.229"
+applies_to = ">=2.1.229 <2.2.0"
+rationale = """
+Accept statusLine settings that hide built-in footer items.
+
+This is the 2.1.229 minified-symbol variant. The boolean helper remains
+`qt()`, while the array and enum helpers drifted from `ft(...)`/`Dr([...])`
+to `gt(...)`/`Mr([...])`. Carrying the old array helper makes every settings
+file fail to parse with `ReferenceError: ft is not defined`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:qt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:gt(Mr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+
+[[patches.tests]]
+kind = "static"
+name = "disabledFooter schema uses 2.1.229 factory helpers"
+assert_contains = '''hideBuiltinFooter:qt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:gt(Mr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.228 schema helpers are absent in 2.1.229"
+assert_not_contains = '''hideBuiltinFooter:qt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:ft(Dr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
 
 [[patches]]
 name = "statusline-footer-control-cli-global-2-1-228"

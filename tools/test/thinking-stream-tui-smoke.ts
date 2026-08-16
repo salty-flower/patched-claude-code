@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { Terminal } from "@xterm/headless"
 import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
@@ -14,7 +15,11 @@ type Args = {
 type SseFrame = readonly [event: string, data: Record<string, unknown>]
 
 const PROMPT = "prove live reasoning rendering"
-const LIVE_MARKER = "LIVE_REASONING_BEFORE_COMPLETION_7D3A"
+const STREAM_STAGES = [
+  { chunk: "STREAM-STAGE-ONE-7D3A ", marker: "STREAM-STAGE-ONE-7D3A" },
+  { chunk: "STREAM-STAGE-TWO-7D3A ", marker: "STREAM-STAGE-TWO-7D3A" },
+  { chunk: "STREAM-STAGE-THREE-7D3A", marker: "STREAM-STAGE-THREE-7D3A" },
+] as const
 const FINAL_TEXT = "thinking stream completed"
 
 function parseArgs(argv: string[]): Args {
@@ -34,14 +39,72 @@ function requestModel(request: ClaudeApiRequest): string {
   return body.model
 }
 
-function encodeFrame(encoder: TextEncoder, [event, data]: SseFrame): Uint8Array {
-  return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+function requestStreams(request: ClaudeApiRequest): boolean {
+  const body = request.jsonBody
+  return typeof body === "object" && body !== null && "stream" in body && body.stream === true
+}
+
+function formatFrame([event, data]: SseFrame): string {
+  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+}
+
+function encodeFrame(encoder: TextEncoder, frame: SseFrame): Uint8Array {
+  return encoder.encode(formatFrame(frame))
+}
+
+function writeTerminal(terminal: Terminal, data: Uint8Array): Promise<void> {
+  return new Promise((resolveWrite) => terminal.write(data, resolveWrite))
+}
+
+function visibleTerminalText(terminal: Terminal): string {
+  const buffer = terminal.buffer.active
+  return Array.from({ length: terminal.rows }, (_, row) =>
+    buffer.getLine(buffer.viewportY + row)?.translateToString(true) ?? "",
+  ).join("\n")
+}
+
+function completedTextResponse(request: ClaudeApiRequest, text: string): Response {
+  const message = {
+    id: "msg_stub_title",
+    type: "message",
+    role: "assistant",
+    model: requestModel(request),
+    content: [],
+    stop_reason: null,
+    stop_sequence: null,
+    usage: { input_tokens: 1, output_tokens: 1 },
+  }
+  if (!requestStreams(request)) {
+    return Response.json({
+      ...message,
+      content: [{ type: "text", text }],
+      stop_reason: "end_turn",
+    })
+  }
+  const frames: SseFrame[] = [
+    ["message_start", { type: "message_start", message }],
+    ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }],
+    ["content_block_delta", { type: "content_block_delta", index: 0, delta: { type: "text_delta", text } }],
+    ["content_block_stop", { type: "content_block_stop", index: 0 }],
+    [
+      "message_delta",
+      {
+        type: "message_delta",
+        delta: { stop_reason: "end_turn", stop_sequence: null },
+        usage: { output_tokens: 1 },
+      },
+    ],
+    ["message_stop", { type: "message_stop" }],
+  ]
+  return new Response(frames.map(formatFrame).join(""), {
+    headers: { "content-type": "text/event-stream", "request-id": "req_title" },
+  })
 }
 
 function thinkingResponse(
   request: ClaudeApiRequest,
-  completionGate: Promise<void>,
-  onReleaseCompletion: () => void,
+  stageGates: readonly Promise<void>[],
+  onReleaseStage: (index: number) => void,
 ): Response {
   const encoder = new TextEncoder()
   const message = {
@@ -67,17 +130,18 @@ function thinkingResponse(
           content_block: { type: "thinking", thinking: "", signature: "" },
         },
       ])
-      emit([
-        "content_block_delta",
-        {
-          type: "content_block_delta",
-          index: 0,
-          delta: { type: "thinking_delta", thinking: LIVE_MARKER },
-        },
-      ])
-
-      await Promise.race([completionGate, Bun.sleep(8000)])
-      onReleaseCompletion()
+      for (const [index, stage] of STREAM_STAGES.entries()) {
+        emit([
+          "content_block_delta",
+          {
+            type: "content_block_delta",
+            index: 0,
+            delta: { type: "thinking_delta", thinking: stage.chunk },
+          },
+        ])
+        await Promise.race([stageGates[index]!, Bun.sleep(8000)])
+        onReleaseStage(index)
+      }
 
       emit([
         "content_block_delta",
@@ -123,31 +187,43 @@ async function main(): Promise<number> {
   }
 
   const bundle = resolve(args.bundle)
-  let releaseCompletion: (() => void) | undefined
-  const completionGate = new Promise<void>((resolveGate) => {
-    releaseCompletion = resolveGate
-  })
-  let markerObservedAt: number | null = null
-  let completionReleasedAt: number | null = null
-  let markerWasVisibleBeforeCompletion = false
-  let servedThinkingResponse = false
+  const stageReleases: Array<() => void> = []
+  const stageGates = STREAM_STAGES.map(
+    () =>
+      new Promise<void>((resolveGate) => {
+        stageReleases.push(resolveGate)
+      }),
+  )
+  const stageObservedAt = STREAM_STAGES.map<number | null>(() => null)
+  const stageReleasedAt = STREAM_STAGES.map<number | null>(() => null)
+  const stageWasVisibleBeforeRelease = STREAM_STAGES.map(() => false)
+  const eventOrder: string[] = []
+  let thinkingResponseCount = 0
 
   const stub = await startClaudeApiStub({
     responder: (request) => {
       if (request.path.endsWith("/messages/count_tokens")) {
         return Response.json({ input_tokens: 1 }, { headers: { "request-id": "req_count" } })
       }
+      if (request.rawBody.includes("Write the title in the predominant language")) {
+        return completedTextResponse(request, "Streaming reasoning PTY")
+      }
       if (!request.rawBody.includes(PROMPT)) {
         return Response.json({ error: { type: "unexpected_request", message: request.path } }, { status: 400 })
       }
-      servedThinkingResponse = true
-      return thinkingResponse(request, completionGate, () => {
-        markerWasVisibleBeforeCompletion = markerObservedAt !== null
-        completionReleasedAt = Date.now()
+      thinkingResponseCount += 1
+      if (thinkingResponseCount > 1) {
+        return Response.json({ error: { type: "unexpected_retry", message: request.path } }, { status: 409 })
+      }
+      return thinkingResponse(request, stageGates, (index) => {
+        stageWasVisibleBeforeRelease[index] = stageObservedAt[index] !== null
+        stageReleasedAt[index] = Date.now()
+        eventOrder.push(`released-${index + 1}`)
       })
     },
   })
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-thinking-stream-")))
+  const terminal = new Terminal({ allowProposedApi: true, cols: 80, rows: 24, scrollback: 1000 })
 
   try {
     const configDir = join(home, ".claude")
@@ -232,9 +308,15 @@ async function main(): Promise<number> {
         const { done, value } = await reader.read()
         if (done) break
         output += decoder.decode(value, { stream: true })
-        if (markerObservedAt === null && normalizeTuiOutput(output).includes(LIVE_MARKER)) {
-          markerObservedAt = Date.now()
-          setTimeout(() => releaseCompletion?.(), 100)
+        await writeTerminal(terminal, value)
+        const screen = visibleTerminalText(terminal)
+        for (const [index, stage] of STREAM_STAGES.entries()) {
+          if (stageObservedAt[index] !== null || !screen.includes(stage.marker)) continue
+          stageObservedAt[index] = Date.now()
+          eventOrder.push(`observed-${index + 1}`)
+          const releaseStage = () => stageReleases[index]?.()
+          if (index === STREAM_STAGES.length - 1) setTimeout(releaseStage, 100)
+          else releaseStage()
         }
       }
       return output + decoder.decode()
@@ -252,14 +334,20 @@ async function main(): Promise<number> {
       console.error(tuiOutput)
       return 1
     }
-    if (!servedThinkingResponse) {
-      console.error("thinking PTY did not reach the delayed local response")
+    if (thinkingResponseCount !== 1) {
+      console.error(`thinking PTY expected one delayed local response, got ${thinkingResponseCount}`)
       console.error(tuiOutput)
       return 1
     }
-    if (markerObservedAt === null || completionReleasedAt === null || !markerWasVisibleBeforeCompletion) {
+    const expectedEventOrder = STREAM_STAGES.flatMap((_, index) => [`observed-${index + 1}`, `released-${index + 1}`])
+    if (
+      stageObservedAt.some((timestamp) => timestamp === null) ||
+      stageReleasedAt.some((timestamp) => timestamp === null) ||
+      stageWasVisibleBeforeRelease.some((visible) => !visible) ||
+      eventOrder.join(",") !== expectedEventOrder.join(",")
+    ) {
       console.error(
-        `live thinking marker was not rendered before completion: marker=${String(markerObservedAt)}, completion=${String(completionReleasedAt)}`,
+        `live thinking stages did not render incrementally: order=${eventOrder.join(",")}, observed=${stageObservedAt.join(",")}, released=${stageReleasedAt.join(",")}`,
       )
       console.error(tuiOutput)
       return 1
@@ -275,11 +363,11 @@ async function main(): Promise<number> {
       return 1
     }
 
-    console.log(
-      `ok: live thinking rendered ${completionReleasedAt - markerObservedAt}ms before the stub released completion`,
-    )
+    const finalStageLeadMs = stageReleasedAt.at(-1)! - stageObservedAt.at(-1)!
+    console.log(`ok: live thinking rendered 3 incremental stages; final stage led completion by ${finalStageLeadMs}ms`)
     return 0
   } finally {
+    terminal.dispose()
     stub.stop()
     rmSync(home, { recursive: true, force: true })
   }

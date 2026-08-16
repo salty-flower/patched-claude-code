@@ -1180,7 +1180,7 @@ assert_not_contains = '''return jRt()'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-229"
 target_version = "2.1.229"
-applies_to = ">=2.1.229 <2.2.0"
+applies_to = ">=2.1.229 <2.1.233"
 
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
@@ -1231,7 +1231,7 @@ assert_not_contains = '''WI().length>0&&On()'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-229-askuser"
 target_version = "2.1.229"
-applies_to = ">=2.1.229 <2.2.0"
+applies_to = ">=2.1.229 <2.1.233"
 
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
@@ -1274,3 +1274,111 @@ assert_not_contains = '''return aEt()'''
 kind = "static"
 name = "2.1.229 ask-user gate no longer carries 2.1.228 symbols"
 assert_not_contains = '''return kRt()'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.2.0"
+
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.233 minified-symbol variant of
+`ask-user-question-channels-gate`. The shared channel predicate now minifies
+to `dO().length>0&&xn()` (rP reads Oj.allowedChannels, Rn is !oh.isInteractive)
+with an added middle predicate `if(xn()&&!Vbe())return!1` (Vbe is
+oh.permissionPromptToolName), and remains inline on the ExitPlanMode tool
+definition. EnterPlanMode mirrors ExitPlanMode via
+`isEnabled(){return UG.isEnabled()}` and is covered transitively. AskUserQuestion
+now delegates to the shared helper `aEt` and is patched by the sibling
+`ask-user-question-channels-gate-2-1-233-askuser` entry; `aEt` itself also
+gates whiteboard/prototype skill availability and plan-mode instructions, so
+its body is intentionally left intact.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["dO().length>0&&xn()", "return!1;return!0"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.233"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.233 ExitPlanMode gate is absent"
+assert_not_contains = '''isEnabled(){if(dO().length>0&&xn())return!1;if(xn()&&!Vbe())return!1;return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 ask-user gate no longer carries 2.1.228 symbols"
+assert_not_contains = '''WI().length>0&&On()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 variant does not carry the previous target symbols"
+assert_not_contains = '''isEnabled(){if(rP().length>0&&Rn())return!1;if(Rn()&&!Vbe())return!1;return!0}'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-233-askuser"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.2.0"
+
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.233 AskUserQuestion delegation-site variant of
+`ask-user-question-channels-gate`. In 2.1.233 AskUserQuestion's isEnabled
+delegates to the shared channel predicate helper `aEt` as
+`isEnabled(){return oRt()}` instead of inlining the gate. This entry replaces
+that delegation site so AskUserQuestion stays available when --channels is
+populated. The `aEt` body is left intact because the same helper gates
+whiteboard/prototype skill availability and plan-mode instructions.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", string = "return oRt()" }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.233"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "AskUserQuestion delegation site is replaced in 2.1.233"
+assert_not_contains = '''return oRt()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 ask-user gate no longer carries 2.1.228 symbols"
+assert_not_contains = '''return kRt()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 variant does not carry the previous target symbols"
+assert_not_contains = '''return aEt()'''

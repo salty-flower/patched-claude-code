@@ -1308,7 +1308,7 @@ assert_not_contains = '''function b5d(){return!1}'''
 [[patches]]
 name = "require-explicit-assistant-response-otel-2-1-229"
 target_version = "2.1.229"
-applies_to = ">=2.1.229 <2.2.0"
+applies_to = ">=2.1.229 <2.1.233"
 
 rationale = """
 Replace the v2.1.229 minified-symbol assistant-response OTel gate `lSd`.
@@ -1347,7 +1347,7 @@ assert_not_contains = '''function $$u(){return X.OTEL_LOG_ASSISTANT_RESPONSES===
 [[patches]]
 name = "disable-raw-api-body-otel-2-1-229"
 target_version = "2.1.229"
-applies_to = ">=2.1.229 <2.2.0"
+applies_to = ">=2.1.229 <2.1.233"
 
 rationale = """
 Disable the v2.1.229 minified-symbol raw-body OTel gate `Wcp`.
@@ -1382,3 +1382,91 @@ assert_not_contains = '''function Wcp(){return qcp().mode!=="disabled"}'''
 kind = "static"
 name = "2.1.229 raw-body gate no longer carries 2.1.228 symbols"
 assert_not_contains = '''function Yrp(){return!1}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.2.0"
+
+rationale = """
+Replace the v2.1.233 minified-symbol assistant-response OTel gate `R2d`.
+
+Assistant response logging still falls back to OTEL_LOG_USER_PROMPTS when
+OTEL_LOG_ASSISTANT_RESPONSES is unset. This is the 2.1.233 minified-symbol
+variant; the gate drifted from `$$u` to `R2d` while the telemetry env
+namespace drifted from `X` to `Q`. Patched bundles should require an
+explicit assistant-response opt-in instead of silently broadening an existing
+prompt-logging deployment. Cleanup condition: upstream makes
+assistant-response logging independent from user-prompt logging by default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+
+locator_kind = "literal"
+locator_pattern = '''function R2d(){return V.OTEL_LOG_ASSISTANT_RESPONSES??V.OTEL_LOG_USER_PROMPTS}'''
+expected_matches = 1
+
+replacement = '''function R2d(){return V.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging requires explicit opt-in in 2.1.233"
+assert_contains = '''function R2d(){return V.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging no longer inherits prompt logging in 2.1.233"
+assert_not_contains = '''function R2d(){return V.OTEL_LOG_ASSISTANT_RESPONSES??V.OTEL_LOG_USER_PROMPTS}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 assistant-response gate no longer carries 2.1.228 symbols"
+assert_not_contains = '''function $$u(){return X.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 variant does not carry the previous target symbols"
+assert_not_contains = '''function lSd(){return Q.OTEL_LOG_ASSISTANT_RESPONSES??Q.OTEL_LOG_USER_PROMPTS}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.2.0"
+
+rationale = """
+Disable the v2.1.233 minified-symbol raw-body OTel gate `GHp`.
+
+OTEL_LOG_RAW_API_BODIES can emit or write full Messages API request/response
+bodies, which include conversation history and tool results. This is the
+2.1.233 minified-symbol variant; the config getter drifted from `Krp` to
+`WHp` and the gate from `Yrp` to `GHp`. Patched bundles should not provide
+a runtime switch that turns complete API bodies into telemetry payloads or
+local trace files. Cleanup condition: upstream removes raw body capture or
+narrows it to a documented local-only diagnostic that cannot export content.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+
+locator_kind = "literal"
+locator_pattern = '''function GHp(){return WHp().mode!=="disabled"}'''
+expected_matches = 1
+
+replacement = '''function GHp(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging gate is disabled in 2.1.233"
+assert_contains = '''function GHp(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging env gate is not rendered in 2.1.233"
+assert_not_contains = '''function GHp(){return WHp().mode!=="disabled"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 raw-body gate no longer carries 2.1.228 symbols"
+assert_not_contains = '''function Yrp(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 variant does not carry the previous target symbols"
+assert_not_contains = '''function Wcp(){return qcp().mode!=="disabled"}'''

@@ -12,9 +12,11 @@ const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
-const targetUses229LaterSymbols = gte(TARGET_VERSION, "2.1.229")
+const targetUses233LaterSymbols = gte(TARGET_VERSION, "2.1.233")
+const targetUses229LaterSymbols = gte(TARGET_VERSION, "2.1.229") && lt(TARGET_VERSION, "2.1.233")
 const targetUses228LaterSymbols = gte(TARGET_VERSION, "2.1.228") && lt(TARGET_VERSION, "2.1.229")
 const targetUses227LaterSymbols = gte(TARGET_VERSION, "2.1.227") && lt(TARGET_VERSION, "2.1.228")
+const targetUses233ExactFireSymbols = targetUses233LaterSymbols
 const targetUses229ExactFireSymbols = targetUses229LaterSymbols
 const targetUses228ExactFireSymbols = targetUses228LaterSymbols
 const targetUses221LaterSymbols = gte(TARGET_VERSION, "2.1.221") && lt(TARGET_VERSION, "2.1.222")
@@ -27,6 +29,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses233LaterSymbols ||
   targetUses229LaterSymbols ||
   targetUses228LaterSymbols ||
   targetUses227LaterSymbols ||
@@ -96,7 +99,9 @@ function expectContainsOneOf(body: string, snippets: string[]): void {
 }
 
 function getAbsoluteSubmitCode(): string {
-  const suffix = targetUses229LaterSymbols
+  const suffix = targetUses233LaterSymbols
+    ? "2-1-233"
+    : targetUses229LaterSymbols
     ? "2-1-229"
     : targetUses228LaterSymbols
     ? "2-1-228"
@@ -120,13 +125,68 @@ function getAbsoluteSubmitCode(): string {
               ? "2-1-210"
               : "2-1-208"
   const patch = laterPatches.find((entry) => entry.name === `later-command-submit-hook-${suffix}`)
-  if (!patch || patch.transform?.op !== "insert_after_node") {
+  const expectedTransform = targetUses233LaterSymbols ? "insert_before_node" : "insert_after_node"
+  if (!patch || patch.transform?.op !== expectedTransform) {
     throw new Error(`${TARGET_VERSION} /later submit transform is missing`)
   }
   return patch.transform.code
 }
 
 async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Promise<LaterHookResult> {
+  if (targetUses233LaterSymbols) {
+    const tasks = [...seedTasks]
+    const notifications: string[] = []
+    const result: LaterHookResult = {
+      cleared: false,
+      cursorOffset: null,
+      inputValue: null,
+      notifications,
+      pastedContentsCleared: false,
+      resetHistory: false,
+      scheduledTasksEnabled: false,
+      tasks,
+    }
+    const submit = new Function(
+      "Ft",
+      "OA",
+      "Nn",
+      "HT",
+      "Ze",
+      "Yg",
+      "$r",
+      "K$",
+      "mN",
+      "j5o",
+      "aot",
+      "JNe",
+      `"use strict";return async()=>{${getAbsoluteSubmitCode()}}`,
+    )(
+      input,
+      "prompt",
+      { fromKeybinding: false },
+      { isRemoteMode: false },
+      ({ text }: { text: string }) => notifications.push(text),
+      (value: string) => {
+        result.inputValue = value
+      },
+      {
+        setCursorOffset: (offset: number) => {
+          result.cursorOffset = offset
+        },
+      },
+      (contents: Record<string, unknown>) => {
+        result.pastedContentsCleared = Object.keys(contents).length === 0
+      },
+      () => tasks,
+      (_cron: string, _createdAt: number, _id: string) => _createdAt + 60000,
+      (task: LaterTask) => tasks.push(task),
+      (enabled: boolean) => {
+        result.scheduledTasksEnabled = enabled
+      },
+    ) as () => Promise<void>
+    await submit()
+    return result
+  }
   const [taskGetter, nextRun, addTask, enablePolling] = targetUses229LaterSymbols
     ? ["cL", "aCr", "AZe", "oHe"]
     : targetUses228LaterSymbols
@@ -314,6 +374,7 @@ test.skipIf(!testLaterCommand)(
       "SJe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "sQe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "AZe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
+      "aot({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
     ])
     expectContainsOneOf(patched, ["if(__task)__task.later=!0", "later:!0})", "later:!0,laterAt:"])
     expectContainsOneOf(patched, [
@@ -339,6 +400,7 @@ test.skipIf(!testLaterCommand)(
       "NDe(!0)",
       "dMe(!0)",
       "oHe(!0)",
+      "JNe(!0)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
@@ -368,6 +430,12 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses233ExactFireSymbols) {
+      expect(patched).toContain("laterAt:__when.getTime()")
+      expect(patched).toContain("q.later===!0&&Number.isFinite(q.laterAt)&&q.laterAt>q.createdAt?q.laterAt:j5o(q.cron,q.createdAt,q.id,Y)")
+      expect(patched).not.toContain("B.later===!0&&Number.isFinite(B.laterAt)&&B.laterAt>B.createdAt?B.laterAt:LNo(B.cron,B.createdAt,B.id,q)")
+      expect(patched).toContain("JNe(!0)")
+      expect(patched).not.toContain("oHe(!0)")
     } else if (targetUses229ExactFireSymbols) {
       expect(patched).toContain("laterAt:__when.getTime()")
       expect(patched).toContain("B.later===!0&&Number.isFinite(B.laterAt)&&B.laterAt>B.createdAt?B.laterAt:LNo")
@@ -477,6 +545,7 @@ test.skipIf(!testLaterCommand)(
       "wL().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "UL().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "cL().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "mN().filter((__t)=>__t.later===!0&&!__t.recurring)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("uw().filter((__t)=>__t.later===!0&&!__t.recurring)")
@@ -498,6 +567,11 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("E7t(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("gVt(__t.cron,__t.createdAt)")
+    } else if (targetUses233LaterSymbols) {
+      expect(patched).toContain("mN().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("cL().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).toContain("j5o(__t.cron,__t.createdAt,__t.id)")
+      expect(patched).not.toContain("aCr(__t.cron,__t.createdAt)")
     } else if (targetUses229LaterSymbols) {
       expect(patched).toContain("cL().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).not.toContain("UL().filter((__t)=>__t.later===!0&&!__t.recurring)")

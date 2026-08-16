@@ -194,7 +194,9 @@ async function main(): Promise<number> {
       return Response.json(payload)
     }
 
-    const agentIndex = agentPromptMarkers.findIndex((marker) => request.rawBody.includes(marker))
+    // Newer bundles echo Agent tool-use inputs in the parent follow-up request.
+    // That request contains tool results and is not another live agent stream.
+    const agentIndex = hasToolResult ? -1 : agentPromptMarkers.findIndex((marker) => request.rawBody.includes(marker))
     if (agentIndex >= 0) {
       subagentRequestCounts[agentIndex] += 1
       const occurrence = subagentRequestCounts[agentIndex]
@@ -357,7 +359,7 @@ async function main(): Promise<number> {
       console.error(output)
       return 1
     }
-    if (!output.includes("agents launched")) {
+    if (!normalized.includes("agents launched")) {
       console.error("Escape did not render the three-agent background handoff")
       console.error(output)
       return 1

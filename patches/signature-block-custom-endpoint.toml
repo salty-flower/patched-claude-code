@@ -657,7 +657,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=hf()?fzp(e,Xu(r)):mzp(e);i
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-229"
 target_version = "2.1.229"
-applies_to = ">=2.1.229 <2.2.0"
+applies_to = ">=2.1.229 <2.1.233"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = """
 This is the 2.1.229 minified-symbol variant of
@@ -685,3 +685,40 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=eHf(e,dd(r));if(t.traceSou
 kind = "static"
 name = "2.1.229 signature cleanup no longer carries 2.1.228 symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=Tf()?U3p(e,cd(r)):j3p(e);if(t.traceSources)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+This is the 2.1.233 minified-symbol variant of
+strip-signatures-for-custom-base-url. The matching-provenance path now uses
+uJf(e,kd(r)); the custom-base-url path falls back to tJa(e), which removes
+thinking/redacted-thinking blocks with signatures. The endpoint predicate is
+Mf(), the existing actual-first-party Anthropic base URL check (backed by
+hjt(), which compares against api.anthropic.com).
+"""
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=uJf(e,kd(r));if(t.traceSources)'''
+replacement = '''let r=t.bodyModel??t.model,n=Mf()?uJf(e,kd(r)):tJa(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "custom base URL strips signed blocks in 2.1.233"
+assert_contains = '''let r=t.bodyModel??t.model,n=Mf()?uJf(e,kd(r)):tJa(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "old model-mismatch-only cleanup gate is removed in 2.1.233"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=uJf(e,kd(r));if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 signature cleanup no longer carries 2.1.228 symbols"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=Tf()?U3p(e,cd(r)):j3p(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 variant does not carry the previous target symbols"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=eHf(e,dd(r));if(t.traceSources)'''

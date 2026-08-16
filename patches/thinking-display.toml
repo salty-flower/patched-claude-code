@@ -3786,6 +3786,140 @@ name = "2.1.233 stream variant no longer carries 2.1.229 thinking symbols"
 assert_not_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:W$a(w)})'''
 
 [[patches]]
+name = "thinking-render-live-main-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.1.234"
+rationale = """
+Pass the 2.1.233 live thinking state to the main Messages component.
+
+The stream dispatcher updates REPL state `hl` through setter `El`, but the
+normal `H5e` call no longer receives that state. Thread it through a prop so
+the memoized Messages boundary observes every thinking delta.
+
+Cleanup condition: upstream reconnects its live thinking state to the
+interactive message renderer or exposes a supported live-thinking mode.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", source_regex = '''^\{messages:zE\.messages''', strings = ['''streamingPreview:r7''', '''hideWelcomeChrome:A??R'''], parent_node = "CallExpression" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "zE.isMain?hl:null"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 main Messages call receives the live thinking state"
+assert_contains = '''hideWelcomeChrome:A??R,streamingThinking:zE.isMain?hl:null'''
+
+[[patches]]
+name = "thinking-render-live-row-input-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.1.234"
+rationale = """
+Accept the 2.1.233 live thinking prop in the Messages implementation.
+
+This is the input half of the live row. Giving the state a dedicated binding
+also makes the component's existing memo comparator treat thinking deltas as
+render-relevant prop changes.
+
+Cleanup condition: upstream restores an official interactive live-thinking
+row or exposes a supported display setting for it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L359-L359"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", strings = ['''streamingPreview:v,isBriefOnly:S=!1''', '''let D=S&&gdh()''', '''b&&!D&&v'''], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''streamingPreview:v,isBriefOnly:S=!1'''
+value = '''streamingPreview:v,streamingThinking:__acc_streamingThinking,isBriefOnly:S=!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 Messages accepts live thinking"
+assert_contains = '''streamingPreview:v,streamingThinking:__acc_streamingThinking,isBriefOnly:S=!1'''
+
+[[patches]]
+name = "thinking-render-live-row-output-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.1.234"
+rationale = """
+Render the 2.1.233 live thinking prop inside Messages.
+
+This is the output half of the live row. It follows the streaming preview and
+stays independent of brief/summarized mode so reasoning remains visible until
+the completed assistant block replaces it.
+
+Cleanup condition: upstream restores an official interactive live-thinking
+row or exposes a supported display setting for it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", strings = ['''streamingPreview:v,isBriefOnly:S=!1''', '''b&&!D&&v''', '''Qe.flatMap(Bt)'''], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''b&&!D&&v]})'''
+value = '''b&&!D&&v,__acc_streamingThinking?.thinking&&dD.jsx(x,{marginTop:1,children:dD.jsx(OVr,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:n})})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 Messages renders the live thinking row"
+assert_contains = '''__acc_streamingThinking?.thinking&&dD.jsx(x,{marginTop:1,children:dD.jsx(OVr,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:n})})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 live row is independent of brief mode"
+assert_not_contains = '''__acc_streamingThinking?.thinking&&!D'''
+
+[[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-233"
+target_version = "2.1.233"
+applies_to = ">=2.1.233 <2.1.234"
+rationale = """
+Clear the transient 2.1.233 live thinking row after an interrupt preserves it
+as a virtual assistant message.
+
+The interrupt handler reads state `hl`, appends the partial thinking block, and
+then continues cancellation without clearing setter `El`.
+Once the live row is rendered, retaining both representations would show the
+same interrupted reasoning twice.
+
+Cleanup condition: upstream owns live-thinking interruption reconciliation.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", strings = ['''it.get().thinkingStartedAt!==null''', '''content:[{type:"thinking",thinking:$r,signature:""}]''', '''isVirtual:!0'''], parent_node = "BlockStatement" }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''El(null);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 interrupt clears live thinking after preserving it"
+assert_contains = '''isVirtual:!0})]);El(null);let{salvage:'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.233 interrupt no longer leaves the live state mounted"
+assert_not_contains = '''isVirtual:!0})]);let{salvage:'''
+
+[[patches]]
 name = "thinking-render-blocks-2-1-233"
 target_version = "2.1.233"
 applies_to = ">=2.1.233 <2.2.0"

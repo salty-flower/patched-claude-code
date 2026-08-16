@@ -214,6 +214,22 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 }, 120000)
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.233")) {
+    const streamingThinkingState = getStreamingThinkingState(patched)
+    expect(streamingThinkingState).toBe("hl")
+    expect(patched).toContain("onStreamingThinking:El")
+    expect(patched).toContain(
+      `streamingThinking:zE.isMain?${streamingThinkingState}:null`,
+    )
+    expect(patched).toContain(
+      "streamingPreview:v,streamingThinking:__acc_streamingThinking,isBriefOnly:S=!1",
+    )
+    expect(patched).toContain(
+      '__acc_streamingThinking?.thinking&&dD.jsx(x,{marginTop:1,children:dD.jsx(OVr,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:n})})',
+    )
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.205")) {
     expect(patched).not.toContain("streamingThinking:_t")
     expect(patched).not.toContain("streamingThinking:ma")
@@ -391,6 +407,13 @@ test("live thinking rendering is not suppressed by brief mode", () => {
     expect(patched).toContain("zH&&X&&m4.createElement(B,{marginTop:1}")
     expect(patched).not.toContain("zH&&X&&!b&&m4.createElement(B,{marginTop:1}")
   }
+}, 120000)
+
+test("interrupt replaces 2.1.233 live thinking with one preserved message", () => {
+  if (!isVersionAtLeast(TARGET_VERSION, "2.1.233")) return
+
+  expect(patched).toContain('isVirtual:!0})]);El(null);let{salvage:')
+  expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
 }, 120000)
 
 test("live thinking is cleared before the next streamed content block", () => {

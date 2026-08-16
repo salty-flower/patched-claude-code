@@ -199,6 +199,7 @@ async function main(): Promise<number> {
   const stageWasVisibleBeforeRelease = STREAM_STAGES.map(() => false)
   const eventOrder: string[] = []
   let thinkingResponseCount = 0
+  let finalTextObserved = false
 
   const stub = await startClaudeApiStub({
     responder: (request) => {
@@ -310,6 +311,7 @@ async function main(): Promise<number> {
         output += decoder.decode(value, { stream: true })
         await writeTerminal(terminal, value)
         const screen = visibleTerminalText(terminal)
+        if (screen.includes(FINAL_TEXT)) finalTextObserved = true
         for (const [index, stage] of STREAM_STAGES.entries()) {
           if (stageObservedAt[index] !== null || !screen.includes(stage.marker)) continue
           stageObservedAt[index] = Date.now()
@@ -352,7 +354,7 @@ async function main(): Promise<number> {
       console.error(tuiOutput)
       return 1
     }
-    if (!normalized.includes(FINAL_TEXT)) {
+    if (!finalTextObserved) {
       console.error("thinking PTY did not render the completed assistant text")
       console.error(tuiOutput)
       return 1

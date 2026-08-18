@@ -2207,7 +2207,7 @@ assert_not_contains = '''headers:ci([{...r!=null?{"anthropic-user-profile-id":r}
 [[patches]]
 name = "inject-per-model-into-beta-create-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Inject per-model defaultBaseURL and auth into beta Messages.create().
 
@@ -2241,7 +2241,7 @@ assert_not_contains = '''headers:si([{...n?.toString()!=null?{"anthropic-beta":n
 [[patches]]
 name = "inject-per-model-into-nonbeta-create-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Inject per-model defaultBaseURL and auth into non-beta Messages.create().
 
@@ -2275,7 +2275,7 @@ assert_not_contains = '''headers:si([{...r!=null?{"anthropic-user-profile-id":r}
 [[patches]]
 name = "inject-per-model-into-beta-count-tokens-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Inject per-model defaultBaseURL and auth into beta Messages.countTokens().
 
@@ -2308,7 +2308,7 @@ assert_not_contains = '''headers:si([{"anthropic-beta":[...n??[],"token-counting
 [[patches]]
 name = "inject-per-model-into-nonbeta-count-tokens-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Inject per-model defaultBaseURL and auth into non-beta Messages.countTokens().
 
@@ -2338,3 +2338,67 @@ assert_not_contains = '''headers:ci([{...r!=null?{"anthropic-user-profile-id":r}
 kind = "static"
 name = "2.1.233 variant does not carry the previous target symbols"
 assert_not_contains = '''headers:si([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-beta-create-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+rationale = "Inject per-model endpoint and credentials into the 2.1.234 beta Messages client."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages?beta=true",{body:i,timeout:s??600000,...t,headers:yi([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0,...o!=null?{"anthropic-user-profile-id":o}:void 0},a,t?.headers]),stream:r.stream??!1})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages?beta=true",{body:i,timeout:s??600000,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:yi([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0,...o!=null?{"anthropic-user-profile-id":o}:void 0},a,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])]) ,stream:r.stream??!1})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 beta create injects per-model URL lookup"
+assert_contains = '''headers:yi([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0,...o!=null?{"anthropic-user-profile-id":o}:void 0},a,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-create-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+rationale = "Inject per-model endpoint and credentials into the 2.1.234 non-beta Messages client."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages",{body:n,timeout:o??600000,...t,headers:yi([{...r!=null?{"anthropic-user-profile-id":r}:void 0},i,t?.headers]),stream:e.stream??!1})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages",{body:n,timeout:o??600000,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:yi([{...r!=null?{"anthropic-user-profile-id":r}:void 0},i,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])]) ,stream:e.stream??!1})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 non-beta create injects per-model URL lookup"
+assert_contains = '''headers:yi([{...r!=null?{"anthropic-user-profile-id":r}:void 0},i,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-beta-count-tokens-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+rationale = "Inject per-model endpoint and credentials into the 2.1.234 beta countTokens client."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens?beta=true",{body:i,...t,headers:yi([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString(),...o!=null?{"anthropic-user-profile-id":o}:void 0},t?.headers])})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens?beta=true",{body:i,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:yi([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString(),...o!=null?{"anthropic-user-profile-id":o}:void 0},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 beta countTokens injects per-model URL lookup"
+assert_contains = '''headers:yi([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString(),...o!=null?{"anthropic-user-profile-id":o}:void 0},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-count-tokens-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+rationale = "Inject per-model endpoint and credentials into the 2.1.234 non-beta countTokens client."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens",{body:n,...t,headers:yi([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers])})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens",{body:n,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:yi([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 non-beta countTokens injects per-model URL lookup"
+assert_contains = '''headers:yi([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])'''

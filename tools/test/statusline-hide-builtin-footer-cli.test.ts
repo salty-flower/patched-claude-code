@@ -75,7 +75,41 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
-    if (isVersionAtLeast(TARGET_VERSION, "2.1.233")) {
+    if (TARGET_VERSION === "2.1.234") {
+      expect(patched).toContain(
+        'globalThis.__acc_disabled_footer=H})():void 0,Ot={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo(),tasks:{},attentionBudget:d5o,proactivityLevel:q',
+      )
+      expect(patched).toContain(
+        'hideBuiltinFooter:zt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:_t(Mr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      expect(patched).toContain(
+        'function Vos(PE1){let __acc_hide_footer=ft((se)=>se.settings.statusLine?.hideBuiltinFooter||se.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      expect(patched).toContain("return __acc_hide_footer?null:VXw")
+      expect(patched).toContain("Qne=__acc_hide_effort_level?void 0:Zmh(lM,ywe,m3);")
+      expect(patched).toContain(
+        "__acc_hide_effort_all=ft((I_)=>I_.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=ft",
+      )
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=i")
+      expect(patched).toContain(
+        'c?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")',
+      )
+      expect(patched).toContain(
+        'function wsg({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n',
+      )
+      expect(patched).toContain("let Vt=!__acc_hide_mode&&Nt&&te?")
+      expect(patched).toContain("let Ye=!__acc_hide_mode&&te&&St?")
+      expect(patched).toContain("command_length:e.command?.length??0,padding:e.padding")
+      expect(patched).toContain("effort_level:MM(b)?nK(b,m):null")
+      expect(patched).toContain(
+        'permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}',
+      )
+      expect(patched).toContain("getCommandLength:()=>this.#t.statusLine?.command?.length??0")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=c")
+      expect(patched).toContain('disabledFooter?.includes("clipboard_image_hint")')
+      return
+    }
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.233") && isVersionBefore(TARGET_VERSION, "2.1.234")) {
       expect(patched).toContain(
         'globalThis.__acc_disabled_footer=H})():void 0,Qt={settings:Wo(),tasks:{},attentionBudget:YBo,proactivityLevel:z',
       )

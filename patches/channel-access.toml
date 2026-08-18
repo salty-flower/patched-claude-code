@@ -1278,7 +1278,7 @@ assert_not_contains = '''return kRt()'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
@@ -1334,7 +1334,7 @@ assert_not_contains = '''isEnabled(){if(rP().length>0&&Rn())return!1;if(Rn()&&!V
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-233-askuser"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
@@ -1382,3 +1382,81 @@ assert_not_contains = '''return kRt()'''
 kind = "static"
 name = "2.1.233 variant does not carry the previous target symbols"
 assert_not_contains = '''return aEt()'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Remove the first-party/provider/channel-list gate from ask-user-question tools.
+
+This is the 2.1.234 minified-symbol variant of
+`ask-user-question-channels-gate`. The shared channel predicate now minifies
+to `YO().length>0&&An()` with an added middle predicate
+`if(An()&&!Fwe())return!1`, and remains inline on the ExitPlanMode tool
+definition. The method body is replaced while preserving the rest of the
+tool definition.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", strings = ["YO().length>0&&An()", "return!1;return!0"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.234"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.234 ExitPlanMode gate is absent"
+assert_not_contains = '''isEnabled(){if(YO().length>0&&An())return!1;if(An()&&!Fwe())return!1;return!0}'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-234-askuser"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Remove the first-party/provider/channel-list gate from AskUserQuestion.
+
+This is the 2.1.234 delegation-site variant of
+`ask-user-question-channels-gate`. AskUserQuestion's `isEnabled` delegates to
+the shared channel predicate as `isEnabled(){return nHt()}`. Replace that
+delegation site so AskUserQuestion stays available when --channels is
+populated; the shared helper remains intact because it also gates unrelated
+whiteboard/prototype and plan-mode behavior.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", string = "return nHt()" }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.234"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "AskUserQuestion delegation site is replaced in 2.1.234"
+assert_not_contains = '''return nHt()'''

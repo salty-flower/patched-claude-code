@@ -11,6 +11,8 @@ const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
 const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const SIGNATURE_PATCH = join(ROOT, "patches", "signature-block-custom-endpoint.toml")
+const TEST_SESSION_ID = "11111111-1111-4111-8111-111111111111"
+const TEST_PROJECT_DIR_NAME = "patched-cc-signature-test"
 
 const tempDirs: string[] = []
 
@@ -33,7 +35,6 @@ function makeTempDir(prefix: string): string {
 }
 
 function writeSignedThinkingTranscript(dir: string): string {
-  const sessionId = "11111111-1111-4111-8111-111111111111"
   const userUuid = "22222222-2222-4222-8222-222222222222"
   const assistantUuid = "33333333-3333-4333-8333-333333333333"
   const transcript = join(dir, "signed-thinking.jsonl")
@@ -42,7 +43,7 @@ function writeSignedThinkingTranscript(dir: string): string {
       type: "user",
       uuid: userUuid,
       parentUuid: null,
-      sessionId,
+      sessionId: TEST_SESSION_ID,
       timestamp: "2026-05-26T00:00:00.000Z",
       message: { role: "user", content: "hello" },
     },
@@ -50,7 +51,7 @@ function writeSignedThinkingTranscript(dir: string): string {
       type: "assistant",
       uuid: assistantUuid,
       parentUuid: userUuid,
-      sessionId,
+      sessionId: TEST_SESSION_ID,
       timestamp: "2026-05-26T00:00:01.000Z",
       requestId: "req_old",
       message: {
@@ -125,6 +126,13 @@ async function runClaudeUntilMessageRequest(
   home: string,
 ): Promise<RequestBody> {
   mkdirSync(home, { recursive: true })
+  let resumeArg = transcriptPath
+  if (!isVersionBefore(TARGET_VERSION, "2.1.234")) {
+    const projectDir = join(home, ".claude", "projects", TEST_PROJECT_DIR_NAME)
+    mkdirSync(projectDir, { recursive: true })
+    writeFileSync(join(projectDir, `${TEST_SESSION_ID}.jsonl`), readFileSync(transcriptPath))
+    resumeArg = TEST_SESSION_ID
+  }
   const proc = Bun.spawn({
     cmd: [
       process.execPath,
@@ -137,7 +145,7 @@ async function runClaudeUntilMessageRequest(
       "1",
       "--no-session-persistence",
       "--resume",
-      transcriptPath,
+      resumeArg,
       "continue",
     ],
     cwd: home,
@@ -145,6 +153,7 @@ async function runClaudeUntilMessageRequest(
       ...process.env,
       HOME: home,
       CLAUDE_CONFIG_DIR: join(home, ".claude"),
+      CLAUDE_CODE_PROJECT_DIR_NAME: TEST_PROJECT_DIR_NAME,
       ANTHROPIC_API_KEY: "test-api-key",
       ANTHROPIC_BASE_URL: stub.baseUrl,
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",

@@ -2625,7 +2625,7 @@ assert_not_contains = '''let r=await mAS(e,t),n=!Zdf.has(r),o=n?s0n():s0n().filt
 [[patches]]
 name = "later-command-submit-hook-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Add session-only relative and absolute delayed prompts for interactive sessions.
 
@@ -2679,7 +2679,7 @@ assert_not_contains = '''cL().filter((__t)=>__t.later===!0&&!__t.recurring)'''
 [[patches]]
 name = "later-command-exact-fire-time-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Make `/later` one-shot session tasks honor their exact requested timestamp.
 
@@ -2718,7 +2718,7 @@ assert_not_contains = '''B.later===!0&&Number.isFinite(B.laterAt)&&B.laterAt>B.c
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Expose `/later` through the existing slash-command suggestion pipeline.
 
@@ -2749,3 +2749,117 @@ assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YY
 kind = "static"
 name = "2.1.233 suggestion variant no longer carries 2.1.229 loader symbols"
 assert_not_contains = '''let r=await fkS(e,t),n=!rp().loadedResultIsMissingTrustedNames(r),o=n?vIn():vIn().filter((C)=>C.loadedFrom!=="syncedSkills"),i=n?qQp():[],s=r.filter((C)=>SFr(C)&&sI(C));'''
+
+[[patches]]
+name = "later-command-submit-hook-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Add session-only relative and absolute delayed prompts for interactive sessions.
+
+This is the 2.1.234 minified-symbol variant. The submit callback uses Ht, xr,
+xn, and $U; its input, pasted-content, and notification helpers are Pb, BU, and
+mt. The session task getter, task creator, scheduler toggle, and team context
+getter are fH, iHr, W2e, and E4. The official scheduled-task API now owns
+session task creation, so the patch marks the created task with later and
+laterAt metadata after creating it. Remove this patch when upstream exposes an
+equivalent interactive one-shot scheduling command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L313-L350"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", strings = ['''Ht.trim().startsWith("/")'''] }
+
+[patches.transform]
+op = "insert_before_node"
+code = '''if($U==="prompt"&&!xn?.fromKeybinding&&!iA.isRemoteMode){let __trim=Ht.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list";if(__trim==="/later list"){let __jobs=fH().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __at=Number.isFinite(__t.laterAt)?__t.laterAt:nHr(__t.cron,__t.createdAt),__d=__at?new Date(__at):null,__when=__d?String(__d.getFullYear()).padStart(4,"0")+"-"+String(__d.getMonth()+1).padStart(2,"0")+"-"+String(__d.getDate()).padStart(2,"0")+" "+String(__d.getHours()).padStart(2,"0")+":"+String(__d.getMinutes()).padStart(2,"0")+":"+String(__d.getSeconds()).padStart(2,"0"):"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?__raw.slice(0,17)+"...":__raw;return String(__i+1)+". "+__text+" @ "+__when});if(__jobs.length>10)__lines.push("+"+(__jobs.length-10)+" more");mt({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});Pb("");xr.setCursorOffset(0);BU({});return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __createdAt=Date.now(),__prompt,__when;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=new Date(__createdAt+__delay)}else{__prompt=__absolute[7].trim();let __now=new Date(__createdAt),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__now.getFullYear(),__month=__hasDate?Number(__absolute[2]):__now.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__now.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__createdAt){let __nextDay=new Date(__now.getFullYear(),__now.getMonth(),__now.getDate()+1);__year=__nextDay.getFullYear();__month=__nextDay.getMonth()+1;__day=__nextDay.getDate();__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0)}let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()+1===__month&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second&&__candidate.getTime()>__createdAt;if(!__prompt||!__valid){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=__candidate}if(!Number.isFinite(__when.getTime())){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __cron=String(__when.getMinutes())+" "+String(__when.getHours())+" "+String(__when.getDate())+" "+String(__when.getMonth()+1)+" *",__id=await iHr(__cron,__prompt,!1,!1,E4()?.agentId),__task=fH().find((__t)=>__t.id===__id);if(!__task){mt({key:"later-error",kind:"error",text:"Unable to create a scheduled prompt",priority:"immediate"});return}__task.later=!0,__task.laterAt=__when.getTime(),W2e(!0),mt({key:"later-"+__id,kind:"feedback",text:"Scheduled "+__id+" for "+__when.toLocaleString(),priority:"immediate"}),Pb(""),xr.setCursorOffset(0),BU({});return}if(__trim.startsWith("/later")){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command lists marked session tasks in 2.1.234"
+assert_contains = '''fH().filter((__t)=>__t.later===!0&&!__t.recurring)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command uses the 2.1.234 one-shot cron fallback"
+assert_contains = '''nHr(__t.cron,__t.createdAt)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command stores exact fire time in 2.1.234"
+assert_contains = '''__task.later=!0,__task.laterAt=__when.getTime()'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command enables scheduled task polling in 2.1.234"
+assert_contains = '''W2e(!0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command remains interactive-only in 2.1.234"
+assert_contains = '''if($U==="prompt"&&!xn?.fromKeybinding&&!iA.isRemoteMode)'''
+
+[[patches]]
+name = "later-command-exact-fire-time-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Make /later one-shot session tasks honor their exact requested timestamp.
+
+This is the 2.1.234 minified-symbol variant. The scheduler task is z, its
+jitter config is Y, and its recurring and one-shot helpers are xOn and WKo. A
+parallel setTimeout path was rejected because it would duplicate loading
+deferral, queue insertion, and one-shot cleanup. Remove this patch when
+upstream supports exact timestamps on session scheduled tasks.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/cronScheduler.ts#L253-L277"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let K=z.recurring?xOn(z.cron,z.lastFiredAt??z.createdAt,z.id,Y):WKo(z.cron,z.createdAt,z.id,Y);''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''let K=z.recurring?xOn(z.cron,z.lastFiredAt??z.createdAt,z.id,Y):z.later===!0&&Number.isFinite(z.laterAt)&&z.laterAt>z.createdAt?z.laterAt:WKo(z.cron,z.createdAt,z.id,Y);'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command exact fire time takes precedence in 2.1.234"
+assert_contains = '''z.later===!0&&Number.isFinite(z.laterAt)&&z.laterAt>z.createdAt?z.laterAt:WKo(z.cron,z.createdAt,z.id,Y)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command old cron-only one-shot initializer is absent in 2.1.234"
+assert_not_contains = '''let K=z.recurring?xOn(z.cron,z.lastFiredAt??z.createdAt,z.id,Y):WKo(z.cron,z.createdAt,z.id,Y);'''
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Expose /later through the existing slash-command suggestion pipeline.
+
+This is the 2.1.234 minified-symbol variant. The command loader is FWv, the
+trusted names guard is Yp, the skills getter is V4n, the workflow/plugin
+helper is Arf, the availability and enabled filters are C8r/nO, and the
+filtered result array is s. Cleanup condition: upstream exposes an interactive
+delayed-send command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let r=await FWv(e,t),n=!m6()&&!Yp().loadedResultIsMissingTrustedNames(r),o=n?V4n():V4n().filter((C)=>C.loadedFrom!=="syncedSkills"),i=n?Arf():[],s=r.filter((C)=>C8r(C)&&nO(C));''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!s.some((C)=>C.name==="later"))s.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command absolute-time suggestion metadata is rendered in 2.1.234"
+assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"'''

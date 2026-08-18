@@ -399,7 +399,7 @@ assert_not_contains = "j(!0)},[B,m,y,T,h,b,V,q,O,j]"
 [[patches]]
 name = "foreground-agent-handoff-before-cancel-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Hand synchronous foreground agents off to the background before Escape aborts
 their shared parent request. Without this transition, concurrent Agent tool
@@ -441,7 +441,7 @@ assert_not_contains = '''if(i!==void 0&&!i.aborted||s){L("tengu_cancel",le),t();
 [[patches]]
 name = "global-interrupt-cancel-only-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 rationale = """
 Keep global interrupt and Escape cancellation from stopping unrelated background
 agents. The 2.1.233 bundle still routes the global interrupt fall-through
@@ -481,3 +481,64 @@ assert_not_contains = "j(!0)},[B,m,y,T,h,b,V,q,O,j]"
 kind = "static"
 name = "2.1.233 variant does not carry the previous target symbols"
 assert_not_contains = '''z()},[B,m,y,v,h,S,Y,q,O,z]'''
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Hand synchronous foreground agents off to the background before Escape aborts
+their shared parent request. The v2.1.234 cancel hook still aborts the parent
+immediately when its abort signal is active, so local agents must be marked
+background first. The target task registry is `y`, local-agent detection is
+`ud`, main-session exclusion is `w3n`, and the supported handoff is `R2n`.
+The zero-delay cancel lets those handoff updates settle before the shared
+parent signal is aborted. Remove when upstream detaches foreground agents from
+parent cancellation before handling Escape.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''if(i!==void 0&&!i.aborted||s){A.current=Date.now(),H("tengu_cancel",Ce),t();return}'''
+locator_kind = "literal"
+replacement = '''if(i!==void 0&&!i.aborted||s){let de=!1;for(let[ve,ee]of Object.entries(y.all()))if(ud(ee)&&!ee.isBackgrounded&&!w3n(ee))de=R2n(ve,y)||de;A.current=Date.now(),H("tengu_cancel",Ce),de?setTimeout(t,0):t();return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 Escape hands foreground agents off before parent cancellation"
+assert_contains = '''de=R2n(ve,y)||de;A.current=Date.now(),H("tengu_cancel",Ce),de?setTimeout(t,0):t();return'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 Escape no longer aborts shared foreground agents immediately"
+assert_not_contains = '''if(i!==void 0&&!i.aborted||s){A.current=Date.now(),H("tengu_cancel",Ce),t();return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 handoff excludes the main-session agent"
+assert_contains = '''ud(ee)&&!ee.isBackgrounded&&!w3n(ee)'''
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Keep the global interrupt on the cancel-only path so it does not stop
+unrelated background agents. In v2.1.234 the global interrupt callback is the
+`de` hook whose fall-through calls `z({gesture:"ctrl_c"})`; pass the explicit
+`suppressBackgroundAgentKill` flag while retaining the deliberate
+`chat:killAgents` binding for stopping background work. Remove when upstream
+scopes the kill path to the intended agent view.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''z({gesture:"ctrl_c"})},[Z,m,y,b,h,S,N,K,L,B,z]'''
+locator_kind = "literal"
+replacement = '''z({gesture:"ctrl_c",suppressBackgroundAgentKill:!0})},[Z,m,y,b,h,S,N,K,L,B,z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 global interrupt uses cancel-only mode"
+assert_contains = '''z({gesture:"ctrl_c",suppressBackgroundAgentKill:!0})},[Z,m,y,b,h,S,N,K,L,B,z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 global interrupt no longer uses the default kill-enabled mode"
+assert_not_contains = '''z({gesture:"ctrl_c"})},[Z,m,y,b,h,S,N,K,L,B,z]'''

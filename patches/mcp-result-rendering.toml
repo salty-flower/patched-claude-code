@@ -1083,7 +1083,7 @@ assert_not_contains = '''content:osm,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -1120,3 +1120,43 @@ assert_not_contains = '''content:W1m,verbose:q1m'''
 kind = "static"
 name = "stale 2.1.229 MCP text-block symbols are absent in 2.1.233"
 assert_not_contains = '''content:ffm,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+In v2.1.234 the per-text-block component `MGm` passes its extracted text as
+`OGm` and the caller's verbose local as `PGm` to the shared renderer; force
+that call to `verbose:!0`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", source = '''hP.jsx(TN,{content:OGm,verbose:PGm})''' }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:OGm,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.234"
+assert_contains = '''content:OGm,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.234 MCP text-block call site is absent"
+assert_not_contains = '''content:OGm,verbose:PGm'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 text-block variant does not carry the previous target symbols"
+assert_not_contains = '''content:W1m,verbose:!0'''

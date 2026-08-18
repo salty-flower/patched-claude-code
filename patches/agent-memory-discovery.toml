@@ -996,7 +996,7 @@ assert_contains = '''if($&&q.has(YH))return[];'''
 [[patches]]
 name = "agents-memory-nested-directory-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 
 rationale = """
 Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
@@ -1043,7 +1043,7 @@ assert_not_contains = '''let s=dw.join(e,"CLAUDE.md");o.push(...await qTe(s,"Pro
 [[patches]]
 name = "agents-memory-file-detection-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.234"
 
 rationale = """
 Treat AGENTS.md as a memory file for nested-memory propagation checks.
@@ -1081,3 +1081,72 @@ assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(yh
 kind = "static"
 name = "2.1.233 variant does not carry the previous target symbols"
 assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(Fge.basename(Jr))'''
+
+[[patches]]
+name = "agents-memory-nested-directory-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+
+rationale = """
+Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
+
+This is the 2.1.234 minified-symbol variant of
+`agents-memory-nested-directory`. The nested loader is now `D7o`; its path
+namespace is `ww`, accumulator is `o`, and memory loader is `lCe`. Cleanup
+condition: upstream supports AGENTS.md as an official memory file or exposes a
+configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "D7o", strings = ['''CLAUDE_CODE_DISABLE_CLAUDE_MDS''', '''let s=ww.join(e,"CLAUDE.md");o.push(...await lCe(s,"Project",r,!1));let a=ww.join(e,".claude","CLAUDE.md")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let s=ww.join(e,"CLAUDE.md");o.push(...await lCe(s,"Project",r,!1));let a=ww.join(e,".claude","CLAUDE.md")'''
+value = '''let s=ww.join(e,"CLAUDE.md");o.push(...await lCe(s,"Project",r,!1));let AGENTS_MD=ww.join(e,"AGENTS.md");o.push(...await lCe(AGENTS_MD,"Project",r,!1));let a=ww.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "nested-directory AGENTS.md loader is rendered in 2.1.234"
+assert_contains = '''let s=ww.join(e,"CLAUDE.md");o.push(...await lCe(s,"Project",r,!1));let AGENTS_MD=ww.join(e,"AGENTS.md");o.push(...await lCe(AGENTS_MD,"Project",r,!1));let a=ww.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.234 nested-memory sequence is absent"
+assert_not_contains = '''let s=ww.join(e,"CLAUDE.md");o.push(...await lCe(s,"Project",r,!1));let a=ww.join(e,".claude","CLAUDE.md")'''
+
+[[patches]]
+name = "agents-memory-file-detection-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+
+rationale = """
+Treat AGENTS.md as a memory file for nested-memory propagation checks.
+
+This is the 2.1.234 minified-symbol variant. The filename allowlist now uses
+path namespace `jbe` and loaded-memory path variable `er`; add AGENTS.md so
+loaded project memory continues to participate in cache and invalidation
+propagation. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
+
+locator_kind = "literal"
+locator_pattern = '''["CLAUDE.md","CLAUDE.local.md"].includes(jbe.basename(er))'''
+expected_matches = 1
+
+replacement = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(jbe.basename(er))'''
+
+[[patches.tests]]
+kind = "static"
+name = "AGENTS.md participates in nested-memory propagation in 2.1.234"
+assert_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(jbe.basename(er))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.234 allowlist no longer carries the stale two-file predicate"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(jbe.basename(er))'''

@@ -2758,14 +2758,16 @@ rationale = """
 Add session-only relative and absolute delayed prompts for interactive sessions.
 
 This is the 2.1.234 minified-symbol variant. The submit callback uses Ht, xr,
-xn, and $U; its input, pasted-content, and notification helpers are Pb, BU, and
-mt. The session task getter, task creator, scheduler toggle, and team context
-getter are fH, iHr, W2e, and E4. The official scheduled-task API now owns
-session task creation, so the patch marks the created task with later and
-laterAt metadata after creating it. Remove this patch when upstream exposes an
-equivalent interactive one-shot scheduling command.
+xn, and $U; Oo carries the current pasted contents, while zKe and Rx expand
+pasted text and identify referenced images. The input, pasted-content, and
+notification helpers are Pb, BU, and mt. The session task getter, task creator,
+scheduler toggle, and team context getter are fH, iHr, W2e, and E4. The
+official scheduled-task API now owns session task creation, so the patch marks
+the created task with later and laterAt metadata and keeps referenced images
+on that session-only object. Remove this patch when upstream exposes an
+equivalent interactive one-shot scheduling command with attachment support.
 """
-rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L313-L350"
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
 locator_kind = "ast_transform"
 
 [patches.ast]
@@ -2774,7 +2776,7 @@ match = { node = "IfStatement", strings = ['''Ht.trim().startsWith("/")'''] }
 
 [patches.transform]
 op = "insert_before_node"
-code = '''if($U==="prompt"&&!xn?.fromKeybinding&&!iA.isRemoteMode){let __trim=Ht.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list";if(__trim==="/later list"){let __jobs=fH().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __at=Number.isFinite(__t.laterAt)?__t.laterAt:nHr(__t.cron,__t.createdAt),__d=__at?new Date(__at):null,__when=__d?String(__d.getFullYear()).padStart(4,"0")+"-"+String(__d.getMonth()+1).padStart(2,"0")+"-"+String(__d.getDate()).padStart(2,"0")+" "+String(__d.getHours()).padStart(2,"0")+":"+String(__d.getMinutes()).padStart(2,"0")+":"+String(__d.getSeconds()).padStart(2,"0"):"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?__raw.slice(0,17)+"...":__raw;return String(__i+1)+". "+__text+" @ "+__when});if(__jobs.length>10)__lines.push("+"+(__jobs.length-10)+" more");mt({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});Pb("");xr.setCursorOffset(0);BU({});return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __createdAt=Date.now(),__prompt,__when;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=new Date(__createdAt+__delay)}else{__prompt=__absolute[7].trim();let __now=new Date(__createdAt),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__now.getFullYear(),__month=__hasDate?Number(__absolute[2]):__now.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__now.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__createdAt){let __nextDay=new Date(__now.getFullYear(),__now.getMonth(),__now.getDate()+1);__year=__nextDay.getFullYear();__month=__nextDay.getMonth()+1;__day=__nextDay.getDate();__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0)}let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()+1===__month&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second&&__candidate.getTime()>__createdAt;if(!__prompt||!__valid){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=__candidate}if(!Number.isFinite(__when.getTime())){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __cron=String(__when.getMinutes())+" "+String(__when.getHours())+" "+String(__when.getDate())+" "+String(__when.getMonth()+1)+" *",__id=await iHr(__cron,__prompt,!1,!1,E4()?.agentId),__task=fH().find((__t)=>__t.id===__id);if(!__task){mt({key:"later-error",kind:"error",text:"Unable to create a scheduled prompt",priority:"immediate"});return}__task.later=!0,__task.laterAt=__when.getTime(),W2e(!0),mt({key:"later-"+__id,kind:"feedback",text:"Scheduled "+__id+" for "+__when.toLocaleString(),priority:"immediate"}),Pb(""),xr.setCursorOffset(0),BU({});return}if(__trim.startsWith("/later")){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+code = '''if($U==="prompt"&&!xn?.fromKeybinding&&!iA.isRemoteMode){let __trim=Ht.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list";if(__trim==="/later list"){let __jobs=fH().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __at=Number.isFinite(__t.laterAt)?__t.laterAt:nHr(__t.cron,__t.createdAt),__d=__at?new Date(__at):null,__when=__d?String(__d.getFullYear()).padStart(4,"0")+"-"+String(__d.getMonth()+1).padStart(2,"0")+"-"+String(__d.getDate()).padStart(2,"0")+" "+String(__d.getHours()).padStart(2,"0")+":"+String(__d.getMinutes()).padStart(2,"0")+":"+String(__d.getSeconds()).padStart(2,"0"):"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?__raw.slice(0,17)+"...":__raw;return String(__i+1)+". "+__text+" @ "+__when});if(__jobs.length>10)__lines.push("+"+(__jobs.length-10)+" more");mt({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});Pb("");xr.setCursorOffset(0);BU({});return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __createdAt=Date.now(),__rawPrompt,__prompt,__when;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__rawPrompt=__relative[3].trim(),__prompt=zKe(__rawPrompt,Oo);if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=new Date(__createdAt+__delay)}else{__rawPrompt=__absolute[7].trim(),__prompt=zKe(__rawPrompt,Oo);let __now=new Date(__createdAt),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__now.getFullYear(),__month=__hasDate?Number(__absolute[2]):__now.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__now.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__createdAt){let __nextDay=new Date(__now.getFullYear(),__now.getMonth(),__now.getDate()+1);__year=__nextDay.getFullYear();__month=__nextDay.getMonth()+1;__day=__nextDay.getDate();__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0)}let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()+1===__month&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second&&__candidate.getTime()>__createdAt;if(!__prompt||!__valid){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=__candidate}if(!Number.isFinite(__when.getTime())){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __refs=new Set(Rx(__rawPrompt).map((__r)=>__r.id)),__pasted=Object.fromEntries(Object.entries(Oo).filter(([__id,__c])=>__c?.type==="image"&&typeof __c.content==="string"&&__c.content.length>0&&__refs.has(Number(__id)))),__cron=String(__when.getMinutes())+" "+String(__when.getHours())+" "+String(__when.getDate())+" "+String(__when.getMonth()+1)+" *",__id=await iHr(__cron,__prompt,!1,!1,E4()?.agentId),__task=fH().find((__t)=>__t.id===__id);if(!__task){mt({key:"later-error",kind:"error",text:"Unable to create a scheduled prompt",priority:"immediate"});return}__task.later=!0,__task.laterAt=__when.getTime(),Object.keys(__pasted).length&&(__task.laterPastedContents=__pasted),W2e(!0),mt({key:"later-"+__id,kind:"feedback",text:"Scheduled "+__id+" for "+__when.toLocaleString(),priority:"immediate"}),Pb(""),xr.setCursorOffset(0),BU({});return}if(__trim.startsWith("/later")){mt({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
 
 [[patches.tests]]
 kind = "static"
@@ -2789,7 +2791,17 @@ assert_contains = '''nHr(__t.cron,__t.createdAt)'''
 [[patches.tests]]
 kind = "static"
 name = "later command stores exact fire time in 2.1.234"
-assert_contains = '''__task.later=!0,__task.laterAt=__when.getTime()'''
+assert_contains = '''__task.later=!0,__task.laterAt=__when.getTime(),Object.keys(__pasted).length&&(__task.laterPastedContents=__pasted)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command expands pasted text before scheduling in 2.1.234"
+assert_contains = '''__rawPrompt=__relative[3].trim(),__prompt=zKe(__rawPrompt,Oo)'''
+
+[[patches.tests]]
+kind = "static"
+name = "later command retains only referenced valid images in 2.1.234"
+assert_contains = '''__c?.type==="image"&&typeof __c.content==="string"&&__c.content.length>0&&__refs.has(Number(__id))'''
 
 [[patches.tests]]
 kind = "static"
@@ -2834,6 +2846,105 @@ assert_contains = '''z.later===!0&&Number.isFinite(z.laterAt)&&z.laterAt>z.creat
 kind = "static"
 name = "later command old cron-only one-shot initializer is absent in 2.1.234"
 assert_not_contains = '''let K=z.recurring?xOn(z.cron,z.lastFiredAt??z.createdAt,z.id,Y):WKo(z.cron,z.createdAt,z.id,Y);'''
+
+[[patches]]
+name = "later-command-fire-attachment-envelope-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Let the scheduled-task queue envelope carry images retained by /later.
+
+This is the 2.1.234 minified-symbol variant. The queue-envelope builder is u;
+its prompt, wakeup source, and new pasted-content parameters are h, g, and y.
+The extra property is omitted for ordinary scheduled tasks. Remove this patch
+when upstream delayed prompts preserve their complete queued-command payload.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L71-L82"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", source = '''(h,g)=>({value:h,mode:"prompt",agentId:Ei(),priority:"later",isMeta:!0,skipSlashCommands:!0,modelScheduledOrigin:!0,wakeupSource:g,workload:wVe})''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''(h,g,y)=>({value:h,mode:"prompt",agentId:Ei(),priority:"later",isMeta:!0,skipSlashCommands:!0,modelScheduledOrigin:!0,wakeupSource:g,workload:wVe,...(y&&Object.keys(y).length?{pastedContents:y}:{})})'''
+
+[[patches.tests]]
+kind = "static"
+name = "scheduled queue envelope accepts retained pasted contents in 2.1.234"
+assert_contains = '''workload:wVe,...(y&&Object.keys(y).length?{pastedContents:y}:{})'''
+
+[[patches.tests]]
+kind = "static"
+name = "scheduled queue envelope old prompt-only signature is absent in 2.1.234"
+assert_not_contains = '''(h,g)=>({value:h,mode:"prompt",agentId:Ei(),priority:"later",isMeta:!0,skipSlashCommands:!0,modelScheduledOrigin:!0,wakeupSource:g,workload:wVe})'''
+
+[[patches]]
+name = "later-command-fire-forward-attachments-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Forward retained /later images through both scheduled enqueue arms.
+
+This is the 2.1.234 minified-symbol variant. The enqueue helper is p; h and g
+carry the prompt and wakeup source, y carries pasted contents, and u builds the
+queue envelope. Both the storage-v5 and ordinary arms must forward y. Remove
+this patch when upstream delayed prompts preserve queued-command attachments.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L84-L115"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", source = '''(h,g)=>{if(n){d=d.then(async()=>{try{sp(u(await bNg.resolveLoopDefaultFireAsync(s.autonomousLoopPreamble,h,n),g))}catch(y){T(`[ScheduledTasks] fire enqueue (v5 arm) failed; fire skipped: ${y}`)}});return}sp(u(bNg.resolveLoopDefaultFire(s.autonomousLoopPreamble,h),g))}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''(h,g,y)=>{if(n){d=d.then(async()=>{try{sp(u(await bNg.resolveLoopDefaultFireAsync(s.autonomousLoopPreamble,h,n),g,y))}catch(y){T(`[ScheduledTasks] fire enqueue (v5 arm) failed; fire skipped: ${y}`)}});return}sp(u(bNg.resolveLoopDefaultFire(s.autonomousLoopPreamble,h),g,y))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "scheduled enqueue forwards pasted contents through both arms in 2.1.234"
+assert_contains = '''resolveLoopDefaultFireAsync(s.autonomousLoopPreamble,h,n),g,y'''
+
+[[patches.tests]]
+kind = "static"
+name = "scheduled enqueue old prompt-only helper is absent in 2.1.234"
+assert_not_contains = '''sp(u(bNg.resolveLoopDefaultFire(s.autonomousLoopPreamble,h),g))'''
+
+[[patches]]
+name = "later-command-fire-task-attachments-2-1-234"
+target_version = "2.1.234"
+applies_to = ">=2.1.234 <2.2.0"
+rationale = """
+Pass the session-only /later image payload when its task fires.
+
+This is the 2.1.234 minified-symbol variant. The scheduled task is h, its
+wakeup-source helper is Efi, and p is the enqueue helper. Ordinary tasks have
+no laterPastedContents and retain their existing behavior. Remove this patch
+when upstream scheduled tasks carry complete queued-command payloads.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L90-L115"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", source = '''p(h.prompt,Efi(h))''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''p(h.prompt,Efi(h),h.laterPastedContents)'''
+
+[[patches.tests]]
+kind = "static"
+name = "scheduled task fire forwards retained /later images in 2.1.234"
+assert_contains = '''p(h.prompt,Efi(h),h.laterPastedContents)'''
+
+[[patches.tests]]
+kind = "static"
+name = "scheduled task fire old prompt-only call is absent in 2.1.234"
+assert_not_contains = '''p(h.prompt,Efi(h))'''
 
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-234"

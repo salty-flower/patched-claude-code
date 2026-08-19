@@ -60,7 +60,17 @@ type LaterTask = {
   recurring?: boolean
   later?: boolean
   laterAt?: number
+  laterPastedContents?: Record<number, LaterPastedContent>
 }
+
+type LaterPastedContent = {
+  id: number
+  type: "text" | "image"
+  content: string
+  mediaType?: string
+}
+
+type ParsedReference = { id: number; match: string; index: number }
 
 type LaterHookResult = {
   cleared: boolean
@@ -137,7 +147,33 @@ function getAbsoluteSubmitCode(): string {
   return patch.transform.code
 }
 
-async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Promise<LaterHookResult> {
+function parseReferences(input: string): ParsedReference[] {
+  const pattern = /\[(Pasted text|Image|\.\.\.Truncated text) #(\d+)(?: \+\d+ lines)?(\.)*\]/g
+  return [...input.matchAll(pattern)]
+    .map((match) => ({ id: Number.parseInt(match[2] ?? "0", 10), match: match[0], index: match.index }))
+    .filter((match) => match.id > 0)
+}
+
+function expandPastedTextRefs(input: string, pastedContents: Record<number, LaterPastedContent>): string {
+  let expanded = input
+  const references = parseReferences(input)
+  for (let index = references.length - 1; index >= 0; index -= 1) {
+    const reference = references[index]!
+    const content = pastedContents[reference.id]
+    if (content?.type !== "text") continue
+    expanded =
+      expanded.slice(0, reference.index) +
+      content.content +
+      expanded.slice(reference.index + reference.match.length)
+  }
+  return expanded
+}
+
+async function run208LaterHook(
+  input: string,
+  seedTasks: LaterTask[] = [],
+  pastedContents: Record<number, LaterPastedContent> = {},
+): Promise<LaterHookResult> {
   if (targetUses234LaterSymbols) {
     const tasks = [...seedTasks]
     const notifications: string[] = []
@@ -153,6 +189,9 @@ async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Prom
     }
     const submit = new Function(
       "Ht",
+      "Oo",
+      "zKe",
+      "Rx",
       "$U",
       "xn",
       "iA",
@@ -168,6 +207,9 @@ async function run208LaterHook(input: string, seedTasks: LaterTask[] = []): Prom
       `"use strict";return async()=>{${getAbsoluteSubmitCode()}}`,
     )(
       input,
+      pastedContents,
+      expandPastedTextRefs,
+      parseReferences,
       "prompt",
       { fromKeybinding: false },
       { isRemoteMode: false },
@@ -413,7 +455,7 @@ async function run201LaterHook(patched: string, input: string, seedTasks: LaterT
 test.skipIf(!testLaterCommand)(
   "/later schedules a session-only one-shot cron before prompt queueing",
   () => {
-    expect(applied).toBe(targetUsesAbsoluteLater ? 3 : 2)
+    expect(applied).toBe(targetUses234LaterSymbols ? 6 : targetUsesAbsoluteLater ? 3 : 2)
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
     expectContainsOneOf(patched, [
       "await iHr(__cron,__prompt,!1,!1,E4()?.agentId)",
@@ -776,6 +818,25 @@ test.skipIf(!targetUsesAbsoluteLater)("/later stores exact relative and absolute
   const minuteStamp = `${explicitDate.getFullYear()}-${String(explicitDate.getMonth() + 1).padStart(2, "0")}-${String(explicitDate.getDate()).padStart(2, "0")} 12:35`
   const minutePrecision = await run208LaterHook(`/later ${minuteStamp} default seconds`)
   expect(minutePrecision.tasks[0]?.laterAt).toBe(explicitDate.getTime())
+})
+
+test.skipIf(!targetUses234LaterSymbols)("/later expands pasted text and retains referenced images", async () => {
+  const pastedContents: Record<number, LaterPastedContent> = {
+    16: { id: 16, type: "image", content: "aW1hZ2U=", mediaType: "image/png" },
+    17: { id: 17, type: "image", content: "", mediaType: "image/png" },
+    18: { id: 18, type: "text", content: "expanded pasted body" },
+    19: { id: 19, type: "image", content: "b3JwaGFu", mediaType: "image/png" },
+  }
+  const result = await run208LaterHook(
+    "/later 1m inspect [Image #16], ignore [Image #17], then [Pasted text #18 +11 lines]",
+    [],
+    pastedContents,
+  )
+
+  expect(result.tasks).toHaveLength(1)
+  expect(result.tasks[0]?.prompt).toBe("inspect [Image #16], ignore [Image #17], then expanded pasted body")
+  expect(result.tasks[0]?.laterPastedContents).toEqual({ 16: pastedContents[16] })
+  expect(result.pastedContentsCleared).toBe(true)
 })
 
 test.skipIf(!targetUsesAbsoluteLater)("/later time-only form chooses the next local occurrence", async () => {

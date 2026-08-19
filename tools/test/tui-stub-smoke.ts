@@ -70,12 +70,17 @@ async function main(): Promise<number> {
         2,
       )}\n`,
     )
-    const laterPrompt = "patched TUI smoke"
+    const laterPromptSentinel = "later-marker-payload-sentinel"
+    const laterPrompt = Array.from(
+      { length: 12 },
+      (_, index) => `${laterPromptSentinel}-${String(index + 1).padStart(2, "0")} ${"expanded-content ".repeat(12)}`,
+    ).join("\n")
     const laterAt = new Date(Date.now() + 35000)
     laterAt.setMilliseconds(0)
     const laterTimestamp = formatLaterTimestamp(laterAt)
     const enterInput = "\x1b[13u"
-    const laterScheduleInput = `\x1b[200~/later ${laterTimestamp} ${laterPrompt}\x1b[201~`
+    const laterSchedulePrefixInput = `/later ${laterTimestamp} `
+    const laterPromptPasteInput = `\x1b[200~${laterPrompt}\x1b[201~`
     const laterListInput = "\x1b[200~/later list\x1b[201~"
     const pastedInput = "\x1b[200~hook-order regression\x1b[201~"
     const cancelInput = "\x03"
@@ -113,7 +118,8 @@ async function main(): Promise<number> {
       tuiCommand,
       [
         "sleep 3",
-        `printf %s ${shellQuote(laterScheduleInput)}`,
+        `printf %s ${shellQuote(laterSchedulePrefixInput)}`,
+        `printf %s ${shellQuote(laterPromptPasteInput)}`,
         "sleep 1",
         `printf %s ${shellQuote(enterInput)}`,
         "sleep 2",
@@ -134,7 +140,7 @@ async function main(): Promise<number> {
     )
     const laterRequestPromise = stub
       .waitForRequest(
-        (request) => request.path.endsWith("/messages") && request.rawBody.includes(laterPrompt),
+        (request) => request.path.endsWith("/messages") && request.rawBody.includes(laterPromptSentinel),
         tuiTimeoutSeconds * 1000,
       )
       .then(
@@ -171,7 +177,7 @@ async function main(): Promise<number> {
       return 1
     }
     const renderedLaterCommands =
-      normalizedTuiOutput.includes(`/later ${laterTimestamp} ${laterPrompt}`) &&
+      normalizedTuiOutput.includes("[Pasted text #1 +11 lines]") &&
       normalizedTuiOutput.includes("/later list")
     if (!normalizedTuiOutput.includes("Scheduled later-") && !renderedLaterCommands) {
       console.error("PTY output did not confirm /later scheduling")
@@ -188,6 +194,11 @@ async function main(): Promise<number> {
         laterRequestResult.error instanceof Error ? laterRequestResult.error.message : String(laterRequestResult.error)
       console.error(`absolute /later prompt did not reach the local Claude API stub: ${detail}`)
       console.error(tuiOutput)
+      return 1
+    }
+    if (/\[Pasted text #\d+(?: \+\d+ lines)?\]/.test(laterRequestResult.request.rawBody)) {
+      console.error("absolute /later prompt reached the local Claude API stub as a literal pasted-text marker")
+      console.error(laterRequestResult.request.rawBody)
       return 1
     }
     if (laterRequestResult.resolvedAt < laterAt.getTime()) {

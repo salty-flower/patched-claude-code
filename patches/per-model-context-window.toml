@@ -1,0 +1,50 @@
+name = "per-model-context-window"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+
+rationale = """
+Allow each model to declare its own context window through an environment
+variable instead of sharing the process-wide fallback.
+
+Set CLAUDE_CODE_MAX_CONTEXT_TOKENS_<sanitized_model> to a positive integer.
+The sanitized model ID removes a trailing [1m] tag and replaces every
+non-alphanumeric character with an underscore. For example:
+
+  CLAUDE_CODE_MAX_CONTEXT_TOKENS_deepseek_v4_flash=163840
+
+The model-specific declaration takes precedence over suffix, catalog,
+experiment, and global fallback detection, so switching models in one session
+also switches local auto-compact, statusline, and token-budget calculations.
+The process-wide CLAUDE_CODE_MAX_CONTEXT_TOKENS remains unchanged for models
+without a declaration.
+
+We rejected extending modelOverrides because that setting maps model IDs and
+is validated as string-to-string configuration. Cleanup condition: upstream
+ships a public per-model context-window setting or model metadata override.
+"""
+
+[[patches]]
+name = "resolve-model-specific-context-window"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Resolve a positive per-model context-window declaration before every upstream detection path."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "jCd", strings = ['''if(kE(e))return 1e6''', '''let n=V.CLAUDE_CODE_MAX_CONTEXT_TOKENS''', '''return kHr'''] }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-specific context window is resolved first"
+assert_contains = '''let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(kE(e))return 1e6;'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-specific declaration is not a global override"
+assert_not_contains = '''process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS=parseInt(process.env[__acc_model_context_key]'''

@@ -1346,7 +1346,7 @@ assert_not_contains = '''let r=new Set(Amu.map((i)=>Bo(i))),n=ls(t??ms()),o=dd(n
 [[patches]]
 name = "resume-allows-same-family-anthropic-model-default-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 This is the 2.1.234 minified-symbol variant of
 `resume-allows-same-family-anthropic-model-default`. The resume guard is now
@@ -1373,7 +1373,7 @@ assert_not_contains = '''function zho(){return Boolean(PE()!==void 0||V.ANTHROPI
 [[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 This is the 2.1.234 minified-symbol variant of the default-model 1M resume
 path. `Jdg` receives `initialMainLoopModel`; when absent, resolve the current
@@ -1395,3 +1395,45 @@ assert_contains = '''let r=new Set(y3u.map((i)=>jo(i))),n=ys(t??TA()),o=Ad(n);''
 kind = "static"
 name = "old absent-default resume model resolver is removed in 2.1.234"
 assert_not_contains = '''let r=new Set(y3u.map((i)=>jo(i))),n=ys(t):void 0,o=Ad(n);'''
+
+[[patches]]
+name = "resume-allows-same-family-anthropic-model-default-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Re-anchor the resume default guard to 2.1.238 while preserving its new uOt provider gate and comparing an explicit ANTHROPIC_MODEL after transcript resolution."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "literal"
+locator_pattern = '''function zAo(){return Boolean(r0()!==void 0||V.ANTHROPIC_MODEL||V.ANTHROPIC_DEFAULT_FABLE_MODEL||V.ANTHROPIC_DEFAULT_OPUS_MODEL||V.ANTHROPIC_DEFAULT_SONNET_MODEL||V.ANTHROPIC_DEFAULT_HAIKU_MODEL||uOt()||!v_())}function Lkr(e,t,r,n=(o)=>o()){if(zAo())return;let o=Q9g(e,t);'''
+expected_matches = 1
+replacement = '''function zAo(){return Boolean(r0()!==void 0||uOt()||!v_())}function Lkr(e,t,r,n=(o)=>o()){if(zAo())return;let o=Q9g(e,t);if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||Fo(Ss(V.ANTHROPIC_MODEL))!==Fo(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 resume permits same-family explicit model defaults"
+assert_contains = '''if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||Fo(Ss(V.ANTHROPIC_MODEL))!==Fo(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 resume guard drops stale 2.1.234 symbols"
+assert_not_contains = '''if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||jo(ys(V.ANTHROPIC_MODEL))!==jo(o.model)))return;'''
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Resolve the 2.1.238 current default through CE before alias and display-name comparison so resumed default 1M sessions retain their suffix."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "literal"
+locator_pattern = '''let r=new Set(rfd.map((i)=>Fo(i))),n=t?Ss(t):void 0,o=n?ld(n):void 0;'''
+expected_matches = 1
+replacement = '''let r=new Set(rfd.map((i)=>Fo(i))),n=Ss(t??CE()),o=ld(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 resume resolves the current default before 1M comparison"
+assert_contains = '''let r=new Set(rfd.map((i)=>Fo(i))),n=Ss(t??CE()),o=ld(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 default resolver drops stale 2.1.234 symbols"
+assert_not_contains = '''let r=new Set(y3u.map((i)=>jo(i))),n=ys(t??TA()),o=Ad(n);'''

@@ -3985,7 +3985,7 @@ assert_not_contains = '''let _JI=!0;'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Render 2.1.234 thinking deltas while the current API response is still streaming."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
 locator_kind = "ast_transform"
@@ -4011,7 +4011,7 @@ assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedT
 [[patches]]
 name = "thinking-render-live-main-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Pass the 2.1.234 live thinking state to the main Messages wrapper.
 
@@ -4040,7 +4040,7 @@ assert_contains = '''streamingThinking:gR.isMain?ds:null'''
 [[patches]]
 name = "thinking-render-live-row-input-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Accept the 2.1.234 live thinking prop in the Messages implementation.
 
@@ -4068,7 +4068,7 @@ assert_contains = '''streamingPreview:S,streamingThinking:__acc_streamingThinkin
 [[patches]]
 name = "thinking-render-live-row-output-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Render the 2.1.234 live thinking prop inside Messages."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
@@ -4090,7 +4090,7 @@ assert_contains = '''__acc_streamingThinking?.thinking&&XD.jsx(x,{marginTop:1,ch
 [[patches]]
 name = "thinking-clear-live-on-interrupt-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Clear the transient 2.1.234 live thinking row after an interrupt preserves it as a virtual assistant message."
 rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
 locator_kind = "ast_transform"
@@ -4111,7 +4111,7 @@ assert_contains = '''isVirtual:!0})]);Js(null);let{salvage:xn}='''
 [[patches]]
 name = "thinking-render-expanded-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Show full 2.1.234 thinking message bodies in the patched interactive UI."
 rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
 locator_kind = "ast_transform"
@@ -4133,7 +4133,7 @@ assert_contains = '''let t$O=!0;'''
 [[patches]]
 name = "thinking-render-blocks-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Keep normal 2.1.234 thinking blocks visible outside transcript or verbose mode."
 rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
 locator_kind = "ast_transform"
@@ -4151,3 +4151,186 @@ value = '''case"thinking":{if(!1){return null}'''
 kind = "static"
 name = "2.1.234 normal thinking rendering is visible"
 assert_contains = '''case"thinking":{if(!1){return null}'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Render 2.1.238 thinking deltas through the stream store while the API response is streaming."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":{let{delta:p}=e.event;if("estimated_tokens"in p&&typeof p.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:p.estimated_tokens});else if("thinking"in p&&typeof p.thinking==="string"&&p.thinking.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:dIl(p.thinking)});return}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let{delta:p}=e.event,w=typeof p.thinking==="string"?p.thinking:"";if(w)i?.(w.length),t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in p&&typeof p.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:p.estimated_tokens});else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:dIl(w)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 thinking deltas update stream-store thinking"
+assert_contains = '''t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 thinking deltas preserve fallback progress estimates"
+assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:dIl(w)})'''
+
+[[patches]]
+name = "thinking-render-live-state-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Subscribe the 2.1.238 REPL to live thinking held by the stream store."
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclarator", source = '''{streamingToolUses:$o,userInputOnProcessing:po}=yv(en.stream)''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''{streamingToolUses:$o,streamingThinking:__acc_streamingThinking,userInputOnProcessing:po}=yv(en.stream)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 REPL subscribes to stream-store thinking"
+assert_contains = '''streamingToolUses:$o,streamingThinking:__acc_streamingThinking,userInputOnProcessing:po'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Pass the 2.1.238 stream-store thinking snapshot to the main Messages wrapper."
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", source_regex = '''^\{messages:wi\.messages''', strings = ['''streamingPreview:Ru''', '''isBriefOnly:wi.isMain&&mr'''], parent_node = "CallExpression" }
+
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "wi.isMain?__acc_streamingThinking:null"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 main Messages wrapper receives stream-store thinking"
+assert_contains = '''streamingThinking:wi.isMain?__acc_streamingThinking:null'''
+
+[[patches]]
+name = "thinking-render-live-row-input-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Accept the 2.1.238 live thinking prop in Messages."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L359-L359"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", strings = ['''streamingPreview:h,isBriefOnly:g=!1''', '''m&&!A&&h'''], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''streamingPreview:h,isBriefOnly:g=!1'''
+value = '''streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 Messages accepts live thinking"
+assert_contains = '''streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1'''
+
+[[patches]]
+name = "thinking-render-live-row-output-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Render the 2.1.238 live thinking prop inside Messages."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", strings = ['''streamingPreview:h,isBriefOnly:g=!1''', '''He.flatMap(Zt)''', '''m&&!A&&h'''], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''m&&!A&&h]})'''
+value = '''m&&!A&&h,__acc_streamingThinking?.thinking&&_L.jsx(P,{marginTop:1,children:_L.jsx(Fsn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:k})})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 Messages renders the live thinking row"
+assert_contains = '''__acc_streamingThinking?.thinking&&_L.jsx(P,{marginTop:1,children:_L.jsx(Fsn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:k})})'''
+
+[[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Clear 2.1.238 stream-store thinking after an interrupt preserves it as a virtual assistant message."
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", strings = ['''o.get().thinkingStartedAt!==null''', '''content:[{type:"thinking",thinking:d,signature:""}]''', '''isVirtual:!0'''], parent_node = "BlockStatement" }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''this.stream.setStreamingThinking(null);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 interrupt clears stream-store thinking after preserving it"
+assert_contains = '''isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}='''
+
+[[patches]]
+name = "thinking-render-expanded-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Show full 2.1.238 thinking message bodies in the patched interactive UI."
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Fsn" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let ZeM=vDh||TDh;'''
+value = '''let ZeM=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 thinking body uses expanded render path"
+assert_contains = '''let ZeM=!0;'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Keep normal 2.1.238 thinking blocks visible outside transcript or verbose mode."
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", strings = ['''case"thinking":{if(Zrs!==null&&Qrs!==null''', '''if(!Vqt&&!kge){return null}''', '''yg.jsx(Fsn,{addMargin:nK,param:B1,isTranscriptMode:Vqt,verbose:kge})'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''if(!Vqt&&!kge){return null}'''
+value = '''if(!1){return null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 normal thinking rendering is visible"
+assert_contains = '''case"thinking":{if(Zrs!==null&&Qrs!==null'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 normal thinking rendering bypasses brief-mode guard"
+assert_contains = '''if(!1){return null}let h6;if(Yqt[38]'''

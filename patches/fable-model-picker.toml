@@ -1892,7 +1892,7 @@ assert_not_contains = '''else if(lxe("fable5"))DCr(s,Yjs())'''
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
 
@@ -1929,7 +1929,7 @@ assert_not_contains = '''if(UPe("fable5"))cOr(a,UZs());return a.push(tNd),BZs(a,
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
 
@@ -1967,3 +1967,72 @@ assert_not_contains = '''if(UPe("fable5"))cOr(s,UZs());return s.push(tNd),BZs(s,
 kind = "static"
 name = "2.1.234 API-key picker uses the upstream shared Fable gate"
 assert_contains = '''if(i!==void 0||GOe("fable5"))sMr(t,i??PJs())'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = """
+Keep the catalog-backed Fable row visible in the primary Claude.ai OAuth picker.
+
+This 2.1.238 bundle already includes the Fable row in the shared picker path,
+but the primary first-party subscription branch returns before reaching that
+path. The version-specific transform inserts the catalog-backed row before the
+early return. Cleanup condition: upstream shows Fable in this branch whenever
+the bundled catalog exposes it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "h7b", strings = ['''return a.push(Aep),L_a(a,e,"opus")''', '''YLe("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return a.push(Aep),L_a(a,e,"opus")'''
+value = '''if(YLe("fable5"))oBr(a,N_a());return a.push(Aep),L_a(a,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 primary subscription picker inserts local fable"
+assert_contains = '''if(YLe("fable5"))oBr(a,N_a());return a.push(Aep),L_a(a,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 primary picker no longer carries the 2.1.234 symbols"
+assert_not_contains = '''if(GOe("fable5"))sMr(a,PJs());return a.push(pAd),xJs(a,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = """
+Keep the catalog-backed Fable row visible in the standard Claude.ai OAuth picker.
+
+This is the second 2.1.238 first-party subscription branch in h7b. It also
+returns before the shared Fable path, so insert the same catalog-backed row
+before its early return. Cleanup condition: upstream shows Fable in this branch
+whenever the bundled catalog exposes it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "h7b", strings = ['''return s.push(Aep),L_a(s,e,"sonnet")''', '''YLe("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return s.push(Aep),L_a(s,e,"sonnet")'''
+value = '''if(YLe("fable5"))oBr(s,N_a());return s.push(Aep),L_a(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 standard subscription picker inserts local fable"
+assert_contains = '''if(YLe("fable5"))oBr(s,N_a());return s.push(Aep),L_a(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 standard picker no longer carries the 2.1.234 symbols"
+assert_not_contains = '''if(GOe("fable5"))sMr(s,PJs());return s.push(pAd),xJs(s,e,"sonnet")'''

@@ -96,10 +96,15 @@ async function main(): Promise<number> {
       "summarized",
     ].join(" ")
     const enterInput = "\x1b[13u"
+    const draftInput = "\x1b[200~draft-local-only\x1b[201~"
     const modelInput = "\x1b[200~/model\x1b[201~"
     const exitInput = "\x1b[200~/exit\x1b[201~"
     const inputCommand = [
       "sleep 3",
+      `printf %s ${shellQuote(draftInput)}`,
+      "sleep 1",
+      `printf %s ${shellQuote("\x03")}`,
+      "sleep 1",
       `printf %s ${shellQuote(modelInput)}`,
       "sleep 1",
       `printf %s ${shellQuote(enterInput)}`,
@@ -136,13 +141,20 @@ async function main(): Promise<number> {
       console.error(output)
       return 1
     }
+    if (!normalizedOutput.includes("draft-local-only")) {
+      console.error("OAuth Fable TUI did not render the local draft before Ctrl+C")
+      console.error(output)
+      return 1
+    }
     if (!normalizedOutput.includes("Fable")) {
       console.error("OAuth Fable TUI did not render the Fable model option")
       console.error(output)
       return 1
     }
 
-    console.log("ok: Max OAuth TUI rendered the Fable picker with footer/thinking flags and exited locally")
+    console.log(
+      "ok: Max OAuth TUI survived one Ctrl+C with a non-empty draft, rendered /model Fable with footer/thinking flags, and exited locally",
+    )
     return 0
   } finally {
     stub.stop()

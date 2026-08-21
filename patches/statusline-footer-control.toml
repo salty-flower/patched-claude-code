@@ -12090,7 +12090,7 @@ assert_contains = '''hideBuiltinFooter:qt().optional().describe("Compatibility a
 [[patches]]
 name = "statusline-footer-control-schema-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Accept statusLine settings that hide built-in footer items.
 
@@ -12495,7 +12495,7 @@ assert_contains = '''globalThis.__acc_disabled_footer=H})():void 0,Qt={settings:
 [[patches]]
 name = "statusline-footer-control-render-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Compute the all-footer hide state in the 2.1.234 prompt footer component.
 
@@ -12523,7 +12523,7 @@ assert_contains = '''function Vos(PE1){let __acc_hide_footer=ft((se)=>se.setting
 [[patches]]
 name = "statusline-footer-control-render-output-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Hide the 2.1.234 built-in footer at its final render boundary."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
 locator_kind = "ast_transform"
@@ -12545,7 +12545,7 @@ assert_contains = '''return __acc_hide_footer?null:VXw}'''
 [[patches]]
 name = "statusline-footer-control-effort-level-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Hide the persistent effort-level notification when requested."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1982"
 locator_pattern = '''Qne=Zmh(lM,ywe,m3);'''
@@ -12561,7 +12561,7 @@ assert_contains = '''Qne=__acc_hide_effort_level?void 0:Zmh(lM,ywe,m3);'''
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Hide the prompt-trigger ultrathink notification when requested."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
 locator_pattern = '''{addNotification:ir,removeNotification:ut}=hu();Cs.useEffect(()=>{if(Cn.length&&OVe())ir({key:"ultrathink-active",kind:"feedback",text:"Deeper reasoning requested for this turn",priority:"immediate",timeoutMs:5000});else ut("ultrathink-active")},[ir,ut,Cn.length])'''
@@ -12577,7 +12577,7 @@ assert_contains = '''__acc_hide_effort_all=ft((I_)=>I_.settings.statusLine?.hide
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Hide the 2.1.234 rate-limit notification while preserving its warning text for statusLine commands."
 rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
 locator_kind = "ast_transform"
@@ -12604,7 +12604,7 @@ assert_contains = '''c?.disabledFooter?.includes("rate_limit_warning")||globalTh
 [[patches]]
 name = "statusline-footer-control-mode-hint-state-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Compute the permission-mode footer hide state inside the 2.1.234 footer component."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 locator_kind = "ast_transform"
@@ -12626,7 +12626,7 @@ assert_contains = '''function wsg({mode:e,toolPermissionContext:t,showHint:r,den
 [[patches]]
 name = "statusline-footer-control-mode-hint-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Hide the dense permission-mode hint in the 2.1.234 footer component."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 locator_kind = "ast_transform"
@@ -12648,7 +12648,7 @@ assert_contains = '''let Vt=!__acc_hide_mode&&Nt&&te?'''
 [[patches]]
 name = "statusline-footer-control-mode-hint-narrow-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Hide the standard permission-mode hint in the 2.1.234 footer component."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 locator_kind = "ast_transform"
@@ -12670,7 +12670,7 @@ assert_contains = '''let Ye=!__acc_hide_mode&&te&&St?'''
 [[patches]]
 name = "statusline-json-effort-level-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Expose the effective effort level as a scalar status-line field in the 2.1.234 JSON payload."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
 locator_kind = "ast_transform"
@@ -12692,7 +12692,7 @@ assert_contains = '''effort_level:MM(b)?nK(b,m):null'''
 [[patches]]
 name = "statusline-json-permission-mode-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Expose current footer state to custom statusLine commands in 2.1.234."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
 locator_kind = "ast_transform"
@@ -12714,7 +12714,7 @@ assert_contains = '''permission_mode:t,clipboard_image:{available:globalThis.__a
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Keep clipboard image availability visible to custom status lines while allowing the built-in clipboard hint to be hidden."
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
 locator_kind = "ast_transform"
@@ -12740,7 +12740,7 @@ assert_contains = '''disabledFooter?.includes("clipboard_image_hint")'''
 [[patches]]
 name = "statusline-footer-control-cli-global-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Carry the optional hide-builtin-footer CLI flag into the 2.1.234 startup footer state."
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
 locator_pattern = '''let st=void 0,Ye=ne?.teamContext??(nct()?await cug(fe):void 0),Ot={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo(),tasks:{},attentionBudget:d5o,proactivityLevel:q,transcripts:{},taskDecorations:{},runningSubagents:0,...(te||st)&&{standaloneAgentContext:{...te&&{name:te},prideGradient:st}},agentNameRegistry:new Map,'''
@@ -12752,3 +12752,139 @@ replacement = '''let st=void 0,Ye=ne?.teamContext??(nct()?await cug(fe):void 0),
 kind = "static"
 name = "2.1.234 CLI option records a session footer override"
 assert_contains = '''globalThis.__acc_disabled_footer=H})():void 0,Ot={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo()'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Compute the permission-mode footer hide state inside the 2.1.238 footer component."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "g3g", strings = ["tengu_copper_thistle", "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''function g3g({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n,denseVimOnlySuppression:o,vimBlocksGesture:i,isInputEmpty:s,isLoading:a,isExternalLoading:l,betweenCalls:c,leftArrowDetachAvailable:u,tasksSelected:d,onOpenTasksDialog:p,onOpenSessionMemories:f,prNeedsAuth:m}){let{storageV5:h}=fn(),'''
+value = '''function g3g({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n,denseVimOnlySuppression:o,vimBlocksGesture:i,isInputEmpty:s,isLoading:a,isExternalLoading:l,betweenCalls:c,leftArrowDetachAvailable:u,tasksSelected:d,onOpenTasksDialog:p,onOpenSessionMemories:f,prNeedsAuth:m}){let __acc_hide_mode=_t((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("permission_mode")||FH.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:h}=fn(),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 permission mode hide state is computed"
+assert_contains = '''function g3g({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n,denseVimOnlySuppression:o,vimBlocksGesture:i,isInputEmpty:s,isLoading:a,isExternalLoading:l,betweenCalls:c,leftArrowDetachAvailable:u,tasksSelected:d,onOpenTasksDialog:p,onOpenSessionMemories:f,prNeedsAuth:m}){let __acc_hide_mode=_t'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 mode state no longer carries 2.1.234 symbols"
+assert_not_contains = '''function wsg({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Hide the dense permission-mode indicator in the 2.1.238 footer component."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "g3g", strings = ["tengu_copper_thistle", "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let _r=ke&&ue?'''
+value = '''let _r=!__acc_hide_mode&&ke&&ue?'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 dense permission mode indicator is gated"
+assert_contains = '''let _r=!__acc_hide_mode&&ke&&ue?'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Hide the standard permission-mode indicator in the 2.1.238 footer component."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "g3g", strings = ["tengu_copper_thistle", "toolPermissionContext", "showHint"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let pt=ue&&or?'''
+value = '''let pt=!__acc_hide_mode&&ue&&or?'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 standard permission mode indicator is gated"
+assert_contains = '''let pt=!__acc_hide_mode&&ue&&or?'''
+
+[[patches]]
+name = "statusline-footer-control-cli-global-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Carry the optional hide-builtin-footer CLI flag into the v2.1.238 startup footer state."
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+locator_kind = "literal"
+locator_pattern = '''let pt=void 0,Pt=me?.teamContext??(aft()?await n6g(ge):void 0),vt={'''
+expected_matches = 1
+replacement = '''let pt=void 0,Pt=me?.teamContext??(aft()?await n6g(ge):void 0),__acc_footer_init=t.hideBuiltinFooter?(()=>{let H=t.hideBuiltinFooter===!0||t.hideBuiltinFooter==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(t.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);globalThis.__acc_disabled_footer=H})():void 0,vt={'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 CLI option records a session footer override"
+assert_contains = '''globalThis.__acc_disabled_footer=H})():void 0,vt={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 CLI startup no longer carries 2.1.234 symbols"
+assert_not_contains = '''globalThis.__acc_disabled_footer=H})():void 0,Ot={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo()'''
+
+[[patches]]
+name = "statusline-footer-control-render-state-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Compute the complete built-in footer hide state at the 2.1.238 outer footer render boundary."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wzg", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''function wzg(L71){let f0e=Bzc.c(80),'''
+value = '''function wzg(L71){let __acc_hide_footer=_t((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("footer"),f0e=Bzc.c(80),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 outer footer hide state is computed"
+assert_contains = '''function wzg(L71){let __acc_hide_footer=_t'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Suppress the complete 2.1.238 built-in footer at its outer render boundary while preserving a configured custom status line."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wzg", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return nYE}'''
+value = '''return __acc_hide_footer?Pzc:nYE}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 outer footer return is gated"
+assert_contains = '''return __acc_hide_footer?Pzc:nYE}'''

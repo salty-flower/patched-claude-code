@@ -1386,7 +1386,7 @@ assert_not_contains = '''return aEt()'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Remove the first-party/provider/channel-list gate from ask-user-question tools.
 
@@ -1425,7 +1425,7 @@ assert_not_contains = '''isEnabled(){if(YO().length>0&&An())return!1;if(An()&&!F
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-234-askuser"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Remove the first-party/provider/channel-list gate from AskUserQuestion.
 

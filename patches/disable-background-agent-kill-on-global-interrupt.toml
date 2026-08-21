@@ -485,7 +485,7 @@ assert_not_contains = '''z()},[B,m,y,v,h,S,Y,q,O,z]'''
 [[patches]]
 name = "foreground-agent-handoff-before-cancel-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Hand synchronous foreground agents off to the background before Escape aborts
 their shared parent request. The v2.1.234 cancel hook still aborts the parent
@@ -519,7 +519,7 @@ assert_contains = '''ud(ee)&&!ee.isBackgrounded&&!w3n(ee)'''
 [[patches]]
 name = "global-interrupt-cancel-only-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Keep the global interrupt on the cancel-only path so it does not stop
 unrelated background agents. In v2.1.234 the global interrupt callback is the
@@ -542,3 +542,33 @@ assert_contains = '''z({gesture:"ctrl_c",suppressBackgroundAgentKill:!0})},[Z,m,
 kind = "static"
 name = "2.1.234 global interrupt no longer uses the default kill-enabled mode"
 assert_not_contains = '''z({gesture:"ctrl_c"})},[Z,m,y,b,h,S,N,K,L,B,z]'''
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Hand 2.1.238 foreground local agents to the background before Escape aborts their shared parent request."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = '''if(i!==void 0&&!i.aborted||s)return R.current=Date.now(),N("tengu_cancel",Ae),t(),!0;'''
+replacement = '''if(i!==void 0&&!i.aborted||s){let de=!1;for(let[ve,ee]of Object.entries(y.all()))if(Cu(ee)&&!ee.isBackgrounded&&!yQn(ee))de=qXn(ve,y)||de;return R.current=Date.now(),N("tengu_cancel",Ae),de?setTimeout(()=>t(),0):t(),!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 Escape hands foreground agents off before parent cancellation"
+assert_contains = '''de=qXn(ve,y)||de;return R.current=Date.now(),N("tengu_cancel",Ae),de?setTimeout(()=>t(),0):t(),!0'''
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Keep the 2.1.238 global interrupt on the cancel-only path so unrelated background agents survive Ctrl-C."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = '''if(!q({gesture:"ctrl_c"}))return!1},[re,m,y,_,h,S,W,te,M,B,q]'''
+replacement = '''if(!q({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1},[re,m,y,_,h,S,W,te,M,B,q]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 global interrupt uses cancel-only mode"
+assert_contains = '''q({gesture:"ctrl_c",suppressBackgroundAgentKill:!0})'''

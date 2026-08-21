@@ -97,6 +97,25 @@ const HARNESS_SYMBOLS_2_1_234: HarnessSymbols = {
   doctor: "LZv",
 }
 
+const HARNESS_SYMBOLS_2_1_238: HarnessSymbols = {
+  entrypoint: /\bDoC\(\);var __acc_linux_/,
+  telemetry: "ri",
+  enableConfigs: "Ift",
+  oauthSaver: "dJo",
+  accessor: "cl",
+  legacyWrite: "Caa",
+  legacyReadSync: "Ger",
+  legacyDelete: "gOd",
+  legacyReadAsync: "i1n",
+  sessionStore: "PXm",
+  resume: "wXm",
+  cleanup: "iVi",
+  pluginEvalInit: "fzl",
+  pluginFs: "bw",
+  pluginEval: "z_h",
+  doctor: "e8T",
+}
+
 const HARNESS_SYMBOLS_2_1_228: HarnessSymbols = {
   entrypoint: /\bpLE\(\);var __acc_linux_/,
   telemetry: "IW",
@@ -136,6 +155,7 @@ const HARNESS_SYMBOLS_LEGACY: HarnessSymbols = {
 }
 
 function harnessSymbols(): HarnessSymbols {
+  if (isVersionAtLeast(targetVersion(), "2.1.238")) return HARNESS_SYMBOLS_2_1_238
   if (isVersionAtLeast(targetVersion(), "2.1.234")) return HARNESS_SYMBOLS_2_1_234
   if (isVersionAtLeast(targetVersion(), "2.1.229")) return HARNESS_SYMBOLS_2_1_229
   return isVersionAtLeast(targetVersion(), "2.1.228") ? HARNESS_SYMBOLS_2_1_228 : HARNESS_SYMBOLS_LEGACY

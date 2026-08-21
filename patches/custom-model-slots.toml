@@ -1,6 +1,6 @@
 name = "custom-model-slots"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 
 rationale = """
 Add a second environment-configured custom model option and model-local effort
@@ -21,7 +21,7 @@ effort values are low, medium, high, xhigh, and max.
 [[patches]]
 name = "append-second-custom-model-option"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Append a second environment-configured row after the upstream custom-model row."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
 locator_kind = "ast_transform"
@@ -42,7 +42,7 @@ assert_contains = '''let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL
 [[patches]]
 name = "validate-second-custom-model-option-without-probe"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Treat the explicitly configured second custom model as prevalidated, matching the first custom option."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
 locator_kind = "ast_transform"
@@ -63,7 +63,7 @@ assert_contains = '''if(r===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())
 [[patches]]
 name = "recognize-second-custom-model-option"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Recognize the second configured custom model in direct model parsing paths."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
 locator_kind = "ast_transform"
@@ -84,7 +84,7 @@ assert_contains = '''if(t===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())
 [[patches]]
 name = "custom-model-slot-capabilities"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Resolve capability declarations and effort implied by either custom option's local effort setting."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
 locator_kind = "ast_transform"
@@ -105,7 +105,7 @@ assert_contains = '''ANTHROPIC_CUSTOM_MODEL_OPTION_2_SUPPORTED_CAPABILITIES'''
 [[patches]]
 name = "custom-model-slot-default-effort"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Show either custom option's model-local effort as its picker default."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
 locator_kind = "ast_transform"
@@ -126,7 +126,7 @@ assert_contains = '''["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OP
 [[patches]]
 name = "custom-model-slot-applied-effort"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Resolve either custom model's effort before the global environment and AppState effort chain."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
 locator_kind = "ast_transform"
@@ -147,7 +147,7 @@ assert_contains = '''if(__acc_custom_effort!==void 0)return Bkd(__acc_custom_eff
 [[patches]]
 name = "custom-model-slot-picker-focus-effort"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Display local effort while either custom row is focused and restore global effort on other rows."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L183"
 locator_kind = "ast_transform"
@@ -168,7 +168,7 @@ assert_contains = '''[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_O
 [[patches]]
 name = "custom-model-slot-picker-lock-effort"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Keep arrow-key changes from turning either custom option's local effort into global picker state."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L185-L210"
 locator_kind = "ast_transform"
@@ -189,7 +189,7 @@ assert_contains = '''if([["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODE
 [[patches]]
 name = "custom-model-slot-picker-hide-adjust-hint"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Do not advertise arrow-key effort adjustment for either environment-managed custom option."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L318-L333"
 locator_kind = "ast_transform"
@@ -206,3 +206,24 @@ template = '''![["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_
 kind = "static"
 name = "custom models hide the adjustment hint"
 assert_contains = '''![["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]].some(([m,l])=>process.env[m]?.trim().toLowerCase()===nhr(x7)?.toLowerCase()&&jYt(process.env[l]??"")!==void 0)&&(!ZHe&&Ku.jsxs(_,{color:"subtle"'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Resolve a configured custom model's local effort before the 2.1.238 global environment effort override."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "zZ", strings = ['''if(!FM(e))return''', '''return Wqd(o??(r?n:void 0)??t??n,e)'''] }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return Wqd(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 custom models use local effort before global effort"
+assert_contains = '''if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return Wqd(__acc_custom_effort,e)'''

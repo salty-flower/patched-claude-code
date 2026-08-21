@@ -1085,7 +1085,7 @@ assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(Fge.basename(J
 [[patches]]
 name = "agents-memory-nested-directory-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 
 rationale = """
 Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
@@ -1122,7 +1122,7 @@ assert_not_contains = '''let s=ww.join(e,"CLAUDE.md");o.push(...await lCe(s,"Pro
 [[patches]]
 name = "agents-memory-file-detection-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 
 rationale = """
 Treat AGENTS.md as a memory file for nested-memory propagation checks.

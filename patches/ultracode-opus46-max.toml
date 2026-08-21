@@ -6698,7 +6698,7 @@ assert_contains = '''let n=Ns(),o=Gce(n)?"xhigh":Gce()&&xBe(n)&&bat("max",n)?"ma
 [[patches]]
 name = "ultracode-startup-settings-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Resolve startup ultracode settings to the highest compatible effort in v2.1.234."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
 locator_kind = "ast_transform"
@@ -6719,7 +6719,7 @@ assert_contains = '''function yJs(e){let t=wW(e.cli.effort)??eMr(e.cli.effort);i
 [[patches]]
 name = "ultracode-effort-command-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Use the active model's highest compatible effort in the v2.1.234 effort command."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L51-L65"
 locator_kind = "ast_transform"
@@ -6740,7 +6740,7 @@ assert_contains = '''let n=Ni(),o=xee(n)?"xhigh":xee()&&VUe(n)&&put("max",n)?"ma
 [[patches]]
 name = "ultracode-model-picker-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Set the v2.1.234 model-picker ultracode state to a compatible effort."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
 locator_kind = "ast_transform"
@@ -6761,7 +6761,7 @@ assert_contains = '''function jKT(LTD){let e=Ni(),t=xee(e)?"xhigh":xee()&&VUe(e)
 [[patches]]
 name = "ultracode-flag-settings-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Set v2.1.234 flag-settings ultracode state to a compatible effort."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
 locator_kind = "ast_transform"
@@ -6783,7 +6783,7 @@ assert_contains = '''let __acc_ultra_model=Ni(),__acc_ultra_effort=xee(__acc_ult
 [[patches]]
 name = "ultracode-settings-report-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Report v2.1.234 ultracode as active when its effective effort is max."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
 locator_kind = "ast_transform"
@@ -6804,7 +6804,7 @@ assert_contains = '''function Pie(e,t,r){let n=PJ(e,t);return r===!0&&DM()&&(n==
 [[patches]]
 name = "xhigh-settings-opus-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Resolve persisted v2.1.234 xhigh settings to max when the model requires it."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
 locator_kind = "ast_transform"
@@ -6825,7 +6825,7 @@ assert_contains = '''if(r==="xhigh"&&!qOe(t))r=VUe(t)&&put("max",t)?"max":"high"
 [[patches]]
 name = "ultracode-help-menu-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Show v2.1.234 ultracode in help for max-capable models."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
 locator_kind = "ast_transform"
@@ -6847,7 +6847,7 @@ assert_contains = '''let e=Ni(),t=xee(e)||xee()&&VUe(e)&&put("max",e),r=GKe(e),n
 [[patches]]
 name = "ultracode-help-label-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Label v2.1.234 ultracode help with its compatible effort."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
 locator_kind = "ast_transform"
@@ -6869,7 +6869,7 @@ assert_contains = '''- ultracode: ${n} + dynamic workflow orchestration'''
 [[patches]]
 name = "ultracode-valid-options-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Include v2.1.234 ultracode in valid-options text for max-capable models."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
 locator_kind = "ast_transform"
@@ -6891,7 +6891,7 @@ assert_contains = '''xee(e)||xee()&&VUe(e)&&put("max",e)?", ultracode":""'''
 [[patches]]
 name = "ultracode-typed-arg-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Parse v2.1.234 typed ultracode as the highest compatible effort."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
 locator_kind = "ast_transform"
@@ -6912,7 +6912,7 @@ assert_contains = '''function Vol(e,t){let r=e.toLowerCase();if(r==="auto"||r===
 [[patches]]
 name = "ultracode-slider-menu-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Add v2.1.234 ultracode to the interactive slider for max-capable models."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
 locator_kind = "ast_transform"
@@ -6933,7 +6933,7 @@ assert_contains = '''function L8i(e){let t=e?tMr(e):null,r=fnw(t?AF.indexOf(t)+1
 [[patches]]
 name = "ultracode-slider-confirm-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Preview v2.1.234 compatible effort when confirming ultracode in the slider."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
 locator_kind = "ast_transform"
@@ -6955,7 +6955,7 @@ assert_contains = '''ne.value==="ultracode"?(xee(s)?"xhigh":xee()&&VUe(s)&&put("
 [[patches]]
 name = "ultracode-slider-dialog-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Show v2.1.234 compatible effort in the ultracode confirmation dialog."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
 locator_kind = "ast_transform"
@@ -6977,7 +6977,7 @@ assert_contains = '''f==="ultracode"?(xee(s)?"xhigh":xee()&&VUe(s)&&put("max",s)
 [[patches]]
 name = "ultracode-slider-dialog-secondary-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Update the first v2.1.234 secondary slider confirmation mapping."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
 locator_kind = "ast_transform"
@@ -6999,7 +6999,7 @@ assert_contains = '''aso==="ultracode"?(xee(Dqe)?"xhigh":xee()&&VUe(Dqe)&&put("m
 [[patches]]
 name = "ultracode-slider-dialog-tertiary-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Update the second v2.1.234 secondary slider confirmation mapping."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
 locator_kind = "ast_transform"
@@ -7021,7 +7021,7 @@ assert_contains = '''E5l==="ultracode"?(xee(Dqe)?"xhigh":xee()&&VUe(Dqe)&&put("m
 [[patches]]
 name = "ultracode-thin-client-usage-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Show v2.1.234 ultracode in the thin-client effort usage string."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
 locator_kind = "ast_transform"
@@ -7043,7 +7043,7 @@ assert_contains = '''xee(o)||xee()&&VUe(o)&&put("max",o)?"|ultracode":""'''
 [[patches]]
 name = "ultracode-effort-notification-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Describe v2.1.234 ultracode with the model-compatible effort in notifications."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1977"
 locator_kind = "ast_transform"
@@ -7064,7 +7064,7 @@ assert_contains = '''let n=Ni(),o=xee(n)?"xhigh":xee()&&VUe(n)&&put("max",n)?"ma
 [[patches]]
 name = "ultracode-usage-hint-max-fallback-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = "Show v2.1.234 ultracode in command usage hints for max-capable models."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
 locator_kind = "ast_transform"
@@ -7082,3 +7082,370 @@ value = '''xee(r)||xee()&&VUe(r)&&put("max",r)?"|ultracode":""'''
 kind = "static"
 name = "2.1.234 usage hint lists max-compatible ultracode"
 assert_contains = '''xee(r)||xee()&&VUe(r)&&put("max",r)?"|ultracode":""'''
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Treat a max-capable model as ultracode-compatible when dynamic workflows are enabled in v2.1.238."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Bre", source = '''function Bre(e){return ZL()&&(e===void 0||TLe(e)&&Bft("xhigh",e))}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return ZL()&&(e===void 0||TLe(e)&&Bft("xhigh",e)||H3e(e)&&Bft("max",e))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 max-capable models expose ultracode"
+assert_contains = '''TLe(e)&&Bft("xhigh",e)||H3e(e)&&Bft("max",e)'''
+
+[[patches]]
+name = "xhigh-applied-effort-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Resolve an xhigh ultracode state to max when v2.1.238 runs a max-only model."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Wqd", source = '''function Wqd(e,t){let r=e;if(typeof r==="string"&&_fe(r))r=Xke(r,t);if(r==="max"&&!H3e(t))r="high";if(r==="xhigh"&&!TLe(t))r="high";return r}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let r=e;if(typeof r==="string"&&_fe(r))r=Xke(r,t);if(r==="max"&&!H3e(t))r="high";if(r==="xhigh"&&!TLe(t))r=H3e(t)&&Bft("max",t)?"max":"high";return r}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 applied xhigh can fall back to max"
+assert_contains = '''if(r==="xhigh"&&!TLe(t))r=H3e(t)&&Bft("max",t)?"max":"high"'''
+
+[[patches]]
+name = "ultracode-settings-report-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Report v2.1.238 ultracode as active when its effective effort is max."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Mae", source = '''function Mae(e,t,r){return r===!0&&ZL()&&zZ(e,t)==="xhigh"}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let n=zZ(e,t);return r===!0&&ZL()&&(n==="xhigh"||n==="max"&&H3e(e))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 settings report accepts max ultracode"
+assert_contains = '''n==="xhigh"||n==="max"&&H3e(e)'''
+
+[[patches]]
+name = "ultracode-startup-settings-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Resolve startup ultracode settings to the highest compatible effort in v2.1.238."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Eqd", source = '''function Eqd(e){let t=Afa(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0)return"xhigh";return Fft(e.settings.effortLevel)}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let t=Afa(e.cli.effort);if(t!==void 0)return t;if(e.settings.ultracode===!0){let r=Gi();return TLe(r)?"xhigh":H3e(r)&&Bft("max",r)?"max":"high"}return Fft(e.settings.effortLevel)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 startup settings can resolve ultracode to max"
+assert_contains = '''return TLe(r)?"xhigh":H3e(r)&&Bft("max",r)?"max":"high"'''
+
+[[patches]]
+name = "ultracode-typed-arg-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Parse typed ultracode as the highest compatible effort in v2.1.238."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "JAl", source = '''function JAl(e,t){let r=e.toLowerCase();if(r==="auto"||r==="unset")return{value:void 0};if(r==="ultracode"&&Bre(t))return{value:"xhigh"};let n=w2r(e);return n?{value:n}:null}''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let r=e.toLowerCase();if(r==="auto"||r==="unset")return{value:void 0};if(r==="ultracode"){let n=TLe(t)?"xhigh":ZL()&&H3e(t)&&Bft("max",t)?"max":void 0;if(n)return{value:n}}let n=w2r(e);return n?{value:n}:null}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 typed ultracode can parse to max"
+assert_contains = '''let n=TLe(t)?"xhigh":ZL()&&H3e(t)&&Bft("max",t)?"max":void 0'''
+
+[[patches]]
+name = "ultracode-effort-command-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Use the active model's highest compatible effort in the v2.1.238 effort command."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L51-L65"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "fBT", strings = ["Ultracode needs dynamic workflows enabled", "Set effort level to ultracode"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{let n=Gi(),o=TLe(n)?"xhigh":ZL()&&H3e(n)&&Bft("max",n)?"max":void 0;if(!ZL())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${x9i(n)}`};if(TLe(n)&&!Bft("xhigh",n))return{message:`Ultracode runs at xhigh effort, which is restricted by your organization for ${n}. Valid options are: ${x9i(n)}`};if(!o)return{message:`Ultracode runs at xhigh effort, which ${n} doesn't support — switch to an xhigh-capable model (${ZXo}). Valid options are: ${x9i(n)}`};if(!e&&wLe(n))return{message:`Not applied: the launch-effort pin holds effort at ${jft(n)} this session, and ultracode needs ${o}. Run /effort ultracode in an interactive terminal to release the pin.`};t?.({value:o,ultracode:!0});let i=XAl(o,!0);if(e)S8(r);N("tengu_effort_command",{effort:xe("ultracode"),is_remote:xd()!==null});let s=xd()?void 0:N3e();if(s!==void 0&&s!==o)return{message:`CLAUDE_CODE_EFFORT_LEVEL=${process.env.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session — clear it and ultracode takes over`,effortUpdate:{value:o,ultracode:!0}};return{message:`Set effort level to ultracode (this session only): ${o} + dynamic workflow orchestration${i??""}`,effortUpdate:{value:o,ultracode:!0}}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 effort command can choose max"
+assert_contains = '''let n=Gi(),o=TLe(n)?"xhigh":ZL()&&H3e(n)&&Bft("max",n)?"max":void 0'''
+
+[[patches]]
+name = "ultracode-slider-menu-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Show v2.1.238 ultracode with its compatible effort in the interactive slider."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "_cs", strings = ["xhigh + workflows", "violet-ripple"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''sublabel:{text:"xhigh + workflows",start:l}'''
+value = '''sublabel:{text:(TLe(e)?"xhigh":"max")+" + workflows",start:l}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 slider labels max-compatible ultracode"
+assert_contains = '''sublabel:{text:(TLe(e)?"xhigh":"max")+" + workflows",start:l}'''
+
+[[patches]]
+name = "ultracode-effort-notification-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Describe v2.1.238 ultracode with the model-compatible effort in notifications."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1977"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$Gh", strings = ["ultracode", "maximum thoroughness"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{if(!e)return;if(t){let n=Gi(),o=TLe(n)?"xhigh":ZL()&&H3e(n)&&Bft("max",n)?"max":"xhigh";return`${r?"effort:":Txn} ultracode \xB7 ${o} effort + dynamic workflows for maximum thoroughness`}return`${r?"effort:":Uss(e)} ${e} \xB7 /effort`}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 effort notification reflects max fallback"
+assert_contains = '''let n=Gi(),o=TLe(n)?"xhigh":ZL()&&H3e(n)&&Bft("max",n)?"max":"xhigh"'''
+
+[[patches]]
+name = "ultracode-help-label-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Label v2.1.238 ultracode help with its compatible effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "I9i", string = '''- ultracode: xhigh + dynamic workflow orchestration''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let e=Gi(),t=Bre(e),r=hXe(e);'''
+value = '''let e=Gi(),t=Bre(e),r=hXe(e),n=TLe(e)?"xhigh":"max";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 effort help computes the ultracode effort label"
+assert_contains = '''n=TLe(e)?"xhigh":"max"'''
+
+[[patches]]
+name = "ultracode-help-text-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Render the computed v2.1.238 ultracode effort in help text."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "I9i", string = '''- ultracode: xhigh + dynamic workflow orchestration''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''- ultracode: xhigh + dynamic workflow orchestration'''
+value = '''- ultracode: ${n} + dynamic workflow orchestration'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 effort help renders the compatible ultracode effort"
+assert_contains = '''- ultracode: ${n} + dynamic workflow orchestration'''
+
+[[patches]]
+name = "ultracode-model-picker-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Store the compatible effort when v2.1.238 model-picker ultracode is selected."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wEt", strings = ['''sessionEffort:"xhigh",ultracode:!0''', '''Xt==="ultracode"?"xhigh":Xt'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''sessionEffort:"xhigh",ultracode:!0'''
+value = '''sessionEffort:TLe(vt)?"xhigh":"max",ultracode:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 model picker stores compatible ultracode effort"
+assert_contains = '''sessionEffort:TLe(vt)?"xhigh":"max",ultracode:!0'''
+
+[[patches]]
+name = "ultracode-model-picker-persist-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Persist the compatible effort when v2.1.238 model-picker ultracode is selected."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wEt", string = '''Xt==="ultracode"?"xhigh":Xt''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''Xt==="ultracode"?"xhigh":Xt'''
+value = '''Xt==="ultracode"?(TLe(vt)?"xhigh":"max"):Xt'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 model picker persists compatible ultracode effort"
+assert_contains = '''Xt==="ultracode"?(TLe(vt)?"xhigh":"max"):Xt'''
+
+[[patches]]
+name = "ultracode-flag-settings-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Store the compatible effort when v2.1.238 bridge flag settings enable ultracode."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "JHi", string = '''d={...d,ultracode:!0,sessionEffort:"xhigh"}''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''if(!d.ultracode||d.sessionEffort!=="xhigh")d={...d,ultracode:!0,sessionEffort:"xhigh"}'''
+value = '''let p=TLe(t)?"xhigh":"max";if(!d.ultracode||d.sessionEffort!==p)d={...d,ultracode:!0,sessionEffort:p}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 bridge flag settings store max ultracode"
+assert_contains = '''let p=TLe(t)?"xhigh":"max";if(!d.ultracode||d.sessionEffort!==p'''
+
+[[patches]]
+name = "ultracode-slider-confirm-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Preview the compatible effort when confirming ultracode in the v2.1.238 full slider."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "VXh", strings = ['''X.value==="ultracode"?"xhigh":X.value''', '''f==="ultracode"?"xhigh":f'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''X.value==="ultracode"?"xhigh":X.value'''
+value = '''X.value==="ultracode"?(TLe(s)?"xhigh":"max"):X.value'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 full slider previews max ultracode"
+assert_contains = '''X.value==="ultracode"?(TLe(s)?"xhigh":"max"):X.value'''
+
+[[patches]]
+name = "ultracode-slider-dialog-secondary-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Show the compatible effort in the v2.1.238 full-slider confirmation dialog."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "VXh", string = '''f==="ultracode"?"xhigh":f''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''f==="ultracode"?"xhigh":f'''
+value = '''f==="ultracode"?(TLe(s)?"xhigh":"max"):f'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 full-slider dialog previews max ultracode"
+assert_contains = '''f==="ultracode"?(TLe(s)?"xhigh":"max"):f'''
+
+[[patches]]
+name = "ultracode-slider-dialog-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Preview the compatible effort in the v2.1.238 compiled slider dialog."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "kdc", strings = ['''B_o==="ultracode"?"xhigh":B_o''', '''hdc==="ultracode"?"xhigh":hdc'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''B_o==="ultracode"?"xhigh":B_o'''
+value = '''B_o==="ultracode"?(TLe(v8e)?"xhigh":"max"):B_o'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 compiled slider previews max ultracode"
+assert_contains = '''B_o==="ultracode"?(TLe(v8e)?"xhigh":"max"):B_o'''
+
+[[patches]]
+name = "ultracode-slider-dialog-tertiary-max-fallback-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Apply the compatible effort in the v2.1.238 compiled slider validation path."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "kdc", string = '''hdc==="ultracode"?"xhigh":hdc''' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''hdc==="ultracode"?"xhigh":hdc'''
+value = '''hdc==="ultracode"?(TLe(v8e)?"xhigh":"max"):hdc'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 compiled slider validates max ultracode"
+assert_contains = '''hdc==="ultracode"?(TLe(v8e)?"xhigh":"max"):hdc'''

@@ -684,7 +684,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=eHf(e,dd(r));if(t.traceSou
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 rationale = "Strip signed thinking blocks with the 2.1.234 sanitizer when the endpoint is custom."
 locator_kind = "literal"
@@ -738,3 +738,18 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=Tf()?U3p(e,cd(r)):j3p(e);i
 kind = "static"
 name = "2.1.233 variant does not carry the previous target symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=eHf(e,dd(r));if(t.traceSources)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Strip signed thinking blocks with the 2.1.238 sanitizer whenever the Messages endpoint is custom."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "literal"
+locator_pattern = '''let r=t.bodyModel??t.model,n=c6m(e,ld(r));if(t.traceSources)'''
+replacement = '''let r=t.bodyModel??t.model,n=Nm()?c6m(e,ld(r)):u6m(e);if(t.traceSources)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 custom base URL strips signed blocks"
+assert_contains = '''let r=t.bodyModel??t.model,n=Nm()?c6m(e,ld(r)):u6m(e);if(t.traceSources)'''

@@ -98,6 +98,13 @@ function getStreamHandlerThinkingPatch(body: string): { callback: string; deltaC
 }
 
 test("thinking deltas update the stream handler's live thinking callback", () => {
+  if (TARGET_VERSION === "2.1.238") {
+    expect(patched).toContain('t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:dIl(w)})')
+    expect(patched).not.toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:ysl(w)})')
+    return
+  }
+
   if (TARGET_VERSION === "2.1.234") {
     expect(patched).toContain('t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))')
     expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:ysl(w)})')
@@ -221,6 +228,21 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 }, 120000)
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (TARGET_VERSION === "2.1.238") {
+    expect(patched).toContain("onStreamingThinking:en.stream.setStreamingThinking")
+    expect(patched).toContain(
+      "streamingToolUses:$o,streamingThinking:__acc_streamingThinking,userInputOnProcessing:po",
+    )
+    expect(patched).toContain("streamingThinking:wi.isMain?__acc_streamingThinking:null")
+    expect(patched).toContain(
+      "streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1",
+    )
+    expect(patched).toContain(
+      '__acc_streamingThinking?.thinking&&_L.jsx(P,{marginTop:1,children:_L.jsx(Fsn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:k})})',
+    )
+    return
+  }
+
   if (TARGET_VERSION === "2.1.234") {
     const streamingThinkingState = getStreamingThinkingState(patched)
     expect(streamingThinkingState).toBe("ds")
@@ -291,6 +313,14 @@ test("main-screen thinking display uses the same live state as transcript render
 }, 120000)
 
 test("live thinking rendering is not suppressed by brief mode", () => {
+  if (TARGET_VERSION === "2.1.238") {
+    expect(patched).toContain('if(!1){return null}let h6;if(Yqt[38]')
+    expect(patched).not.toContain('if(!Vqt&&!kge){return null}let h6;if(Yqt[38]')
+    expect(patched).toContain("let ZeM=!0;")
+    expect(patched).not.toContain("let ZeM=vDh||TDh;")
+    return
+  }
+
   if (TARGET_VERSION === "2.1.234") {
     expect(patched).toContain('case"thinking":{if(!1){return null}')
     expect(patched).not.toContain('case"thinking":{if(!i4t&&!gme){return null}')
@@ -440,6 +470,12 @@ test("live thinking rendering is not suppressed by brief mode", () => {
 
 test("interrupt replaces 2.1.233 live thinking with one preserved message", () => {
   if (!isVersionAtLeast(TARGET_VERSION, "2.1.233")) return
+
+  if (TARGET_VERSION === "2.1.238") {
+    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}=')
+    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:p}=')
+    return
+  }
 
   if (TARGET_VERSION === "2.1.234") {
     expect(patched).toContain('isVirtual:!0})]);Js(null);let{salvage:')

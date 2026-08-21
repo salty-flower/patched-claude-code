@@ -2753,7 +2753,7 @@ assert_not_contains = '''let r=await fkS(e,t),n=!rp().loadedResultIsMissingTrust
 [[patches]]
 name = "later-command-submit-hook-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Add session-only relative and absolute delayed prompts for interactive sessions.
 
@@ -2816,7 +2816,7 @@ assert_contains = '''if($U==="prompt"&&!xn?.fromKeybinding&&!iA.isRemoteMode)'''
 [[patches]]
 name = "later-command-exact-fire-time-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Make /later one-shot session tasks honor their exact requested timestamp.
 
@@ -2850,7 +2850,7 @@ assert_not_contains = '''let K=z.recurring?xOn(z.cron,z.lastFiredAt??z.createdAt
 [[patches]]
 name = "later-command-fire-attachment-envelope-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Let the scheduled-task queue envelope carry images retained by /later.
 
@@ -2883,7 +2883,7 @@ assert_not_contains = '''(h,g)=>({value:h,mode:"prompt",agentId:Ei(),priority:"l
 [[patches]]
 name = "later-command-fire-forward-attachments-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Forward retained /later images through both scheduled enqueue arms.
 
@@ -2916,7 +2916,7 @@ assert_not_contains = '''sp(u(bNg.resolveLoopDefaultFire(s.autonomousLoopPreambl
 [[patches]]
 name = "later-command-fire-task-attachments-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Pass the session-only /later image payload when its task fires.
 
@@ -2949,7 +2949,7 @@ assert_not_contains = '''p(h.prompt,Efi(h))'''
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Expose /later through the existing slash-command suggestion pipeline.
 
@@ -2973,4 +2973,141 @@ code = '''if(!s.some((C)=>C.name==="later"))s.push({type:"local",name:"later",de
 [[patches.tests]]
 kind = "static"
 name = "later command absolute-time suggestion metadata is rendered in 2.1.234"
+assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"'''
+
+[[patches]]
+name = "later-command-submit-hook-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Intercept /later in the 2.1.238 prompt-submit path and create an exact session-only scheduled task with retained pasted images."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(x.trim()==="")return;''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(I==="prompt"&&!e.fromKeybinding&&!r.isRemoteMode){let __trim=x.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list";if(__trim==="/later list"){let __jobs=HN().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __d=Number.isFinite(__t.laterAt)?new Date(__t.laterAt):null,__when=__d?String(__d.getFullYear()).padStart(4,"0")+"-"+String(__d.getMonth()+1).padStart(2,"0")+"-"+String(__d.getDate()).padStart(2,"0")+" "+String(__d.getHours()).padStart(2,"0")+":"+String(__d.getMinutes()).padStart(2,"0")+":"+String(__d.getSeconds()).padStart(2,"0"):"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?__raw.slice(0,17)+"...":__raw;return String(__i+1)+". "+__text+" @ "+__when});if(__jobs.length>10)__lines.push("+"+(__jobs.length-10)+" more");e.addNotification?.({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});o("");w(0);i({});return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __createdAt=Date.now(),__rawPrompt,__prompt,__when;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__rawPrompt=__relative[3].trim(),__prompt=$yp(__rawPrompt,F).expanded;if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=new Date(__createdAt+__delay)}else{__rawPrompt=__absolute[7].trim(),__prompt=$yp(__rawPrompt,F).expanded;let __now=new Date(__createdAt),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__now.getFullYear(),__month=__hasDate?Number(__absolute[2]):__now.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__now.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__createdAt){let __nextDay=new Date(__now.getFullYear(),__now.getMonth(),__now.getDate()+1);__year=__nextDay.getFullYear();__month=__nextDay.getMonth()+1;__day=__nextDay.getDate();__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0)}let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()+1===__month&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second&&__candidate.getTime()>__createdAt;if(!__prompt||!__valid){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=__candidate}if(!Number.isFinite(__when.getTime())){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __refs=new Set(KR(__rawPrompt).map((__r)=>__r.id)),__pasted=Object.fromEntries(Object.entries(F).filter(([__id,__c])=>__c?.type==="image"&&typeof __c.content==="string"&&__c.content.length>0&&__refs.has(Number(__id)))),__cron=String(__when.getMinutes())+" "+String(__when.getHours())+" "+String(__when.getDate())+" "+String(__when.getMonth()+1)+" *",__id=await Qjr(__cron,__prompt,!1,!1,g3()?.agentId),__task=HN().find((__t)=>__t.id===__id);if(!__task){e.addNotification?.({key:"later-error",kind:"error",text:"Unable to create a scheduled prompt",priority:"immediate"});return}__task.later=!0,__task.laterAt=__when.getTime(),Object.keys(__pasted).length&&(__task.laterPastedContents=__pasted),bje(!0),e.addNotification?.({key:"later-"+__id,kind:"feedback",text:"Scheduled "+__id+" for "+__when.toLocaleString(),priority:"immediate"}),o(""),w(0),i({});return}if(__trim.startsWith("/later")){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 /later creates an exact session task"
+assert_contains = '''__task.later=!0,__task.laterAt=__when.getTime()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 /later expands pasted text"
+assert_contains = '''__prompt=$yp(__rawPrompt,F).expanded'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 /later remains interactive-only"
+assert_contains = '''if(I==="prompt"&&!e.fromKeybinding&&!r.isRemoteMode)'''
+
+[[patches]]
+name = "later-command-exact-fire-time-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Honor the exact timestamp stored on 2.1.238 /later one-shot tasks."
+rationale_ref = "reference/v2.1.88/sources/src/utils/cronScheduler.ts#L253-L277"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let W=z.recurring?tUn(z.cron,z.lastFiredAt??z.createdAt,z.id,Y):Qai(z.cron,z.createdAt,z.id,Y);''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''let W=z.recurring?tUn(z.cron,z.lastFiredAt??z.createdAt,z.id,Y):z.later===!0&&Number.isFinite(z.laterAt)&&z.laterAt>z.createdAt?z.laterAt:Qai(z.cron,z.createdAt,z.id,Y);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 /later exact timestamp takes precedence"
+assert_contains = '''z.later===!0&&Number.isFinite(z.laterAt)&&z.laterAt>z.createdAt?z.laterAt:Qai'''
+
+[[patches]]
+name = "later-command-fire-attachment-envelope-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Let the 2.1.238 scheduled queue envelope carry retained /later images."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L71-L82"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", source = '''(g,y)=>({value:g,mode:"prompt",agentId:xi(),priority:"later",isMeta:!0,skipSlashCommands:!0,modelScheduledOrigin:!0,wakeupSource:y,workload:mJe})''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''(g,y,__p)=>({value:g,mode:"prompt",agentId:xi(),priority:"later",isMeta:!0,skipSlashCommands:!0,modelScheduledOrigin:!0,wakeupSource:y,workload:mJe,...(__p&&Object.keys(__p).length?{pastedContents:__p}:{})})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 scheduled envelope accepts retained images"
+assert_contains = '''workload:mJe,...(__p&&Object.keys(__p).length?{pastedContents:__p}:{})'''
+
+[[patches]]
+name = "later-command-fire-forward-attachments-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Forward retained 2.1.238 /later images through both scheduled enqueue arms."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L84-L115"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", source_regex = '''^\(g,y\)=>\{if\(tr\(\)&&n!==void 0\)''', strings = ['''[ScheduledTasks] fire enqueue (v5 arm) failed'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''(g,y)=>{if(tr()&&n!==void 0){p=p.then(async()=>{try{o.enqueuePendingNotification(d(await Wyy.resolveLoopDefaultFireAsync(a.autonomousLoopPreamble,g,n),y))}catch(_){T(`[ScheduledTasks] fire enqueue (v5 arm) failed; fire skipped: ${_}`)}});return}o.enqueuePendingNotification(d(Wyy.resolveLoopDefaultFire(a.autonomousLoopPreamble,g),y))}'''
+value = '''(g,y,__p)=>{if(tr()&&n!==void 0){p=p.then(async()=>{try{o.enqueuePendingNotification(d(await Wyy.resolveLoopDefaultFireAsync(a.autonomousLoopPreamble,g,n),y,__p))}catch(_){T(`[ScheduledTasks] fire enqueue (v5 arm) failed; fire skipped: ${_}`)}});return}o.enqueuePendingNotification(d(Wyy.resolveLoopDefaultFire(a.autonomousLoopPreamble,g),y,__p))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 scheduled enqueue forwards images through both arms"
+assert_contains = '''resolveLoopDefaultFireAsync(a.autonomousLoopPreamble,g,n),y,__p'''
+
+[[patches]]
+name = "later-command-fire-task-attachments-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Pass a 2.1.238 /later task's retained images when it fires."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L90-L115"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", source = '''f(g.prompt,BDi(g))''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''f(g.prompt,BDi(g),g.laterPastedContents)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 scheduled task forwards retained images"
+assert_contains = '''f(g.prompt,BDi(g),g.laterPastedContents)'''
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Expose /later through the 2.1.238 slash-command suggestion pipeline."
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let r=await ljT(e,t),n=!t9()&&!Np().loadedResultIsMissingTrustedNames(r),o=n?TJn():TJn().filter((C)=>C.loadedFrom!=="syncedSkills"),i=n?E8f():[],s=r.filter((C)=>Len(C)&&ID(C));''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!s.some((C)=>C.name==="later"))s.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 /later suggestion metadata is rendered"
 assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"'''

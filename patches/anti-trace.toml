@@ -1474,7 +1474,7 @@ assert_not_contains = '''function Wcp(){return qcp().mode!=="disabled"}'''
 [[patches]]
 name = "require-explicit-assistant-response-otel-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 
 rationale = """
 Replace the v2.1.234 assistant-response OTel gate `h0d`.
@@ -1508,7 +1508,7 @@ assert_not_contains = '''function h0d(){return V.OTEL_LOG_ASSISTANT_RESPONSES??V
 [[patches]]
 name = "disable-raw-api-body-otel-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 
 rationale = """
 Disable the v2.1.234 raw-body OTel gate `Ujp`.
@@ -1538,3 +1538,33 @@ assert_contains = '''function Ujp(){return!1}'''
 kind = "static"
 name = "raw API body logging env gate is not rendered in 2.1.234"
 assert_not_contains = '''function Ujp(){return Bjp().mode!=="disabled"}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Require an explicit 2.1.238 assistant-response OTel opt-in instead of inheriting user-prompt logging."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+locator_kind = "literal"
+locator_pattern = '''function H5d(){return V.OTEL_LOG_ASSISTANT_RESPONSES??V.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function H5d(){return V.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 assistant response logging requires explicit opt-in"
+assert_contains = '''function H5d(){return V.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Disable the 2.1.238 raw Messages API body telemetry and trace-file gate."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "literal"
+locator_pattern = '''function m1f(){return f1f().mode!=="disabled"}'''
+replacement = '''function m1f(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 raw API body logging is disabled"
+assert_contains = '''function m1f(){return!1}'''

@@ -3186,7 +3186,7 @@ assert_not_contains = '''function wxo('''
 [[patches]]
 name = "explicit-macos-keychain-storage-bridge-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Route the 2.1.234 macOS credential-storage factory through the repo-owned
 explicit-Keychain bridge. The target now builds its darwin storage with
@@ -3226,7 +3226,7 @@ assert_contains = '''if(!r)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the p
 [[patches]]
 name = "explicit-macos-keychain-require-preload-at-entrypoint-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Fail before CLI command handlers can catch credential lookup errors when an
 explicit Keychain was requested without the packaged preload bridge. The
@@ -3251,7 +3251,7 @@ assert_contains = '''if(process.platform==="darwin"&&process.env.CLAUDE_CODE_KEY
 [[patches]]
 name = "explicit-macos-keychain-disable-default-prefetch-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Skip the early default-Keychain prefetch when an explicit Keychain was
 requested. The 2.1.234 platform-split prefetch entrypoint is
@@ -3277,7 +3277,7 @@ assert_contains = '''function __acc_darwin_Z3s(){if(process.env.CLAUDE_CODE_KEYC
 [[patches]]
 name = "explicit-macos-keychain-session-store-resume-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 SessionStore resume materializes credentials in a temporary config directory
 for its child process. Under explicit selection, source the temporary file
@@ -3305,7 +3305,7 @@ assert_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let y=aw
 [[patches]]
 name = "explicit-macos-keychain-plugin-eval-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Plugin evaluation creates a temporary config home for its child process. The
 2.1.234 materializer is MBm. When explicit selection is active, populate that
@@ -3332,7 +3332,7 @@ assert_contains = '''async function MBm(e){let t=Nw.default.join(e.configDir,".c
 [[patches]]
 name = "explicit-macos-keychain-plugin-eval-child-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Plugin evaluation launches the rendered bundle without the packaged preload
 bridge. The target child environment builder is d0T; remove the public
@@ -3360,7 +3360,7 @@ assert_contains = '''delete a.CLAUDE_CODE_KEYCHAIN_PATH,delete a.ANTHROPIC_API_K
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-sync-read-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Route synchronous legacy managed API-key lookup through the explicit bridge.
 The target memoized lookup is y7t; explicit selection must return only the
@@ -3387,7 +3387,7 @@ assert_contains = '''y7t=iu(()=>{if(pg()||I0())return null;{if(process.env.CLAUD
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-async-read-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Route asynchronous legacy managed API-key lookup through the explicit bridge.
 The target memoized lookup is FCn; explicit selection has the same no-fallback
@@ -3413,7 +3413,7 @@ assert_contains = '''FCn=FCr(async()=>{if(pg()||I0())return null;{if(process.env
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-write-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Route legacy API-key login writes through the selected Keychain bridge. The
 target darwin saver is __acc_darwin_O6s; explicit selection must not reach its
@@ -3439,7 +3439,7 @@ assert_contains = '''await n.legacyApiKey.update(oee(),cJ(),e),H("tengu_api_key_
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-delete-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Route legacy managed API-key deletion through the selected bridge before the
 target shell command can address the default login Keychain. The target darwin
@@ -3464,7 +3464,7 @@ assert_contains = '''await e.legacyApiKey.delete(oee(),cJ());return}if(process.e
 [[patches]]
 name = "explicit-macos-keychain-propagate-legacy-delete-failures-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 The target deletion wrapper uhd normally logs and swallows Keychain errors.
 Rethrow under explicit selection and materialized mode so logout and
@@ -3490,7 +3490,7 @@ assert_contains = '''async function uhd(){try{await tnd()}catch(e){if(process.en
 [[patches]]
 name = "explicit-macos-keychain-doctor-probe-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 The macOS doctor writeability probe must honor explicit Keychain selection.
 The target darwin doctor probe is __acc_darwin_LZv; use the bridge for probe
@@ -3515,7 +3515,7 @@ assert_contains = '''await e.legacyApiKey.update("Claude Code-doctor-probe",cJ()
 [[patches]]
 name = "explicit-macos-keychain-propagate-write-failures-2-1-234"
 target_version = "2.1.234"
-applies_to = ">=2.1.234 <2.2.0"
+applies_to = ">=2.1.234 <2.1.238"
 rationale = """
 Preserve fail-closed behavior through the target OAuth saver bjo. Upstream
 normally converts storage exceptions into a warning result; when explicit
@@ -3538,3 +3538,245 @@ value = '''catch(c){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)throw Erro
 kind = "static"
 name = "2.1.234 explicit Keychain write failures propagate through OAuth login and refresh"
 assert_contains = '''catch(c){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)throw Error("Unable to access the explicitly selected macOS Keychain. Ensure CLAUDE_CODE_KEYCHAIN_PATH names an existing, unlocked, writable Keychain.");return'''
+
+[[patches]]
+name = "explicit-macos-keychain-storage-bridge-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Route the 2.1.238 darwin secure-storage factory through the repo-owned explicit-Keychain bridge."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L1-L17"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", source = "Skd(Foa,H8o)", parent_node = "ReturnStatement" }
+[patches.transform]
+op = "wrap_expression"
+template = '''((e,t)=>{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let r=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!r)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");return r.secureStorage({defaultStorage:e,serviceName:Rre(RJe),accountName:bZ(),mutateWithLock:(e,t)=>ter(e,t)})}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return t;return e})(%%EXPR%%,H8o)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 storage factory crosses explicit-Keychain bridge"
+assert_contains = '''serviceName:Rre(RJe),accountName:bZ(),mutateWithLock:(e,t)=>ter(e,t)'''
+
+[[patches]]
+name = "explicit-macos-keychain-require-preload-at-entrypoint-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Fail at the 2.1.238 entrypoint when explicit selection lacks the packaged preload bridge."
+rationale_ref = "reference/v2.1.88/sources/src/entrypoints/cli.tsx#L298-L302"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ExpressionStatement", source = "DoC();" }
+[patches.transform]
+op = "insert_before_node"
+code = '''if(process.platform==="darwin"&&process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0&&!globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")])throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 raw explicit selection fails at entrypoint"
+assert_contains = '''without its preload bridge.");DoC();'''
+
+[[patches]]
+name = "explicit-macos-keychain-disable-default-prefetch-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Suppress the 2.1.238 default-Keychain prefetch under explicit or materialized credential selection."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/keychainPrefetch.ts#L60-L91"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_joa", string = "pending" }
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 explicit selection suppresses default prefetch"
+assert_contains = '''function __acc_darwin_joa(){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0'''
+
+[[patches]]
+name = "explicit-macos-keychain-session-store-resume-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Source 2.1.238 SessionStore resume materialization only from selected secure storage."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wXm", strings = ["SessionStore.load() timed out", ".credentials.json"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let d=n?.CLAUDE_CONFIG_DIR??process.env.CLAUDE_CONFIG_DIR,p=d??gC.join(Srn.homedir(),".claude"),f;try{f=await owe.readFile(gC.join(p,".credentials.json"),"utf-8")}catch(y){if(!ur(y))throw y}if(!d&&!(n??process.env).ANTHROPIC_API_KEY&&!(n??process.env).CLAUDE_CODE_OAUTH_TOKEN)f=await hYT()??f;'''
+value = '''let d=n?.CLAUDE_CONFIG_DIR??process.env.CLAUDE_CONFIG_DIR,p=d??gC.join(Srn.homedir(),".claude"),f;if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let y=await cl().readAsync();f=y?Ie(y):void 0}else{try{f=await owe.readFile(gC.join(p,".credentials.json"),"utf-8")}catch(y){if(!ur(y))throw y}if(!d&&!(n??process.env).ANTHROPIC_API_KEY&&!(n??process.env).CLAUDE_CODE_OAUTH_TOKEN)f=await hYT()??f}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 SessionStore resume uses selected storage"
+assert_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let y=await cl().readAsync();f=y?Ie(y):void 0}else'''
+
+[[patches]]
+name = "explicit-macos-keychain-plugin-eval-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Materialize 2.1.238 plugin-eval credentials from selected secure storage before plaintext compatibility."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "z_h", string = ".credentials.json" }
+[patches.transform]
+op = "replace_substring"
+find = '''async function z_h(e){let t=jS.default.join(e.configDir,".credentials.json");'''
+value = '''async function z_h(e){let t=jS.default.join(e.configDir,".credentials.json");if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let r=await cl().readAsync();if(!r)return;await bw.writeFile(t,Ie(r),{mode:384});return}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 plugin eval uses selected secure storage"
+assert_contains = '''async function z_h(e){let t=jS.default.join(e.configDir,".credentials.json");if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0'''
+
+[[patches]]
+name = "explicit-macos-keychain-plugin-eval-child-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Replace explicit Keychain selection with a materialization marker in the 2.1.238 plugin-eval child environment."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "F_w", strings = ["CLAUDE_CONFIG_DIR", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let a={...s,...e.execution.env,...o};D_w(a),a.GIT_CONFIG_NOSYSTEM="1";'''
+value = '''let a={...s,...e.execution.env,...o};if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){delete a.CLAUDE_CODE_KEYCHAIN_PATH,delete a.ANTHROPIC_API_KEY,delete a.ANTHROPIC_AUTH_TOKEN,delete a.CLAUDE_CODE_OAUTH_TOKEN,a.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS="1"}D_w(a),a.GIT_CONFIG_NOSYSTEM="1";'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 plugin child uses materialized credential marker"
+assert_contains = '''a.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS="1"'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-sync-read-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Route 2.1.238 synchronous legacy API-key lookup exclusively through the selected Keychain."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "AssignmentExpression", source_regex = '''^Ger=qd\(''', strings = ["Failed to read API key from macOS keychain", "/login managed key"] }
+[patches.transform]
+op = "replace_substring"
+find = '''Ger=qd(()=>{if(cg()||WC())return null;{'''
+value = '''Ger=qd(()=>{if(cg()||WC())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let e=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!e)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");let t=e.legacyApiKey.read(Rre(),bZ());return t?{key:t,source:"/login managed key"}:null}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return null;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 legacy sync read uses selected Keychain"
+assert_contains = '''Ger=qd(()=>{if(cg()||WC())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-async-read-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Route 2.1.238 asynchronous legacy API-key lookup exclusively through the selected Keychain."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "AssignmentExpression", source_regex = '''^i1n=vDr\(''', strings = ["Failed to read API key from macOS keychain", "/login managed key"] }
+[patches.transform]
+op = "replace_substring"
+find = '''i1n=vDr(async()=>{if(cg()||WC())return null;{'''
+value = '''i1n=vDr(async()=>{if(cg()||WC())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let e=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!e)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");let t=await e.legacyApiKey.readAsync(Rre(),bZ());return t?{key:t,source:"/login managed key"}:null}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return null;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 legacy async read uses selected Keychain"
+assert_contains = '''i1n=vDr(async()=>{if(cg()||WC())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-write-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Route 2.1.238 legacy API-key writes exclusively through the selected Keychain."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1100-L1166"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_Caa", strings = ["Invalid API key format", "tengu_api_key_saved_to_keychain"] }
+[patches.transform]
+op = "replace_substring"
+find = '''await wjd();let r=!0;if(r){'''
+value = '''await wjd();let r=!0;if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let n=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!n)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");await n.legacyApiKey.update(Rre(),bZ(),e),N("tengu_api_key_saved_to_keychain",{})}else if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw Error("Materialized credential mode refuses legacy Keychain writes.");else if(r){'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 legacy write uses selected Keychain"
+assert_contains = '''await n.legacyApiKey.update(Rre(),bZ(),e),N("tengu_api_key_saved_to_keychain",{})'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-delete-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Route 2.1.238 legacy API-key deletion exclusively through the selected Keychain."
+rationale_ref = "reference/v2.1.88/sources/src/utils/authPortable.ts#L1-L17"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_gOd", string = "Failed to delete keychain entry" }
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let e=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!e)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");await e.legacyApiKey.delete(Rre(),bZ());return}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw Error("Materialized credential mode refuses legacy Keychain deletion.");'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 legacy delete uses selected Keychain"
+assert_contains = '''await e.legacyApiKey.delete(Rre(),bZ());return'''
+
+[[patches]]
+name = "explicit-macos-keychain-propagate-legacy-delete-failures-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Propagate 2.1.238 legacy deletion failures under explicit or materialized selection."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1170-L1191"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wjd", string = "Failed to remove API key from macOS keychain" }
+[patches.transform]
+op = "replace_substring"
+find = '''catch(e){'''
+value = '''catch(e){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw e;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 legacy delete failures propagate"
+assert_contains = '''async function wjd(){try{await gOd()}catch(e){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0'''
+
+[[patches]]
+name = "explicit-macos-keychain-doctor-probe-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Run the 2.1.238 doctor probe only against the explicitly selected Keychain."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/macOsKeychainStorage.ts#L97-L175"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "__acc_darwin_e8T", strings = ["Claude Code-doctor-probe", "macOS Keychain is not writable"] }
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let e=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!e)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");try{await e.legacyApiKey.update("Claude Code-doctor-probe",bZ(),"probe");await e.legacyApiKey.delete("Claude Code-doctor-probe",bZ());return null}catch(t){let r=t instanceof Error?t.message:String(t);return{issue:"macOS Keychain is not writable ("+r+")",fix:"Create or unlock the Keychain selected by CLAUDE_CODE_KEYCHAIN_PATH, then retry."}}}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return{issue:"macOS Keychain diagnostics are unavailable in materialized credential mode.",fix:"Run doctor from the parent claude-patched process."};'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 doctor uses selected Keychain"
+assert_contains = '''await e.legacyApiKey.update("Claude Code-doctor-probe",bZ(),"probe")'''
+
+[[patches]]
+name = "explicit-macos-keychain-propagate-write-failures-2-1-238"
+target_version = "2.1.238"
+applies_to = ">=2.1.238 <2.2.0"
+rationale = "Propagate 2.1.238 OAuth storage failures under explicit Keychain selection."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1194-L1253"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "dJo", strings = ["tengu_oauth_tokens_saved", "Failed to save OAuth tokens"] }
+[patches.transform]
+op = "replace_substring"
+find = '''catch(u){return'''
+value = '''catch(u){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)throw Error("Unable to access the explicitly selected macOS Keychain. Ensure CLAUDE_CODE_KEYCHAIN_PATH names an existing, unlocked, writable Keychain.");return'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.238 explicit OAuth write failures propagate"
+assert_contains = '''catch(u){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)throw Error("Unable to access the explicitly selected macOS Keychain.'''

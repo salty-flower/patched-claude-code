@@ -75,6 +75,22 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (TARGET_VERSION === "2.1.238") {
+      expect(patched).toContain(
+        "globalThis.__acc_disabled_footer=H})():void 0,vt={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo()",
+      )
+      expect(patched).toContain(
+        'function wzg(L71){let __acc_hide_footer=_t((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      expect(patched).toContain("return __acc_hide_footer?Pzc:nYE")
+      expect(patched).toContain(
+        "function g3g({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n",
+      )
+      expect(patched).toContain("let _r=!__acc_hide_mode&&ke&&ue?")
+      expect(patched).toContain("let pt=!__acc_hide_mode&&ue&&or?")
+      expect(patched).not.toContain("return __acc_hide_footer?null:VXw")
+      return
+    }
     if (TARGET_VERSION === "2.1.234") {
       expect(patched).toContain(
         'globalThis.__acc_disabled_footer=H})():void 0,Ot={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo(),tasks:{},attentionBudget:d5o,proactivityLevel:q',

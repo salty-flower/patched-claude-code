@@ -98,6 +98,7 @@ async function main(): Promise<number> {
     const enterInput = "\x1b[13u"
     const draftInput = "\x1b[200~draft-local-only\x1b[201~"
     const modelInput = "\x1b[200~/model\x1b[201~"
+    const revealFableInput = "\x1b[B".repeat(4)
     const exitInput = "\x1b[200~/exit\x1b[201~"
     const inputCommand = [
       "sleep 3",
@@ -108,6 +109,8 @@ async function main(): Promise<number> {
       `printf %s ${shellQuote(modelInput)}`,
       "sleep 1",
       `printf %s ${shellQuote(enterInput)}`,
+      "sleep 1",
+      `printf %s ${shellQuote(revealFableInput)}`,
       "sleep 3",
       `printf %s ${shellQuote("\x1b")}`,
       "sleep 1",

@@ -167,7 +167,7 @@ assert_not_contains = '''item:u,verbose:n'''
 [[patches]]
 name = "mcp-result-render-array-text-full-2-1-208"
 target_version = "2.1.208"
-applies_to = ">=2.1.208 <2.2.0"
+applies_to = ">=2.1.208 <2.1.241"
 
 rationale = """
 Render MCP text-array results without terminal truncation.
@@ -197,6 +197,41 @@ assert_contains = '''item:u,verbose:!0'''
 kind = "static"
 name = "unpatched 2.1.208 MCP array call site is absent"
 assert_not_contains = '''item:u,verbose:r'''
+
+[[patches]]
+name = "mcp-result-render-array-text-full-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+
+rationale = """
+Render MCP text-array results without terminal truncation.
+
+This is the 2.1.241 JSX-runtime minified-symbol variant of
+`mcp-result-render-array-text-full`. The per-item component is `iWh` and the
+array map call site passes `item:a` and `verbose:t`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "item:a,verbose:t" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{item:a,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.241"
+assert_contains = '''item:a,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.241 MCP array call site is absent"
+assert_not_contains = '''item:a,verbose:t'''
 
 [[patches]]
 name = "mcp-result-render-string-full"
@@ -359,7 +394,7 @@ assert_not_contains = '''content:o,verbose:n'''
 [[patches]]
 name = "mcp-result-render-string-full-2-1-208"
 target_version = "2.1.208"
-applies_to = ">=2.1.208 <2.2.0"
+applies_to = ">=2.1.208 <2.1.241"
 
 rationale = """
 Render string MCP results without terminal truncation.
@@ -389,6 +424,41 @@ assert_contains = '''content:o,verbose:!0'''
 kind = "static"
 name = "unpatched 2.1.208 MCP string call site is absent"
 assert_not_contains = '''content:o,verbose:r'''
+
+[[patches]]
+name = "mcp-result-render-string-full-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+
+rationale = """
+Render string MCP results without terminal truncation.
+
+This is the 2.1.241 JSX-runtime minified-symbol variant of
+`mcp-result-render-string-full`. The string-result branch passes `content:e`
+and the caller's verbose local `t` to the shared renderer `h2`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", string = "content:e,verbose:t" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:e,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.241"
+assert_contains = '''content:e,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.241 MCP string call site is absent"
+assert_not_contains = '''content:e,verbose:t'''
 
 [[patches]]
 name = "mcp-result-render-text-block-full"
@@ -1160,3 +1230,45 @@ assert_not_contains = '''content:OGm,verbose:PGm'''
 kind = "static"
 name = "2.1.234 text-block variant does not carry the previous target symbols"
 assert_not_contains = '''content:W1m,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+
+rationale = """
+Render text-block MCP results without terminal truncation.
+
+This is the 2.1.241 JSX-runtime minified-symbol variant of
+`mcp-result-render-text-block-full`. The memoized per-text-block component
+`iWh` destructures `{item:Scs,verbose:rWh}`, extracts the block text as
+`nWh`, and calls the shared renderer `h2`; the patch forces that call to
+`verbose:!0`.
+
+Coverage note: this chain silently lapsed for targets >=2.1.238 because the
+2.1.234 variant was capped at `<2.1.238` without a successor being added at
+the 2.1.238 bump. This entry restores coverage at 2.1.241; no 2.1.238-2.1.240
+variant exists.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", source = '''$O.jsx(h2,{content:nWh,verbose:rWh})''' }
+
+[patches.transform]
+op = "set_call_arg"
+index = 1
+value = '''{content:nWh,verbose:!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.241"
+assert_contains = '''content:nWh,verbose:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.241 MCP text-block call site is absent"
+assert_not_contains = '''content:nWh,verbose:rWh'''

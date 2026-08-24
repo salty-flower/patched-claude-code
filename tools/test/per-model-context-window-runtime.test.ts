@@ -5,6 +5,7 @@ import { join } from "node:path"
 import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
+import { gte } from "semver"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
@@ -27,8 +28,10 @@ function injectContextWindowHarness(source: string): string {
   }
 
   const start = entrypointMatch.index + entrypointMatch[0].indexOf(entrypointMatch[1])
+  const resolveContextWindow = gte(TARGET_VERSION, "2.1.241") ? "W$d" : "jCd"
+  const contextWindowModuleThunk = gte(TARGET_VERSION, "2.1.241") ? "qP" : "HP"
   const harness =
-    'HP();process.stdout.write(JSON.stringify({alpha:jCd("alpha/model",[]),beta:jCd("beta-model",[]),tagged:jCd("alpha/model[1m]",[]),fallback:jCd("unconfigured-model",[])}));process.exit(0);'
+    `${contextWindowModuleThunk}();process.stdout.write(JSON.stringify({alpha:${resolveContextWindow}("alpha/model",[]),beta:${resolveContextWindow}("beta-model",[]),tagged:${resolveContextWindow}("alpha/model[1m]",[]),fallback:${resolveContextWindow}("unconfigured-model",[])}));process.exit(0);`
   return `${source.slice(0, start)}${harness}${source.slice(start + entrypointMatch[1].length)}`
 }
 

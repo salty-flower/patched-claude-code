@@ -3197,6 +3197,114 @@ name = "2.1.229 unchanged variant no longer carries 2.1.228 symbols"
 assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${opm.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
 
 [[patches]]
+name = "read-result-path-notebook-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = "Show the file path on 2.1.241 notebook Read result rows; the JSX runtime drifted from Vx to fP and the Text component from _ to S in 2.1.241."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['" cells"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",fP.jsx(S,{bold:!0,children:t.length})," cells"]'''
+value = '''children:["Read ",fP.jsx(S,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 notebook result includes its path"
+assert_contains = '''children:["Read ",fP.jsx(S,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 notebook variant no longer carries 2.1.234 symbols"
+assert_not_contains = '''children:["Read ",Vx.jsx(_,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches]]
+name = "read-result-path-parts-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = "Show the file path on 2.1.241 PDF-part Read result rows; the JSX runtime drifted from Vx to fP, the Text component from _ to S, and the size helper from Za to Ma in 2.1.241."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = "originalSize", strings = ['"page":"pages"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",fP.jsx(S,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ma(e.file.originalSize),")"]'''
+value = '''children:["Read ",fP.jsx(S,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ma(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 parts result includes its path"
+assert_contains = '''children:["Read ",fP.jsx(S,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Ma(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 parts variant no longer carries 2.1.234 symbols"
+assert_not_contains = '''children:["Read ",Vx.jsx(_,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",Za(e.file.originalSize),")",Z]'''
+
+[[patches]]
+name = "read-result-path-text-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = "Show the file path on 2.1.241 text Read result rows; the JSX runtime drifted from Vx to fP and the Text component from _ to S in 2.1.241."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsxs", string = 'children:["Read ",', strings = ['"line":"lines"'] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:["Read ",fP.jsx(S,{bold:!0,children:t})," ",t===1?"line":"lines"]'''
+value = '''children:["Read ",fP.jsx(S,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 text result includes its path"
+assert_contains = '''children:["Read ",fP.jsx(S,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 text variant no longer carries 2.1.234 symbols"
+assert_not_contains = '''children:["Read ",Vx.jsx(_,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = "Show the file path on 2.1.241 unchanged Read result rows; the JSX runtime drifted from Vx to fP, the Text component from _ to S, and the basename call gained S_(qg(...)) wrapping around FYh.basename in 2.1.241."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "jsx", source = 'fP.jsx(S,{dimColor:!0,children:e.source==="seeded"?`Already in context (${S_(qg(FYh.basename(e.file.filePath)))})`:"Unchanged since last read"})' }
+
+[patches.transform]
+op = "replace_substring"
+find = '''children:e.source==="seeded"?`Already in context (${S_(qg(FYh.basename(e.file.filePath)))})`:"Unchanged since last read"'''
+value = '''children:e.source==="seeded"?[`Already in context (${S_(qg(FYh.basename(e.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 unchanged result includes its path"
+assert_contains = '''children:e.source==="seeded"?[`Already in context (${S_(qg(FYh.basename(e.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 unchanged variant no longer carries 2.1.234 symbols"
+assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${QJm.basename(e.file.filePath)})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches]]
 name = "read-result-path-notebook-2-1-233"
 target_version = "2.1.233"
 applies_to = ">=2.1.233 <2.1.234"

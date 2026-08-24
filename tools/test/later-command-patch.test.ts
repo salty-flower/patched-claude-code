@@ -18,7 +18,9 @@ const targetUses233LaterSymbols = gte(TARGET_VERSION, "2.1.233") && lt(TARGET_VE
 const targetUses229LaterSymbols = gte(TARGET_VERSION, "2.1.229") && lt(TARGET_VERSION, "2.1.233")
 const targetUses228LaterSymbols = gte(TARGET_VERSION, "2.1.228") && lt(TARGET_VERSION, "2.1.229")
 const targetUses227LaterSymbols = gte(TARGET_VERSION, "2.1.227") && lt(TARGET_VERSION, "2.1.228")
-const targetUses238ExactFireSymbols = targetUses238LaterSymbols
+const targetUses241ExactFireSymbols = gte(TARGET_VERSION, "2.1.241") && lt(TARGET_VERSION, "2.2.0")
+const targetUses241SubmitSymbols = targetUses241ExactFireSymbols
+const targetUses238ExactFireSymbols = targetUses238LaterSymbols && !targetUses241ExactFireSymbols
 const targetUses234ExactFireSymbols = targetUses234LaterSymbols
 const targetUses233ExactFireSymbols = targetUses233LaterSymbols
 const targetUses229ExactFireSymbols = targetUses229LaterSymbols
@@ -115,7 +117,9 @@ function expectContainsOneOf(body: string, snippets: string[]): void {
 }
 
 function getAbsoluteSubmitCode(): string {
-  const suffix = targetUses238LaterSymbols
+  const suffix = targetUses241SubmitSymbols
+    ? "2-1-241"
+    : targetUses238LaterSymbols
     ? "2-1-238"
     : targetUses234LaterSymbols
     ? "2-1-234"
@@ -192,20 +196,27 @@ async function run208LaterHook(
       scheduledTasksEnabled: false,
       tasks,
     }
+    const pastedTextExpander = targetUses241SubmitSymbols ? "jMp" : "$yp"
+    const pastedReferenceParser = targetUses241SubmitSymbols ? "nx" : "KR"
+    const cursorSetter = targetUses241SubmitSymbols ? "T" : "w"
+    const taskGetter = targetUses241SubmitSymbols ? "QN" : "HN"
+    const taskCreator = targetUses241SubmitSymbols ? "Zqr" : "Qjr"
+    const teamGetter = targetUses241SubmitSymbols ? "F3" : "g3"
+    const enablePolling = targetUses241SubmitSymbols ? "Q4e" : "bje"
     const submit = new Function(
       "x",
       "F",
-      "$yp",
-      "KR",
+      pastedTextExpander,
+      pastedReferenceParser,
       "I",
       "e",
       "r",
-      "HN",
-      "Qjr",
-      "g3",
-      "bje",
+      taskGetter,
+      taskCreator,
+      teamGetter,
+      enablePolling,
       "o",
-      "w",
+      cursorSetter,
       "i",
       `"use strict";return async()=>{${getAbsoluteSubmitCode()}}`,
     )(
@@ -529,6 +540,7 @@ test.skipIf(!testLaterCommand)(
     expect(applied).toBe(targetUses238LaterSymbols || targetUses234LaterSymbols ? 6 : targetUsesAbsoluteLater ? 3 : 2)
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
     expectContainsOneOf(patched, [
+      "await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)",
       "await Qjr(__cron,__prompt,!1,!1,g3()?.agentId)",
       "await iHr(__cron,__prompt,!1,!1,E4()?.agentId)",
       "await xut(__cron,__prompt,!1,!1,void 0)",
@@ -588,6 +600,7 @@ test.skipIf(!testLaterCommand)(
       "JNe(!0)",
       "W2e(!0)",
       "bje(!0)",
+      "Q4e(!0)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
@@ -617,6 +630,22 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses241ExactFireSymbols) {
+      expect(patched).toContain("__task.laterAt=__when.getTime()")
+      expect(patched).toContain("__prompt=jMp(__rawPrompt,F).expanded")
+      expect(patched).toContain("let __refs=new Set(nx(__rawPrompt).map((__r)=>__r.id))")
+      expect(patched).toContain('o(""),T(0),i({})')
+      expect(patched).toContain("__id=await Zqr(__cron,__prompt,!1,!1,F3()?.agentId),__task=QN().find")
+      expect(patched).toContain("Q4e(!0)")
+      expect(patched).not.toContain("__id=await Qjr(__cron,__prompt,!1,!1,g3()?.agentId)")
+      expect(patched).not.toContain("__prompt=$yp(__rawPrompt,F).expanded")
+      expect(patched).toContain(
+        "V.later===!0&&Number.isFinite(V.laterAt)&&V.laterAt>V.createdAt?V.laterAt:Rgi(V.cron,V.createdAt,V.id,Y)",
+      )
+      expect(patched).not.toContain(
+        "let K=V.recurring?Cqn(V.cron,V.lastFiredAt??V.createdAt,V.id,Y):Rgi(V.cron,V.createdAt,V.id,Y);",
+      )
+      expect(patched).not.toContain("W2e(!0)")
     } else if (targetUses238ExactFireSymbols) {
       expect(patched).toContain("__task.laterAt=__when.getTime()")
       expect(patched).toContain(
@@ -735,6 +764,7 @@ test.skipIf(!testLaterCommand)(
     expect(patched).toContain("Pending /later prompts:")
     expect(patched).toContain("No pending /later prompts")
     expectContainsOneOf(patched, [
+      "QN().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "Iv().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "FI().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "YR().filter((__t)=>__t.later===!0&&!__t.recurring)",
@@ -780,6 +810,9 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("E7t(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("gVt(__t.cron,__t.createdAt)")
+    } else if (targetUses241SubmitSymbols) {
+      expect(patched).toContain("QN().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("HN().filter((__t)=>__t.later===!0&&!__t.recurring)")
     } else if (targetUses238LaterSymbols) {
       expect(patched).toContain("HN().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).not.toContain("fH().filter((__t)=>__t.later===!0&&!__t.recurring)")

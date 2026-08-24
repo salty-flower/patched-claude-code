@@ -1542,7 +1542,7 @@ assert_not_contains = '''function Ujp(){return Bjp().mode!=="disabled"}'''
 [[patches]]
 name = "require-explicit-assistant-response-otel-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = "Require an explicit 2.1.238 assistant-response OTel opt-in instead of inheriting user-prompt logging."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
 locator_kind = "literal"
@@ -1557,7 +1557,7 @@ assert_contains = '''function H5d(){return V.OTEL_LOG_ASSISTANT_RESPONSES===!0}'
 [[patches]]
 name = "disable-raw-api-body-otel-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = "Disable the 2.1.238 raw Messages API body telemetry and trace-file gate."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
 locator_kind = "literal"
@@ -1568,3 +1568,75 @@ replacement = '''function m1f(){return!1}'''
 kind = "static"
 name = "2.1.238 raw API body logging is disabled"
 assert_contains = '''function m1f(){return!1}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+Replace the v2.1.241 minified-symbol assistant-response OTel gate `fnp`.
+
+Assistant response logging still falls back to OTEL_LOG_USER_PROMPTS when
+OTEL_LOG_ASSISTANT_RESPONSES is unset. This is the 2.1.241 minified-symbol
+variant; the gate drifted from `H5d` to `fnp` while the telemetry env
+namespace drifted from `V` to `G`. Patched bundles should require an explicit
+assistant-response opt-in instead of silently broadening an existing
+prompt-logging deployment. Cleanup condition: upstream makes
+assistant-response logging independent from user-prompt logging by default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+locator_kind = "literal"
+locator_pattern = '''function fnp(){return G.OTEL_LOG_ASSISTANT_RESPONSES??G.OTEL_LOG_USER_PROMPTS}'''
+expected_matches = 1
+replacement = '''function fnp(){return G.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging requires explicit opt-in in 2.1.241"
+assert_contains = '''function fnp(){return G.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "assistant response logging no longer inherits prompt logging in 2.1.241"
+assert_not_contains = '''function fnp(){return G.OTEL_LOG_ASSISTANT_RESPONSES??G.OTEL_LOG_USER_PROMPTS}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 assistant-response gate no longer carries 2.1.238 symbols"
+assert_not_contains = '''function H5d(){return V.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+Disable the v2.1.241 minified-symbol raw-body OTel gate `vKf`.
+
+OTEL_LOG_RAW_API_BODIES can emit or write full Messages API request/response
+bodies, which include conversation history and tool results. This is the
+2.1.241 minified-symbol variant; the config getter drifted from `f1f` to
+`SKf` and the gate from `m1f` to `vKf`. Patched bundles should not provide
+a runtime switch that turns complete API bodies into telemetry payloads or
+local trace files. Cleanup condition: upstream removes raw body capture or
+narrows it to a documented local-only diagnostic that cannot export content.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "literal"
+locator_pattern = '''function vKf(){return SKf().mode!=="disabled"}'''
+expected_matches = 1
+replacement = '''function vKf(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging gate is disabled in 2.1.241"
+assert_contains = '''function vKf(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "raw API body logging env gate is not rendered in 2.1.241"
+assert_not_contains = '''function vKf(){return SKf().mode!=="disabled"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 raw-body gate no longer carries 2.1.238 symbols"
+assert_not_contains = '''function m1f(){return!1}'''

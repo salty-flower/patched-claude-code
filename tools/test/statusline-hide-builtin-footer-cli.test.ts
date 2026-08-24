@@ -75,6 +75,58 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (TARGET_VERSION === "2.1.241") {
+      expect(patched).toContain(
+        "globalThis.__acc_disabled_footer=H})():void 0,Rt={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Qo()",
+      )
+      expect(patched).not.toContain(
+        "globalThis.__acc_disabled_footer=H})():void 0,vt={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo()",
+      )
+      expect(patched).toContain(
+        'function ksy(G41){let __acc_hide_footer=Tt((FH)=>FH.settings.statusLine?.hideBuiltinFooter||FH.settings.statusLine?.disabledFooter?.includes("footer"))',
+      )
+      expect(patched).not.toContain("function wzg(L71){let __acc_hide_footer=_t(")
+      expect(patched).toContain("return __acc_hide_footer?vZc:Dx0")
+      expect(patched).not.toContain("return __acc_hide_footer?Pzc:nYE")
+      expect(patched).toContain(
+        "function biy({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n",
+      )
+      expect(patched).not.toContain(
+        "function g3g({mode:e,toolPermissionContext:t,showHint:r,denseShowHint:n",
+      )
+      expect(patched).toContain("let zt=!__acc_hide_mode&&ke&&se?")
+      expect(patched).not.toContain("let _r=!__acc_hide_mode&&ke&&ue?")
+      expect(patched).toContain("let bt=!__acc_hide_mode&&se&&Kt?")
+      expect(patched).not.toContain("let pt=!__acc_hide_mode&&ue&&or?")
+      expect(patched).toContain(
+        'hideBuiltinFooter:Bt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:ft(Dr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      expect(patched).not.toContain(
+        'hideBuiltinFooter:zt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:_t(Mr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      expect(patched).toContain("O5=__acc_hide_effort_level?void 0:Nfg(Zl,id,Dh);")
+      expect(patched).not.toContain("Qne=__acc_hide_effort_level?void 0:Zmh(lM,ywe,m3);")
+      expect(patched).toContain(
+        "__acc_hide_effort_all=Tt((I_)=>I_.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=Tt",
+      )
+      expect(patched).not.toContain("{addNotification:ir,removeNotification:ut}=hu();Cs.useEffect")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=i")
+      expect(patched).toContain(
+        'c?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")',
+      )
+      expect(patched).not.toContain("let i=Fga(r,n);if(!i||i===e)return;e=i;let s=$up(r,n,o)")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=d")
+      expect(patched).toContain(
+        'h?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")',
+      )
+      expect(patched).toContain("effort_level:QM(_)?lW(_,m):null")
+      expect(patched).not.toContain("effort_level:MM(b)?nK(b,m):null")
+      expect(patched).toContain(
+        'permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}',
+      )
+      expect(patched).not.toContain("return{...Sy(e,f),permission_mode:t,clipboard_image:")
+      return
+    }
     if (TARGET_VERSION === "2.1.238") {
       expect(patched).toContain(
         "globalThis.__acc_disabled_footer=H})():void 0,vt={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Vo()",

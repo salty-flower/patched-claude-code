@@ -1971,7 +1971,7 @@ assert_contains = '''if(i!==void 0||GOe("fable5"))sMr(t,i??PJs())'''
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = """
 Keep the catalog-backed Fable row visible in the primary Claude.ai OAuth picker.
 
@@ -2006,7 +2006,7 @@ assert_not_contains = '''if(GOe("fable5"))sMr(a,PJs());return a.push(pAd),xJs(a,
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = """
 Keep the catalog-backed Fable row visible in the standard Claude.ai OAuth picker.
 
@@ -2036,3 +2036,80 @@ assert_contains = '''if(YLe("fable5"))oBr(s,N_a());return s.push(Aep),L_a(s,e,"s
 kind = "static"
 name = "2.1.238 standard picker no longer carries the 2.1.234 symbols"
 assert_not_contains = '''if(GOe("fable5"))sMr(s,PJs());return s.push(pAd),xJs(s,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+Keep the catalog-backed Fable row visible in the primary Claude.ai OAuth picker.
+
+This is the 2.1.241 minified-symbol variant of the 2.1.238 insertion. The unified
+model option builder is now q0S, the catalog availability helper is k1e, the option
+inserter is Q3r, and the Fable row helper is nIa. The primary first-party
+subscription branch still returns before the shared non-OAuth Fable path, so it
+needs the same catalog-backed row insertion before its early return. Cleanup
+condition: upstream shows Fable in this branch whenever the bundled catalog
+exposes it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "q0S", strings = ['''return a.push(b_p),tIa(a,e,"opus")''', '''k1e("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return a.push(b_p),tIa(a,e,"opus")'''
+value = '''if(k1e("fable5"))Q3r(a,nIa());return a.push(b_p),tIa(a,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 primary subscription picker inserts local fable"
+assert_contains = '''if(k1e("fable5"))Q3r(a,nIa());return a.push(b_p),tIa(a,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 primary picker no longer carries the 2.1.238 symbols"
+assert_not_contains = '''if(YLe("fable5"))oBr(a,N_a());return a.push(Aep),L_a(a,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+Keep the catalog-backed Fable row visible in the standard Claude.ai OAuth picker.
+
+This is the second 2.1.241 first-party subscription branch in q0S. It also returns
+before the shared non-OAuth Fable path, so insert the same catalog-backed row
+before its early return, using the 2.1.241 symbols k1e, Q3r, and nIa. Cleanup
+condition: upstream shows Fable in this branch whenever the bundled catalog
+exposes it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "q0S", strings = ['''return s.push(b_p),tIa(s,e,"sonnet")''', '''k1e("fable5")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return s.push(b_p),tIa(s,e,"sonnet")'''
+value = '''if(k1e("fable5"))Q3r(s,nIa());return s.push(b_p),tIa(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 standard subscription picker inserts local fable"
+assert_contains = '''if(k1e("fable5"))Q3r(s,nIa());return s.push(b_p),tIa(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 standard picker no longer carries the 2.1.238 symbols"
+assert_not_contains = '''if(YLe("fable5"))oBr(s,N_a());return s.push(Aep),L_a(s,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 API-key picker uses the upstream shared Fable gate"
+assert_contains = '''if(i!==void 0||k1e("fable5"))Q3r(t,i??nIa())'''

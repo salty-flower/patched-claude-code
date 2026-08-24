@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
 import { join } from "node:path"
 import { targetVersion } from "../lib/target"
@@ -116,6 +116,25 @@ const HARNESS_SYMBOLS_2_1_238: HarnessSymbols = {
   doctor: "e8T",
 }
 
+const HARNESS_SYMBOLS_2_1_241: HarnessSymbols = {
+  entrypoint: /\bINC\(\);var __acc_linux_/,
+  telemetry: "ni",
+  enableConfigs: "nQe",
+  oauthSaver: "Aoi",
+  accessor: "sl",
+  legacyWrite: "Dba",
+  legacyReadSync: "Ior",
+  legacyDelete: "Mqd",
+  legacyReadAsync: "TBn",
+  sessionStore: "tSh",
+  resume: "Vbh",
+  cleanup: "ers",
+  pluginEvalInit: "yZl",
+  pluginFs: "jb",
+  pluginEval: "n$h",
+  doctor: "Dkw",
+}
+
 const HARNESS_SYMBOLS_2_1_228: HarnessSymbols = {
   entrypoint: /\bpLE\(\);var __acc_linux_/,
   telemetry: "IW",
@@ -155,6 +174,7 @@ const HARNESS_SYMBOLS_LEGACY: HarnessSymbols = {
 }
 
 function harnessSymbols(): HarnessSymbols {
+  if (isVersionAtLeast(targetVersion(), "2.1.241")) return HARNESS_SYMBOLS_2_1_241
   if (isVersionAtLeast(targetVersion(), "2.1.238")) return HARNESS_SYMBOLS_2_1_238
   if (isVersionAtLeast(targetVersion(), "2.1.234")) return HARNESS_SYMBOLS_2_1_234
   if (isVersionAtLeast(targetVersion(), "2.1.229")) return HARNESS_SYMBOLS_2_1_229
@@ -171,7 +191,7 @@ afterEach(() => {
 })
 
 function makeTempDir(prefix: string): string {
-  const dir = mkdtempSync(join(tmpdir(), prefix))
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), prefix)))
   tempDirs.push(dir)
   return dir
 }

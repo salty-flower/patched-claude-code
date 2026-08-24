@@ -546,7 +546,7 @@ assert_not_contains = '''z({gesture:"ctrl_c"})},[Z,m,y,b,h,S,N,K,L,B,z]'''
 [[patches]]
 name = "foreground-agent-handoff-before-cancel-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = "Hand 2.1.238 foreground local agents to the background before Escape aborts their shared parent request."
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
 locator_kind = "literal"
@@ -561,7 +561,7 @@ assert_contains = '''de=qXn(ve,y)||de;return R.current=Date.now(),N("tengu_cance
 [[patches]]
 name = "global-interrupt-cancel-only-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = "Keep the 2.1.238 global interrupt on the cancel-only path so unrelated background agents survive Ctrl-C."
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
 locator_kind = "literal"
@@ -572,3 +572,80 @@ replacement = '''if(!q({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return
 kind = "static"
 name = "2.1.238 global interrupt uses cancel-only mode"
 assert_contains = '''q({gesture:"ctrl_c",suppressBackgroundAgentKill:!0})'''
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+Hand synchronous foreground agents off to the background before Escape aborts
+their shared parent request. Without this transition, concurrent Agent tool
+calls inherit the parent abort signal and all stop together even though the
+global interrupt already uses cancel-only mode. Keeping every Agent call async
+was rejected because it would change foreground result semantics.
+
+This is the 2.1.241 minified-symbol variant, carried over from the 2.1.238
+variant: the task registry stays `y`, local-agent detection moves `Cu` to `_u`,
+main-session exclusion moves `yQn` to `sso`, and the supported foreground to
+background handoff moves `qXn` to `Ooo`. The cancel telemetry payload variable
+also renames `Ae` to `Te` inside the locator. The zero-delay cancel lets those
+handoff promises settle before the shared parent signal is aborted. Remove when
+upstream detaches foreground agents from parent cancellation before handling
+Escape.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = '''if(i!==void 0&&!i.aborted||s)return R.current=Date.now(),N("tengu_cancel",Te),t(),!0;'''
+replacement = '''if(i!==void 0&&!i.aborted||s){let de=!1;for(let[ve,ee]of Object.entries(y.all()))if(_u(ee)&&!ee.isBackgrounded&&!sso(ee))de=Ooo(ve,y)||de;return R.current=Date.now(),N("tengu_cancel",Te),de?setTimeout(()=>t(),0):t(),!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 Escape hands foreground agents off before parent cancellation"
+assert_contains = '''de=Ooo(ve,y)||de;return R.current=Date.now(),N("tengu_cancel",Te),de?setTimeout(()=>t(),0):t(),!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 Escape no longer aborts shared foreground agents immediately"
+assert_not_contains = '''if(i!==void 0&&!i.aborted||s)return R.current=Date.now(),N("tengu_cancel",Te),t(),!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 variant does not carry 2.1.238 handoff symbols"
+assert_not_contains = '''if(i!==void 0&&!i.aborted||s)return R.current=Date.now(),N("tengu_cancel",Ae),t(),!0;'''
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+Keep the global interrupt on the cancel-only path so it does not stop
+unrelated background agents. The 2.1.241 bundle still routes the global
+interrupt fall-through through the default kill-enabled cancel path, so a
+Ctrl-C can emit the aggregate stopped-agents notification and abort active
+subagents. Pass the explicit `suppressBackgroundAgentKill` flag while retaining
+the deliberate `chat:killAgents` binding for stopping background work.
+
+This is the 2.1.241 minified-symbol variant of the 2.1.238 patch: the cancel
+callback renames `q` to `j` and its dependency array renames
+`[re,m,y,_,h,S,W,te,M,B,q]` to `[J,m,y,_,h,b,K,ne,L,U,j]`. Remove when
+upstream scopes the kill path to the intended agent view.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = '''if(!j({gesture:"ctrl_c"}))return!1},[J,m,y,_,h,b,K,ne,L,U,j]'''
+replacement = '''if(!j({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1},[J,m,y,_,h,b,K,ne,L,U,j]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 global interrupt uses cancel-only mode"
+assert_contains = '''if(!j({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1},[J,m,y,_,h,b,K,ne,L,U,j]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 global interrupt no longer uses the default kill-enabled mode"
+assert_not_contains = '''if(!j({gesture:"ctrl_c"}))return!1},[J,m,y,_,h,b,K,ne,L,U,j]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 variant does not carry 2.1.238 interrupt symbols"
+assert_not_contains = '''if(!q({gesture:"ctrl_c"}))return!1},[re,m,y,_,h,S,W,te,M,B,q]'''

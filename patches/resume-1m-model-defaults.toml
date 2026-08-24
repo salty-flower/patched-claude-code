@@ -1399,7 +1399,7 @@ assert_not_contains = '''let r=new Set(y3u.map((i)=>jo(i))),n=ys(t):void 0,o=Ad(
 [[patches]]
 name = "resume-allows-same-family-anthropic-model-default-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = "Re-anchor the resume default guard to 2.1.238 while preserving its new uOt provider gate and comparing an explicit ANTHROPIC_MODEL after transcript resolution."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 locator_kind = "literal"
@@ -1420,7 +1420,7 @@ assert_not_contains = '''if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||jo(ys(V.ANTHROPIC
 [[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.241"
 rationale = "Resolve the 2.1.238 current default through CE before alias and display-name comparison so resumed default 1M sessions retain their suffix."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 locator_kind = "literal"
@@ -1437,3 +1437,61 @@ assert_contains = '''let r=new Set(rfd.map((i)=>Fo(i))),n=Ss(t??CE()),o=ld(n);''
 kind = "static"
 name = "2.1.238 default resolver drops stale 2.1.234 symbols"
 assert_not_contains = '''let r=new Set(y3u.map((i)=>jo(i))),n=ys(t??TA()),o=Ad(n);'''
+
+[[patches]]
+name = "resume-allows-same-family-anthropic-model-default-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+This is the 2.1.241 minified-symbol variant of
+`resume-allows-same-family-anthropic-model-default`. The resume guard is now
+`VMo`, the provider gate is `K0()`, the dynamic-provider gate is `RLt()`, the
+env fallback is `!D_()`, the env namespace is `G`, and same-family comparison
+resolves through `Ss` (unchanged) and `Ho`. The outer resume function is now
+`cPr` with transcript resolver `hdy`. Remove the env-default early return
+while preserving the explicit same-family `ANTHROPIC_MODEL` override guard
+after transcript-model resolution.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "literal"
+locator_pattern = '''function VMo(){return Boolean(K0()!==void 0||G.ANTHROPIC_MODEL||G.ANTHROPIC_DEFAULT_FABLE_MODEL||G.ANTHROPIC_DEFAULT_OPUS_MODEL||G.ANTHROPIC_DEFAULT_SONNET_MODEL||G.ANTHROPIC_DEFAULT_HAIKU_MODEL||RLt()||!D_())}function cPr(e,t,r,n=(o)=>o()){if(VMo())return;let o=hdy(e,t);'''
+expected_matches = 1
+replacement = '''function VMo(){return Boolean(K0()!==void 0||RLt()||!D_())}function cPr(e,t,r,n=(o)=>o()){if(VMo())return;let o=hdy(e,t);if(G.ANTHROPIC_MODEL&&(o.kind!=="ok"||Ho(Ss(G.ANTHROPIC_MODEL))!==Ho(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 resume permits same-family explicit model defaults"
+assert_contains = '''if(G.ANTHROPIC_MODEL&&(o.kind!=="ok"||Ho(Ss(G.ANTHROPIC_MODEL))!==Ho(o.model)))return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 resume guard drops stale 2.1.238 symbols"
+assert_not_contains = '''if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||Fo(Ss(V.ANTHROPIC_MODEL))!==Fo(o.model)))return;'''
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+This is the 2.1.241 minified-symbol variant of the default-model 1M resume
+path. `hdy` receives `initialMainLoopModel`; when absent, resolve the current
+default through `Kv()` (the CE-equivalent default resolver, `Ss(W8())`) before
+alias resolution so default 1M configs retain the transcript model suffix.
+Alias resolution is still `Ss`; family, display-name, and known-model helpers
+are now `Ho`, `fd`, and `dAd`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "literal"
+locator_pattern = '''let r=new Set(dAd.map((i)=>Ho(i))),n=t?Ss(t):void 0,o=n?fd(n):void 0;'''
+expected_matches = 1
+replacement = '''let r=new Set(dAd.map((i)=>Ho(i))),n=Ss(t??Kv()),o=fd(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 resume resolves the current default before 1M comparison"
+assert_contains = '''let r=new Set(dAd.map((i)=>Ho(i))),n=Ss(t??Kv()),o=fd(n);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 default resolver drops stale 2.1.238 symbols"
+assert_not_contains = '''let r=new Set(rfd.map((i)=>Fo(i))),n=Ss(t??CE()),o=ld(n);'''

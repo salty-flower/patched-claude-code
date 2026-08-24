@@ -1150,3 +1150,82 @@ assert_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(jbe.ba
 kind = "static"
 name = "2.1.234 allowlist no longer carries the stale two-file predicate"
 assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(jbe.basename(er))'''
+
+[[patches]]
+name = "agents-memory-nested-directory-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+
+rationale = """
+Load AGENTS.md beside CLAUDE.md when collecting nested-directory project memory.
+
+This is the 2.1.241 minified-symbol variant of
+`agents-memory-nested-directory`. The nested loader is now `nyi`; its path
+namespace is `rE`, accumulator is `o`, memory loader is `mxe`, and processed
+path set is `r`. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "nyi", strings = ['''CLAUDE_CODE_DISABLE_CLAUDE_MDS''', '''let s=rE.join(e,"CLAUDE.md");o.push(...await mxe(s,"Project",r,!1));let a=rE.join(e,".claude","CLAUDE.md")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let s=rE.join(e,"CLAUDE.md");o.push(...await mxe(s,"Project",r,!1));let a=rE.join(e,".claude","CLAUDE.md")'''
+value = '''let s=rE.join(e,"CLAUDE.md");o.push(...await mxe(s,"Project",r,!1));let AGENTS_MD=rE.join(e,"AGENTS.md");o.push(...await mxe(AGENTS_MD,"Project",r,!1));let a=rE.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "nested-directory AGENTS.md loader is rendered in 2.1.241"
+assert_contains = '''let s=rE.join(e,"CLAUDE.md");o.push(...await mxe(s,"Project",r,!1));let AGENTS_MD=rE.join(e,"AGENTS.md");o.push(...await mxe(AGENTS_MD,"Project",r,!1));let a=rE.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "unpatched 2.1.241 nested-memory sequence is absent"
+assert_not_contains = '''let s=rE.join(e,"CLAUDE.md");o.push(...await mxe(s,"Project",r,!1));let a=rE.join(e,".claude","CLAUDE.md")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 nested loader no longer carries 2.1.234 symbols"
+assert_not_contains = '''let s=ww.join(e,"CLAUDE.md");o.push(...await lCe(s,"Project",r,!1));let AGENTS_MD=ww.join(e,"AGENTS.md");o.push(...await lCe(AGENTS_MD,"Project",r,!1));let a=ww.join(e,".claude","CLAUDE.md")'''
+
+[[patches]]
+name = "agents-memory-file-detection-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+
+rationale = """
+Treat AGENTS.md as a memory file for nested-memory propagation checks.
+
+This is the 2.1.241 minified-symbol variant. The filename allowlist now uses
+path namespace `Dwe` and loaded-memory path variable `Jt`; add AGENTS.md so
+loaded project memory continues to participate in cache and invalidation
+propagation. Cleanup condition: upstream supports AGENTS.md as an official
+memory file or exposes a configurable project-memory filename list.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
+
+locator_kind = "literal"
+locator_pattern = '''["CLAUDE.md","CLAUDE.local.md"].includes(Dwe.basename(Jt))'''
+expected_matches = 1
+
+replacement = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(Dwe.basename(Jt))'''
+
+[[patches.tests]]
+kind = "static"
+name = "AGENTS.md participates in nested-memory propagation in 2.1.241"
+assert_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(Dwe.basename(Jt))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 allowlist no longer carries the stale two-file predicate"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md"].includes(Dwe.basename(Jt))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 allowlist no longer carries 2.1.234 symbols"
+assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(jbe.basename(er))'''

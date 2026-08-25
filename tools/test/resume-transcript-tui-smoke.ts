@@ -18,6 +18,7 @@ type Args = {
   statusLine: boolean
   thinkingDisplay?: string
   submitPrompt: boolean
+  focusTransition: boolean
   captureResumeError: boolean
 }
 
@@ -44,6 +45,7 @@ export function parseArgs(argv: string[]): Args {
     .option("--thinking-display <mode>", "thinking display mode to pass to the resumed TUI", "summarized")
     .option("--no-thinking-display", "do not pass --thinking-display")
     .option("--no-submit-prompt", "only verify initial resumed rendering")
+    .option("--no-focus-transition", "do not send terminal focus-out/focus-in events after resume")
     .option("--capture-resume-error", "allow local debug logging of a resume failure")
     .parse(argv, { from: "user" })
   const options = program.opts<{
@@ -56,6 +58,7 @@ export function parseArgs(argv: string[]): Args {
     statusLine: boolean
     thinkingDisplay?: string | false
     submitPrompt: boolean
+    focusTransition: boolean
     captureResumeError: boolean
   }>()
   return {
@@ -68,6 +71,7 @@ export function parseArgs(argv: string[]): Args {
     statusLine: options.statusLine,
     thinkingDisplay: options.thinkingDisplay || undefined,
     submitPrompt: options.submitPrompt,
+    focusTransition: options.focusTransition,
     captureResumeError: options.captureResumeError,
   }
 }
@@ -204,6 +208,9 @@ async function main(): Promise<number> {
     const inputCommand = args.submitPrompt
       ? [
           `sleep ${args.startupDelaySeconds}`,
+          ...(args.focusTransition
+            ? [`printf %s ${shellQuote("\x1b[O")}`, "sleep 1", `printf %s ${shellQuote("\x1b[I")}`, "sleep 1"]
+            : []),
           `printf %s ${shellQuote(`\x1b[200~${args.prompt}\x1b[201~`)}`,
           "sleep 1",
           `printf %s ${shellQuote("\x1b[13u")}`,

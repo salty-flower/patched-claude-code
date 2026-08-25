@@ -13204,6 +13204,38 @@ name = "stale 2.1.234 rate-limit warning symbols are absent in 2.1.241"
 assert_not_contains = '''let i=Fga(r,n);if(!i||i===e)return;e=i;let s=$up(r,n,o)'''
 
 [[patches]]
+name = "statusline-footer-control-clipboard-image-hint-context-2-1-241"
+target_version = "2.1.241"
+applies_to = ">=2.1.241 <2.2.0"
+rationale = """
+Capture the initialized app-state store while the clipboard hint host renders
+so the declarative focus effect can inspect footer settings later without
+calling a React context hook from its asynchronous effect callback.
+
+This is the 2.1.241 host half of
+`statusline-footer-control-clipboard-image-hint-2-1-241`. The host is `Hns`,
+the app-store hook is `su`, and the effect registry runner is `Lns`.
+Cleanup condition: upstream ships official footer item controls while
+exposing equivalent state to custom status lines.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Hns", strings = ["isTerminalFocused", "canPasteImages"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let{addNotification:r}=bu(),n=hs();Lns(h1w,{isTerminalFocused:e,canPasteImages:t,addNotification:r,clock:n})'''
+value = '''let{addNotification:r}=bu(),n=hs(),o=su();Lns(h1w,{isTerminalFocused:e,canPasteImages:t,addNotification:r,clock:n,store:o})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 clipboard hint host captures app-state store during render"
+assert_contains = '''o=su();Lns(h1w,{isTerminalFocused:e,canPasteImages:t,addNotification:r,clock:n,store:o})'''
+
+[[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-241"
 target_version = "2.1.241"
 applies_to = ">=2.1.241 <2.2.0"
@@ -13214,12 +13246,14 @@ allowing the built-in clipboard hint to be hidden.
 The 2.1.241 clipboard hint moved from a React hook to a declarative registry
 effect (`id:"clipboard-image-hint"`) that probes availability via `vhm`,
 notifies under key `d1w`, debounces with `p1w`, and throttles with `f1w`.
-Patched bundles extend the effect context with the store, publish the probe
-result to the compatibility status-line channel before the throttle return,
-and suppress the notification when the statusLine footer settings or the CLI
-override hide `clipboard_image_hint`. Cleanup condition: upstream ships
-official footer item controls while exposing equivalent state to custom
-status lines.
+Patched bundles receive the app-state store captured by the companion host
+patch, publish the probe result to the compatibility status-line channel
+before the throttle return, and suppress the notification when the statusLine
+footer settings or the CLI override hide `clipboard_image_hint`. Reading an
+uncaptured `e.store` yields `undefined` after a terminal focus transition;
+calling `su()` inside the effect instead violates the React hook boundary.
+Cleanup condition: upstream ships official footer item controls while
+exposing equivalent state to custom status lines.
 """
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
 locator_kind = "ast_transform"
@@ -13242,6 +13276,16 @@ assert_contains = '''globalThis.__acc_clipboard_image_available=d'''
 kind = "static"
 name = "2.1.241 clipboard hint respects disabledFooter"
 assert_contains = '''h?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 clipboard hint reads the captured app-state store"
+assert_contains = '''let h=c.getState().settings?.statusLine'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.241 clipboard hint does not call app-state hook inside effect"
+assert_not_contains = '''let h=su().getState().settings?.statusLine'''
 
 [[patches.tests]]
 kind = "static"

@@ -30,8 +30,8 @@ test("ci runs release audit through one declarative just target", () => {
 
   expect(workflow).toContain(`TARGET_VERSION: "${DEFAULT_TARGET_VERSION}"`)
   expect(auditStep).toContain(`just ci-release-audit "$TARGET_VERSION" "${ciReleaseId}"`)
-  expect(swapStep).toContain("sudo fallocate -l 8G /swapfile")
-  expect(swapStep).toContain("sudo swapon /swapfile")
+  expect(swapStep).toContain("sudo fallocate -l 8G /mnt/pcc-audit.swap")
+  expect(swapStep).toContain("sudo swapon /mnt/pcc-audit.swap")
   expect(previousCatalogStep).toContain("git ls-remote --tags origin")
   expect(previousCatalogStep).toContain("git fetch --no-tags origin")
   expect(promptReviewStep).toContain("test -s dist/release-notes.md")

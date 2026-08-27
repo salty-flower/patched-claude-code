@@ -1,16 +1,13 @@
 import { afterEach, expect, test } from "bun:test"
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
-const PATCH_FILE = join(ROOT, "patches", "custom-model-slots.toml")
 const CUSTOM_MODEL_1 = "provider/custom-model-1"
 const CUSTOM_MODEL_2 = "provider/custom-model-2"
 
@@ -26,12 +23,6 @@ function makeTempDir(prefix: string): string {
   const dir = mkdtempSync(join(tmpdir(), prefix))
   tempDirs.push(dir)
   return dir
-}
-
-async function renderPatch(output: string): Promise<void> {
-  const source = await Bun.file(TARGET_BUNDLE).text()
-  const patches = loadPatchEntriesFromFile(PATCH_FILE)
-  await Bun.write(output, applyPatchEntries(source, patches, TARGET_VERSION).source)
 }
 
 function requestBody(request: ClaudeApiRequest): {
@@ -105,13 +96,15 @@ async function runPrint(
 }
 
 test("custom model slots keep their efforts separate from each other and global effort", async () => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
   const work = makeTempDir("patched-cc-custom-model-2-")
   const home = join(work, "home")
-  const bundle = join(work, "cli.custom-model-2.js")
   mkdirSync(join(home, ".claude"), { recursive: true })
-  await renderPatch(bundle)
+  const bundle = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: join(work, "rendered"),
+    patchFiles: ["custom-model-slots.toml"],
+  })
 
   const stub = await startClaudeApiStub({ text: "custom model effort ok" })
   stubs.push(stub)

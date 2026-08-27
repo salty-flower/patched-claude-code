@@ -17,9 +17,20 @@
 
 import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
-import { verifyAstTransformPatches, type AstTransformPatch } from "../lib/ast-transform-patches"
+import {
+  verifyAstTransformPatch,
+  verifyAstTransformPatches,
+  type AstTransformPatch,
+} from "../lib/ast-transform-patches"
 import { patchApplies, patchSkipReason } from "../lib/apply-patches"
 import { createCommand, runCli } from "../lib/cli"
+import {
+  isDualGraphStaged,
+  loadGraphBundle,
+  stagedGraphPlatforms,
+  stagedGraphRoot,
+  type LoadedGraphBundle,
+} from "../lib/graph-bundle"
 import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
@@ -30,12 +41,13 @@ type PatchRecord = { file: string; patches: Patch[]; fileTests: unknown[] }
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
-export function parseArgs(argv: string[]): { patches: string[]; target?: string } {
+export function parseArgs(argv: string[]): { patches: string[]; target?: string; quietSkips?: boolean } {
   const program = createCommand("verify-patches")
     .argument("[patches...]", "patch TOML files")
     .option("--against <cli.js>", "explicit target bundle")
+    .option("--quiet-skips", "omit patches excluded from the selected target")
     .parse(argv, { from: "user" })
-  const options = program.opts<{ against?: string }>()
+  const options = program.opts<{ against?: string; quietSkips?: boolean }>()
   const patches = program.args
 
   if (patches.length === 0) {
@@ -46,7 +58,11 @@ export function parseArgs(argv: string[]): { patches: string[]; target?: string 
         .map((f) => join(dir, f)),
     )
   }
-  return { patches, ...(options.against ? { target: options.against } : {}) }
+  return {
+    patches,
+    ...(options.against ? { target: options.against } : {}),
+    ...(options.quietSkips ? { quietSkips: true } : {}),
+  }
 }
 
 function defaultTarget(p: Patch): string {
@@ -58,6 +74,36 @@ function inferTargetVersion(target: string): string | undefined {
   return normalized.match(/(?:^|\/)staging\/([^/]+)\/cli\.js$/)?.[1]
 }
 
+// A verification view is either one single-file bundle body or one platform
+// graph of a dual-graph staged target. Every view of a target must satisfy
+// each patch's locator independently, unless the patch restricts platforms.
+type TargetView = { key: string; label: string; platform?: string; body?: string; bundle?: LoadedGraphBundle }
+
+const viewCache = new Map<string, TargetView[]>()
+
+function viewAppliesToPatch(view: TargetView, p: Patch): boolean {
+  if (!p.platforms || p.platforms.length === 0) return true
+  if (!view.platform) return true
+  return p.platforms.includes(view.platform)
+}
+
+function viewsForTarget(target: string, targetBodies: Map<string, string>): TargetView[] {
+  const cached = viewCache.get(target)
+  if (cached) return cached
+  const version = inferTargetVersion(target)
+  let views: TargetView[]
+  if (version && isDualGraphStaged(ROOT, version)) {
+    views = stagedGraphPlatforms(ROOT, version).map((platform) => {
+      const bundle = loadGraphBundle(join(stagedGraphRoot(ROOT, version), platform), platform)
+      return { key: `${target}::${platform}`, label: `${version} graph/${platform}`, platform, bundle }
+    })
+  } else {
+    views = [{ key: target, label: target, body: readTargetBody(target, targetBodies) }]
+  }
+  viewCache.set(target, views)
+  return views
+}
+
 function readTargetBody(target: string, cache: Map<string, string>): string {
   const cached = cache.get(target)
   if (cached !== undefined) return cached
@@ -66,10 +112,23 @@ function readTargetBody(target: string, cache: Map<string, string>): string {
   return body
 }
 
+function countMatchesInView(view: TargetView, p: Patch): number {
+  if (view.bundle) {
+    let total = 0
+    for (const file of view.bundle.files) {
+      if (p.locator_kind === "literal") total += file.text.split(p.locator_pattern ?? "").length - 1
+      else total += (file.text.match(new RegExp(p.locator_pattern ?? "", "g")) || []).length
+    }
+    return total
+  }
+  const body = view.body ?? ""
+  if (p.locator_kind === "literal") return body.split(p.locator_pattern ?? "").length - 1
+  return (body.match(new RegExp(p.locator_pattern ?? "", "g")) || []).length
+}
+
 function verifyLocator(
   p: Patch,
-  target: string,
-  targetBodies: Map<string, string>,
+  views: TargetView[],
   astResults: Map<Patch, LocatorResult>,
 ): LocatorResult {
   let matches: number
@@ -77,19 +136,22 @@ function verifyLocator(
     if (!p.ast || !p.transform) return { ok: false, msg: "missing AST transform metadata", matches: 0 }
     return astResults.get(p) ?? { ok: false, msg: "AST transform was not batch-verified", matches: 0 }
   }
-  const body = readTargetBody(target, targetBodies)
   if (!p.locator_pattern) return { ok: false, msg: "missing locator_pattern", matches: 0 }
-  if (p.locator_kind === "literal") {
-    matches = body.split(p.locator_pattern).length - 1
-  } else {
-    const re = new RegExp(p.locator_pattern, "g")
-    matches = (body.match(re) || []).length
-  }
   const expected = p.expected_matches ?? 1
-  if (matches !== expected) {
-    return { ok: false, msg: `expected ${expected} locator match(es), got ${matches}`, matches }
+  let total = 0
+  for (const view of views) {
+    const count = countMatchesInView(view, p)
+    if (count !== expected) {
+      return {
+        ok: false,
+        msg: `${view.label}: expected ${expected} locator match(es), got ${count}`,
+        matches: count,
+      }
+    }
+    total += count
   }
-  return { ok: true, msg: `locator matches ${matches} time(s) (expected ${expected})`, matches }
+  matches = total
+  return { ok: true, msg: `locator matches ${matches} time(s) per view (expected ${expected})`, matches }
 }
 
 function batchVerifyAstLocators(
@@ -98,6 +160,7 @@ function batchVerifyAstLocators(
   targetBodies: Map<string, string>,
 ): Map<Patch, LocatorResult> {
   const groups = new Map<string, Array<{ patch: Patch; astPatch: AstTransformPatch }>>()
+  const viewsByKey = new Map<string, TargetView>()
 
   for (const record of records) {
     for (const patch of record.patches) {
@@ -106,32 +169,73 @@ function batchVerifyAstLocators(
       const target = explicitTarget ?? defaultTarget(patch)
       const targetVersion = explicitTarget ? inferTargetVersion(target) : patch.target_version
       if (targetVersion && !patchApplies(patch, targetVersion)) continue
-      if (!existsSync(target)) continue
+      const targetExists = existsSync(target) || (targetVersion && isDualGraphStaged(ROOT, targetVersion))
+      if (!targetExists) continue
 
-      const group = groups.get(target) ?? []
-      group.push({
-        patch,
-        astPatch: {
-          name: patch.name,
-          expectedMatches: patch.expected_matches,
-          ast: patch.ast,
-          transform: patch.transform,
-        },
-      })
-      groups.set(target, group)
+      for (const view of viewsForTarget(target, targetBodies)) {
+        if (!viewAppliesToPatch(view, patch)) continue
+        const group = groups.get(view.key) ?? []
+        group.push({
+          patch,
+          astPatch: {
+            name: patch.name,
+            expectedMatches: patch.expected_matches,
+            ast: patch.ast,
+            transform: patch.transform,
+          },
+        })
+        groups.set(view.key, group)
+        viewsByKey.set(view.key, view)
+      }
     }
   }
 
   const out = new Map<Patch, LocatorResult>()
-  for (const [target, group] of groups) {
-    const body = readTargetBody(target, targetBodies)
-    const results = verifyAstTransformPatches(
-      body,
-      group.map((entry) => entry.astPatch),
-    )
-    for (let i = 0; i < group.length; i++) {
-      const result = results[i]
-      out.set(group[i].patch, { ok: result.ok, msg: result.message, matches: result.matches })
+  for (const [key, group] of groups) {
+    const view = viewsByKey.get(key)
+    if (!view) continue
+    const expectedByPatch = new Map(group.map((entry) => [entry.patch.name, entry.astPatch.expectedMatches ?? 1]))
+    // Locate phase: sum per-file match counts into bundle-level totals.
+    const totals = new Map<string, number>(group.map((entry) => [entry.patch.name, 0]))
+    const failures = new Map<string, string>()
+    if (view.bundle) {
+      for (const file of view.bundle.files) {
+        const results = verifyAstTransformPatches(file.text, group.map((entry) => ({
+          ...entry.astPatch,
+          expectedMatches: undefined,
+        })))
+        for (let i = 0; i < group.length; i++) {
+          const name = group[i].patch.name
+          const count = results[i].matches
+          totals.set(name, (totals.get(name) ?? 0) + count)
+          if (count > 0) {
+            const localResult = verifyAstTransformPatch(file.text, {
+              ...group[i].astPatch,
+              expectedMatches: count,
+            })
+            if (!localResult.ok) failures.set(name, `${view.label}/${file.path}: ${localResult.message}`)
+          }
+        }
+      }
+    } else {
+      const results = verifyAstTransformPatches(view.body ?? "", group.map((entry) => entry.astPatch))
+      for (let i = 0; i < group.length; i++) {
+        totals.set(group[i].patch.name, results[i].matches)
+        if (!results[i].ok && results[i].matches > 0) failures.set(group[i].patch.name, results[i].message)
+      }
+    }
+    for (const entry of group) {
+      const expected = expectedByPatch.get(entry.patch.name) ?? 1
+      const total = totals.get(entry.patch.name) ?? 0
+      const failure = failures.get(entry.patch.name)
+      out.set(
+        entry.patch,
+        failure
+          ? { ok: false, msg: failure, matches: total }
+          : total === expected
+          ? { ok: true, msg: `AST locator matches ${total} node(s) in ${view.label}`, matches: total }
+          : { ok: false, msg: `${view.label}: expected ${expected} AST match(es), got ${total}`, matches: total },
+      )
     }
   }
   return out
@@ -162,7 +266,7 @@ function verifyRationaleRef(p: Patch): { ok: boolean; msg: string } {
 }
 
 function main(): number {
-  const { patches: files, target } = parseArgs(process.argv.slice(2))
+  const { patches: files, target, quietSkips } = parseArgs(process.argv.slice(2))
 
   if (files.length === 0) {
     console.error("no patches to verify (patches/ is empty)")
@@ -189,20 +293,31 @@ function main(): number {
       const targetVersion = target ? inferTargetVersion(tgt) : p.target_version
       const skipReason = targetVersion ? patchSkipReason(p, targetVersion) : undefined
       if (skipReason) {
-        console.log(`[skip] ${p.name}`)
-        console.log(`       file=${p.file}`)
-        console.log(`       target=${tgt}`)
-        console.log(`       ${skipReason}`)
+        if (!quietSkips) {
+          console.log(`[skip] ${p.name}`)
+          console.log(`       file=${p.file}`)
+          console.log(`       target=${tgt}`)
+          console.log(`       ${skipReason}`)
+        }
         continue
       }
 
-      if (!existsSync(tgt)) {
+      if (!existsSync(tgt) && !(targetVersion && isDualGraphStaged(ROOT, targetVersion))) {
         console.error(`[${p.name}] target bundle missing: ${tgt}`)
         allOk = false
         continue
       }
 
-      const lr = verifyLocator(p, tgt, targetBodies, astResults)
+      const views = viewsForTarget(tgt, targetBodies).filter((view) => viewAppliesToPatch(view, p))
+      if (views.length === 0) {
+        if (!quietSkips) {
+          console.log(`[skip] ${p.name}`)
+          console.log(`       file=${p.file}`)
+          console.log(`       platforms=${(p.platforms ?? []).join(",")} exclude all staged graphs`)
+        }
+        continue
+      }
+      const lr = verifyLocator(p, views, astResults)
       const rr = verifyRationaleRef(p)
       const replOk = p.locator_kind === "ast_transform" ? true : (p.replacement ?? "").length > 0
       const testsOk = (p.tests ?? []).length > 0

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto"
 import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
-import { basename, dirname, join, resolve, sep } from "node:path"
+import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import * as parser from "@babel/parser"
 import { loadPromptIdentityResolution, type PromptIdentityObservation } from "./prompt-identity"
 
@@ -58,6 +58,7 @@ type PromptCandidate = {
   staticText?: string
   expressionCount: number
   astContextSha256: string
+  sourcePath?: string
 }
 
 export type { PromptCandidate }
@@ -168,10 +169,12 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
   const patchedBytes = readFileSync(options.patchedBundlePath)
   assertDigest("upstream bundle", upstreamBytes, options.upstreamBundleSha256)
   assertDigest("patched bundle", patchedBytes, options.patchedBundleSha256)
-  const upstreamSource = decodeUtf8(upstreamBytes, options.upstreamBundlePath)
-  const patchedSource = decodeUtf8(patchedBytes, options.patchedBundlePath)
+  const upstreamCorpus = promptCorpus(options.upstreamBundlePath, upstreamBytes)
+  const patchedCorpus = promptCorpus(options.patchedBundlePath, patchedBytes)
+  const upstreamSource = upstreamCorpus.source
+  const patchedSource = patchedCorpus.source
 
-  const candidates = discoverPromptCandidates(patchedSource)
+  const candidates = patchedCorpus.candidates
   const observations = promptIdentityObservations(candidates, patchedSource, options.upstreamVersion)
   const identity = loadPromptIdentityResolution(options.identityRoot, options.upstreamVersion, observations)
   const entries: PromptCatalogEntry[] = []
@@ -435,6 +438,18 @@ export function inspectPromptIdentityObservations(
   return promptIdentityObservations(candidates, source, upstreamVersion)
 }
 
+export function inspectPromptIdentityObservationsFromPath(
+  path: string,
+  upstreamVersion: string,
+): PromptIdentityObservation[] {
+  const corpus = promptCorpus(path, readFileSync(path))
+  return promptIdentityObservations(corpus.candidates, corpus.source, upstreamVersion)
+}
+
+export function discoverPromptCandidatesFromPath(path: string): PromptCandidate[] {
+  return promptCorpus(path, readFileSync(path)).candidates
+}
+
 function promptIdentityObservations(
   candidates: PromptCandidate[],
   source: string,
@@ -465,7 +480,7 @@ export function discoverPromptCandidates(source: string): PromptCandidate[] {
     allowReturnOutsideFunction: true,
     errorRecovery: false,
     plugins: ["jsx", "typescript"],
-    sourceType: "script",
+    sourceType: "unambiguous",
   })
   const candidates: PromptCandidate[] = []
   visit(ast.program, (node, astPath) => {
@@ -476,6 +491,63 @@ export function discoverPromptCandidates(source: string): PromptCandidate[] {
     candidates.push({ node, signals, astContextSha256: digest([...astPath, node.type].join("/")), ...material })
   })
   return candidates.sort((left, right) => left.node.start - right.node.start)
+}
+
+function promptCorpus(
+  path: string,
+  entrypointBytes: Buffer | Uint8Array,
+): { source: string; candidates: PromptCandidate[] } {
+  const entrypointSource = decodeUtf8(entrypointBytes, path)
+  const graphDirectoryName = entrypointSource.includes("./graph.patched/${platformDir}/cli.js")
+    ? "graph.patched"
+    : entrypointSource.includes("./graph/${platformDir}/cli.js")
+      ? "graph"
+      : null
+  if (graphDirectoryName === null) {
+    return { source: entrypointSource, candidates: discoverPromptCandidates(entrypointSource) }
+  }
+
+  const graphRoot = join(dirname(path), graphDirectoryName, "darwin-arm64")
+  if (!existsSync(join(graphRoot, "cli.js"))) {
+    throw new Error(`prompt catalog graph is missing its Darwin entrypoint: ${graphRoot}`)
+  }
+  let source = ""
+  const candidates: PromptCandidate[] = []
+  for (const file of listJavaScriptFiles(graphRoot)) {
+    const graphPath = relative(graphRoot, file).replaceAll("\\", "/")
+    const prefix = `/* prompt-corpus:${graphPath} */\n`
+    const fileSource = decodeUtf8(readFileSync(file), file)
+    const sourceOffset = source.length + prefix.length
+    source += `${prefix}${fileSource}\n`
+    for (const candidate of discoverPromptCandidates(fileSource)) {
+      candidates.push({
+        ...candidate,
+        sourcePath: graphPath,
+        node: {
+          ...candidate.node,
+          start: candidate.node.start + sourceOffset,
+          end: candidate.node.end + sourceOffset,
+        },
+        astContextSha256: digest(`${graphPath}\0${candidate.astContextSha256}`),
+      })
+    }
+  }
+  return { source, candidates }
+}
+
+function listJavaScriptFiles(root: string): string[] {
+  const files: string[] = []
+  const visitDirectory = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) =>
+      left.name.localeCompare(right.name),
+    )) {
+      const fullPath = join(directory, entry.name)
+      if (entry.isDirectory()) visitDirectory(fullPath)
+      else if (entry.isFile() && entry.name.endsWith(".js")) files.push(fullPath)
+    }
+  }
+  visitDirectory(root)
+  return files
 }
 
 function candidateMaterial(

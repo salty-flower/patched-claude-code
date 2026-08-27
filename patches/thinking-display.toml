@@ -4224,7 +4224,7 @@ assert_contains = '''streamingThinking:wi.isMain?__acc_streamingThinking:null'''
 [[patches]]
 name = "thinking-render-live-row-input-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.246"
 rationale = "Accept the 2.1.238 live thinking prop in Messages."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L359-L359"
 locator_kind = "ast_transform"
@@ -4242,6 +4242,33 @@ value = '''streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefO
 kind = "static"
 name = "2.1.238 Messages accepts live thinking"
 assert_contains = '''streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1'''
+
+[[patches]]
+name = "thinking-render-live-row-input-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = "Re-anchor the live thinking prop at the 2.1.246 Messages component."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L359-L359"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", strings = ['''streamingPreview:C,isBriefOnly:U=!1''', '''streamingToolUses:u'''], parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''streamingPreview:C,isBriefOnly:U=!1'''
+value = '''streamingPreview:C,streamingThinking:__acc_streamingThinking,isBriefOnly:U=!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Messages accepts live thinking"
+assert_contains = '''streamingPreview:C,streamingThinking:__acc_streamingThinking,isBriefOnly:U=!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.238 Messages symbols are absent in 2.1.246"
+assert_not_contains = '''streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1'''
 
 [[patches]]
 name = "thinking-render-live-row-output-2-1-238"
@@ -4268,7 +4295,7 @@ assert_contains = '''__acc_streamingThinking?.thinking&&_L.jsx(P,{marginTop:1,ch
 [[patches]]
 name = "thinking-clear-live-on-interrupt-2-1-238"
 target_version = "2.1.238"
-applies_to = ">=2.1.238 <2.2.0"
+applies_to = ">=2.1.238 <2.1.246"
 rationale = "Clear 2.1.238 stream-store thinking after an interrupt preserves it as a virtual assistant message."
 rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
 locator_kind = "ast_transform"
@@ -4285,6 +4312,27 @@ code = '''this.stream.setStreamingThinking(null);'''
 kind = "static"
 name = "2.1.238 interrupt clears stream-store thinking after preserving it"
 assert_contains = '''isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}='''
+
+[[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = "Clear 2.1.246 stream-store thinking after an interrupt preserves it as a virtual assistant message."
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", strings = ['''p&&r.get().thinkingStartedAt!==null''', '''content:[{type:"thinking",thinking:p,signature:""}]''', '''isVirtual:!0'''], parent_node = "BlockStatement" }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''this.stream.setStreamingThinking(null);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 interrupt clears stream-store thinking after preserving it"
+assert_contains = '''isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:d}='''
 
 [[patches]]
 name = "thinking-render-expanded-2-1-238"
@@ -4338,7 +4386,7 @@ assert_contains = '''if(!1){return null}let h6;if(Yqt[38]'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Render 2.1.241 thinking deltas through the stream store while the API response
 is streaming.
@@ -4380,9 +4428,40 @@ name = "stale 2.1.238 thinking token estimator is absent in 2.1.241"
 assert_not_contains = '''estimatedTokensDelta:dIl(w)'''
 
 [[patches]]
+name = "thinking-render-live-stream-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = "Re-anchor live thinking delta rendering to the 2.1.246 stream handler."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", string_literal = "thinking_delta", source = '''case"thinking_delta":{let{delta:p}=e.event;if("estimated_tokens"in p&&typeof p.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:p.estimated_tokens});else if("thinking"in p&&typeof p.thinking==="string"&&p.thinking.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Q5s(p.thinking)});return}''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''case"thinking_delta":{let{delta:p}=e.event,w=typeof p.thinking==="string"?p.thinking:"";if(w)o?.(w.length),t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in p&&typeof p.estimated_tokens==="number")o?.({type:"thinking_progress",estimatedTokensDelta:p.estimated_tokens});else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Q5s(w)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 thinking deltas update stream-store thinking"
+assert_contains = '''t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 thinking deltas preserve fallback progress estimates"
+assert_contains = '''else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Q5s(w)})'''
+
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.241 thinking token estimator is absent in 2.1.246"
+assert_not_contains = '''estimatedTokensDelta:XUl(w)'''
+
+[[patches]]
 name = "thinking-render-live-state-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Subscribe the 2.1.241 REPL to live thinking held by the stream store.
 
@@ -4413,7 +4492,7 @@ assert_contains = '''streamingToolUses:Qi,streamingThinking:__acc_streamingThink
 [[patches]]
 name = "thinking-render-live-main-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Pass the 2.1.241 stream-store thinking snapshot to the main Messages wrapper.
 
@@ -4444,7 +4523,7 @@ assert_contains = '''streamingThinking:Yn.isMain?__acc_streamingThinking:null'''
 [[patches]]
 name = "thinking-render-live-row-output-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Render the 2.1.241 live thinking prop inside Messages.
 
@@ -4482,7 +4561,7 @@ assert_not_contains = '''_L.jsx(Fsn,{param:{type:"thinking"'''
 [[patches]]
 name = "thinking-render-expanded-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Show full 2.1.241 thinking message bodies in the patched interactive UI.
 
@@ -4517,9 +4596,41 @@ name = "stale 2.1.238 expanded gate symbols are absent in 2.1.241"
 assert_not_contains = '''let ZeM=vDh||TDh;'''
 
 [[patches]]
+name = "thinking-render-expanded-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = """
+Show full 2.1.246 thinking message bodies in the patched interactive UI.
+
+The graph-era expanded renderer is `wl`, and its transcript-or-verbose gate
+is `let Nce=FO||$O;`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wl", strings = ["thinking:", "isTranscriptMode", "verbose"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let Nce=FO||$O;'''
+value = '''let Nce=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 thinking body uses expanded render path"
+assert_contains = '''let Nce=!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 expanded renderer no longer carries 2.1.241 symbols"
+assert_not_contains = '''let BWM=!0;'''
+
+[[patches]]
 name = "thinking-render-blocks-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Keep normal 2.1.241 thinking blocks visible outside transcript or verbose mode.
 
@@ -4601,3 +4712,94 @@ assert_contains = '''case"content_block_start":switch(o?.({type:"content_block_s
 kind = "static"
 name = "live thinking no longer survives content-block boundaries in 2.1.241"
 assert_not_contains = '''o?.({type:"content_block_start"}),a?.(()=>null),e.event.content_block.type'''
+
+[[patches]]
+name = "thinking-render-live-state-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclarator", source = '''{streamingToolUses:Jn,userInputOnProcessing:Pr,toolProgress:pe}=Xt(Ge.stream)''' }
+[patches.transform]
+op = "replace_node"
+value = '''{streamingToolUses:Jn,streamingThinking:__acc_streamingThinking,userInputOnProcessing:Pr,toolProgress:pe}=Xt(Ge.stream)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 REPL subscribes to stream-store thinking"
+assert_contains = '''streamingThinking:__acc_streamingThinking'''
+
+[[patches]]
+name = "thinking-render-live-main-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", source_regex = '''^\{messages:Ti\.messages''', strings = ['''streamingPreview:UM''', '''isBriefOnly:Ti.isMain&&Oo'''], parent_node = "CallExpression" }
+[patches.transform]
+op = "set_object_property"
+property = "streamingThinking"
+value = "Ti.isMain?__acc_streamingThinking:null"
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 main Messages wrapper receives stream-store thinking"
+assert_contains = '''streamingThinking:Ti.isMain?__acc_streamingThinking:null'''
+
+[[patches]]
+name = "thinking-render-live-row-output-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+rationale = """
+Render the live stream-store thinking row after the current message list.
+
+In the v2.1.246 `HM` Messages component, the single-element JSX factory is
+`r`, Box is `p`, and Text is `c`. The nearby parameters `o`, `P`, and `t` are
+respectively the commands array, the render-cap boolean, and the tools array;
+using those parameter names as render helpers causes a main-screen TypeError
+as soon as thinking begins. Cleanup condition: upstream renders the active
+thinking delta directly.
+"""
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", strings = ['''streamingPreview:C,isBriefOnly:U=!1''', '''streamingToolUses:u''', '''b&&!X&&C'''], parent_node = "VariableDeclarator" }
+[patches.transform]
+op = "replace_substring"
+find = '''b&&!X&&C]})'''
+value = '''b&&!X&&C,__acc_streamingThinking?.thinking&&r(p,{marginTop:1,children:r(c,{dimColor:!0,children:__acc_streamingThinking.thinking})})]})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Messages renders the live thinking row"
+assert_contains = '''__acc_streamingThinking?.thinking&&r(p,{marginTop:1,children:r(c,{dimColor:!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 live thinking does not call parameter arrays as JSX factories"
+assert_not_contains = '''__acc_streamingThinking?.thinking&&o(P,{marginTop:1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 live thinking does not use render-cap or tools parameters as components"
+assert_not_contains = '''children:o(t,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches]]
+name = "thinking-render-blocks-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "SwitchCase", strings = ['''case"thinking":{if(Vh!==null&&Yh!==null&&Vh(Pe)''', '''if(!li&&!et){return null}''', '''o(wl,{addMargin:fo,param:Pe,isTranscriptMode:li,verbose:et})'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''if(!li&&!et){return null}'''
+value = '''if(!1){return null}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 normal thinking rendering is visible"
+assert_contains = '''if(!1){return null}'''

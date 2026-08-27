@@ -1,44 +1,18 @@
 import { afterAll, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-statusline-"))
-const patchedBundle = join(tempDir, "cli.patched.js")
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
 })
-
-function renderPatchFiles(input: string, output: string, files: string[]): void {
-  const body = readFileSync(input, "utf8")
-  const patches = readdirSync(join(ROOT, "patches"))
-    .filter((file) => files.includes(file))
-    .sort()
-    .flatMap((file) => loadPatchEntriesFromFile(join(ROOT, "patches", file)))
-
-  writeFileSync(output, applyPatchEntries(body, patches, TARGET_VERSION).source)
-}
-
-function renderStatuslineFooterPatches(input: string, output: string): void {
-  renderPatchFiles(
-    input,
-    output,
-    readdirSync(join(ROOT, "patches")).filter(
-      (file) =>
-        file === "statusline-footer-control.toml" ||
-        ((file.startsWith("statusline-hide-builtin-footer-") || file.startsWith("statusline-json-")) &&
-          file.endsWith(".toml")),
-    ),
-  )
-}
 
 function compareVersions(left: string, right: string): number {
   const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
@@ -63,18 +37,52 @@ function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
 }
 
-test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", () => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
-  renderStatuslineFooterPatches(TARGET_BUNDLE, patchedBundle)
-
-  const patched = readFileSync(patchedBundle, "utf8")
+test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", async () => {
+  const entrypoint = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: tempDir,
+    patchFiles: ["statusline-footer-control.toml"],
+  })
+  const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
+  const patched = readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.181")) {
     expect(patched).toContain("--hide-builtin-footer")
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (TARGET_VERSION === "2.1.246") {
+      expect(patched).toContain(
+        '.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>e??"all")',
+      )
+      expect(patched).toContain(
+        "globalThis.__acc_disabled_footer=H})():void 0,ie={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:lt()",
+      )
+      expect(patched).toContain(
+        '__acc_hide_footer=sdt?.hideBuiltinFooter||sdt?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer")',
+      )
+      expect(patched).toContain("return __acc_hide_footer?_Y:ldt}")
+      expect(patched).toContain("let Uo=!__acc_hide_mode&&nt&&je?")
+      expect(patched).toContain("let oe=!__acc_hide_mode&&je&&fo?")
+      expect(patched).toContain(
+        '__acc_hide_effort_item=M((E)=>E.settings.statusLine?.disabledFooter?.includes("effort_notification"))',
+      )
+      expect(patched).toContain('if(!PT||__acc_hide_effort_level){Qr("effort-level");return}')
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=s")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=u")
+      expect(patched).toContain("effort_level:Cle(v)?UI(v,y):null")
+      expect(patched).toContain(
+        'permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}',
+      )
+      expect(patched).toContain(
+        'hideBuiltinFooter:a().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:u(m(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      expect(patched).not.toContain(
+        'hideBuiltinFooter:Bt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:ft(Dr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()',
+      )
+      return
+    }
     if (TARGET_VERSION === "2.1.241") {
       expect(patched).toContain(
         "globalThis.__acc_disabled_footer=H})():void 0,Rt={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:Qo()",

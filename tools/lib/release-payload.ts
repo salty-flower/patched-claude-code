@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto"
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
-import { isAbsolute, join, relative, resolve, sep } from "node:path"
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { loadPatchEntriesFromToml, type PatchEntry } from "./patch-files"
 import {
   PROMPT_CATALOG_RULESET_SHA256,
@@ -169,6 +169,19 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
     const source = join(options.root, "runtime", file)
     const output = join(options.outDir, "runtime", file)
     if (resolve(source) !== resolve(output)) copyFileSync(source, output)
+  }
+  const dispatcherSource = cliBytes.toString("utf8")
+  const graphDirectoryName = dispatcherSource.includes("./graph.patched/${platformDir}/cli.js")
+    ? "graph.patched"
+    : dispatcherSource.includes("./graph/${platformDir}/cli.js")
+      ? "graph"
+      : null
+  if (graphDirectoryName !== null) {
+    const graphSource = join(dirname(options.input), graphDirectoryName)
+    if (!existsSync(join(graphSource, "darwin-arm64", "cli.js"))) {
+      throw new Error(`rendered graph is missing beside release entrypoint: ${graphSource}`)
+    }
+    cpSync(graphSource, join(options.outDir, graphDirectoryName), { recursive: true, force: true })
   }
   writeFileSync(join(options.outDir, "cli.js"), cliBytes, { mode: 0o644 })
   writeFileSync(join(options.outDir, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n")

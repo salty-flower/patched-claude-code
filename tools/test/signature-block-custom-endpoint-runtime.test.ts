@@ -1,16 +1,13 @@
 import { afterEach, expect, test } from "bun:test"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
-const SIGNATURE_PATCH = join(ROOT, "patches", "signature-block-custom-endpoint.toml")
 const TEST_SESSION_ID = "11111111-1111-4111-8111-111111111111"
 const TEST_PROJECT_DIR_NAME = "patched-cc-signature-test"
 
@@ -72,12 +69,6 @@ function writeSignedThinkingTranscript(dir: string): string {
   ]
   writeFileSync(transcript, `${lines.map((line) => JSON.stringify(line)).join("\n")}\n`)
   return transcript
-}
-
-function renderSignaturePatch(input: string, output: string): void {
-  const source = readFileSync(input, "utf8")
-  const patches = loadPatchEntriesFromFile(SIGNATURE_PATCH)
-  writeFileSync(output, applyPatchEntries(source, patches, TARGET_VERSION).source)
 }
 
 function compareVersions(left: string, right: string): number {
@@ -187,17 +178,14 @@ async function runClaudeUntilMessageRequest(
 }
 
 test("patched custom base URL requests strip stale signed thinking from resumed transcripts", async () => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
   const dir = makeTempDir("patched-cc-signature-runtime-")
   const transcript = writeSignedThinkingTranscript(dir)
-  const patchedBundle = join(dir, "cli.signature-patched.js")
-  renderSignaturePatch(TARGET_BUNDLE, patchedBundle)
+  const patchedBundle = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(dir, "rendered"), patchFiles: ["signature-block-custom-endpoint.toml"] })
 
   const unpatchedStub = await startClaudeApiStub()
   try {
     const request = await runClaudeUntilMessageRequest(
-      TARGET_BUNDLE,
+      join(ROOT, "staging", TARGET_VERSION, "cli.js"),
       unpatchedStub,
       transcript,
       join(dir, "home-unpatched"),

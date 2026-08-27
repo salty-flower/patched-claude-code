@@ -762,7 +762,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=c6m(e,ld(r));if(t.traceSou
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 This is the 2.1.241 minified-symbol variant of
 strip-signatures-for-custom-base-url. The matching-provenance path now uses
@@ -791,3 +791,41 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=hch(e,fd(r));if(t.traceSou
 kind = "static"
 name = "2.1.241 signature cleanup no longer carries 2.1.238 symbols"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=Nm()?c6m(e,ld(r)):u6m(e);if(t.traceSources)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-246-linux"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "literal"
+locator_pattern = '''let n=t.bodyModel??t.model,r=QWr(e,Ri(n));if(t.traceSources)r=ZWr(r);else r=JWr(r);'''
+expected_matches = 1
+replacement = '''let n=t.bodyModel??t.model,r=qWt()?QWr(e,Ri(n)):JWr(e);if(t.traceSources)r=ZWr(r);else r=JWr(r);'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 linux custom endpoint strips signatures"
+assert_contains = '''let n=t.bodyModel??t.model,r=qWt()?QWr(e,Ri(n)):JWr(e);if(t.traceSources)r=ZWr(r);else r=JWr(r);'''
+[[patches.tests]]
+kind = "static"
+name = "old signature cleanup locator absent"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=hch(e,fd(r));if(t.traceSources)n=tch(n);else n=rch(n);'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-246-darwin"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "literal"
+locator_pattern = '''let n=t.bodyModel??t.model,r=JWr(e,Ri(n));if(t.traceSources)r=XWr(r);else r=ZWr(r);'''
+expected_matches = 1
+replacement = '''let n=t.bodyModel??t.model,r=HWt()?JWr(e,Ri(n)):QWr(e);if(t.traceSources)r=XWr(r);else r=ZWr(r);'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 darwin custom endpoint strips signatures"
+assert_contains = '''let n=t.bodyModel??t.model,r=HWt()?JWr(e,Ri(n)):QWr(e);if(t.traceSources)r=XWr(r);else r=ZWr(r);'''
+[[patches.tests]]
+kind = "static"
+name = "old signature cleanup locator absent on darwin"
+assert_not_contains = '''let r=t.bodyModel??t.model,n=hch(e,fd(r));if(t.traceSources)n=tch(n);else n=rch(n);'''

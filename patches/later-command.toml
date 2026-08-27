@@ -3009,7 +3009,7 @@ assert_contains = '''if(I==="prompt"&&!e.fromKeybinding&&!r.isRemoteMode)'''
 [[patches]]
 name = "later-command-submit-hook-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Intercept /later in the prompt-submit path and create an exact session-only
 scheduled task with retained pasted images.
@@ -3063,6 +3063,180 @@ name = "2.1.241 /later drops the stale pasted-text expander"
 assert_not_contains = '''__prompt=$yp(__rawPrompt,F).expanded'''
 
 [[patches]]
+name = "later-command-import-session-scheduler-2-1-246-darwin"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Import the upstream v2.1.246 session cron creator into the prompt-submit graph module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "literal"
+locator_pattern = '''import{ilb as YQe,qlb as HMt}from"./_515.js"'''
+expected_matches = 1
+replacement = '''import{hlb as __acc_schedule_later,ilb as YQe,qlb as HMt}from"./_515.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later statically imports the session scheduler"
+assert_contains = '''hlb as __acc_schedule_later'''
+
+[[patches]]
+name = "later-command-import-session-scheduler-2-1-246-linux"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Import the upstream v2.1.246 Linux session cron creator into the prompt-submit graph module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "literal"
+locator_pattern = '''import{elb as YQe,mlb as HMt}from"./_517.js"'''
+expected_matches = 1
+replacement = '''import{dlb as __acc_schedule_later,elb as YQe,mlb as HMt}from"./_517.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Linux /later statically imports the session scheduler"
+assert_contains = '''dlb as __acc_schedule_later'''
+
+[[patches]]
+name = "later-command-import-scheduler-enable-2-1-246-darwin"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Import the upstream v2.1.246 scheduled-task enable setter into the prompt-submit graph module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "literal"
+locator_pattern = '''Hod as Fde,Iid as i7e'''
+expected_matches = 1
+replacement = '''Fod as __acc_enable_later,Hod as Fde,Iid as i7e'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later statically imports the scheduler enable setter"
+assert_contains = '''Fod as __acc_enable_later'''
+
+[[patches]]
+name = "later-command-import-scheduler-enable-2-1-246-linux"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Import the upstream v2.1.246 Linux scheduled-task enable setter into the prompt-submit graph module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "literal"
+locator_pattern = '''uqd as CGe,vmd as Pde'''
+expected_matches = 1
+replacement = '''uqd as CGe,vmd as Pde,vqd as __acc_enable_later'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Linux /later statically imports the scheduler enable setter"
+assert_contains = '''vqd as __acc_enable_later'''
+
+[[patches]]
+name = "later-command-import-team-context-2-1-246-darwin"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Import the v2.1.246 optional team context so main-session tasks remain unowned."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "literal"
+locator_pattern = '''Hxc as wm,oxc as $k'''
+expected_matches = 1
+replacement = '''Hxc as wm,mxc as __acc_team_context,oxc as $k'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later statically imports optional team context"
+assert_contains = '''mxc as __acc_team_context'''
+
+[[patches]]
+name = "later-command-import-team-context-2-1-246-linux"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Import the v2.1.246 Linux optional team context so main-session tasks remain unowned."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "literal"
+locator_pattern = '''Pxc as dh,Uxc as wm'''
+expected_matches = 1
+replacement = '''Pxc as dh,Uxc as wm,zxc as __acc_team_context'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Linux /later statically imports optional team context"
+assert_contains = '''zxc as __acc_team_context'''
+
+[[patches]]
+name = "later-command-submit-hook-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = """
+Intercept /later in the prompt-submit path and create an exact session-only
+scheduled task with retained pasted images.
+
+This is the 2.1.246 minified-symbol variant of the 2.1.241 hook. The submit
+locals moved from `x`/`I`/`r` to `P`/`O`/`o`, the pasted-content map moved from
+`F` to `U`, and the prompt expander/parser moved from `jMp`/`nx` to
+`Wye`/`Aa`. The existing session-task getter is `Fde`; companion ordered patch
+entries import the upstream session scheduler from `_515.js` `hlb` and its
+enable setter from `_812.js` `Fod`. They also import the team-context getter
+from `_674.js` `mxc`; unlike the global
+current-agent getter `ho`, it leaves main-session task ownership undefined so
+the fire path does not misclassify the job as an orphaned teammate cron.
+Calling those APIs preserves the upstream task id, registry shape, scheduler
+lifecycle, and ownership semantics. Cleanup condition: upstream provides an
+equivalent delayed-send command.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(P.trim()==="")return;''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(O==="prompt"&&!e.fromKeybinding&&o?.isRemoteMode!==!0){let __trim=P.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list";if(__trim==="/later list"){let __jobs=Fde().filter((__t)=>__t.later===!0&&!__t.recurring),__lines=__jobs.slice(0,10).map((__t,__i)=>{let __d=Number.isFinite(__t.laterAt)?new Date(__t.laterAt):null,__when=__d?String(__d.getFullYear()).padStart(4,"0")+"-"+String(__d.getMonth()+1).padStart(2,"0")+"-"+String(__d.getDate()).padStart(2,"0")+" "+String(__d.getHours()).padStart(2,"0")+":"+String(__d.getMinutes()).padStart(2,"0")+":"+String(__d.getSeconds()).padStart(2,"0"):"unknown",__raw=String(__t.prompt).replace(/\s+/g," ").trim(),__text=__raw.length>20?__raw.slice(0,17)+"...":__raw;return String(__i+1)+". "+__text+" @ "+__when});if(__jobs.length>10)__lines.push("+"+(__jobs.length-10)+" more");e.addNotification?.({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});r("");v(0);s({});return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __createdAt=Date.now(),__rawPrompt,__prompt,__when;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__rawPrompt=__relative[3].trim(),__prompt=Wye(__rawPrompt,U).expanded;if(!__prompt||!Number.isFinite(__delay)||__delay<6e4){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=new Date(__createdAt+__delay)}else{__rawPrompt=__absolute[7].trim(),__prompt=Wye(__rawPrompt,U).expanded;let __now=new Date(__createdAt),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__now.getFullYear(),__month=__hasDate?Number(__absolute[2]):__now.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__now.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__createdAt){let __nextDay=new Date(__now.getFullYear(),__now.getMonth(),__now.getDate()+1);__year=__nextDay.getFullYear();__month=__nextDay.getMonth()+1;__day=__nextDay.getDate();__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0)}let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()+1===__month&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second&&__candidate.getTime()>__createdAt;if(!__prompt||!__valid){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}__when=__candidate}if(!Number.isFinite(__when.getTime())){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __refs=new Set(Aa(__rawPrompt).map((__r)=>__r.id)),__pasted=Object.fromEntries(Object.entries(U).filter(([__id,__c])=>__c?.type==="image"&&typeof __c.content==="string"&&__c.content.length>0&&__refs.has(Number(__id)))),__cron=String(__when.getMinutes())+" "+String(__when.getHours())+" "+String(__when.getDate())+" "+String(__when.getMonth()+1)+" *",__id=await __acc_schedule_later(__cron,__prompt,!1,!1,__acc_team_context()?.agentId),__task=Fde().find((__t)=>__t.id===__id);if(!__task){e.addNotification?.({key:"later-error",kind:"error",text:"Unable to create a scheduled prompt",priority:"immediate"});return}__task.later=!0,__task.laterAt=__when.getTime(),Object.keys(__pasted).length&&(__task.laterPastedContents=__pasted),__acc_enable_later(!0),e.addNotification?.({key:"later-"+__id,kind:"feedback",text:"Scheduled "+__id+" for "+__when.toLocaleString(),priority:"immediate"}),r(""),v(0),s({});return}if(__trim.startsWith("/later")){e.addNotification?.({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later uses the current task registry"
+assert_contains = '''Fde().filter((__t)=>__t.later===!0&&!__t.recurring)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later creates through and enables the upstream session scheduler"
+assert_contains = '''__id=await __acc_schedule_later(__cron,__prompt,!1,!1,__acc_team_context()?.agentId),__task=Fde().find'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 main-session later tasks are not assigned global agent ownership"
+assert_not_contains = '''__acc_schedule_later(__cron,__prompt,!1,!1,ho())'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later enables the current scheduler API"
+assert_contains = '''__acc_enable_later(!0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later uses current submit locals and pasted helpers"
+assert_contains = '''__prompt=Wye(__rawPrompt,U).expanded'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later remains interactive-only"
+assert_contains = '''if(O==="prompt"&&!e.fromKeybinding&&o?.isRemoteMode!==!0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later drops stale 2.1.241 task helpers"
+assert_not_contains = '''__id=await Zqr(__cron,__prompt,!1,!1,F3()?.agentId),__task=QN().find'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later drops unbound inferred task symbols"
+assert_not_contains = '''__id=Rmo()'''
+
+[[patches]]
 name = "later-command-exact-fire-time-2-1-238"
 target_version = "2.1.238"
 applies_to = ">=2.1.238 <2.1.241"
@@ -3086,7 +3260,7 @@ assert_contains = '''z.later===!0&&Number.isFinite(z.laterAt)&&z.laterAt>z.creat
 [[patches]]
 name = "later-command-exact-fire-time-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Honor the exact timestamp stored on /later one-shot session tasks.
 
@@ -3141,7 +3315,7 @@ assert_contains = '''workload:mJe,...(__p&&Object.keys(__p).length?{pastedConten
 [[patches]]
 name = "later-command-fire-attachment-envelope-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Let the scheduled queue envelope carry retained /later images.
 
@@ -3198,7 +3372,7 @@ assert_contains = '''resolveLoopDefaultFireAsync(a.autonomousLoopPreamble,g,n),y
 [[patches]]
 name = "later-command-fire-forward-attachments-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Forward retained /later images through both scheduled enqueue arms.
 
@@ -3255,7 +3429,7 @@ assert_contains = '''f(g.prompt,BDi(g),g.laterPastedContents)'''
 [[patches]]
 name = "later-command-fire-task-attachments-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Pass a /later task's retained images when its task fires.
 
@@ -3287,6 +3461,31 @@ name = "2.1.241 task-attachment variant no longer carries 2.1.238 symbols"
 assert_not_contains = '''f(g.prompt,BDi(g),g.laterPastedContents)'''
 
 [[patches]]
+name = "later-command-exact-fire-time-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/cronScheduler.ts#L253-L277"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let Q=g.recurring?Pt(g.cron,g.lastFiredAt??g.createdAt,g.id,D):xe(g.cron,g.createdAt,g.id,D);''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''let Q=g.recurring?Pt(g.cron,g.lastFiredAt??g.createdAt,g.id,D):g.later===!0&&Number.isFinite(g.laterAt)&&g.laterAt>g.createdAt?g.laterAt:xe(g.cron,g.createdAt,g.id,D);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 exact-time variant takes precedence"
+assert_contains = '''g.later===!0&&Number.isFinite(g.laterAt)&&g.laterAt>g.createdAt?g.laterAt:xe'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 exact-time old initializer is absent"
+assert_not_contains = '''let Q=g.recurring?Pt(g.cron,g.lastFiredAt??g.createdAt,g.id,D):xe(g.cron,g.createdAt,g.id,D);'''
+
+[[patches]]
 name = "later-command-suggestion-metadata-2-1-238"
 target_version = "2.1.238"
 applies_to = ">=2.1.238 <2.1.241"
@@ -3310,7 +3509,7 @@ assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YY
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Expose /later through the slash-command suggestion pipeline.
 
@@ -3342,3 +3541,89 @@ assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YY
 kind = "static"
 name = "2.1.241 suggestion variant no longer carries 2.1.238 loader symbols"
 assert_not_contains = '''let r=await ljT(e,t),n=!t9()&&!Np().loadedResultIsMissingTrustedNames(r),o=n?TJn():TJn().filter((C)=>C.loadedFrom!=="syncedSkills"),i=n?E8f():[],s=r.filter((C)=>Len(C)&&ID(C));'''
+
+[[patches]]
+name = "later-command-fire-attachment-envelope-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L71-L82"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", source = '''(C,v,_)=>({value:C,mode:"prompt",agentId:ho(),priority:"later",isMeta:!0,skipSlashCommands:!0,modelScheduledOrigin:!0,wakeupSource:v,scheduledTaskId:_?.taskId,scheduledFireId:_?.fireId,workload:AN})''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''(C,v,_,__p)=>({value:C,mode:"prompt",agentId:ho(),priority:"later",isMeta:!0,skipSlashCommands:!0,modelScheduledOrigin:!0,wakeupSource:v,scheduledTaskId:_?.taskId,scheduledFireId:_?.fireId,workload:AN,...(__p&&Object.keys(__p).length?{pastedContents:__p}:{})})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 scheduled envelope accepts retained images"
+assert_contains = '''workload:AN,...(__p&&Object.keys(__p).length?{pastedContents:__p}:{})'''
+
+[[patches]]
+name = "later-command-fire-forward-attachments-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L84-L115"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ArrowFunctionExpression", source_regex = '''^\(C,v,_\)=>\{if\(di\(\)&&n!==void 0\)''', strings = ['''[ScheduledTasks] fire enqueue (v5 arm) failed'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''(C,v,_)=>{if(di()&&n!==void 0){g=g.then(async()=>{try{r.enqueuePendingNotification(d(await d$.resolveLoopDefaultFireAsync(l.autonomousLoopPreamble,C,n),v,_))}catch(w){D(`[ScheduledTasks] fire enqueue (v5 arm) failed; fire skipped: ${w}`)}});return}r.enqueuePendingNotification(d(d$.resolveLoopDefaultFire(l.autonomousLoopPreamble,C),v,_))}'''
+value = '''(C,v,_,__p)=>{if(di()&&n!==void 0){g=g.then(async()=>{try{r.enqueuePendingNotification(d(await d$.resolveLoopDefaultFireAsync(l.autonomousLoopPreamble,C,n),v,_,__p))}catch(w){D(`[ScheduledTasks] fire enqueue (v5 arm) failed; fire skipped: ${w}`)}});return}r.enqueuePendingNotification(d(d$.resolveLoopDefaultFire(l.autonomousLoopPreamble,C),v,_,__p))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 scheduled enqueue forwards images"
+assert_contains = '''resolveLoopDefaultFireAsync(l.autonomousLoopPreamble,C,n),v,_,__p'''
+
+[[patches]]
+name = "later-command-fire-task-attachments-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L90-L115"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", source = '''h(C.prompt,eze(C),{taskId:C.id,fireId:v})''' }
+
+[patches.transform]
+op = "replace_node"
+value = '''h(C.prompt,eze(C),{taskId:C.id,fireId:v},C.laterPastedContents)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 scheduled task forwards retained images"
+assert_contains = '''h(C.prompt,eze(C),{taskId:C.id,fireId:v},C.laterPastedContents)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 scheduled task preserves metadata before retained images"
+assert_not_contains = '''h(C.prompt,eze(C),C.laterPastedContents,{taskId:C.id,fireId:v})'''
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source_regex = '''^let n=await aBs''', strings = ["loadedResultIsMissingTrustedNames"] }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!i.some((v)=>v.name==="later"))i.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 /later suggestion metadata is rendered"
+assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"'''

@@ -226,15 +226,35 @@ function planAstTransformPatches(
 
 function validateFinalProgram(source: string, options: AstTransformOptions): void {
   options.onParse?.("final")
-  const ast = parseWithOxc("patched-bundle.js", source, {
+  // Graph-era chunk files are ESM modules; try script first for legacy
+  // parity, then module, mirroring parseProgram.
+  let ast = parseWithOxc("patched-bundle.js", source, {
     astType: "js",
     lang: "js",
     preserveParens: true,
     sourceType: "script",
   })
-  const errors = ast.errors.filter((error) => !error.message.includes("A 'return' statement can only be used within a function body"))
+  let errors = ast.errors.filter(
+    (error) => !error.message.includes("A 'return' statement can only be used within a function body"),
+  )
   if (errors.length > 0) {
-    throw new Error(`JavaScript parse failed with ${errors.length} error(s)`)
+    const moduleAst = parseWithOxc("patched-bundle.js", source, {
+      astType: "js",
+      lang: "js",
+      preserveParens: true,
+      sourceType: "module",
+    })
+    const moduleErrors = moduleAst.errors.filter(
+      (error) => !error.message.includes("A 'return' statement can only be used within a function body"),
+    )
+    if (moduleErrors.length === 0) {
+      errors = []
+    } else if (moduleErrors.length < errors.length) {
+      errors = moduleErrors
+    }
+  }
+  if (errors.length > 0) {
+    throw new Error(`JavaScript parse failed with ${errors.length} error(s): ${errors[0]?.message ?? "unknown"}`)
   }
 }
 
@@ -244,16 +264,28 @@ function parseProgram(
   phase: AstTransformParsePhase = "initial",
 ): parser.ParseResult<any> {
   options.onParse?.(phase)
-  const ast = parser.parse(source, {
+  // Graph-era chunk files are ESM modules with import/export statements,
+  // which script-mode parsing rejects. Legacy single-file bundles are
+  // script-shaped. Try script first to keep legacy behavior identical, then
+  // fall back to module parsing.
+  let scriptResult = parser.parse(source, {
     allowReturnOutsideFunction: true,
     errorRecovery: true,
     plugins: ["jsx", "typescript"],
     sourceType: "script",
   })
-  if ((ast.errors?.length ?? 0) > 0) {
-    throw new Error(`JavaScript parse failed with ${ast.errors?.length ?? 0} error(s)`)
+  if ((scriptResult.errors?.length ?? 0) > 0) {
+    const moduleResult = parser.parse(source, {
+      allowReturnOutsideFunction: true,
+      errorRecovery: true,
+      plugins: ["jsx", "typescript"],
+      sourceType: "module",
+    })
+    if ((moduleResult.errors?.length ?? 0) === 0) return moduleResult
+    const errorCount = scriptResult.errors?.length ?? 0
+    throw new Error(`JavaScript parse failed with ${errorCount} error(s)`)
   }
-  return ast
+  return scriptResult
 }
 
 function rangeForEdits(edits: SourceEdit[]): { start: number; end: number } {

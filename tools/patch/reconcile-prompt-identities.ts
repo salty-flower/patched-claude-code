@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 // Bootstrap or propose deterministic cross-version prompt lineage decisions.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
-import { inspectPromptIdentityObservations } from "../lib/prompt-catalog"
+import { inspectPromptIdentityObservationsFromPath } from "../lib/prompt-catalog"
 import { bootstrapPromptIdentityFiles, buildPromptIdentityDraft } from "../lib/prompt-identity"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -37,7 +37,7 @@ function main(): number {
   if (!version) throw new Error("missing version")
   const patched = args.patched ?? join(ROOT, "staging", version, "cli.patched.js")
   if (!existsSync(patched)) throw new Error(`patched bundle missing: ${patched}`)
-  const observations = inspectPromptIdentityObservations(readFileSync(patched, "utf8"), version)
+  const observations = inspectPromptIdentityObservationsFromPath(patched, version)
 
   if (args.bootstrap) {
     if (args.previousVersion || args.outFile) {

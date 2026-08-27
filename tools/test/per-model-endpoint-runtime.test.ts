@@ -1,16 +1,13 @@
 import { afterEach, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
-const PER_MODEL_PATCH = join(ROOT, "patches", "per-model-endpoint.toml")
 const MODEL = "claude-sonnet-4-6"
 const SANITIZED_MODEL = MODEL.replace(/[^a-zA-Z0-9]/g, "_")
 
@@ -40,7 +37,9 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
     throw new Error("could not locate bundled Anthropic client symbols")
   }
   const initializerMatches = [
-    ...source.slice(0, classMatch.index).matchAll(/var ([A-Za-z_$][\w$]*)=(?:b|T|S|v|E)\(\(\)=>\{/g),
+    ...source
+      .slice(0, classMatch.index)
+      .matchAll(/var ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\(\(\)=>\{/g),
   ]
   const initializerMatch = initializerMatches.at(-1)
   if (!initializerMatch?.[1]) {
@@ -52,6 +51,10 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
 function injectSdkHarness(source: string): string {
   const { init, client } = findBundledAnthropicClientSymbols(source)
   const replacement = `${init}();(async()=>{try{let e=new ${client}({baseURL:process.env.ANTHROPIC_BASE_URL,apiKey:process.env.ANTHROPIC_API_KEY,authToken:process.env.ANTHROPIC_AUTH_TOKEN,maxRetries:0}),t={model:process.env.CLAUDE_STUB_HARNESS_MODEL,max_tokens:1,messages:[{role:"user",content:"hello"}]},n={headers:{"x-api-key":"caller-key",Authorization:"Bearer caller-token"}};await e.messages.create({...t,stream:false},n);await e.beta.messages.create({...t,stream:false,betas:["token-counting-2024-11-01"]},n);await e.messages.countTokens(t,n);await e.beta.messages.countTokens({...t,betas:["token-counting-2024-11-01"]},n);process.stdout.write("ok\\n")}catch(r){console.error(r?.stack??String(r));process.exit(1)}})();`
+  const exportIndex = source.lastIndexOf("export{")
+  if (exportIndex !== -1) {
+    return `${source.slice(0, exportIndex)}${replacement}${source.slice(exportIndex)}`
+  }
   const entrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*\(\));var __acc_linux_[A-Za-z_$][\w$]*=/g)]
   const legacyEntrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*Zf\(\));/g)]
   const matches = entrypointMatches.length > 0 ? entrypointMatches : legacyEntrypointMatches
@@ -67,11 +70,20 @@ function injectSdkHarness(source: string): string {
   return `${source.slice(0, start)}${replacement}${source.slice(end)}`
 }
 
-function renderPerModelHarness(input: string, output: string): void {
-  const source = readFileSync(input, "utf8")
-  const patches = loadPatchEntriesFromFile(PER_MODEL_PATCH)
-  const patched = applyPatchEntries(source, patches, TARGET_VERSION).source
-  writeFileSync(output, injectSdkHarness(patched))
+function renderPerModelHarness(entrypoint: string): string {
+  const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
+  if (!existsSync(graphDir)) {
+    writeFileSync(entrypoint, injectSdkHarness(readFileSync(entrypoint, "utf8")))
+    return entrypoint
+  }
+  const graphFile = readdirSync(graphDir)
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => join(graphDir, file))
+    .find((file) => /(?:messages=new [A-Za-z_$][\w$]*\(this\))/.test(readFileSync(file, "utf8")))
+  if (!graphFile) throw new Error("could not locate Anthropic client graph")
+  const source = readFileSync(graphFile, "utf8")
+  writeFileSync(graphFile, injectSdkHarness(source))
+  return graphFile
 }
 
 async function startTrackedStub(): Promise<ClaudeApiStub> {
@@ -114,16 +126,14 @@ function requestKey(request: ClaudeApiRequest): string {
 }
 
 test("patched per-model endpoint routes create and count_tokens requests to model-local auth", async () => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
   const dir = makeTempDir("patched-cc-per-model-runtime-")
-  const patchedBundle = join(dir, "cli.per-model-harness.js")
-  renderPerModelHarness(TARGET_BUNDLE, patchedBundle)
+  const bundle = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(dir, "rendered"), patchFiles: ["per-model-endpoint.toml"] })
+  const harness = renderPerModelHarness(bundle)
 
   const globalStub = await startTrackedStub()
   const perModelStub = await startTrackedStub()
 
-  await runHarness(patchedBundle, globalStub, perModelStub)
+  await runHarness(harness, globalStub, perModelStub)
 
   expect(globalStub.requests).toHaveLength(0)
   expect(perModelStub.requests.map(requestKey).sort()).toEqual(

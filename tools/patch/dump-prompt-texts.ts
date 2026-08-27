@@ -6,8 +6,7 @@
 // Usage:
 //   bun run tools/patch/dump-prompt-texts.ts staging/2.1.228/cli.js > /tmp/prompt-texts-2.1.228.jsonl
 
-import { readFileSync } from "node:fs"
-import { discoverPromptCandidates } from "../lib/prompt-catalog"
+import { discoverPromptCandidatesFromPath } from "../lib/prompt-catalog"
 
 const [bundlePath] = process.argv.slice(2)
 if (!bundlePath) {
@@ -15,13 +14,13 @@ if (!bundlePath) {
   process.exit(2)
 }
 
-const source = readFileSync(bundlePath, "utf8")
-const candidates = discoverPromptCandidates(source)
+const candidates = discoverPromptCandidatesFromPath(bundlePath)
 for (const [ordinal, candidate] of candidates.entries()) {
   console.log(
     JSON.stringify({
       occurrenceId: `v${ordinal.toString().padStart(4, "0")}`,
       ordinal,
+      sourcePath: candidate.sourcePath ?? bundlePath,
       detectorText: candidate.detectorText,
       staticText: candidate.staticText ?? null,
     }),

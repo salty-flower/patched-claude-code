@@ -13,6 +13,7 @@ export type PatchEntry = {
   enabled: boolean
   target_version: string
   applies_to?: string
+  platforms?: string[]
   rationale: string
   rationale_ref: string
   locator_pattern?: string
@@ -30,6 +31,7 @@ type PatchFields = {
   enabled?: unknown
   target_version?: unknown
   applies_to?: unknown
+  platforms?: unknown
   rationale?: unknown
   rationale_ref?: unknown
   locator_pattern?: unknown
@@ -60,6 +62,7 @@ export function loadPatchEntriesFromToml(rawToml: string, file: string): PatchEn
       enabled: inheritedBoolean(entry.enabled, parsed.enabled, `patches[${index}].enabled`, file),
       target_version: inheritedString(entry.target_version, parsed.target_version, "target_version", file),
       applies_to: optionalInheritedString(entry.applies_to, parsed.applies_to, "applies_to", file),
+      platforms: optionalInheritedStringArray(entry.platforms, parsed.platforms, "platforms", file),
       rationale: inheritedString(entry.rationale, parsed.rationale, `patches[${index}].rationale`, file),
       rationale_ref: requiredString(entry.rationale_ref, `patches[${index}].rationale_ref`, file),
       locator_kind: kind,
@@ -107,6 +110,18 @@ function optionalNumber(value: unknown, field: string, file: string): number | u
   if (value === undefined || value === null) return undefined
   if (typeof value === "number") return value
   throw new Error(`${file}: expected number field ${field}`)
+}
+
+function optionalInheritedStringArray(
+  value: unknown,
+  inherited: unknown,
+  field: string,
+  file: string,
+): string[] | undefined {
+  const resolved = value ?? inherited
+  if (resolved === undefined || resolved === null) return undefined
+  if (Array.isArray(resolved) && resolved.every((v) => typeof v === "string")) return resolved as string[]
+  throw new Error(`${file}: expected string array field ${field}`)
 }
 
 function inheritedBoolean(value: unknown, inherited: unknown, field: string, file: string): boolean {

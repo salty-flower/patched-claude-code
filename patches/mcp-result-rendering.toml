@@ -201,7 +201,7 @@ assert_not_contains = '''item:u,verbose:r'''
 [[patches]]
 name = "mcp-result-render-array-text-full-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 
 rationale = """
 Render MCP text-array results without terminal truncation.
@@ -428,7 +428,7 @@ assert_not_contains = '''content:o,verbose:r'''
 [[patches]]
 name = "mcp-result-render-string-full-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 
 rationale = """
 Render string MCP results without terminal truncation.
@@ -1234,7 +1234,7 @@ assert_not_contains = '''content:W1m,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 
 rationale = """
 Render text-block MCP results without terminal truncation.
@@ -1272,3 +1272,42 @@ assert_contains = '''content:nWh,verbose:!0'''
 kind = "static"
 name = "unpatched 2.1.241 MCP text-block call site is absent"
 assert_not_contains = '''content:nWh,verbose:rWh'''
+
+[[patches]]
+name = "mcp-result-render-array-text-full-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
+locator_kind = "literal"
+locator_pattern = '''item:d,verbose:r'''
+replacement = '''item:d,verbose:!0'''
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.246"
+assert_contains = '''item:d,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-string-full-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
+locator_kind = "literal"
+locator_pattern = '''content:e,verbose:r'''
+replacement = '''content:e,verbose:!0'''
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.246"
+assert_contains = '''content:e,verbose:!0'''
+
+[[patches]]
+name = "mcp-result-render-text-block-full-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+locator_kind = "literal"
+locator_pattern = '''content:RA,verbose:hA'''
+replacement = '''content:RA,verbose:!0'''
+[[patches.tests]]
+kind = "static"
+name = "replacement is rendered in 2.1.246"
+assert_contains = '''content:RA,verbose:!0'''

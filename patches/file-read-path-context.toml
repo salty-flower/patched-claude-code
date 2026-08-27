@@ -100,7 +100,7 @@ assert_contains = '''children:["Read image (",n,")",Z]'''
 [[patches]]
 name = "read-result-path-image-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.246"
 
 rationale = """
 Show the file path on image Read result rows.
@@ -1473,7 +1473,7 @@ assert_contains = '''children:["Read PDF (",n,")",Z]'''
 [[patches]]
 name = "read-result-path-pdf-2-1-205"
 target_version = "2.1.205"
-applies_to = ">=2.1.205 <2.2.0"
+applies_to = ">=2.1.205 <2.1.246"
 
 rationale = """
 Show the file path on PDF Read result rows.
@@ -3199,7 +3199,7 @@ assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${op
 [[patches]]
 name = "read-result-path-notebook-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = "Show the file path on 2.1.241 notebook Read result rows; the JSX runtime drifted from Vx to fP and the Text component from _ to S in 2.1.241."
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
 locator_kind = "ast_transform"
@@ -3226,7 +3226,7 @@ assert_not_contains = '''children:["Read ",Vx.jsx(_,{bold:!0,children:t.length})
 [[patches]]
 name = "read-result-path-parts-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = "Show the file path on 2.1.241 PDF-part Read result rows; the JSX runtime drifted from Vx to fP, the Text component from _ to S, and the size helper from Za to Ma in 2.1.241."
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
 locator_kind = "ast_transform"
@@ -3253,7 +3253,7 @@ assert_not_contains = '''children:["Read ",Vx.jsx(_,{bold:!0,children:e.file.cou
 [[patches]]
 name = "read-result-path-text-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = "Show the file path on 2.1.241 text Read result rows; the JSX runtime drifted from Vx to fP and the Text component from _ to S in 2.1.241."
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
 locator_kind = "ast_transform"
@@ -3280,7 +3280,7 @@ assert_not_contains = '''children:["Read ",Vx.jsx(_,{bold:!0,children:t})," ",t=
 [[patches]]
 name = "read-result-path-unchanged-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = "Show the file path on 2.1.241 unchanged Read result rows; the JSX runtime drifted from Vx to fP, the Text component from _ to S, and the basename call gained S_(qg(...)) wrapping around FYh.basename in 2.1.241."
 rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
 locator_kind = "ast_transform"
@@ -3487,3 +3487,123 @@ assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${op
 kind = "static"
 name = "2.1.233 variant does not carry the previous target symbols"
 assert_not_contains = '''children:e.source==="seeded"?`Already in context (${fbm.basename(e.file.filePath)})`:"Unchanged since last read"'''
+
+[[patches]]
+name = "read-result-path-image-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+locator_kind = "literal"
+locator_pattern = '''children:["Read image (",n,")"]'''
+expected_matches = 1
+replacement = '''children:["Read image (",n,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 image result includes its path"
+assert_contains = '''children:["Read image (",n,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 image result no longer has the unpatched row"
+assert_not_contains = '''children:["Read image (",n,")"]'''
+
+[[patches]]
+name = "read-result-path-pdf-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
+locator_kind = "literal"
+locator_pattern = '''children:["Read PDF (",n,")"]'''
+expected_matches = 1
+replacement = '''children:["Read PDF (",n,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 PDF result includes its path"
+assert_contains = '''children:["Read PDF (",n,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 PDF result no longer has the unpatched row"
+assert_not_contains = '''children:["Read PDF (",n,")"]'''
+
+[[patches]]
+name = "read-result-path-notebook-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+locator_kind = "literal"
+locator_pattern = '''children:["Read ",o(t,{bold:!0,children:r.length})," cells"]'''
+expected_matches = 1
+replacement = '''children:["Read ",o(t,{bold:!0,children:r.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 notebook result includes its path"
+assert_contains = '''children:["Read ",o(t,{bold:!0,children:r.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 notebook result no longer has the unpatched row"
+assert_not_contains = '''children:["Read ",o(t,{bold:!0,children:r.length})," cells"]'''
+
+[[patches]]
+name = "read-result-path-parts-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "literal"
+locator_pattern = '''children:["Read ",o(t,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",co(e.file.originalSize),")"]'''
+expected_matches = 1
+replacement = '''children:["Read ",o(t,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",co(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 parts result includes its path"
+assert_contains = '''children:["Read ",o(t,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",co(e.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 parts result no longer has the unpatched row"
+assert_not_contains = '''children:["Read ",o(t,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",co(e.file.originalSize),")"]'''
+
+[[patches]]
+name = "read-result-path-text-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+locator_kind = "literal"
+locator_pattern = '''children:["Read ",o(t,{bold:!0,children:r})," ",r===1?"line":"lines"]'''
+expected_matches = 1
+replacement = '''children:["Read ",o(t,{bold:!0,children:r})," ",r===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 text result includes its path"
+assert_contains = '''children:["Read ",o(t,{bold:!0,children:r})," ",r===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 text result no longer has the unpatched row"
+assert_not_contains = '''children:["Read ",o(t,{bold:!0,children:r})," ",r===1?"line":"lines"]'''
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "literal"
+locator_pattern = '''children:e.source==="seeded"?`Already in context (${Wr(at(C5(e.file.filePath)))})`:"Unchanged since last read"'''
+expected_matches = 1
+replacement = '''children:e.source==="seeded"?[`Already in context (${Wr(at(C5(e.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 unchanged result includes its path"
+assert_contains = '''children:e.source==="seeded"?[`Already in context (${Wr(at(C5(e.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 unchanged result no longer has the unpatched row"
+assert_not_contains = '''children:e.source==="seeded"?`Already in context (${Wr(at(C5(e.file.filePath)))})`:"Unchanged since last read"'''

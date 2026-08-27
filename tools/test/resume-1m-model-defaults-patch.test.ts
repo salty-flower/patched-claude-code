@@ -1,30 +1,21 @@
 import { afterAll, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries } from "../lib/apply-patches"
+import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
+const PATCH_FILE = join(ROOT, "patches", "resume-1m-model-defaults.toml")
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-resume-1m-"))
-const patchedBundle = join(tempDir, "cli.patched.js")
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
 })
-
-function renderResume1mPatch(input: string, output: string): number {
-  const body = readFileSync(input, "utf8")
-  const patches = loadPatchEntriesFromFile(join(ROOT, "patches", "resume-1m-model-defaults.toml"))
-  const result = applyPatchEntries(body, patches, TARGET_VERSION)
-
-  writeFileSync(output, result.source)
-  return result.applied
-}
 
 function compareVersions(left: string, right: string): number {
   const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
@@ -49,11 +40,13 @@ function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
 }
 
-test("resume restores 1m defaults after alias resolution", () => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
-  const applied = renderResume1mPatch(TARGET_BUNDLE, patchedBundle)
-  const patched = readFileSync(patchedBundle, "utf8")
+test("resume restores 1m defaults after alias resolution", async () => {
+  const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["resume-1m-model-defaults.toml"] })
+  const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
+  const patched = existsSync(graphDir)
+    ? readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
+    : readFileSync(entrypoint, "utf8")
+  const applied = loadPatchEntriesFromFile(PATCH_FILE).filter((patch) => patchApplies(patch, TARGET_VERSION)).length
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.170") && isVersionBefore(TARGET_VERSION, "2.1.172")) {
     expect(applied).toBe(3)
@@ -97,6 +90,18 @@ test("resume restores 1m defaults after alias resolution", () => {
       'if(G.ANTHROPIC_MODEL&&(o.kind!=="ok"||Ho(Ss(G.ANTHROPIC_MODEL))!==Ho(o.model)))return;',
     )
     expect(patched).toContain("let r=new Set(dAd.map((i)=>Ho(i))),n=Ss(t??Kv()),o=fd(n);")
+    return
+  }
+
+  if (TARGET_VERSION === "2.1.246") {
+    expect(applied).toBe(3)
+    expect(patched).toContain(
+      "function Xt(e,o){let t=new Set(mt.map((i)=>S(i))),n=ee(o??__acc_resume_default()),r=y(n);",
+    )
+    expect(patched).toContain("Pdc as __acc_resume_default")
+    expect(patched).toContain("S(ee(y(o??__acc_resume_default())))===S(a)")
+    expect(patched).not.toContain("n=ee(o??ct()),r=y(n)")
+    expect(patched).not.toContain("S(ee(y(o??ct())))===S(a)")
     return
   }
 

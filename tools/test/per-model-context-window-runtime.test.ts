@@ -1,16 +1,13 @@
 import { afterAll, expect, test } from "bun:test"
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { gte } from "semver"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
-const PATCH_FILE = join(ROOT, "patches", "per-model-context-window.toml")
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-model-context-"))
 
 afterAll(() => {
@@ -18,6 +15,25 @@ afterAll(() => {
 })
 
 function injectContextWindowHarness(source: string): string {
+  if (source.includes("__acc_model_context_key") && source.includes("export{")) {
+    const resolverMatch = source.match(
+      /function ([A-Za-z_$][\w$]*)\(e,t\)\{let __acc_model_context_key=/,
+    )
+    if (!resolverMatch?.[1] || resolverMatch.index === undefined) {
+      throw new Error("could not locate graph context-window resolver")
+    }
+    const initializer = source
+      .slice(resolverMatch.index)
+      .match(/var ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\(\(\)=>\{/)?.[1]
+    if (!initializer) throw new Error("could not locate graph context-window module initializer")
+    const exportIndex = source.lastIndexOf("export{")
+    if (exportIndex === -1) throw new Error("could not locate graph module exports")
+    const resolver = resolverMatch[1]
+    const harness =
+      `${initializer}();process.stdout.write(JSON.stringify({alpha:${resolver}("alpha/model",[]),beta:${resolver}("beta-model",[]),tagged:${resolver}("alpha/model[1m]",[]),fallback:${resolver}("unconfigured-model",[])}));process.exit(0);`
+    return `${source.slice(0, exportIndex)}${harness}${source.slice(exportIndex)}`
+  }
+
   const entrypointMatches = [...source.matchAll(/\b([A-Za-z_$][\w$]*\(\));var __acc_linux_[A-Za-z_$][\w$]*=/g)]
   const entrypointMatch = entrypointMatches.at(-1)
   if (!entrypointMatch?.[1] || entrypointMatch.index === undefined) {
@@ -36,14 +52,21 @@ function injectContextWindowHarness(source: string): string {
 }
 
 test("model-specific context windows follow the active model", async () => {
-  const source = readFileSync(TARGET_BUNDLE, "utf8")
-  const patches = loadPatchEntriesFromFile(PATCH_FILE)
-  const patched = applyPatchEntries(source, patches, TARGET_VERSION).source
-  const harnessPath = join(tempDir, "context-window-harness.js")
-  writeFileSync(harnessPath, injectContextWindowHarness(patched))
+  const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(tempDir, "rendered"), patchFiles: ["per-model-context-window.toml"] })
+  if (gte(TARGET_VERSION, "2.1.246")) {
+    const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
+    const graphFile = readdirSync(graphDir)
+      .filter((file) => file.endsWith(".js"))
+      .map((file) => join(graphDir, file))
+      .find((file) => /__acc_model_context_key/.test(readFileSync(file, "utf8")))
+    if (!graphFile) throw new Error("could not locate patched context-window graph module")
+    writeFileSync(graphFile, injectContextWindowHarness(readFileSync(graphFile, "utf8")))
+  } else {
+    writeFileSync(entrypoint, injectContextWindowHarness(readFileSync(entrypoint, "utf8")))
+  }
 
   const proc = Bun.spawn({
-    cmd: [process.execPath, harnessPath],
+    cmd: [process.execPath, entrypoint],
     env: {
       ...process.env,
       CLAUDE_CODE_MAX_CONTEXT_TOKENS_alpha_model: "131072",
@@ -59,8 +82,8 @@ test("model-specific context windows follow the active model", async () => {
     proc.exited,
   ])
 
-  expect(exitCode).toBe(0)
   expect(stderr).toBe("")
+  expect(exitCode).toBe(0)
   expect(JSON.parse(stdout)).toEqual({
     alpha: 131072,
     beta: 262144,

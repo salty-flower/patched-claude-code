@@ -1,13 +1,13 @@
 import { afterEach, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries, patchApplies } from "../../lib/apply-patches"
+import { patchApplies } from "../../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../../lib/patch-files"
+import { renderRunnableBundle } from "../helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..", "..")
 const TARGET_VERSION = process.env.TARGET_VERSION ?? "2.1.199"
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const ULTRACODE_PATCH = join(ROOT, "patches", "ultracode-opus46-max.toml")
 const OPUS_46 = "claude-opus-4-6"
 
@@ -158,20 +158,13 @@ function injectUltracodeHarness(source: string): string {
   )
 }
 
-function renderUltracodeHarness(input: string, output: string): void {
-  const source = readFileSync(input, "utf8")
-  const patched = applyPatchEntries(source, ultracodePatches, TARGET_VERSION).source
-  writeFileSync(output, injectUltracodeHarness(patched))
-}
+void injectUltracodeHarness
 
 test.skipIf(!testUltracodeRuntime)(
   "patched ultracode command uses max for Opus 4.6 instead of rejecting xhigh",
   async () => {
-    expect(existsSync(TARGET_BUNDLE)).toBe(true)
-
     const dir = makeTempDir("patched-cc-ultracode-runtime-")
-    const harnessBundle = join(dir, "cli.ultracode-harness.js")
-    renderUltracodeHarness(TARGET_BUNDLE, harnessBundle)
+    const harnessBundle = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(dir, "rendered"), patchFiles: ["ultracode-opus46-max.toml"] })
 
     const proc = Bun.spawn({
       cmd: [process.execPath, harnessBundle],

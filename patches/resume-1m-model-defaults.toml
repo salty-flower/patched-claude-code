@@ -1441,7 +1441,7 @@ assert_not_contains = '''let r=new Set(y3u.map((i)=>jo(i))),n=ys(t??TA()),o=Ad(n
 [[patches]]
 name = "resume-allows-same-family-anthropic-model-default-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 This is the 2.1.241 minified-symbol variant of
 `resume-allows-same-family-anthropic-model-default`. The resume guard is now
@@ -1471,7 +1471,7 @@ assert_not_contains = '''if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||Fo(Ss(V.ANTHROPIC
 [[patches]]
 name = "resume-detects-default-1m-after-alias-resolution-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 This is the 2.1.241 minified-symbol variant of the default-model 1M resume
 path. `hdy` receives `initialMainLoopModel`; when absent, resolve the current
@@ -1495,3 +1495,74 @@ assert_contains = '''let r=new Set(dAd.map((i)=>Ho(i))),n=Ss(t??Kv()),o=fd(n);''
 kind = "static"
 name = "2.1.241 default resolver drops stale 2.1.238 symbols"
 assert_not_contains = '''let r=new Set(rfd.map((i)=>Fo(i))),n=Ss(t??CE()),o=ld(n);'''
+
+[[patches]]
+name = "resume-imports-resolved-default-model-2-1-246"
+rationale = """
+Import the v2.1.246 resolved-default helper for resume model comparison.
+
+`Ndc`/`ct` is the nullable current model override and can return null when a
+transcript has no initial model and settings contain a null model. `Pdc`
+exports the full default resolver (`Ir` in the module), which normalizes an
+override when present and otherwise returns the active provider default.
+Cleanup condition: upstream preserves the default 1M suffix during resume.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''Lvc as Oo,Ndc as ct,Ofc as Mo'''
+expected_matches = 1
+replacement = '''Lvc as Oo,Ndc as ct,Ofc as Mo,Pdc as __acc_resume_default'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 resume imports the non-null resolved default"
+assert_contains = '''Pdc as __acc_resume_default'''
+
+[[patches]]
+name = "resume-allows-same-family-anthropic-model-default-2-1-246"
+rationale = """
+Re-anchor resume default-model resolution to the v2.1.246 graph symbols.
+
+Use the imported full default resolver instead of nullable `ct()`, so an
+absent transcript initial model and a null settings model cannot reach the
+string normalizer as `ee(null)`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function Xt(e,o){let t=new Set(mt.map((i)=>S(i))),n=o?ee(o):void 0,r=n?y(n):void 0;'''
+replacement = '''function Xt(e,o){let t=new Set(mt.map((i)=>S(i))),n=ee(o??__acc_resume_default()),r=y(n);'''
+
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function Xt(e,o){let t=new Set(mt.map((i)=>S(i))),n=ee(o??__acc_resume_default()),r=y(n);'''
+
+[[patches.tests]]
+kind = "static"
+assert_not_contains = '''function Xt(e,o){let t=new Set(mt.map((i)=>S(i))),n=o?ee(o):void 0,r=n?y(n):void 0;'''
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-246"
+rationale = "Use the non-null v2.1.246 resolved default for the default 1M resume comparison."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''if((o&&fe(o)||n!==void 0&&fe(n))&&kt(a)&&(y(a)===r||o&&S(ee(y(o)))===S(a)))return{kind:"ok",model:a+"[1m]"};'''
+replacement = '''if((o&&fe(o)||n!==void 0&&fe(n))&&kt(a)&&(y(a)===r||S(ee(y(o??__acc_resume_default())))===S(a)))return{kind:"ok",model:a+"[1m]"};'''
+
+[[patches.tests]]
+kind = "static"
+assert_contains = '''S(ee(y(o??__acc_resume_default())))===S(a)'''
+
+[[patches.tests]]
+kind = "static"
+assert_not_contains = '''o&&S(ee(y(o)))===S(a)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 resume does not normalize a nullable current override"
+assert_not_contains = '''ee(o??ct())'''

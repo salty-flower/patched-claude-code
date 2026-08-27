@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
@@ -7,18 +7,18 @@ import {
   type PromptManifest,
   type SystemPromptBridgeOutput,
 } from "../../runtime/system-prompt-overrides"
-import { applyPatchEntries } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
-import { inspectPromptIdentityObservations } from "../lib/prompt-catalog"
+import {
+  inspectPromptIdentityObservations,
+  inspectPromptIdentityObservationsFromPath,
+} from "../lib/prompt-catalog"
 import { bootstrapPromptIdentityFiles } from "../lib/prompt-identity"
 import { writeReleasePayload } from "../lib/release-payload"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
-const PATCH_FILE = join(ROOT, "patches", "system-prompt-section-overrides.toml")
 const tempDirs: string[] = []
 const stubs: ClaudeApiStub[] = []
 
@@ -31,12 +31,6 @@ function makeTempDir(prefix: string): string {
   const dir = mkdtempSync(join(tmpdir(), prefix))
   tempDirs.push(dir)
   return dir
-}
-
-function renderBridgeOnly(output: string): void {
-  const source = readFileSync(TARGET_BUNDLE, "utf8")
-  const patches = loadPatchEntriesFromFile(PATCH_FILE)
-  writeFileSync(output, applyPatchEntries(source, patches, TARGET_VERSION).source)
 }
 
 function configureHome(home: string, baseUrl: string): Record<string, string> {
@@ -111,20 +105,25 @@ function diagnosticFromStderr(stderr: string): SystemPromptBridgeOutput {
 }
 
 test("rendered bridge preserves no-op requests, applies one override, and rejects stale input before network", async () => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
   const work = makeTempDir("patched-cc-prompt-runtime-")
   const payload = join(work, "payload")
   const home = join(work, "home")
   const promptRoot = join(work, "prompts")
-  const bundle = join(work, "cli.bridge.js")
+  const identityRoot = join(work, "prompt-identities")
   mkdirSync(home, { recursive: true })
-  renderBridgeOnly(bundle)
+  const bundle = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(work, "rendered"), patchFiles: ["system-prompt-section-overrides.toml"] })
+  bootstrapPromptIdentityFiles(
+    identityRoot,
+    TARGET_VERSION,
+    inspectPromptIdentityObservationsFromPath(bundle, TARGET_VERSION),
+  )
   writeReleasePayload({
     root: ROOT,
     version: TARGET_VERSION,
     releaseId: "runtime.test",
     input: bundle,
     upstreamInput: bundle,
+    promptIdentityRoot: identityRoot,
     outDir: payload,
   })
 

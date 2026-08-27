@@ -14,7 +14,7 @@ JSON fields.
 
 [[patches]]
 name = "statusline-footer-control-cli-option"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.246"
 rationale = """
 Add a CLI switch for hiding built-in footer items.
 
@@ -12222,7 +12222,7 @@ assert_contains = '''__acc_hide_effort_all=ct((I_)=>I_.settings.statusLine?.hide
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-deps-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.246"
 rationale = """
 Carry the central store into the 2.1.233 rate-limit notification registry.
 
@@ -12892,7 +12892,7 @@ assert_contains = '''return __acc_hide_footer?Pzc:nYE}'''
 [[patches]]
 name = "statusline-footer-control-mode-hint-state-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Compute the permission-mode footer hide state inside the 2.1.241 footer component.
 
@@ -12927,7 +12927,7 @@ assert_not_contains = '''function g3g({mode:e,toolPermissionContext:t,showHint:r
 [[patches]]
 name = "statusline-footer-control-mode-hint-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Hide the dense permission-mode indicator in the 2.1.241 footer component.
 
@@ -12956,7 +12956,7 @@ assert_contains = '''let zt=!__acc_hide_mode&&ke&&se?'''
 [[patches]]
 name = "statusline-footer-control-mode-hint-narrow-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Hide the standard permission-mode indicator in the 2.1.241 footer component.
 
@@ -12986,7 +12986,7 @@ assert_contains = '''let bt=!__acc_hide_mode&&se&&Kt?'''
 [[patches]]
 name = "statusline-footer-control-cli-global-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Carry the optional hide-builtin-footer CLI flag into the v2.1.241 startup footer state.
 
@@ -13017,7 +13017,7 @@ assert_not_contains = '''globalThis.__acc_disabled_footer=H})():void 0,vt={sessi
 [[patches]]
 name = "statusline-footer-control-render-state-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Compute the complete built-in footer hide state at the 2.1.241 outer footer render boundary.
 
@@ -13047,7 +13047,7 @@ assert_contains = '''function ksy(G41){let __acc_hide_footer=Tt'''
 [[patches]]
 name = "statusline-footer-control-render-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Suppress the complete 2.1.241 built-in footer at its outer render boundary while preserving a configured custom status line.
 
@@ -13077,7 +13077,7 @@ assert_contains = '''return __acc_hide_footer?vZc:Dx0}'''
 [[patches]]
 name = "statusline-footer-control-schema-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Accept statusLine settings that hide built-in footer items.
 
@@ -13109,9 +13109,42 @@ name = "stale 2.1.234 schema helper is absent in 2.1.241"
 assert_not_contains = '''hideBuiltinFooter:zt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:_t(Mr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
 
 [[patches]]
+name = "statusline-footer-control-schema-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = """
+Accept statusLine settings that hide built-in footer items in the module graph.
+
+The 2.1.246 statusLine schema uses local helpers `a()` for booleans, `u(...)`
+for arrays, and `m([...])` for enums. Reusing the 2.1.241 `Bt()`/`ft(...)`/
+`Dr([...])` symbols crosses module boundaries and makes settings parsing fail
+before the TUI mounts.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:a().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:u(m(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 disabledFooter schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:a().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:u(m(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 schema rejects stale 2.1.241 helpers"
+assert_not_contains = '''hideBuiltinFooter:Bt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:ft(Dr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
 name = "statusline-footer-control-effort-notification-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Hide the prompt-trigger ultrathink notification when requested.
 
@@ -13141,7 +13174,7 @@ assert_not_contains = '''{addNotification:ir,removeNotification:ut}=hu();Cs.useE
 [[patches]]
 name = "statusline-footer-control-effort-level-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Hide the persistent effort-level notification when requested.
 
@@ -13165,7 +13198,7 @@ assert_contains = '''O5=__acc_hide_effort_level?void 0:Nfg(Zl,id,Dh);'''
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Hide the 2.1.241 rate-limit notification while preserving its warning text for statusLine commands.
 
@@ -13204,9 +13237,74 @@ name = "stale 2.1.234 rate-limit warning symbols are absent in 2.1.241"
 assert_not_contains = '''let i=Fga(r,n);if(!i||i===e)return;e=i;let s=$up(r,n,o)'''
 
 [[patches]]
+name = "statusline-footer-control-rate-limit-warning-deps-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = """
+Carry the central store into the 2.1.246 rate-limit notification registry.
+
+The registry dependency shape is unchanged, but its minified callback
+parameters drifted from the 2.1.233 variant.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "rate-limit-warning" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''deps:(e)=>[e.claudeAiLimits,e.mainLoopModel,e.effortValue,e.addNotification],setup(){let e=null;return({addNotification:t,claudeAiLimits:o,mainLoopModel:n,effortValue:r})=>{'''
+value = '''deps:(e)=>[e.claudeAiLimits,e.mainLoopModel,e.effortValue,e.addNotification,e.store],setup(){let e=null;return({addNotification:t,claudeAiLimits:o,mainLoopModel:n,effortValue:r,store:c})=>{'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 rate-limit registry receives the store"
+assert_contains = '''e.addNotification,e.store],setup(){let e=null;return({addNotification:t,claudeAiLimits:o,mainLoopModel:n,effortValue:r,store:c})=>{'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = """
+Hide the 2.1.246 rate-limit notification while preserving its warning text
+for statusLine commands.
+
+The registry now computes the warning via V2e, supplemental text via K2e,
+and overage text via G2e.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "rate-limit-warning" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let s=V2e(o,n);if(!s||s===e)return;e=s;let a=K2e(o,n,r),l=o.rateLimitType==="overage"?G2e(n):null;if(t({key:"rate-limit-warning",'''
+value = '''let s=V2e(o,n);if(!s||s===e)return;e=s;let a=K2e(o,n,r),l=o.rateLimitType==="overage"?G2e(n):null,d=c.getState().settings?.statusLine,__acc_hide_rate_limit_warning=d?.hideBuiltinFooter||d?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer");globalThis.__acc_rate_limit_warning=s;if(!__acc_hide_rate_limit_warning&&t({key:"rate-limit-warning",'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 rate-limit warning is available to statusline"
+assert_contains = '''globalThis.__acc_rate_limit_warning=s'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 rate-limit warning respects disabledFooter"
+assert_contains = '''d?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 rate-limit warning no longer carries 2.1.241 symbols"
+assert_not_contains = '''let i=Zza(r,n);if(!i||i===e)return;e=i;let s=aKp(r,n,o)'''
+
+[[patches]]
 name = "statusline-footer-control-clipboard-image-hint-context-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Capture the initialized app-state store while the clipboard hint host renders
 so the declarative focus effect can inspect footer settings later without
@@ -13238,7 +13336,7 @@ assert_contains = '''o=su();Lns(h1w,{isTerminalFocused:e,canPasteImages:t,addNot
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Keep clipboard image availability visible to custom status lines while
 allowing the built-in clipboard hint to be hidden.
@@ -13295,7 +13393,7 @@ assert_not_contains = '''{let{addNotification:r}=hu(),n=PKr.useRef(e)'''
 [[patches]]
 name = "statusline-json-effort-level-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Expose the effective effort level as a scalar status-line field in the
 2.1.241 JSON payload.
@@ -13326,7 +13424,7 @@ assert_contains = '''effort_level:QM(_)?lW(_,m):null'''
 [[patches]]
 name = "statusline-json-permission-mode-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Expose current footer state to custom statusLine commands in 2.1.241.
 
@@ -13356,3 +13454,284 @@ assert_contains = '''permission_mode:t,clipboard_image:{available:globalThis.__a
 kind = "static"
 name = "stale 2.1.234 JSON payload spread is absent in 2.1.241"
 assert_not_contains = '''return{...Sy(e,f),permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''
+
+[[patches]]
+name = "statusline-footer-control-cli-option-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+target_version = "2.1.246"
+locator_kind = "literal"
+locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+replacement = '''.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>e??"all").option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 CLI footer option"
+assert_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>e??"all")'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-246"
+rationale = """
+Compute the permission-mode footer hide state inside the 2.1.246 footer component.
+
+The graph-era component is `Zut` and AppState selection uses `M`. The added
+`vimIndicatorShown` and level-pill inputs distinguish it from the 2.1.241
+`biy` component.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Zut", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''}){let{storageV5:v}=Ve(),'''
+value = '''}){let __acc_hide_mode=M((ge)=>ge.settings.statusLine?.hideBuiltinFooter||ge.settings.statusLine?.disabledFooter?.includes("permission_mode")||ge.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:v}=Ve(),'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 permission mode hide state is computed"
+assert_contains = '''function Zut({mode:e,toolPermissionContext:t,showHint:o,denseShowHint:n,denseVimOnlySuppression:r,vimBlocksGesture:s,vimIndicatorShown:a,isInputEmpty:l,isLoading:u,isExternalLoading:c,betweenCalls:p,leftArrowDetachAvailable:d,tasksSelected:g,onOpenTasksDialog:h,onOpenSessionMemories:y,prNeedsAuth:b,levelPillCollapsed:k,levelStepped:C}){let __acc_hide_mode=M'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Zut", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Uo=nt&&je?'''
+value = '''let Uo=!__acc_hide_mode&&nt&&je?'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 dense permission mode indicator is gated"
+assert_contains = '''let Uo=!__acc_hide_mode&&nt&&je?'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Zut", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let oe=je&&fo?'''
+value = '''let oe=!__acc_hide_mode&&je&&fo?'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 standard permission mode indicator is gated"
+assert_contains = '''let oe=!__acc_hide_mode&&je&&fo?'''
+
+[[patches]]
+name = "statusline-footer-control-cli-global-2-1-246"
+rationale = """
+Carry the optional hide-builtin-footer CLI value into the graph-era startup state.
+
+The 2.1.246 startup function is `eg`; its parsed CLI options are parameter
+`t`, session team context is initialized as `At`, and REPL state begins at
+`ie`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "eg", strings = ["pendingDeliveryUuids", "teamContext", "replyOnResume"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let At=Go?.teamContext??(fc()?await Op(P):void 0),ie={'''
+value = '''let At=Go?.teamContext??(fc()?await Op(P):void 0),__acc_footer_init=t.hideBuiltinFooter?(()=>{let H=t.hideBuiltinFooter===!0||t.hideBuiltinFooter==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(t.hideBuiltinFooter).split(",").map((q)=>q.trim()).filter(Boolean);globalThis.__acc_disabled_footer=H})():void 0,ie={'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 CLI option records a session footer override"
+assert_contains = '''globalThis.__acc_disabled_footer=H})():void 0,ie={sessionNoticesPoll:{pendingDeliveryUuids:[]},settings:lt()'''
+
+[[patches]]
+name = "statusline-footer-control-render-state-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "OPe", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let sdt=idt,SY=sdt!==void 0,'''
+value = '''let sdt=idt,__acc_hide_footer=sdt?.hideBuiltinFooter||sdt?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer"),SY=sdt!==void 0,'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 outer footer hide state is computed"
+assert_contains = '''__acc_hide_footer=sdt?.hideBuiltinFooter||sdt?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer")'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "OPe", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return ldt}'''
+value = '''return __acc_hide_footer?_Y:ldt}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 outer footer return is gated"
+assert_contains = '''return __acc_hide_footer?_Y:ldt}'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "amt", strings = ["Deeper reasoning requested for this turn", "effort-level"] }
+[patches.transform]
+op = "replace_substring"
+find = '''{addNotification:To,removeNotification:Qr}=wt();x(()=>{if(xu.length&&JY())To({key:"ultrathink-active",'''
+value = '''{addNotification:To,removeNotification:Qr}=wt(),__acc_hide_effort_all=M((E)=>E.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=M((E)=>E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");x(()=>{if(!__acc_hide_effort_all&&!__acc_hide_effort_item&&xu.length&&JY())To({key:"ultrathink-active",'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 effort notification is gated"
+assert_contains = '''__acc_hide_effort_all=M((E)=>E.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=M((E)=>E.settings.statusLine?.disabledFooter?.includes("effort_notification"))'''
+
+[[patches]]
+name = "statusline-footer-control-effort-level-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1982"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "amt", strings = ["Deeper reasoning requested for this turn", "effort-level"] }
+[patches.transform]
+op = "replace_substring"
+find = '''PT=lEe(mI,ef,Au);x(()=>{if(!PT){Qr("effort-level");return}'''
+value = '''PT=lEe(mI,ef,Au),__acc_hide_effort_level=M((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");x(()=>{if(!PT||__acc_hide_effort_level){Qr("effort-level");return}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 persistent effort notification is gated"
+assert_contains = '''if(!PT||__acc_hide_effort_level){Qr("effort-level");return}'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-context-2-1-246"
+rationale = """
+Pass the selected status-line settings into the 2.1.246 clipboard hint
+registry from its React hook boundary.
+
+The graph-era host is `ve`, the app selector is `et`, and the registry runner
+is `ge`. Passing the selected settings avoids calling a React selector from
+the registry's asynchronous effect.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "ve", strings = ["isTerminalFocused", "canPasteImages"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let{addNotification:i}=Ie(),r=be();ge(ut,{isTerminalFocused:e,canPasteImages:n,addNotification:i,clock:r})'''
+value = '''let{addNotification:i}=Ie(),r=be(),s=et((o)=>o.settings?.statusLine);ge(ut,{isTerminalFocused:e,canPasteImages:n,addNotification:i,clock:r,statusLine:s})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 clipboard hint host passes selected status-line settings"
+assert_contains = '''s=et((o)=>o.settings?.statusLine);ge(ut,{isTerminalFocused:e,canPasteImages:n,addNotification:i,clock:r,statusLine:s})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 clipboard hint tolerates settings-error AppState"
+assert_not_contains = '''s=et((o)=>o.settings.statusLine);ge(ut,{isTerminalFocused:e,canPasteImages:n,addNotification:i,clock:r,statusLine:s})'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = """
+Keep clipboard image availability visible to custom status lines while
+allowing the 2.1.246 built-in clipboard hint to be hidden.
+
+The graph-era registry probes availability via `Ce`, notifies under key `at`,
+debounces with `ct`, and throttles with `ht`. The companion host passes the
+selected status-line settings into the effect.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "clipboard-image-hint" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''deps:(e)=>[e.isTerminalFocused,e.canPasteImages,e.addNotification,e.clock],setup(){let e=null,n=0,i=null;return({isTerminalFocused:r,canPasteImages:s,addNotification:o,clock:t})=>{let l=e??r;if(e=r,!s||!r||l)return;return i?.(),i=t.setTimeout(async()=>{i=null;let a=Date.now();if(a-n<ht)return;if(await Ce())n=a,o({key:at,'''
+value = '''deps:(e)=>[e.isTerminalFocused,e.canPasteImages,e.addNotification,e.clock,e.statusLine],setup(){let e=null,n=0,i=null;return({isTerminalFocused:r,canPasteImages:s,addNotification:o,clock:t,statusLine:c})=>{let l=e??r;if(e=r,!s||!r||l)return;let m=c?.hideBuiltinFooter||c?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("footer");return i?.(),i=t.setTimeout(async()=>{i=null;let a=Date.now(),u=await Ce();globalThis.__acc_clipboard_image_available=u;if(a-n<ht)return;if(u)n=a,!m&&o({key:at,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 clipboard hint publishes statusline state"
+assert_contains = '''globalThis.__acc_clipboard_image_available=u'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 clipboard hint respects disabledFooter"
+assert_contains = '''c?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 clipboard hint receives settings from its host hook"
+assert_contains = '''clock:t,statusLine:c})=>'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "a6e", strings = ["session_name:", "display_name:", "fast_mode:"] }
+[patches.transform]
+op = "replace_substring"
+find = '''...Cle(v)&&{effort:{level:UI(v,y)}}'''
+value = '''effort_level:Cle(v)?UI(v,y):null,...Cle(v)&&{effort:{level:UI(v,y)}}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 statusline JSON exposes effort_level"
+assert_contains = '''effort_level:Cle(v)?UI(v,y):null'''
+
+[[patches]]
+name = "statusline-json-permission-mode-2-1-246"
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "a6e", strings = ["session_name:", "display_name:", "fast_mode:"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return{...jI(e,h),...N&&{session_name:N},'''
+value = '''return{...jI(e,h),permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"},...globalThis.__acc_rate_limit_warning&&{rate_limit_warning:{message:globalThis.__acc_rate_limit_warning}},...N&&{session_name:N},'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 statusline JSON includes footer state"
+assert_contains = '''permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''

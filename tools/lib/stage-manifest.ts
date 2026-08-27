@@ -12,6 +12,13 @@ type CanonicalStage = {
   mergePolicy: string
 }
 
+type DualGraphStage = {
+  mergePolicy: string
+  graphDir: string
+  dispatcher: string
+  platforms: string[]
+}
+
 type StagePlatform = {
   platform: string
   binaryUrl: string
@@ -29,6 +36,7 @@ export type StageManifest = {
   directPlatform?: string
   nativeTarball?: string
   canonical?: CanonicalStage
+  dualGraph?: DualGraphStage
   platforms?: StagePlatform[]
 }
 
@@ -42,6 +50,7 @@ export function parseStageManifest(value: unknown, path = "stage-manifest.json")
   const manifest = record(value, path)
   const channel = optionalString(manifest.channel, `${path}.channel`)
   const canonical = manifest.canonical === undefined ? undefined : parseCanonicalStage(manifest.canonical, path)
+  const dualGraph = manifest.dualGraph === undefined ? undefined : parseDualGraphStage(manifest.dualGraph, path)
   const platforms =
     manifest.platforms === undefined
       ? undefined
@@ -58,7 +67,20 @@ export function parseStageManifest(value: unknown, path = "stage-manifest.json")
     directPlatform: optionalString(manifest.directPlatform, `${path}.directPlatform`),
     nativeTarball: optionalString(manifest.nativeTarball, `${path}.nativeTarball`),
     canonical,
+    dualGraph,
     platforms,
+  }
+}
+
+function parseDualGraphStage(value: unknown, path: string): DualGraphStage {
+  const dualGraph = record(value, `${path}.dualGraph`)
+  return {
+    mergePolicy: string(dualGraph.mergePolicy, `${path}.dualGraph.mergePolicy`),
+    graphDir: string(dualGraph.graphDir, `${path}.dualGraph.graphDir`),
+    dispatcher: string(dualGraph.dispatcher, `${path}.dualGraph.dispatcher`),
+    platforms: array(dualGraph.platforms, `${path}.dualGraph.platforms`).map(
+      (platform, index) => string(platform, `${path}.dualGraph.platforms[${index}]`),
+    ),
   }
 }
 

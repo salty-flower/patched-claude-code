@@ -1572,7 +1572,7 @@ assert_contains = '''function m1f(){return!1}'''
 [[patches]]
 name = "require-explicit-assistant-response-otel-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Replace the v2.1.241 minified-symbol assistant-response OTel gate `fnp`.
 
@@ -1608,7 +1608,7 @@ assert_not_contains = '''function H5d(){return V.OTEL_LOG_ASSISTANT_RESPONSES===
 [[patches]]
 name = "disable-raw-api-body-otel-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Disable the v2.1.241 minified-symbol raw-body OTel gate `vKf`.
 
@@ -1640,3 +1640,59 @@ assert_not_contains = '''function vKf(){return SKf().mode!=="disabled"}'''
 kind = "static"
 name = "2.1.241 raw-body gate no longer carries 2.1.238 symbols"
 assert_not_contains = '''function m1f(){return!1}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-246"
+rationale = "Require explicit assistant-response OTel opt-in in the 2.1.246 module graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function _t(){return s.OTEL_LOG_ASSISTANT_RESPONSES??s.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function _t(){return s.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function _t(){return s.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+assert_not_contains = '''function _t(){return s.OTEL_LOG_ASSISTANT_RESPONSES??s.OTEL_LOG_USER_PROMPTS}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-246-linux"
+platforms = ["linux-x64"]
+rationale = "Disable raw API body OTel capture in the 2.1.246 module graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function k5n(){return w5n().mode!=="disabled"}'''
+replacement = '''function k5n(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function k5n(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+assert_not_contains = '''function k5n(){return w5n().mode!=="disabled"}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-246-darwin"
+rationale = "Disable raw API body OTel capture in the 2.1.246 Darwin module graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "literal"
+locator_pattern = '''function S5n(){return b5n().mode!=="disabled"}'''
+replacement = '''function S5n(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function S5n(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+assert_not_contains = '''function S5n(){return b5n().mode!=="disabled"}'''

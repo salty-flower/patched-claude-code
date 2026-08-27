@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from "bun:test"
+import { afterAll, afterEach, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
@@ -6,16 +6,24 @@ import { join } from "node:path"
 import { targetVersion } from "../lib/target"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
-const BUNDLE = join(ROOT, "staging", targetVersion(), "cli.patched.js")
+const tempDirs: string[] = []
+const RENDER_DIR = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-keychain-render-")))
+const GRAPH_TARGET = existsSync(join(ROOT, "staging", targetVersion(), "graph", "darwin-arm64", "cli.js"))
+const BUNDLE = await renderRunnableBundle({
+  root: ROOT,
+  version: targetVersion(),
+  outDir: RENDER_DIR,
+  patchFiles: ["explicit-macos-keychain.toml"],
+})
 // These tests exercise the rendered patched bundle. The bump lane runs the
 // tool-test step before render, so skip when the rendered bundle is absent;
 // CI and the release lane always render before tests.
 const RENDERED = existsSync(BUNDLE)
 const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
-const tempDirs: string[] = []
 
 function compareVersions(left: string, right: string): number {
   const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
@@ -188,6 +196,10 @@ type SecurityResult = {
 
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
+
+afterAll(() => {
+  rmSync(RENDER_DIR, { recursive: true, force: true })
 })
 
 function makeTempDir(prefix: string): string {
@@ -416,7 +428,10 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   30_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+// The injected white-box harness relies on bundle-wide lexical symbols. A
+// graph target deliberately keeps those private inside separate ESM modules;
+// its credential behavior is covered by the real plugin-eval and TUI tests.
+test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   "public Keychain selection outranks materialized mode for OAuth lookup",
   async () => {
     const home = makeTempDir("patched-cc-keychain-oauth-priority-")
@@ -460,7 +475,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   `rendered ${targetVersion()} OAuth saver refresh and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-saver-")
@@ -512,7 +527,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   `rendered ${targetVersion()} serializes concurrent secure-storage mutations across processes`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-atomic-")
@@ -549,7 +564,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   `rendered ${targetVersion()} SessionStore resume and plugin eval materialize only selected credentials`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialize-")
@@ -701,7 +716,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   90_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   `rendered ${targetVersion()} legacy API-key save lookup and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-legacy-")
@@ -765,7 +780,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   "materialized mode rejects default-Keychain legacy mutations and doctor probes",
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialized-closed-")
@@ -817,7 +832,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   `rendered ${targetVersion()} doctor probe never touches the default Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-doctor-")

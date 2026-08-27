@@ -2,10 +2,11 @@
 // Execute tests embedded in patches/*.toml against a rendered patched bundle.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
 import { createCommand, runCli } from "../lib/cli"
 import { runWithHeavyLock } from "../lib/heavy-lock"
+import { loadGraphBundle } from "../lib/graph-bundle"
 import { loadPatchEntriesFromToml } from "../lib/patch-files"
 import {
   type CliPatchTest,
@@ -101,6 +102,16 @@ function inferVersionFromBundle(bundle: string): string | undefined {
   return bundle.match(/(?:^|\/)staging\/([^/]+)\/cli\.patched\.js$/)?.[1]
 }
 
+function renderedBundleText(bundle: string): string {
+  const entrypoint = readFileSync(bundle, "utf8")
+  const graphRoot = join(dirname(bundle), "graph.patched")
+  if (!existsSync(join(graphRoot, "darwin-arm64", "cli.js"))) return entrypoint
+  const graphTexts = ["darwin-arm64", "linux-x64"].flatMap((platform) =>
+    loadGraphBundle(join(graphRoot, platform), platform).files.map((file) => file.text),
+  )
+  return [entrypoint, ...graphTexts].join("\n")
+}
+
 function patchTestsForTarget(rawToml: string, version?: string): PatchTest[] {
   if (!version) return loadPatchTestsFromToml(rawToml)
   const entries = loadPatchEntriesFromToml(rawToml, "<inline>")
@@ -126,7 +137,7 @@ function main(): number {
     return 2
   }
 
-  const bundleText = readFileSync(args.bundle, "utf8")
+  const bundleText = renderedBundleText(args.bundle)
   const targetVersion = args.version ?? inferVersionFromBundle(args.bundle)
   const patchFiles = args.patches.length > 0 ? args.patches : defaultPatchFiles()
   let allOk = true

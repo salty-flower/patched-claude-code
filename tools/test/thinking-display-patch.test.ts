@@ -1,35 +1,25 @@
 import { afterAll, beforeAll, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { applyPatchEntries } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-thinking-"))
-const patchedBundle = join(tempDir, "cli.patched.js")
 let patched = ""
 
-beforeAll(() => {
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-  renderThinkingPatch(TARGET_BUNDLE, patchedBundle)
-  patched = readFileSync(patchedBundle, "utf8")
+beforeAll(async () => {
+  const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["thinking-display.toml"] })
+  const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
+  patched = readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
 }, 120000)
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
 })
-
-function renderThinkingPatch(input: string, output: string): void {
-  const body = readFileSync(input, "utf8")
-  const patches = loadPatchEntriesFromFile(join(ROOT, "patches", "thinking-display.toml"))
-
-  writeFileSync(output, applyPatchEntries(body, patches, TARGET_VERSION).source)
-}
 
 function compareVersions(left: string, right: string): number {
   const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
@@ -116,6 +106,13 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
     expect(patched).toContain('t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))')
     expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:XUl(w)})')
     expect(patched).not.toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:dIl(w)})')
+    return
+  }
+
+  if (TARGET_VERSION === "2.1.246") {
+    expect(patched).toContain('t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:Q5s(w)})')
+    expect(patched).not.toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:XUl(w)})')
     return
   }
 
@@ -279,6 +276,25 @@ test("main-screen thinking display uses the same live state as transcript render
     return
   }
 
+  if (TARGET_VERSION === "2.1.246") {
+    expect(patched).toContain("onStreamingThinking:this.stream.setStreamingThinking")
+    expect(patched).toContain(
+      "streamingToolUses:Jn,streamingThinking:__acc_streamingThinking,userInputOnProcessing:Pr,toolProgress:pe",
+    )
+    expect(patched).toContain("streamingThinking:Ti.isMain?__acc_streamingThinking:null")
+    expect(patched).toContain(
+      "streamingPreview:C,streamingThinking:__acc_streamingThinking,isBriefOnly:U=!1",
+    )
+    expect(patched).toContain(
+      "__acc_streamingThinking?.thinking&&r(p,{marginTop:1,children:r(c,{dimColor:!0,children:__acc_streamingThinking.thinking})})",
+    )
+    expect(patched).not.toContain("__acc_streamingThinking?.thinking&&o(P,{marginTop:1")
+    expect(patched).not.toContain(
+      "children:o(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+    )
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.233")) {
     const streamingThinkingState = getStreamingThinkingState(patched)
     expect(streamingThinkingState).toBe("hl")
@@ -357,6 +373,14 @@ test("live thinking rendering is not suppressed by brief mode", () => {
     expect(patched).not.toContain('if(!Vqt&&!kge){return null}let B6;if(fGt[38]')
     expect(patched).toContain("let BWM=!0;")
     expect(patched).not.toContain("let BWM=OKh||DKh;")
+    return
+  }
+
+  if (TARGET_VERSION === "2.1.246") {
+    expect(patched).toContain('if(!1){return null}let eo;if(mi[42]')
+    expect(patched).not.toContain('if(!li&&!et){return null}let eo;if(mi[42]')
+    expect(patched).toContain("let Nce=!0;")
+    expect(patched).not.toContain("let Nce=FO||$O;")
     return
   }
 
@@ -517,6 +541,12 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
   if (TARGET_VERSION === "2.1.241") {
     expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}=')
     expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
+    return
+  }
+
+  if (TARGET_VERSION === "2.1.246") {
+    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:d}=')
+    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:d}=')
     return
   }
 

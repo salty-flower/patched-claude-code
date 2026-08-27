@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 // Prepare a target bump's prompt identity state and auto-finalize exact-only transitions.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
-import { inspectPromptIdentityObservations } from "../lib/prompt-catalog"
+import { inspectPromptIdentityObservationsFromPath } from "../lib/prompt-catalog"
 import { preparePromptIdentityBump } from "../lib/prompt-identity-bump"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -39,7 +39,7 @@ function main(): number {
   if (!existsSync(patched)) throw new Error(`patched bundle missing: ${patched}`)
   const draftFile = args.draftFile ?? join(ROOT, "dist", `prompt-identities-${version}.draft.json`)
   const resultFile = args.resultFile ?? join(ROOT, "dist", `prompt-identity-bump-${version}.json`)
-  const observations = inspectPromptIdentityObservations(readFileSync(patched, "utf8"), version)
+  const observations = inspectPromptIdentityObservationsFromPath(patched, version)
   const result = preparePromptIdentityBump({
     identityRoot: args.identityRoot,
     upstreamVersion: version,

@@ -49,6 +49,13 @@ function hasCurrentStage(args: Args): boolean {
   return stageManifestMatchesArgs(args, manifest)
 }
 
+const LEGACY_LAYOUT_FALLBACK_EXIT = 3
+
+function isLegacyLayoutFallback(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error)
+  return message.includes(`command failed (${LEGACY_LAYOUT_FALLBACK_EXIT}):`)
+}
+
 export function stageManifestMatchesArgs(args: Args, manifest: StageManifest): boolean {
   if (args.source === "npm") {
     return (manifest.channel ?? "npm") === "npm" && (manifest.platformPackage ?? "") === args.platformPackage
@@ -56,7 +63,11 @@ export function stageManifestMatchesArgs(args: Args, manifest: StageManifest): b
   if (args.source === "direct") {
     return manifest.channel === "direct" && (manifest.directPlatform ?? "") === args.platform
   }
-  return manifest.channel === "canonical" && manifest.basePlatform === args.canonicalBase && manifest.canonical !== undefined
+  return (
+    manifest.channel === "canonical" &&
+    manifest.basePlatform === args.canonicalBase &&
+    (manifest.canonical !== undefined || manifest.dualGraph !== undefined)
+  )
 }
 
 function main(): number {
@@ -70,23 +81,42 @@ function main(): number {
   }
 
   if (args.source === "canonical") {
-    runChecked(
-      [
-        "bun",
-        "run",
-        "tools/platform/merge-platform-bundles.ts",
-        "--version",
-        version,
-        "--platform",
-        "darwin-arm64",
-        "--platform",
-        "linux-x64",
-        "--base",
-        args.canonicalBase,
-        "--generalize-unknown-string-literals",
-      ],
-      { cwd: ROOT },
-    )
+    try {
+      runChecked(
+        [
+          "bun",
+          "run",
+          "tools/platform/stage-dual-graph.ts",
+          "--version",
+          version,
+          "--platform",
+          "darwin-arm64",
+          "--platform",
+          "linux-x64",
+        ],
+        { cwd: ROOT },
+      )
+    } catch (error) {
+      if (!isLegacyLayoutFallback(error)) throw error
+      console.error("upstream layout is a single self-contained entrypoint; using legacy canonical platform merge")
+      runChecked(
+        [
+          "bun",
+          "run",
+          "tools/platform/merge-platform-bundles.ts",
+          "--version",
+          version,
+          "--platform",
+          "darwin-arm64",
+          "--platform",
+          "linux-x64",
+          "--base",
+          args.canonicalBase,
+          "--generalize-unknown-string-literals",
+        ],
+        { cwd: ROOT },
+      )
+    }
   } else if (args.source === "direct") {
     runChecked(
       ["bun", "run", "tools/patch/stage-claude-code.ts", version, "--source", "direct", "--platform", args.platform],

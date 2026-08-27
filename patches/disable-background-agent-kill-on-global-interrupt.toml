@@ -576,7 +576,7 @@ assert_contains = '''q({gesture:"ctrl_c",suppressBackgroundAgentKill:!0})'''
 [[patches]]
 name = "foreground-agent-handoff-before-cancel-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Hand synchronous foreground agents off to the background before Escape aborts
 their shared parent request. Without this transition, concurrent Agent tool
@@ -616,7 +616,7 @@ assert_not_contains = '''if(i!==void 0&&!i.aborted||s)return R.current=Date.now(
 [[patches]]
 name = "global-interrupt-cancel-only-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.246"
 rationale = """
 Keep the global interrupt on the cancel-only path so it does not stop
 unrelated background agents. The 2.1.241 bundle still routes the global
@@ -642,8 +642,46 @@ assert_contains = '''if(!j({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))re
 
 [[patches.tests]]
 kind = "static"
-name = "2.1.241 global interrupt no longer uses the default kill-enabled mode"
-assert_not_contains = '''if(!j({gesture:"ctrl_c"}))return!1},[J,m,y,_,h,b,K,ne,L,U,j]'''
+name = "2.1.241 variant does not carry 2.1.238 interrupt symbols"
+assert_not_contains = '''if(!q({gesture:"ctrl_c"}))return!1},[re,m,y,_,h,S,W,te,M,B,q]'''
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-246"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+rationale = "Hand 2.1.246 foreground local agents to the background before Escape aborts their shared parent request."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = '''if(s!==void 0&&!s.aborted||a)return A.current=Date.now(),q("tengu_cancel",ie),t(),!0;'''
+replacement = '''if(s!==void 0&&!s.aborted||a){let Ze=!1;for(let[ve,ee]of Object.entries(y.getState().tasks))if(ee.type==="local_agent"&&!ee.isBackgrounded)Ze=Ki(ee,y,{session:v,source:"user",storageV5:_})||Ze;return A.current=Date.now(),q("tengu_cancel",ie),Ze?setTimeout(()=>t(),0):t(),!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Escape hands foreground agents off before parent cancellation"
+assert_contains = '''Ze=Ki(ee,y,{session:v,source:"user",storageV5:_})||Ze;return A.current=Date.now(),q("tengu_cancel",ie),Ze?setTimeout(()=>t(),0):t(),!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Escape no longer aborts shared foreground agents immediately"
+assert_not_contains = '''if(s!==void 0&&!s.aborted||a)return A.current=Date.now(),q("tengu_cancel",ie),t(),!0;'''
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-246"
+rationale = "Keep the 2.1.246 global interrupt on the cancel-only path."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''if(!Ee({gesture:"ctrl_c"}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''
+replacement = '''if(!Ee({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''
+
+[[patches.tests]]
+kind = "static"
+assert_contains = '''if(!Ee({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''
+
+[[patches.tests]]
+kind = "static"
+assert_not_contains = '''if(!Ee({gesture:"ctrl_c"}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''
 
 [[patches.tests]]
 kind = "static"

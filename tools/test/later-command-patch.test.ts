@@ -1,15 +1,15 @@
 import { afterAll, beforeAll, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { gte, lt } from "semver"
-import { applyPatchEntries, patchApplies } from "../lib/apply-patches"
+import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
+import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const TARGET_BUNDLE = join(ROOT, "staging", TARGET_VERSION, "cli.js")
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
 const targetUses238LaterSymbols = gte(TARGET_VERSION, "2.1.238") && lt(TARGET_VERSION, "2.2.0")
@@ -19,7 +19,8 @@ const targetUses229LaterSymbols = gte(TARGET_VERSION, "2.1.229") && lt(TARGET_VE
 const targetUses228LaterSymbols = gte(TARGET_VERSION, "2.1.228") && lt(TARGET_VERSION, "2.1.229")
 const targetUses227LaterSymbols = gte(TARGET_VERSION, "2.1.227") && lt(TARGET_VERSION, "2.1.228")
 const targetUses241ExactFireSymbols = gte(TARGET_VERSION, "2.1.241") && lt(TARGET_VERSION, "2.2.0")
-const targetUses241SubmitSymbols = targetUses241ExactFireSymbols
+const targetUses246LaterSymbols = gte(TARGET_VERSION, "2.1.246") && lt(TARGET_VERSION, "2.2.0")
+const targetUses241SubmitSymbols = targetUses241ExactFireSymbols && !targetUses246LaterSymbols
 const targetUses238ExactFireSymbols = targetUses238LaterSymbols && !targetUses241ExactFireSymbols
 const targetUses234ExactFireSymbols = targetUses234LaterSymbols
 const targetUses233ExactFireSymbols = targetUses233LaterSymbols
@@ -58,6 +59,7 @@ const targetUses201LaterSymbols = gte(TARGET_VERSION, "2.1.201") && lt(TARGET_VE
 const targetIs201 = TARGET_VERSION === "2.1.201"
 
 type LaterTask = {
+  agentId?: string
   id: string
   cron: string
   prompt: string
@@ -89,35 +91,29 @@ type LaterHookResult = {
 }
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-later-command-"))
-const patchedBundle = join(tempDir, "cli.patched.js")
 let applied = 0
 let patched = ""
 
-beforeAll(() => {
+beforeAll(async () => {
   if (!testLaterCommand) return
-  expect(existsSync(TARGET_BUNDLE)).toBe(true)
-  applied = renderLaterCommandPatch(TARGET_BUNDLE, patchedBundle)
-  patched = readFileSync(patchedBundle, "utf8")
-}, 120000)
+  const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["later-command.toml"] })
+  const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
+  patched = readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
+  applied = laterPatches.filter((patch) => patchApplies(patch, TARGET_VERSION)).length
+}, 240000)
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
 })
-
-function renderLaterCommandPatch(input: string, output: string): number {
-  const body = readFileSync(input, "utf8")
-  const result = applyPatchEntries(body, laterPatches, TARGET_VERSION)
-
-  writeFileSync(output, result.source)
-  return result.applied
-}
 
 function expectContainsOneOf(body: string, snippets: string[]): void {
   expect(snippets.some((snippet) => body.includes(snippet))).toBe(true)
 }
 
 function getAbsoluteSubmitCode(): string {
-  const suffix = targetUses241SubmitSymbols
+  const suffix = targetUses246LaterSymbols
+    ? "2-1-246"
+    : targetUses241SubmitSymbols
     ? "2-1-241"
     : targetUses238LaterSymbols
     ? "2-1-238"
@@ -183,6 +179,82 @@ async function run208LaterHook(
   seedTasks: LaterTask[] = [],
   pastedContents: Record<number, LaterPastedContent> = {},
 ): Promise<LaterHookResult> {
+  if (targetUses246LaterSymbols) {
+    const tasks = [...seedTasks]
+    const notifications: string[] = []
+    const result: LaterHookResult = {
+      cleared: false,
+      cursorOffset: null,
+      inputValue: null,
+      notifications,
+      pastedContentsCleared: false,
+      resetHistory: false,
+      scheduledTasksEnabled: false,
+      tasks,
+    }
+    let taskCounter = 0
+    const submit = new Function(
+      "P",
+      "U",
+      "Wye",
+      "Aa",
+      "O",
+      "e",
+      "o",
+      "Fde",
+      "__acc_schedule_later",
+      "__acc_team_context",
+      "__acc_enable_later",
+      "r",
+      "v",
+      "s",
+      `"use strict";return async()=>{${getAbsoluteSubmitCode()}}`,
+    )(
+      input,
+      pastedContents,
+      (value: string, contents: Record<number, LaterPastedContent>) => ({
+        expanded: expandPastedTextRefs(value, contents),
+        stripped: value,
+        removed: [],
+      }),
+      parseReferences,
+      "prompt",
+      {
+        fromKeybinding: false,
+        addNotification: ({ text }: { text: string }) => notifications.push(text),
+      },
+      { isRemoteMode: false },
+      () => tasks,
+      async (cron: string, prompt: string, _recurring: boolean, _durable: boolean, agentId?: string) => {
+        const task: LaterTask = {
+          id: `later-${++taskCounter}`,
+          cron,
+          prompt,
+          createdAt: Date.now(),
+          recurring: false,
+          ...(agentId === undefined ? {} : { agentId }),
+        }
+        tasks.push(task)
+        return task.id
+      },
+      () => undefined,
+      (enabled: boolean) => {
+        result.scheduledTasksEnabled = enabled
+      },
+      (value: string) => {
+        result.inputValue = value
+      },
+      (offset: number) => {
+        result.cursorOffset = offset
+      },
+      (contents: Record<string, unknown>) => {
+        result.pastedContentsCleared = Object.keys(contents).length === 0
+      },
+    ) as () => Promise<void>
+    await submit()
+    return result
+  }
+
   if (targetUses238LaterSymbols) {
     const tasks = [...seedTasks]
     const notifications: string[] = []
@@ -537,7 +609,15 @@ async function run201LaterHook(patched: string, input: string, seedTasks: LaterT
 test.skipIf(!testLaterCommand)(
   "/later schedules a session-only one-shot cron before prompt queueing",
   () => {
-    expect(applied).toBe(targetUses238LaterSymbols || targetUses234LaterSymbols ? 6 : targetUsesAbsoluteLater ? 3 : 2)
+    expect(applied).toBe(
+      targetUses246LaterSymbols
+        ? 12
+        : targetUses238LaterSymbols || targetUses234LaterSymbols
+          ? 6
+          : targetUsesAbsoluteLater
+            ? 3
+            : 2,
+    )
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
     expectContainsOneOf(patched, [
       "await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)",
@@ -567,6 +647,7 @@ test.skipIf(!testLaterCommand)(
       "sQe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "AZe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "aot({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
+      "__id=await __acc_schedule_later(__cron,__prompt,!1,!1,__acc_team_context()?.agentId),__task=Fde().find",
     ])
     expectContainsOneOf(patched, [
       "if(__task)__task.later=!0",
@@ -601,6 +682,7 @@ test.skipIf(!testLaterCommand)(
       "W2e(!0)",
       "bje(!0)",
       "Q4e(!0)",
+      "__acc_enable_later(!0)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})")
@@ -630,6 +712,19 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses246LaterSymbols) {
+      expect(patched).toContain("__task.laterAt=__when.getTime()")
+      expect(patched).toContain("__prompt=Wye(__rawPrompt,U).expanded")
+      expect(patched).toContain("let __refs=new Set(Aa(__rawPrompt).map((__r)=>__r.id))")
+      expect(patched).toContain('r(""),v(0),s({})')
+      expect(patched).toContain(
+        "__id=await __acc_schedule_later(__cron,__prompt,!1,!1,__acc_team_context()?.agentId),__task=Fde().find",
+      )
+      expect(patched).toContain("__acc_enable_later(!0)")
+      expect(patched).not.toContain("__prompt=jMp(__rawPrompt,F).expanded")
+      expect(patched).not.toContain("__id=await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)")
+      expect(getAbsoluteSubmitCode()).not.toContain("agentId:ho()")
+      expect(getAbsoluteSubmitCode()).not.toContain("Ze.register(__task)")
     } else if (targetUses241ExactFireSymbols) {
       expect(patched).toContain("__task.laterAt=__when.getTime()")
       expect(patched).toContain("__prompt=jMp(__rawPrompt,F).expanded")
@@ -789,6 +884,7 @@ test.skipIf(!testLaterCommand)(
       "fH().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "mN().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "HN().filter((__t)=>__t.later===!0&&!__t.recurring)",
+      "Fde().filter((__t)=>__t.later===!0&&!__t.recurring)",
     ])
     if (targetUses201LaterSymbols) {
       expect(patched).toContain("uw().filter((__t)=>__t.later===!0&&!__t.recurring)")
@@ -810,6 +906,10 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("E7t(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("gVt(__t.cron,__t.createdAt)")
+    } else if (targetUses246LaterSymbols) {
+      expect(patched).toContain("Fde().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("QN().filter((__t)=>__t.later===!0&&!__t.recurring)")
+      expect(patched).not.toContain("Object.values(Ze.all())")
     } else if (targetUses241SubmitSymbols) {
       expect(patched).toContain("QN().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).not.toContain("HN().filter((__t)=>__t.later===!0&&!__t.recurring)")

@@ -52,7 +52,13 @@ function injectContextWindowHarness(source: string): string {
 }
 
 test("model-specific context windows follow the active model", async () => {
-  const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(tempDir, "rendered"), patchFiles: ["per-model-context-window.toml"] })
+  const entrypoint = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: join(tempDir, "rendered"),
+    patchFiles: ["per-model-context-window.toml"],
+  })
+  let harnessEntrypoint = entrypoint
   if (gte(TARGET_VERSION, "2.1.246")) {
     const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
     const graphFile = readdirSync(graphDir)
@@ -61,12 +67,13 @@ test("model-specific context windows follow the active model", async () => {
       .find((file) => /__acc_model_context_key/.test(readFileSync(file, "utf8")))
     if (!graphFile) throw new Error("could not locate patched context-window graph module")
     writeFileSync(graphFile, injectContextWindowHarness(readFileSync(graphFile, "utf8")))
+    harnessEntrypoint = graphFile
   } else {
     writeFileSync(entrypoint, injectContextWindowHarness(readFileSync(entrypoint, "utf8")))
   }
 
   const proc = Bun.spawn({
-    cmd: [process.execPath, entrypoint],
+    cmd: [process.execPath, harnessEntrypoint],
     env: {
       ...process.env,
       CLAUDE_CODE_MAX_CONTEXT_TOKENS_alpha_model: "131072",

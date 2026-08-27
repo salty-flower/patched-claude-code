@@ -10,6 +10,8 @@ const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
 const MODEL = "claude-sonnet-4-6"
 const SANITIZED_MODEL = MODEL.replace(/[^a-zA-Z0-9]/g, "_")
+const ANTHROPIC_CLIENT_PATTERN =
+  /([A-Za-z_$][\w$]*)=class \1 extends [A-Za-z_$][\w$]*\{constructor\(\)\{super\(\.\.\.arguments\);this\.completions=[\s\S]*?this\.messages=new [A-Za-z_$][\w$]*\(this\)/
 
 const tempDirs: string[] = []
 const stubs: ClaudeApiStub[] = []
@@ -30,9 +32,7 @@ function makeTempDir(prefix: string): string {
 }
 
 function findBundledAnthropicClientSymbols(source: string): { init: string; client: string } {
-  const classMatch = source.match(
-    /([A-Za-z_$][\w$]*)=class \1 extends [A-Za-z_$][\w$]*\{constructor\(\)\{super\(\.\.\.arguments\);this\.completions=[\s\S]*?this\.messages=new [A-Za-z_$][\w$]*\(this\)/,
-  )
+  const classMatch = source.match(ANTHROPIC_CLIENT_PATTERN)
   if (!classMatch?.[1] || classMatch.index === undefined) {
     throw new Error("could not locate bundled Anthropic client symbols")
   }
@@ -79,7 +79,7 @@ function renderPerModelHarness(entrypoint: string): string {
   const graphFile = readdirSync(graphDir)
     .filter((file) => file.endsWith(".js"))
     .map((file) => join(graphDir, file))
-    .find((file) => /(?:messages=new [A-Za-z_$][\w$]*\(this\))/.test(readFileSync(file, "utf8")))
+    .find((file) => ANTHROPIC_CLIENT_PATTERN.test(readFileSync(file, "utf8")))
   if (!graphFile) throw new Error("could not locate Anthropic client graph")
   const source = readFileSync(graphFile, "utf8")
   writeFileSync(graphFile, injectSdkHarness(source))

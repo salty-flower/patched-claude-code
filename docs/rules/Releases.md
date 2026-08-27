@@ -106,10 +106,16 @@ succeeds. Promotion MUST run `just release-source <version> patch.1`, publish
 the generated Nix source tag, and update `refs/heads/claude-code-latest` to the
 same minimal source commit as the canonical source tag.
 
-Canonical staging MUST write
-`staging/<version>/canonical/platform-merge-report.json` with zero
-`unclassifiedDrift` and zero `acceptedDrift` entries. Unknown literal pairs and
-structural islands block promotion until merged by a deterministic transform.
+Canonical staging MUST produce one audited layout:
+
+- **Dual graph**: `staging/<version>/graph-manifest.json` with exactly two
+  non-empty platform graphs under `graph/`.
+- **Legacy merged bundle**:
+  `staging/<version>/canonical/platform-merge-report.json` with zero
+  `unclassifiedDrift`, zero `acceptedDrift`, and zero structural parse errors.
+
+Unknown literal pairs and structural islands in the legacy layout block
+promotion until merged by a deterministic transform.
 
 ## Private Repo Boundary
 

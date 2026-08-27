@@ -48,6 +48,15 @@ test("auto-release reuses rendered bundle across release checks", () => {
   expect(workflow).toContain("dist/prompt-review.md")
 })
 
+test("auto-release audits both canonical stage layouts before promotion", () => {
+  const checkStep = workflowStep("Check canonical stage before promotion")
+
+  expect(checkStep).toContain(".dualGraph != null")
+  expect(checkStep).toContain('mergePolicy == "canonical-dual-graph-v1"')
+  expect(checkStep).toContain("$stage/graph-manifest.json")
+  expect(checkStep).toContain("$stage/canonical/platform-merge-report.json")
+})
+
 test("auto-release commits only exact-only identity transitions to a bot PR", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "auto-release.yml"), "utf8")
   const prepareStep = workflowStep("Prepare prompt identity ledger")

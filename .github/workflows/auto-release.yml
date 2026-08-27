@@ -181,12 +181,22 @@ jobs:
           set -euo pipefail
           just _package-rendered "${{ steps.detect.outputs.version }}" "patch.1"
 
-      - name: Check canonical platform merge before promotion
+      - name: Check canonical stage before promotion
         if: steps.detect.outputs.action == 'promote' && steps.identity.outputs.status == 'ready-existing'
         run: |
           set -euo pipefail
-          jq -e '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
-            "staging/${{ steps.detect.outputs.version }}/canonical/platform-merge-report.json"
+          stage="staging/${{ steps.detect.outputs.version }}"
+          if jq -e '.dualGraph != null' "$stage/stage-manifest.json" >/dev/null; then
+            jq -e \
+              '.schema == 1 and .mergePolicy == "canonical-dual-graph-v1" and
+               (.platforms | length == 2) and
+               ([.platforms[] | (.files | length) > 0] | all)' \
+              "$stage/graph-manifest.json"
+          else
+            jq -e \
+              '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
+              "$stage/canonical/platform-merge-report.json"
+          fi
 
       - name: Create and push Nix source refs
         if: steps.detect.outputs.action == 'promote' && steps.identity.outputs.status == 'ready-existing'

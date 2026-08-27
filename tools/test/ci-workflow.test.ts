@@ -49,6 +49,7 @@ test("ci runs release audit through one declarative just target", () => {
 
 test("ci reuses the canonical stage in the release audit", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
+  const checkStep = workflowStep("Check canonical stage")
   const uploadStep = workflowStep("Upload canonical stage")
   const reuseStep = workflowStep("Reuse canonical stage")
 
@@ -56,8 +57,14 @@ test("ci reuses the canonical stage in the release audit", () => {
   expect(uploadStep).toContain("canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}")
   expect(uploadStep).toContain("staging/${{ env.TARGET_VERSION }}/cli.js")
   expect(uploadStep).toContain("staging/${{ env.TARGET_VERSION }}/stage-manifest.json")
+  expect(uploadStep).toContain("staging/${{ env.TARGET_VERSION }}/graph-manifest.json")
+  expect(uploadStep).toContain("staging/${{ env.TARGET_VERSION }}/graph/")
   expect(uploadStep).toContain("staging/${{ env.TARGET_VERSION }}/canonical/cli.js")
   expect(uploadStep).toContain("staging/${{ env.TARGET_VERSION }}/canonical/platform-merge-report.json")
+  expect(checkStep).toContain(".dualGraph != null")
+  expect(checkStep).toContain('mergePolicy == "canonical-dual-graph-v1"')
+  expect(checkStep).toContain("$stage/graph-manifest.json")
+  expect(checkStep).toContain("$stage/canonical/platform-merge-report.json")
   expect(reuseStep).toContain("actions/download-artifact@v6")
   expect(reuseStep).toContain("canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}")
   expect(reuseStep).toContain("path: staging/${{ env.TARGET_VERSION }}")

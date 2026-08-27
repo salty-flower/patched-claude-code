@@ -7,6 +7,7 @@
 
 import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { patchApplies } from "../lib/apply-patches"
 import { runWithHeavyLock } from "../lib/heavy-lock"
 import {
   applyPatchEntriesToGraphBundle,
@@ -21,6 +22,9 @@ import { loadPatchEntriesFromDirectory } from "../lib/patch-files"
 import { runChecked } from "../lib/process"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const RENDER_PLATFORM = process.env.PCC_RENDER_PLATFORM
+const RENDER_PATCH_INDICES = process.env.PCC_RENDER_PATCH_INDICES
+const PATCH_BATCH_SIZE = 8
 
 type Args = {
   version?: string
@@ -47,6 +51,24 @@ export function parseArgs(argv: string[]): Args {
   }
 }
 
+function renderGraphBatch(version: string, platform: string, patchIndices: number[]): number {
+  const selectedIndices = new Set(patchIndices)
+  const patches = loadPatchEntriesFromDirectory(ROOT).filter((_, index) => selectedIndices.has(index))
+  const patchedRoot = stagedPatchedGraphRoot(ROOT, version)
+  const outDir = join(patchedRoot, platform)
+  const bundle = loadGraphBundle(outDir, platform)
+  const outcome = applyPatchEntriesToGraphBundle(bundle, patches, version)
+  for (const [path, text] of outcome.texts) {
+    const target = join(outDir, path)
+    mkdirSync(dirname(target), { recursive: true })
+    writeFileSync(target, text)
+  }
+  console.error(
+    `rendered ${platform} patch batch (${outcome.applied}/${patches.length} patch entries applied)`,
+  )
+  return 0
+}
+
 function renderDualGraph(version: string): number {
   const patches = loadPatchEntriesFromDirectory(ROOT)
   console.error(`loaded ${patches.length} patch entries from patches/`)
@@ -55,28 +77,48 @@ function renderDualGraph(version: string): number {
   if (existsSync(patchedRoot)) rmSync(patchedRoot, { recursive: true, force: true })
   mkdirSync(patchedRoot, { recursive: true })
 
-  let totalApplied = 0
   for (const platform of ["darwin-arm64", "linux-x64"]) {
     const stagedPlatformDir = join(graphRoot, platform)
     if (!existsSync(stagedPlatformDir)) continue
-    const bundle = loadGraphBundle(stagedPlatformDir, platform)
-    const outcome = applyPatchEntriesToGraphBundle(bundle, patches, version)
-    totalApplied += outcome.applied
-    const outDir = join(patchedRoot, platform)
-    cpSync(stagedPlatformDir, outDir, { recursive: true })
-    for (const [path, text] of outcome.texts) {
-      const target = join(outDir, path)
-      mkdirSync(dirname(target), { recursive: true })
-      writeFileSync(target, text)
-    }
-    console.error(
-      `rendered ${platform} graph -> graph.patched/${platform} (${outcome.applied}/${patches.length} patch entries applied)`,
+    cpSync(stagedPlatformDir, join(patchedRoot, platform), { recursive: true })
+    const applicableIndices = patches.flatMap((patch, index) =>
+      patchApplies(patch, version) && (!patch.platforms || patch.platforms.includes(platform)) ? [index] : [],
     )
+    const units: number[][] = []
+    for (const index of applicableIndices) {
+      if (patches[index].locator_kind === "ast_transform" && units.at(-1)?.every(
+        (unitIndex) => patches[unitIndex].locator_kind === "ast_transform",
+      )) {
+        units.at(-1)!.push(index)
+      } else {
+        units.push([index])
+      }
+    }
+    const batches: number[][] = []
+    for (const unit of units) {
+      const batch = batches.at(-1)
+      if (!batch || batch.length + unit.length > PATCH_BATCH_SIZE) batches.push([...unit])
+      else batch.push(...unit)
+    }
+    for (const batch of batches) {
+      const result = Bun.spawnSync([process.execPath, import.meta.path, version, "--skip-verify"], {
+        cwd: ROOT,
+        env: {
+          ...process.env,
+          PCC_RENDER_PLATFORM: platform,
+          PCC_RENDER_PATCH_INDICES: JSON.stringify(batch),
+        },
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+      })
+      if (result.exitCode !== 0) return result.exitCode
+    }
+    console.error(`rendered ${platform} graph -> graph.patched/${platform}`)
   }
 
   writeFileSync(join(ROOT, "staging", version, "cli.patched.js"), dispatcherSource("rendered"))
   console.error(`rendered patched dispatcher -> staging/${version}/cli.patched.js`)
-  void totalApplied
   return 0
 }
 
@@ -92,6 +134,9 @@ function main(): number {
   if (!args.input && !args.output && isDualGraphStaged(ROOT, args.version)) {
     if (!args.skipVerify) {
       runChecked(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", join(ROOT, "staging", args.version, "cli.js")], { cwd: ROOT })
+    }
+    if (RENDER_PLATFORM && RENDER_PATCH_INDICES) {
+      return renderGraphBatch(args.version, RENDER_PLATFORM, JSON.parse(RENDER_PATCH_INDICES) as number[])
     }
     return renderDualGraph(args.version)
   }

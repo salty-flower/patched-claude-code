@@ -327,6 +327,14 @@ jobs:
           name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
           path: staging/${{ env.TARGET_VERSION }}
 
+      - name: Configure audit swap
+        run: |
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
       - name: Fetch previous prompt catalog source tag
         shell: bash
         run: |

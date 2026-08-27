@@ -40,6 +40,8 @@ type LocatorResult = { ok: boolean; msg: string; matches: number }
 type PatchRecord = { file: string; patches: Patch[]; fileTests: unknown[] }
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+const VERIFY_PLATFORM = process.env.PCC_VERIFY_PLATFORM
+const PATCH_FILE_BATCH_SIZE = 4
 
 export function parseArgs(argv: string[]): { patches: string[]; target?: string; quietSkips?: boolean } {
   const program = createCommand("verify-patches")
@@ -93,7 +95,10 @@ function viewsForTarget(target: string, targetBodies: Map<string, string>): Targ
   const version = inferTargetVersion(target)
   let views: TargetView[]
   if (version && isDualGraphStaged(ROOT, version)) {
-    views = stagedGraphPlatforms(ROOT, version).map((platform) => {
+    const platforms = stagedGraphPlatforms(ROOT, version).filter(
+      (platform) => !VERIFY_PLATFORM || platform === VERIFY_PLATFORM,
+    )
+    views = platforms.map((platform) => {
       const bundle = loadGraphBundle(join(stagedGraphRoot(ROOT, version), platform), platform)
       return { key: `${target}::${platform}`, label: `${version} graph/${platform}`, platform, bundle }
     })
@@ -267,6 +272,28 @@ function verifyRationaleRef(p: Patch): { ok: boolean; msg: string } {
 
 function main(): number {
   const { patches: files, target, quietSkips } = parseArgs(process.argv.slice(2))
+
+  const targetVersion = target ? inferTargetVersion(target) : undefined
+  if (!VERIFY_PLATFORM && target && targetVersion && isDualGraphStaged(ROOT, targetVersion)) {
+    let allOk = true
+    for (const platform of stagedGraphPlatforms(ROOT, targetVersion)) {
+      for (let start = 0; start < files.length; start += PATCH_FILE_BATCH_SIZE) {
+        const batch = files.slice(start, start + PATCH_FILE_BATCH_SIZE)
+        console.log(`verifying ${targetVersion} graph/${platform} patch files ${start + 1}-${start + batch.length}`)
+        const args = [process.execPath, import.meta.path, ...batch, "--against", target]
+        if (quietSkips) args.push("--quiet-skips")
+        const result = Bun.spawnSync(args, {
+          cwd: ROOT,
+          env: { ...process.env, PCC_VERIFY_PLATFORM: platform },
+          stdin: "inherit",
+          stdout: "inherit",
+          stderr: "inherit",
+        })
+        allOk &&= result.exitCode === 0
+      }
+    }
+    return allOk ? 0 : 1
+  }
 
   if (files.length === 0) {
     console.error("no patches to verify (patches/ is empty)")

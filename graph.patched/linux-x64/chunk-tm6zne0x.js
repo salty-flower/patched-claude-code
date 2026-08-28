@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.250
+var mh=()=>({mode:"default",additionalWorkingDirectories:new Map,alwaysAllowRules:{},alwaysDenyRules:{},alwaysAskRules:{},isBypassPermissionsModeAvailable:!1,mcpPermissionModeOverrides:{}});function vM(e){return e.filter((o)=>o.data?.type!=="hook_progress")}function npn(e){return e!==null&&typeof e==="object"&&"afterResultCommitted"in e&&typeof e.afterResultCommitted==="function"}function Xmt(e,o,t){if(o||!npn(e))return;try{e.afterResultCommitted()}catch(s){t(s)}}function Xt(e,o){return e.name===o||(e.aliases?.includes(o)??!1)}function Lee(e,o){return e.name.localeCompare(o.name)}var l;function q8n(e){l=e}function Kle(){return l?.()}var i=new WeakMap,a=new WeakSet;function u(e){let o=new Map;for(let t of e){if(!o.has(t.name))o.set(t.name,t);if(t.aliases){for(let s of t.aliases)if(!o.has(s))o.set(s,t)}}return o}function Zr(e,o,t){let s=t&&Object.hasOwn(t,o)?t[o]:void 0;if(s!==void 0&&s!==o)return Zr(e,s);let r=i.get(e);if(r)return r.get(o);if(a.has(e)){let n=u(e);return i.set(e,n),n.get(o)}return a.add(e),e.find((n)=>Xt(n,o))}function DS(e,o){let t=e.coerceInput?.(o)??null;return e.inputSchema.safeParse(t===null?o:t.input)}var p=Object.freeze({supported:!1});function gU(e){return e.remoteExecution??p}var m={isEnabled:()=>!0,isConcurrencySafe:(e)=>!1,isReadOnly:(e)=>!1,isDestructive:(e)=>!1,remoteExecution:p,checkPermissions:(e,o)=>Promise.resolve({behavior:"allow",updatedInput:e}),toAutoClassifierInput:(e)=>"",userFacingName:(e)=>""};function Tt(e){return Object.defineProperties({...m,userFacingName:()=>e.name},Object.getOwnPropertyDescriptors(e))}function yU(e){let o=e;return typeof o.underlyingV1ToolName==="string"&&typeof o.entryFieldName==="string"&&typeof o.perEntryHookInputs==="function"&&typeof o.reassemble==="function"}
+export{mh,vM,npn,Xmt,Xt,Lee,q8n,Kle,Zr,DS,gU,Tt,yU};

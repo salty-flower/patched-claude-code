@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.250
+import{Xg}from"./chunk-n5p9w775.js";import{ug,ml,v_,hl,u7,x}from"./chunk-ghnc2x4f.js";import{Me,Bo}from"./chunk-2d75qem6.js";import{xt,vS}from"./chunk-dd7crjgj.js";import{Dh}from"./chunk-csr25wcg.js";import{Z}from"./chunk-t2kfemrk.js";var e=Z(Dh(),1);var o="tengu_orford_ness",t="2.1.193";function n(){try{return x(o,!1)}catch{return!1}}function dfn(){let r=vS();if(!xt("allow_error_reporting")){if(r===null)return"blocked_cache_miss";return r.restrictions.allow_error_reporting?.allowed===!1?"blocked_restriction":"blocked_tainted"}if(r!==null)return"allowed_taints_clean";if(hl()&&!u7(Xg))return"blocked_scopeless_oauth";if(ml().source==="ANTHROPIC_AUTH_TOKEN")return"blocked_auth_token_env";if(v_())return"blocked_api_key_helper";return"allowed_untaintable"}function $Vn(){if(process.env.DISABLE_ERROR_REPORTING)return!1;if(ug())return!1;if(Me()!=="firstParty"||!Bo())return!1;if(!e.gte(e.coerce({ISSUES_EXPLAINER:"report the issue at https://github.com/anthropics/claude-code/issues",PACKAGE_URL:"@anthropic-ai/claude-code",README_URL:"https://code.claude.com/docs/en/overview",VERSION:"2.1.250",FEEDBACK_CHANNEL:"https://github.com/anthropics/claude-code/issues",BUILD_TIME:"2026-08-27T21:19:23Z",GIT_SHA:"2f71b9f41af67bfcea88aef7a9f8a0d406825b99",HOOKS_WORKER_URL:"./src/plugins/functionHooks/hooks-worker/hooks-worker.js",DD_SOURCEMAP_GROUP:"darwin"}.VERSION)?.version??{ISSUES_EXPLAINER:"report the issue at https://github.com/anthropics/claude-code/issues",PACKAGE_URL:"@anthropic-ai/claude-code",README_URL:"https://code.claude.com/docs/en/overview",VERSION:"2.1.250",FEEDBACK_CHANNEL:"https://github.com/anthropics/claude-code/issues",BUILD_TIME:"2026-08-27T21:19:23Z",GIT_SHA:"2f71b9f41af67bfcea88aef7a9f8a0d406825b99",HOOKS_WORKER_URL:"./src/plugins/functionHooks/hooks-worker/hooks-worker.js",DD_SOURCEMAP_GROUP:"darwin"}.VERSION,t))return!1;if(!dfn().startsWith("allowed"))return!1;return n()}
+export{dfn,$Vn};

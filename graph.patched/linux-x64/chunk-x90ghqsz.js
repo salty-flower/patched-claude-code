@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.250
+import{K,z,lEn}from"./chunk-2vv5hpw3.js";class i{activeOperations=new Set;lastUserActivityTime=0;lastCLIRecordedTime;isCLIActive=!1;USER_ACTIVITY_TIMEOUT_MS=5000;getNow;getActiveTimeCounter;constructor(t){this.getNow=t?.getNow??(()=>Date.now()),this.getActiveTimeCounter=t?.getActiveTimeCounter??lEn,this.lastCLIRecordedTime=this.getNow()}static getInstance(){let t=c();return t.current??=new i,t.current}static resetInstance(){c().current=null}static createInstance(t){let e=new i(t);return c().current=e,e}recordUserActivity(){if(!this.isCLIActive&&this.lastUserActivityTime!==0){let e=(this.getNow()-this.lastUserActivityTime)/1000;if(e>0){let s=this.USER_ACTIVITY_TIMEOUT_MS/1000;if(e<s){let r=this.getActiveTimeCounter();if(r)r.add(e,{type:"user"})}}}this.lastUserActivityTime=this.getNow()}startCLIActivity(t){if(this.activeOperations.has(t))this.endCLIActivity(t);let e=this.activeOperations.size===0;if(this.activeOperations.add(t),e)this.isCLIActive=!0,this.lastCLIRecordedTime=this.getNow()}endCLIActivity(t){if(this.activeOperations.delete(t),this.activeOperations.size===0){let e=this.getNow(),s=(e-this.lastCLIRecordedTime)/1000;if(s>0){let r=this.getActiveTimeCounter();if(r)r.add(s,{type:"cli"})}this.lastCLIRecordedTime=e,this.isCLIActive=!1}}async trackOperation(t,e){this.startCLIActivity(t);try{return await e()}finally{this.endCLIActivity(t)}}getActivityStates(){return{isUserActive:(this.getNow()-this.lastUserActivityTime)/1000<this.USER_ACTIVITY_TIMEOUT_MS/1000,isCLIActive:this.isCLIActive,activeOperationCount:this.activeOperations.size}}}class n{current=null}var o=new K(()=>new n);function c(){return o.of(z().host)}var iR={recordUserActivity:()=>i.getInstance().recordUserActivity(),startCLIActivity:(t)=>i.getInstance().startCLIActivity(t),endCLIActivity:(t)=>i.getInstance().endCLIActivity(t)};
+export{iR};

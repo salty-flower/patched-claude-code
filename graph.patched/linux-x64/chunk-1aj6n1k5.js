@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.250
+import{ee}from"./chunk-by569dsf.js";var e=ee("./cli-f091jpwx.md");var t=ee("./server-6cyhjq09.md");var o=ee("./SKILL-vsa615gd.md");var c=o,p={"examples/cli.md":e,"examples/server.md":t};export{p as SKILL_FILES,c as SKILL_MD};

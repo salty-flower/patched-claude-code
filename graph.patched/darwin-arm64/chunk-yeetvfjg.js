@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.250
+import{Qg,wu}from"./chunk-g4zaymy2.js";import{Ro}from"./chunk-e5bq01yj.js";import{ge}from"./chunk-j6bwf1es.js";import{n}from"./chunk-cmkfpkth.js";import{b}from"./chunk-w2hwjymv.js";import{Se}from"./chunk-3vs63y6b.js";import{Wnn,WBn,N1t}from"./chunk-j5h9ds58.js";import{oke}from"./chunk-haypg6t8.js";import{kme,qJt,GJt,VJt}from"./chunk-0ynkv955.js";import{w0n}from"./chunk-4vpfm628.js";import{Hkn}from"./chunk-v5htx8xx.js";import{H}from"./chunk-9p9ys44p.js";import{stat as p,writeFile as m}from"fs/promises";import{join as s}from"path";var a=86400000,SWt=600000,Wtr=5000,ztr=3600000;async function qtr(t){if(H()&&t!==void 0){let e=await t.statMeta(Se.state("last-cleanup"));return e.ok&&Date.now()-e.value.mtimeMs<a}try{let e=await p(s(ge(),".last-cleanup"));return Date.now()-e.mtimeMs<a}catch{return!1}}async function vWt(t,e){if(!t.backgroundHousekeeping.claim())return;if(Wnn(t),WBn(t),Hkn(e),wu())w0n(e),N1t(e),setInterval(N1t,ztr,e).unref();let r="sentinel-unchecked";async function c(){if(wu()&&Qg()>Date.now()-60000){setTimeout(i,SWt).unref();return}if(r!=="done"){if(r==="sentinel-unchecked"){if(r="sweep-due",await qtr(e)){setTimeout(i,SWt).unref();return}}if(r="done",await VJt(e),H()&&e!==void 0){await GJt(ge(),t.backgroundHousekeeping),await qJt(e);let o=await e.write(Se.state("last-cleanup"),new Date().toISOString(),{publishDiscipline:"inPlace"});if(!o.ok)n(`.last-cleanup write failed: ${o.error.code}`,{level:"error"})}else await m(s(ge(),".last-cleanup"),new Date().toISOString()).catch((o)=>Ro(o)?n(`.last-cleanup write failed: ${o.code} ${o.message}`,{level:"error"}):b(o))}if(wu()&&Qg()>Date.now()-60000){setTimeout(i,SWt).unref();return}await oke()}function i(){return c().catch((o)=>kme(o)?n(`background housekeeping failed: ${o.message}`,{level:"error"}):b(o))}setTimeout(i,Wtr).unref()}
+export{SWt,Wtr,ztr,qtr,vWt};

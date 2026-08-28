@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.250
+import"./chunk-g4zaymy2.js";import"./chunk-vpkz5m05.js";import"./chunk-v5t1qnj3.js";import"./chunk-jqgad8sa.js";import{Te}from"./chunk-e5bq01yj.js";import{n}from"./chunk-cmkfpkth.js";import"./chunk-j6bwf1es.js";import"./chunk-8w8hykva.js";import"./chunk-fnn4jyg7.js";import"./chunk-hp9wjta4.js";import{cv}from"./chunk-j5h9ds58.js";import"./chunk-9q51f9rr.js";var y=2;function D(i){let e=null,l=null,a=0,o=!1,s=null,d=0,p=[],m=()=>{l?.clear(),l=null},v=()=>{if(m(),e===null)return;let r=e;l=i.setTimer(()=>{if(l=null,e!==r)return;if(i.now()<r.leaseExpiresAt){v();return}let t={...r,entries:[]};e=t.templates.length===0?null:t;for(let u of[...i.onLeaseExpired?[i.onLeaseExpired]:[],...p])try{u(t)}catch(c){n(`[deviceHooks] lease-expiry listener threw: ${Te(c).stack??String(c)}`,{level:"error"})}},Math.min(cv,Math.max(0,r.leaseExpiresAt-i.now())))};return{current:()=>e,generation:()=>d,recordMiss(r,t){if(e===null||e.instanceId!==r||t!==d)return!1;if(a+=1,!o&&a>=y)o=!0,s=i.now();return o},recordHit(r){if(e!==null&&e.instanceId===r)a=0},isAway:(r)=>e!==null&&e.instanceId===r&&o,awaySince:(r)=>e!==null&&e.instanceId===r&&o?s:null,replaceOwner(r){let t=e!==null&&e.instanceId!==r.instanceId?e.instanceId:void 0,u=e!==null&&t===void 0,c=u&&o?s:null;if(e=r,!u||c!==null)a=0,o=!1,s=null;return d+=1,v(),{...t!==void 0&&{replaced:t},...c!==null&&{awaySince:c}}},removeOwner(r){if(e===null||e.instanceId!==r)return!1;return e=null,a=0,o=!1,s=null,m(),!0},clear(){e=null,a=0,o=!1,s=null,m()},onLeaseExpired(r){p.push(r)}}}function H(i,e){let l=setTimeout(i,e);return l.unref(),{clear:()=>clearTimeout(l)}}export{y as AWAY_AFTER_MISSES,D as createDeviceHookRegistry,H as productionRegistryTimer};

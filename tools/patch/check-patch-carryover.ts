@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { gt, satisfies, valid } from "semver"
 import { createCommand, runCli } from "../lib/cli"
+import { DEFAULT_GRAPH_PLATFORMS } from "../lib/graph-bundle"
 import { loadPatchEntriesFromDirectory, type PatchEntry } from "../lib/patch-files"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -12,6 +13,7 @@ const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 export type PatchCarryoverWarning = {
   feature: string
   lineage: string
+  missingPlatforms: string[]
   previousEntries: string[]
   rationaleRefs: string[]
 }
@@ -36,6 +38,10 @@ function appliesAtVersion(patch: PatchEntry, version: string): boolean {
   return valid(range) ? range === version : satisfies(version, range)
 }
 
+function coveredPlatforms(patch: PatchEntry): string[] {
+  return patch.platforms ?? [...DEFAULT_GRAPH_PLATFORMS]
+}
+
 export function findPatchCarryoverWarnings(
   patches: PatchEntry[],
   fromVersion: string,
@@ -43,22 +49,35 @@ export function findPatchCarryoverWarnings(
 ): PatchCarryoverWarning[] {
   if (!gt(toVersion, fromVersion)) return []
   const lineageKey = (patch: PatchEntry) => `${patch.featureName}\0${patchLineageName(patch.name)}`
-  const successors = new Set(patches.filter((patch) => appliesAtVersion(patch, toVersion)).map(lineageKey))
-  const missing = new Map<string, PatchEntry[]>()
-  for (const patch of patches) {
-    if (!appliesAtVersion(patch, fromVersion) || successors.has(lineageKey(patch))) continue
+  const successorCoverage = new Map<string, Set<string>>()
+  for (const patch of patches.filter((candidate) => appliesAtVersion(candidate, toVersion))) {
     const key = lineageKey(patch)
-    const entries = missing.get(key) ?? []
-    entries.push(patch)
-    missing.set(key, entries)
+    const coverage = successorCoverage.get(key) ?? new Set<string>()
+    for (const platform of coveredPlatforms(patch)) coverage.add(platform)
+    successorCoverage.set(key, coverage)
+  }
+  const missing = new Map<string, { entries: PatchEntry[]; platforms: Set<string> }>()
+  for (const patch of patches) {
+    if (!appliesAtVersion(patch, fromVersion)) continue
+    const key = lineageKey(patch)
+    const successorPlatforms = successorCoverage.get(key) ?? new Set<string>()
+    const uncoveredPlatforms = coveredPlatforms(patch).filter(
+      (platform) => !successorPlatforms.has(platform),
+    )
+    if (uncoveredPlatforms.length === 0) continue
+    const warning = missing.get(key) ?? { entries: [], platforms: new Set<string>() }
+    warning.entries.push(patch)
+    for (const platform of uncoveredPlatforms) warning.platforms.add(platform)
+    missing.set(key, warning)
   }
 
   return [...missing.entries()]
-    .map(([key, entries]) => {
+    .map(([key, { entries, platforms }]) => {
       const separator = key.indexOf("\0")
       return {
         feature: key.slice(0, separator),
         lineage: key.slice(separator + 1),
+        missingPlatforms: [...platforms].sort(),
         previousEntries: entries.map(({ name }) => name).sort(),
         rationaleRefs: [...new Set(entries.map(({ rationale_ref }) => rationale_ref))].sort(),
       }
@@ -93,7 +112,7 @@ function main(): number {
   }
   for (const warning of report.warnings) {
     console.warn(
-      `[warn] ${warning.feature}/${warning.lineage}: no ${options.to} successor for ${warning.previousEntries.join(", ")}`,
+      `[warn] ${warning.feature}/${warning.lineage}: no ${options.to} successor on ${warning.missingPlatforms.join(", ")} for ${warning.previousEntries.join(", ")}`,
     )
   }
   console.log(`patch carryover: ${report.warnings.length} warning(s) from ${options.from} to ${options.to}`)

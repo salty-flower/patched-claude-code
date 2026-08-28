@@ -46,6 +46,7 @@ test("warns when an active lineage is capped without a target successor", () => 
     {
       feature: "example",
       lineage: "permission-mode",
+      missingPlatforms: ["darwin-arm64", "linux-x64"],
       previousEntries: ["permission-mode-2-1-246"],
       rationaleRefs: ["reference/v2.1.88/sources/example.ts#L1-L2"],
     },
@@ -64,4 +65,25 @@ test("accepts a platform-split successor for an older shared lineage", () => {
   )
 
   expect(warnings).toEqual([])
+})
+
+test("warns when a platform-split successor leaves old shared coverage incomplete", () => {
+  const warnings = findPatchCarryoverWarnings(
+    [
+      entry("permission-mode-2-1-246", ">=2.1.246 <2.1.250"),
+      entry("permission-mode-2-1-250-darwin", ">=2.1.250 <2.2.0", ["darwin-arm64"]),
+    ],
+    "2.1.246",
+    "2.1.250",
+  )
+
+  expect(warnings).toEqual([
+    {
+      feature: "example",
+      lineage: "permission-mode",
+      missingPlatforms: ["linux-x64"],
+      previousEntries: ["permission-mode-2-1-246"],
+      rationaleRefs: ["reference/v2.1.88/sources/example.ts#L1-L2"],
+    },
+  ])
 })

@@ -13507,7 +13507,7 @@ assert_contains = '''globalThis.__acc_disabled_footer=t==="all"'''
 [[patches]]
 name = "statusline-json-permission-mode-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale = """
 Expose the active permission mode to custom statusLine commands in the
@@ -13538,7 +13538,7 @@ assert_contains = '''return{...Ca(d,Ne),...Yt&&{session_name:Yt},permission_mode
 [[patches]]
 name = "statusline-json-permission-mode-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale = """
 Expose the active permission mode to custom statusLine commands in the
@@ -13569,7 +13569,7 @@ assert_contains = '''return{...ka(d,He),...Yt&&{session_name:Yt},permission_mode
 [[patches]]
 name = "statusline-json-effort-level-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale = """
 Keep the scalar effort level available to custom statusLine commands in the
@@ -13600,7 +13600,7 @@ assert_contains = '''effort_level:Rm(tt)?mS(tt,Ie):null'''
 [[patches]]
 name = "statusline-json-effort-level-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale = """
 Keep the scalar effort level available to custom statusLine commands in the

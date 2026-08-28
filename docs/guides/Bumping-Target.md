@@ -10,7 +10,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
 | Automated by `bump-prepare` | Manual gate |
 | --- | --- |
-| Stage, locator/native verification, tool tests | Drift classification and replacement-symbol proof |
+| Stage, patch-carryover warnings, locator/native verification, tool tests | Drift classification and replacement-symbol proof |
 | Render, version smoke, rendered patch tests | Anti-trace dossier generation and invariant review |
 | Prompt identity preparation and report | Unresolved lineage decisions |
 | Machine-readable handoff | PTY/TUI exercise, metadata update, commit |
@@ -45,6 +45,10 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
    `bump-prepare` proves locator counts and `rationale_ref` resolution. It does
    **not** prove that version-local minified symbols retain their meaning.
+   It also compares the currently configured target with the requested target
+   and records a warning for every previously active patch lineage that has no
+   successor. Treat each warning as unresolved until a replacement is added or
+   the handoff records evidence that upstream now provides the behavior.
 
    | Signal | Action |
    | --- | --- |

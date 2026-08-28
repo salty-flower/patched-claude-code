@@ -7,11 +7,18 @@ import { valid } from "semver"
 import { createCommand, runCli } from "../lib/cli"
 import { runWithHeavyLock } from "../lib/heavy-lock"
 import type { PromptIdentityBumpPreparation } from "../lib/prompt-identity-bump"
-import { parseTargetSource, parseTargetSourceOption, type TargetSource } from "../lib/target"
+import {
+  DEFAULT_TARGET_VERSION,
+  parseTargetSource,
+  parseTargetSourceOption,
+  type TargetSource,
+} from "../lib/target"
+import type { PatchCarryoverReport } from "./check-patch-carryover"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
 const MANUAL_GATES = [
+  "resolve every patch-carryover warning with a successor or upstream-equivalence evidence",
   "classify locator and replacement-symbol drift",
   "generate and review the anti-trace dossier and invariants",
   "exercise the rendered PTY/TUI path",
@@ -47,6 +54,7 @@ export type TargetBumpPreparationReport = {
   }
   status: "manual-review-ready" | "prompt-review-required" | "failed"
   steps: TargetBumpStepResult[]
+  patchCarryover: PatchCarryoverReport | null
   promptIdentity: PromptIdentityBumpPreparation | null
   manualGates: readonly string[]
   reportFile: string
@@ -75,12 +83,28 @@ export function buildTargetBumpSteps(root: string, version: string, source: Targ
   const patched = join("staging", version, "cli.patched.js")
   const identityDraft = join("dist", `prompt-identities-${version}.draft.json`)
   const identityResult = join("dist", `prompt-identity-bump-${version}.json`)
+  const carryoverResult = join("dist", `patch-carryover-${version}.json`)
   const logsRoot = join(root, "dist", `target-bump-${version}.logs`)
   return [
     {
       id: "stage",
       label: "stage target bundle",
       command: ["bun", "run", "tools/patch/stage-target.ts", "--version", version, "--source", source],
+    },
+    {
+      id: "patch-carryover",
+      label: "warn about patch lineages without successors",
+      command: [
+        "bun",
+        "run",
+        "tools/patch/check-patch-carryover.ts",
+        "--from",
+        DEFAULT_TARGET_VERSION,
+        "--to",
+        version,
+        "--result-file",
+        carryoverResult,
+      ],
     },
     {
       id: "verify-patches",
@@ -166,6 +190,12 @@ export function renderTargetBumpSummary(report: TargetBumpPreparationReport): st
     lines.push(`${stepStatusLabel(step.status).padEnd(4)}  ${step.id.padEnd(22)} ${formatDuration(step.durationMs)}`)
   }
   lines.push("", `Outcome: ${report.status}`, `Report:  ${report.reportFile}`, `Logs:    ${report.logsRoot}`)
+  if (report.patchCarryover?.warnings.length) {
+    lines.push("", `Patch carryover warnings: ${report.patchCarryover.warnings.length}`)
+    for (const warning of report.patchCarryover.warnings) {
+      lines.push(`  - ${warning.feature}/${warning.lineage}`)
+    }
+  }
   if (report.status === "manual-review-ready") {
     lines.push("", "Remaining manual gates:", ...report.manualGates.map((gate) => `  - ${gate}`))
   } else if (report.status === "prompt-review-required") {
@@ -188,11 +218,14 @@ function main(): number {
   const reportFile = args.outFile ?? join(ROOT, "dist", `target-bump-${version}.json`)
   const logsRoot = join(ROOT, "dist", `target-bump-${version}.logs`)
   const identityResultFile = join(ROOT, "dist", `prompt-identity-bump-${version}.json`)
+  const carryoverResultFile = join(ROOT, "dist", `patch-carryover-${version}.json`)
   const steps = buildTargetBumpSteps(ROOT, version, args.source)
   const results = executeTargetBumpSteps(steps, runStep, (step, index, total) => {
     console.error(`\n==> [${index + 1}/${total}] ${step.label}`)
   })
   const failed = results.some(({ status }) => status === "failed")
+  const carryoverPassed = results.find(({ id }) => id === "patch-carryover")?.status === "passed"
+  const patchCarryover = carryoverPassed ? readPatchCarryoverResult(carryoverResultFile) : null
   const promptIdentity = failed ? null : readPromptIdentityResult(identityResultFile)
   let status: TargetBumpPreparationReport["status"] = "failed"
   if (!failed) {
@@ -205,6 +238,7 @@ function main(): number {
     target: { version, source: args.source },
     status,
     steps: results,
+    patchCarryover,
     promptIdentity,
     manualGates: MANUAL_GATES,
     reportFile,
@@ -249,6 +283,15 @@ function readPromptIdentityResult(path: string): PromptIdentityBumpPreparation {
   const result = JSON.parse(readFileSync(path, "utf8")) as PromptIdentityBumpPreparation
   if (result.schema !== 1 || result.scope !== "prompt-identity-bump-preparation") {
     throw new Error(`invalid prompt identity preparation result: ${path}`)
+  }
+  return result
+}
+
+function readPatchCarryoverResult(path: string): PatchCarryoverReport {
+  if (!existsSync(path)) throw new Error(`patch carryover result missing after successful preparation: ${path}`)
+  const result = JSON.parse(readFileSync(path, "utf8")) as PatchCarryoverReport
+  if (result.schema !== 1 || result.scope !== "patch-carryover") {
+    throw new Error(`invalid patch carryover result: ${path}`)
   }
   return result
 }

@@ -11,6 +11,7 @@ test("target bump preparation defines one ordered deterministic lane", () => {
 
   expect(steps.map(({ id }) => id)).toEqual([
     "stage",
+    "patch-carryover",
     "verify-patches",
     "verify-native-contract",
     "tool-tests",
@@ -29,6 +30,17 @@ test("target bump preparation defines one ordered deterministic lane", () => {
     "direct",
   ])
   expect(steps.find(({ id }) => id === "tool-tests")?.env).toEqual({ TARGET_VERSION: "2.1.218" })
+  expect(steps.find(({ id }) => id === "patch-carryover")?.command).toEqual([
+    "bun",
+    "run",
+    "tools/patch/check-patch-carryover.ts",
+    "--from",
+    "2.1.250",
+    "--to",
+    "2.1.218",
+    "--result-file",
+    "/repo/dist/patch-carryover-2.1.218.json",
+  ])
   expect(steps.find(({ id }) => id === "render")?.command).toContain("--skip-verify")
   expect(steps.find(({ id }) => id === "prompt-identities")?.command).toContain(
     "/repo/dist/prompt-identity-bump-2.1.218.json",
@@ -47,8 +59,9 @@ test("target bump preparation stops dependent work after the first failure", () 
     ({ id }) => started.push(id),
   )
 
-  expect(started).toEqual(["stage", "verify-patches"])
+  expect(started).toEqual(["stage", "patch-carryover", "verify-patches"])
   expect(results.map(({ status }) => status)).toEqual([
+    "passed",
     "passed",
     "failed",
     "skipped",
@@ -58,7 +71,7 @@ test("target bump preparation stops dependent work after the first failure", () 
     "skipped",
     "skipped",
   ])
-  expect(results[1]?.exitCode).toBe(7)
+  expect(results[2]?.exitCode).toBe(7)
 })
 
 test("target bump summary renders a compact manual handoff", () => {
@@ -71,6 +84,7 @@ test("target bump summary renders a compact manual handoff", () => {
     target: { version: "2.1.218", source: "canonical" },
     status: "manual-review-ready",
     steps,
+    patchCarryover: null,
     promptIdentity: null,
     manualGates: ["review drift", "exercise TUI"],
     reportFile: "/repo/dist/target-bump-2.1.218.json",
@@ -80,7 +94,7 @@ test("target bump summary renders a compact manual handoff", () => {
   expect(renderTargetBumpSummary(report)).toBe(`Target bump: 2.1.218 (canonical)
 
 PASS  stage                  1.3s
-PASS  verify-patches         0.1s
+PASS  patch-carryover        0.1s
 
 Outcome: manual-review-ready
 Report:  /repo/dist/target-bump-2.1.218.json

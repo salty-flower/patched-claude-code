@@ -78,7 +78,7 @@ ci-release-audit version=target release_id=release_id source=source: \
   test -s prompts/catalog/manifest.json
   bun ./cli.js --version
   git ls-tree -r --name-only "claude-code-{{version}}-{{release_id}}" > source-tag-files.txt
-  shopt -s nullglob globstar; catalog_files=(prompts/catalog/manifest.json prompts/catalog/gaps.json prompts/catalog/entries/**/*.md); { printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/macos-keychain.ts runtime/system-prompt-overrides.ts; printf '%s\n' "${catalog_files[@]}"; } | sort > expected-source-tag-files.txt
+  shopt -s nullglob globstar; catalog_files=(prompts/catalog/manifest.json prompts/catalog/gaps.json prompts/catalog/entries/**/*.md); { printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/macos-keychain.ts runtime/system-prompt-overrides.ts; printf '%s\n' "${catalog_files[@]}"; for graph_file in graph.patched/**/* graph/**/*; do [[ -f "$graph_file" ]] && printf '%s\n' "$graph_file"; done; } | sort > expected-source-tag-files.txt
   diff -u expected-source-tag-files.txt source-tag-files.txt
 
 prompt-catalog version=target release_id=release_id:

@@ -42,6 +42,7 @@ export type ReleaseManifest = {
     command: "bun"
     entrypoint: "cli.js"
     preload: "runtime/system-prompt-overrides.ts"
+    graphDirectory: "graph.patched" | "graph" | null
   }
   patchSet: {
     count: number
@@ -99,6 +100,12 @@ export function artifactBase(version: string, releaseId: string): string {
 export function sha256(buf: Buffer | Uint8Array | string): { hex: string; sri: string } {
   const digest = createHash("sha256").update(buf).digest()
   return { hex: digest.toString("hex"), sri: `sha256-${digest.toString("base64")}` }
+}
+
+export function graphDirectoryNameForEntrypoint(source: string): "graph.patched" | "graph" | null {
+  if (source.includes("./graph.patched/${platformDir}/cli.js")) return "graph.patched"
+  if (source.includes("./graph/${platformDir}/cli.js")) return "graph"
+  return null
 }
 
 export function loadPatches(root: string): PatchFile[] {
@@ -170,16 +177,13 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
     const output = join(options.outDir, "runtime", file)
     if (resolve(source) !== resolve(output)) copyFileSync(source, output)
   }
-  const dispatcherSource = cliBytes.toString("utf8")
-  const graphDirectoryName = dispatcherSource.includes("./graph.patched/${platformDir}/cli.js")
-    ? "graph.patched"
-    : dispatcherSource.includes("./graph/${platformDir}/cli.js")
-      ? "graph"
-      : null
+  const graphDirectoryName = graphDirectoryNameForEntrypoint(cliBytes.toString("utf8"))
   if (graphDirectoryName !== null) {
     const graphSource = join(dirname(options.input), graphDirectoryName)
-    if (!existsSync(join(graphSource, "darwin-arm64", "cli.js"))) {
-      throw new Error(`rendered graph is missing beside release entrypoint: ${graphSource}`)
+    for (const platform of ["darwin-arm64", "linux-x64"]) {
+      if (!existsSync(join(graphSource, platform, "cli.js"))) {
+        throw new Error(`rendered ${platform} graph is missing beside release entrypoint: ${graphSource}`)
+      }
     }
     cpSync(graphSource, join(options.outDir, graphDirectoryName), { recursive: true, force: true })
   }
@@ -235,6 +239,7 @@ function buildReleaseManifest(
       command: "bun",
       entrypoint: "cli.js",
       preload: "runtime/system-prompt-overrides.ts",
+      graphDirectory: graphDirectoryNameForEntrypoint(cliBytes.toString("utf8")),
     },
     patchSet: {
       count: patches.length,

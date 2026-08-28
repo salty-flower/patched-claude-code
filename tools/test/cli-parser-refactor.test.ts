@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test"
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { parseArgs as parsePromptIdentityHistoryAuditArgs } from "../patch/audit-prompt-identity-history"
-import { parseArgs as parseCreateSourceTagArgs } from "../patch/create-source-tag"
+import { parseArgs as parseCreateSourceTagArgs, sourceTagFiles } from "../patch/create-source-tag"
 import { parseArgs as parseDetectUpstreamArgs } from "../patch/detect-upstream"
 import { parseArgs as parseExtractPromptCatalogArgs } from "../patch/extract-prompt-catalog"
 import { parseArgs as parseFinalizePromptIdentitiesArgs } from "../patch/finalize-prompt-identities"
@@ -160,6 +162,32 @@ test("create-source-tag parses parent toggles", () => {
     releaseId: "patch.1",
     parent: null,
   })
+})
+
+test("create-source-tag includes every graph file required by a dispatcher", () => {
+  const root = mkdtempSync(join(tmpdir(), "patched-cc-source-tag-"))
+  try {
+    writeFileSync(
+      join(root, "cli.js"),
+      'const platformDir = "darwin-arm64"; await import(`./graph.patched/${platformDir}/cli.js`)\n',
+    )
+    for (const platform of ["darwin-arm64", "linux-x64"]) {
+      mkdirSync(join(root, "graph.patched", platform), { recursive: true })
+      writeFileSync(join(root, "graph.patched", platform, "cli.js"), `// ${platform}\n`)
+      writeFileSync(join(root, "graph.patched", platform, "asset.txt"), `${platform}\n`)
+    }
+
+    const paths = sourceTagFiles(root).map((file) => file.path)
+    expect(paths).toContain("graph.patched/darwin-arm64/cli.js")
+    expect(paths).toContain("graph.patched/darwin-arm64/asset.txt")
+    expect(paths).toContain("graph.patched/linux-x64/cli.js")
+    expect(paths).toContain("graph.patched/linux-x64/asset.txt")
+
+    rmSync(join(root, "graph.patched", "linux-x64", "cli.js"))
+    expect(() => sourceTagFiles(root)).toThrow("source tag payload missing: graph.patched/linux-x64/cli.js")
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
 })
 
 test("detect-upstream collects repeated release tag options", () => {

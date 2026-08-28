@@ -10,9 +10,9 @@ version.
 | Tag | `claude-code-<upstream-version>-patch.<n>` |
 | Moving Nix ref | `claude-code-latest` |
 | Release commit title | `release: claude-code-<upstream-version>-patch.<n>` |
-| Nix source | Tagged git tree containing the runtime payload, `prompts/catalog/`, and flake files |
+| Nix source | Tagged git tree containing the complete runtime payload, `prompts/catalog/`, and flake files |
 | Artifact | `patched-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
-| Bundle | `cli.js` at the release tag root and inside the artifact |
+| Bundle | `cli.js` plus every platform graph it dispatches to, at the release tag root and inside the artifact |
 | Runtime helpers | `runtime/system-prompt-overrides.ts` and `runtime/macos-keychain.ts` at the release tag root and inside the artifact |
 | Prompt catalog | Partial static audit catalog at `prompts/catalog/` on every release surface |
 | Release notes | Size-bounded `release-notes.md` plus complete bundle-bound `prompt-review.md` |
@@ -44,6 +44,11 @@ fetching. Nix consumers SHOULD use the native
 `github:<owner>/<repo>/<ref>` flake fetcher. Use the source tag for immutable
 pinning. Use `claude-code-latest` when `nix flake update` should follow the
 latest patched source commit.
+
+A dispatcher release MUST include both `darwin-arm64/cli.js` and
+`linux-x64/cli.js` under the graph directory named by `manifest.json`.
+Packaging, source-tag creation, and the Nix derivation MUST fail closed when
+either platform graph is absent.
 
 The prompt catalog MUST be bound to the exact upstream and patched bundle
 hashes. Classified contextual and opaque gaps MAY ship. Missing catalogs,

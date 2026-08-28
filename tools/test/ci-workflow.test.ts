@@ -42,6 +42,7 @@ test("ci runs release audit through one declarative just target", () => {
   expect(workflow).toContain("prompts/catalog/")
   expect(workflow).toContain("dist/release-notes.md")
   expect(workflow).toContain("dist/prompt-review.md")
+  expect(workflow).toContain("staging/${{ env.TARGET_VERSION }}/graph.patched/")
   expect(workflow).not.toContain("- name: Verify patches and contracts")
   expect(workflow).not.toContain("- name: Render patched bundle")
   expect(workflow).not.toContain("- name: Smoke patched bundle")

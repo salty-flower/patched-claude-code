@@ -32,6 +32,9 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(reuseStep).toContain("deadline=$((SECONDS + 1800))")
   expect(reuseStep).toContain('mkdir -p bin runtime "staging/$version"')
   expect(reuseStep).toContain('cp ci-artifact/cli.js "staging/$version/cli.patched.js"')
+  expect(reuseStep).toContain(
+    'cp -R ci-artifact/staging/"$version"/graph.patched "staging/$version/graph.patched"',
+  )
   expect(reuseStep).toContain("install -m755 ci-artifact/bin/claude-patched bin/claude-patched")
   expect(reuseStep).toContain("cp ci-artifact/runtime/macos-keychain.ts runtime/macos-keychain.ts")
   expect(reuseStep).toContain("cp ci-artifact/runtime/system-prompt-overrides.ts runtime/system-prompt-overrides.ts")

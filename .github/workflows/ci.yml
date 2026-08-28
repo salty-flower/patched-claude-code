@@ -389,4 +389,5 @@ jobs:
             runtime/macos-keychain.ts
             runtime/system-prompt-overrides.ts
             prompts/catalog/
+            staging/${{ env.TARGET_VERSION }}/graph.patched/
           if-no-files-found: error

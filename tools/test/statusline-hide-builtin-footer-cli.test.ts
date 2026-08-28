@@ -58,6 +58,19 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       expect(patched).toContain("return __acc_hide_footer?null:jJe}")
       expect(patched).toContain("let Vs=!__acc_hide_mode&&jr&&Gr?")
       expect(patched).toContain("let Do=!__acc_hide_mode&&Gr&&Aa?")
+      expect(patched).toContain(
+        "return{...Ca(d,Ne),...Yt&&{session_name:Yt},permission_mode:k,",
+      )
+      expect(patched).toContain("effort_level:Rm(tt)?mS(tt,Ie):null")
+      const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+      const linuxPatched = readdirSync(linuxGraphDir)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+        .join("\n")
+      expect(linuxPatched).toContain(
+        "return{...ka(d,He),...Yt&&{session_name:Yt},permission_mode:C,",
+      )
+      expect(linuxPatched).toContain("effort_level:xm(tt)?fv(tt,Le):null")
       return
     }
     if (TARGET_VERSION === "2.1.246") {

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.246
+import{Auc as O,Buc as _,Lvc as P,luc as l,puc as s}from"./_668.js";import{H_c as M,R9c as D}from"./_786.js";import{K$c as g,L$c as T}from"./_794.js";import{$$c as v,T$c as p}from"./_796.js";import{Thd as S,Uhd as B}from"./_812.js";import{Bwd as x,twd as f}from"./_836.js";import{Exd as u}from"./_839.js";class m{lastLoggedSessionId=null;autoOpenPending=!1}var a;var b=u(()=>{B();a=new S(()=>new m)});function L(e){a.of(e).autoOpenPending=!0}function U(e){let t=a.of(e),o=t.autoOpenPending;return t.autoOpenPending=!1,o}function A(e){a.of(e).autoOpenPending=!1}function y(){return D(g())!==null}function q(e){let t=s().diffSidebarOpen;if(t===!1)return!1;return e>=(t===!0?R:h)&&y()}function z(e,t,o,n){let r=o==="diff"?"convo":"diff";A(e),t((i)=>i.replTab===r&&i.panelFileView===null?i:{...i,replTab:r,panelFileView:null});let c=r==="diff";if(s().diffSidebarOpen!==c)l((i)=>({...i,diffSidebarOpen:c}),n);return p("repl_tab_switch",{tab:f(r)}),r}function F(e,t){A(e),t((o)=>o.replTab==="convo"&&o.panelFileView===null?o:{...o,replTab:"convo",panelFileView:null})}function J(e,t,o){if(F(e,t),s().diffSidebarOpen!==!1)l((n)=>({...n,diffSidebarOpen:!1}),o);p("repl_tab_switch",{tab:f("convo")})}function K(){let e=O().diffSidebarBaseMode;return e==="uncommitted"||e==="branch"?e:"session"}function Q(e,t){let o=d[(d.indexOf(e)+1)%d.length]??"session";return _((n)=>n.diffSidebarBaseMode===o?n:{...n,diffSidebarBaseMode:o},t),p("repl_diff_base_switch",{mode:f(o)}),o}var R=110,h=144,V="The diff panel shows git changes \u2014 the current directory isn\u2019t in a git repository",d;var I=u(()=>{v();x();P();T();M();b();d=["session","uncommitted","branch"]});
+export{a as Dw,b as Ew,R as Fw,h as Gw,V as Hw,L as Iw,U as Jw,A as Kw,y as Lw,q as Mw,z as Nw,F as Ow,J as Pw,K as Qw,Q as Rw,I as Sw};

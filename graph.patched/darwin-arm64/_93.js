@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.246
+import{Wya as a,dza as d,eza as l,nza as f}from"./_444.js";import{KAb as r,LAb as c}from"./_554.js";import{tfd as i,yfd as m}from"./_806.js";import{Exd as u}from"./_839.js";function n(e){let o=d(),t=!!e.isAutoModeAvailable&&o;if(!t)i(`[auto-mode] canCycleToAuto=false: ctx.isAutoModeAvailable=${e.isAutoModeAvailable} isAutoModeGateEnabled=${o} reason=${l()}`);return t}function p(e){return!!e.isBypassPermissionsModeAvailable&&!r()}function M(e,o){switch(e.mode){case"default":return"acceptEdits";case"acceptEdits":return"plan";case"plan":if(p(e))return"bypassPermissions";if(n(e))return"auto";return"default";case"bypassPermissions":if(n(e))return"auto";return"default";case"dontAsk":return"default";default:return"default"}}function b(e,o,t){let s=M(e,o);return{nextMode:s,context:a(e.mode,s,e,t)}}var P=u(()=>{m();c();f()});
+export{n as yj,M as zj,b as Aj,P as Bj};

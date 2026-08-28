@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.246
+import{EAc as t,FAc as _,GAc as u,HAc as S,IAc as f,PAc as m}from"./_690.js";import{A0c as O,c0c as d}from"./_763.js";import{tfd as E,yfd as I}from"./_806.js";import{krd as C,pnd as c,qnd as s}from"./_812.js";import{Nvd as g,_ud as l}from"./_834.js";import{Exd as p}from"./_839.js";function T(){let e=c();if(e!==void 0)return e;let o=process.env.CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR;if(!o){let i=process.env.CLAUDE_SESSION_INGRESS_TOKEN_FILE??t,r=S(i,"session ingress token");return s(r),r}let n=parseInt(o,10);if(Number.isNaN(n))return E(`CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR must be a valid file descriptor number, got: ${o}`,{level:"error"}),s(null),null;try{let i=`/dev/fd/${n}`,r=d(i,{maxBytes:_}).trim();if(!r)return E("File descriptor contained empty token",{level:"error"}),s(null),null;return E(`Successfully read token from file descriptor ${n}`),s(r),u(t,r,"session ingress token",{skipInReviewOrigin:!0}),r}catch(i){E(`Failed to read token from file descriptor ${n}: ${l(i)}`,{level:"error"});let r=process.env.CLAUDE_SESSION_INGRESS_TOKEN_FILE??t,a=S(r,"session ingress token");return s(a),a}}async function h(e){if(process.env.CLAUDE_CODE_SESSION_ACCESS_TOKEN)return;await f({envVar:"CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR",wellKnownPath:t,readPath:process.env.CLAUDE_SESSION_INGRESS_TOKEN_FILE??t,label:"token",fileLabel:"session ingress token",getCached:c,setCached:s,credentials:e,skipInReviewOrigin:!0})}function A(){let e=process.env.CLAUDE_CODE_SESSION_ACCESS_TOKEN;if(e)return e;return T()}function U(){let e=A();if(!e)return{};if(e.startsWith("sk-ant-sid")){let o={Cookie:`sessionKey=${e}`},n=process.env.CLAUDE_CODE_ORGANIZATION_UUID;if(n)o["X-Organization-Uuid"]=n;return o}return D(e)}function D(e){return e?{Authorization:`Bearer ${e}`}:{}}function K(e){process.env.CLAUDE_CODE_SESSION_ACCESS_TOKEN=e}var N=p(()=>{C();m();I();g();O()});
+export{h as vAc,A as wAc,U as xAc,D as yAc,K as zAc,N as AAc};

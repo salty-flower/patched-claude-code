@@ -1,0 +1,62 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.246
+import{fG as a,iG as M}from"./_306.js";import{SG as T}from"./_315.js";import"./_316.js";import{iH as k,jH as W}from"./_321.js";import{lH as y,mH as L}from"./_322.js";import{d2a as C,i2a as B}from"./_446.js";import"./_447.js";import"./_600.js";import"./_601.js";import"./_602.js";import"./_603.js";import"./_604.js";import"./_620.js";import"./_656.js";import"./_667.js";import{Bmc as g,Dmc as F,Lvc as D,Nuc as w,nuc as v}from"./_668.js";import"./_669.js";import"./_670.js";import"./_671.js";import"./_672.js";import"./_673.js";import"./_674.js";import"./_675.js";import"./_676.js";import"./_677.js";import"./_678.js";import"./_679.js";import"./_680.js";import"./_681.js";import"./_682.js";import"./_683.js";import"./_684.js";import"./_685.js";import"./_686.js";import"./_687.js";import"./_688.js";import"./_689.js";import"./_690.js";import"./_691.js";import"./_692.js";import"./_693.js";import"./_694.js";import"./_695.js";import"./_696.js";import"./_697.js";import"./_698.js";import"./_699.js";import"./_700.js";import"./_701.js";import"./_702.js";import"./_703.js";import"./_704.js";import"./_705.js";import"./_706.js";import"./_707.js";import"./_708.js";import"./_709.js";import"./_710.js";import"./_711.js";import"./_712.js";import"./_713.js";import"./_714.js";import"./_715.js";import"./_716.js";import"./_717.js";import"./_718.js";import"./_719.js";import"./_720.js";import"./_721.js";import"./_722.js";import"./_730.js";import"./_744.js";import"./_745.js";import"./_746.js";import"./_747.js";import"./_749.js";import"./_750.js";import"./_751.js";import"./_752.js";import"./_753.js";import"./_754.js";import"./_755.js";import"./_756.js";import"./_757.js";import"./_758.js";import"./_759.js";import"./_760.js";import"./_761.js";import"./_762.js";import"./_763.js";import"./_764.js";import"./_765.js";import"./_766.js";import"./_767.js";import"./_768.js";import"./_769.js";import"./_770.js";import"./_771.js";import"./_772.js";import"./_773.js";import"./_774.js";import"./_781.js";import"./_782.js";import"./_785.js";import"./_786.js";import"./_787.js";import"./_788.js";import"./_789.js";import"./_790.js";import"./_791.js";import"./_792.js";import"./_793.js";import"./_794.js";import"./_795.js";import{$$c as R,W$c as _,X$c as i}from"./_796.js";import{bad as N}from"./_797.js";import{dad as m,ead as O,xad as f}from"./_798.js";import"./_799.js";import"./_800.js";import"./_801.js";import"./_802.js";import"./_803.js";import"./_804.js";import"./_805.js";import{Eed as x,jfd as p,wed as c,yfd as U}from"./_806.js";import"./_807.js";import"./_808.js";import"./_809.js";import"./_810.js";import"./_811.js";import"./_812.js";import"./_813.js";import"./_814.js";import"./_815.js";import"./_824.js";import{etd as d,gtd as b}from"./_825.js";import"./_832.js";import"./_833.js";import"./_834.js";import"./_835.js";import"./_836.js";import"./_837.js";import"./_838.js";import{Hxd as s}from"./_839.js";M();R();F();L();W();b();B();O();D();U();N();import{spawnSync as V}from"child_process";x();function u(t){return`You are guiding an operator from zero to a working **self-hosted runner** for Claude Code on the web. The operator must leave able to do this themselves \u2014 you have typed tools that make *you* efficient, but every API tool you call returns an \`equivalent.ui\` path. **After every API tool call, surface that \`equivalent.ui\` path to the operator** so they can repeat the action without you.
+
+Tools handle what's error-prone (auth, JSON parsing, starting the runner). You narrate what's learnable (UI paths, the product surface, deployment patterns). Environment creation and secret issuance happen in the **Admin UI only** \u2014 never via tools. The operator copies the secret value into a file on disk themselves; you only ever refer to the file path.
+
+If the user passed \`quick\`, run Phase 1 only and stop with a one-paragraph summary.
+
+## Phase 1 \u2014 Prove it works (the "aha")
+
+1. **Create the environment in the Admin UI (operator action).** Tell the operator:
+
+   > "Open ${t}/admin-settings/cloud-environments in your browser (Admin settings \u2192 Cloud environments). Make sure **Allow self-hosted environments** is toggled on, then scroll to the **Self-hosted environments** section and click **New**. Pick a name, click **Create**, then click **Copy environment key** \u2014 the environment key is the environment secret the CLI expects, and it's shown once. Paste it into \`./runner-setup/ENVIRONMENT_SECRET\` on this machine \u2014 I'll \`chmod 600\` it afterwards. Check the box confirming the key is saved and click **Finish**. Then click your new environment to open it, and copy the **Environment ID** from the **Configuration** tab (starts with \`ccpool_\`). Tell me the id and say 'done' when the file is saved."
+
+   When they respond, Bash \`mkdir -p ./runner-setup && chmod 600 ./runner-setup/ENVIRONMENT_SECRET\` and confirm the file exists + is mode 0600 (via Bash \`ls -l\`).
+
+2. **Verify the environment with the API.** Call \`self_hosted_runner_get_pool({pool_id})\` with the id. Confirm \`alive_runner_count == 0\`. If the call 404s, the operator copied the wrong id \u2014 have them re-check the **Environment ID** on the environment's Configuration tab. Print the \`equivalent.ui\` path.
+
+3. **Spawn the local runner.** Call \`self_hosted_runner_spawn_local({secret_file_path: './runner-setup/ENVIRONMENT_SECRET', capacity: 1})\`. Print the returned \`command\` so the operator sees the exact CLI invocation they'd use in production. Then call \`self_hosted_runner_read_health\` once to confirm \`status:"ok"\`; if unreachable, \`self_hosted_runner_tail_log\` and surface the first error line.
+
+4. **Watch the Admin UI flip from 0 \u2192 1 alive.** Poll \`self_hosted_runner_get_pool({pool_id})\` every ~3 seconds (max ~30s) until \`alive_runner_count > 0\`. Also call \`self_hosted_runner_list_runners({pool_id})\` once to show the runner row (lease_expires_at, client_label). Tell the operator to refresh the Cloud environments page and open the environment \u2014 the **Active runners** tile flips to 1. **This is the moment of proof.**
+
+5. **Point them at /code.** *"Go to ${t}/code \u2014 your environment is in the environment picker, listed under the name you gave it. Select it and start a session; it runs on **this** machine."*
+
+## Phase 2 \u2014 Teach the surface (narration only)
+
+Walk them through where each surface lives on the **Cloud environments** admin page. **No required operator action** \u2014 this is orientation. Do NOT call any tools in this phase (the UI is the lesson):
+
+- **Self-hosted environments** section on the **Cloud environments** page (Admin settings \u2192 Cloud environments). The Claude Code settings page still shows the old runner UI during the transition, and its "Self-hosted cloud environments" row is the earlier environment-profile flow \u2014 not the feature you just set up. The Cloud environments page is the canonical home for self-hosted runner configuration.
+- **Activity tab \u2192 Runners view**: the runner you just started, with its lease + assigned-session count. **Force-kill** (in the runner row's overflow menu) is here for stuck runners.
+- **Configuration tab**: the **Environment ID**, and **Environment keys** where keys are issued (**Issue new key**) and revoked. Explain rotation: issue a new key, deploy it to runners, revoke the old one.
+- **Activity tab \u2192 Sessions view**: sessions on this environment, with **Retry** to requeue a stuck one.
+- **Diagnostic banners** inside the environment view (above the activity list) surface runner capacity and provisioning problems, and status chips on the environments table show health at a glance \u2014 that's where the product tells them something's wrong.
+
+## Phase 3 \u2014 Graduation
+
+- **Recap card.** Print a compact "what we did, in your terms" \u2014 each step's UI path.
+- **Cheat sheet.** Write \`./runner-setup/CHEAT-SHEET.md\` containing:
+  - The exact \`command\` returned by \`self_hosted_runner_spawn_local\` (space-separated flags; \`--flag=value\` does NOT work; always pass \`--base-dir\`).
+  - UI map: Admin settings \u2192 Cloud environments \u2192 Self-hosted environments \u2192 (environment) \u2192 {stat tiles, Activity (Sessions | Runners), Configuration}.
+  - Prometheus: \`http://<host>:{health-port}/metrics\` and the gauge names.
+  - "If something breaks: run \`claude self-hosted-runner doctor\`."
+  - "For production: see the operator guide PDF (Kubernetes / Docker Compose recipes \u2014 assumes no disk state persists between restarts)."
+- **Stop the local runner.** Bash \`kill $(cat ./runner-setup/runner.pid)\` (or the pid the spawn tool returned), then re-poll \`self_hosted_runner_get_pool\` and tell the operator to refresh the Admin UI \u2014 the alive count drops back to 0. Closes the loop on lifecycle.
+
+**Exit criterion:** the operator has seen their runner appear in the Admin UI **and** \`./runner-setup/CHEAT-SHEET.md\` exists on disk.
+
+Production deployment is **taught, not tooled** \u2014 there is no \`deploy_to_k8s\` tool. If asked, explain the k8s/compose pattern and Write a sample manifest; the operator owns their orchestrator.`}var z=["Bash","Read","Write","TodoWrite","TaskCreate","TaskGet","TaskList","TaskUpdate","self_hosted_runner_get_pool","self_hosted_runner_list_runners","self_hosted_runner_list_secrets","self_hosted_runner_read_health","self_hosted_runner_read_metrics","self_hosted_runner_spawn_local","self_hosted_runner_tail_log"].join(","),H="Start the self-hosted runner setup wizard. Greet me and begin Phase 1 (create an environment in the Admin UI). Walk me through one step at a time.";async function le(t,l){if(t.includes("--help")||t.includes("-h")){console.log(`Usage: claude self-hosted-runner setup [args...]
+
+Interactive wizard: walks you from zero to a working self-hosted runner
+environment for Claude Code on the web. Creates an environment, spawns a local
+runner, verifies it appears in the Admin UI, and writes a CHEAT-SHEET.md.
+
+Any extra args are passed to the underlying Claude Code session.`);return}await T(l),y();let n=k(l);if(g(n),d()&&n!==void 0){p({storageV5:n}),v(n);let[{composePolicyLimitsClient:o,primePolicyLimitsCache:S},{credentialsStoreFor:I},{primeFastPathCredentials:A}]=await Promise.all([import("./chunk-c73zx11z.js"),import("./chunk-5axpw9gd.js"),import("./chunk-cjtmz0r9.js")]);o({storageV5:n}),await A(I(n)),await S(n),await w(n)}let r=u(C()),P=m()?[]:[process.argv[1]],E=t.length>0&&!t[0].startsWith("-")?[]:[H],h=[...P,...E,"--append-system-prompt",r,"--tools",z,"--permission-mode","default",...t];if(f.DEBUG)console.error("[self-hosted-runner:setup] spawning:",c({argv:[process.execPath,...h.map((o)=>o===r?`<${r.length} chars>`:o)]}));let e=V(process.execPath,h,{stdio:"inherit"});if(e.error)return await i("cli_self_hosted_setup","spawn_failed"),console.error(`[self-hosted-runner:setup] failed to spawn child: ${e.error.message}`),a(1);if(e.status!==null&&e.status!==0||e.signal)await i("cli_self_hosted_setup",e.signal?"child_signal":"child_nonzero"),console.error(`[self-hosted-runner:setup] child exited with status ${e.status??"(null)"}${e.signal?`, signal ${e.signal}`:""}`);else await _("cli_self_hosted_setup");return console.error("[self-hosted-runner:setup] To continue setup, re-run `claude self-hosted-runner setup` \u2014 resuming the session with `claude --resume`/`-c` will not re-enable the setup tools."),a(e.status!==null?e.status:1)}export{le as selfHostedRunnerSetupMain};

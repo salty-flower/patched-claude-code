@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.246
+import{A9c as v,B9c as w,C9c as x,D9c as y,E9c as z,F9c as A,G9c as B,H9c as C,I9c as D,J9c as E,f9c as a,g9c as b,h9c as c,i9c as d,j9c as e,k9c as f,l9c as g,m9c as h,n9c as i,o9c as j,p9c as k,q9c as l,r9c as m,s9c as n,t9c as o,u9c as p,v9c as q,w9c as r,x9c as s,y9c as t,z9c as u}from"./_786.js";import"./_787.js";import"./_788.js";import"./_789.js";import"./_790.js";import"./_791.js";import"./_792.js";import"./_793.js";import"./_794.js";import"./_795.js";import"./_796.js";import"./_797.js";import"./_798.js";import"./_799.js";import"./_800.js";import"./_801.js";import"./_802.js";import"./_803.js";import"./_804.js";import"./_805.js";import"./_806.js";import"./_807.js";import"./_808.js";import"./_809.js";import"./_810.js";import"./_811.js";import"./_812.js";import"./_813.js";import"./_814.js";import"./_815.js";import"./_825.js";import"./_833.js";import"./_834.js";import"./_835.js";import"./_836.js";import"./_837.js";import"./_838.js";import"./_839.js";E();export{m as CONVENTIONAL_DEFAULT_BRANCH_NAMES,s as addWatchedRepo,a as clearResolveGitDirCache,n as getCachedBranch,w as getCachedBranchForRepo,q as getCachedDefaultBranch,r as getCachedDefaultBranchIfKnown,o as getCachedHead,p as getCachedRemoteUrl,j as getCommonDir,z as getHeadForDir,B as getRemoteUrlForDir,D as getWorktreeCountFromFs,l as gitFileWatchers,C as isShallowClone,g as isValidGitSha,u as onRepoBranchChange,v as onWatchedGitStateChange,d as pointerFileIsSuspect,f as rawPointerPathIsUnsafe,h as readGitHead,c as readLinkTextSafe,e as readPositionIsUnsafe,k as readRawSymref,A as readWorktreeHeadSha,y as reanchorGitFileWatcher,t as removeWatchedRepo,x as resetGitFileWatcher,b as resolveGitDir,i as resolveRef};

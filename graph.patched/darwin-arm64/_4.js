@@ -1,0 +1,13 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.246
+import{G2a as b,Q2a as ir}from"./_450.js";import{BVb as sr,vVb as U}from"./_600.js";import{CVb as N,EVb as tr}from"./_601.js";import{Aac as D,Crc as M,Dac as Q,Lqc as rr,Lvc as or,Qrc as er,Ytc as j,gpc as R,yuc as x}from"./_668.js";import{Bzc as H,Czc as Z}from"./_684.js";import{bJc as S,fJc as z}from"./_708.js";import{fNc as y,hNc as O,iNc as T,qNc as q}from"./_710.js";import{BQc as X,uQc as I}from"./_717.js";import{uRc as w,yRc as A,zRc as J}from"./_719.js";import{LVc as P,TVc as Y}from"./_753.js";import{L1c as k,z1c as _}from"./_766.js";import{Aed as d,Eed as B,Sed as u,Xed as L,pfd as h,yfd as W}from"./_806.js";import{xgd as K}from"./_810.js";import{Ggd as f,Kgd as V,Qid as C,Yid as g,djd as v,krd as G,znd as E}from"./_812.js";import{ysd as l}from"./_815.js";G();Z();er();Q();tr();X();V();rr();or();W();K();L();sr();q();J();k();z();B();Y();ir();import{createServer as nr}from"net";function Dr(t,m,e){return new Promise((n,c)=>{let o=(r)=>{i.close(),c(r)},i=nr((r)=>{let a="";r.setEncoding("utf8"),r.on("data",(F)=>{if(a+=F,e&&a.length>8388608){r.destroy();return}let p=a.indexOf(`
+`);if(p<0)return;if(e){let s;try{s=d(a.slice(0,p))}catch{s=void 0}if(!s||!H(s.auth,e)){r.destroy();return}i.close(),n(s);return}i.close();try{n(d(a.slice(0,p)))}catch(s){c(s)}}),r.on("error",e?()=>r.destroy():o)});if(i.on("error",o),m)i.once("listening",()=>{try{m()}catch(r){o(r)}});i.listen(t)})}async function Ir(t,m){let e=await _(t.cwd);u(e);let n={originalCwd:e,projectRoot:e,cwd:e};if(t.sessionId)C(f(t.sessionId),"spare_claim",null,n);else g(n);if(S(),x(),j(),v(),b(),P({warm_spare_claimed:1}),l(t.env.CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST)){for(let o of Object.keys(process.env))if(y(o)||o==="ANTHROPIC_CUSTOM_HEADERS"||O(o)||T(o))delete process.env[o]}delete process.env.ANTHROPIC_AUTH_TOKEN,delete process.env.ANTHROPIC_API_KEY,delete process.env.CLAUDE_CODE_OAUTH_TOKEN,Object.assign(process.env,t.env),process.argv=[process.argv[0],process.argv[1],...t.argv],h(),E(),R(),I(),N(),M({preservePendingExposures:!0,preserveLoggedExposures:!0}),D(),U(),A(),w();let{main:c}=await m;await c()}
+export{Dr as aa,Ir as ba};

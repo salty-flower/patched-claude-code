@@ -159,6 +159,7 @@ jobs:
           cp -R ci-artifact/staging/"$version"/graph.patched "staging/$version/graph.patched"
           install -m755 ci-artifact/bin/claude-patched bin/claude-patched
           cp ci-artifact/runtime/macos-keychain.ts runtime/macos-keychain.ts
+          cp ci-artifact/runtime/release-integrity.ts runtime/release-integrity.ts
           cp ci-artifact/runtime/system-prompt-overrides.ts runtime/system-prompt-overrides.ts
           cp -R ci-artifact/prompts/catalog prompts/catalog
           echo "reused=true" >> "$GITHUB_OUTPUT"
@@ -237,6 +238,7 @@ jobs:
             package.json
             bin/claude-patched
             runtime/macos-keychain.ts
+            runtime/release-integrity.ts
             runtime/system-prompt-overrides.ts
             prompts/catalog/
           if-no-files-found: error

@@ -36,6 +36,7 @@
           && builtins.pathExists ./package.json
           && builtins.pathExists ./bin/claude-patched
           && builtins.pathExists ./runtime/macos-keychain.ts
+          && builtins.pathExists ./runtime/release-integrity.ts
           && builtins.pathExists ./runtime/system-prompt-overrides.ts
           && builtins.pathExists ./prompts/catalog/manifest.json
           && hasReleaseGraph;
@@ -59,6 +60,7 @@
             || path == "${root}/bin/claude-patched"
             || path == "${root}/runtime"
             || path == "${root}/runtime/macos-keychain.ts"
+            || path == "${root}/runtime/release-integrity.ts"
             || path == "${root}/runtime/system-prompt-overrides.ts"
             || path == "${root}/graph.patched"
             || builtins.match "${root}/graph.patched/.*" path != null
@@ -83,6 +85,7 @@
                 runHook preInstall
                 install -Dm0644 cli.js "$out/lib/patched-claude-code/cli.js"
                 install -Dm0644 runtime/macos-keychain.ts "$out/lib/patched-claude-code/macos-keychain.ts"
+                install -Dm0644 runtime/release-integrity.ts "$out/lib/patched-claude-code/release-integrity.ts"
                 install -Dm0644 runtime/system-prompt-overrides.ts "$out/lib/patched-claude-code/system-prompt-overrides.ts"
                 for graph_dir in graph.patched graph; do
                   if [ -d "$graph_dir" ]; then

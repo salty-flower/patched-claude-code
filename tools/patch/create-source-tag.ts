@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Create a minimal git tag commit containing only the Nix source payload.
 
-import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
@@ -37,9 +37,7 @@ function payloadFiles(root: string, path: string): TagFile[] {
 
 export function sourceTagFiles(root: string = ROOT): TagFile[] {
   const cliPath = join(root, "cli.js")
-  const graphDirectoryName = existsSync(cliPath)
-    ? graphDirectoryNameForEntrypoint(readFileSync(cliPath, "utf8"))
-    : null
+  const graphDirectoryName = existsSync(cliPath) ? graphDirectoryNameForEntrypoint(readFileSync(cliPath, "utf8")) : null
   if (graphDirectoryName !== null) {
     for (const platform of ["darwin-arm64", "linux-x64"]) {
       const platformEntrypoint = join(root, graphDirectoryName, platform, "cli.js")
@@ -54,6 +52,7 @@ export function sourceTagFiles(root: string = ROOT): TagFile[] {
     { path: "package.json", mode: "100644", required: true },
     { path: "bin/claude-patched", mode: "100755", required: true },
     { path: "runtime/macos-keychain.ts", mode: "100644", required: true },
+    { path: "runtime/release-integrity.ts", mode: "100644", required: true },
     { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
     { path: "flake.nix", mode: "100644", required: true },
     { path: "flake.lock", mode: "100644", required: false },

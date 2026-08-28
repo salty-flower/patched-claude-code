@@ -4,6 +4,7 @@ import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { basename, dirname, join } from "node:path"
+import { computeRuntimeBundleIntegrity, type RuntimeBundleFile, type RuntimeGraphDirectory } from "./release-integrity"
 
 export const SYSTEM_PROMPT_BRIDGE = Symbol.for("patched-claude-code.system-prompt-overrides.v1")
 export const SYSTEM_PROMPT_DIAGNOSTICS = Symbol.for("patched-claude-code.system-prompt-overrides.diagnostics.v1")
@@ -13,7 +14,8 @@ const UPSTREAM_PLACEHOLDER = "{{upstream}}"
 
 type ReleaseManifest = {
   upstream: { version: string }
-  bundle: { file: string; sha256: string }
+  runtime: { graphDirectory: RuntimeGraphDirectory }
+  bundle: { file: string; sha256: string; entrypointSha256: string; files: RuntimeBundleFile[] }
 }
 
 export type PromptSectionManifestEntry = {
@@ -403,9 +405,12 @@ function loadReleaseCoordinates(): { targetVersion: string; bundleSha256: string
   if (!release.upstream?.version || !release.bundle?.sha256) {
     fail(manifestPath, "release manifest lacks upstream.version or bundle.sha256")
   }
-  const actualBundleSha256 = `sha256-${createHash("sha256").update(readFileSync(bundlePath)).digest("base64")}`
-  if (actualBundleSha256 !== release.bundle.sha256) {
-    fail(bundlePath, `rendered bundle SHA-256 mismatch: expected ${release.bundle.sha256}, got ${actualBundleSha256}`)
+  const integrity = computeRuntimeBundleIntegrity(bundlePath, release.runtime?.graphDirectory ?? null)
+  if (JSON.stringify(integrity.files) !== JSON.stringify(release.bundle.files)) {
+    fail(bundlePath, "rendered bundle file inventory mismatch")
+  }
+  if (integrity.sha256 !== release.bundle.sha256) {
+    fail(bundlePath, `rendered bundle SHA-256 mismatch: expected ${release.bundle.sha256}, got ${integrity.sha256}`)
   }
   return { targetVersion: release.upstream.version, bundleSha256: release.bundle.sha256 }
 }

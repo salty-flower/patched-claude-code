@@ -372,6 +372,55 @@ test("release payload publishes and binds the static prompt catalog", () => {
   })
 })
 
+test("release payload publishes both platform graphs and records the graph directory", () => {
+  withTempDir((root) => {
+    const { upstream } = writeFixture(root)
+    const rendered = join(root, "rendered")
+    const patched = join(rendered, "cli.patched.js")
+    mkdirSync(rendered, { recursive: true })
+    const source =
+      'const platformDir = "darwin-arm64"; await import(`./graph.patched/${platformDir}/cli.js`)\n'
+    writeFileSync(patched, source)
+    const identityRoot = join(root, "graph-identities")
+    bootstrapPromptIdentityFiles(identityRoot, "2.1.217", inspectPromptIdentityObservations(source, "2.1.217"))
+    for (const platform of ["darwin-arm64", "linux-x64"]) {
+      mkdirSync(join(rendered, "graph.patched", platform), { recursive: true })
+      writeFileSync(join(rendered, "graph.patched", platform, "cli.js"), `// ${platform}\n`)
+      writeFileSync(join(rendered, "graph.patched", platform, "asset.txt"), `${platform}\n`)
+    }
+
+    const outDir = join(root, "payload")
+    const payload = writeReleasePayload({
+      root: ROOT,
+      version: "2.1.217",
+      releaseId: "patch.test",
+      input: patched,
+      upstreamInput: upstream,
+      outDir,
+      promptIdentityRoot: identityRoot,
+    })
+
+    expect(payload.manifest.runtime.graphDirectory).toBe("graph.patched")
+    expect(readFileSync(join(outDir, "graph.patched", "darwin-arm64", "asset.txt"), "utf8")).toBe(
+      "darwin-arm64\n",
+    )
+    expect(readFileSync(join(outDir, "graph.patched", "linux-x64", "asset.txt"), "utf8")).toBe("linux-x64\n")
+
+    rmSync(join(rendered, "graph.patched", "linux-x64", "cli.js"))
+    expect(() =>
+      writeReleasePayload({
+        root: ROOT,
+        version: "2.1.217",
+        releaseId: "patch.test",
+        input: patched,
+        upstreamInput: upstream,
+        outDir: join(root, "incomplete-payload"),
+        promptIdentityRoot: identityRoot,
+      }),
+    ).toThrow("rendered linux-x64 graph is missing")
+  })
+})
+
 test("catalog extraction rejects malformed UTF-8 before parsing", () => {
   withTempDir((root) => {
     const upstream = join(root, "upstream.js")

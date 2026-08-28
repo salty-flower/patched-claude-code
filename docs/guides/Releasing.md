@@ -84,6 +84,7 @@ and scheduled promotion also move `claude-code-latest` to that tag commit.
 | File | Use |
 | --- | --- |
 | `cli.js` | Patched runtime bundle consumed by the flake package |
+| `graph.patched/` | Complete Darwin and Linux module graphs loaded by dispatcher releases |
 | `manifest.json` | Deterministic source manifest |
 | `package.json` | Minimal package metadata and `claude-patched` bin declaration |
 | `bin/claude-patched` | Bun wrapper for direct shell use |

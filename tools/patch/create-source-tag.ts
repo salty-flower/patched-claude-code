@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 // Create a minimal git tag commit containing only the Nix source payload.
 
-import { existsSync, readdirSync, rmSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
 import { captureChecked } from "../lib/process"
-import { releaseTag } from "../lib/release-payload"
+import { graphDirectoryNameForEntrypoint, releaseTag } from "../lib/release-payload"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -22,15 +22,44 @@ type TagFile = {
   required: boolean
 }
 
-function payloadFiles(path: string): TagFile[] {
-  const absolute = join(ROOT, path)
+function payloadFiles(root: string, path: string): TagFile[] {
+  const absolute = join(root, path)
   if (!existsSync(absolute)) return []
   return readdirSync(absolute, { withFileTypes: true })
     .sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0))
     .flatMap((entry) => {
       const child = `${path}/${entry.name}`
-      return entry.isDirectory() ? payloadFiles(child) : [{ path: child, mode: "100644" as const, required: true }]
+      return entry.isDirectory()
+        ? payloadFiles(root, child)
+        : [{ path: child, mode: "100644" as const, required: true }]
     })
+}
+
+export function sourceTagFiles(root: string = ROOT): TagFile[] {
+  const cliPath = join(root, "cli.js")
+  const graphDirectoryName = existsSync(cliPath)
+    ? graphDirectoryNameForEntrypoint(readFileSync(cliPath, "utf8"))
+    : null
+  if (graphDirectoryName !== null) {
+    for (const platform of ["darwin-arm64", "linux-x64"]) {
+      const platformEntrypoint = join(root, graphDirectoryName, platform, "cli.js")
+      if (!existsSync(platformEntrypoint)) {
+        throw new Error(`source tag payload missing: ${graphDirectoryName}/${platform}/cli.js`)
+      }
+    }
+  }
+  return [
+    { path: "cli.js", mode: "100644", required: true },
+    { path: "manifest.json", mode: "100644", required: true },
+    { path: "package.json", mode: "100644", required: true },
+    { path: "bin/claude-patched", mode: "100755", required: true },
+    { path: "runtime/macos-keychain.ts", mode: "100644", required: true },
+    { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
+    { path: "flake.nix", mode: "100644", required: true },
+    { path: "flake.lock", mode: "100644", required: false },
+    ...payloadFiles(root, "prompts/catalog"),
+    ...(graphDirectoryName === null ? [] : payloadFiles(root, graphDirectoryName)),
+  ]
 }
 
 export function parseArgs(argv: string[], env: Record<string, string | undefined> = process.env): Args {
@@ -76,17 +105,7 @@ function main(): number {
   if (!existsSync(join(ROOT, "prompts", "catalog", "manifest.json"))) {
     throw new Error("source tag payload missing: prompts/catalog/manifest.json")
   }
-  const files: TagFile[] = [
-    { path: "cli.js", mode: "100644", required: true },
-    { path: "manifest.json", mode: "100644", required: true },
-    { path: "package.json", mode: "100644", required: true },
-    { path: "bin/claude-patched", mode: "100755", required: true },
-    { path: "runtime/macos-keychain.ts", mode: "100644", required: true },
-    { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
-    { path: "flake.nix", mode: "100644", required: true },
-    { path: "flake.lock", mode: "100644", required: false },
-    ...payloadFiles("prompts/catalog"),
-  ]
+  const files = sourceTagFiles()
   for (const file of files) {
     if (file.required && !existsSync(join(ROOT, file.path))) {
       throw new Error(`source tag payload missing: ${file.path}`)

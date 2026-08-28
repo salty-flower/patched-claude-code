@@ -9,9 +9,10 @@ Choose the ref by update policy:
 | Exact source tag | `claude-code-2.1.181-patch.3` |
 | Moving Nix source branch | `claude-code-latest` |
 
-Both refs point at a minimal source tree containing `cli.js`, `manifest.json`,
-`package.json`, `bin/claude-patched`, the prompt-override preload helper, and a
-flake package. It expects Bun from Nix.
+Both refs point at a minimal source tree containing `cli.js`, any platform
+graphs it dispatches to, `manifest.json`, `package.json`, `bin/claude-patched`,
+the prompt-override preload helper, and a flake package. It expects Bun from
+Nix.
 
 Use an exact source tag for immutable release pinning. Use
 `claude-code-latest` when `nix flake update` should advance to the latest

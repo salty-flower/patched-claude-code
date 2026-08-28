@@ -17,19 +17,28 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        hasReleasePayload =
-          builtins.pathExists ./cli.js
-          && builtins.pathExists ./manifest.json
-          && builtins.pathExists ./package.json
-          && builtins.pathExists ./bin/claude-patched
-          && builtins.pathExists ./runtime/macos-keychain.ts
-          && builtins.pathExists ./runtime/system-prompt-overrides.ts
-          && builtins.pathExists ./prompts/catalog/manifest.json;
         releaseManifest =
           if builtins.pathExists ./manifest.json then
             builtins.fromJSON (builtins.readFile ./manifest.json)
           else
             null;
+        graphDirectory =
+          if releaseManifest == null then null else releaseManifest.runtime.graphDirectory or null;
+        hasReleaseGraph =
+          graphDirectory == null
+          || (
+            builtins.pathExists (./. + "/${graphDirectory}/darwin-arm64/cli.js")
+            && builtins.pathExists (./. + "/${graphDirectory}/linux-x64/cli.js")
+          );
+        hasReleasePayload =
+          releaseManifest != null
+          && builtins.pathExists ./cli.js
+          && builtins.pathExists ./package.json
+          && builtins.pathExists ./bin/claude-patched
+          && builtins.pathExists ./runtime/macos-keychain.ts
+          && builtins.pathExists ./runtime/system-prompt-overrides.ts
+          && builtins.pathExists ./prompts/catalog/manifest.json
+          && hasReleaseGraph;
         releaseVersion =
           if releaseManifest == null then
             "unreleased"
@@ -51,6 +60,10 @@
             || path == "${root}/runtime"
             || path == "${root}/runtime/macos-keychain.ts"
             || path == "${root}/runtime/system-prompt-overrides.ts"
+            || path == "${root}/graph.patched"
+            || builtins.match "${root}/graph.patched/.*" path != null
+            || path == "${root}/graph"
+            || builtins.match "${root}/graph/.*" path != null
             || path == "${root}/prompts"
             || path == "${root}/prompts/catalog"
             || builtins.match "${root}/prompts/catalog/.*" path != null;
@@ -71,6 +84,11 @@
                 install -Dm0644 cli.js "$out/lib/patched-claude-code/cli.js"
                 install -Dm0644 runtime/macos-keychain.ts "$out/lib/patched-claude-code/macos-keychain.ts"
                 install -Dm0644 runtime/system-prompt-overrides.ts "$out/lib/patched-claude-code/system-prompt-overrides.ts"
+                for graph_dir in graph.patched graph; do
+                  if [ -d "$graph_dir" ]; then
+                    cp -R "$graph_dir" "$out/lib/patched-claude-code/$graph_dir"
+                  fi
+                done
                 install -Dm0644 manifest.json "$out/share/patched-claude-code/manifest.json"
                 install -Dm0644 package.json "$out/share/patched-claude-code/package.json"
                 mkdir -p "$out/share/patched-claude-code/prompts"

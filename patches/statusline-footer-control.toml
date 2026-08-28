@@ -13505,6 +13505,130 @@ name = "2.1.250 CLI footer option records the override"
 assert_contains = '''globalThis.__acc_disabled_footer=t==="all"'''
 
 [[patches]]
+name = "statusline-json-permission-mode-2-1-250"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Expose the active permission mode to custom statusLine commands in the
+2.1.250 Darwin graph.
+
+The native bundle split moved the JSON builder to `$ze`; its destructured
+`permissionMode` value is minified as `k`. Without this field, custom status
+lines can render only their mode icon, not the `ask`, `plan`, or `bypass`
+label. Cleanup condition: upstream exposes an equivalent field.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$ze", strings = ["session_name:", "display_name:", "fast_mode:"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return{...Ca(d,Ne),...Yt&&{session_name:Yt},'''
+value = '''return{...Ca(d,Ne),...Yt&&{session_name:Yt},permission_mode:k,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin statusline JSON includes permission mode"
+assert_contains = '''return{...Ca(d,Ne),...Yt&&{session_name:Yt},permission_mode:k,'''
+
+[[patches]]
+name = "statusline-json-permission-mode-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Expose the active permission mode to custom statusLine commands in the
+2.1.250 Linux graph.
+
+The Linux JSON builder is `qze`; its destructured `permissionMode` value is
+minified as `C`. Keep its payload aligned with the Darwin graph so packaged
+releases have identical status-line behavior. Cleanup condition: upstream
+exposes an equivalent field.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "qze", strings = ["session_name:", "display_name:", "fast_mode:"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return{...ka(d,He),...Yt&&{session_name:Yt},'''
+value = '''return{...ka(d,He),...Yt&&{session_name:Yt},permission_mode:C,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux statusline JSON includes permission mode"
+assert_contains = '''return{...ka(d,He),...Yt&&{session_name:Yt},permission_mode:C,'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-250"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Keep the scalar effort level available to custom statusLine commands in the
+2.1.250 Darwin graph.
+
+Upstream exposes the same value under `effort.level`, but existing custom
+status lines consume the repo's `effort_level` compatibility field. The
+Darwin builder resolves that value through `mS(tt,Ie)`. Cleanup condition:
+status-line consumers have migrated to the upstream nested field.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$ze", strings = ["session_name:", "display_name:", "fast_mode:"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''fast_mode:P,...Rm(tt)&&{effort:{level:mS(tt,Ie)}},'''
+value = '''fast_mode:P,effort_level:Rm(tt)?mS(tt,Ie):null,...Rm(tt)&&{effort:{level:mS(tt,Ie)}},'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin statusline JSON includes scalar effort level"
+assert_contains = '''effort_level:Rm(tt)?mS(tt,Ie):null'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Keep the scalar effort level available to custom statusLine commands in the
+2.1.250 Linux graph.
+
+The Linux graph resolves the nested effort value through `fv(tt,Le)`. Mirror
+it into `effort_level` so packaged platforms retain the same compatibility
+contract. Cleanup condition: status-line consumers have migrated to the
+upstream nested field.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "qze", strings = ["session_name:", "display_name:", "fast_mode:"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''fast_mode:H,...xm(tt)&&{effort:{level:fv(tt,Le)}},'''
+value = '''fast_mode:H,effort_level:xm(tt)?fv(tt,Le):null,...xm(tt)&&{effort:{level:fv(tt,Le)}},'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux statusline JSON includes scalar effort level"
+assert_contains = '''effort_level:xm(tt)?fv(tt,Le):null'''
+
+[[patches]]
 name = "statusline-footer-control-render-state-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.250"

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.250
+import{n}from"./chunk-akz0cj0f.js";import{h}from"./chunk-s0y4aasp.js";import{x}from"./chunk-ns0ekkj0.js";import{l9e}from"./chunk-a891q37t.js";import{jt,rp,rdt}from"./chunk-gr6k3107.js";import{i,ye,m,Me}from"./chunk-kfr3f08h.js";var a=h(()=>m({server_instructions:i().optional(),server_instructions_by_server:Me(i(),i()).optional(),tools:Me(i(),i()).optional(),search_hints:Me(i(),i()).optional(),param_descriptions:Me(i(),Me(i(),i())).optional(),prompts:Me(i(),i()).optional(),skills:Me(i(),i()).optional()})),f=h(()=>Me(i(),ye()));function hW(e){if(!e.pluginSource)return;let{name:r,marketplace:t}=jt(e.pluginSource);if(!rp(t)&&!rdt(r,t))return;let u=x("tengu_official_plugin_prompt_overrides",{}),o=f().safeParse(u);if(!o.success){n("tengu_official_plugin_prompt_overrides: GB payload is not an object; ignoring",{level:"error"});return}let d=o.data[r];if(d===void 0)return;let p=a().safeParse(d);if(!p.success){n(`tengu_official_plugin_prompt_overrides: entry for '${r}' failed schema (${p.error.issues[0]?.message}); using baked-in text`,{level:"error"});return}let s=p.data;if(Object.keys(s).length===0)return;return{...s,server_instructions_by_server:c(s.server_instructions_by_server),tools:c(s.tools),search_hints:c(s.search_hints),param_descriptions:c(s.param_descriptions),prompts:c(s.prompts),skills:c(s.skills)}}function c(e){if(e===void 0)return;let r=Object.create(null);return Object.assign(r,e)}function Cet(e,r){if(!e)return;let t=e.server_instructions_by_server;if(t){let u=l9e(r),o=u&&t[u.serverName];if(o!==void 0)return o}return e.server_instructions}function xet(e,r){if(!r||!e.properties)return e;let t={...e.properties},u=!1;for(let[o,d]of Object.entries(r)){let p=t[o];if(p!==null&&typeof p==="object")t[o]={...p,description:d},u=!0}if(!u)return e;return{...e,properties:t}}
+export{hW,Cet,xet};

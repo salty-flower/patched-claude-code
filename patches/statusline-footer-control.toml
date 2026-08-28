@@ -12357,7 +12357,7 @@ assert_contains = '''let Qt=!__acc_hide_mode&&ee&&ft?'''
 [[patches]]
 name = "statusline-footer-control-command-length-mount-2-1-233"
 target_version = "2.1.233"
-applies_to = ">=2.1.233 <2.2.0"
+applies_to = ">=2.1.233 <2.1.250"
 rationale = """
 Avoid a missing-command crash in 2.1.233 status-line mount telemetry.
 """
@@ -13111,7 +13111,7 @@ assert_not_contains = '''hideBuiltinFooter:zt().optional().describe("Compatibili
 [[patches]]
 name = "statusline-footer-control-schema-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = """
 Accept statusLine settings that hide built-in footer items in the module graph.
 
@@ -13140,6 +13140,42 @@ assert_contains = '''hideBuiltinFooter:a().optional().describe("Compatibility al
 kind = "static"
 name = "2.1.246 schema rejects stale 2.1.241 helpers"
 assert_not_contains = '''hideBuiltinFooter:Bt().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:ft(Dr(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-250-darwin"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:z().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:k(le(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin disabledFooter schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:z().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:k(le(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:G().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:H(le(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux disabledFooter schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:G().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:H(le(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
 
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-241"
@@ -13239,7 +13275,7 @@ assert_not_contains = '''let i=Fga(r,n);if(!i||i===e)return;e=i;let s=$up(r,n,o)
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-deps-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = """
 Carry the central store into the 2.1.246 rate-limit notification registry.
 
@@ -13266,7 +13302,7 @@ assert_contains = '''e.addNotification,e.store],setup(){let e=null;return({addNo
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = """
 Hide the 2.1.246 rate-limit notification while preserving its warning text
 for statusLine commands.
@@ -13456,9 +13492,213 @@ name = "stale 2.1.234 JSON payload spread is absent in 2.1.241"
 assert_not_contains = '''return{...Sy(e,f),permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''
 
 [[patches]]
+name = "statusline-footer-control-cli-option-2-1-250"
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+replacement = '''.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";globalThis.__acc_disabled_footer=t==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(t).split(",").map((r)=>r.trim()).filter(Boolean);return t}).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 CLI footer option records the override"
+assert_contains = '''globalThis.__acc_disabled_footer=t==="all"'''
+
+[[patches]]
+name = "statusline-footer-control-render-state-2-1-250"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Ohe", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+[patches.transform]
+op = "replace_substring"
+find = '''const Che=Rfo?.statusLine;'''
+value = '''const Che=Rfo?.statusLine,__acc_hide_footer=Che?.hideBuiltinFooter||Che?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer");'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin footer hide state"
+assert_contains = '''__acc_hide_footer=Che?.hideBuiltinFooter'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-250"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Ohe", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return jJe}'''
+value = '''return __acc_hide_footer?null:jJe}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin footer return is gated"
+assert_contains = '''return __acc_hide_footer?null:jJe}'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-250"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "C5e", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''}){let{storageV5:tt}=fe(),'''
+value = '''}){let __acc_hide_mode=j((Sn)=>Sn.settings.statusLine?.hideBuiltinFooter||Sn.settings.statusLine?.disabledFooter?.includes("permission_mode")||Sn.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:tt}=fe(),'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin mode hide state"
+assert_contains = '''let __acc_hide_mode=j((Sn)=>Sn.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-250"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "C5e", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Vs=jr&&Gr?'''
+value = '''let Vs=!__acc_hide_mode&&jr&&Gr?'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin dense mode is gated"
+assert_contains = '''let Vs=!__acc_hide_mode&&jr&&Gr?'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-250"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "C5e", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Do=Gr&&Aa?'''
+value = '''let Do=!__acc_hide_mode&&Gr&&Aa?'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin narrow mode is gated"
+assert_contains = '''let Do=!__acc_hide_mode&&Gr&&Aa?'''
+
+[[patches]]
+name = "statusline-footer-control-render-state-2-1-250-linux"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Lhe", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+[patches.transform]
+op = "replace_substring"
+find = '''const khe=Rfo?.statusLine;'''
+value = '''const khe=Rfo?.statusLine,__acc_hide_footer=khe?.hideBuiltinFooter||khe?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer");'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux footer hide state"
+assert_contains = '''__acc_hide_footer=khe?.hideBuiltinFooter'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-250-linux"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Lhe", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return KJe}'''
+value = '''return __acc_hide_footer?null:KJe}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux footer return is gated"
+assert_contains = '''return __acc_hide_footer?null:KJe}'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-250-linux"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "P5e", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''}){let{storageV5:tt}=fe(),'''
+value = '''}){let __acc_hide_mode=j((bn)=>bn.settings.statusLine?.hideBuiltinFooter||bn.settings.statusLine?.disabledFooter?.includes("permission_mode")||bn.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:tt}=fe(),'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux mode hide state"
+assert_contains = '''let __acc_hide_mode=j((bn)=>bn.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-250-linux"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "P5e", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let qs=Hr&&Vr?'''
+value = '''let qs=!__acc_hide_mode&&Hr&&Vr?'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux dense mode is gated"
+assert_contains = '''let qs=!__acc_hide_mode&&Hr&&Vr?'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-250-linux"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "P5e", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Eo=Vr&&Aa?'''
+value = '''let Eo=!__acc_hide_mode&&Vr&&Aa?'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux narrow mode is gated"
+assert_contains = '''let Eo=!__acc_hide_mode&&Vr&&Aa?'''
+
+[[patches]]
 name = "statusline-footer-control-cli-option-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
 target_version = "2.1.246"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "literal"
 locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
 replacement = '''.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>e??"all").option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
@@ -13478,7 +13718,7 @@ The graph-era component is `Zut` and AppState selection uses `M`. The added
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 
 [patches.ast]
@@ -13498,7 +13738,7 @@ assert_contains = '''function Zut({mode:e,toolPermissionContext:t,showHint:o,den
 name = "statusline-footer-control-mode-hint-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13516,7 +13756,7 @@ assert_contains = '''let Uo=!__acc_hide_mode&&nt&&je?'''
 name = "statusline-footer-control-mode-hint-narrow-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13541,7 +13781,7 @@ The 2.1.246 startup function is `eg`; its parsed CLI options are parameter
 """
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13559,7 +13799,7 @@ assert_contains = '''globalThis.__acc_disabled_footer=H})():void 0,ie={sessionNo
 name = "statusline-footer-control-render-state-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13577,7 +13817,7 @@ assert_contains = '''__acc_hide_footer=sdt?.hideBuiltinFooter||sdt?.disabledFoot
 name = "statusline-footer-control-render-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13595,7 +13835,7 @@ assert_contains = '''return __acc_hide_footer?_Y:ldt}'''
 name = "statusline-footer-control-effort-notification-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13613,7 +13853,7 @@ assert_contains = '''__acc_hide_effort_all=M((E)=>E.settings.statusLine?.hideBui
 name = "statusline-footer-control-effort-level-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1982"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13639,7 +13879,7 @@ the registry's asynchronous effect.
 """
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 
 [patches.ast]
@@ -13664,7 +13904,7 @@ assert_not_contains = '''s=et((o)=>o.settings.statusLine);ge(ut,{isTerminalFocus
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = """
 Keep clipboard image availability visible to custom status lines while
 allowing the 2.1.246 built-in clipboard hint to be hidden.
@@ -13704,7 +13944,7 @@ assert_contains = '''clock:t,statusLine:c})=>'''
 name = "statusline-json-effort-level-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -13722,7 +13962,7 @@ assert_contains = '''effort_level:Cle(v)?UI(v,y):null'''
 name = "statusline-json-permission-mode-2-1-246"
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1

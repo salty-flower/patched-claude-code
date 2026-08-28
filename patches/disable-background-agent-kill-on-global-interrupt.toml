@@ -648,7 +648,7 @@ assert_not_contains = '''if(!q({gesture:"ctrl_c"}))return!1},[re,m,y,_,h,S,W,te,
 [[patches]]
 name = "foreground-agent-handoff-before-cancel-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = "Hand 2.1.246 foreground local agents to the background before Escape aborts their shared parent request."
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
 locator_kind = "literal"
@@ -670,7 +670,7 @@ name = "global-interrupt-cancel-only-2-1-246"
 rationale = "Keep the 2.1.246 global interrupt on the cancel-only path."
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "literal"
 locator_pattern = '''if(!Ee({gesture:"ctrl_c"}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''
 replacement = '''if(!Ee({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''

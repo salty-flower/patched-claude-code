@@ -88,6 +88,12 @@ function getStreamHandlerThinkingPatch(body: string): { callback: string; deltaC
 }
 
 test("thinking deltas update the stream handler's live thinking callback", () => {
+  if (TARGET_VERSION === "2.1.250") {
+    expect(patched).toContain('onStreamingText:T,onStreamingThinking:S,onCompactEvent:E')
+    expect(patched).toContain('S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))')
+    expect(patched).toContain('estimatedTokensDelta:con(N.thinking)')
+    return
+  }
   if (TARGET_VERSION === "2.1.238") {
     expect(patched).toContain('t.onStreamingThinking?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))')
     expect(patched).toContain('else if(w.length>0)o?.({type:"thinking_progress",estimatedTokensDelta:dIl(w)})')
@@ -232,6 +238,14 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 }, 120000)
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (TARGET_VERSION === "2.1.250") {
+    expect(patched).toContain("onStreamingThinking:this.stream.setStreamingThinking")
+    expect(patched).toContain("__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)")
+    expect(patched).toContain(
+      "__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+    )
+    return
+  }
   if (TARGET_VERSION === "2.1.238") {
     expect(patched).toContain("onStreamingThinking:en.stream.setStreamingThinking")
     expect(patched).toContain(
@@ -351,6 +365,15 @@ test("main-screen thinking display uses the same live state as transcript render
 }, 120000)
 
 test("live thinking rendering is not suppressed by brief mode", () => {
+  if (TARGET_VERSION === "2.1.250") {
+    expect(patched).toContain(
+      "__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+    )
+    expect(patched).not.toContain(
+      "ee&&__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+    )
+    return
+  }
   if (TARGET_VERSION === "2.1.238") {
     expect(patched).toContain('if(!1){return null}let h6;if(Yqt[38]')
     expect(patched).not.toContain('if(!Vqt&&!kge){return null}let h6;if(Yqt[38]')
@@ -547,6 +570,12 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
   if (TARGET_VERSION === "2.1.246") {
     expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:d}=')
     expect(patched).not.toContain('isVirtual:!0})]);let{salvage:d}=')
+    return
+  }
+
+  if (TARGET_VERSION === "2.1.250") {
+    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
+    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
     return
   }
 

@@ -1642,11 +1642,63 @@ name = "2.1.241 raw-body gate no longer carries 2.1.238 symbols"
 assert_not_contains = '''function m1f(){return!1}'''
 
 [[patches]]
+name = "require-explicit-assistant-response-otel-2-1-250-darwin"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function v9n(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function v9n(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function v9n(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-250-linux"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function g5n(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function g5n(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function g5n(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-250-darwin"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function _bt(){return ybt().mode!=="disabled"}'''
+replacement = '''function _bt(){return!1}'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function _bt(){return!1}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-250-linux"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function Tbt(){return wbt().mode!=="disabled"}'''
+replacement = '''function Tbt(){return!1}'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''function Tbt(){return!1}'''
+
+[[patches]]
 name = "require-explicit-assistant-response-otel-2-1-246"
 rationale = "Require explicit assistant-response OTel opt-in in the 2.1.246 module graph."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "literal"
 locator_pattern = '''function _t(){return s.OTEL_LOG_ASSISTANT_RESPONSES??s.OTEL_LOG_USER_PROMPTS}'''
 replacement = '''function _t(){return s.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
@@ -1665,7 +1717,7 @@ platforms = ["linux-x64"]
 rationale = "Disable raw API body OTel capture in the 2.1.246 module graph."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "literal"
 locator_pattern = '''function k5n(){return w5n().mode!=="disabled"}'''
 replacement = '''function k5n(){return!1}'''
@@ -1683,7 +1735,7 @@ name = "disable-raw-api-body-otel-2-1-246-darwin"
 rationale = "Disable raw API body OTel capture in the 2.1.246 Darwin module graph."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 locator_kind = "literal"
 locator_pattern = '''function S5n(){return b5n().mode!=="disabled"}'''

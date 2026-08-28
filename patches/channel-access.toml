@@ -1557,7 +1557,7 @@ assert_not_contains = '''return R3t()'''
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
 locator_kind = "ast_transform"
 expected_matches = 1
@@ -1583,7 +1583,7 @@ assert_not_contains = '''isEnabled(){if(Z6().length>0&&It())return!1;if(It()&&!t
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-246-askuser"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
 locator_kind = "ast_transform"
 expected_matches = 1

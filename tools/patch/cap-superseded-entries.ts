@@ -1,10 +1,9 @@
 #!/usr/bin/env bun
 // Cap superseded patch entries whose open-ended applies_to range extends past
-// the new target version even though a -2-1-246 successor exists.
+// a new target version after the caller has reviewed its replacement.
 //
-// Usage: bun run tools/patch/cap-superseded-entries.ts <toml-path> --after <name> ...
-// Caps the entry named <name> (first [[patches]] block whose name matches) by
-// rewriting its applies_to upper bound <2.2.0 -> <2.1.246.
+// Usage: bun run tools/patch/cap-superseded-entries.ts <toml-path> --before <version> --after <name> ...
+// Caps the named entries by rewriting their open upper bound to <version.
 
 import { readFileSync, writeFileSync } from "node:fs"
 
@@ -16,6 +15,12 @@ if (!file || !file.endsWith(".toml")) {
 }
 const afterIndex = args.indexOf("--after")
 const names = afterIndex === -1 ? [] : args.slice(afterIndex + 1).filter((a) => !a.startsWith("--"))
+const beforeIndex = args.indexOf("--before")
+const before = beforeIndex === -1 ? undefined : args[beforeIndex + 1]
+if (!before || !/^\d+\.\d+\.\d+$/.test(before)) {
+  console.error("--before must be an explicit semver")
+  process.exit(2)
+}
 if (names.length === 0) {
   console.error("no entry names given")
   process.exit(2)
@@ -41,7 +46,7 @@ for (const name of names) {
     console.error(`[skip] ${name}: applies_to already bounded`)
     continue
   }
-  const newBlock = block.replace(/(<2\.1\.\d+|<2\.2\.0)/, "<2.1.246")
+  const newBlock = block.replace("<2.2.0", `<${before}`)
   text = text.slice(0, start) + newBlock + text.slice(blockEnd)
   changed++
   console.log(`[cap] ${name}`)

@@ -4246,7 +4246,7 @@ assert_contains = '''streamingPreview:h,streamingThinking:__acc_streamingThinkin
 [[patches]]
 name = "thinking-render-live-row-input-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = "Re-anchor the live thinking prop at the 2.1.246 Messages component."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L359-L359"
 locator_kind = "ast_transform"
@@ -4316,7 +4316,7 @@ assert_contains = '''isVirtual:!0})]);this.stream.setStreamingThinking(null);let
 [[patches]]
 name = "thinking-clear-live-on-interrupt-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = "Clear 2.1.246 stream-store thinking after an interrupt preserves it as a virtual assistant message."
 rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
 locator_kind = "ast_transform"
@@ -4384,6 +4384,175 @@ name = "2.1.238 normal thinking rendering bypasses brief-mode guard"
 assert_contains = '''if(!1){return null}let h6;if(Yqt[38]'''
 
 [[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-250"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", strings = ["thinkingStartedAt!==null", "isVirtual:!0", '''signature:""'''], parent_node = "BlockStatement" }
+[patches.transform]
+op = "insert_after_node"
+code = '''this.stream.setStreamingThinking(null);'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 interrupt clears preserved live thinking"
+assert_contains = '''isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-250-darwin"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "CSe", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:p,onStreamingToolUses:g,onStreamingText:T,onCompactEvent:E,onResponseLength:R,displayTransform:M}=t,'''
+value = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:p,onStreamingToolUses:g,onStreamingText:T,onStreamingThinking:S,onCompactEvent:E,onResponseLength:R,displayTransform:M}=t,'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin stream handler receives live thinking callback"
+assert_contains = '''onStreamingText:T,onStreamingThinking:S,onCompactEvent:E'''
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-250-darwin"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "CSe", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:N}=e.event;if("estimated_tokens"in N'''
+value = '''case"thinking_delta":{let{delta:N}=e.event,w=typeof N.thinking==="string"?N.thinking:"";if(w)S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in N'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin thinking deltas update live state"
+assert_contains = '''S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches]]
+name = "thinking-render-live-output-2-1-250-darwin"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Ale", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''ge=Ze(d.stream,(Ke)=>Ke.userInputOnProcessing),'''
+value = '''ge=Ze(d.stream,(Ke)=>Ke.userInputOnProcessing),__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking),'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)'''
+
+[[patches]]
+name = "thinking-render-live-row-2-1-250-darwin"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Ale", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''!R&&!me&&!ge&&ee&&k.isMain&&e(UGt,{})]})}'''
+value = '''!R&&!me&&!ge&&ee&&k.isMain&&e(UGt,{}),__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})]})}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "PSe", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:p,onStreamingToolUses:g,onStreamingText:E,onCompactEvent:C,onResponseLength:A,displayTransform:P}=t,'''
+value = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:p,onStreamingToolUses:g,onStreamingText:E,onStreamingThinking:S,onCompactEvent:C,onResponseLength:A,displayTransform:P}=t,'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux stream handler receives live thinking callback"
+assert_contains = '''onStreamingText:E,onStreamingThinking:S,onCompactEvent:C'''
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "PSe", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:N}=e.event;if("estimated_tokens"in N'''
+value = '''case"thinking_delta":{let{delta:N}=e.event,w=typeof N.thinking==="string"?N.thinking:"";if(w)S?.((U)=>({thinking:(U?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in N'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux thinking deltas update live state"
+assert_contains = '''S?.((U)=>({thinking:(U?.thinking??"")+w,isStreaming:!0}))'''
+
+[[patches]]
+name = "thinking-render-live-output-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Mle", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''ge=Ze(d.stream,(Ke)=>Ke.userInputOnProcessing),'''
+value = '''ge=Ze(d.stream,(Ke)=>Ke.userInputOnProcessing),__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking),'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)'''
+
+[[patches]]
+name = "thinking-render-live-row-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Mle", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''!R&&!me&&!ge&&ee&&C.isMain&&e(u6t,{})]})}'''
+value = '''!R&&!me&&!ge&&ee&&C.isMain&&e(u6t,{}),__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})]})}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches]]
 name = "thinking-render-live-stream-2-1-241"
 target_version = "2.1.241"
 applies_to = ">=2.1.241 <2.1.246"
@@ -4430,7 +4599,7 @@ assert_not_contains = '''estimatedTokensDelta:dIl(w)'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = "Re-anchor live thinking delta rendering to the 2.1.246 stream handler."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
 locator_kind = "ast_transform"
@@ -4598,7 +4767,7 @@ assert_not_contains = '''let ZeM=vDh||TDh;'''
 [[patches]]
 name = "thinking-render-expanded-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = """
 Show full 2.1.246 thinking message bodies in the patched interactive UI.
 
@@ -4672,7 +4841,7 @@ assert_not_contains = '''if(!Vqt&&!kge){return null}'''
 [[patches]]
 name = "thinking-clear-live-on-next-block-2-1-241"
 target_version = "2.1.241"
-applies_to = ">=2.1.241 <2.2.0"
+applies_to = ">=2.1.241 <2.1.250"
 
 rationale = """
 Clear the transient live thinking buffer when the next streamed content block
@@ -4716,7 +4885,7 @@ assert_not_contains = '''o?.({type:"content_block_start"}),a?.(()=>null),e.event
 [[patches]]
 name = "thinking-render-live-state-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
 locator_kind = "ast_transform"
 [patches.ast]
@@ -4733,7 +4902,7 @@ assert_contains = '''streamingThinking:__acc_streamingThinking'''
 [[patches]]
 name = "thinking-render-live-main-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
 locator_kind = "ast_transform"
 [patches.ast]
@@ -4751,7 +4920,7 @@ assert_contains = '''streamingThinking:Ti.isMain?__acc_streamingThinking:null'''
 [[patches]]
 name = "thinking-render-live-row-output-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
 rationale = """
@@ -4789,7 +4958,7 @@ assert_not_contains = '''children:o(t,{dimColor:!0,children:__acc_streamingThink
 [[patches]]
 name = "thinking-render-blocks-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
 locator_kind = "ast_transform"
 [patches.ast]

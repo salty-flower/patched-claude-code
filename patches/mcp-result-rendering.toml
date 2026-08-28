@@ -1276,7 +1276,7 @@ assert_not_contains = '''content:nWh,verbose:rWh'''
 [[patches]]
 name = "mcp-result-render-array-text-full-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
 locator_kind = "literal"
 locator_pattern = '''item:d,verbose:r'''
@@ -1289,7 +1289,7 @@ assert_contains = '''item:d,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-string-full-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
 locator_kind = "literal"
 locator_pattern = '''content:e,verbose:r'''
@@ -1302,7 +1302,7 @@ assert_contains = '''content:e,verbose:!0'''
 [[patches]]
 name = "mcp-result-render-text-block-full-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
 locator_kind = "literal"
 locator_pattern = '''content:RA,verbose:hA'''

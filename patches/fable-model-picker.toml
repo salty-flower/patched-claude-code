@@ -2116,9 +2116,85 @@ name = "2.1.241 API-key picker uses the upstream shared Fable gate"
 assert_contains = '''if(i!==void 0||k1e("fable5"))Q3r(t,i??nIa())'''
 
 [[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-250-darwin"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return d.push(ve),G(d,e,"opus")''', '''v("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return d.push(ve),G(d,e,"opus")'''
+value = '''if(v("fable5"))C(d,V());return d.push(ve),G(d,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin primary OAuth picker inserts Fable"
+assert_contains = '''if(v("fable5"))C(d,V());return d.push(ve),G(d,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-250-darwin"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return i.push(ve),G(i,e,"sonnet")''', '''v("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return i.push(ve),G(i,e,"sonnet")'''
+value = '''if(v("fable5"))C(i,V());return i.push(ve),G(i,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Darwin standard OAuth picker inserts Fable"
+assert_contains = '''if(v("fable5"))C(i,V());return i.push(ve),G(i,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return d.push(Me),G(d,e,"opus")''', '''_("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return d.push(Me),G(d,e,"opus")'''
+value = '''if(_("fable5"))C(d,V());return d.push(Me),G(d,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux primary OAuth picker inserts Fable"
+assert_contains = '''if(_("fable5"))C(d,V());return d.push(Me),G(d,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-250-linux"
+target_version = "2.1.250"
+applies_to = ">=2.1.250 <2.2.0"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return i.push(Me),G(i,e,"sonnet")''', '''_("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return i.push(Me),G(i,e,"sonnet")'''
+value = '''if(_("fable5"))C(i,V());return i.push(Me),G(i,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.250 Linux standard OAuth picker inserts Fable"
+assert_contains = '''if(_("fable5"))C(i,V());return i.push(Me),G(i,e,"sonnet")'''
+
+[[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = """
 Keep the catalog-backed Fable row visible in the primary Claude.ai OAuth picker.
 
@@ -2154,7 +2230,7 @@ assert_not_contains = '''if(k1e("fable5"))Q3r(a,nIa());return a.push(b_p),tIa(a,
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale = """
 Keep the catalog-backed Fable row visible in the standard Claude.ai OAuth picker.
 

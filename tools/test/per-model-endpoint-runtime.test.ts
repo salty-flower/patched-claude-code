@@ -11,7 +11,7 @@ const TARGET_VERSION = targetVersion()
 const MODEL = "claude-sonnet-4-6"
 const SANITIZED_MODEL = MODEL.replace(/[^a-zA-Z0-9]/g, "_")
 const ANTHROPIC_CLIENT_PATTERN =
-  /([A-Za-z_$][\w$]*)=class \1 extends [A-Za-z_$][\w$]*\{constructor\(\)\{super\(\.\.\.arguments\);this\.completions=[\s\S]*?this\.messages=new [A-Za-z_$][\w$]*\(this\)/
+  /(?:([A-Za-z_$][\w$]*)=class \1|class ([A-Za-z_$][\w$]*)) extends [A-Za-z_$][\w$]*\{constructor\(\)\{super\(\.\.\.arguments\);this\.completions=[\s\S]*?this\.messages=new [A-Za-z_$][\w$]*\(this\)/
 
 const tempDirs: string[] = []
 const stubs: ClaudeApiStub[] = []
@@ -33,7 +33,8 @@ function makeTempDir(prefix: string): string {
 
 function findBundledAnthropicClientSymbols(source: string): { init: string; client: string } {
   const classMatch = source.match(ANTHROPIC_CLIENT_PATTERN)
-  if (!classMatch?.[1] || classMatch.index === undefined) {
+  const client = classMatch?.[1] ?? classMatch?.[2]
+  if (!client || classMatch?.index === undefined) {
     throw new Error("could not locate bundled Anthropic client symbols")
   }
   const initializerMatches = [
@@ -42,15 +43,12 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
       .matchAll(/var ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\(\(\)=>\{/g),
   ]
   const initializerMatch = initializerMatches.at(-1)
-  if (!initializerMatch?.[1]) {
-    throw new Error("could not locate bundled Anthropic client initializer")
-  }
-  return { init: initializerMatch[1], client: classMatch[1] }
+  return { init: initializerMatch?.[1] ?? "", client }
 }
 
 function injectSdkHarness(source: string): string {
   const { init, client } = findBundledAnthropicClientSymbols(source)
-  const replacement = `${init}();(async()=>{try{let e=new ${client}({baseURL:process.env.ANTHROPIC_BASE_URL,apiKey:process.env.ANTHROPIC_API_KEY,authToken:process.env.ANTHROPIC_AUTH_TOKEN,maxRetries:0}),t={model:process.env.CLAUDE_STUB_HARNESS_MODEL,max_tokens:1,messages:[{role:"user",content:"hello"}]},n={headers:{"x-api-key":"caller-key",Authorization:"Bearer caller-token"}};await e.messages.create({...t,stream:false},n);await e.beta.messages.create({...t,stream:false,betas:["token-counting-2024-11-01"]},n);await e.messages.countTokens(t,n);await e.beta.messages.countTokens({...t,betas:["token-counting-2024-11-01"]},n);process.stdout.write("ok\\n")}catch(r){console.error(r?.stack??String(r));process.exit(1)}})();`
+  const replacement = `${init ? `${init}();` : ""}(async()=>{try{let e=new ${client}({baseURL:process.env.ANTHROPIC_BASE_URL,apiKey:process.env.ANTHROPIC_API_KEY,authToken:process.env.ANTHROPIC_AUTH_TOKEN,maxRetries:0}),t={model:process.env.CLAUDE_STUB_HARNESS_MODEL,max_tokens:1,messages:[{role:"user",content:"hello"}]},n={headers:{"x-api-key":"caller-key",Authorization:"Bearer caller-token"}};await e.messages.create({...t,stream:false},n);await e.beta.messages.create({...t,stream:false,betas:["token-counting-2024-11-01"]},n);await e.messages.countTokens(t,n);await e.beta.messages.countTokens({...t,betas:["token-counting-2024-11-01"]},n);process.stdout.write("ok\\n")}catch(r){console.error(r?.stack??String(r));process.exit(1)}})();`
   const exportIndex = source.lastIndexOf("export{")
   if (exportIndex !== -1) {
     return `${source.slice(0, exportIndex)}${replacement}${source.slice(exportIndex)}`

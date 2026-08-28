@@ -3994,7 +3994,7 @@ assert_not_contains = '''async function z_h(e){let t=jS.default.join(e.configDir
 [[patches]]
 name = "explicit-macos-keychain-plugin-eval-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = """
 Plugin evaluation creates a temporary config home for its child process.
@@ -4072,7 +4072,7 @@ assert_not_contains = '''a.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS="1"}D_w(
 [[patches]]
 name = "explicit-macos-keychain-plugin-eval-child-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = """
 Plugin evaluation launches the rendered graph entrypoint directly without
@@ -4391,7 +4391,7 @@ assert_not_contains = '''function dJo('''
 [[patches]]
 name = "explicit-macos-keychain-entrypoint-guard-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Fail closed at the graph entrypoint when an explicit Keychain is requested without the packaged preload bridge."
 rationale_ref = "reference/v2.1.88/sources/src/entrypoints/cli.tsx#L1-L24"
@@ -4413,7 +4413,7 @@ assert_contains = '''async function Nt(){if(process.platform==="darwin"&&process
 [[patches]]
 name = "explicit-macos-keychain-storage-bridge-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Route the macOS secure-storage factory through the repo-owned explicit-Keychain bridge."
 rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L1-L17"
@@ -4435,7 +4435,7 @@ assert_contains = '''serviceName:A(C),accountName:D(),mutateWithLock:(e,t)=>m(e,
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-sync-read-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Route synchronous legacy managed API-key lookup through the explicit Keychain bridge without fallback."
 rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
@@ -4458,7 +4458,7 @@ assert_contains = '''Sa=pt(()=>{if(we()||Se())return null;{if(process.env.CLAUDE
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-async-read-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Route asynchronous legacy managed API-key lookup through the explicit Keychain bridge without fallback."
 rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
@@ -4481,7 +4481,7 @@ assert_contains = '''va=Hc(async()=>{if(we()||Se())return null;{if(process.env.C
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-write-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Route legacy API-key creation through the explicit Keychain bridge and fail closed on materialized children."
 rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1100-L1166"
@@ -4504,7 +4504,7 @@ assert_contains = '''await r.legacyApiKey.update(bi(),Ei(),e),E("tengu_api_key_s
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-delete-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Route legacy managed API-key deletion through the explicit Keychain bridge."
 rationale_ref = "reference/v2.1.88/sources/src/utils/authPortable.ts#L1-L17"
@@ -4526,7 +4526,7 @@ assert_contains = '''await e.legacyApiKey.delete(bi(),Ei());return}if(process.en
 [[patches]]
 name = "explicit-macos-keychain-propagate-legacy-delete-failures-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Rethrow legacy Keychain deletion failures under explicit selection and materialized mode."
 rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1170-L1191"
@@ -4549,7 +4549,7 @@ assert_contains = '''catch(e){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0|
 [[patches]]
 name = "explicit-macos-keychain-propagate-write-failures-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Propagate explicit-Keychain OAuth credential write failures to callers."
 rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1194-L1253"
@@ -4572,7 +4572,7 @@ assert_contains = '''catch(d){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)
 [[patches]]
 name = "explicit-macos-keychain-doctor-probe-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale = "Make the macOS doctor writeability probe use only the selected Keychain."
 rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/macOsKeychainStorage.ts#L97-L175"

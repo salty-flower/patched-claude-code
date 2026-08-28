@@ -1233,7 +1233,7 @@ assert_not_contains = '''["CLAUDE.md","CLAUDE.local.md","AGENTS.md"].includes(jb
 [[patches]]
 name = "agents-memory-nested-directory-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
 locator_kind = "literal"
 locator_pattern = '''let i=Tm(e,"CLAUDE.md");o.push(...await Uk(i,"Project",n,!1));let a=Tm(e,".claude","CLAUDE.md")'''
@@ -1253,7 +1253,7 @@ assert_not_contains = '''let i=Tm(e,"CLAUDE.md");o.push(...await Uk(i,"Project",
 [[patches]]
 name = "agents-memory-ancestor-directories-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L886-L910"
 locator_kind = "literal"
 locator_pattern = '''let E=Tm(T,"CLAUDE.md");a.push(...await Uk(E,"Project",l,u));let C=Tm(T,".claude","CLAUDE.md")'''
@@ -1268,7 +1268,7 @@ assert_contains = '''let E=Tm(T,"CLAUDE.md");a.push(...await Uk(E,"Project",l,u)
 [[patches]]
 name = "agents-memory-additional-directories-2-1-246"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
 locator_kind = "literal"
 locator_pattern = '''let E=Tm(v,"CLAUDE.md");a.push(...await Uk(E,"Project",l,u));let C=Tm(v,".claude","CLAUDE.md")'''
@@ -1283,7 +1283,7 @@ assert_contains = '''let E=Tm(v,"CLAUDE.md");a.push(...await Uk(E,"Project",l,u)
 [[patches]]
 name = "agents-memory-file-detection-2-1-246-all-platforms"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 rationale_ref = "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
 locator_kind = "regex"
 locator_pattern = '''\["CLAUDE\.md","CLAUDE\.local\.md"\]\.includes\(([a-zA-Z0-9_$]+)\(Hn\)\)'''

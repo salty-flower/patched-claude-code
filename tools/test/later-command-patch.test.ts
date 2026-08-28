@@ -18,8 +18,9 @@ const targetUses233LaterSymbols = gte(TARGET_VERSION, "2.1.233") && lt(TARGET_VE
 const targetUses229LaterSymbols = gte(TARGET_VERSION, "2.1.229") && lt(TARGET_VERSION, "2.1.233")
 const targetUses228LaterSymbols = gte(TARGET_VERSION, "2.1.228") && lt(TARGET_VERSION, "2.1.229")
 const targetUses227LaterSymbols = gte(TARGET_VERSION, "2.1.227") && lt(TARGET_VERSION, "2.1.228")
-const targetUses241ExactFireSymbols = gte(TARGET_VERSION, "2.1.241") && lt(TARGET_VERSION, "2.2.0")
-const targetUses246LaterSymbols = gte(TARGET_VERSION, "2.1.246") && lt(TARGET_VERSION, "2.2.0")
+const targetUses250LaterSymbols = gte(TARGET_VERSION, "2.1.250") && lt(TARGET_VERSION, "2.2.0")
+const targetUses241ExactFireSymbols = gte(TARGET_VERSION, "2.1.241") && lt(TARGET_VERSION, "2.1.250")
+const targetUses246LaterSymbols = gte(TARGET_VERSION, "2.1.246") && lt(TARGET_VERSION, "2.1.250")
 const targetUses241SubmitSymbols = targetUses241ExactFireSymbols && !targetUses246LaterSymbols
 const targetUses238ExactFireSymbols = targetUses238LaterSymbols && !targetUses241ExactFireSymbols
 const targetUses234ExactFireSymbols = targetUses234LaterSymbols
@@ -610,7 +611,9 @@ test.skipIf(!testLaterCommand)(
   "/later schedules a session-only one-shot cron before prompt queueing",
   () => {
     expect(applied).toBe(
-      targetUses246LaterSymbols
+      targetUses250LaterSymbols
+        ? 4
+        : targetUses246LaterSymbols
         ? 12
         : targetUses238LaterSymbols || targetUses234LaterSymbols
           ? 6
@@ -620,6 +623,7 @@ test.skipIf(!testLaterCommand)(
     )
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
     expectContainsOneOf(patched, [
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;Ge.enqueue",
       "await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)",
       "await Qjr(__cron,__prompt,!1,!1,g3()?.agentId)",
       "await iHr(__cron,__prompt,!1,!1,E4()?.agentId)",
@@ -650,12 +654,14 @@ test.skipIf(!testLaterCommand)(
       "__id=await __acc_schedule_later(__cron,__prompt,!1,!1,__acc_team_context()?.agentId),__task=Fde().find",
     ])
     expectContainsOneOf(patched, [
+      "__jobs.set(__id,__job)",
       "if(__task)__task.later=!0",
       "__task.later=!0,__task.laterAt=__when.getTime()",
       "later:!0})",
       "later:!0,laterAt:",
     ])
     expectContainsOneOf(patched, [
+      "globalThis.__acc_later_jobs??=(new Map)",
       "Wee(!0)",
       "uX(!0)",
       "bo(!0)",
@@ -712,6 +718,12 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses250LaterSymbols) {
+      expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
+      expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;Ge.enqueue")
+      expect(patched).toContain("O5n(Yt,Et).expanded.trim()")
+      expect(patched).toContain("pastedContents:Object.keys(Et).length?Et:void 0")
+      expect(patched).not.toContain("__acc_schedule_later")
     } else if (targetUses246LaterSymbols) {
       expect(patched).toContain("__task.laterAt=__when.getTime()")
       expect(patched).toContain("__prompt=Wye(__rawPrompt,U).expanded")
@@ -843,7 +855,9 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("jBt(!0)")
       expect(patched).not.toContain("DTe(!0)")
     }
-    if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
+    if (targetUses250LaterSymbols) {
+      expect(patched).toContain('text:"Scheduled "+__id+" for "+new Date(__at).toLocaleString()')
+    } else if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
       expect(patched).toContain('text:"Scheduled "+__id+" for "+__when.toLocaleString()')
     } else {
       expect(patched).toContain("text:`Scheduled ${__id} for ${__when.toLocaleString()}`")
@@ -859,6 +873,7 @@ test.skipIf(!testLaterCommand)(
     expect(patched).toContain("Pending /later prompts:")
     expect(patched).toContain("No pending /later prompts")
     expectContainsOneOf(patched, [
+      "[...__jobs.values()]",
       "QN().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "Iv().filter((__t)=>__t.later===!0&&!__t.recurring)",
       "FI().filter((__t)=>__t.later===!0&&!__t.recurring)",
@@ -906,6 +921,9 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("E7t(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("gVt(__t.cron,__t.createdAt)")
+    } else if (targetUses250LaterSymbols) {
+      expect(patched).toContain("[...__jobs.values()]")
+      expect(patched).not.toContain("Fde().filter((__t)=>__t.later===!0&&!__t.recurring)")
     } else if (targetUses246LaterSymbols) {
       expect(patched).toContain("Fde().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).not.toContain("QN().filter((__t)=>__t.later===!0&&!__t.recurring)")
@@ -990,12 +1008,16 @@ test.skipIf(!testLaterCommand)(
         '`${__d.getFullYear()}-${String(__d.getMonth()+1).padStart(2,"0")}-${String(__d.getDate()).padStart(2,"0")} ${String(__d.getHours()).padStart(2,"0")}:${String(__d.getMinutes()).padStart(2,"0")}:${String(__d.getSeconds()).padStart(2,"0")}`',
       )
     }
-    if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
+    if (targetUses250LaterSymbols) {
+      expect(patched).toContain('__t.prompt.length>20?__t.prompt.slice(0,17)+"...":__t.prompt')
+    } else if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
       expect(patched).toContain('__text=__raw.length>20?__raw.slice(0,17)+"...":__raw')
     } else {
       expect(patched).toContain("__raw.length>20?`${__raw.slice(0,17)}...`:__raw")
     }
-    if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
+    if (targetUses250LaterSymbols) {
+      expect(patched).toContain('String(__i+1)+". "+(__t.prompt.length>20?')
+    } else if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
       expect(patched).toContain('return String(__i+1)+". "+__text+" @ "+__when')
     } else {
       expect(patched).toContain("return `${__i+1}. ${__text} @ ${__when}`")

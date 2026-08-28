@@ -52,6 +52,14 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (TARGET_VERSION === "2.1.250") {
+      expect(patched).toContain('globalThis.__acc_disabled_footer=t==="all"')
+      expect(patched).toContain("__acc_hide_footer=Che?.hideBuiltinFooter")
+      expect(patched).toContain("return __acc_hide_footer?null:jJe}")
+      expect(patched).toContain("let Vs=!__acc_hide_mode&&jr&&Gr?")
+      expect(patched).toContain("let Do=!__acc_hide_mode&&Gr&&Aa?")
+      return
+    }
     if (TARGET_VERSION === "2.1.246") {
       expect(patched).toContain(
         '.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>e??"all")',

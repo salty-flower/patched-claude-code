@@ -795,7 +795,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=Nm()?c6m(e,ld(r)):u6m(e);i
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-246-linux"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "literal"
@@ -814,7 +814,7 @@ assert_not_contains = '''let r=t.bodyModel??t.model,n=hch(e,fd(r));if(t.traceSou
 [[patches]]
 name = "strip-signatures-for-custom-base-url-2-1-246-darwin"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "literal"

@@ -105,6 +105,14 @@ test("resume restores 1m defaults after alias resolution", async () => {
     return
   }
 
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.250")) {
+    expect(applied).toBe(0)
+    expect(patched).toContain(
+      'if((o&&hu(o)||r!==void 0&&hu(r))&&kE(u)&&(br(u)===i||o&&Ye(Ot(br(o)))===Ye(u)))return{kind:"ok",model:u+"[1m]"};',
+    )
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.233")) {
     expect(applied).toBe(2)
     expect(patched).toContain(

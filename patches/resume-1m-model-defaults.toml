@@ -1509,7 +1509,7 @@ Cleanup condition: upstream preserves the default 1M suffix during resume.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "literal"
 locator_pattern = '''Lvc as Oo,Ndc as ct,Ofc as Mo'''
 expected_matches = 1
@@ -1531,7 +1531,7 @@ string normalizer as `ee(null)`.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "literal"
 locator_pattern = '''function Xt(e,o){let t=new Set(mt.map((i)=>S(i))),n=o?ee(o):void 0,r=n?y(n):void 0;'''
 replacement = '''function Xt(e,o){let t=new Set(mt.map((i)=>S(i))),n=ee(o??__acc_resume_default()),r=y(n);'''
@@ -1549,7 +1549,7 @@ name = "resume-detects-default-1m-after-alias-resolution-2-1-246"
 rationale = "Use the non-null v2.1.246 resolved default for the default 1M resume comparison."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
 target_version = "2.1.246"
-applies_to = ">=2.1.246 <2.2.0"
+applies_to = ">=2.1.246 <2.1.250"
 locator_kind = "literal"
 locator_pattern = '''if((o&&fe(o)||n!==void 0&&fe(n))&&kt(a)&&(y(a)===r||o&&S(ee(y(o)))===S(a)))return{kind:"ok",model:a+"[1m]"};'''
 replacement = '''if((o&&fe(o)||n!==void 0&&fe(n))&&kt(a)&&(y(a)===r||S(ee(y(o??__acc_resume_default())))===S(a)))return{kind:"ok",model:a+"[1m]"};'''

@@ -169,6 +169,7 @@ test("create-source-tag includes every graph file required by a dispatcher", () 
   try {
     writeFileSync(
       join(root, "cli.js"),
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: Exercise the literal dispatcher interpolation.
       'const platformDir = "darwin-arm64"; await import(`./graph.patched/${platformDir}/cli.js`)\n',
     )
     for (const platform of ["darwin-arm64", "linux-x64"]) {

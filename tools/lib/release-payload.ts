@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto"
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
+import {
+  computeRuntimeBundleIntegrity,
+  type RuntimeBundleFile,
+  type RuntimeGraphDirectory,
+} from "../../runtime/release-integrity"
 import { loadPatchEntriesFromToml, type PatchEntry } from "./patch-files"
 import {
   PROMPT_CATALOG_RULESET_SHA256,
@@ -53,6 +58,8 @@ export type ReleaseManifest = {
     file: "cli.js"
     bytes: number
     sha256: string
+    entrypointSha256: string
+    files: RuntimeBundleFile[]
   }
   promptCatalog: {
     path: "prompts/catalog"
@@ -102,8 +109,10 @@ export function sha256(buf: Buffer | Uint8Array | string): { hex: string; sri: s
   return { hex: digest.toString("hex"), sri: `sha256-${digest.toString("base64")}` }
 }
 
-export function graphDirectoryNameForEntrypoint(source: string): "graph.patched" | "graph" | null {
+export function graphDirectoryNameForEntrypoint(source: string): RuntimeGraphDirectory {
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: Match the dispatcher's literal platform interpolation.
   if (source.includes("./graph.patched/${platformDir}/cli.js")) return "graph.patched"
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: Match the dispatcher's literal platform interpolation.
   if (source.includes("./graph/${platformDir}/cli.js")) return "graph"
   return null
 }
@@ -113,17 +122,26 @@ export function loadPatches(root: string): PatchFile[] {
   return readdirSync(patchDir)
     .filter((file) => file.endsWith(".toml"))
     .sort()
-    .map((file) => {
+    .flatMap((file) => {
       const raw = readFileSync(join(patchDir, file), "utf8")
       return loadPatchEntriesFromToml(raw, join(patchDir, file)).map((patch) => ({ patch, raw }))
     })
-    .flat()
 }
 
 export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayload {
   const cliBytes = readFileSync(options.input)
   const cliHash = sha256(cliBytes)
-  const baseManifest = buildReleaseManifest(options, cliBytes, cliHash)
+  const graphDirectoryName = graphDirectoryNameForEntrypoint(cliBytes.toString("utf8"))
+  if (graphDirectoryName !== null) {
+    const graphSource = join(dirname(options.input), graphDirectoryName)
+    for (const platform of ["darwin-arm64", "linux-x64"]) {
+      if (!existsSync(join(graphSource, platform, "cli.js"))) {
+        throw new Error(`rendered ${platform} graph is missing beside release entrypoint: ${graphSource}`)
+      }
+    }
+  }
+  const bundleIntegrity = computeRuntimeBundleIntegrity(options.input, graphDirectoryName)
+  const baseManifest = buildReleaseManifest(options, cliBytes, cliHash, graphDirectoryName, bundleIntegrity)
   const catalogOutput = join(options.outDir, "prompts", "catalog")
   const upstreamInput = options.upstreamInput ?? join(options.root, "staging", options.version, "cli.js")
   const existingCatalog = options.promptCatalogInput ?? join(options.root, "prompts", "catalog")
@@ -131,7 +149,8 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
     upstreamVersion: options.version,
     releaseId: options.releaseId,
     upstreamBundleSha256: "",
-    patchedBundleSha256: cliHash.sri,
+    patchedBundleSha256: bundleIntegrity.sha256,
+    patchedEntrypointSha256: cliHash.sri,
     patchSetSha256: baseManifest.patchSet.sha256,
   }
   const catalog = existsSync(upstreamInput)
@@ -164,7 +183,7 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
       sha256: catalog.treeSha256,
     },
   }
-  const runtimeFiles = ["macos-keychain.ts", "system-prompt-overrides.ts"]
+  const runtimeFiles = ["macos-keychain.ts", "release-integrity.ts", "system-prompt-overrides.ts"]
   for (const file of runtimeFiles) {
     const source = join(options.root, "runtime", file)
     if (!existsSync(source)) throw new Error(`runtime helper missing: ${source}`)
@@ -177,14 +196,8 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
     const output = join(options.outDir, "runtime", file)
     if (resolve(source) !== resolve(output)) copyFileSync(source, output)
   }
-  const graphDirectoryName = graphDirectoryNameForEntrypoint(cliBytes.toString("utf8"))
   if (graphDirectoryName !== null) {
     const graphSource = join(dirname(options.input), graphDirectoryName)
-    for (const platform of ["darwin-arm64", "linux-x64"]) {
-      if (!existsSync(join(graphSource, platform, "cli.js"))) {
-        throw new Error(`rendered ${platform} graph is missing beside release entrypoint: ${graphSource}`)
-      }
-    }
     cpSync(graphSource, join(options.outDir, graphDirectoryName), { recursive: true, force: true })
   }
   writeFileSync(join(options.outDir, "cli.js"), cliBytes, { mode: 0o644 })
@@ -212,6 +225,8 @@ function buildReleaseManifest(
   options: ReleasePayloadOptions,
   cliBytes: Buffer,
   cliHash: { hex: string; sri: string },
+  graphDirectoryName: RuntimeGraphDirectory,
+  bundleIntegrity: { sha256: string; files: RuntimeBundleFile[] },
 ): Omit<ReleaseManifest, "promptCatalog"> {
   const patches = loadPatches(options.root)
   const stageManifest = sanitizeStageManifest(options.root, loadStageManifest(options.root, options.version))
@@ -239,7 +254,7 @@ function buildReleaseManifest(
       command: "bun",
       entrypoint: "cli.js",
       preload: "runtime/system-prompt-overrides.ts",
-      graphDirectory: graphDirectoryNameForEntrypoint(cliBytes.toString("utf8")),
+      graphDirectory: graphDirectoryName,
     },
     patchSet: {
       count: patches.length,
@@ -249,7 +264,9 @@ function buildReleaseManifest(
     bundle: {
       file: "cli.js",
       bytes: cliBytes.byteLength,
-      sha256: cliHash.sri,
+      sha256: bundleIntegrity.sha256,
+      entrypointSha256: cliHash.sri,
+      files: bundleIntegrity.files,
     },
   }
 }

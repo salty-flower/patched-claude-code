@@ -7,10 +7,7 @@ import {
   type PromptManifest,
   type SystemPromptBridgeOutput,
 } from "../../runtime/system-prompt-overrides"
-import {
-  inspectPromptIdentityObservations,
-  inspectPromptIdentityObservationsFromPath,
-} from "../lib/prompt-catalog"
+import { inspectPromptIdentityObservations, inspectPromptIdentityObservationsFromPath } from "../lib/prompt-catalog"
 import { bootstrapPromptIdentityFiles } from "../lib/prompt-identity"
 import { writeReleasePayload } from "../lib/release-payload"
 import { targetVersion } from "../lib/target"
@@ -111,7 +108,12 @@ test("rendered bridge preserves no-op requests, applies one override, and reject
   const promptRoot = join(work, "prompts")
   const identityRoot = join(work, "prompt-identities")
   mkdirSync(home, { recursive: true })
-  const bundle = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(work, "rendered"), patchFiles: ["system-prompt-section-overrides.toml"] })
+  const bundle = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: join(work, "rendered"),
+    patchFiles: ["system-prompt-section-overrides.toml"],
+  })
   bootstrapPromptIdentityFiles(
     identityRoot,
     TARGET_VERSION,
@@ -218,6 +220,41 @@ test("packaged launcher rejects a bundle that no longer matches its release mani
 
   const result = await runPrint([join(payload, "bin", "claude-patched")], work, { HOME: work })
   expect(result.exitCode).not.toBe(0)
-  expect(`${result.stdout}\n${result.stderr}`).toContain("rendered bundle SHA-256 mismatch")
+  expect(`${result.stdout}\n${result.stderr}`).toContain("rendered bundle file inventory mismatch")
   expect(result.stdout).not.toContain("bundle ran")
+})
+
+test("packaged launcher rejects a graph that no longer matches its release manifest", async () => {
+  const work = makeTempDir("patched-cc-prompt-graph-hash-")
+  const rendered = join(work, "rendered")
+  const input = join(rendered, "cli.patched.js")
+  const payload = join(work, "payload")
+  const source =
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Exercise the literal dispatcher interpolation.
+    'const platformDir = process.platform === "darwin" ? "darwin-arm64" : "linux-x64"; await import(`./graph.patched/${platformDir}/cli.js`)\n'
+  mkdirSync(rendered, { recursive: true })
+  writeFileSync(input, source)
+  for (const platform of ["darwin-arm64", "linux-x64"]) {
+    const graphDir = join(rendered, "graph.patched", platform)
+    mkdirSync(graphDir, { recursive: true })
+    writeFileSync(join(graphDir, "cli.js"), 'process.stdout.write("graph ran\\n")\n')
+  }
+  const identityRoot = join(work, "prompt-identities")
+  bootstrapPromptIdentityFiles(identityRoot, TARGET_VERSION, inspectPromptIdentityObservations(source, TARGET_VERSION))
+  writeReleasePayload({
+    root: ROOT,
+    version: TARGET_VERSION,
+    releaseId: "graph-hash.test",
+    input,
+    upstreamInput: input,
+    promptIdentityRoot: identityRoot,
+    outDir: payload,
+  })
+  const packagedGraph = join(payload, "graph.patched", "darwin-arm64", "cli.js")
+  writeFileSync(packagedGraph, `${readFileSync(packagedGraph, "utf8")}/* tampered */\n`)
+
+  const result = await runPrint([join(payload, "bin", "claude-patched")], work, { HOME: work })
+  expect(result.exitCode).not.toBe(0)
+  expect(`${result.stdout}\n${result.stderr}`).toContain("rendered bundle file inventory mismatch")
+  expect(result.stdout).not.toContain("graph ran")
 })

@@ -118,6 +118,7 @@ export type PromptCatalogManifest = {
     releaseId: string
     upstreamBundleSha256: string
     patchedBundleSha256: string
+    patchedEntrypointSha256: string
     patchSetSha256: string
   }
   extractor: {
@@ -149,6 +150,7 @@ export type PromptCatalogCoordinates = {
   releaseId: string
   upstreamBundleSha256: string
   patchedBundleSha256: string
+  patchedEntrypointSha256?: string
   patchSetSha256: string
 }
 
@@ -168,7 +170,8 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
   const upstreamBytes = readFileSync(options.upstreamBundlePath)
   const patchedBytes = readFileSync(options.patchedBundlePath)
   assertDigest("upstream bundle", upstreamBytes, options.upstreamBundleSha256)
-  assertDigest("patched bundle", patchedBytes, options.patchedBundleSha256)
+  const patchedEntrypointSha256 = options.patchedEntrypointSha256 ?? options.patchedBundleSha256
+  assertDigest("patched bundle entrypoint", patchedBytes, patchedEntrypointSha256)
   const upstreamCorpus = promptCorpus(options.upstreamBundlePath, upstreamBytes)
   const patchedCorpus = promptCorpus(options.patchedBundlePath, patchedBytes)
   const upstreamSource = upstreamCorpus.source
@@ -270,6 +273,7 @@ export function writePromptCatalog(options: WritePromptCatalogOptions): PromptCa
       releaseId: options.releaseId,
       upstreamBundleSha256: options.upstreamBundleSha256,
       patchedBundleSha256: options.patchedBundleSha256,
+      patchedEntrypointSha256,
       patchSetSha256: options.patchSetSha256,
     },
     extractor: {
@@ -321,6 +325,10 @@ export function rebindPromptCatalog(
   if (existing.target.patchedBundleSha256 !== coordinates.patchedBundleSha256) {
     throw new Error("prompt catalog patched bundle SHA-256 mismatch")
   }
+  const patchedEntrypointSha256 = coordinates.patchedEntrypointSha256 ?? coordinates.patchedBundleSha256
+  if (existing.target.patchedEntrypointSha256 !== patchedEntrypointSha256) {
+    throw new Error("prompt catalog patched entrypoint SHA-256 mismatch")
+  }
   if (existing.target.patchSetSha256 !== coordinates.patchSetSha256) {
     throw new Error("prompt catalog patch-set SHA-256 mismatch")
   }
@@ -334,7 +342,7 @@ export function rebindPromptCatalog(
   }
   const reboundWithoutHash = {
     ...existing,
-    target: { ...coordinates },
+    target: { ...coordinates, patchedEntrypointSha256 },
     manifestSha256: undefined,
   }
   const { manifestSha256: _discarded, ...manifestPayload } = reboundWithoutHash
@@ -498,9 +506,11 @@ function promptCorpus(
   entrypointBytes: Buffer | Uint8Array,
 ): { source: string; candidates: PromptCandidate[] } {
   const entrypointSource = decodeUtf8(entrypointBytes, path)
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: Match the dispatcher's literal platform interpolation.
   const graphDirectoryName = entrypointSource.includes("./graph.patched/${platformDir}/cli.js")
     ? "graph.patched"
-    : entrypointSource.includes("./graph/${platformDir}/cli.js")
+    : // biome-ignore lint/suspicious/noTemplateCurlyInString: Match the dispatcher's literal platform interpolation.
+      entrypointSource.includes("./graph/${platformDir}/cli.js")
       ? "graph"
       : null
   if (graphDirectoryName === null) {

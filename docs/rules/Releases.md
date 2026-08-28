@@ -13,7 +13,7 @@ version.
 | Nix source | Tagged git tree containing the complete runtime payload, `prompts/catalog/`, and flake files |
 | Artifact | `patched-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
 | Bundle | `cli.js` plus every platform graph it dispatches to, at the release tag root and inside the artifact |
-| Runtime helpers | `runtime/system-prompt-overrides.ts` and `runtime/macos-keychain.ts` at the release tag root and inside the artifact |
+| Runtime helpers | Prompt override, release integrity, and macOS Keychain helpers at the release tag root and inside the artifact |
 | Prompt catalog | Partial static audit catalog at `prompts/catalog/` on every release surface |
 | Release notes | Size-bounded `release-notes.md` plus complete bundle-bound `prompt-review.md` |
 | Runtime | Bun supplied by the consumer |
@@ -49,6 +49,8 @@ A dispatcher release MUST include both `darwin-arm64/cli.js` and
 `linux-x64/cli.js` under the graph directory named by `manifest.json`.
 Packaging, source-tag creation, and the Nix derivation MUST fail closed when
 either platform graph is absent.
+The release manifest and prompt catalog MUST bind the sorted file inventory
+and content hashes of the dispatcher plus every graph file.
 
 The prompt catalog MUST be bound to the exact upstream and patched bundle
 hashes. Classified contextual and opaque gaps MAY ship. Missing catalogs,

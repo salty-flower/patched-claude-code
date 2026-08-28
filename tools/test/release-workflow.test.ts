@@ -1,6 +1,6 @@
+import { expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
-import { expect, test } from "bun:test"
 import { DEFAULT_TARGET_VERSION } from "../lib/target"
 
 const ROOT = join(import.meta.dir, "..", "..")
@@ -32,11 +32,10 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(reuseStep).toContain("deadline=$((SECONDS + 1800))")
   expect(reuseStep).toContain('mkdir -p bin runtime "staging/$version"')
   expect(reuseStep).toContain('cp ci-artifact/cli.js "staging/$version/cli.patched.js"')
-  expect(reuseStep).toContain(
-    'cp -R ci-artifact/staging/"$version"/graph.patched "staging/$version/graph.patched"',
-  )
+  expect(reuseStep).toContain('cp -R ci-artifact/staging/"$version"/graph.patched "staging/$version/graph.patched"')
   expect(reuseStep).toContain("install -m755 ci-artifact/bin/claude-patched bin/claude-patched")
   expect(reuseStep).toContain("cp ci-artifact/runtime/macos-keychain.ts runtime/macos-keychain.ts")
+  expect(reuseStep).toContain("cp ci-artifact/runtime/release-integrity.ts runtime/release-integrity.ts")
   expect(reuseStep).toContain("cp ci-artifact/runtime/system-prompt-overrides.ts runtime/system-prompt-overrides.ts")
   expect(reuseStep).toContain("cp -R ci-artifact/prompts/catalog prompts/catalog")
   expect(renderStep).toContain('just render "${{ steps.coord.outputs.version }}"')
@@ -52,6 +51,7 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   )
   expect(workflow).toContain("prompts/catalog/")
   expect(workflow).toContain("runtime/macos-keychain.ts")
+  expect(workflow).toContain("runtime/release-integrity.ts")
   expect(workflow).toContain("dist/prompt-review.md")
 })
 

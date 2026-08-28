@@ -378,8 +378,8 @@ test("release payload publishes both platform graphs and records the graph direc
     const rendered = join(root, "rendered")
     const patched = join(rendered, "cli.patched.js")
     mkdirSync(rendered, { recursive: true })
-    const source =
-      'const platformDir = "darwin-arm64"; await import(`./graph.patched/${platformDir}/cli.js`)\n'
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Exercise the literal dispatcher interpolation.
+    const source = 'const platformDir = "darwin-arm64"; await import(`./graph.patched/${platformDir}/cli.js`)\n'
     writeFileSync(patched, source)
     const identityRoot = join(root, "graph-identities")
     bootstrapPromptIdentityFiles(identityRoot, "2.1.217", inspectPromptIdentityObservations(source, "2.1.217"))
@@ -401,9 +401,19 @@ test("release payload publishes both platform graphs and records the graph direc
     })
 
     expect(payload.manifest.runtime.graphDirectory).toBe("graph.patched")
-    expect(readFileSync(join(outDir, "graph.patched", "darwin-arm64", "asset.txt"), "utf8")).toBe(
-      "darwin-arm64\n",
-    )
+    expect(payload.manifest.bundle.entrypointSha256).toBe(payload.cliHash.sri)
+    expect(payload.manifest.bundle.sha256).not.toBe(payload.manifest.bundle.entrypointSha256)
+    expect(payload.manifest.bundle.files.map((file) => file.path)).toEqual([
+      "cli.js",
+      "graph.patched/darwin-arm64/asset.txt",
+      "graph.patched/darwin-arm64/cli.js",
+      "graph.patched/linux-x64/asset.txt",
+      "graph.patched/linux-x64/cli.js",
+    ])
+    const catalogManifest = readPromptCatalogManifest(join(outDir, "prompts", "catalog"))
+    expect(catalogManifest.target.patchedBundleSha256).toBe(payload.manifest.bundle.sha256)
+    expect(catalogManifest.target.patchedEntrypointSha256).toBe(payload.manifest.bundle.entrypointSha256)
+    expect(readFileSync(join(outDir, "graph.patched", "darwin-arm64", "asset.txt"), "utf8")).toBe("darwin-arm64\n")
     expect(readFileSync(join(outDir, "graph.patched", "linux-x64", "asset.txt"), "utf8")).toBe("linux-x64\n")
 
     rmSync(join(rendered, "graph.patched", "linux-x64", "cli.js"))

@@ -721,7 +721,7 @@ assert_not_contains = '''!F&&bd.jsxs(S'''
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale = "Resolve a configured custom model's local effort before the global override. This is the 2.1.250 Linux minified-symbol variant."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
@@ -743,7 +743,7 @@ assert_contains = '''return R(__acc_custom_effort,e)'''
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale = "Show either custom option's model-local effort as its picker default. This is the 2.1.250 Linux minified-symbol variant."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
@@ -833,7 +833,7 @@ assert_contains = '''if(t===a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{rec
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale = "Resolve a configured custom model's local effort before the global override. This is the 2.1.250 minified-symbol variant."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
@@ -860,7 +860,7 @@ assert_not_contains = '''return nt(__acc_custom_effort,e)'''
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale = "Show either custom option's model-local effort as its picker default. This is the 2.1.250 minified-symbol variant."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
@@ -883,3 +883,137 @@ assert_contains = '''if(["low","medium","high","xhigh","max"].includes(__acc_cus
 kind = "static"
 name = "2.1.250 default effort drops stale locator"
 assert_not_contains = '''function pe(e){return Ue(S(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+This is the 2.1.251 Linux minified-symbol variant of
+`custom-model-slot-applied-effort`. The resolver is now `_w` (the old
+`Fk`), with support gate `ag` (old `xm`), launch-effort helper `RM` (old
+`sM`), environment-effort helper `uR` (old `oC`), and normalized return
+helper `_` (old `R`). The surrounding behavior remains resolving a configured
+custom model's local effort before the global override.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "_w", source = '''function _w(e,o,{honorLaunchPin:t=!0}={}){if(!ag(e))return;let r=t&&RM(e),u=A(e),f=uR();if(f===null&&!r)return;return _(f??(r?u:void 0)??o??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return _(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux custom models use local effort"
+assert_contains = '''return _(__acc_custom_effort,e)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux applied effort drops stale helper"
+assert_not_contains = '''return R(__acc_custom_effort,e)'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+This is the 2.1.251 Linux minified-symbol variant of
+`custom-model-slot-default-effort`. The default-effort getter is now `X`
+(the old `_le`) and reads model metadata through `Ql(Xe(e))` (the old
+`dc(Ye(e))`). Show either custom option's model-local effort as its picker
+default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "X", source = '''function X(e){return Ql(Xe(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux custom models have local picker defaults"
+assert_contains = '''return __acc_custom_effort}}return Ql(Xe(e))?.default_effort??"high"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux default effort drops stale locator"
+assert_not_contains = '''function _le(e){return dc(Ye(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+This is the 2.1.251 Darwin minified-symbol variant of
+`custom-model-slot-applied-effort`. The resolver is now `yT` (the old
+`UC`), with support gate `lg` (old `Rm`), launch-effort helper `LM` (old
+`rL`), environment-effort helper `mH` (old `aR`), and normalized return
+helper `_` (old `R`). The surrounding behavior remains resolving a configured
+custom model's local effort before the global override.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "yT", source = '''function yT(e,o,{honorLaunchPin:t=!0}={}){if(!lg(e))return;let r=t&&LM(e),u=C(e),f=mH();if(f===null&&!r)return;return _(f??(r?u:void 0)??o??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return _(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin custom models use local effort"
+assert_contains = '''return _(__acc_custom_effort,e)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin applied effort drops stale helper"
+assert_not_contains = '''return R(__acc_custom_effort,e)'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+This is the 2.1.251 Darwin minified-symbol variant of
+`custom-model-slot-default-effort`. The default-effort getter is now `X`
+(the old `Sle`) and reads model metadata through `Ql(Ye(e))` (the old
+`dc(Ye(e))`). Show either custom option's model-local effort as its picker
+default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "X", source = '''function X(e){return Ql(Ye(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin custom models have local picker defaults"
+assert_contains = '''return __acc_custom_effort}}return Ql(Ye(e))?.default_effort??"high"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin default effort drops stale locator"
+assert_not_contains = '''function Sle(e){return dc(Ye(e))?.default_effort??"high"}'''

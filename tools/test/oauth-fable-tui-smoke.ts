@@ -66,6 +66,7 @@ async function main(): Promise<number> {
       CLAUDE_CODE_SKIP_ONBOARDING: "1",
       CLAUDE_CODE_SKIP_PROMPT_HISTORY: "1",
       CLAUDE_CODE_SUBSCRIPTION_TYPE: "max",
+      _CLAUDE_CODE_ASSUME_FIRST_PARTY_BASE_URL: "1",
       DISABLE_PROMPT_CACHING: "1",
       FORCE_COLOR: "0",
       TERM: "xterm-256color",

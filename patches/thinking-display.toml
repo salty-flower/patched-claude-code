@@ -4403,7 +4403,7 @@ assert_contains = '''isVirtual:!0})]);this.stream.setStreamingThinking(null);let
 [[patches]]
 name = "thinking-render-live-stream-2-1-250-darwin"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
 locator_kind = "ast_transform"
@@ -4420,9 +4420,33 @@ name = "2.1.250 Darwin stream handler receives live thinking callback"
 assert_contains = '''onStreamingText:T,onStreamingThinking:S,onCompactEvent:E'''
 
 [[patches]]
+name = "thinking-render-live-stream-2-1-251-darwin"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "This is the 2.1.251 Darwin stream-handler variant; the anchor remains the authoringProgressSurface/thinking_delta handler, which is now Kve, and its local callback symbols are onStreamingText:C and onStreamingThinking:S."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Kve", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:d,onStreamingToolUses:_,onStreamingText:C,onCompactEvent:A,onResponseLength:x,displayTransform:M}=t,'''
+value = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:d,onStreamingToolUses:_,onStreamingText:C,onStreamingThinking:S,onCompactEvent:A,onResponseLength:x,displayTransform:M}=t,'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin stream handler receives live thinking callback"
+assert_contains = '''onStreamingText:C,onStreamingThinking:S,onCompactEvent:A'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin stream handler does not use stale 2.1.250 symbols"
+assert_not_contains = '''onStreamingText:T,onStreamingThinking:S,onCompactEvent:E'''
+
+[[patches]]
 name = "thinking-render-live-delta-2-1-250-darwin"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
 locator_kind = "ast_transform"
@@ -4439,9 +4463,33 @@ name = "2.1.250 Darwin thinking deltas update live state"
 assert_contains = '''S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))'''
 
 [[patches]]
+name = "thinking-render-live-delta-2-1-251-darwin"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "This is the 2.1.251 Darwin thinking_delta variant in handler Kve; the stable event anchor is thinking_delta plus estimated_tokens, while the verified local live-state callback is S."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Kve", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:U}=e.event;if("estimated_tokens"in U&&typeof U.estimated_tokens==="number")'''
+value = '''case"thinking_delta":{let{delta:U}=e.event,w=typeof U.thinking==="string"?U.thinking:"";if(w)S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in U&&typeof U.estimated_tokens==="number")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin thinking deltas update live state"
+assert_contains = '''S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin thinking deltas do not use stale 2.1.250 delta symbols"
+assert_not_contains = '''case"thinking_delta":{let{delta:N}=e.event,w=typeof N.thinking==="string"?N.thinking:"";if(w)S?.'''
+
+[[patches]]
 name = "thinking-render-live-output-2-1-250-darwin"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
@@ -4458,9 +4506,33 @@ name = "2.1.250 Darwin live output subscribes to thinking"
 assert_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)'''
 
 [[patches]]
+name = "thinking-render-live-output-2-1-251-darwin"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "This is the 2.1.251 Darwin output subscription variant in component Y8; the verified selector is Xe and the stream state is S."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Y8", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''pe=Xe(S.stream,(ot)=>ot.userInputOnProcessing),'''
+value = '''pe=Xe(S.stream,(ot)=>ot.userInputOnProcessing),__acc_streamingThinking=Xe(S.stream,(ot)=>ot.streamingThinking),'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=Xe(S.stream,(ot)=>ot.streamingThinking)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin output does not use stale 2.1.250 selector symbols"
+assert_not_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)'''
+
+[[patches]]
 name = "thinking-render-live-row-2-1-250-darwin"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
@@ -4477,9 +4549,33 @@ name = "2.1.250 Darwin live thinking row is rendered"
 assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
 
 [[patches]]
+name = "thinking-render-live-row-2-1-251-darwin"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "This is the 2.1.251 Darwin row variant in component Y8; the stable anchor is the main-only placeholder row and the verified JSX factory is e with stream state S."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Y8", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''!P&&!de&&!pe&&re&&x.isMain&&e(PXt,{})]})}'''
+value = '''!P&&!de&&!pe&&re&&x.isMain&&e(PXt,{}),__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})]})}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin row does not use stale 2.1.250 placeholder form"
+assert_not_contains = '''!R&&!me&&!ge&&ee&&k.isMain&&e(UGt,{})]})}'''
+
+[[patches]]
 name = "thinking-render-live-stream-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
 locator_kind = "ast_transform"
@@ -4496,9 +4592,33 @@ name = "2.1.250 Linux stream handler receives live thinking callback"
 assert_contains = '''onStreamingText:E,onStreamingThinking:S,onCompactEvent:C'''
 
 [[patches]]
+name = "thinking-render-live-stream-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "This is the 2.1.251 Linux stream-handler variant; the anchor remains the authoringProgressSurface/thinking_delta handler, now Uve, with local callback symbols onStreamingText:v and onStreamingThinking:S."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Uve", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:d,onStreamingToolUses:y,onStreamingText:v,onCompactEvent:A,onResponseLength:R,displayTransform:O}=t,'''
+value = '''let{onSetStreamMode:o,onApiMetrics:u,onUpdateLength:d,onStreamingToolUses:y,onStreamingText:v,onStreamingThinking:S,onCompactEvent:A,onResponseLength:R,displayTransform:O}=t,'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux stream handler receives live thinking callback"
+assert_contains = '''onStreamingText:v,onStreamingThinking:S,onCompactEvent:A'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux stream handler does not use stale 2.1.250 symbols"
+assert_not_contains = '''onStreamingText:E,onStreamingThinking:S,onCompactEvent:C'''
+
+[[patches]]
 name = "thinking-render-live-delta-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
 locator_kind = "ast_transform"
@@ -4515,9 +4635,33 @@ name = "2.1.250 Linux thinking deltas update live state"
 assert_contains = '''S?.((U)=>({thinking:(U?.thinking??"")+w,isStreaming:!0}))'''
 
 [[patches]]
+name = "thinking-render-live-delta-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "This is the 2.1.251 Linux thinking_delta variant in handler Uve; the stable event anchor is thinking_delta plus estimated_tokens, while the verified local live-state callback is S."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Uve", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:U}=e.event;if("estimated_tokens"in U&&typeof U.estimated_tokens==="number")'''
+value = '''case"thinking_delta":{let{delta:U}=e.event,w=typeof U.thinking==="string"?U.thinking:"";if(w)S?.((U)=>({thinking:(U?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in U&&typeof U.estimated_tokens==="number")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux thinking deltas update live state"
+assert_contains = '''S?.((U)=>({thinking:(U?.thinking??"")+w,isStreaming:!0}))'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux thinking deltas do not use stale 2.1.250 delta symbols"
+assert_not_contains = '''case"thinking_delta":{let{delta:N}=e.event,w=typeof N.thinking==="string"?N.thinking:"";if(w)S?.'''
+
+[[patches]]
 name = "thinking-render-live-output-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
@@ -4534,9 +4678,33 @@ name = "2.1.250 Linux live output subscribes to thinking"
 assert_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)'''
 
 [[patches]]
+name = "thinking-render-live-output-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "This is the 2.1.251 Linux output subscription variant in component C9; the verified selector is Ye and the stream state is b."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "C9", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''fe=Ye(b.stream,(ot)=>ot.userInputOnProcessing),'''
+value = '''fe=Ye(b.stream,(ot)=>ot.userInputOnProcessing),__acc_streamingThinking=Ye(b.stream,(ot)=>ot.streamingThinking),'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=Ye(b.stream,(ot)=>ot.streamingThinking)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux output does not use stale 2.1.250 selector symbols"
+assert_not_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)'''
+
+[[patches]]
 name = "thinking-render-live-row-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
@@ -4551,6 +4719,30 @@ value = '''!R&&!me&&!ge&&ee&&C.isMain&&e(u6t,{}),__acc_streamingThinking?.thinki
 kind = "static"
 name = "2.1.250 Linux live thinking row is rendered"
 assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches]]
+name = "thinking-render-live-row-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "This is the 2.1.251 Linux row variant in component C9; the stable anchor is the main-only placeholder row and the verified JSX factory is e with stream state b."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "C9", strings = ["userInputOnProcessing", "showSpinner", "inProgressToolUseIDs"] }
+[patches.transform]
+op = "replace_substring"
+find = '''!I&&!de&&!fe&&re&&R.isMain&&e(AXt,{})]})}'''
+value = '''!I&&!de&&!fe&&re&&R.isMain&&e(AXt,{}),__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})]})}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux row does not use stale 2.1.250 placeholder form"
+assert_not_contains = '''!R&&!me&&!ge&&ee&&C.isMain&&e(u6t,{})]})}'''
 
 [[patches]]
 name = "thinking-render-live-stream-2-1-241"

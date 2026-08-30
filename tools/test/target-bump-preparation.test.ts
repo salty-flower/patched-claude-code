@@ -35,7 +35,7 @@ test("target bump preparation defines one ordered deterministic lane", () => {
     "run",
     "tools/patch/check-patch-carryover.ts",
     "--from",
-    "2.1.250",
+    "2.1.251",
     "--to",
     "2.1.218",
     "--result-file",

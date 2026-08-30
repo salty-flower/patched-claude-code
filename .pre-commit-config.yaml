@@ -19,7 +19,7 @@ repos:
 
       - id: tools-test
         name: tools Bun tests
-        entry: bash -euo pipefail -c 'TARGET_VERSION="${TARGET_VERSION:-2.1.250}" bun run --cwd tools test'
+        entry: bash -euo pipefail -c 'TARGET_VERSION="${TARGET_VERSION:-2.1.251}" bun run --cwd tools test'
         language: system
         files: ^(runtime/|tools/(lib|patch|platform|test)/|\.github/workflows/.*\.ya?ml|\.pre-commit-config\.yaml)
         pass_filenames: false

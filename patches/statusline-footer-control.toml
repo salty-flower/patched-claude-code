@@ -13144,7 +13144,7 @@ assert_not_contains = '''hideBuiltinFooter:Bt().optional().describe("Compatibili
 [[patches]]
 name = "statusline-footer-control-schema-2-1-250-darwin"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
 locator_kind = "ast_transform"
@@ -13162,7 +13162,7 @@ assert_contains = '''hideBuiltinFooter:z().optional().describe("Compatibility al
 [[patches]]
 name = "statusline-footer-control-schema-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
 locator_kind = "ast_transform"
@@ -13176,6 +13176,52 @@ code = 'hideBuiltinFooter:G().optional().describe("Compatibility alias for hidin
 kind = "static"
 name = "2.1.250 Linux disabledFooter schema uses graph-local helpers"
 assert_contains = '''hideBuiltinFooter:G().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:H(le(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-251-darwin"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Use the 2.1.251 Darwin settings-schema helpers: `q()` is the local boolean factory, `H(...)` is the local array factory, and `ie([...])` is the local enum factory. The 2.1.250 `z()`/`k(...)`/`le([...])` symbols are not bound in this module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:q().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:H(ie(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin disabledFooter schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:q().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:H(ie(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin schema drops stale helpers"
+assert_not_contains = '''hideBuiltinFooter:z().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:k(le(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Use the 2.1.251 Linux settings-schema helpers: `G()` is the local boolean factory, `I(...)` is the local array factory, and `ie([...])` is the local enum factory. The 2.1.250 `H(...)`/`le([...])` symbols are not bound in this module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:G().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:I(ie(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux disabledFooter schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:G().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:I(ie(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux schema drops stale helpers"
+assert_not_contains = '''hideBuiltinFooter:G().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:H(le(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
 
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-241"
@@ -13495,7 +13541,7 @@ assert_not_contains = '''return{...Sy(e,f),permission_mode:t,clipboard_image:{av
 name = "statusline-footer-control-cli-option-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.252"
 locator_kind = "literal"
 locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
 replacement = '''.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";globalThis.__acc_disabled_footer=t==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(t).split(",").map((r)=>r.trim()).filter(Boolean);return t}).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
@@ -13629,10 +13675,106 @@ name = "2.1.250 Linux statusline JSON includes scalar effort level"
 assert_contains = '''effort_level:xm(tt)?fv(tt,Le):null'''
 
 [[patches]]
+name = "statusline-json-permission-mode-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "2.1.251 Darwin re-anchoring: builder `$ze` became `Z1e`, and permissionMode `k` became `x`; restore the compatibility field. Cleanup condition: upstream emits an equivalent field."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Z1e", strings = ["session_name:", "display_name:", "fast_mode:"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return{...Ea(S,Oe),...Pt&&{session_name:Pt},'''
+value = '''return{...Ea(S,Oe),...Pt&&{session_name:Pt},permission_mode:x,'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 Darwin permission symbol"
+assert_contains = '''return{...Ea(S,Oe),...Pt&&{session_name:Pt},permission_mode:x,'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 Darwin permission symbol absent"
+assert_not_contains = '''return{...Ca(d,Ne),...Yt&&{session_name:Yt},permission_mode:k,'''
+
+[[patches]]
+name = "statusline-json-permission-mode-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "2.1.251 Linux re-anchoring: builder `qze` became `T1e`, and permissionMode `C` became `R`; restore the compatibility field. Cleanup condition: upstream emits an equivalent field."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "T1e", strings = ["session_name:", "display_name:", "fast_mode:"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return{...Ea(b,Ne),...It&&{session_name:It},'''
+value = '''return{...Ea(b,Ne),...It&&{session_name:It},permission_mode:R,'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 Linux permission symbol"
+assert_contains = '''return{...Ea(b,Ne),...It&&{session_name:It},permission_mode:R,'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 Linux permission symbol absent"
+assert_not_contains = '''return{...ka(d,He),...Yt&&{session_name:Yt},permission_mode:C,'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "2.1.251 Darwin re-anchoring: builder `$ze` became `Z1e`, effort gate/resolver `Rm`/`mS` became `lg`/`tw`; restore the scalar compatibility field. Cleanup condition: consumers migrate to the nested field."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Z1e", strings = ["session_name:", "display_name:", "fast_mode:"] }
+[patches.transform]
+op = "replace_substring"
+find = '''fast_mode:j,...lg(Ke)&&{effort:{level:tw(Ke,Ie)}},'''
+value = '''fast_mode:j,effort_level:lg(Ke)?tw(Ke,Ie):null,...lg(Ke)&&{effort:{level:tw(Ke,Ie)}},'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 Darwin effort symbols"
+assert_contains = '''effort_level:lg(Ke)?tw(Ke,Ie):null'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 Darwin effort symbols absent"
+assert_not_contains = '''effort_level:Rm(tt)?mS(tt,Ie):null'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "2.1.251 Linux re-anchoring: builder `qze` became `T1e`, effort gate/resolver `xm`/`fv` became `ag`/`tH`; restore the scalar compatibility field. Cleanup condition: consumers migrate to the nested field."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "T1e", strings = ["session_name:", "display_name:", "fast_mode:"] }
+[patches.transform]
+op = "replace_substring"
+find = '''fast_mode:L,...ag(Ke)&&{effort:{level:tH(Ke,De)}},'''
+value = '''fast_mode:L,effort_level:ag(Ke)?tH(Ke,De):null,...ag(Ke)&&{effort:{level:tH(Ke,De)}},'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 Linux effort symbols"
+assert_contains = '''effort_level:ag(Ke)?tH(Ke,De):null'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 Linux effort symbols absent"
+assert_not_contains = '''effort_level:xm(tt)?fv(tt,Le):null'''
+
+[[patches]]
 name = "statusline-footer-control-render-state-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13651,7 +13793,7 @@ assert_contains = '''__acc_hide_footer=Che?.hideBuiltinFooter'''
 name = "statusline-footer-control-render-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13670,7 +13812,7 @@ assert_contains = '''return __acc_hide_footer?null:jJe}'''
 name = "statusline-footer-control-mode-hint-state-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13689,7 +13831,7 @@ assert_contains = '''let __acc_hide_mode=j((Sn)=>Sn.settings.statusLine?.hideBui
 name = "statusline-footer-control-mode-hint-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13708,7 +13850,7 @@ assert_contains = '''let Vs=!__acc_hide_mode&&jr&&Gr?'''
 name = "statusline-footer-control-mode-hint-narrow-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13727,7 +13869,7 @@ assert_contains = '''let Do=!__acc_hide_mode&&Gr&&Aa?'''
 name = "statusline-footer-control-render-state-2-1-250-linux"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13746,7 +13888,7 @@ assert_contains = '''__acc_hide_footer=khe?.hideBuiltinFooter'''
 name = "statusline-footer-control-render-2-1-250-linux"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13765,7 +13907,7 @@ assert_contains = '''return __acc_hide_footer?null:KJe}'''
 name = "statusline-footer-control-mode-hint-state-2-1-250-linux"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13784,7 +13926,7 @@ assert_contains = '''let __acc_hide_mode=j((bn)=>bn.settings.statusLine?.hideBui
 name = "statusline-footer-control-mode-hint-2-1-250-linux"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -13803,7 +13945,7 @@ assert_contains = '''let qs=!__acc_hide_mode&&Hr&&Vr?'''
 name = "statusline-footer-control-mode-hint-narrow-2-1-250-linux"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14099,3 +14241,264 @@ value = '''return{...jI(e,h),permission_mode:t,clipboard_image:{available:global
 kind = "static"
 name = "2.1.246 statusline JSON includes footer state"
 assert_contains = '''permission_mode:t,clipboard_image:{available:globalThis.__acc_clipboard_image_available===!0,paste_shortcut:"ctrl+v"}'''
+
+[[patches]]
+name = "statusline-footer-control-render-state-2-1-251"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "mpe", strings = ["hideVimModeIndicator", "showExpandPasteHint"] }
+[patches.transform]
+op = "replace_substring"
+find = '''const Jme=f9t?.statusLine;'''
+value = '''const Jme=f9t?.statusLine,__acc_hide_footer=Jme?.hideBuiltinFooter||Jme?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer");'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'const Jme=f9t?.statusLine,__acc_hide_footer=Jme?.hideBuiltinFooter||Jme?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer");'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'const Che=Rfo?.statusLine;'
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-251"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "mpe", strings = ["hideVimModeIndicator", "showExpandPasteHint"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return XGe}'''
+value = '''return __acc_hide_footer?null:XGe}'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'return __acc_hide_footer?null:XGe}'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'return __acc_hide_footer?null:jJe}'
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-251"
+rationale = """
+Gate the permission-mode footer in the 2.1.251 Darwin graph.
+The matched component is `jVe`; its AppState selector is `W`, storage helper
+is `ge`, and storage binding is `Ke`, all taken from the matched function's
+surrounding scope.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "jVe", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''}){let{storageV5:Ke}=ge(),'''
+value = '''}){let __acc_hide_mode=W((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter||Ho.settings.statusLine?.disabledFooter?.includes("permission_mode")||Ho.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:Ke}=ge(),'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = '}){let __acc_hide_mode=W((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter||Ho.settings.statusLine?.disabledFooter?.includes("permission_mode")||Ho.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:Ke}=ge(),'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'let __acc_hide_mode=j((Sn)=>'
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-251"
+rationale = """
+Gate the dense permission-mode hint in the 2.1.251 Darwin `jVe` component.
+The `Er` and `Wr` locals are the current component's computed permission and
+mode values, taken directly from its matched function body.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "jVe", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let la=Er&&Wr?'''
+value = '''let la=!__acc_hide_mode&&Er&&Wr?'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'let la=!__acc_hide_mode&&Er&&Wr?'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'let la=Er&&Wr?'
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-251"
+rationale = """
+Gate the regular permission-mode hint in the 2.1.251 Darwin `jVe` component.
+The `Wr` mode and `Zi` permission-display locals are the actual locals in the
+matched function body; no 2.1.250 symbols are carried forward.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "jVe", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Eo=Wr&&Zi?'''
+value = '''let Eo=!__acc_hide_mode&&Wr&&Zi?'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'let Eo=!__acc_hide_mode&&Wr&&Zi?'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'let Eo=Wr&&Zi?'
+
+[[patches]]
+name = "statusline-footer-control-render-state-2-1-251-linux"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "dpe", strings = ["hideVimModeIndicator", "showExpandPasteHint"] }
+[patches.transform]
+op = "replace_substring"
+find = '''const Xme=b9t?.statusLine;'''
+value = '''const Xme=b9t?.statusLine,__acc_hide_footer=Xme?.hideBuiltinFooter||Xme?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer");'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'const Xme=b9t?.statusLine,__acc_hide_footer=Xme?.hideBuiltinFooter||Xme?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer");'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'const khe=Rfo?.statusLine;'
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-251-linux"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "dpe", strings = ["hideVimModeIndicator", "showExpandPasteHint"] }
+[patches.transform]
+op = "replace_substring"
+find = '''return ZGe}'''
+value = '''return __acc_hide_footer?null:ZGe}'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'return __acc_hide_footer?null:ZGe}'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'return KJe}'
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-state-2-1-251-linux"
+rationale = """
+Gate the permission-mode footer in the 2.1.251 Linux graph.
+The matched component is `TVe`; its AppState selector is `z`, while `ge` and
+`Ke` are the storage helper and binding present in that function's scope.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "TVe", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''}){let{storageV5:Ke}=ge(),'''
+value = '''}){let __acc_hide_mode=z((jo)=>jo.settings.statusLine?.hideBuiltinFooter||jo.settings.statusLine?.disabledFooter?.includes("permission_mode")||jo.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:Ke}=ge(),'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = '}){let __acc_hide_mode=z((jo)=>jo.settings.statusLine?.hideBuiltinFooter||jo.settings.statusLine?.disabledFooter?.includes("permission_mode")||jo.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),{storageV5:Ke}=ge(),'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'let __acc_hide_mode=j((bn)=>'
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-251-linux"
+rationale = """
+Gate the dense permission-mode hint in the 2.1.251 Linux `TVe` component.
+The `Ir` permission and `qr` mode locals are taken from the matched function
+body and replace the stale 2.1.250 `Hr`/`Vr` pair.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "TVe", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let la=Ir&&qr?'''
+value = '''let la=!__acc_hide_mode&&Ir&&qr?'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'let la=!__acc_hide_mode&&Ir&&qr?'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'let la=Ir&&qr?'
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-251-linux"
+rationale = """
+Gate the regular permission-mode hint in the 2.1.251 Linux `TVe` component.
+The `qr` mode and `Zi` permission-display locals are the actual locals in the
+matched function body, rather than stale 2.1.250 symbols.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "TVe", strings = ["tengu_copper_thistle", "toolPermissionContext", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Io=qr&&Zi?'''
+value = '''let Io=!__acc_hide_mode&&qr&&Zi?'''
+[[patches.tests]]
+kind = "static"
+name = "current 2.1.251 symbols"
+assert_contains = 'let Io=!__acc_hide_mode&&qr&&Zi?'
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 symbols absent"
+assert_not_contains = 'let Io=qr&&Zi?'

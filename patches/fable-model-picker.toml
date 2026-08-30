@@ -2118,7 +2118,7 @@ assert_contains = '''if(i!==void 0||k1e("fable5"))Q3r(t,i??nIa())'''
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-250-darwin"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
 locator_kind = "ast_transform"
@@ -2135,9 +2135,42 @@ name = "2.1.250 Darwin primary OAuth picker inserts Fable"
 assert_contains = '''if(v("fable5"))C(d,V());return d.push(ve),G(d,e,"opus")'''
 
 [[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-251-darwin"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
+
+This is the 2.1.251 Darwin minified-symbol variant, re-anchored from the
+2.1.250 graph. The picker builder's early return now uses `Oe` and `z`, while
+the catalog availability helper, row inserter, and Fable-row helper remain `S`,
+`C`, and `V`; the changed match is therefore the `Oe`/`z` return form. Cleanup
+condition: upstream includes Fable in this branch whenever the bundled catalog
+and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return d.push(Oe),z(d,e,"opus")''', '''S("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return d.push(Oe),z(d,e,"opus")'''
+value = '''if(S("fable5"))C(d,V());return d.push(Oe),z(d,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin primary OAuth picker inserts Fable"
+assert_contains = '''if(S("fable5"))C(d,V());return d.push(Oe),z(d,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin primary picker drops stale symbols"
+assert_not_contains = '''if(v("fable5"))C(d,V());return d.push(ve),G(d,e,"opus")'''
+
+[[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-250-darwin"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["darwin-arm64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
 locator_kind = "ast_transform"
@@ -2154,9 +2187,42 @@ name = "2.1.250 Darwin standard OAuth picker inserts Fable"
 assert_contains = '''if(v("fable5"))C(i,V());return i.push(ve),G(i,e,"sonnet")'''
 
 [[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-251-darwin"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
+
+This is the 2.1.251 Darwin minified-symbol variant, re-anchored from the
+2.1.250 graph. The picker builder's early return now uses `Oe` and `z`, while
+the catalog availability helper, row inserter, and Fable-row helper remain `S`,
+`C`, and `V`; the changed match is therefore the `Oe`/`z` return form. Cleanup
+condition: upstream includes Fable in this branch whenever the bundled catalog
+and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return i.push(Oe),z(i,e,"sonnet")''', '''S("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return i.push(Oe),z(i,e,"sonnet")'''
+value = '''if(S("fable5"))C(i,V());return i.push(Oe),z(i,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin standard OAuth picker inserts Fable"
+assert_contains = '''if(S("fable5"))C(i,V());return i.push(Oe),z(i,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin standard picker drops stale symbols"
+assert_not_contains = '''if(v("fable5"))C(i,V());return i.push(ve),G(i,e,"sonnet")'''
+
+[[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
 locator_kind = "ast_transform"
@@ -2173,9 +2239,42 @@ name = "2.1.250 Linux primary OAuth picker inserts Fable"
 assert_contains = '''if(_("fable5"))C(d,V());return d.push(Me),G(d,e,"opus")'''
 
 [[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
+
+This is the 2.1.251 Linux minified-symbol variant, re-anchored from the
+2.1.250 graph. The picker builder's early return now uses `Me` and `z`, while
+the catalog availability helper, row inserter, and Fable-row helper are `h`,
+`y`, and `V`; the changed match is therefore the `G` to `z` return
+form together with the changed availability and insertion symbols. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return d.push(Me),z(d,e,"opus")''', '''h("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return d.push(Me),z(d,e,"opus")'''
+value = '''if(h("fable5"))y(d,V());return d.push(Me),z(d,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux primary OAuth picker inserts Fable"
+assert_contains = '''if(h("fable5"))y(d,V());return d.push(Me),z(d,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux primary picker drops stale symbols"
+assert_not_contains = '''if(_("fable5"))C(d,V());return d.push(Me),G(d,e,"opus")'''
+
+[[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-250-linux"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.251"
 platforms = ["linux-x64"]
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
 locator_kind = "ast_transform"
@@ -2190,6 +2289,39 @@ value = '''if(_("fable5"))C(i,V());return i.push(Me),G(i,e,"sonnet")'''
 kind = "static"
 name = "2.1.250 Linux standard OAuth picker inserts Fable"
 assert_contains = '''if(_("fable5"))C(i,V());return i.push(Me),G(i,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
+
+This is the 2.1.251 Linux minified-symbol variant, re-anchored from the
+2.1.250 graph. The picker builder's early return now uses `Me` and `z`, while
+the catalog availability helper, row inserter, and Fable-row helper are `h`,
+`y`, and `V`; the changed match is therefore the `G` to `z` return
+form together with the changed availability and insertion symbols. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tn", strings = ['''return i.push(Me),z(i,e,"sonnet")''', '''h("fable5")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return i.push(Me),z(i,e,"sonnet")'''
+value = '''if(h("fable5"))y(i,V());return i.push(Me),z(i,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux standard OAuth picker inserts Fable"
+assert_contains = '''if(h("fable5"))y(i,V());return i.push(Me),z(i,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux standard picker drops stale symbols"
+assert_not_contains = '''if(_("fable5"))C(i,V());return i.push(Me),G(i,e,"sonnet")'''
 
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-246"

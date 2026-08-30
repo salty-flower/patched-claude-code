@@ -37,6 +37,8 @@ function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
 }
 
+const targetUses251LaterSymbols = isVersionAtLeast(TARGET_VERSION, "2.1.251") && isVersionBefore(TARGET_VERSION, "2.2.0")
+
 test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", async () => {
   const entrypoint = await renderRunnableBundle({
     root: ROOT,
@@ -52,6 +54,31 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (targetUses251LaterSymbols) {
+      expect(patched).toContain(
+        '.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";globalThis.__acc_disabled_footer=t==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(t).split(",").map((r)=>r.trim()).filter(Boolean);return t}).option("-c, --continue"',
+      )
+      expect(patched).toContain('const Jme=f9t?.statusLine,__acc_hide_footer=Jme?.hideBuiltinFooter')
+      expect(patched).toContain("return __acc_hide_footer?null:XGe}")
+      expect(patched).toContain("let __acc_hide_mode=W((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter")
+      expect(patched).toContain("let la=!__acc_hide_mode&&Er&&Wr?")
+      expect(patched).toContain("let Eo=!__acc_hide_mode&&Wr&&Zi?")
+      expect(patched).toContain("effort_level:lg(Ke)?tw(Ke,Ie):null")
+      expect(patched).toContain("return{...Ea(S,Oe),...Pt&&{session_name:Pt},permission_mode:x,")
+      const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+      const linuxPatched = readdirSync(linuxGraphDir)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+        .join("\n")
+      expect(linuxPatched).toContain("const Xme=b9t?.statusLine,__acc_hide_footer=Xme?.hideBuiltinFooter")
+      expect(linuxPatched).toContain("return __acc_hide_footer?null:ZGe}")
+      expect(linuxPatched).toContain("let __acc_hide_mode=z((jo)=>jo.settings.statusLine?.hideBuiltinFooter")
+      expect(linuxPatched).toContain("let la=!__acc_hide_mode&&Ir&&qr?")
+      expect(linuxPatched).toContain("let Io=!__acc_hide_mode&&qr&&Zi?")
+      expect(linuxPatched).toContain("effort_level:ag(Ke)?tH(Ke,De):null")
+      expect(linuxPatched).toContain("return{...Ea(b,Ne),...It&&{session_name:It},permission_mode:R,")
+      return
+    }
     if (TARGET_VERSION === "2.1.250") {
       expect(patched).toContain('globalThis.__acc_disabled_footer=t==="all"')
       expect(patched).toContain("__acc_hide_footer=Che?.hideBuiltinFooter")

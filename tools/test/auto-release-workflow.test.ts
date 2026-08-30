@@ -53,6 +53,9 @@ test("auto-release audits both canonical stage layouts before promotion", () => 
 
   expect(checkStep).toContain(".dualGraph != null")
   expect(checkStep).toContain('mergePolicy == "canonical-dual-graph-v1"')
+  expect(checkStep).toContain('textAssetMaterialization == "zstd-decompress-v1"')
+  expect(checkStep).toContain('.upstream.sha256')
+  expect(checkStep).toContain('.materialized.sha256')
   expect(checkStep).toContain("$stage/graph-manifest.json")
   expect(checkStep).toContain("$stage/canonical/platform-merge-report.json")
 })

@@ -198,9 +198,14 @@ jobs:
           stage="staging/${TARGET_VERSION}"
           if jq -e '.dualGraph != null' "$stage/stage-manifest.json" >/dev/null; then
             jq -e \
-              '.schema == 1 and .mergePolicy == "canonical-dual-graph-v1" and
+              '.schema == 2 and .mergePolicy == "canonical-dual-graph-v1" and
+               .textAssetMaterialization == "zstd-decompress-v1" and
                (.platforms | length == 2) and
-               ([.platforms[] | (.files | length) > 0] | all)' \
+               ([.platforms[] | (.files | length) > 0] | all) and
+               ([.platforms[].files[] |
+                 (.upstream.sha256 | type == "string") and
+                 (.materialized.sha256 | type == "string") and
+                 (if .loader == 5 then .transformation == "zstd-decompress-v1" else true end)] | all)' \
               "$stage/graph-manifest.json"
           else
             jq -e \
@@ -263,9 +268,14 @@ jobs:
           stage="staging/${TARGET_VERSION}"
           if jq -e '.dualGraph != null' "$stage/stage-manifest.json" >/dev/null; then
             jq -e \
-              '.schema == 1 and .mergePolicy == "canonical-dual-graph-v1" and
+              '.schema == 2 and .mergePolicy == "canonical-dual-graph-v1" and
+               .textAssetMaterialization == "zstd-decompress-v1" and
                (.platforms | length == 2) and
-               ([.platforms[] | (.files | length) > 0] | all)' \
+               ([.platforms[] | (.files | length) > 0] | all) and
+               ([.platforms[].files[] |
+                 (.upstream.sha256 | type == "string") and
+                 (.materialized.sha256 | type == "string") and
+                 (if .loader == 5 then .transformation == "zstd-decompress-v1" else true end)] | all)' \
               "$stage/graph-manifest.json"
           else
             jq -e \

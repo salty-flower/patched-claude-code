@@ -31,6 +31,26 @@ The extractor must fail closed when it cannot prove the layout:
 | Entrypoint | Require `entrypointId` to point inside the module table. |
 | Embedded paths | Normalize Bun root prefixes and reject empty, absolute, parent-relative, or NUL-containing paths. |
 
+## Materialization Contract
+
+Released graphs MUST expose embedded text assets as UTF-8 bytes.
+
+| Loader | Materialization | Failure boundary |
+| --- | --- | --- |
+| JavaScript (`1`) | Rewrite Bun-root specifiers to graph-relative paths. | Unresolved specifier or parse failure. |
+| Compressed text (`5`) | Require Zstandard frame magic; decompress without renaming. | Missing magic, decompression failure, or invalid UTF-8. |
+| Native binary (`10`) | Preserve bytes. | None beyond inventory integrity. |
+| Plain text (`13`) | Preserve bytes. | None beyond inventory integrity. |
+
+Runtime paths MUST remain unchanged.
+The upstream runtime accepts compressed or identity-encoded text by inspecting frame magic.
+
+`graph-manifest.json` MUST bind both representations for every file:
+
+- upstream encoding, byte count, and SHA-256;
+- materialized encoding, byte count, and SHA-256;
+- deterministic transformation identifier.
+
 ## Manifest Contract
 
 `TARGET_SOURCE=<npm|direct> just stage <version>` must write
@@ -44,6 +64,7 @@ The extractor must fail closed when it cannot prove the layout:
 | `directPlatform` | Direct-download platform used, when any. |
 | `nativeBinarySha256` | Verified native binary hash when native extraction was used. |
 | `entrypointSha256` | Extracted JS entrypoint hash. |
+| `graph-manifest.json` | Upstream and materialized hashes for every dual-graph file. |
 | `extractionSupport.knownGood` | `true` only for versions listed in this rule. |
 | `extractionSupport.contract` | The current support matrix embedded in the tool. |
 | `extractionSupport.bunStandaloneLayout` | Layout details when native extraction was used. |

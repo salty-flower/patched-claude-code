@@ -29,6 +29,7 @@ import {
   DUAL_GRAPH_SOURCE,
   DEFAULT_GRAPH_PLATFORMS,
   dispatcherSource,
+  expandZstdTextAsset,
   rewriteBunfsSpecifiers,
   sha256HexBytes,
 } from "../lib/graph-bundle"
@@ -58,6 +59,14 @@ type ExtractedFile = {
   contents: Uint8Array
   isEntrypoint: boolean
   loader: number
+}
+
+type MaterializedFileReport = {
+  path: string
+  loader: number
+  transformation: "identity" | "bunfs-specifier-rewrite-v1" | "zstd-decompress-v1"
+  upstream: { encoding: "identity" | "zstd"; bytes: number; sha256: string }
+  materialized: { encoding: "identity"; bytes: number; sha256: string }
 }
 
 function parseArgs(argv: string[]): Args {
@@ -125,7 +134,7 @@ function materializePlatform(
 ): {
   fileCount: number
   entrypointSha256: string
-  files: Array<{ path: string; bytes: number; sha256: string }>
+  files: MaterializedFileReport[]
 } {
   const graph = extractStandalone(new Uint8Array(readFileSync(binaryPath)))
   const entrypoint = graph.files.find((file) => file.isEntrypoint)
@@ -142,7 +151,7 @@ function materializePlatform(
 
   mkdirSync(graphDir, { recursive: true })
   const decoder = new TextDecoder()
-  const files: Array<{ path: string; bytes: number; sha256: string }> = []
+  const files: MaterializedFileReport[] = []
   let entrypointSha256 = ""
 
   // Pre-pass: the graph-relative path set every specifier must resolve to.
@@ -156,6 +165,11 @@ function materializePlatform(
     }
     const target = join(graphDir, targetName)
     mkdirSync(dirname(target), { recursive: true })
+    const upstream = {
+      encoding: (file.loader === 5 ? "zstd" : "identity") as "identity" | "zstd",
+      bytes: file.contents.byteLength,
+      sha256: sha256HexBytes(file.contents),
+    }
 
     if (file.loader === 1) {
       const text = decoder.decode(file.contents)
@@ -165,13 +179,46 @@ function materializePlatform(
       assertParses(platform, targetName, rewritten)
       const bytes = Buffer.from(rewritten, "utf8")
       writeFileSync(target, bytes)
-      files.push({ path: targetName, bytes: bytes.byteLength, sha256: sha256HexBytes(bytes) })
+      files.push({
+        path: targetName,
+        loader: file.loader,
+        transformation: rewritten === text ? "identity" : "bunfs-specifier-rewrite-v1",
+        upstream,
+        materialized: { encoding: "identity", bytes: bytes.byteLength, sha256: sha256HexBytes(bytes) },
+      })
       if (isEntrypoint) entrypointSha256 = sha256HexBytes(file.contents)
       continue
     }
 
+    if (file.loader === 5) {
+      const expanded = expandZstdTextAsset(file.contents, `${platform}/${targetName}`)
+      writeFileSync(target, expanded)
+      files.push({
+        path: targetName,
+        loader: file.loader,
+        transformation: "zstd-decompress-v1",
+        upstream,
+        materialized: {
+          encoding: "identity",
+          bytes: expanded.byteLength,
+          sha256: sha256HexBytes(expanded),
+        },
+      })
+      continue
+    }
+
     writeFileSync(target, file.contents)
-    files.push({ path: targetName, bytes: file.contents.byteLength, sha256: sha256HexBytes(file.contents) })
+    files.push({
+      path: targetName,
+      loader: file.loader,
+      transformation: "identity",
+      upstream,
+      materialized: {
+        encoding: "identity",
+        bytes: file.contents.byteLength,
+        sha256: sha256HexBytes(file.contents),
+      },
+    })
   }
 
   return { fileCount: files.length, entrypointSha256, files }
@@ -211,7 +258,7 @@ async function main(): Promise<number> {
       binary: platformManifest.binary,
       binarySha256,
       entrypointSha256: report.entrypointSha256,
-      entrypointBytes: entrypointFile?.bytes ?? 0,
+      entrypointBytes: entrypointFile?.materialized.bytes ?? 0,
       fileCount: report.fileCount,
     })
     manifestPlatforms.push({
@@ -227,10 +274,11 @@ async function main(): Promise<number> {
     join(stagedDir, "graph-manifest.json"),
     JSON.stringify(
       {
-        schema: 1,
+        schema: 2,
         mergePolicy: "canonical-dual-graph-v1",
         version,
         specifierRewrite: "bunfs-to-graph-relative",
+        textAssetMaterialization: "zstd-decompress-v1",
         platforms: manifestPlatforms,
       },
       null,

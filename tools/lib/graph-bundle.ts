@@ -23,6 +23,7 @@ export const DUAL_GRAPH_SOURCE = "canonical-dual-graph"
 export const GRAPH_DIR_NAME = "graph"
 export const GRAPH_PATCHED_DIR_NAME = "graph.patched"
 export const DEFAULT_GRAPH_PLATFORMS = ["darwin-arm64", "linux-x64"] as const
+export const ZSTD_FRAME_MAGIC = [0x28, 0xb5, 0x2f, 0xfd] as const
 
 export function stagedGraphRoot(root: string, version: string): string {
   return join(root, "staging", version, GRAPH_DIR_NAME)
@@ -89,6 +90,26 @@ export function assertBunfsRefsResolve(text: string, knownPaths: Set<string>, la
 
 export function sha256HexBytes(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex")
+}
+
+export function isZstdFrame(bytes: Uint8Array): boolean {
+  return bytes.length >= ZSTD_FRAME_MAGIC.length && ZSTD_FRAME_MAGIC.every((byte, index) => bytes[index] === byte)
+}
+
+export function expandZstdTextAsset(bytes: Uint8Array, label: string): Uint8Array {
+  if (!isZstdFrame(bytes)) throw new Error(`${label} uses the compressed-text loader without a Zstandard frame`)
+  let expanded: Uint8Array
+  try {
+    expanded = Bun.zstdDecompressSync(bytes)
+  } catch (error) {
+    throw new Error(`${label} failed Zstandard decompression`, { cause: error })
+  }
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(expanded)
+  } catch (error) {
+    throw new Error(`${label} decompressed to invalid UTF-8`, { cause: error })
+  }
+  return expanded
 }
 
 export type LoadedGraphBundle = {

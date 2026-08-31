@@ -139,7 +139,7 @@ export function verifyPatchObligations(options: VerifyPatchObligationsOptions): 
   const decisionByKey = uniqueMap(ledger.decisions, obligationKey, "target decision", errors)
   const activePatches = patches.filter((patch) => patchAppliesAtVersion(patch, options.version))
   const activeByName = uniqueMap(activePatches, ({ name }) => name, "active patch entry", errors)
-  const mappedEntries = new Map<string, string>()
+  const mappedEntries = new Set<string>()
 
   for (const [key, obligation] of obligationByKey) {
     const decision = decisionByKey.get(key)
@@ -159,9 +159,7 @@ export function verifyPatchObligations(options: VerifyPatchObligationsOptions): 
           errors.push(`${key}: patch entry ${entryName} is not active at ${options.version}`)
           continue
         }
-        const previous = mappedEntries.get(entryName)
-        if (previous && previous !== key) errors.push(`${entryName}: mapped by both ${previous} and ${key}`)
-        mappedEntries.set(entryName, key)
+        mappedEntries.add(entryName)
         for (const platform of patchPlatforms(entry)) coveredPlatforms.add(platform)
       }
       for (const platform of obligation.requiredPlatforms) {

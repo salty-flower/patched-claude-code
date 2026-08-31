@@ -176,6 +176,40 @@ test("patch.2-style complete disposition and bound real-OS receipt pass", () => 
   expect(report).toMatchObject({ status: "passed", errors: [] })
 })
 
+test("one current patch entry may realize multiple historical invariants", () => {
+  const sharedRegistry = registry()
+  sharedRegistry.obligations.push({
+    familyId: "gate",
+    invariantId: "gate-remains-visible",
+    introducedVersion: "2.1.100",
+    rationaleRefs: ["reference/v2.1.88/sources/gate.ts#L1-L2"],
+    requiredPlatforms: ["darwin-arm64"],
+    evidenceClass: "static",
+    oracleIds: ["gate/gate-remains-visible"],
+  })
+  sharedRegistry.maintainerAcknowledgement = {
+    approvedBy: "sole-maintainer",
+    approvedAt: "2026-08-31T00:00:00Z",
+    catalogSha256: catalogSha256(sharedRegistry),
+  }
+  const sharedLedger = ledger()
+  sharedLedger.decisions.push({
+    familyId: "gate",
+    invariantId: "gate-remains-visible",
+    disposition: "ported",
+    patchEntries: ["gate-current"],
+  })
+  const report = verifyPatchObligations({
+    root: ".",
+    version: VERSION,
+    mode: "coverage",
+    registry: sharedRegistry,
+    ledger: sharedLedger,
+    patches: [patch()],
+  })
+  expect(report).toMatchObject({ status: "passed", errors: [] })
+})
+
 test("old entry mapping and skipped real-OS oracle are rejected", () => {
   const { root, upstreamHash, patchedHash } = fixtureRoot()
   const staleEntry = verifyPatchObligations({

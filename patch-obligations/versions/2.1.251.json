@@ -3,6 +3,36 @@
   "targetVersion": "2.1.251",
   "decisions": [
     {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-additional-directories",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-ancestor-directories",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-file-detection",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-nested-directory",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "memory-file-realpath-overlap-dedup",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "anti-trace",
+      "invariantId": "disable-date-environment-fingerprint",
+      "disposition": "retired"
+    },
+    {
       "familyId": "anti-trace",
       "invariantId": "disable-raw-api-body-otel",
       "disposition": "ported",
@@ -19,6 +49,16 @@
         "require-explicit-assistant-response-otel-2-1-251-darwin",
         "require-explicit-assistant-response-otel-2-1-251-linux"
       ]
+    },
+    {
+      "familyId": "channel-access",
+      "invariantId": "ask-user-question-channels-gate",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "channel-access",
+      "invariantId": "ask-user-question-channels-gate-askuser",
+      "disposition": "retired"
     },
     {
       "familyId": "channel-access",
@@ -55,12 +95,32 @@
     },
     {
       "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-capabilities",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "custom-model-slots",
       "invariantId": "custom-model-slot-default-effort",
       "disposition": "ported",
       "patchEntries": [
         "custom-model-slot-default-effort-2-1-251",
         "custom-model-slot-default-effort-2-1-251-linux"
       ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-focus-effort",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-hide-adjust-hint",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-lock-effort",
+      "disposition": "retired"
     },
     {
       "familyId": "custom-model-slots",
@@ -77,6 +137,16 @@
       "patchEntries": [
         "validate-second-custom-model-option-without-probe-2-1-250"
       ]
+    },
+    {
+      "familyId": "disable-background-agent-kill-on-global-interrupt",
+      "invariantId": "foreground-agent-handoff-before-cancel",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "disable-background-agent-kill-on-global-interrupt",
+      "invariantId": "global-interrupt-cancel-only",
+      "disposition": "retired"
     },
     {
       "familyId": "explicit-macos-keychain",
@@ -168,6 +238,11 @@
     },
     {
       "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-require-preload-at-entrypoint",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "explicit-macos-keychain",
       "invariantId": "explicit-macos-keychain-session-store-resume",
       "disposition": "ported",
       "patchEntries": [
@@ -181,6 +256,11 @@
       "patchEntries": [
         "explicit-macos-keychain-storage-bridge-2-1-251"
       ]
+    },
+    {
+      "familyId": "fable-model-picker",
+      "invariantId": "api-key-picker-shows-local-fable",
+      "disposition": "retired"
     },
     {
       "familyId": "fable-model-picker",
@@ -209,6 +289,71 @@
       ]
     },
     {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-image",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-notebook",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-parts",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-pdf",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-text",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-unchanged",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-exact-fire-time",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-attachment-envelope",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-forward-attachments",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-task-attachments",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-scheduler-enable",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-session-scheduler",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-team-context",
+      "disposition": "retired"
+    },
+    {
       "familyId": "later-command",
       "invariantId": "later-command-submit-hook",
       "disposition": "ported",
@@ -225,6 +370,21 @@
         "later-command-suggestion-metadata-2-1-251-darwin",
         "later-command-suggestion-metadata-2-1-251-linux"
       ]
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-array-text-full",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-string-full",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-text-block-full",
+      "disposition": "retired"
     },
     {
       "familyId": "per-model-context-window",
@@ -276,6 +436,41 @@
       ]
     },
     {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "dedupe-opus-alias-1m-suffix",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-allows-same-family-anthropic-model-default",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-detects-1m-after-alias-resolution",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-detects-default-1m-after-alias-resolution",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-imports-resolved-default-model",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "signature-block-custom-endpoint",
+      "invariantId": "strip-signatures-for-custom-base-url",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-cli-global",
+      "disposition": "retired"
+    },
+    {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-cli-option",
       "disposition": "ported",
@@ -285,11 +480,41 @@
     },
     {
       "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-cli-settings",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-clipboard-image-hint",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-clipboard-image-hint-context",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-command-length-mount",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-command-length-update",
       "disposition": "ported",
       "patchEntries": [
         "statusline-footer-control-command-length-update-2-1-233"
       ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-effort-level",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-effort-notification",
+      "disposition": "retired"
     },
     {
       "familyId": "statusline-footer-control",
@@ -320,12 +545,27 @@
     },
     {
       "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-rate-limit-warning",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-rate-limit-warning-deps",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-render",
       "disposition": "ported",
       "patchEntries": [
         "statusline-footer-control-render-2-1-251",
         "statusline-footer-control-render-2-1-251-linux"
       ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-render-output",
+      "disposition": "retired"
     },
     {
       "familyId": "statusline-footer-control",
@@ -344,6 +584,31 @@
         "statusline-footer-control-schema-2-1-251-darwin",
         "statusline-footer-control-schema-2-1-251-linux"
       ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-teammate-spinner-gap",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-terminal-columns",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh-effect",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh-selector",
+      "disposition": "retired"
     },
     {
       "familyId": "statusline-footer-control",
@@ -372,6 +637,16 @@
       ]
     },
     {
+      "familyId": "suppress-npm-native-installer-warning",
+      "invariantId": "suppress-npm-native-installer-warning-compute",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "suppress-npm-native-installer-warning",
+      "invariantId": "suppress-npm-native-installer-warning-setup-card",
+      "disposition": "retired"
+    },
+    {
       "familyId": "system-prompt-section-overrides",
       "invariantId": "system-prompt-section-override-bridge",
       "disposition": "ported",
@@ -389,6 +664,26 @@
     },
     {
       "familyId": "thinking-display",
+      "invariantId": "thinking-clear-live-on-next-block",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-blocks",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-expanded",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-brief",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "thinking-display",
       "invariantId": "thinking-render-live-complete",
       "disposition": "ported",
       "patchEntries": [
@@ -403,6 +698,11 @@
         "thinking-render-live-delta-2-1-251-darwin",
         "thinking-render-live-delta-2-1-251-linux"
       ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-main",
+      "disposition": "retired"
     },
     {
       "familyId": "thinking-display",
@@ -424,6 +724,21 @@
     },
     {
       "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-row-input",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-row-output",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-state",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "thinking-display",
       "invariantId": "thinking-render-live-stream",
       "disposition": "ported",
       "patchEntries": [
@@ -438,6 +753,122 @@
       "patchEntries": [
         "transcript-preserve-repl-history"
       ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-capability-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-effort-command-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-effort-notification-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-flag-settings-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-label-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-menu-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-text-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-model-picker-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-model-picker-persist-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-settings-report-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-confirm-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-secondary-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-tertiary-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-menu-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-startup-settings-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-thin-client-usage-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-typed-arg-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-usage-hint-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-valid-options-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "xhigh-applied-effort-max-fallback",
+      "disposition": "retired"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "xhigh-settings-opus-max-fallback",
+      "disposition": "retired"
     }
-  ]
+  ],
+  "retirementProposal": {
+    "reason": "These historical behaviors are no longer used or maintained by the patched bundle; current ported obligations remain fail-closed.",
+    "evidenceRefs": [
+      "docs/records/2026-09-01-historical-patch-retirement-proposal.md"
+    ]
+  }
 }

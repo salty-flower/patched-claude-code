@@ -59,7 +59,7 @@ function main(): number {
 
   for (const error of report.errors) console.error(`[blocked] ${error}`)
   console.error(
-    `patch obligations: ${report.status} (${report.decisions}/${report.registryObligations} decisions, ${report.receipts} receipts)`,
+    `patch obligations: ${report.status} (${report.decisions}/${report.registryObligations} decisions: ${report.dispositions.ported} ported, ${report.dispositions.upstream_equivalent} upstream-equivalent, ${report.dispositions.retired} retired; ${report.receipts} receipts)`,
   )
   console.error(`report: ${resultFile}`)
   return report.status === "passed" ? 0 : 1

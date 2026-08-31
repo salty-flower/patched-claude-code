@@ -40,6 +40,17 @@ type MaintainerAcknowledgement = {
   decisionSha256: string
 }
 
+type RetirementProposal = {
+  reason: string
+  evidenceRefs: string[]
+}
+
+type RetirementAcknowledgement = {
+  approvedBy: string
+  approvedAt: string
+  proposalSha256: string
+}
+
 export type PatchObligationDecision = {
   familyId: string
   invariantId: string
@@ -52,6 +63,8 @@ export type PatchObligationLedger = {
   schema: 1
   targetVersion: string
   decisions: PatchObligationDecision[]
+  retirementProposal?: RetirementProposal
+  retirementAcknowledgement?: RetirementAcknowledgement
 }
 
 export type PatchEvidenceReceipt = {
@@ -76,6 +89,7 @@ export type PatchObligationReport = {
   sourceCommit: string | null
   registryObligations: number
   decisions: number
+  dispositions: Record<Disposition, number>
   receipts: number
   status: "passed" | "blocked"
   errors: string[]
@@ -140,6 +154,7 @@ export function verifyPatchObligations(options: VerifyPatchObligationsOptions): 
   const activePatches = patches.filter((patch) => patchAppliesAtVersion(patch, options.version))
   const activeByName = uniqueMap(activePatches, ({ name }) => name, "active patch entry", errors)
   const mappedEntries = new Set<string>()
+  validateRetirementBatch(ledger, errors)
 
   for (const [key, obligation] of obligationByKey) {
     const decision = decisionByKey.get(key)
@@ -167,7 +182,9 @@ export function verifyPatchObligations(options: VerifyPatchObligationsOptions): 
       }
     } else {
       if (decision.patchEntries?.length) errors.push(`${key}: ${decision.disposition} must not name patchEntries`)
-      validateAcknowledgement(key, decision, errors)
+      if (decision.disposition === "upstream_equivalent" || decision.maintainerAcknowledgement) {
+        validateAcknowledgement(key, decision, errors)
+      }
     }
   }
 
@@ -191,9 +208,40 @@ export function verifyPatchObligations(options: VerifyPatchObligationsOptions): 
     sourceCommit,
     registryObligations: registry.obligations.length,
     decisions: ledger.decisions.length,
+    dispositions: {
+      ported: ledger.decisions.filter(({ disposition }) => disposition === "ported").length,
+      upstream_equivalent: ledger.decisions.filter(({ disposition }) => disposition === "upstream_equivalent").length,
+      retired: ledger.decisions.filter(({ disposition }) => disposition === "retired").length,
+    },
     receipts: receipts.length,
     status: errors.length === 0 ? "passed" : "blocked",
     errors: [...new Set(errors)].sort(),
+  }
+}
+
+function validateRetirementBatch(ledger: PatchObligationLedger, errors: string[]): void {
+  const batchRetirements = ledger.decisions.filter(
+    (decision) => decision.disposition === "retired" && !decision.maintainerAcknowledgement,
+  )
+  if (batchRetirements.length === 0) return
+  const proposal = ledger.retirementProposal
+  if (!proposal) {
+    errors.push("retirements: batch retirements require retirementProposal")
+    return
+  }
+  if (!proposal.reason || proposal.evidenceRefs.length === 0) {
+    errors.push("retirements: retirementProposal requires a reason and evidenceRefs")
+  }
+  const acknowledgement = ledger.retirementAcknowledgement
+  if (!acknowledgement) {
+    errors.push("retirements: proposal awaits sole-maintainer acknowledgement")
+    return
+  }
+  if (!acknowledgement.approvedBy || !acknowledgement.approvedAt) {
+    errors.push("retirements: maintainer acknowledgement is incomplete")
+  }
+  if (acknowledgement.proposalSha256 !== retirementProposalSha256(ledger)) {
+    errors.push("retirements: maintainer acknowledgement digest does not match the proposal")
   }
 }
 
@@ -309,6 +357,22 @@ export function decisionSha256(decision: PatchObligationDecision): string {
   return sha256Hex(Buffer.from(canonical))
 }
 
+export function retirementProposalSha256(ledger: PatchObligationLedger): string {
+  const retirements = ledger.decisions
+    .filter((decision) => decision.disposition === "retired" && !decision.maintainerAcknowledgement)
+    .map(({ familyId, invariantId }) => ({ familyId, invariantId }))
+    .sort((left, right) => obligationKey(left).localeCompare(obligationKey(right)))
+  return sha256Hex(
+    Buffer.from(
+      JSON.stringify({
+        retirements,
+        reason: ledger.retirementProposal?.reason ?? "",
+        evidenceRefs: [...(ledger.retirementProposal?.evidenceRefs ?? [])].sort(),
+      }),
+    ),
+  )
+}
+
 export function catalogSha256(registry: PatchObligationRegistry): string {
   return sha256Hex(
     Buffer.from(
@@ -353,9 +417,10 @@ function parseRegistry(value: unknown, path: string): PatchObligationRegistry {
   if (record.schema !== 1) throw new Error(`${path}: schema must be 1`)
   const baselineVersion = requiredString(record.baselineVersion, `${path}.baselineVersion`)
   if (!valid(baselineVersion)) throw new Error(`${path}: invalid baselineVersion ${baselineVersion}`)
-  const acknowledgement = record.maintainerAcknowledgement === undefined
-    ? undefined
-    : parseCatalogAcknowledgement(record.maintainerAcknowledgement, path)
+  const acknowledgement =
+    record.maintainerAcknowledgement === undefined
+      ? undefined
+      : parseCatalogAcknowledgement(record.maintainerAcknowledgement, path)
   return {
     schema: 1,
     baselineVersion,
@@ -394,12 +459,37 @@ function parseObligation(value: unknown, path: string): PatchObligation {
 function parseLedger(value: unknown, path: string): PatchObligationLedger {
   const record = requiredRecord(value, path)
   if (record.schema !== 1) throw new Error(`${path}: schema must be 1`)
+  const retirementProposal =
+    record.retirementProposal === undefined ? undefined : parseRetirementProposal(record.retirementProposal, path)
+  const retirementAcknowledgement =
+    record.retirementAcknowledgement === undefined
+      ? undefined
+      : parseRetirementAcknowledgement(record.retirementAcknowledgement, path)
   return {
     schema: 1,
     targetVersion: semverString(record.targetVersion, `${path}.targetVersion`),
     decisions: requiredArray(record.decisions, `${path}.decisions`).map((item, index) =>
       parseDecision(item, `${path}.decisions[${index}]`),
     ),
+    ...(retirementProposal ? { retirementProposal } : {}),
+    ...(retirementAcknowledgement ? { retirementAcknowledgement } : {}),
+  }
+}
+
+function parseRetirementProposal(value: unknown, path: string): RetirementProposal {
+  const record = requiredRecord(value, `${path}.retirementProposal`)
+  return {
+    reason: requiredString(record.reason, `${path}.retirementProposal.reason`),
+    evidenceRefs: stringArray(record.evidenceRefs, `${path}.retirementProposal.evidenceRefs`, true),
+  }
+}
+
+function parseRetirementAcknowledgement(value: unknown, path: string): RetirementAcknowledgement {
+  const record = requiredRecord(value, `${path}.retirementAcknowledgement`)
+  return {
+    approvedBy: requiredString(record.approvedBy, `${path}.retirementAcknowledgement.approvedBy`),
+    approvedAt: requiredString(record.approvedAt, `${path}.retirementAcknowledgement.approvedAt`),
+    proposalSha256: sha256String(record.proposalSha256, `${path}.retirementAcknowledgement.proposalSha256`),
   }
 }
 

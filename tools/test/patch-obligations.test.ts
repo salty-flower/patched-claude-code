@@ -5,10 +5,11 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import type { PatchEntry } from "../lib/patch-files"
 import {
+  catalogSha256,
   type PatchEvidenceReceipt,
   type PatchObligationLedger,
   type PatchObligationRegistry,
-  catalogSha256,
+  retirementProposalSha256,
   verifyPatchObligations,
 } from "../lib/patch-obligations"
 
@@ -272,5 +273,59 @@ test("retirement without the sole maintainer acknowledgement is rejected", () =>
     ledger: retired,
     patches: [],
   })
-  expect(report.errors).toContain("gate/gate-remains-open: non-ported disposition requires maintainerAcknowledgement")
+  expect(report.errors).toContain("retirements: batch retirements require retirementProposal")
+})
+
+test("one digest-bound acknowledgement admits a retirement batch", () => {
+  const retired = ledger()
+  retired.decisions[0] = {
+    familyId: "gate",
+    invariantId: "gate-remains-open",
+    disposition: "retired",
+  }
+  retired.retirementProposal = {
+    reason: "The maintained product no longer uses this historical behavior.",
+    evidenceRefs: ["docs/records/retirement.md"],
+  }
+  retired.retirementAcknowledgement = {
+    approvedBy: "sole-maintainer",
+    approvedAt: "2026-09-01T00:00:00Z",
+    proposalSha256: retirementProposalSha256(retired),
+  }
+  const report = verifyPatchObligations({
+    root: ".",
+    version: VERSION,
+    mode: "coverage",
+    registry: registry(),
+    ledger: retired,
+    patches: [],
+  })
+  expect(report).toMatchObject({ status: "passed", errors: [] })
+})
+
+test("retirement batch acknowledgement is bound to the exact proposal", () => {
+  const retired = ledger()
+  retired.decisions[0] = {
+    familyId: "gate",
+    invariantId: "gate-remains-open",
+    disposition: "retired",
+  }
+  retired.retirementProposal = {
+    reason: "The maintained product no longer uses this historical behavior.",
+    evidenceRefs: ["docs/records/retirement.md"],
+  }
+  retired.retirementAcknowledgement = {
+    approvedBy: "sole-maintainer",
+    approvedAt: "2026-09-01T00:00:00Z",
+    proposalSha256: "0".repeat(64),
+  }
+  const report = verifyPatchObligations({
+    root: ".",
+    version: VERSION,
+    mode: "coverage",
+    registry: registry(),
+    ledger: retired,
+    patches: [],
+  })
+  expect(report.errors).toContain("retirements: maintainer acknowledgement digest does not match the proposal")
 })

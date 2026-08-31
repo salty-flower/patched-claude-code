@@ -77,6 +77,11 @@ export type ReleaseManifest = {
     status: "passed"
     obligations: number
     decisions: number
+    dispositions: {
+      ported: number
+      upstream_equivalent: number
+      retired: number
+    }
     receipts: number
     registrySha256: string
     ledgerSha256: string
@@ -250,6 +255,7 @@ export function attachPatchObligationPayload(
     status?: unknown
     registryObligations?: unknown
     decisions?: unknown
+    dispositions?: unknown
     receipts?: unknown
   }
   if (report.schema !== 1 || report.status !== "passed") {
@@ -258,6 +264,7 @@ export function attachPatchObligationPayload(
   if (
     typeof report.registryObligations !== "number" ||
     typeof report.decisions !== "number" ||
+    !isDispositionSummary(report.dispositions) ||
     typeof report.receipts !== "number"
   ) {
     throw new Error(`patch obligation admission report summary is invalid: ${admission}`)
@@ -281,6 +288,7 @@ export function attachPatchObligationPayload(
       status: "passed",
       obligations: report.registryObligations,
       decisions: report.decisions,
+      dispositions: report.dispositions,
       receipts: report.receipts,
       registrySha256: sha256(readFileSync(registry)).sri,
       ledgerSha256: sha256(readFileSync(ledger)).sri,
@@ -289,6 +297,20 @@ export function attachPatchObligationPayload(
   }
   writeFileSync(join(outDir, "manifest.json"), `${JSON.stringify(updated, null, 2)}\n`)
   return updated
+}
+
+function isDispositionSummary(value: unknown): value is {
+  ported: number
+  upstream_equivalent: number
+  retired: number
+} {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false
+  const summary = value as Record<string, unknown>
+  return (
+    typeof summary.ported === "number" &&
+    typeof summary.upstream_equivalent === "number" &&
+    typeof summary.retired === "number"
+  )
 }
 
 function copyUnlessSame(source: string, destination: string): void {

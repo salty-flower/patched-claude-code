@@ -22,6 +22,13 @@ Every registry obligation MUST have exactly one target decision:
 Missing, duplicate, unknown, inactive, or platform-incomplete mappings MUST block.
 Agents MAY propose decisions; agents MUST NOT acknowledge equivalence or retirement.
 
+Multiple `retired` decisions MAY share one ledger-level `retirementProposal` and
+digest-bound `retirementAcknowledgement`.
+The digest MUST bind the exact retirement set, reason, and evidence references.
+An unsigned or changed proposal MUST block as one batch rather than requiring
+one acknowledgement per obligation.
+Signed retirement decisions SHOULD be carried into later target ledgers unchanged.
+
 ## Evidence Receipts
 
 `just obligation-evidence <version> <platform>` MUST run on the named real OS/architecture.
@@ -39,5 +46,7 @@ The receipt binds:
 ## Release Boundary
 
 Packaging MUST depend on obligation admission.
+Release metadata MUST publish disposition counts and include the exact registry,
+target ledger, acknowledgement, and evidence receipts.
 Runner loss, incomplete migration, or an unavailable semantic decision delays the release.
 See ADR-0005, ADR-0006, and ADR-0007 in [`../decisions/`](../decisions/).

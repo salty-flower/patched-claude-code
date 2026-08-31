@@ -50,6 +50,9 @@ latest patched source commit.
 Packaging MUST fail before artifact creation unless every historical patch
 obligation has one target disposition and every required platform receipt is
 current, successful, artifact-bound, and skip-free.
+The release manifest MUST publish disposition counts.
+The packaged ledger MUST preserve retirement proposals and their
+digest-bound maintainer acknowledgement.
 See [`Patch-Obligations.md`](Patch-Obligations.md).
 
 A dispatcher release MUST include both `darwin-arm64/cli.js` and

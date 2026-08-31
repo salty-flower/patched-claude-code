@@ -22,6 +22,9 @@ const BUNDLE = await renderRunnableBundle({
 // tool-test step before render, so skip when the rendered bundle is absent;
 // CI and the release lane always render before tests.
 const RENDERED = existsSync(BUNDLE)
+if (process.env.PATCH_OBLIGATION_EVIDENCE_REQUIRED === "1" && (process.platform !== "darwin" || !RENDERED)) {
+  throw new Error("macOS Keychain obligation evidence requires a rendered bundle on real macOS")
+}
 const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
 

@@ -303,11 +303,20 @@ test("stage-claude-code parses positional version and source options", () => {
   })
 })
 
-test("run-patch-tests parses target version, bundle, and patch file list", () => {
+test("run-patch-tests parses target version, platform, bundle, and patch file list", () => {
   expect(
-    parseRunPatchTestsArgs(["--version", "2.1.138", "--bundle", "staging/2.1.138/cli.patched.js", "patches/a.toml"]),
+    parseRunPatchTestsArgs([
+      "--version",
+      "2.1.138",
+      "--platform",
+      "darwin-arm64",
+      "--bundle",
+      "staging/2.1.138/cli.patched.js",
+      "patches/a.toml",
+    ]),
   ).toEqual({
     version: "2.1.138",
+    platform: "darwin-arm64",
     bundle: "staging/2.1.138/cli.patched.js",
     patches: ["patches/a.toml"],
   })

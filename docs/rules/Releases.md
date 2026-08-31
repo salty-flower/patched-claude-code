@@ -35,6 +35,8 @@ A release MUST pass:
 | Render | `just render <version>` |
 | Smoke | `just smoke <version>` |
 | Patch tests | `just patch-test <version>` |
+| Platform obligation evidence | `just obligation-evidence <version> <platform>` on each real runner |
+| Obligation admission | `just obligation-admission <version>` |
 | Package | `just package <version> patch.<n>` |
 | Prompt review notes | `test -s dist/release-notes.md` and `rg -q '^## Prompt review$' dist/release-notes.md` |
 | Source tag | `just release-source <version> patch.<n>` |
@@ -44,6 +46,11 @@ fetching. Nix consumers SHOULD use the native
 `github:<owner>/<repo>/<ref>` flake fetcher. Use the source tag for immutable
 pinning. Use `claude-code-latest` when `nix flake update` should follow the
 latest patched source commit.
+
+Packaging MUST fail before artifact creation unless every historical patch
+obligation has one target disposition and every required platform receipt is
+current, successful, artifact-bound, and skip-free.
+See [`Patch-Obligations.md`](Patch-Obligations.md).
 
 A dispatcher release MUST include both `darwin-arm64/cli.js` and
 `linux-x64/cli.js` under the graph directory named by `manifest.json`.

@@ -64,7 +64,7 @@ jobs:
 
             while IFS= read -r path; do
               case "$path" in
-                patches/*|reference/*|justfile)
+                patches/*|patch-obligations/*|reference/*|justfile)
                   full=true
                   typecheck=true
                   ;;
@@ -326,8 +326,20 @@ jobs:
           TARGET_VERSION: ${{ env.TARGET_VERSION }}
         run: bun run --cwd tools test
 
+      - name: Record Darwin patch-obligation evidence
+        run: |
+          just render "$TARGET_VERSION"
+          just obligation-evidence "$TARGET_VERSION" darwin-arm64
+
+      - name: Upload Darwin patch-obligation evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}
+          path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}/darwin-arm64.json
+          if-no-files-found: error
+
   verify:
-    needs: [changes, canonical-platform-merge]
+    needs: [changes, canonical-platform-merge, darwin-tool-test]
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-24.04
     steps:
@@ -369,6 +381,20 @@ jobs:
         with:
           name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
           path: staging/${{ env.TARGET_VERSION }}
+
+      - name: Reuse Darwin patch-obligation evidence
+        uses: actions/download-artifact@v6
+        with:
+          name: patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}
+          path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}
+
+      - name: Record Linux patch-obligation evidence
+        run: |
+          just render "$TARGET_VERSION"
+          just obligation-evidence "$TARGET_VERSION" linux-x64
+
+      - name: Admit patch obligations
+        run: just obligation-admission "$TARGET_VERSION"
 
       - name: Configure audit swap
         run: |
@@ -426,6 +452,8 @@ jobs:
             dist/*.manifest.json
             dist/release-notes.md
             dist/prompt-review.md
+            dist/patch-obligation-admission-*.json
+            dist/patch-obligation-evidence/
             cli.js
             manifest.json
             package.json
@@ -434,5 +462,6 @@ jobs:
             runtime/release-integrity.ts
             runtime/system-prompt-overrides.ts
             prompts/catalog/
+            patch-obligations/
             staging/${{ env.TARGET_VERSION }}/graph.patched/
           if-no-files-found: error

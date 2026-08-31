@@ -12,6 +12,7 @@ test("target bump preparation defines one ordered deterministic lane", () => {
   expect(steps.map(({ id }) => id)).toEqual([
     "stage",
     "patch-carryover",
+    "patch-obligations",
     "verify-patches",
     "verify-native-contract",
     "tool-tests",
@@ -42,6 +43,17 @@ test("target bump preparation defines one ordered deterministic lane", () => {
     "/repo/dist/patch-carryover-2.1.218.json",
   ])
   expect(steps.find(({ id }) => id === "render")?.command).toContain("--skip-verify")
+  expect(steps.find(({ id }) => id === "patch-obligations")?.command).toEqual([
+    "bun",
+    "run",
+    "tools/patch/verify-patch-obligations.ts",
+    "--version",
+    "2.1.218",
+    "--mode",
+    "coverage",
+    "--result-file",
+    "/repo/dist/patch-obligation-coverage-2.1.218.json",
+  ])
   expect(steps.find(({ id }) => id === "prompt-identities")?.command).toContain(
     "/repo/dist/prompt-identity-bump-2.1.218.json",
   )
@@ -59,8 +71,9 @@ test("target bump preparation stops dependent work after the first failure", () 
     ({ id }) => started.push(id),
   )
 
-  expect(started).toEqual(["stage", "patch-carryover", "verify-patches"])
+  expect(started).toEqual(["stage", "patch-carryover", "patch-obligations", "verify-patches"])
   expect(results.map(({ status }) => status)).toEqual([
+    "passed",
     "passed",
     "passed",
     "failed",
@@ -71,7 +84,7 @@ test("target bump preparation stops dependent work after the first failure", () 
     "skipped",
     "skipped",
   ])
-  expect(results[2]?.exitCode).toBe(7)
+  expect(results[3]?.exitCode).toBe(7)
 })
 
 test("target bump summary renders a compact manual handoff", () => {

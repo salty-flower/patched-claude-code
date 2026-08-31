@@ -10,7 +10,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
 | Automated by `bump-prepare` | Manual gate |
 | --- | --- |
-| Stage, patch-carryover warnings, locator/native verification, tool tests | Drift classification and replacement-symbol proof |
+| Stage, patch-carryover warnings, obligation coverage, locator/native verification, tool tests | Drift classification and replacement-symbol proof |
 | Render, version smoke, rendered patch tests | Anti-trace dossier generation and invariant review |
 | Prompt identity preparation and report | Unresolved lineage decisions |
 | Machine-readable handoff | PTY/TUI exercise, metadata update, commit |
@@ -28,6 +28,11 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    `dist/target-bump-<ver>.logs/`, and stops dependent work after the first
    failed step. The terminal stays compact and prints a bounded log tail on
    failure.
+
+   Obligation coverage is fail-closed.
+   Add one explicit target decision for every row governed by
+   [`../rules/Patch-Obligations.md`](../rules/Patch-Obligations.md); the previous
+   target is not completeness evidence.
 
    | Exit | Meaning | Next action |
    | --- | --- | --- |
@@ -47,9 +52,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    **not** prove that version-local minified symbols retain their meaning.
    It also compares the currently configured target with the requested target
    and records a warning for every previously active patch lineage and platform
-   that has no successor. Treat each warning as unresolved until a replacement
-   is added or the handoff records evidence that upstream now provides the
-   behavior.
+   that has no successor. The all-history obligation registry remains
+   authoritative when the previous target was already incomplete. Treat each
+   warning as unresolved until a target decision is committed.
 
    | Signal | Action |
    | --- | --- |

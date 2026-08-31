@@ -33,6 +33,15 @@ patch-test version=target source=source: \
 _patch-test-rendered version=target:
   tools/patch/resource-guard.sh bun run tools/test/run-patch-tests.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
 
+obligation-check version=target:
+  bun run tools/patch/verify-patch-obligations.ts --version "{{version}}" --mode coverage
+
+obligation-evidence version=target audit_platform=platform:
+  bun run tools/test/run-patch-obligation-evidence.ts --version "{{version}}" --platform "{{audit_platform}}"
+
+obligation-admission version=target:
+  bun run tools/patch/verify-patch-obligations.ts --version "{{version}}" --mode admission --evidence-dir "dist/patch-obligation-evidence/{{version}}"
+
 api-stub-smoke version=target source=source resume_timeout=resume_transcript_timeout: \
   (render version source) \
   (_api-stub-smoke-rendered version resume_timeout)
@@ -52,7 +61,7 @@ package version=target release_id=release_id source=source: \
   (render version source) \
   (_package-rendered version release_id)
 
-_package-rendered version=target release_id=release_id:
+_package-rendered version=target release_id=release_id: (obligation-admission version)
   bun run tools/patch/package-release.ts --version "{{version}}" --release-id "{{release_id}}"
 
 release-source version=target release_id=release_id source=source: \
@@ -78,7 +87,7 @@ ci-release-audit version=target release_id=release_id source=source: \
   test -s prompts/catalog/manifest.json
   bun ./cli.js --version
   git ls-tree -r --name-only "claude-code-{{version}}-{{release_id}}" > source-tag-files.txt
-  shopt -s nullglob globstar; catalog_files=(prompts/catalog/manifest.json prompts/catalog/gaps.json prompts/catalog/entries/**/*.md); { printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/macos-keychain.ts runtime/release-integrity.ts runtime/system-prompt-overrides.ts; printf '%s\n' "${catalog_files[@]}"; for graph_file in graph.patched/**/* graph/**/*; do [[ -f "$graph_file" ]] && printf '%s\n' "$graph_file"; done; } | sort > expected-source-tag-files.txt
+  shopt -s nullglob globstar; catalog_files=(prompts/catalog/manifest.json prompts/catalog/gaps.json prompts/catalog/entries/**/*.md); { printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/macos-keychain.ts runtime/release-integrity.ts runtime/system-prompt-overrides.ts; printf '%s\n' "${catalog_files[@]}"; for payload_file in patch-obligations/**/* graph.patched/**/* graph/**/*; do [[ -f "$payload_file" ]] && printf '%s\n' "$payload_file"; done; } | sort > expected-source-tag-files.txt
   diff -u expected-source-tag-files.txt source-tag-files.txt
 
 prompt-catalog version=target release_id=release_id:

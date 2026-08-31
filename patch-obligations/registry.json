@@ -1,0 +1,2195 @@
+{
+  "schema": 1,
+  "baselineVersion": "2.1.88",
+  "obligations": [
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-additional-directories",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/claudemd.ts#L936-L956"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "agent-memory-discovery/agents-memory-additional-directories"
+      ]
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-ancestor-directories",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/claudemd.ts#L886-L910"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "agent-memory-discovery/agents-memory-ancestor-directories"
+      ]
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-file-detection",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/claudemd.ts#L1432-L1448"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "agent-memory-discovery/agents-memory-file-detection"
+      ]
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-nested-directory",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/claudemd.ts#L1249-L1268"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "agent-memory-discovery/agents-memory-nested-directory"
+      ]
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "memory-file-realpath-overlap-dedup",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/claudemd.ts#L626-L648"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "agent-memory-discovery/memory-file-realpath-overlap-dedup"
+      ]
+    },
+    {
+      "familyId": "anti-trace",
+      "invariantId": "disable-date-environment-fingerprint",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/context.ts#L184-L187"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "anti-trace/disable-date-environment-fingerprint"
+      ]
+    },
+    {
+      "familyId": "anti-trace",
+      "invariantId": "disable-raw-api-body-otel",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "anti-trace/disable-raw-api-body-otel"
+      ]
+    },
+    {
+      "familyId": "anti-trace",
+      "invariantId": "require-explicit-assistant-response-otel",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "anti-trace/require-explicit-assistant-response-otel"
+      ]
+    },
+    {
+      "familyId": "channel-access",
+      "invariantId": "ask-user-question-channels-gate",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "channel-access/ask-user-question-channels-gate"
+      ]
+    },
+    {
+      "familyId": "channel-access",
+      "invariantId": "ask-user-question-channels-gate-askuser",
+      "introducedVersion": "2.1.221",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "channel-access/ask-user-question-channels-gate-askuser"
+      ]
+    },
+    {
+      "familyId": "channel-access",
+      "invariantId": "channels-feature-gate",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/services/mcp/channelAllowlist.ts#L46-L53"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "channel-access/channels-feature-gate"
+      ]
+    },
+    {
+      "familyId": "channel-access",
+      "invariantId": "channels-provider-gate",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/services/mcp/channelNotification.ts#L220-L228"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "channel-access/channels-provider-gate"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "append-second-custom-model-option",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/append-second-custom-model-option"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-applied-effort",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/custom-model-slot-applied-effort"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-capabilities",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/custom-model-slot-capabilities"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-default-effort",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/custom-model-slot-default-effort"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-focus-effort",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L183"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/custom-model-slot-picker-focus-effort"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-hide-adjust-hint",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L318-L333"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/custom-model-slot-picker-hide-adjust-hint"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-lock-effort",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L185-L210"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/custom-model-slot-picker-lock-effort"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "recognize-second-custom-model-option",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/recognize-second-custom-model-option"
+      ]
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "validate-second-custom-model-option-without-probe",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "custom-model-slots/validate-second-custom-model-option-without-probe"
+      ]
+    },
+    {
+      "familyId": "disable-background-agent-kill-on-global-interrupt",
+      "invariantId": "foreground-agent-handoff-before-cancel",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "disable-background-agent-kill-on-global-interrupt/foreground-agent-handoff-before-cancel"
+      ]
+    },
+    {
+      "familyId": "disable-background-agent-kill-on-global-interrupt",
+      "invariantId": "global-interrupt-cancel-only",
+      "introducedVersion": "2.1.218",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "disable-background-agent-kill-on-global-interrupt/global-interrupt-cancel-only"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-disable-default-prefetch",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/secureStorage/keychainPrefetch.ts#L60-L91"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-disable-default-prefetch"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-doctor-probe",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/secureStorage/macOsKeychainStorage.ts#L97-L175"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-doctor-probe"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-entrypoint-guard",
+      "introducedVersion": "2.1.246",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/entrypoints/cli.tsx#L1-L24"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-entrypoint-guard"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-legacy-api-key-async-read",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-async-read"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-legacy-api-key-delete",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/authPortable.ts#L1-L17"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-delete"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-legacy-api-key-sync-read",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-sync-read"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-legacy-api-key-write",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/auth.ts#L1100-L1166"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-write"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-plugin-eval",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-plugin-eval"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-plugin-eval-child",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-plugin-eval-child"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-propagate-legacy-delete-failures",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/auth.ts#L1170-L1191"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-propagate-legacy-delete-failures"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-propagate-write-failures",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/auth.ts#L1194-L1253"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-propagate-write-failures"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-require-preload-at-entrypoint",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/entrypoints/cli.tsx#L298-L302"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-require-preload-at-entrypoint"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-session-store-resume",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-session-store-resume"
+      ]
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-storage-bridge",
+      "introducedVersion": "2.1.220",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L1-L17"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "explicit-macos-keychain/explicit-macos-keychain-storage-bridge"
+      ]
+    },
+    {
+      "familyId": "fable-model-picker",
+      "invariantId": "api-key-picker-shows-local-fable",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "fable-model-picker/api-key-picker-shows-local-fable"
+      ]
+    },
+    {
+      "familyId": "fable-model-picker",
+      "invariantId": "oauth-primary-picker-shows-local-fable",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "fable-model-picker/oauth-primary-picker-shows-local-fable"
+      ]
+    },
+    {
+      "familyId": "fable-model-picker",
+      "invariantId": "oauth-standard-picker-shows-local-fable",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "fable-model-picker/oauth-standard-picker-shows-local-fable"
+      ]
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-context",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L77-L143"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "file-read-path-context/read-result-path-context"
+      ]
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-image",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "file-read-path-context/read-result-path-image"
+      ]
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-notebook",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "file-read-path-context/read-result-path-notebook"
+      ]
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-parts",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116",
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L114-L122"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "file-read-path-context/read-result-path-parts"
+      ]
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-pdf",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "file-read-path-context/read-result-path-pdf"
+      ]
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-text",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127",
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L124-L134"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "file-read-path-context/read-result-path-text"
+      ]
+    },
+    {
+      "familyId": "file-read-path-context",
+      "invariantId": "read-result-path-unchanged",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137",
+        "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L136-L140"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "file-read-path-context/read-result-path-unchanged"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-exact-fire-time",
+      "introducedVersion": "2.1.208",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/cronScheduler.ts#L253-L277"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-exact-fire-time"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-attachment-envelope",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L71-L82"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-fire-attachment-envelope"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-forward-attachments",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L84-L115"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-fire-forward-attachments"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-task-attachments",
+      "introducedVersion": "2.1.234",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/useScheduledTasks.ts#L90-L115"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-fire-task-attachments"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-scheduler-enable",
+      "introducedVersion": "2.1.246",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-import-scheduler-enable"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-session-scheduler",
+      "introducedVersion": "2.1.246",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-import-session-scheduler"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-team-context",
+      "introducedVersion": "2.1.246",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-import-team-context"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-submit-hook",
+      "introducedVersion": "2.1.172",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225",
+        "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L313-L350"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "later-command/later-command-submit-hook"
+      ]
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-suggestion-metadata",
+      "introducedVersion": "2.1.172",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "later-command/later-command-suggestion-metadata"
+      ]
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-array-text-full",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L113-L130"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "mcp-result-rendering/mcp-result-render-array-text-full"
+      ]
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-string-full",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L132-L140"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "mcp-result-rendering/mcp-result-render-string-full"
+      ]
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-text-block-full",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/MCPTool/UI.tsx#L123-L126"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "mcp-result-rendering/mcp-result-render-text-block-full"
+      ]
+    },
+    {
+      "familyId": "per-model-context-window",
+      "invariantId": "resolve-model-specific-context-window",
+      "introducedVersion": "2.1.238",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "per-model-context-window/resolve-model-specific-context-window"
+      ]
+    },
+    {
+      "familyId": "per-model-endpoint",
+      "invariantId": "disable-default-base-url-guard",
+      "introducedVersion": "2.1.168",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L1-L50"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "per-model-endpoint/disable-default-base-url-guard"
+      ]
+    },
+    {
+      "familyId": "per-model-endpoint",
+      "invariantId": "inject-per-model-into-beta-count-tokens",
+      "introducedVersion": "2.1.168",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200",
+        "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "per-model-endpoint/inject-per-model-into-beta-count-tokens"
+      ]
+    },
+    {
+      "familyId": "per-model-endpoint",
+      "invariantId": "inject-per-model-into-beta-create",
+      "introducedVersion": "2.1.168",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "per-model-endpoint/inject-per-model-into-beta-create"
+      ]
+    },
+    {
+      "familyId": "per-model-endpoint",
+      "invariantId": "inject-per-model-into-nonbeta-count-tokens",
+      "introducedVersion": "2.1.168",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300",
+        "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "per-model-endpoint/inject-per-model-into-nonbeta-count-tokens"
+      ]
+    },
+    {
+      "familyId": "per-model-endpoint",
+      "invariantId": "inject-per-model-into-nonbeta-create",
+      "introducedVersion": "2.1.168",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "per-model-endpoint/inject-per-model-into-nonbeta-create"
+      ]
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "dedupe-opus-alias-1m-suffix",
+      "introducedVersion": "2.1.170",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/model.ts#L440-L465"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "resume-1m-model-defaults/dedupe-opus-alias-1m-suffix"
+      ]
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-allows-same-family-anthropic-model-default",
+      "introducedVersion": "2.1.170",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "resume-1m-model-defaults/resume-allows-same-family-anthropic-model-default"
+      ]
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-detects-1m-after-alias-resolution",
+      "introducedVersion": "2.1.170",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "resume-1m-model-defaults/resume-detects-1m-after-alias-resolution"
+      ]
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-detects-default-1m-after-alias-resolution",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "resume-1m-model-defaults/resume-detects-default-1m-after-alias-resolution"
+      ]
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-imports-resolved-default-model",
+      "introducedVersion": "2.1.246",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "resume-1m-model-defaults/resume-imports-resolved-default-model"
+      ]
+    },
+    {
+      "familyId": "signature-block-custom-endpoint",
+      "invariantId": "strip-signatures-for-custom-base-url",
+      "introducedVersion": "2.1.150",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "signature-block-custom-endpoint/strip-signatures-for-custom-base-url"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-cli-global",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-cli-global"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-cli-option",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-cli-option"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-cli-settings",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/main.tsx#L2927-L2961"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-cli-settings"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-clipboard-image-hint",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-clipboard-image-hint"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-clipboard-image-hint-context",
+      "introducedVersion": "2.1.241",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-clipboard-image-hint-context"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-command-length-mount",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-command-length-mount"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-command-length-update",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/StatusLine.tsx#L185-L204"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-command-length-update"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-effort-level",
+      "introducedVersion": "2.1.210",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1982"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-effort-level"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-effort-notification",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-effort-notification"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-mode-hint",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-mode-hint"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-mode-hint-narrow",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-mode-hint-narrow"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-mode-hint-state",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-mode-hint-state"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-rate-limit-warning",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-rate-limit-warning"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-rate-limit-warning-deps",
+      "introducedVersion": "2.1.233",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-rate-limit-warning-deps"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-render",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143",
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-render"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-render-output",
+      "introducedVersion": "2.1.216",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-render-output"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-render-state",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L138-L143",
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-render-state"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-schema",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-schema"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-teammate-spinner-gap",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/Spinner.tsx#L226-L238"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-teammate-spinner-gap"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-terminal-columns",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/hooks.ts#L881-L885"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-footer-control-terminal-columns"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-json-clipboard-image-refresh"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh-effect",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/StatusLine.tsx#L209-L223"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-json-clipboard-image-refresh-effect"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh-selector",
+      "introducedVersion": "2.1.229",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/StatusLine.tsx#L170-L223"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-json-clipboard-image-refresh-selector"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-effort-level",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-json-effort-level"
+      ]
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-permission-mode",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "statusline-footer-control/statusline-json-permission-mode"
+      ]
+    },
+    {
+      "familyId": "subagent-preserve-tool-results",
+      "invariantId": "subagent-preserve-tool-results",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AgentTool/runAgent.ts#L716-L719"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "subagent-preserve-tool-results/subagent-preserve-tool-results"
+      ]
+    },
+    {
+      "familyId": "suppress-npm-native-installer-warning",
+      "invariantId": "suppress-npm-native-installer-warning-compute",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "suppress-npm-native-installer-warning/suppress-npm-native-installer-warning-compute"
+      ]
+    },
+    {
+      "familyId": "suppress-npm-native-installer-warning",
+      "invariantId": "suppress-npm-native-installer-warning-setup-card",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/hooks/notifs/useNpmDeprecationNotification.tsx#L9-L23"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "suppress-npm-native-installer-warning/suppress-npm-native-installer-warning-setup-card"
+      ]
+    },
+    {
+      "familyId": "system-prompt-section-overrides",
+      "invariantId": "system-prompt-section-override-bridge",
+      "introducedVersion": "2.1.217",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "system-prompt-section-overrides/system-prompt-section-override-bridge"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-clear-live-on-interrupt",
+      "introducedVersion": "2.1.233",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-clear-live-on-interrupt"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-clear-live-on-next-block",
+      "introducedVersion": "2.1.150",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L3031-L3068"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-clear-live-on-next-block"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-blocks",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/Message.tsx#L524-L548"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-blocks"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-expanded",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L36-L45"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-expanded"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-brief",
+      "introducedVersion": "2.1.150",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-brief"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-complete",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L2963-L2974"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-complete"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-delta",
+      "introducedVersion": "2.1.250",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-delta"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-main",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402",
+        "reference/v2.1.88/sources/src/screens/REPL.tsx#L4570-L4570"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-main"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-output",
+      "introducedVersion": "2.1.250",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-output"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-row",
+      "introducedVersion": "2.1.168",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-row"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-row-input",
+      "introducedVersion": "2.1.233",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/Messages.tsx#L359-L359"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-row-input"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-row-output",
+      "introducedVersion": "2.1.168",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-row-output"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-state",
+      "introducedVersion": "2.1.238",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/screens/REPL.tsx#L4402-L4402"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-state"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-stream",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "thinking-display/thinking-render-live-stream"
+      ]
+    },
+    {
+      "familyId": "transcript-preserve-repl-history",
+      "invariantId": "transcript-preserve-repl-history",
+      "introducedVersion": "2.1.133",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/sessionStorage.ts#L4369-L4460"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "transcript-preserve-repl-history/transcript-preserve-repl-history"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-capability-max-fallback",
+      "introducedVersion": "2.1.238",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-capability-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-effort-command-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L51-L65"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-effort-command-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-effort-notification-max-fallback",
+      "introducedVersion": "2.1.201",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1977"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-effort-notification-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-flag-settings-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-flag-settings-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-label-max-fallback",
+      "introducedVersion": "2.1.233",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-help-label-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-menu-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-help-menu-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-text-max-fallback",
+      "introducedVersion": "2.1.238",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-help-text-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-model-picker-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-model-picker-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-model-picker-persist-max-fallback",
+      "introducedVersion": "2.1.238",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-model-picker-persist-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-settings-report-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-settings-report-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-confirm-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-slider-confirm-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-slider-dialog-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-secondary-max-fallback",
+      "introducedVersion": "2.1.233",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169",
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-slider-dialog-secondary-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-tertiary-max-fallback",
+      "introducedVersion": "2.1.233",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169",
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L147-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-slider-dialog-tertiary-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-menu-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-slider-menu-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-startup-settings-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-startup-settings-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-thin-client-usage-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-thin-client-usage-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-typed-arg-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-typed-arg-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-usage-hint-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-usage-hint-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-valid-options-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/ultracode-valid-options-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "xhigh-applied-effort-max-fallback",
+      "introducedVersion": "2.1.238",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/xhigh-applied-effort-max-fallback"
+      ]
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "xhigh-settings-opus-max-fallback",
+      "introducedVersion": "2.1.197",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ultracode-opus46-max/xhigh-settings-opus-max-fallback"
+      ]
+    }
+  ]
+}

@@ -4,7 +4,9 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
-import { releaseTag, writeReleasePayload } from "../lib/release-payload"
+import { requirePatchObligationAdmission } from "../lib/patch-obligations"
+import { captureChecked } from "../lib/process"
+import { attachPatchObligationPayload, releaseTag, writeReleasePayload } from "../lib/release-payload"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -34,6 +36,8 @@ function main(): number {
   const releaseId = args.releaseId ?? "patch.local"
   const input = args.input ?? join(ROOT, "staging", version, "cli.patched.js")
   if (!existsSync(input)) throw new Error(`patched bundle missing: ${input}`)
+  const sourceCommit = process.env.GITHUB_SHA ?? captureChecked(["git", "rev-parse", "HEAD"], { cwd: ROOT })
+  requirePatchObligationAdmission(ROOT, version, sourceCommit)
 
   const payload = writeReleasePayload({
     root: ROOT,
@@ -45,6 +49,7 @@ function main(): number {
     gitCommit: null,
     builtAt: null,
   })
+  payload.manifest = attachPatchObligationPayload(ROOT, version, args.outDir, payload.manifest)
 
   console.error(`wrote ${join(args.outDir, "cli.js")} (${payload.cliBytes.byteLength} bytes)`)
   console.error(`wrote ${join(args.outDir, "manifest.json")} (${payload.cliHash.sri})`)

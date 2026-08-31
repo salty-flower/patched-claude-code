@@ -66,6 +66,16 @@ test("target bumps expose one automated preparation entrypoint", () => {
   expect(recipe).toContain('--source "{{source}}"')
 })
 
+test("release packaging requires bundle-bound obligation admission", () => {
+  const packageRecipe = recipeBlock("_package-rendered")
+  const admissionRecipe = recipeBlock("obligation-admission")
+
+  expect(packageRecipe).toContain("(obligation-admission version)")
+  expect(admissionRecipe).toContain("verify-patch-obligations.ts")
+  expect(admissionRecipe).toContain("--mode admission")
+  expect(admissionRecipe).toContain("dist/patch-obligation-evidence/{{version}}")
+})
+
 test("api stub smoke renders once and runs the complete local PTY matrix", () => {
   const recipe = recipeBlock("api-stub-smoke")
   const renderedRecipe = recipeBlock("_api-stub-smoke-rendered")

@@ -71,6 +71,17 @@ export type ReleaseManifest = {
     opaqueGaps: number
     sha256: string
   }
+  patchObligations?: {
+    path: "patch-obligations"
+    schema: 1
+    status: "passed"
+    obligations: number
+    decisions: number
+    receipts: number
+    registrySha256: string
+    ledgerSha256: string
+    admissionSha256: string
+  }
 }
 
 export type ReleasePayload = {
@@ -219,6 +230,69 @@ exec bun --preload "$dir/runtime/system-prompt-overrides.ts" "$dir/cli.js" "$@"
   )
 
   return { manifest, cliBytes, cliHash }
+}
+
+export function attachPatchObligationPayload(
+  root: string,
+  version: string,
+  outDir: string,
+  manifest: ReleaseManifest,
+): ReleaseManifest {
+  const registry = join(root, "patch-obligations", "registry.json")
+  const ledger = join(root, "patch-obligations", "versions", `${version}.json`)
+  const evidence = join(root, "dist", "patch-obligation-evidence", version)
+  const admission = join(root, "dist", `patch-obligation-admission-${version}.json`)
+  for (const path of [registry, ledger, evidence, admission]) {
+    if (!existsSync(path)) throw new Error(`patch obligation release evidence missing: ${path}`)
+  }
+  const report = JSON.parse(readFileSync(admission, "utf8")) as {
+    schema?: unknown
+    status?: unknown
+    registryObligations?: unknown
+    decisions?: unknown
+    receipts?: unknown
+  }
+  if (report.schema !== 1 || report.status !== "passed") {
+    throw new Error(`patch obligation admission report is not passed: ${admission}`)
+  }
+  if (
+    typeof report.registryObligations !== "number" ||
+    typeof report.decisions !== "number" ||
+    typeof report.receipts !== "number"
+  ) {
+    throw new Error(`patch obligation admission report summary is invalid: ${admission}`)
+  }
+
+  const destination = join(outDir, "patch-obligations")
+  mkdirSync(join(destination, "versions"), { recursive: true })
+  mkdirSync(join(destination, "evidence"), { recursive: true })
+  copyUnlessSame(registry, join(destination, "registry.json"))
+  copyUnlessSame(ledger, join(destination, "versions", `${version}.json`))
+  if (resolve(evidence) !== resolve(join(destination, "evidence", version))) {
+    cpSync(evidence, join(destination, "evidence", version), { recursive: true, force: true })
+  }
+  copyUnlessSame(admission, join(destination, "admission.json"))
+
+  const updated: ReleaseManifest = {
+    ...manifest,
+    patchObligations: {
+      path: "patch-obligations",
+      schema: 1,
+      status: "passed",
+      obligations: report.registryObligations,
+      decisions: report.decisions,
+      receipts: report.receipts,
+      registrySha256: sha256(readFileSync(registry)).sri,
+      ledgerSha256: sha256(readFileSync(ledger)).sri,
+      admissionSha256: sha256(readFileSync(admission)).sri,
+    },
+  }
+  writeFileSync(join(outDir, "manifest.json"), `${JSON.stringify(updated, null, 2)}\n`)
+  return updated
+}
+
+function copyUnlessSame(source: string, destination: string): void {
+  if (resolve(source) !== resolve(destination)) copyFileSync(source, destination)
 }
 
 function buildReleaseManifest(

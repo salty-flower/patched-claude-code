@@ -69,8 +69,8 @@ test("ci reuses the canonical stage in the release audit", () => {
   expect(checkStep).toContain(".dualGraph != null")
   expect(checkStep).toContain('mergePolicy == "canonical-dual-graph-v1"')
   expect(checkStep).toContain('textAssetMaterialization == "zstd-decompress-v1"')
-  expect(checkStep).toContain('.upstream.sha256')
-  expect(checkStep).toContain('.materialized.sha256')
+  expect(checkStep).toContain(".upstream.sha256")
+  expect(checkStep).toContain(".materialized.sha256")
   expect(checkStep).toContain("$stage/graph-manifest.json")
   expect(checkStep).toContain("$stage/canonical/platform-merge-report.json")
   expect(reuseStep).toContain("actions/download-artifact@v6")
@@ -91,6 +91,20 @@ test("ci runs tool tests on macOS using the canonical stage", () => {
   expect(job).toContain("runs-on: macos-15")
   expect(job).toContain("canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}")
   expect(job).toContain("run: bun run --cwd tools test")
+  expect(job).toContain('just obligation-evidence "$TARGET_VERSION" darwin-arm64')
+  expect(job).toContain("patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}")
+})
+
+test("ci joins real-OS receipts before release admission", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
+  const linuxEvidence = workflowStep("Record Linux patch-obligation evidence")
+  const admission = workflowStep("Admit patch obligations")
+
+  expect(workflow).toContain("needs: [changes, canonical-platform-merge, darwin-tool-test]")
+  expect(workflow).toContain("Reuse Darwin patch-obligation evidence")
+  expect(linuxEvidence).toContain('just obligation-evidence "$TARGET_VERSION" linux-x64')
+  expect(admission).toContain('just obligation-admission "$TARGET_VERSION"')
+  expect(workflow).toContain("dist/patch-obligation-evidence/")
 })
 
 test("ci handles workflow dispatch and rewritten push bases", () => {

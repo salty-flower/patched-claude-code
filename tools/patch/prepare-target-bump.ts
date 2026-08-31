@@ -84,6 +84,7 @@ export function buildTargetBumpSteps(root: string, version: string, source: Targ
   const identityDraft = join("dist", `prompt-identities-${version}.draft.json`)
   const identityResult = join("dist", `prompt-identity-bump-${version}.json`)
   const carryoverResult = join("dist", `patch-carryover-${version}.json`)
+  const obligationResult = join("dist", `patch-obligation-coverage-${version}.json`)
   const logsRoot = join(root, "dist", `target-bump-${version}.logs`)
   return [
     {
@@ -104,6 +105,21 @@ export function buildTargetBumpSteps(root: string, version: string, source: Targ
         version,
         "--result-file",
         carryoverResult,
+      ],
+    },
+    {
+      id: "patch-obligations",
+      label: "require dispositions for every historical patch obligation",
+      command: [
+        "bun",
+        "run",
+        "tools/patch/verify-patch-obligations.ts",
+        "--version",
+        version,
+        "--mode",
+        "coverage",
+        "--result-file",
+        obligationResult,
       ],
     },
     {

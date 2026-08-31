@@ -56,6 +56,7 @@ export function sourceTagFiles(root: string = ROOT): TagFile[] {
     { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
     { path: "flake.nix", mode: "100644", required: true },
     { path: "flake.lock", mode: "100644", required: false },
+    ...payloadFiles(root, "patch-obligations"),
     ...payloadFiles(root, "prompts/catalog"),
     ...(graphDirectoryName === null ? [] : payloadFiles(root, graphDirectoryName)),
   ]

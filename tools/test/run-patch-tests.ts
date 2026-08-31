@@ -5,8 +5,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
 import { createCommand, runCli } from "../lib/cli"
-import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadGraphBundle } from "../lib/graph-bundle"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromToml } from "../lib/patch-files"
 import {
   type CliPatchTest,
@@ -21,6 +21,7 @@ const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 type Args = {
   bundle?: string
   version?: string
+  platform?: string
   patches: string[]
 }
 
@@ -29,13 +30,15 @@ export function parseArgs(argv: string[]): Args {
     .argument("[patches...]", "patch TOML files")
     .option("--bundle <cli.patched.js>")
     .option("--version <ver>", "target version for applies_to-filtered patch tests")
+    .option("--platform <platform>", "select one rendered platform graph")
     .parse(argv, { from: "user" })
-  const options = program.opts<{ bundle?: string; version?: string }>()
+  const options = program.opts<{ bundle?: string; version?: string; platform?: string }>()
 
   return {
     patches: program.args,
     ...(options.bundle ? { bundle: options.bundle } : {}),
     ...(options.version ? { version: options.version } : {}),
+    ...(options.platform ? { platform: options.platform } : {}),
   }
 }
 
@@ -102,26 +105,37 @@ function inferVersionFromBundle(bundle: string): string | undefined {
   return bundle.match(/(?:^|\/)staging\/([^/]+)\/cli\.patched\.js$/)?.[1]
 }
 
-function renderedBundleText(bundle: string): string {
+function renderedBundleText(bundle: string, platform?: string): string {
   const entrypoint = readFileSync(bundle, "utf8")
   const graphRoot = join(dirname(bundle), "graph.patched")
   if (!existsSync(join(graphRoot, "darwin-arm64", "cli.js"))) return entrypoint
-  const graphTexts = ["darwin-arm64", "linux-x64"].flatMap((platform) =>
-    loadGraphBundle(join(graphRoot, platform), platform).files.map((file) => file.text),
+  const platforms = platform ? [platform] : ["darwin-arm64", "linux-x64"]
+  const graphTexts = platforms.flatMap((graphPlatform) =>
+    loadGraphBundle(join(graphRoot, graphPlatform), graphPlatform).files.map((file) => file.text),
   )
   return [entrypoint, ...graphTexts].join("\n")
 }
 
-function patchTestsForTarget(rawToml: string, version?: string): PatchTest[] {
+function patchTestsForTarget(rawToml: string, version?: string, platform?: string): PatchTest[] {
   if (!version) return loadPatchTestsFromToml(rawToml)
   const entries = loadPatchEntriesFromToml(rawToml, "<inline>")
-  return entries.filter((entry) => patchApplies(entry, version)).flatMap((entry) => entry.tests ?? [])
+  return entries
+    .filter(
+      (entry) => patchApplies(entry, version) && (!platform || !entry.platforms || entry.platforms.includes(platform)),
+    )
+    .flatMap((entry) => entry.tests ?? [])
 }
 
-export function selectPatchTestsForTarget(rawToml: string, version?: string): { tests: PatchTest[]; skipped: boolean } {
-  if (!version) return { tests: patchTestsForTarget(rawToml), skipped: false }
+export function selectPatchTestsForTarget(
+  rawToml: string,
+  version?: string,
+  platform?: string,
+): { tests: PatchTest[]; skipped: boolean } {
+  if (!version) return { tests: patchTestsForTarget(rawToml, version, platform), skipped: false }
   const entries = loadPatchEntriesFromToml(rawToml, "<inline>")
-  const applicableEntries = entries.filter((entry) => patchApplies(entry, version))
+  const applicableEntries = entries.filter(
+    (entry) => patchApplies(entry, version) && (!platform || !entry.platforms || entry.platforms.includes(platform)),
+  )
   if (applicableEntries.length === 0) return { tests: [], skipped: true }
   return { tests: applicableEntries.flatMap((entry) => entry.tests ?? []), skipped: false }
 }
@@ -137,13 +151,13 @@ function main(): number {
     return 2
   }
 
-  const bundleText = renderedBundleText(args.bundle)
+  const bundleText = renderedBundleText(args.bundle, args.platform)
   const targetVersion = args.version ?? inferVersionFromBundle(args.bundle)
   const patchFiles = args.patches.length > 0 ? args.patches : defaultPatchFiles()
   let allOk = true
 
   for (const patchFile of patchFiles) {
-    const selection = selectPatchTestsForTarget(readFileSync(patchFile, "utf8"), targetVersion)
+    const selection = selectPatchTestsForTarget(readFileSync(patchFile, "utf8"), targetVersion, args.platform)
     const tests = selection.tests
     if (selection.skipped) {
       console.log(`[skip] ${patchFile}: no patch entries apply to ${targetVersion}`)

@@ -153,7 +153,7 @@ jobs:
           cp ci-artifact/cli.js cli.js
           cp ci-artifact/manifest.json manifest.json
           cp ci-artifact/package.json package.json
-          mkdir -p bin runtime "staging/$version"
+          mkdir -p bin runtime dist "staging/$version"
           mkdir -p prompts
           cp ci-artifact/cli.js "staging/$version/cli.patched.js"
           cp -R ci-artifact/staging/"$version"/graph.patched "staging/$version/graph.patched"
@@ -162,6 +162,8 @@ jobs:
           cp ci-artifact/runtime/release-integrity.ts runtime/release-integrity.ts
           cp ci-artifact/runtime/system-prompt-overrides.ts runtime/system-prompt-overrides.ts
           cp -R ci-artifact/prompts/catalog prompts/catalog
+          cp -R ci-artifact/dist/patch-obligation-evidence dist/patch-obligation-evidence
+          cp ci-artifact/dist/patch-obligation-admission-*.json dist/
           echo "reused=true" >> "$GITHUB_OUTPUT"
 
       - name: Verify and render patched bundle

@@ -4,9 +4,16 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { basename, join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
+import { requirePatchObligationAdmission } from "../lib/patch-obligations"
 import { captureChecked, runChecked } from "../lib/process"
 import { materializePreviousPromptCatalog, renderPromptReviewMarkdown } from "../lib/prompt-review"
-import { artifactBase, sha256, UPSTREAM_PACKAGE, writeReleasePayload } from "../lib/release-payload"
+import {
+  artifactBase,
+  attachPatchObligationPayload,
+  sha256,
+  UPSTREAM_PACKAGE,
+  writeReleasePayload,
+} from "../lib/release-payload"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const DEFAULT_TAG_PATTERN = /^claude-code-(\d+\.\d+\.\d+)-(.+)$/
@@ -59,6 +66,7 @@ function main(): number {
   mkdirSync(args.outDir, { recursive: true })
 
   const gitCommit = process.env.GITHUB_SHA || captureChecked(["git", "rev-parse", "HEAD"], { cwd: ROOT })
+  requirePatchObligationAdmission(ROOT, version, gitCommit)
   const remoteUrl = captureChecked(["git", "remote", "get-url", "origin"], { cwd: ROOT })
   const remoteMatch = remoteUrl.match(/[:/]([^/]+\/[^/]+?)(?:\.git)?$/)
   const githubSlug = process.env.GITHUB_REPOSITORY || remoteMatch?.[1] || "<owner>/patched-claude-code"
@@ -73,6 +81,7 @@ function main(): number {
     gitCommit,
     builtAt: new Date().toISOString(),
   })
+  payload.manifest = attachPatchObligationPayload(ROOT, version, workDir, payload.manifest)
 
   const configuredPreviousCatalog = args.previousCatalog ?? process.env.PATCHED_CC_PREVIOUS_PROMPT_CATALOG
   const materializedPreviousCatalog = configuredPreviousCatalog
@@ -133,6 +142,7 @@ Artifact:
 - \`${basename(tarball)}\`
 - raw tarball hash: \`${tarHash.sri}\`
 - static prompt catalog: \`prompts/catalog/\` (${payload.manifest.promptCatalog.entries} recovered entries, ${payload.manifest.promptCatalog.contextualGaps + payload.manifest.promptCatalog.opaqueGaps} explicit gaps)
+- patch obligations: ${payload.manifest.patchObligations?.obligations ?? 0} admitted obligations, ${payload.manifest.patchObligations?.receipts ?? 0} bundle-bound platform receipts
 
 Nix/Home Manager should use the source tag \`github:${githubSlug}/claude-code-${version}-${releaseId}\` for exact pinning, or \`github:${githubSlug}/claude-code-latest\` when \`nix flake update\` should follow the latest patched source.
 The tarball remains available for non-flake/manual installs.

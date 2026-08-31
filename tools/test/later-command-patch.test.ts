@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { gte, lt } from "semver"
 import { patchApplies } from "../lib/apply-patches"
-import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
@@ -85,8 +85,13 @@ function activeSubmitHook(platform: SubmitHookPlatform) {
 
 const activeSubmitHooks = Object.fromEntries(submitHookPlatforms.map((platform) => [platform, activeSubmitHook(platform)])) as Record<
   SubmitHookPlatform,
-  (typeof laterPatches)[number]
+  PatchEntry
 >
+
+function submitHookCode(entry: PatchEntry): string {
+  if (entry.transform && "code" in entry.transform) return entry.transform.code
+  throw new Error(`${entry.name} does not contain a code transform`)
+}
 
 type LaterTask = {
   agentId?: string
@@ -157,7 +162,7 @@ function expectContainsOneOf(body: string, snippets: string[]): void {
 }
 
 function getAbsoluteSubmitCode(platform?: SubmitHookPlatform): string {
-  if (targetUses251LaterSymbols && platform) return activeSubmitHooks[platform].transform!.code
+  if (targetUses251LaterSymbols && platform) return submitHookCode(activeSubmitHooks[platform])
   const suffix = targetUses246LaterSymbols
     ? "2-1-246"
     : targetUses241SubmitSymbols
@@ -602,7 +607,7 @@ async function run251LaterHook(
   normalizedUuid: string | undefined = uuid,
   sharedJobs?: Map<string, { prompt: string; at: number }>,
 ): Promise<Later251Run> {
-  const code = activeSubmitHooks[platform].transform!.code
+  const code = submitHookCode(activeSubmitHooks[platform])
   const jobs = sharedJobs ?? new Map<string, { prompt: string; at: number }>()
   const timers: (() => void)[] = []
   const enqueued: Record<string, unknown>[] = []

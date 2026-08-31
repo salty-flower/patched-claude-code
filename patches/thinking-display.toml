@@ -4422,7 +4422,7 @@ assert_contains = '''onStreamingText:T,onStreamingThinking:S,onCompactEvent:E'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 rationale = "This is the 2.1.251 Darwin stream-handler variant; the anchor remains the authoringProgressSurface/thinking_delta handler, which is now Kve, and its local callback symbols are onStreamingText:C and onStreamingThinking:S."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -4465,7 +4465,7 @@ assert_contains = '''S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))''
 [[patches]]
 name = "thinking-render-live-delta-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 rationale = "This is the 2.1.251 Darwin thinking_delta variant in handler Kve; the stable event anchor is thinking_delta plus estimated_tokens, while the verified local live-state callback is S."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -4508,7 +4508,7 @@ assert_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThink
 [[patches]]
 name = "thinking-render-live-output-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 rationale = "This is the 2.1.251 Darwin output subscription variant in component Y8; the verified selector is Xe and the stream state is S."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -4551,7 +4551,7 @@ assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,childre
 [[patches]]
 name = "thinking-render-live-row-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 rationale = "This is the 2.1.251 Darwin row variant in component Y8; the stable anchor is the main-only placeholder row and the verified JSX factory is e with stream state S."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -4594,7 +4594,7 @@ assert_contains = '''onStreamingText:E,onStreamingThinking:S,onCompactEvent:C'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 rationale = "This is the 2.1.251 Linux stream-handler variant; the anchor remains the authoringProgressSurface/thinking_delta handler, now Uve, with local callback symbols onStreamingText:v and onStreamingThinking:S."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -4637,7 +4637,7 @@ assert_contains = '''S?.((U)=>({thinking:(U?.thinking??"")+w,isStreaming:!0}))''
 [[patches]]
 name = "thinking-render-live-delta-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 rationale = "This is the 2.1.251 Linux thinking_delta variant in handler Uve; the stable event anchor is thinking_delta plus estimated_tokens, while the verified local live-state callback is S."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -4680,7 +4680,7 @@ assert_contains = '''__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThink
 [[patches]]
 name = "thinking-render-live-output-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 rationale = "This is the 2.1.251 Linux output subscription variant in component C9; the verified selector is Ye and the stream state is b."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -4723,7 +4723,7 @@ assert_contains = '''__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,childre
 [[patches]]
 name = "thinking-render-live-row-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 rationale = "This is the 2.1.251 Linux row variant in component C9; the stable anchor is the main-only placeholder row and the verified JSX factory is e with stream state b."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"

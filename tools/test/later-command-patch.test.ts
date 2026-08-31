@@ -12,7 +12,7 @@ const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
-const targetUses238LaterSymbols = gte(TARGET_VERSION, "2.1.238") && lt(TARGET_VERSION, "2.2.0")
+const targetUses238LaterSymbols = gte(TARGET_VERSION, "2.1.238") && lt(TARGET_VERSION, "2.1.241")
 const targetUses234LaterSymbols = gte(TARGET_VERSION, "2.1.234") && lt(TARGET_VERSION, "2.1.238")
 const targetUses233LaterSymbols = gte(TARGET_VERSION, "2.1.233") && lt(TARGET_VERSION, "2.1.234")
 const targetUses229LaterSymbols = gte(TARGET_VERSION, "2.1.229") && lt(TARGET_VERSION, "2.1.233")
@@ -38,6 +38,8 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses251LaterSymbols ||
+  targetUses250LaterSymbols ||
   targetUses238LaterSymbols ||
   targetUses234LaterSymbols ||
   targetUses233LaterSymbols ||
@@ -59,6 +61,32 @@ const targetUses206LaterSymbols = gte(TARGET_VERSION, "2.1.206") && lt(TARGET_VE
 const targetUses205LaterSymbols = gte(TARGET_VERSION, "2.1.205") && lt(TARGET_VERSION, "2.1.206")
 const targetUses201LaterSymbols = gte(TARGET_VERSION, "2.1.201") && lt(TARGET_VERSION, "2.1.205")
 const targetIs201 = TARGET_VERSION === "2.1.201"
+
+const submitHookPrefix = "later-command-submit-hook-"
+const submitHookPlatforms = ["linux-x64", "darwin-arm64"] as const
+type SubmitHookPlatform = (typeof submitHookPlatforms)[number]
+
+function activeSubmitHook(platform: SubmitHookPlatform) {
+  const entries = laterPatches.filter(
+    (patch) =>
+      patch.name.startsWith(submitHookPrefix) &&
+      patchApplies(patch, TARGET_VERSION) &&
+      (patch.platforms === undefined || patch.platforms.includes(platform)),
+  )
+  if (entries.length !== 1) {
+    throw new Error(
+      `Expected exactly one active ${platform} /later submit hook for ${TARGET_VERSION}; found ${entries.length}: ${
+        entries.map((entry) => entry.name).join(", ") || "none"
+      }`,
+    )
+  }
+  return entries[0]!
+}
+
+const activeSubmitHooks = Object.fromEntries(submitHookPlatforms.map((platform) => [platform, activeSubmitHook(platform)])) as Record<
+  SubmitHookPlatform,
+  (typeof laterPatches)[number]
+>
 
 type LaterTask = {
   agentId?: string
@@ -92,15 +120,31 @@ type LaterHookResult = {
   tasks: LaterTask[]
 }
 
+type Later251Run = {
+  jobs: Map<string, { prompt: string; at: number }>
+  timers: (() => void)[]
+  enqueued: Record<string, unknown>[]
+  notifications: string[]
+  inputValue: string | null
+  cursorOffset: number | null
+  pastedContents: Record<number, LaterPastedContent> | undefined
+}
+
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-later-command-"))
 let applied = 0
 let patched = ""
+let patchedLinux = ""
 
 beforeAll(async () => {
   if (!testLaterCommand) return
   const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["later-command.toml"] })
   const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
   patched = readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
+  const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+  patchedLinux = readdirSync(linuxGraphDir)
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+    .join("\n")
   applied = laterPatches.filter((patch) => patchApplies(patch, TARGET_VERSION)).length
 }, 240000)
 
@@ -112,7 +156,8 @@ function expectContainsOneOf(body: string, snippets: string[]): void {
   expect(snippets.some((snippet) => body.includes(snippet))).toBe(true)
 }
 
-function getAbsoluteSubmitCode(): string {
+function getAbsoluteSubmitCode(platform?: SubmitHookPlatform): string {
+  if (targetUses251LaterSymbols && platform) return activeSubmitHooks[platform].transform!.code
   const suffix = targetUses246LaterSymbols
     ? "2-1-246"
     : targetUses241SubmitSymbols
@@ -549,6 +594,91 @@ async function run208LaterHook(
   return result
 }
 
+async function run251LaterHook(
+  platform: SubmitHookPlatform,
+  input: string,
+  uuid: string | undefined,
+  pastedContents: Record<number, LaterPastedContent> = {},
+  normalizedUuid: string | undefined = uuid,
+  sharedJobs?: Map<string, { prompt: string; at: number }>,
+): Promise<Later251Run> {
+  const code = activeSubmitHooks[platform].transform!.code
+  const jobs = sharedJobs ?? new Map<string, { prompt: string; at: number }>()
+  const timers: (() => void)[] = []
+  const enqueued: Record<string, unknown>[] = []
+  const notifications: string[] = []
+  const result: Later251Run = { jobs, timers, enqueued, notifications, inputValue: null, cursorOffset: null, pastedContents: undefined }
+  const expand = (value: string, contents: Record<number, LaterPastedContent>) => ({
+    expanded: expandPastedTextRefs(value, contents),
+  })
+  const factoryArgs =
+    platform === "linux-x64"
+      ? [
+          input,
+          pastedContents,
+          expand,
+          "prompt",
+          { addNotification: ({ text }: { text: string }) => notifications.push(text) },
+          (value: string) => {
+            result.inputValue = value
+          },
+          (offset: number) => {
+            result.cursorOffset = offset
+          },
+          (contents: Record<number, LaterPastedContent>) => {
+            result.pastedContents = Object.keys(contents).length ? contents : undefined
+          },
+          { enqueue: (value: Record<string, unknown>) => enqueued.push(value) },
+          () => "agent-linux",
+          normalizedUuid,
+          undefined,
+        ]
+      : [
+          input,
+          pastedContents,
+          expand,
+          "prompt",
+          { addNotification: ({ text }: { text: string }) => notifications.push(text) },
+          (value: string) => {
+            result.inputValue = value
+          },
+          (offset: number) => {
+            result.cursorOffset = offset
+          },
+          (contents: Record<number, LaterPastedContent>) => {
+            result.pastedContents = Object.keys(contents).length ? contents : undefined
+          },
+          { enqueue: (value: Record<string, unknown>) => enqueued.push(value) },
+          () => "agent-darwin",
+          normalizedUuid,
+          undefined,
+        ]
+  const parameterNames =
+    platform === "linux-x64"
+      ? ["It", "_t", "y3n", "Tt", "b", "j", "qe", "Z", "Le", "et", "Ct", "De"]
+      : ["Pt", "Rt", "TKn", "kt", "S", "H", "Ve", "Z", "Fe", "et", "yt", "Ie"]
+  const submit = new Function(
+    ...parameterNames,
+    `"use strict";return async()=>{${code}}`,
+  )(...factoryArgs) as () => Promise<void>
+  const originalNow = Date.now
+  const originalSetTimeout = globalThis.setTimeout
+  const runtime = globalThis as typeof globalThis & { __acc_later_jobs?: unknown }
+  runtime.__acc_later_jobs = jobs
+  Date.now = () => 1_700_000_000_000
+  globalThis.setTimeout = ((callback: () => void) => {
+    timers.push(callback)
+    return timers.length as unknown as ReturnType<typeof setTimeout>
+  }) as typeof setTimeout
+  try {
+    await submit()
+  } finally {
+    Date.now = originalNow
+    globalThis.setTimeout = originalSetTimeout
+  }
+  return result
+}
+
 async function run201LaterHook(patched: string, input: string, seedTasks: LaterTask[] = []): Promise<LaterHookResult> {
   const start = patched.indexOf("async function pSr(e){")
   const end = patched.indexOf("async function PNc(e){", start)
@@ -606,6 +736,58 @@ async function run201LaterHook(patched: string, input: string, seedTasks: LaterT
     },
   })
   return result
+}
+
+for (const platform of submitHookPlatforms) {
+  test.skipIf(!targetUses251LaterSymbols)(
+    `2.1.251 ${platform} /later schedules a prompt and forwards pasted contents`,
+    async () => {
+      const pasted = { 1: { id: 1, type: "text" as const, content: "pasted" } }
+      const run = await run251LaterHook(platform, "/later 10m hello", "u-1", pasted)
+      expect([...run.jobs.keys()]).toEqual(["later-u-1"])
+      expect(run.timers).toHaveLength(1)
+      run.timers[0]!()
+      expect(run.enqueued).toEqual([
+        {
+          agentId: `agent-${platform === "linux-x64" ? "linux" : "darwin"}`,
+          value: "hello",
+          mode: "prompt",
+          pastedContents: pasted,
+          origin: { kind: "auto-continuation" },
+        },
+      ])
+      expect(run.jobs.size).toBe(0)
+    },
+  )
+
+  test.skipIf(!targetUses251LaterSymbols)(
+    `2.1.251 ${platform} /later normalized UUIDs keep concurrent timers distinct`,
+    async () => {
+      const generated = ["gen-a", "gen-b"]
+      let index = 0
+      const sharedJobs = new Map<string, { prompt: string; at: number }>()
+      const first = await run251LaterHook(platform, "/later 10m first", undefined, {}, generated[index++]!, sharedJobs)
+      const second = await run251LaterHook(platform, "/later 10m second", undefined, {}, generated[index++]!, sharedJobs)
+      expect([...sharedJobs.keys()]).toEqual(["later-gen-a", "later-gen-b"])
+      expect(first.jobs.has("later-undefined")).toBe(false)
+      expect(second.jobs.has("later-undefined")).toBe(false)
+      first.timers[0]!()
+      second.timers[0]!()
+      expect(first.enqueued[0]).toMatchObject({ value: "first", mode: "prompt" })
+      expect(second.enqueued[0]).toMatchObject({ value: "second", mode: "prompt" })
+    },
+  )
+
+  test.skipIf(!targetUses251LaterSymbols)(
+    `2.1.251 ${platform} /later list and usage errors use the active submit hook`,
+    async () => {
+      const listed = await run251LaterHook(platform, "/later list", "list-id")
+      expect(listed.notifications[0]).toContain("No pending /later prompts")
+      const invalid = await run251LaterHook(platform, "/later nope", "invalid-id")
+      expect(invalid.notifications[0]).toContain("Usage: /later")
+      expect(invalid.jobs.size).toBe(0)
+    },
+  )
 }
 
 test.skipIf(!testLaterCommand)(
@@ -726,6 +908,12 @@ test.skipIf(!testLaterCommand)(
       expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;Fe.enqueue")
       expect(patched).toContain("TKn(Pt,Rt).expanded.trim()")
       expect(patched).toContain("pastedContents:Object.keys(Rt).length?Rt:void 0")
+      expect(patched).toContain('let __id="later-"+yt')
+      expect(patched).not.toContain('let __id="later-"+Ie')
+      expect(patchedLinux).toContain("y3n(It,_t).expanded.trim()")
+      expect(patchedLinux).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;Le.enqueue")
+      expect(patchedLinux).toContain('let __id="later-"+Ct')
+      expect(patchedLinux).not.toContain('let __id="later-"+De')
       expect(patched).not.toContain("O5n(Yt,Et).expanded.trim()")
       expect(patched).not.toContain("__acc_schedule_later")
     } else if (targetUses250LaterSymbols) {

@@ -13180,7 +13180,7 @@ assert_contains = '''hideBuiltinFooter:G().optional().describe("Compatibility al
 [[patches]]
 name = "statusline-footer-control-schema-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 rationale = "Use the 2.1.251 Darwin settings-schema helpers: `q()` is the local boolean factory, `H(...)` is the local array factory, and `ie([...])` is the local enum factory. The 2.1.250 `z()`/`k(...)`/`le([...])` symbols are not bound in this module."
 rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
@@ -13203,7 +13203,7 @@ assert_not_contains = '''hideBuiltinFooter:z().optional().describe("Compatibilit
 [[patches]]
 name = "statusline-footer-control-schema-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 rationale = "Use the 2.1.251 Linux settings-schema helpers: `G()` is the local boolean factory, `I(...)` is the local array factory, and `ie([...])` is the local enum factory. The 2.1.250 `H(...)`/`le([...])` symbols are not bound in this module."
 rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
@@ -13677,7 +13677,7 @@ assert_contains = '''effort_level:xm(tt)?fv(tt,Le):null'''
 [[patches]]
 name = "statusline-json-permission-mode-2-1-251"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 rationale = "2.1.251 Darwin re-anchoring: builder `$ze` became `Z1e`, and permissionMode `k` became `x`; restore the compatibility field. Cleanup condition: upstream emits an equivalent field."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
@@ -13701,7 +13701,7 @@ assert_not_contains = '''return{...Ca(d,Ne),...Yt&&{session_name:Yt},permission_
 [[patches]]
 name = "statusline-json-permission-mode-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 rationale = "2.1.251 Linux re-anchoring: builder `qze` became `T1e`, and permissionMode `C` became `R`; restore the compatibility field. Cleanup condition: upstream emits an equivalent field."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
@@ -13725,7 +13725,7 @@ assert_not_contains = '''return{...ka(d,He),...Yt&&{session_name:Yt},permission_
 [[patches]]
 name = "statusline-json-effort-level-2-1-251"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 rationale = "2.1.251 Darwin re-anchoring: builder `$ze` became `Z1e`, effort gate/resolver `Rm`/`mS` became `lg`/`tw`; restore the scalar compatibility field. Cleanup condition: consumers migrate to the nested field."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
@@ -13749,7 +13749,7 @@ assert_not_contains = '''effort_level:Rm(tt)?mS(tt,Ie):null'''
 [[patches]]
 name = "statusline-json-effort-level-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 rationale = "2.1.251 Linux re-anchoring: builder `qze` became `T1e`, effort gate/resolver `xm`/`fv` became `ag`/`tH`; restore the scalar compatibility field. Cleanup condition: consumers migrate to the nested field."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
@@ -14246,7 +14246,7 @@ assert_contains = '''permission_mode:t,clipboard_image:{available:globalThis.__a
 name = "statusline-footer-control-render-state-2-1-251"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14269,7 +14269,7 @@ assert_not_contains = 'const Che=Rfo?.statusLine;'
 name = "statusline-footer-control-render-2-1-251"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14298,7 +14298,7 @@ surrounding scope.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14326,7 +14326,7 @@ mode values, taken directly from its matched function body.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14354,7 +14354,7 @@ matched function body; no 2.1.250 symbols are carried forward.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14377,7 +14377,7 @@ assert_not_contains = 'let Eo=Wr&&Zi?'
 name = "statusline-footer-control-render-state-2-1-251-linux"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14400,7 +14400,7 @@ assert_not_contains = 'const khe=Rfo?.statusLine;'
 name = "statusline-footer-control-render-2-1-251-linux"
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14428,7 +14428,7 @@ The matched component is `TVe`; its AppState selector is `z`, while `ge` and
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14456,7 +14456,7 @@ body and replace the stale 2.1.250 `Hr`/`Vr` pair.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14484,7 +14484,7 @@ matched function body, rather than stale 2.1.250 symbols.
 """
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
 locator_kind = "ast_transform"
 [patches.ast]

@@ -919,8 +919,6 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
         TERM: "xterm-256color",
       })
       const command = [
-        "timeout",
-        "20s",
         "env",
         env,
         "bun",
@@ -946,11 +944,15 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
         stdout: "pipe",
         stderr: "pipe",
       })
+      // Bound the TUI run in-process: GNU timeout is unavailable on macOS
+      // runners, and the TUI normally exits through the pasted /exit anyway.
+      const watchdog = setTimeout(() => subprocess.kill(), 20_000)
       const [exitCode, stdout, stderr] = await Promise.all([
         subprocess.exited,
         new Response(subprocess.stdout).text(),
         new Response(subprocess.stderr).text(),
       ])
+      clearTimeout(watchdog)
       const output = normalizeTuiOutput(`${stdout}\n${stderr}`)
       if (exitCode !== 0) console.error(output)
       expect(exitCode).toBe(0)

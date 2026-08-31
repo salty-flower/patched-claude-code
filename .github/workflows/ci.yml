@@ -372,6 +372,7 @@ jobs:
           echo "Fetched $tag for structured prompt review"
 
       - name: Run release audit
+        timeout-minutes: 45
         run: just ci-release-audit "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
 
       - name: Check generated prompt review notes

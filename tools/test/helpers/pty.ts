@@ -15,6 +15,14 @@ export function makeScriptCommand(command: string, inputCommand: string): string
   return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} /dev/null`
 }
 
+export function timeoutCommand(seconds: number, killAfterSeconds = 5): string[] {
+  return ["timeout", `--kill-after=${killAfterSeconds}s`, `${seconds}s`]
+}
+
+export function isExpectedTimeoutExitCode(exitCode: number): boolean {
+  return exitCode === 124 || exitCode === 137
+}
+
 export function normalizeTuiOutput(output: string): string {
   return output
     .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, " ")

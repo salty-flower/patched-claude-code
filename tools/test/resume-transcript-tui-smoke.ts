@@ -4,7 +4,14 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
-import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
+import {
+  isExpectedTimeoutExitCode,
+  makeScriptCommand,
+  normalizeTuiOutput,
+  shellEnvironment,
+  shellQuote,
+  timeoutCommand,
+} from "./helpers/pty"
 
 const DEFAULT_FIXTURE = join(import.meta.dir, "fixtures", "resume-transcripts", "away-summary-only.jsonl")
 
@@ -192,8 +199,7 @@ async function main(): Promise<number> {
     const debugPath = join(home, "resume-debug.log")
     const envPrefix = shellEnvironment(commandEnv)
     const command = [
-      "timeout",
-      `${Math.min(args.timeoutSeconds, 45)}s`,
+      ...timeoutCommand(Math.min(args.timeoutSeconds, 45)),
       "env",
       ...(args.captureResumeError ? ["-u", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] : []),
       envPrefix,
@@ -235,7 +241,7 @@ async function main(): Promise<number> {
     }
     // This fixture can sit in the resumed TUI after the prompt; timeout is a stable success
     // once rendering, prompt echo, and crash absence have been checked.
-    if (result.exitCode !== 0 && result.exitCode !== 124) {
+    if (result.exitCode !== 0 && !isExpectedTimeoutExitCode(result.exitCode)) {
       console.error(`resume transcript TUI exited ${result.exitCode}`)
       console.error(output)
       if (existsSync(debugPath)) console.error(readFileSync(debugPath, "utf8"))

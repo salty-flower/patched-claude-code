@@ -109,3 +109,30 @@ assert_contains = '''let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS
 kind = "static"
 name = "model-specific declaration is not a global override in 2.1.246"
 assert_not_contains = '''process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS=parseInt(process.env[__acc_model_context_key]'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Apply the stable per-model context-window preamble to the 2.1.251 Linux graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ['''return 1e6''', '''CLAUDE_CODE_MAX_CONTEXT_TOKENS'''] }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-specific context window is resolved first in 2.1.251 Linux"
+assert_contains = '''let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-specific declaration is not a global override in 2.1.251 Linux"
+assert_not_contains = '''process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS=parseInt(process.env[__acc_model_context_key]'''

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.251
+import{Eu}from"./chunk-30zk17wm.js";import{IM}from"./chunk-3rc3p14b.js";import{es}from"./chunk-h6btyxas.js";import{y}from"./chunk-a5ahs27a.js";import{o,t}from"./chunk-snr8xejh.js";import{At}from"./chunk-war6c605.js";import{Ee}from"./chunk-eze1rwjh.js";import{Kme}from"./chunk-5n7mgd0a.js";import{me}from"./chunk-me5zajm3.js";import{Hn}from"./chunk-epp7jyvm.js";import{Cm}from"./chunk-6aj0h8xt.js";import{e,r}from"./chunk-ys8dsnqt.js";function q(to){return{...to,cacheMissAckedAtOutputTokens:Eu()}}var T=6;function oK(oo){let f=y(25),{kind:eo,model:v,effort:d,hookReason:n,onConfirm:x,onCancel:i}=oo,{columns:C}=Ee(),k=At(),m=eo==="model",A=m?"Switch model?":"Change effort level?",S=m?"model":"effort level",O;if(f[0]!==d||f[1]!==m||f[2]!==v)O=m?Cm(v):d!==void 0?IM(d):"auto",f[0]=d,f[1]=m,f[2]=v,f[3]=O;else O=f[3];let a=O,R;if(f[4]!==n||f[5]!==x||f[6]!==k)R=function c(){if(n===void 0)k(q);x()},f[4]=n,f[5]=x,f[6]=k,f[7]=R;else R=f[7];let c=R;const M=n!==void 0?"A PreModelSwitch hook asked you to confirm":"Your next response will be slower and use more tokens";let u;if(f[8]!==C||f[9]!==n||f[10]!==a||f[11]!==S)u=n!==void 0?e(t,{children:Kme(es(n).text,C,T+1)}):r(t,{children:["This conversation is cached for the current ",S,". Switching to"," ",e(t,{bold:!0,children:a})," means the full history gets re-read on your next message."]}),f[8]=C,f[9]=n,f[10]=a,f[11]=S,f[12]=u;else u=f[12];const P=`Yes, switch to ${a}`;let p;if(f[13]!==c||f[14]!==i||f[15]!==P)p=e(Hn,{confirmLabel:P,cancelLabel:"No, go back",onConfirm:c,onCancel:i}),f[13]=c,f[14]=i,f[15]=P,f[16]=p;else p=f[16];let h;if(f[17]!==u||f[18]!==p)h=r(o,{flexDirection:"column",gap:1,marginBottom:1,children:[u,p]}),f[17]=u,f[18]=p,f[19]=h;else h=f[19];let j;if(f[20]!==i||f[21]!==M||f[22]!==h||f[23]!==A)j=e(me,{title:A,subtitle:M,color:"warning",onCancel:i,hideInputGuide:!0,children:h}),f[20]=i,f[21]=M,f[22]=h,f[23]=A,f[24]=j;else j=f[24];return j}
+export{oK};

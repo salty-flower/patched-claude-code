@@ -1,0 +1,583 @@
+// Whiteboard write-back helper. Reads the board state the page embeds, appends
+// Claude's elements, places each new element clear of everything already on
+// the board, and writes the republishable page: the skill's template plus
+// one inserted state line and one line of comment anchors. Serialization
+// escapes every "<" the way the page's own serializer does, so board text can
+// never close the embedded script block. Runs on node or bun, no dependencies.
+//
+// usage: node merge-state.mjs --state <fetched page, or a bare board state such as {"v":1,"els":[],"pingCount":0,"ping":null}>
+//                             --add <file with a JSON array of elements to add>
+//                             --template <path to template.html>
+//                             --out <path to whiteboard.html>
+//                             [--retire id1,id2]   (your own cl_ ids to remove)
+//                             [--title "<topic> whiteboard"]     (name the board on first publish)
+//                             [--store <dir>]      (the board's store dumped by read_db list els with out_dir: edits nobody has sent yet, applied before yours)
+//                             [--place <file>]     (a JSON array of {id, x, y[, w, h]}: reposition existing elements of any author - position only, their words untouched; pictures take x, y only)
+//        node merge-state.mjs --state <fetched page> --extract-images <dir>
+//                             (writes each picture on the board to <dir>/<id>.<ext> and lists them; no page is written)
+
+import { readFileSync, writeFileSync } from 'node:fs'
+
+const FONT_SIZE = 17, STICKY_SIDE = 160, MARGIN = 36, STEP = 44 // clearances: additions land a comfortable gap from everything else
+const MAX_ELS = 2000 // the page keeps this many elements (sanitize in template.html)
+
+function arg(name){
+  const i = process.argv.indexOf('--' + name)
+  return i === -1 ? undefined : process.argv[i + 1]
+}
+function fail(msg){ process.stderr.write('whiteboard merge: ' + msg + '\n'); process.exit(1) }
+function read(p, what){
+  try{ return readFileSync(p, 'utf8') }
+  catch(e){ fail('cannot read ' + what + ' at ' + p + ' \u2014 pass the path you wrote it to (' + e.code + ')') }
+}
+
+const statePath = arg('state'), addPath = arg('add'), tplPath = arg('template'), outPath = arg('out'), extractDir = arg('extract-images')
+if(!statePath || (!extractDir && (!addPath || !tplPath || !outPath))) fail('need --state, --add, --template and --out (or --state with --extract-images <dir>)')
+const retire = new Set((arg('retire') || '').split(',').map(s => s.trim()).filter(Boolean))
+
+// --- the page title: an explicit --title, else the one the board carries, else the default.
+// titleFrom is the ONE place a candidate becomes a name: NFC-normalize; replace every DENIED code
+// point (controls, invisible format chars except the ZWJ/ZWNJ a name can need, bidi overrides,
+// LS/PS) with a space; collapse whitespace; cap by code point; strip BLANK runs (whitespace and
+// joiners) from both edges; then a name exists only if some code point actually renders
+// (VISIBLE) - the same emptiness test the rename guard relies on, so display and refusal agree
+// (standalone sibling of sanitizeArtifactTitle in src/tools/ArtifactTool/constants.ts) ---
+const DEFAULT_TITLE = 'Whiteboard'
+const escHtml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+// reads back what escHtml writes and what the server's re-serialization writes (&#34; &#39; &#13;)
+const unescHtml = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;|&#34;/g, '"')
+  .replace(/&#39;/g, "'").replace(/&#13;/g, '\r').replace(/&amp;/g, '&')
+// The server stores a published page with ` data-id="<16 chars>"` added to every open tag (last,
+// on the tags read here): the one extra attribute a read-back page may carry (KEEP-IN-SYNC:
+// dataIdAttrLen in the CLI)
+const DATA_ID = '(?: data-id="(?!-)(?:(?!--)[A-Za-z0-9_-]){16}")?'
+const DENIED = /(?![\u200c\u200d])[\p{C}\u202a-\u202e\u2066-\u2069\u2028\u2029]/gu
+const EDGE_BLANK = /^[\s\u200c\u200d]+|[\s\u200c\u200d]+$/gu
+// blank to the eye: whitespace, joiners, combining marks without a base, and the fillers and
+// blank glyphs that render as nothing - a name needs at least one code point outside all of it
+const VISIBLE = /[^\s\u200c\u200d\p{M}\u2800\u3164\uffa0\u115f\u1160]/u
+function titleFrom(plain){
+  const t = String(plain || '').normalize('NFC').replace(DENIED, ' ').replace(/\s+/g, ' ')
+  const capped = Array.from(t).slice(0, 120).join('') // cap by code point so no surrogate pair splits
+  const name = capped.replace(EDGE_BLANK, '')
+  return VISIBLE.test(name) ? escHtml(name) : ''
+}
+
+// --- reading a fetched page: only the head a real board carries (what the page's publish, this helper and the
+// server write) is accepted, so the block reached is the element the page's script reads as script#wb-state ---
+const TAG_WS = ' \t\n\f\r'
+const TAG_NAME = /[a-zA-Z][a-zA-Z0-9-]*/y, ATTR_NAME = /[a-zA-Z][a-zA-Z0-9_:.-]*/y, UNQUOTED_VALUE = /[^ \t\n\f\r"'=<>`]+/y
+const DOCTYPE_RE = /<!doctype[ \t\n\f\r]+html[ \t\n\f\r]*>/iy
+const DATA_ID_TOKEN = /^(?!-)(?:(?!--)[A-Za-z0-9_-]){16}$/
+const FRAME_COMMENT_OPEN = ' frame-runtime ', FRAME_COMMENT_CLOSE = ' /frame-runtime '
+const FRAME_BASE_HREF = /^\/_f\/[A-Za-z0-9-]{1,64}\/$/, FRAME_PREAMBLE_PREFIX = 'window.__FRAME_PREAMBLE='
+// "&" starting anything a browser could read as a character reference, other than the exact
+// references escHtml and the server write: the tab title would show text these bytes never spell
+const TITLE_AMP = /&(?!(?:lt|gt|quot|amp|#34|#39|#13);)(?=[#A-Za-z0-9])/
+const isTagWs = ch => ch !== undefined && TAG_WS.includes(ch)
+// strict tag parse: a name, then single well-formed attributes; anything a browser would
+// error-recover on (duplicate or malformed attribute, attribute on an end tag, "<" or NUL in a
+// value, a character reference in an id, an unterminated tag) is null, and every caller refuses
+function parseTag(html, at){
+  const isEnd = html[at + 1] === '/'
+  TAG_NAME.lastIndex = at + (isEnd ? 2 : 1)
+  const nameMatch = TAG_NAME.exec(html)
+  if(!nameMatch) return null
+  let i = TAG_NAME.lastIndex, selfClosing = false
+  const attrs = new Map()
+  for(;;){
+    const beforeWs = i
+    while(isTagWs(html[i])) i++
+    const ch = html[i]
+    if(ch === undefined) return null
+    if(ch === '>'){ i++; break }
+    if(ch === '/'){ if(html[i + 1] !== '>') return null; selfClosing = true; i += 2; break }
+    if(isEnd || i === beforeWs) return null
+    ATTR_NAME.lastIndex = i
+    const attrMatch = ATTR_NAME.exec(html)
+    if(!attrMatch) return null
+    const name = attrMatch[0].toLowerCase()
+    if(attrs.has(name)) return null
+    i = ATTR_NAME.lastIndex
+    let value = ''
+    if(html[i] === '='){
+      i++
+      const quote = html[i]
+      if(quote === '"' || quote === "'"){
+        const close = html.indexOf(quote, i + 1)
+        if(close === -1) return null
+        value = html.slice(i + 1, close); i = close + 1
+      } else {
+        UNQUOTED_VALUE.lastIndex = i
+        const unquoted = UNQUOTED_VALUE.exec(html)
+        if(!unquoted) return null
+        value = unquoted[0]; i = UNQUOTED_VALUE.lastIndex
+      }
+      if(value.includes('<') || value.includes('\0') || (name === 'id' && value.includes('&'))) return null
+    }
+    attrs.set(name, value)
+  }
+  return { name: nameMatch[0].toLowerCase(), isEnd, attrs, selfClosing, end: i }
+}
+// attributes limited to the allowed names plus the server's data-id, which must be a token it mints
+function attrsOnly(tag, allowed){
+  for(const name of tag.attrs.keys()) if(name !== 'data-id' && !allowed.includes(name)) return false
+  return !tag.attrs.has('data-id') || DATA_ID_TOKEN.test(tag.attrs.get('data-id'))
+}
+// where a script's raw text ends, honouring the tokenizer's escaped states ("<!--" then "<script"
+// keeps a browser reading past "</script>" until "-->"); "<!--" is tolerated only inside the state
+// block, whose text a board's words can shape - anywhere else it is refused. Null fails closed.
+function scriptRawTextEnd(html, from, stateBlock){
+  const token = /<!--|-->|<\/script(?=[ \t\n\f\r/>])|<script(?=[ \t\n\f\r/>])/gi
+  token.lastIndex = from
+  let state = 0 // 0 plain, 1 escaped, 2 double-escaped
+  for(let m; (m = token.exec(html)); ){
+    const t = m[0].toLowerCase()
+    if(t === '<!--'){
+      if(!stateBlock) return null
+      let q = m.index + 4
+      while(html[q] === '-') q++
+      if(html[q] === '>'){ state = 0; token.lastIndex = q + 1 }
+      else if(state === 0) state = 1
+    }
+    else if(t === '-->') state = 0
+    else if(t === '<script'){ if(state === 1) state = 2 }
+    else if(state === 2) state = 1
+    else {
+      const closeTag = parseTag(html, m.index)
+      if(!closeTag || !closeTag.isEnd || closeTag.selfClosing) return null
+      return { textEnd: m.index, end: closeTag.end }
+    }
+  }
+  return null // never closed: a cut-off read, reported as such before this scan runs
+}
+// walks from the top to the state block; {at, text} for the block it reaches, null on anything a
+// real board never carries ahead of it
+function scanHead(html){
+  let i = 0, frame = 0, preApp = true // frame: 0 none, 1 open comment, 2 base, 3 preamble, 4 runtime, 5 closed
+  for(;;){
+    const lt = html.indexOf('<', i)
+    if(lt === -1) return null
+    if(/[^ \t\n\f\r]/.test(html.slice(i, lt))) return null // stray text
+    if(html.startsWith('<!--', lt)){
+      if(html[lt + 4] === '>' || html.startsWith('->', lt + 4)) return null // abrupt close
+      const close = /--!?>/g
+      close.lastIndex = lt + 4
+      const c = close.exec(html)
+      if(!c || c[0] !== '-->') return null // unterminated, or the --!> close
+      const content = html.slice(lt + 4, c.index)
+      if(content === FRAME_COMMENT_OPEN){ if(frame !== 0 || !preApp) return null; frame = 1 }
+      else if(content === FRAME_COMMENT_CLOSE){ if(frame !== 4) return null; frame = 5 }
+      else if(frame >= 1 && frame <= 4) return null // nothing else inside the wrapper
+      preApp = false
+      i = c.index + 3
+      continue
+    }
+    if(html[lt + 1] === '!'){
+      if(frame >= 1 && frame <= 4) return null
+      DOCTYPE_RE.lastIndex = lt
+      if(!DOCTYPE_RE.exec(html)) return null // anything else starting "<!" is a bogus comment
+      i = DOCTYPE_RE.lastIndex
+      continue
+    }
+    const tag = parseTag(html, lt)
+    if(!tag) return null
+    if(frame >= 1 && frame <= 4 && (tag.isEnd || tag.name !== (frame === 1 ? 'base' : 'script'))) return null
+    if(tag.isEnd){
+      if(tag.name !== 'head') return null
+      preApp = false; i = tag.end
+      continue
+    }
+    switch(tag.name){
+      case 'base':
+        if(frame !== 1 || tag.selfClosing || tag.attrs.size !== 1 || !FRAME_BASE_HREF.test(tag.attrs.get('href') ?? '')) return null
+        frame = 2; i = tag.end
+        break
+      case 'html': case 'head': case 'body':
+        if(tag.selfClosing || !attrsOnly(tag, tag.name === 'html' ? ['lang'] : [])) return null
+        if(tag.name === 'body') preApp = false
+        i = tag.end
+        break
+      case 'meta':
+        preApp = false
+        if(!attrsOnly(tag, ['charset']) || (tag.attrs.get('charset') || '').toLowerCase() !== 'utf-8') return null
+        i = tag.end
+        break
+      case 'style': { // raw text: a browser reads nothing inside it as markup, and neither does this
+        preApp = false
+        if(tag.selfClosing || !attrsOnly(tag, [])) return null
+        const close = /<\/style(?=[ \t\n\f\r/>])/gi
+        close.lastIndex = tag.end
+        const c = close.exec(html), closeTag = c && parseTag(html, c.index)
+        if(!closeTag || !closeTag.isEnd) return null
+        i = closeTag.end
+        break
+      }
+      case 'title': {
+        preApp = false
+        if(tag.selfClosing || !attrsOnly(tag, [])) return null
+        const close = /<\/title(?=[ \t\n\f\r/>])/gi
+        close.lastIndex = tag.end
+        const c = close.exec(html)
+        if(!c) return null
+        const inner = html.slice(tag.end, c.index)
+        if(inner.includes('<') || TITLE_AMP.test(inner)) return null // a real title is escaped
+        const closeTag = parseTag(html, c.index)
+        if(!closeTag || !closeTag.isEnd) return null
+        i = closeTag.end
+        break
+      }
+      case 'script': {
+        if(tag.selfClosing) return null
+        if(tag.attrs.size === 0 && (frame === 2 || frame === 3)){ // the wrapper's two scripts, nowhere else
+          const raw = scriptRawTextEnd(html, tag.end, false)
+          if(!raw) return null
+          if(frame === 2 && !html.startsWith(FRAME_PREAMBLE_PREFIX, tag.end)) return null
+          frame++; i = raw.end
+          break
+        }
+        if(frame >= 1 && frame <= 4) return null
+        // the only other script a head may carry is the block itself, by its exact open tag
+        if(tag.attrs.get('id') !== 'wb-state' || tag.attrs.get('type') !== 'application/json' || !attrsOnly(tag, ['type', 'id'])) return null
+        const raw = scriptRawTextEnd(html, tag.end, true)
+        if(!raw) return null
+        return { at: lt, text: html.slice(tag.end, raw.textEnd) }
+      }
+      default:
+        return null
+    }
+  }
+}
+
+// --- read the state: either a bare JSON object or the page carrying the wb-state block ---
+// The block is matched only where a real board carries it - after the page's body comment
+// (a sent board), after the title line (a page this helper wrote), or on its own - so the
+// opener string inside the page's own script source can never be mistaken for it.
+const raw = read(statePath, 'the --state board')
+let stateText = raw.trim()
+const bareState = stateText[0] === '{'
+let stateAt = -1
+if(!bareState){
+  const anchor = '(?:^\\s*|<body' + DATA_ID + '>\\s*|-->\\s*|<\\/title>\\s*)<script type="application\\/json" id="wb-state"'
+  const m = raw.match(new RegExp(anchor + DATA_ID + '>(\\{[\\s\\S]*?\\})<\\/script>'))
+  // a page that ends before any script closes, or an anchored opener with no closer (or cut
+  // inside its own tag), is a sent board whose read was cut off; an opener carrying anything but
+  // the server's attribute is a board this helper cannot read - neither is an unsent board
+  const headOnly = !/<\/(?:script|body|html)>/i.test(raw) && /^\s*<(?:!doctype|html|head|meta|title)[\s>]/i.test(raw)
+  if(!m) fail(headOnly || new RegExp(anchor + '(?:' + DATA_ID + '>(?:\\{|$)|[^>]*$)').test(raw)
+    ? 'the wb-state block in ' + statePath + ' is cut off \u2014 the board read is incomplete; read the full saved HTML by path and run again'
+    : new RegExp(anchor + '[\\s/]').test(raw)
+    ? 'the wb-state block in ' + statePath + ' carries attributes this helper does not read \u2014 the board cannot be written back safely; stop and tell the user'
+    : 'no wb-state block in ' + statePath + ' \u2014 a board that has never been sent has no state to write back to; ask the user to hit Ask Claude first')
+  stateText = m[1]; stateAt = m.index + m[0].indexOf('<script')
+  // the page hands its script the FIRST element with this id, so everything ahead of the block
+  // must be the head a real board carries (scanHead below) and the block it arrives at must be
+  // this one - else people would see a different board than the one written back
+  const seen = scanHead(raw)
+  if(!seen || seen.at !== stateAt || seen.text !== stateText)
+    fail('the wb-state block in ' + statePath + ' is not the one the page shows \u2014 the board cannot be written back safely; stop and tell the user')
+}
+// a fetched PAGE names the board in the FIRST <title> of its head - the head is the content before
+// the wb-state block, so a <title> literal later in the page's script source is never a name
+let carried = ''
+if(!bareState){
+  const head = raw.slice(0, stateAt), t = new RegExp('<title' + DATA_ID + '>').exec(head)
+  const textAt = t ? t.index + t[0].length : -1
+  const closeAt = t ? head.indexOf('</title>', textAt) : -1
+  if(closeAt !== -1) carried = titleFrom(unescHtml(head.slice(textAt, closeAt)))
+}
+let state
+try{ state = JSON.parse(stateText) }
+catch(e){ fail('the wb-state block does not parse \u2014 the board read is incomplete; stop and tell the user (' + e.message + ')') }
+if(!state || !Array.isArray(state.els)) fail('state has no els array')
+
+// --- the store: edits made since this version, by anyone, that no Ask or Save has published yet ---
+// Same rule as the page: a doc newer than the version replaces or removes its element (a tombstone
+// carries `dead`); anything older is already spoken for by the version itself.
+// the page identifies an element by the first 40 characters of its id, so ids are compared on that key
+const idKey = id => typeof id === 'string' ? id.slice(0, 40) : id
+const storeDir = arg('store')
+let storeApplied = 0, storeSeen = 0
+const storeDead = new Set() // ids the dump says were deleted since the version: nothing in this write-back may bring them back
+if(storeDir){
+  const { readdirSync } = await import('node:fs')
+  const dir = storeDir.replace(/\/+$/, '') + '/els'
+  let names = []
+  try{ names = readdirSync(dir).filter(n => n.endsWith('.json')) }
+  catch(e){ if(e.code !== 'ENOENT') fail('cannot read the store dump at ' + dir + ' (' + e.code + ')') }
+  const since = Math.max(Number(state.savedAt) || 0, Number(state.builtAt) || 0)
+  for(const name of names){
+    let doc; try{ doc = JSON.parse(readFileSync(dir + '/' + name, 'utf8')) }catch(_){ continue }
+    if(!doc || typeof doc !== 'object') continue
+    const id = typeof doc.id === 'string' ? doc.id : name.slice(0, -5)
+    // an edit cannot have happened after now: a future stamp would outrank every real edit to come
+    let t = Number.isFinite(doc.dead) ? doc.dead : Number.isFinite(doc.mv) ? doc.mv : 0
+    if(t > Date.now()){ t = Date.now(); if(Number.isFinite(doc.dead)) doc.dead = t; else doc.mv = t }
+    if(t > storeSeen) storeSeen = t // the newest edit the dump carries: a lower bound on when it was taken
+    const i = state.els.findIndex(e => e && e.id === id)
+    if(Number.isFinite(doc.dead)){
+      // a delete stands when the version no longer carries the element (whenever it happened - a later
+      // version confirms it by omission) or when it is newer than both the version and the element
+      const gone = i === -1 || (t > since && (Number(state.els[i].mv) || 0) <= doc.dead)
+      if(gone && i !== -1){ state.els.splice(i, 1); storeApplied++ }
+      if(gone) storeDead.add(idKey(id))
+      continue
+    }
+    if(t <= since) continue
+    if(i === -1){ state.els.push(Object.assign({}, doc, {id})); storeApplied++ }
+    else if((Number(state.els[i].mv) || 0) <= t){
+      // the store holds a placeholder for a picture too big for a doc: it never blanks bytes the version carries
+      if(doc.type === 'image' && !doc.src && state.els[i].src) doc.src = state.els[i].src
+      state.els[i] = Object.assign({}, doc, {id}); storeApplied++
+    }
+  }
+}
+
+// --- pictures: write them out for reading and stop; nothing about the board changes ---
+if(extractDir){
+  const { mkdirSync } = await import('node:fs')
+  mkdirSync(extractDir, { recursive: true })
+  const IMG = /^data:image\/(png|jpeg|webp|gif);base64,([A-Za-z0-9+/=]+)$/
+  let n = 0
+  const taken = new Set() // two ids can sanitize to one name; every picture still gets its own file
+  for(const e of state.els){
+    if(!e || e.type !== 'image' || typeof e.src !== 'string') continue
+    const m = IMG.exec(e.src); if(!m) continue
+    const base = String(e.id).replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 40) || ('img' + n)
+    let safe = base
+    for(let k = 2; taken.has(safe); k++) safe = base + '-' + k
+    taken.add(safe)
+    const file = extractDir.replace(/\/$/, '') + '/' + safe + '.' + (m[1] === 'jpeg' ? 'jpg' : m[1])
+    writeFileSync(file, Buffer.from(m[2], 'base64'))
+    process.stdout.write(file + '\t' + [e.x, e.y, e.w, e.h].map(v => Math.round(Number(v) || 0)).join(',') + '\t' + (e.author === 'claude' ? 'claude' : 'user') + '\t' + JSON.stringify(String(e.label || '').slice(0, 120)) + '\n')
+    n++
+  }
+  if(!n) process.stdout.write('no images on the board\n')
+  process.exit(0)
+}
+
+// --- read the additions and enforce the authorship rules ---
+let additions
+try{ additions = JSON.parse(read(addPath, 'the --add additions file')) }
+catch(e){ fail('additions file is not valid JSON (' + e.message + ')') }
+if(!Array.isArray(additions)) fail('additions must be a JSON array of elements')
+const onBoard = new Map(state.els.map((e, i) => [e && idKey(e.id), i]))
+const batchIds = new Set()
+const isClaudes = el => el.author === 'claude' || el.by === 'claude'
+for(const id of retire){
+  const el = state.els.find(e => e && e.id === id)
+  if(!el) continue
+  if(!isClaudes(el)) fail('refusing to retire ' + id + ': not authored by claude')
+}
+const ADDABLE = new Set(['text', 'rect', 'ellipse', 'cylinder', 'diamond', 'sticky', 'arrow'])
+// everything this run adds or changes is an edit made now: open tabs merge by newest edit per element
+const now = Date.now()
+const fresh = [] // additions not on the board yet; the rest are marks of yours the board already carries
+const inPlace = new Set()
+let updated = 0, leftOut = 0
+for(const e of additions){
+  if(!e || typeof e !== 'object' || !ADDABLE.has(e.type)) fail('additions must be text, rect, ellipse, cylinder, diamond, sticky or arrow (got ' + JSON.stringify(e && e.type) + ')')
+  e.author = 'claude'; e.mv = now
+  if(typeof e.id !== 'string' || !e.id.startsWith('cl_')) fail('every addition needs an id starting with cl_ (got ' + JSON.stringify(e.id) + ')')
+  // the page keeps ids to 40 characters, so a longer one would no longer be unique on the board
+  if(e.id.length > 40) fail('addition id ' + JSON.stringify(e.id.slice(0, 40)) + '\u2026 is over 40 characters \u2014 shorten it')
+  if(batchIds.has(e.id)) fail('addition id ' + e.id + ' appears twice in this batch')
+  batchIds.add(e.id)
+  if(storeDead.has(e.id)){ // someone deleted this mark since you drew it: the write-back must not bring it back
+    process.stderr.write('whiteboard merge: ' + e.id + ' was deleted on the board since you drew it \u2014 left out; draw it again under a new id if it is still wanted\n')
+    leftOut++; continue
+  }
+  if(!Number.isInteger(e.seed)) e.seed = 1 + Math.floor(Math.random() * 1e9)
+  // a text node may carry its font size; clamp it to the range the page itself accepts
+  if(e.type === 'text'){
+    if(Number.isFinite(e.size)) e.size = Math.max(8, Math.min(64, e.size))
+    else delete e.size
+  }
+  const i = onBoard.get(e.id)
+  if(i === undefined){ fresh.push(e); continue }
+  // a mark you drew live came back with the board: your write-back is the word on what it says,
+  // the board on where it sits (for an arrow, what it is bound to is where it sits)
+  const on = state.els[i]
+  if(!isClaudes(on) || on.type !== e.type) fail('addition id ' + e.id + ' already belongs to another element on the board')
+  if(retire.has(e.id)) fail('addition id ' + e.id + ' is also being retired \u2014 do one or the other')
+  if(e.type === 'arrow' && ((e.fromId ?? null) !== (on.fromId ?? null) || (e.toId ?? null) !== (on.toId ?? null)))
+    process.stderr.write('whiteboard merge: ' + e.id + ' keeps the ends it has on the board \u2014 to point it elsewhere, retire it and draw a new arrow\n')
+  for(const k of (e.type === 'arrow' ? ['x1', 'y1', 'x2', 'y2', 'fromId', 'toId'] : ['x', 'y', 'w', 'h']).concat(['seed']))
+    if(on[k] !== undefined) e[k] = on[k]; else delete e[k]
+  state.els[i] = e; inPlace.add(e.id); updated++
+}
+// --- an arrow binds only to a box, sticky, text node or picture on the board; the page clears anything else ---
+const CONNECTABLE = new Set(['text', 'rect', 'ellipse', 'cylinder', 'diamond', 'sticky', 'image'])
+const bindable = new Set(state.els.concat(fresh)
+  .filter(e => e && !retire.has(e.id) && CONNECTABLE.has(e.type)).map(e => idKey(e.id)))
+for(const e of additions){
+  if(e.type !== 'arrow') continue
+  for(const k of ['fromId', 'toId']){
+    if(e[k] == null || bindable.has(e[k])) continue
+    // a binding kept from the board: a retired target lets it go below, where it stood; a vanished one just lets go
+    if(inPlace.has(e.id)){ if(!retire.has(e[k])) e[k] = null; continue }
+    fail(e.id + ': ' + k + ' must name a box, sticky, text node or picture on the board (got ' + JSON.stringify(String(e[k]).slice(0, 40)) + ')')
+  }
+}
+
+// --- geometry: the same boxes the page uses, with an estimate for unmeasured text ---
+function textSize(txt, px){
+  const lines = String(txt || '').split('\n')
+  let cols = 0
+  for(const l of lines) if(l.length > cols) cols = l.length
+  return {w: Math.ceil(cols * px * 0.62 + 12), h: Math.ceil(lines.length * px * 1.35) + 8}
+}
+function bbox(e){
+  switch(e.type){
+    case 'arrow': case 'line':
+      return {x: Math.min(e.x1, e.x2), y: Math.min(e.y1, e.y2), w: Math.abs(e.x1 - e.x2), h: Math.abs(e.y1 - e.y2)}
+    case 'pen': {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
+      for(const p of e.pts || []){ x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]) }
+      return {x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0)}
+    }
+    case 'text': {
+      const m = textSize(e.text, Number.isFinite(e.size) ? e.size : FONT_SIZE)
+      return {x: e.x, y: e.y, w: e.w || m.w, h: e.h || m.h}
+    }
+    case 'sticky': // notes default to the page's square; the label wraps and shrinks inside it
+      return {x: e.x, y: e.y, w: e.w || STICKY_SIDE, h: e.h || STICKY_SIDE}
+    default: return {x: e.x, y: e.y, w: e.w || 120, h: e.h || 60}
+  }
+}
+const intersects = (a, b, m) =>
+  a.x < b.x + b.w + m && a.x + a.w + m > b.x && a.y < b.y + b.h + m && a.y + a.h + m > b.y
+
+// --- repositioning (--place) runs first, so additions are placed against the board as it will be ---
+// anyone's element may be moved when the board is being organized; nothing but its box changes
+const finite = (...ns) => ns.every(n => Number.isFinite(n))
+const placePath = arg('place')
+let placed = 0
+if(placePath){
+  let moves; try{ moves = JSON.parse(read(placePath, 'the placements file')) }catch(e){ fail('placements file is not valid JSON (' + e.message + ')') }
+  if(!Array.isArray(moves)) fail('placements must be a JSON array of {id, x, y}')
+  for(const mv of moves){
+    if(!mv || typeof mv.id !== 'string') fail('every placement needs an id')
+    const el = state.els.find(e => e && e.id === mv.id)
+    if(!el) fail('placement for ' + mv.id + ': no such element on the board')
+    if(el.type === 'arrow' || el.type === 'line' || el.type === 'pen') fail('placement for ' + mv.id + ': only boxes, notes, text and pictures are repositioned; connectors follow their boxes')
+    if(!finite(mv.x, mv.y)) fail('placement for ' + mv.id + ' needs finite x and y')
+    // a picture keeps its size: a new box would distort it
+    if(el.type === 'image' && (mv.w !== undefined || mv.h !== undefined)) fail('placement for ' + mv.id + ': a picture is moved, never resized \u2014 give x and y only')
+    const dx = mv.x - el.x, dy = mv.y - el.y
+    el.x = mv.x; el.y = mv.y
+    if(finite(mv.w) && mv.w > 0) el.w = mv.w
+    if(finite(mv.h) && mv.h > 0) el.h = mv.h
+    el.mv = now
+    // connectors bound to it keep their attachment; free ends that sat on it travel with it
+    for(const c of state.els){
+      if(!c || (c.type !== 'arrow' && c.type !== 'line')) continue
+      if(c.fromId === el.id){ c.x1 += dx; c.y1 += dy; c.mv = now }
+      if(c.toId === el.id){ c.x2 += dx; c.y2 += dy; c.mv = now }
+    }
+    placed++
+  }
+}
+
+// --- retire: a connector that survives lets go of a retired element where it stood, as the page's
+// own delete does; its edit stamp is left alone - this keeps how it looked, and its owner's edits win ---
+for(const g of state.els){
+  if(!g || !retire.has(g.id) || !CONNECTABLE.has(g.type)) continue
+  const b = bbox(g), cx = b.x + b.w / 2, cy = b.y + b.h / 2
+  for(const a of state.els){
+    if(!a || a.type !== 'arrow' || retire.has(a.id)) continue
+    if(a.fromId === g.id){ a.x1 = cx; a.y1 = cy; a.fromId = null }
+    if(a.toId === g.id){ a.x2 = cx; a.y2 = cy; a.toId = null }
+  }
+}
+state.els = state.els.filter(e => e && !retire.has(e.id))
+
+// --- place each new non-connector addition clear of the board and of each other ---
+const occupied = state.els.filter(e => e.type !== 'arrow' && e.type !== 'line').map(bbox)
+for(const e of fresh){
+  if(e.type === 'arrow'){ // connectors ride their endpoints; they still need real coordinates
+    if(!finite(e.x1, e.y1, e.x2, e.y2)) fail(e.id + ': arrows need finite x1,y1,x2,y2')
+    continue
+  }
+  if(!finite(e.x, e.y)) fail(e.id + ': needs finite x and y')
+  let box = bbox(e)
+  if(!finite(box.w, box.h) || box.w <= 0 || box.h <= 0) fail(e.id + ': needs a positive width and height')
+  // the estimated size is written back so the published element renders the way it was placed
+  e.w = box.w; e.h = box.h
+  let spot = box, found = false
+  // scan down-then-right from the requested spot until the box is clear of everything occupied
+  outer: for(let ring = 0; ring < 40; ring++){
+    for(let dx = 0; dx <= ring; dx++){
+      const dy = ring - dx
+      const cand = {x: box.x + dx * STEP, y: box.y + dy * STEP, w: box.w, h: box.h}
+      if(!occupied.some(o => intersects(cand, o, MARGIN))){ spot = cand; found = true; break outer }
+    }
+  }
+  if(!found) fail('no clear spot near (' + box.x + ',' + box.y + ') for ' + e.id + ' \u2014 move it to open space')
+  e.x = spot.x; e.y = spot.y
+  occupied.push(spot)
+}
+
+// --- the send marker is carried forward bounded the same way the page bounds it: an integer
+// count in 0..1e9 and a short timestamp string, so a write-back never re-emits a malformed one ---
+// captured before bounding: the rename guard must judge the marker as the board carried it,
+// and bounding normalizes a present-but-unparseable marker (string count, ping with no
+// numeric n) to absent/null - any truthy marker, parseable or not, means the board was sent
+const everSent = Boolean(state.pingCount || state.ping)
+const pingN = v => Number.isFinite(v) ? Math.max(0, Math.min(1e9, Math.floor(v))) : null
+// derive the count the way the page does - the explicit field, else the marker's n - and never
+// write a count the board didn't carry, so an older board keyed only by ping.n keeps its place
+const markN = state.ping ? pingN(state.ping.n) : null
+const rawNote = state.ping ? state.ping.note : undefined
+const countN = pingN(state.pingCount)
+if(countN !== null) state.pingCount = countN
+else if(markN !== null) state.pingCount = markN
+else delete state.pingCount
+state.ping = markN === null ? null
+  : {n: markN, at: typeof state.ping.at === 'string' ? state.ping.at.slice(0, 64) : null}
+// the user's note rides the marker it was sent with, bounded like the page bounds it
+if(state.ping && typeof rawNote === 'string' && rawNote) state.ping.note = rawNote.slice(0, 500)
+
+// --- merge: the board minus retired own elements (above), plus the new additions ---
+state.els = state.els.concat(fresh)
+// the page keeps the first 2000 elements; an answer past that would never render
+if(fresh.length && state.els.length > MAX_ELS) fail('the board is full (' + state.els.length + ' elements with yours; the page keeps ' + MAX_ELS + ') \u2014 nothing more can be drawn on it; tell the user')
+// builtAt marks a version this helper built, and is the moment through which it reflects the store
+// (the dump handed to --store): open tabs overlay only what came after it; 0 leaves savedAt as the cutoff
+state.builtAt = Math.max(Number(state.builtAt) || 0, storeDir ? storeSeen : 0)
+
+// --- write the page: template + one state line after its <title>, "<" escaped as the page does ---
+const esc = s => JSON.stringify(s).replace(/</g, '\\u003c')
+const line = '<script type="application/json" id="wb-state">' + esc(state) + '</script>'
+// one empty anchor per element, as the page's own publish writes them: comment threads hang on
+// these, and only ids that are a plain token reach the markup
+const anchors = '<div id="wb-anchors" aria-hidden="true">' + state.els.map(e => typeof e.id === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(e.id) ? '<i class="wb-a" id="wb-a-' + e.id + '"></i>' : '').join('') + '</div>'
+// The page code comes ONLY from the skill's own template: refuse anything that is not its
+// exact two-line head, so a fetched or foreign page can never be laundered into the publish.
+// line endings normalized - a CRLF checkout of the template must still match its own head
+const tpl = read(tplPath, 'the --template').replace(/\r\n/g, '\n').split('\n')
+if(tpl[0] !== '<title>' + DEFAULT_TITLE + '</title>' || tpl[1] !== '<script>')
+  fail('that is not the skill template \u2014 pass template.html from the skill directory')
+// the only template line the output varies is its <title>: explicit name, else the board's own, else the default
+let explicit = arg('title')
+if(explicit !== undefined && (/^\s*--/.test(explicit) || /<topic>/i.test(explicit)))
+  fail('--title needs the board\'s name (e.g. "Ingest pipeline whiteboard"), got ' + JSON.stringify(explicit))
+const explicitTitle = titleFrom(explicit)
+const title = explicitTitle || carried || DEFAULT_TITLE
+if(!explicitTitle && !carried){
+  // a sent board is named where the user can see it; with no --title and nothing to carry,
+  // writing the default would silently rename it, so refuse unless the board was never
+  // sent - judged on the pre-bounding marker (everSent above), never the bounded one
+  if(everSent){
+    // bounding already ran: only a marker that bounded to a positive send count evidences
+    // a send - anything that bounds to zero (unparseable, negative, sub-1 fractional) does not
+    const evidenced = (state.pingCount || 0) > 0 || Boolean(state.ping && state.ping.n > 0)
+    fail((evidenced
+      ? 'this board has been sent but --state carries no <title> to keep'
+      : 'this board carries a send marker that could not be read as a send count, so it may have been sent, and --state carries no <title> to keep')
+      + ' \u2014 pass the saved page (head included) so the board keeps its name, or pass --title')
+  }
+  process.stderr.write('whiteboard merge: no --title and the board carries no name \u2014 using the default title\n')
+}
+writeFileSync(outPath, ['<title>' + title + '</title>', line, anchors].concat(tpl.slice(1)).join('\n'))
+process.stdout.write('wrote ' + outPath + ' \u2014 ' + fresh.length + ' added, ' + (updated ? updated + ' of yours updated in place, ' : '') + (leftOut ? leftOut + ' left out (deleted on the board), ' : '') + retire.size + ' retired, ' + (storeDir ? storeApplied + ' unsent edits taken from the store, ' : '') + (placePath ? placed + ' repositioned, ' : '') + state.els.length + ' elements total\n')

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.251
+import{Yl,Ae,oe}from"./chunk-bsdtxcdc.js";import{ch}from"./chunk-3r67mqsq.js";import{Fi}from"./chunk-ae5sep8s.js";import{_}from"./chunk-rykc5fv4.js";import{ge}from"./chunk-7kx9cssk.js";import{o,t,Yn}from"./chunk-hm4dvvtr.js";import{Ce}from"./chunk-bkjpsvyg.js";import{ui}from"./chunk-5jgj6f4x.js";import{e,r}from"./chunk-wk3xnwvn.js";import{A,F}from"./chunk-w6mhhrt2.js";import{d}from"./chunk-rqyyny1n.js";F();function k(b){if(b.remoteDialogSeen){return b}return{...b,remoteDialogSeen:!0}}function WRt(X){let l=_(15),{onDone:h,defaultFocusValue:g}=X,{storageV5:a}=ge(),s=Yn(Fi),S;if(l[0]!==s||l[1]!==h)S=function i(j){if(!s){return}h(j)},l[0]=s,l[1]=h,l[2]=S;else S=l[2];let i=S,y,v;if(l[3]!==a)y=()=>{Ae(k,a)},v=[a],l[3]=a,l[4]=y,l[5]=v;else y=l[4],v=l[5];A(y,v);let w;if(l[6]===d)w=[{label:"Enable Remote Control",description:"Opens a secure connection to claude.ai.",value:"enable"},{label:"Never mind",description:"You can always enable it later with /remote-control.",value:"dismiss"}],l[6]=w;else w=l[6];let q=w,x;if(l[7]===d)x=r(o,{marginBottom:1,flexDirection:"column",children:[e(t,{children:"Take this session with you and pick up right where you left off on any device. Open the Code tab in the Claude mobile app, or visit claude.ai/code in a browser."}),e(t,{children:" "}),e(t,{children:"The session keeps running on this machine. Use your other devices as a remote control. Disconnect anytime with /remote-control."})]}),l[7]=x;else x=l[7];const C=!s;let m;if(l[8]!==i)m=()=>i("dismiss"),l[8]=i,l[9]=m;else m=l[9];let O;if(l[10]!==g||l[11]!==i||l[12]!==C||l[13]!==m)O=e(ui,{title:"Remote Control",children:r(o,{flexDirection:"column",paddingX:2,paddingY:1,children:[x,e(o,{children:e(Ce,{defaultFocusValue:g,options:q,isDisabled:C,onChange:i,onCancel:m})})]})}),l[10]=g,l[11]=i,l[12]=C,l[13]=m,l[14]=O;else O=l[14];return O}function O8t(){if(oe().remoteDialogSeen)return!1;if(!ch())return!1;if(!Yl())return!1;return!0}
+export{WRt,O8t};

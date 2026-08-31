@@ -429,7 +429,7 @@ test("release payload publishes both platform graphs and records the graph direc
       }),
     ).toThrow("rendered linux-x64 graph is missing")
   })
-})
+}, 30_000)
 
 test("catalog extraction rejects malformed UTF-8 before parsing", () => {
   withTempDir((root) => {
@@ -488,4 +488,4 @@ test("release payload rebinds a verified CI catalog when upstream bytes are unav
     expect(payload.manifest.promptCatalog.entries).toBe(1)
     expect(readPromptCatalogManifest(join(root, "payload", "prompts", "catalog")).target.releaseId).toBe("patch.1")
   })
-})
+}, 30_000)

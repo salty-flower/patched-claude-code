@@ -78,6 +78,21 @@ test("ci reuses the canonical stage in the release audit", () => {
   expect(reuseStep).toContain("path: staging/${{ env.TARGET_VERSION }}")
 })
 
+test("ci runs tool tests on macOS using the canonical stage", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
+  const start = workflow.indexOf("  darwin-tool-test:\n")
+  expect(start).toBeGreaterThanOrEqual(0)
+  const next = workflow.indexOf("\n  verify:\n", start)
+  const job = workflow.slice(start, next === -1 ? workflow.length : next)
+
+  expect(job).toContain("name: darwin-tool-test (macos-15)")
+  expect(job).toContain("needs: [changes, canonical-platform-merge]")
+  expect(job).toContain("if: needs.changes.outputs.full == 'true'")
+  expect(job).toContain("runs-on: macos-15")
+  expect(job).toContain("canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}")
+  expect(job).toContain("run: bun run --cwd tools test")
+})
+
 test("ci handles workflow dispatch and rewritten push bases", () => {
   const classifyStep = workflowStep("Classify changed paths")
   const whitespaceStep = workflowStep("Check whitespace")

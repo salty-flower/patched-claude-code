@@ -21,3 +21,11 @@ test("pre-commit runs tool tests for runtime, workflow, and hook wiring edits", 
   expect(toolsTest).toContain("\\.github/workflows/.*\\.ya?ml")
   expect(toolsTest).toContain("\\.pre-commit-config\\.yaml")
 })
+
+test("pre-commit patch hooks use the shared current target by default", () => {
+  for (const id of ["verify-patches", "render-and-smoke-current-target"]) {
+    expect(hookBlock(id)).toContain(
+      `version="\${TARGET_VERSION:-${DEFAULT_TARGET_VERSION}}"`,
+    )
+  }
+})

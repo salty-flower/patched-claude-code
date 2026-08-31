@@ -8,7 +8,9 @@ test("PTY timeout escalates to SIGKILL when the child ignores SIGTERM", () => {
   expect(isExpectedTimeoutExitCode(143)).toBeFalse()
 })
 
-test("PTY timeout command returns after killing a TERM-resistant child", () => {
+// The contract under test is GNU timeout's TERM-then-SIGKILL behavior, which
+// macOS lacks outside Homebrew/nix coreutils; skip where the binary is absent.
+test.skipIf(!Bun.which("timeout"))("PTY timeout command returns after killing a TERM-resistant child", () => {
   const startedAt = performance.now()
   const result = Bun.spawnSync({
     cmd: [...timeoutCommand(1, 1), "bash", "-c", 'trap "" TERM; while :; do :; done'],

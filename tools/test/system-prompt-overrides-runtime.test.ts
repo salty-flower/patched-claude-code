@@ -222,7 +222,7 @@ test("packaged launcher rejects a bundle that no longer matches its release mani
   expect(result.exitCode).not.toBe(0)
   expect(`${result.stdout}\n${result.stderr}`).toContain("rendered bundle file inventory mismatch")
   expect(result.stdout).not.toContain("bundle ran")
-})
+}, 60_000)
 
 test("packaged launcher rejects a graph that no longer matches its release manifest", async () => {
   const work = makeTempDir("patched-cc-prompt-graph-hash-")

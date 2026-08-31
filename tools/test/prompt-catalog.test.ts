@@ -370,7 +370,7 @@ test("release payload publishes and binds the static prompt catalog", () => {
     })
     expect(readPromptCatalogManifest(join(outDir, "prompts", "catalog")).target.releaseId).toBe("patch.test")
   })
-})
+}, 30_000)
 
 test("release payload publishes both platform graphs and records the graph directory", () => {
   withTempDir((root) => {

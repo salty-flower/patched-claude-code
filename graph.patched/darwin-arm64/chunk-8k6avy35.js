@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.251
+import{Zwt,eTt,NNe,Dor,Oor,Lor,kEn,FNe,Mor}from"./chunk-8b25vs1j.js";import{execFile as d}from"child_process";import{existsSync as m}from"fs";class i{promise=null;start(){if(this.promise)return;this.promise=qwt()}reset(){this.promise=null}}var yor=new i;function QSr(t){if(!t)return{status:"ok",exitCode:0,errno:null,signal:null};let e=t,o=typeof e.signal==="string"&&e.signal?e.signal:null;if(typeof e.code==="string")return{status:"spawn_error",exitCode:null,errno:e.code,signal:null};if(e.killed===!0)return{status:"timeout",exitCode:null,errno:null,signal:o};if(o)return{status:"killed",exitCode:null,errno:null,signal:o};return{status:"exited",exitCode:typeof e.code==="number"?e.code:null,errno:null,signal:null}}function l(t,e){let o=Date.now();return new Promise((s)=>{try{d(t,e,{encoding:"utf-8",timeout:Lor,windowsHide:!0},(n,u)=>{s({stdout:u??"",...QSr(n),durationMs:Date.now()-o})})}catch(n){let u=n.code;s({stdout:"",status:"spawn_error",exitCode:null,errno:typeof u==="string"?u:null,signal:null,durationMs:Date.now()-o})}})}function r(t){return{status:t.status,exitCode:t.exitCode,errno:t.errno,signal:t.signal,durationMs:t.durationMs}}function qwt(){return(async()=>{{let t=Mor(),o=(await Promise.all(t.map(async({path:s,label:n})=>{if(!m(s))return{stdout:"",label:n,ok:!1};let{stdout:u,status:a}=await l(Dor,[...Oor,s]);return{stdout:u,label:n,ok:a==="ok"&&!!u}}))).find((s)=>s.ok);return{plistStdouts:o?[{stdout:o.stdout,label:o.label}]:[],hklmStdout:null,hkcuStdout:null,outcomes:{hklm:null,hkcu:null}}}if(FNe()){let[t,e]=await Promise.all([l(kEn,["query",Zwt,"/v",NNe]),l(kEn,["query",eTt,"/v",NNe])]);return{plistStdouts:null,hklmStdout:t.status==="ok"?t.stdout:null,hkcuStdout:e.status==="ok"?e.stdout:null,outcomes:{hklm:r(t),hkcu:r(e)}}}return{plistStdouts:null,hklmStdout:null,hkcuStdout:null,outcomes:{hklm:null,hkcu:null}}})()}function hEn(){yor.start()}function _En(){return yor.promise}
+export{yor,QSr,qwt,hEn,_En};

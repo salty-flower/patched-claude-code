@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.251
+import{n}from"./chunk-d0cr5d2v.js";import{m}from"./chunk-asme1eq2.js";import{x}from"./chunk-1e5y3pjf.js";import{MXe}from"./chunk-kc505vjh.js";import{qt,Rf,Umt}from"./chunk-esrvwhf8.js";import{i,ye,p,Pe}from"./chunk-kjzc23zf.js";var f=m(()=>p({server_instructions:i().optional(),server_instructions_by_server:Pe(i(),i()).optional(),tools:Pe(i(),i()).optional(),search_hints:Pe(i(),i()).optional(),param_descriptions:Pe(i(),Pe(i(),i())).optional(),prompts:Pe(i(),i()).optional(),skills:Pe(i(),i()).optional()})),l=m(()=>Pe(i(),ye()));function $K(e){if(!e.pluginSource)return;let{name:r,marketplace:t}=qt(e.pluginSource);if(!Rf(t)&&!Umt(r,t))return;let u=x("tengu_official_plugin_prompt_overrides",{}),o=l().safeParse(u);if(!o.success){n("tengu_official_plugin_prompt_overrides: GB payload is not an object; ignoring",{level:"error"});return}let a=o.data[r];if(a===void 0)return;let c=f().safeParse(a);if(!c.success){n(`tengu_official_plugin_prompt_overrides: entry for '${r}' failed schema (${c.error.issues[0]?.message}); using baked-in text`,{level:"error"});return}let s=c.data;if(Object.keys(s).length===0)return;return{...s,server_instructions_by_server:d(s.server_instructions_by_server),tools:d(s.tools),search_hints:d(s.search_hints),param_descriptions:d(s.param_descriptions),prompts:d(s.prompts),skills:d(s.skills)}}function d(e){if(e===void 0)return;let r=Object.create(null);return Object.assign(r,e)}function zot(e,r){if(!e)return;let t=e.server_instructions_by_server;if(t){let u=MXe(r),o=u&&t[u.serverName];if(o!==void 0)return o}return e.server_instructions}function Got(e,r){if(!r||!e.properties)return e;let t={...e.properties},u=!1;for(let[o,a]of Object.entries(r)){let c=t[o];if(c!==null&&typeof c==="object")t[o]={...c,description:a},u=!0}if(!u)return e;return{...e,properties:t}}
+export{$K,zot,Got};

@@ -56,7 +56,10 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     )
     if (targetUses251LaterSymbols) {
       expect(patched).toContain(
-        '.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";globalThis.__acc_disabled_footer=t==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(t).split(",").map((r)=>r.trim()).filter(Boolean);return t}).option("-c, --continue"',
+        'new U("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(e).split(",").map((r)=>r.trim()).filter(Boolean);return e}))',
+      )
+      expect(patched).not.toContain(
+        '.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";',
       )
       expect(patched).toContain('const Jme=f9t?.statusLine,__acc_hide_footer=Jme?.hideBuiltinFooter')
       expect(patched).toContain("return __acc_hide_footer?null:XGe}")
@@ -65,18 +68,61 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       expect(patched).toContain("let Eo=!__acc_hide_mode&&Wr&&Zi?")
       expect(patched).toContain("effort_level:lg(Ke)?tw(Ke,Ie):null")
       expect(patched).toContain("return{...Ea(S,Oe),...Pt&&{session_name:Pt},permission_mode:x,")
+      expect(patched).toContain("command_length:S.command?.length??0,padding:S.padding")
+      expect(patched).not.toContain("command_length:S.command.length,padding:S.padding")
+      expect(patched).toContain(
+        "S.addNotification,S.store],setup(){let S=null;return({addNotification:x,claudeAiLimits:P,mainLoopModel:j,effortValue:H,store:c})=>{",
+      )
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=Z")
+      expect(patched).toContain(
+        'd?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")',
+      )
+      expect(patched).toContain(
+        "o=vp((g)=>g.settings?.statusLine);Cnt(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})",
+      )
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=u")
+      expect(patched).toContain(
+        'o?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")',
+      )
+      expect(patched).toContain(
+        '__acc_hide_effort_item=W((E)=>E.settings.statusLine?.disabledFooter?.includes("effort_notification"))',
+      )
+      expect(patched).toContain('if(!XU||__acc_hide_effort_level){Ec("effort-level");return}')
       const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
       const linuxPatched = readdirSync(linuxGraphDir)
         .filter((file) => file.endsWith(".js"))
         .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
         .join("\n")
       expect(linuxPatched).toContain("const Xme=b9t?.statusLine,__acc_hide_footer=Xme?.hideBuiltinFooter")
+      expect(linuxPatched).toContain(
+        'new U("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?',
+      )
       expect(linuxPatched).toContain("return __acc_hide_footer?null:ZGe}")
       expect(linuxPatched).toContain("let __acc_hide_mode=z((jo)=>jo.settings.statusLine?.hideBuiltinFooter")
       expect(linuxPatched).toContain("let la=!__acc_hide_mode&&Ir&&qr?")
       expect(linuxPatched).toContain("let Io=!__acc_hide_mode&&qr&&Zi?")
       expect(linuxPatched).toContain("effort_level:ag(Ke)?tH(Ke,De):null")
       expect(linuxPatched).toContain("return{...Ea(b,Ne),...It&&{session_name:It},permission_mode:R,")
+      expect(linuxPatched).toContain("command_length:b.command?.length??0,padding:b.padding")
+      expect(linuxPatched).not.toContain("command_length:b.command.length,padding:b.padding")
+      expect(linuxPatched).toContain(
+        "b.addNotification,b.store],setup(){let b=null;return({addNotification:R,claudeAiLimits:I,mainLoopModel:L,effortValue:j,store:c})=>{",
+      )
+      expect(linuxPatched).toContain("globalThis.__acc_rate_limit_warning=Z")
+      expect(linuxPatched).toContain(
+        'd?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")',
+      )
+      expect(linuxPatched).toContain(
+        "o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})",
+      )
+      expect(linuxPatched).toContain("globalThis.__acc_clipboard_image_available=u")
+      expect(linuxPatched).toContain(
+        'o?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")',
+      )
+      expect(linuxPatched).toContain(
+        '__acc_hide_effort_item=z((E)=>E.settings.statusLine?.disabledFooter?.includes("effort_notification"))',
+      )
+      expect(linuxPatched).toContain('if(!zU||__acc_hide_effort_level){Ec("effort-level");return}')
       return
     }
     if (TARGET_VERSION === "2.1.250") {

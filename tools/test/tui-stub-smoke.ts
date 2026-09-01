@@ -176,6 +176,14 @@ async function main(): Promise<number> {
       console.error(tuiOutput)
       return 1
     }
+    const visibleBuiltinFooter = ["· /effort", "manual mode on", "? for shortcuts"].filter((text) =>
+      normalizedTuiOutput.includes(text),
+    )
+    if (visibleBuiltinFooter.length > 0) {
+      console.error(`PTY rendered built-in footer text despite --hide-builtin-footer: ${visibleBuiltinFooter.join(", ")}`)
+      console.error(tuiOutput)
+      return 1
+    }
     const renderedLaterCommands =
       normalizedTuiOutput.includes("[Pasted text #1 +11 lines]") &&
       normalizedTuiOutput.includes("/later list")

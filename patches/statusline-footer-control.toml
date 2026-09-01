@@ -13541,7 +13541,7 @@ assert_not_contains = '''return{...Sy(e,f),permission_mode:t,clipboard_image:{av
 name = "statusline-footer-control-cli-option-2-1-250"
 rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.1.252"
+applies_to = ">=2.1.250 <2.1.251"
 locator_kind = "literal"
 locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
 replacement = '''.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";globalThis.__acc_disabled_footer=t==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(t).split(",").map((r)=>r.trim()).filter(Boolean);return t}).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
@@ -13549,6 +13549,31 @@ replacement = '''.option("--hide-builtin-footer [items]","Hide built-in footer i
 kind = "static"
 name = "2.1.250 CLI footer option records the override"
 assert_contains = '''globalThis.__acc_disabled_footer=t==="all"'''
+
+[[patches]]
+name = "statusline-footer-control-cli-option-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+rationale = """
+Record the 2.1.251 footer override for both valued and bare CLI flags.
+
+Commander skips an optional argument parser when the flag has no value. The
+2.1.251 graph uses Option constructor `U`; its `preset("all")` routes the bare
+form through the same parser as explicit item lists. Cleanup condition:
+upstream provides an equivalent footer option with bare-flag coverage.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+locator_kind = "literal"
+locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+replacement = '''.addOption(new U("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(e).split(",").map((r)=>r.trim()).filter(Boolean);return e})).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 bare and valued CLI flags record the override"
+assert_contains = '''new U("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.250 optional parser is absent"
+assert_not_contains = '''.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";'''
 
 [[patches]]
 name = "statusline-json-permission-mode-2-1-250"
@@ -14518,6 +14543,10 @@ replacement = '''command_length:S.command?.length??0,padding:S.padding'''
 kind = "static"
 assert_contains = '''command_length:S.command?.length??0,padding:S.padding'''
 assert_not_contains = '''command_length:S.command.length,padding:S.padding'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.233 mount symbols absent"
+assert_not_contains = '''command_length:e.command?.length??0,padding:e.padding'''
 
 [[patches]]
 name = "statusline-footer-control-command-length-mount-2-1-251-linux"
@@ -14534,6 +14563,10 @@ replacement = '''command_length:b.command?.length??0,padding:b.padding'''
 kind = "static"
 assert_contains = '''command_length:b.command?.length??0,padding:b.padding'''
 assert_not_contains = '''command_length:b.command.length,padding:b.padding'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.233 mount symbols absent"
+assert_not_contains = '''command_length:e.command?.length??0,padding:e.padding'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-deps-2-1-251"
@@ -14554,6 +14587,10 @@ value = '''deps:(S)=>[S.claudeAiLimits,S.mainLoopModel,S.effortValue,S.addNotifi
 kind = "static"
 assert_contains = '''S.addNotification,S.store],setup(){let S=null;return({addNotification:x,claudeAiLimits:P,mainLoopModel:j,effortValue:H,store:c})=>{'''
 assert_not_contains = '''S.addNotification],setup(){let S=null;return({addNotification:x,claudeAiLimits:P,mainLoopModel:j,effortValue:H})=>{'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 dependency symbols absent"
+assert_not_contains = '''e.addNotification,e.store],setup(){let e=null;return({addNotification:t,claudeAiLimits:o,mainLoopModel:n,effortValue:r,store:c})=>{'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-deps-2-1-251-linux"
@@ -14574,6 +14611,10 @@ value = '''deps:(b)=>[b.claudeAiLimits,b.mainLoopModel,b.effortValue,b.addNotifi
 kind = "static"
 assert_contains = '''b.addNotification,b.store],setup(){let b=null;return({addNotification:R,claudeAiLimits:I,mainLoopModel:L,effortValue:j,store:c})=>{'''
 assert_not_contains = '''b.addNotification],setup(){let b=null;return({addNotification:R,claudeAiLimits:I,mainLoopModel:L,effortValue:j})=>{'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 dependency symbols absent"
+assert_not_contains = '''e.addNotification,e.store],setup(){let e=null;return({addNotification:t,claudeAiLimits:o,mainLoopModel:n,effortValue:r,store:c})=>{'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-251"
@@ -14593,7 +14634,7 @@ value = '''let Z=gan(P,j);if(!Z||Z===S)return;S=Z;let re=s4n(P,j,H),ue=P.rateLim
 [[patches.tests]]
 kind = "static"
 assert_contains = '''globalThis.__acc_rate_limit_warning=Z'''
-assert_not_contains = '''let Z=pan(I,L);if(!Z||Z===b)return;'''
+assert_not_contains = '''let s=V2e(o,n);if(!s||s===e)return;e=s;let a=K2e(o,n,r)'''
 
 [[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-251-linux"
@@ -14613,7 +14654,7 @@ value = '''let Z=pan(I,L);if(!Z||Z===b)return;b=Z;let re=tqn(I,L,j),ue=I.rateLim
 [[patches.tests]]
 kind = "static"
 assert_contains = '''globalThis.__acc_rate_limit_warning=Z'''
-assert_not_contains = '''let Z=gan(P,j);if(!Z||Z===S)return;'''
+assert_not_contains = '''let s=V2e(o,n);if(!s||s===e)return;e=s;let a=K2e(o,n,r)'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-context-2-1-251"
@@ -14634,6 +14675,10 @@ value = '''let{addNotification:a}=Or(),h=xt(),o=vp((g)=>g.settings?.statusLine);
 kind = "static"
 assert_contains = '''o=vp((g)=>g.settings?.statusLine);Cnt(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
 assert_not_contains = '''Cnt(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 clipboard context symbols absent"
+assert_not_contains = '''s=et((o)=>o.settings?.statusLine);ge(ut,{isTerminalFocused:e,canPasteImages:n,addNotification:i,clock:r,statusLine:s})'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-context-2-1-251-linux"
@@ -14654,6 +14699,10 @@ value = '''let{addNotification:a}=Dr(),h=Rt(),o=vp((g)=>g.settings?.statusLine);
 kind = "static"
 assert_contains = '''o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
 assert_not_contains = '''Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 clipboard context symbols absent"
+assert_not_contains = '''s=et((o)=>o.settings?.statusLine);ge(ut,{isTerminalFocused:e,canPasteImages:n,addNotification:i,clock:r,statusLine:s})'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-251"
@@ -14674,6 +14723,10 @@ value = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.c
 kind = "static"
 assert_contains = '''globalThis.__acc_clipboard_image_available=u'''
 assert_not_contains = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock],setup(){'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 clipboard probe symbols absent"
+assert_not_contains = '''let a=Date.now(),u=await Ce();globalThis.__acc_clipboard_image_available=u'''
 
 [[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-251-linux"
@@ -14694,6 +14747,10 @@ value = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.c
 kind = "static"
 assert_contains = '''globalThis.__acc_clipboard_image_available=u'''
 assert_not_contains = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock],setup(){'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 clipboard probe symbols absent"
+assert_not_contains = '''let a=Date.now(),u=await Ce();globalThis.__acc_clipboard_image_available=u'''
 
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-251"
@@ -14709,6 +14766,10 @@ replacement = '''{addNotification:Xi,removeNotification:Ec}=Or(),__acc_hide_effo
 kind = "static"
 assert_contains = '''__acc_hide_effort_all=W((E)=>E.settings.statusLine?.hideBuiltinFooter)'''
 assert_not_contains = '''if(kb.length&&UV())Xi({key:"ultrathink-active",'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 effort notification symbols absent"
+assert_not_contains = '''__acc_hide_effort_all=M((E)=>E.settings.statusLine?.hideBuiltinFooter)'''
 
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-251-linux"
@@ -14724,6 +14785,10 @@ replacement = '''{addNotification:Xi,removeNotification:Ec}=Dr(),__acc_hide_effo
 kind = "static"
 assert_contains = '''__acc_hide_effort_all=z((E)=>E.settings.statusLine?.hideBuiltinFooter)'''
 assert_not_contains = '''if(bb.length&&N5())Xi({key:"ultrathink-active",'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 effort notification symbols absent"
+assert_not_contains = '''__acc_hide_effort_all=M((E)=>E.settings.statusLine?.hideBuiltinFooter)'''
 
 [[patches]]
 name = "statusline-footer-control-effort-level-2-1-251"
@@ -14739,6 +14804,10 @@ replacement = '''XU=eMn(Poe,Aoe,ly),__acc_hide_effort_level=W((E)=>E.settings.st
 kind = "static"
 assert_contains = '''if(!XU||__acc_hide_effort_level){Ec("effort-level");return}'''
 assert_not_contains = '''if(!XU){Ec("effort-level");return}'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 effort-level symbols absent"
+assert_not_contains = '''if(!PT||__acc_hide_effort_level){Qr("effort-level");return}'''
 
 [[patches]]
 name = "statusline-footer-control-effort-level-2-1-251-linux"
@@ -14754,3 +14823,7 @@ replacement = '''zU=V$n(Aoe,Moe,hy),__acc_hide_effort_level=z((E)=>E.settings.st
 kind = "static"
 assert_contains = '''if(!zU||__acc_hide_effort_level){Ec("effort-level");return}'''
 assert_not_contains = '''if(!zU){Ec("effort-level");return}'''
+[[patches.tests]]
+kind = "static"
+name = "stale 2.1.246 effort-level symbols absent"
+assert_not_contains = '''if(!PT||__acc_hide_effort_level){Qr("effort-level");return}'''

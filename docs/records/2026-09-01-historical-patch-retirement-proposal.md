@@ -22,3 +22,15 @@ The exact retirement set is bound by the target ledger's proposal digest.
 - Signed proposal binds the remaining 78 retirements
   (`8d47105348e0b5081414e43a448346e04849552bcc0aacdcc3bd8159180f86d5`);
   registry catalog signed (`cfb0439d65b1e4a05c022b03dfd8cb4851342dccd7f6037ab845c65795295b2c`).
+
+## Follow-up Review
+
+The first 2.1.251 realization attached its parser directly to the optional
+`--hide-builtin-footer [items]` argument.
+Commander does not call that parser when the option is supplied without a value,
+so the documented bare flag left the footer visible in a rendered PTY run.
+
+The 2.1.251 CLI realization now gives the option a preset value of `all`
+and parses both the bare and explicit-value forms through the same callback.
+The retired startup bridge remains unnecessary because the corrected CLI option
+sets the global footer state before rendering begins.

@@ -113,6 +113,9 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         'd?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")',
       )
       expect(linuxPatched).toContain(
+        "o=kf((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})",
+      )
+      expect(linuxPatched).not.toContain(
         "o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})",
       )
       expect(linuxPatched).toContain("globalThis.__acc_clipboard_image_available=u")

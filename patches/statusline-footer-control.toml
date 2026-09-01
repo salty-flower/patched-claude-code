@@ -14685,7 +14685,7 @@ name = "statusline-footer-control-clipboard-image-hint-context-2-1-251-linux"
 target_version = "2.1.251"
 applies_to = ">=2.1.251 <2.1.252"
 platforms = ["linux-x64"]
-rationale = "Pass selected status-line settings from 2.1.251 Linux host KIt into Ent; the selector is vp and the registry consumes statusLine."
+rationale = "Pass selected status-line settings from 2.1.251 Linux host KIt into Ent; the Linux selector is kf and the registry consumes statusLine."
 rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
 locator_kind = "ast_transform"
 [patches.ast]
@@ -14694,11 +14694,15 @@ match = { node = "FunctionDeclaration", function_name = "KIt", strings = ["isTer
 [patches.transform]
 op = "replace_substring"
 find = '''let{addNotification:a}=Dr(),h=Rt();Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
-value = '''let{addNotification:a}=Dr(),h=Rt(),o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
+value = '''let{addNotification:a}=Dr(),h=Rt(),o=kf((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
 [[patches.tests]]
 kind = "static"
-assert_contains = '''o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
+assert_contains = '''o=kf((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
 assert_not_contains = '''Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
+[[patches.tests]]
+kind = "static"
+name = "Darwin clipboard context selector absent from Linux"
+assert_not_contains = '''o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
 [[patches.tests]]
 kind = "static"
 name = "stale 2.1.246 clipboard context symbols absent"

@@ -486,17 +486,29 @@
     {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-clipboard-image-hint",
-      "disposition": "retired"
+      "disposition": "ported",
+      "patchEntries": [
+        "statusline-footer-control-clipboard-image-hint-2-1-251",
+        "statusline-footer-control-clipboard-image-hint-2-1-251-linux"
+      ]
     },
     {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-clipboard-image-hint-context",
-      "disposition": "retired"
+      "disposition": "ported",
+      "patchEntries": [
+        "statusline-footer-control-clipboard-image-hint-context-2-1-251",
+        "statusline-footer-control-clipboard-image-hint-context-2-1-251-linux"
+      ]
     },
     {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-command-length-mount",
-      "disposition": "retired"
+      "disposition": "ported",
+      "patchEntries": [
+        "statusline-footer-control-command-length-mount-2-1-251",
+        "statusline-footer-control-command-length-mount-2-1-251-linux"
+      ]
     },
     {
       "familyId": "statusline-footer-control",
@@ -509,12 +521,20 @@
     {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-effort-level",
-      "disposition": "retired"
+      "disposition": "ported",
+      "patchEntries": [
+        "statusline-footer-control-effort-level-2-1-251",
+        "statusline-footer-control-effort-level-2-1-251-linux"
+      ]
     },
     {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-effort-notification",
-      "disposition": "retired"
+      "disposition": "ported",
+      "patchEntries": [
+        "statusline-footer-control-effort-notification-2-1-251",
+        "statusline-footer-control-effort-notification-2-1-251-linux"
+      ]
     },
     {
       "familyId": "statusline-footer-control",
@@ -546,12 +566,20 @@
     {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-rate-limit-warning",
-      "disposition": "retired"
+      "disposition": "ported",
+      "patchEntries": [
+        "statusline-footer-control-rate-limit-warning-2-1-251",
+        "statusline-footer-control-rate-limit-warning-2-1-251-linux"
+      ]
     },
     {
       "familyId": "statusline-footer-control",
       "invariantId": "statusline-footer-control-rate-limit-warning-deps",
-      "disposition": "retired"
+      "disposition": "ported",
+      "patchEntries": [
+        "statusline-footer-control-rate-limit-warning-deps-2-1-251",
+        "statusline-footer-control-rate-limit-warning-deps-2-1-251-linux"
+      ]
     },
     {
       "familyId": "statusline-footer-control",
@@ -870,5 +898,10 @@
     "evidenceRefs": [
       "docs/records/2026-09-01-historical-patch-retirement-proposal.md"
     ]
+  },
+  "retirementAcknowledgement": {
+    "approvedBy": "salty-flower",
+    "approvedAt": "2026-09-01",
+    "proposalSha256": "8d47105348e0b5081414e43a448346e04849552bcc0aacdcc3bd8159180f86d5"
   }
 }

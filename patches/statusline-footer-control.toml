@@ -14502,3 +14502,255 @@ assert_contains = 'let Io=!__acc_hide_mode&&qr&&Zi?'
 kind = "static"
 name = "stale 2.1.250 symbols absent"
 assert_not_contains = 'let Io=qr&&Zi?'
+
+[[patches]]
+name = "statusline-footer-control-command-length-mount-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["darwin-arm64"]
+rationale = "Avoid a missing-command crash in 2.1.251 Darwin mount telemetry; the graph uses S.command.length."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+locator_pattern = '''command_length:S.command.length,padding:S.padding'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''command_length:S.command?.length??0,padding:S.padding'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''command_length:S.command?.length??0,padding:S.padding'''
+assert_not_contains = '''command_length:S.command.length,padding:S.padding'''
+
+[[patches]]
+name = "statusline-footer-control-command-length-mount-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["linux-x64"]
+rationale = "Avoid a missing-command crash in 2.1.251 Linux mount telemetry; the graph uses b.command.length."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+locator_pattern = '''command_length:b.command.length,padding:b.padding'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''command_length:b.command?.length??0,padding:b.padding'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''command_length:b.command?.length??0,padding:b.padding'''
+assert_not_contains = '''command_length:b.command.length,padding:b.padding'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-deps-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["darwin-arm64"]
+rationale = "Pass the 2.1.251 Darwin store into the rate-limit registry; its callback uses x, P, j, and H."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "rate-limit-warning" }
+[patches.transform]
+op = "replace_substring"
+find = '''deps:(S)=>[S.claudeAiLimits,S.mainLoopModel,S.effortValue,S.addNotification],setup(){let S=null;return({addNotification:x,claudeAiLimits:P,mainLoopModel:j,effortValue:H})=>{'''
+value = '''deps:(S)=>[S.claudeAiLimits,S.mainLoopModel,S.effortValue,S.addNotification,S.store],setup(){let S=null;return({addNotification:x,claudeAiLimits:P,mainLoopModel:j,effortValue:H,store:c})=>{'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''S.addNotification,S.store],setup(){let S=null;return({addNotification:x,claudeAiLimits:P,mainLoopModel:j,effortValue:H,store:c})=>{'''
+assert_not_contains = '''S.addNotification],setup(){let S=null;return({addNotification:x,claudeAiLimits:P,mainLoopModel:j,effortValue:H})=>{'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-deps-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["linux-x64"]
+rationale = "Pass the 2.1.251 Linux store into the rate-limit registry; its callback uses R, I, L, and j."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "rate-limit-warning" }
+[patches.transform]
+op = "replace_substring"
+find = '''deps:(b)=>[b.claudeAiLimits,b.mainLoopModel,b.effortValue,b.addNotification],setup(){let b=null;return({addNotification:R,claudeAiLimits:I,mainLoopModel:L,effortValue:j})=>{'''
+value = '''deps:(b)=>[b.claudeAiLimits,b.mainLoopModel,b.effortValue,b.addNotification,b.store],setup(){let b=null;return({addNotification:R,claudeAiLimits:I,mainLoopModel:L,effortValue:j,store:c})=>{'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''b.addNotification,b.store],setup(){let b=null;return({addNotification:R,claudeAiLimits:I,mainLoopModel:L,effortValue:j,store:c})=>{'''
+assert_not_contains = '''b.addNotification],setup(){let b=null;return({addNotification:R,claudeAiLimits:I,mainLoopModel:L,effortValue:j})=>{'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["darwin-arm64"]
+rationale = "Publish Darwin warning text from gan while gating its notification; supplemental and overage helpers are s4n and i4n."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "rate-limit-warning" }
+[patches.transform]
+op = "replace_substring"
+find = '''let Z=gan(P,j);if(!Z||Z===S)return;S=Z;let re=s4n(P,j,H),ue=P.rateLimitType==="overage"?i4n(j):null;if(x({key:"rate-limit-warning",'''
+value = '''let Z=gan(P,j);if(!Z||Z===S)return;S=Z;let re=s4n(P,j,H),ue=P.rateLimitType==="overage"?i4n(j):null,d=c.getState().settings?.statusLine,__acc_hide_rate_limit_warning=d?.hideBuiltinFooter||d?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer");globalThis.__acc_rate_limit_warning=Z;if(!__acc_hide_rate_limit_warning&&x({key:"rate-limit-warning",'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''globalThis.__acc_rate_limit_warning=Z'''
+assert_not_contains = '''let Z=pan(I,L);if(!Z||Z===b)return;'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["linux-x64"]
+rationale = "Publish Linux warning text from pan while gating its notification; supplemental and overage helpers are tqn and eqn."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "rate-limit-warning" }
+[patches.transform]
+op = "replace_substring"
+find = '''let Z=pan(I,L);if(!Z||Z===b)return;b=Z;let re=tqn(I,L,j),ue=I.rateLimitType==="overage"?eqn(L):null;if(R({key:"rate-limit-warning",'''
+value = '''let Z=pan(I,L);if(!Z||Z===b)return;b=Z;let re=tqn(I,L,j),ue=I.rateLimitType==="overage"?eqn(L):null,d=c.getState().settings?.statusLine,__acc_hide_rate_limit_warning=d?.hideBuiltinFooter||d?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer");globalThis.__acc_rate_limit_warning=Z;if(!__acc_hide_rate_limit_warning&&R({key:"rate-limit-warning",'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''globalThis.__acc_rate_limit_warning=Z'''
+assert_not_contains = '''let Z=gan(P,j);if(!Z||Z===S)return;'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-context-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["darwin-arm64"]
+rationale = "Pass selected status-line settings from 2.1.251 Darwin host K0t into Cnt; the selector is vp and the registry consumes statusLine."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "K0t", strings = ["isTerminalFocused", "canPasteImages"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let{addNotification:a}=Or(),h=xt();Cnt(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
+value = '''let{addNotification:a}=Or(),h=xt(),o=vp((g)=>g.settings?.statusLine);Cnt(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''o=vp((g)=>g.settings?.statusLine);Cnt(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
+assert_not_contains = '''Cnt(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-context-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["linux-x64"]
+rationale = "Pass selected status-line settings from 2.1.251 Linux host KIt into Ent; the selector is vp and the registry consumes statusLine."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "KIt", strings = ["isTerminalFocused", "canPasteImages"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let{addNotification:a}=Dr(),h=Rt();Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
+value = '''let{addNotification:a}=Dr(),h=Rt(),o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''o=vp((g)=>g.settings?.statusLine);Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h,statusLine:o})'''
+assert_not_contains = '''Ent(Te,{isTerminalFocused:n,canPasteImages:l,addNotification:a,clock:h})'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["darwin-arm64"]
+rationale = "Publish the 2.1.251 Darwin clipboard probe P8n result and gate notification key pe; debounce and throttle are Ce and ye."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "clipboard-image-hint" }
+[patches.transform]
+op = "replace_substring"
+find = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock],setup(){let n=null,l=0,a=null;return({isTerminalFocused:h,canPasteImages:c,addNotification:s,clock:i})=>{let d=n??h;if(n=h,!c||!h||d)return;return a?.(),a=i.setTimeout(async()=>{a=null;let m=Date.now();if(m-l<ye)return;if(await P8n())l=m,s({key:pe,'''
+value = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock,n.statusLine],setup(){let n=null,l=0,a=null;return({isTerminalFocused:h,canPasteImages:c,addNotification:s,clock:i,statusLine:o})=>{let d=n??h;if(n=h,!c||!h||d)return;let g=o?.hideBuiltinFooter||o?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("footer");return a?.(),a=i.setTimeout(async()=>{a=null;let m=Date.now(),u=await P8n();globalThis.__acc_clipboard_image_available=u;if(m-l<ye)return;if(u)l=m,!g&&s({key:pe,'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''globalThis.__acc_clipboard_image_available=u'''
+assert_not_contains = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock],setup(){'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["linux-x64"]
+rationale = "Publish the 2.1.251 Linux clipboard probe v6n result and gate notification key pe; debounce and throttle are Ce and ye."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "id", string = "clipboard-image-hint" }
+[patches.transform]
+op = "replace_substring"
+find = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock],setup(){let n=null,l=0,a=null;return({isTerminalFocused:h,canPasteImages:c,addNotification:s,clock:i})=>{let d=n??h;if(n=h,!c||!h||d)return;return a?.(),a=i.setTimeout(async()=>{a=null;let m=Date.now();if(m-l<ye)return;if(await v6n())l=m,s({key:pe,'''
+value = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock,n.statusLine],setup(){let n=null,l=0,a=null;return({isTerminalFocused:h,canPasteImages:c,addNotification:s,clock:i,statusLine:o})=>{let d=n??h;if(n=h,!c||!h||d)return;let g=o?.hideBuiltinFooter||o?.disabledFooter?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")||globalThis.__acc_disabled_footer?.includes("footer");return a?.(),a=i.setTimeout(async()=>{a=null;let m=Date.now(),u=await v6n();globalThis.__acc_clipboard_image_available=u;if(m-l<ye)return;if(u)l=m,!g&&s({key:pe,'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''globalThis.__acc_clipboard_image_available=u'''
+assert_not_contains = '''deps:(n)=>[n.isTerminalFocused,n.canPasteImages,n.addNotification,n.clock],setup(){'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["darwin-arm64"]
+rationale = "Gate the 2.1.251 Darwin ultrathink notification in jVe using selector W and globals; the effect uses kb and UV."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''{addNotification:Xi,removeNotification:Ec}=Or();A(()=>{if(kb.length&&UV())Xi({key:"ultrathink-active",'''
+replacement = '''{addNotification:Xi,removeNotification:Ec}=Or(),__acc_hide_effort_all=W((E)=>E.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=W((E)=>E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");A(()=>{if(!__acc_hide_effort_all&&!__acc_hide_effort_item&&kb.length&&UV())Xi({key:"ultrathink-active",'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''__acc_hide_effort_all=W((E)=>E.settings.statusLine?.hideBuiltinFooter)'''
+assert_not_contains = '''if(kb.length&&UV())Xi({key:"ultrathink-active",'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["linux-x64"]
+rationale = "Gate the 2.1.251 Linux ultrathink notification in TVe using selector z and globals; the effect uses bb and N5."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''{addNotification:Xi,removeNotification:Ec}=Dr();A(()=>{if(bb.length&&N5())Xi({key:"ultrathink-active",'''
+replacement = '''{addNotification:Xi,removeNotification:Ec}=Dr(),__acc_hide_effort_all=z((E)=>E.settings.statusLine?.hideBuiltinFooter),__acc_hide_effort_item=z((E)=>E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");A(()=>{if(!__acc_hide_effort_all&&!__acc_hide_effort_item&&bb.length&&N5())Xi({key:"ultrathink-active",'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''__acc_hide_effort_all=z((E)=>E.settings.statusLine?.hideBuiltinFooter)'''
+assert_not_contains = '''if(bb.length&&N5())Xi({key:"ultrathink-active",'''
+
+[[patches]]
+name = "statusline-footer-control-effort-level-2-1-251"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["darwin-arm64"]
+rationale = "Gate the persistent 2.1.251 Darwin effort indicator in jVe; its computed value is XU and selector W supplies footer settings."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''XU=eMn(Poe,Aoe,ly);A(()=>{if(!XU){Ec("effort-level");return}'''
+replacement = '''XU=eMn(Poe,Aoe,ly),__acc_hide_effort_level=W((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");A(()=>{if(!XU||__acc_hide_effort_level){Ec("effort-level");return}'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''if(!XU||__acc_hide_effort_level){Ec("effort-level");return}'''
+assert_not_contains = '''if(!XU){Ec("effort-level");return}'''
+
+[[patches]]
+name = "statusline-footer-control-effort-level-2-1-251-linux"
+target_version = "2.1.251"
+applies_to = ">=2.1.251 <2.1.252"
+platforms = ["linux-x64"]
+rationale = "Gate the persistent 2.1.251 Linux effort indicator in TVe; its computed value is zU and selector z supplies footer settings."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''zU=V$n(Aoe,Moe,hy);A(()=>{if(!zU){Ec("effort-level");return}'''
+replacement = '''zU=V$n(Aoe,Moe,hy),__acc_hide_effort_level=z((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");A(()=>{if(!zU||__acc_hide_effort_level){Ec("effort-level");return}'''
+[[patches.tests]]
+kind = "static"
+assert_contains = '''if(!zU||__acc_hide_effort_level){Ec("effort-level");return}'''
+assert_not_contains = '''if(!zU){Ec("effort-level");return}'''

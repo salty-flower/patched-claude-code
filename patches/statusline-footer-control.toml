@@ -14303,11 +14303,15 @@ match = { node = "FunctionDeclaration", function_name = "mpe", strings = ["hideV
 [patches.transform]
 op = "replace_substring"
 find = '''return XGe}'''
-value = '''return __acc_hide_footer?null:XGe}'''
+value = '''return __acc_hide_footer?nz:XGe}'''
 [[patches.tests]]
 kind = "static"
 name = "current 2.1.251 symbols"
-assert_contains = 'return __acc_hide_footer?null:XGe}'
+assert_contains = 'return __acc_hide_footer?nz:XGe}'
+[[patches.tests]]
+kind = "static"
+name = "custom status line is preserved when the built-in footer is hidden"
+assert_not_contains = 'return __acc_hide_footer?null:XGe}'
 [[patches.tests]]
 kind = "static"
 name = "stale 2.1.250 symbols absent"
@@ -14434,11 +14438,15 @@ match = { node = "FunctionDeclaration", function_name = "dpe", strings = ["hideV
 [patches.transform]
 op = "replace_substring"
 find = '''return ZGe}'''
-value = '''return __acc_hide_footer?null:ZGe}'''
+value = '''return __acc_hide_footer?RQ:ZGe}'''
 [[patches.tests]]
 kind = "static"
 name = "current 2.1.251 symbols"
-assert_contains = 'return __acc_hide_footer?null:ZGe}'
+assert_contains = 'return __acc_hide_footer?RQ:ZGe}'
+[[patches.tests]]
+kind = "static"
+name = "custom status line is preserved when the built-in footer is hidden"
+assert_not_contains = 'return __acc_hide_footer?null:ZGe}'
 [[patches.tests]]
 kind = "static"
 name = "stale 2.1.250 symbols absent"

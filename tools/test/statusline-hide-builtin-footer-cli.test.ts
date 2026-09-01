@@ -62,7 +62,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         '.option("--hide-builtin-footer [items]","Hide built-in footer items",(e)=>{let t=e??"all";',
       )
       expect(patched).toContain('const Jme=f9t?.statusLine,__acc_hide_footer=Jme?.hideBuiltinFooter')
-      expect(patched).toContain("return __acc_hide_footer?null:XGe}")
+      expect(patched).toContain("return __acc_hide_footer?nz:XGe}")
+      expect(patched).not.toContain("return __acc_hide_footer?null:XGe}")
       expect(patched).toContain("let __acc_hide_mode=W((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter")
       expect(patched).toContain("let la=!__acc_hide_mode&&Er&&Wr?")
       expect(patched).toContain("let Eo=!__acc_hide_mode&&Wr&&Zi?")
@@ -97,7 +98,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       expect(linuxPatched).toContain(
         'new U("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?',
       )
-      expect(linuxPatched).toContain("return __acc_hide_footer?null:ZGe}")
+      expect(linuxPatched).toContain("return __acc_hide_footer?RQ:ZGe}")
+      expect(linuxPatched).not.toContain("return __acc_hide_footer?null:ZGe}")
       expect(linuxPatched).toContain("let __acc_hide_mode=z((jo)=>jo.settings.statusLine?.hideBuiltinFooter")
       expect(linuxPatched).toContain("let la=!__acc_hide_mode&&Ir&&qr?")
       expect(linuxPatched).toContain("let Io=!__acc_hide_mode&&qr&&Zi?")

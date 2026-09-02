@@ -2656,7 +2656,7 @@ assert_not_contains = '''headers:Hi([{...r!=null?{"anthropic-user-profile-id":r}
 [[patches]]
 name = "inject-per-model-into-beta-create-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.258"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
 locator_kind = "literal"
 locator_pattern = '''return this._client.post("/v1/messages?beta=true",{body:i,timeout:a??600000,...t,headers:c([{...s?.toString()!=null?{"anthropic-beta":s?.toString()}:void 0,...n!=null?{"anthropic-user-profile-id":n}:void 0},o,t?.headers]),stream:r.stream??!1})'''
@@ -2674,9 +2674,28 @@ name = "2.1.250 beta create drops stale header helper"
 assert_not_contains = '''timeout:c??600000,...(Vb?{defaultBaseURL:Vb}:{})'''
 
 [[patches]]
+name = "inject-per-model-into-beta-create-2-1-258"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+rationale = "Re-anchored to the 2.1.258 `Te.create` request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `o` is the normalized request body, `a` the timeout, `n` and `s` the beta and user-profile locals, `i` the helper-header object, `t` the request options, and `r` the stream options."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages?beta=true",{body:o,timeout:a??600000,...t,headers:c([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0,...s!=null?{"anthropic-user-profile-id":s}:void 0},i,t?.headers]),stream:r.stream??!1})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages?beta=true",{body:o,timeout:a??600000,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:c([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0,...s!=null?{"anthropic-user-profile-id":s}:void 0},i,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])]),stream:r.stream??!1})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 beta create routing"
+assert_contains = '''timeout:a??600000,...(Vb?{defaultBaseURL:Vb}:{})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 beta create drops stale symbols"
+assert_not_contains = '''body:i,timeout:a??600000'''
+
+[[patches]]
 name = "inject-per-model-into-nonbeta-create-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.258"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
 locator_kind = "literal"
 locator_pattern = '''return this._client.post("/v1/messages",{body:s,timeout:n??600000,...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},i,t?.headers]),stream:e.stream??!1})'''
@@ -2689,9 +2708,28 @@ name = "2.1.250 non-beta create routing"
 assert_contains = '''ANTHROPIC_MODEL_API_KEY_'''
 
 [[patches]]
+name = "inject-per-model-into-nonbeta-create-2-1-258"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+rationale = "Re-anchored to the 2.1.258 `Te.create` request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `n` is the normalized request body, `s` the timeout, `r` the user-profile local, `o` the helper-header object, `t` the request options, and `e` the stream options."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages",{body:n,timeout:s??600000,...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},o,t?.headers]),stream:e.stream??!1})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages",{body:n,timeout:s??600000,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},o,t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])]),stream:e.stream??!1})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 non-beta create routing"
+assert_contains = '''timeout:s??600000,...(Vb?{defaultBaseURL:Vb}:{})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 non-beta create drops stale symbols"
+assert_not_contains = '''body:s,timeout:n??600000'''
+
+[[patches]]
 name = "inject-per-model-into-beta-count-tokens-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.258"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
 locator_kind = "literal"
 locator_pattern = '''return this._client.post("/v1/messages/count_tokens?beta=true",{body:i,...t,headers:c([{"anthropic-beta":[...s??[],"token-counting-2024-11-01"].toString(),...n!=null?{"anthropic-user-profile-id":n}:void 0},t?.headers])})'''
@@ -2704,9 +2742,28 @@ name = "2.1.250 beta count tokens routing"
 assert_contains = '''ANTHROPIC_MODEL_AUTH_TOKEN_'''
 
 [[patches]]
+name = "inject-per-model-into-beta-count-tokens-2-1-258"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
+rationale = "Re-anchored to the 2.1.258 `Te.countTokens` beta request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `r` is the normalized input, `n` the betas local, `s` the user-profile local, `o` the request body, and `t` the request options."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens?beta=true",{body:o,...t,headers:c([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString(),...s!=null?{"anthropic-user-profile-id":s}:void 0},t?.headers])})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+o.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens?beta=true",{body:o,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:c([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString(),...s!=null?{"anthropic-user-profile-id":s}:void 0},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 beta count tokens routing"
+assert_contains = '''body:o,...(Vb?{defaultBaseURL:Vb}:{})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 beta count tokens drops stale symbols"
+assert_not_contains = '''body:i,...(Vb?{defaultBaseURL:Vb}:{})'''
+
+[[patches]]
 name = "inject-per-model-into-nonbeta-count-tokens-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.258"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
 locator_kind = "literal"
 locator_pattern = '''return this._client.post("/v1/messages/count_tokens",{body:s,...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers])})'''
@@ -2717,3 +2774,22 @@ replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+s.model?.replace
 kind = "static"
 name = "2.1.250 non-beta count tokens routing"
 assert_contains = '''ANTHROPIC_MODEL_BASE_URL_'''
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-count-tokens-2-1-258"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
+rationale = "Re-anchored to the 2.1.258 `Te.countTokens` non-beta request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `r` is the user-profile local, `n` the normalized request body, and `t` the request options."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens",{body:n,...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers])})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+n.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens",{body:n,...(Vb?{defaultBaseURL:Vb}:{}),...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 non-beta count tokens routing"
+assert_contains = '''body:n,...(Vb?{defaultBaseURL:Vb}:{})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 non-beta count tokens drops stale symbols"
+assert_not_contains = '''body:s,...(Vb?{defaultBaseURL:Vb}:{})'''

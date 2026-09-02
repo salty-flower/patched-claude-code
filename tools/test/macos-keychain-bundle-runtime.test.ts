@@ -146,6 +146,25 @@ const HARNESS_SYMBOLS_2_1_241: HarnessSymbols = {
   doctor: "Dkw",
 }
 
+const HARNESS_SYMBOLS_2_1_258: HarnessSymbols = {
+  entrypoint: /\bLt\(\);var __acc_linux_/,
+  telemetry: "m",
+  enableConfigs: "k",
+  oauthSaver: "sVt",
+  accessor: "wn",
+  legacyWrite: "vir",
+  legacyReadSync: "npe",
+  legacyDelete: "sB",
+  legacyReadAsync: "_pe",
+  sessionStore: "zs",
+  resume: "zs",
+  cleanup: "Ge",
+  pluginEvalInit: "Kuf",
+  pluginFs: "rM",
+  pluginEval: "Ws",
+  doctor: "ge",
+}
+
 const HARNESS_SYMBOLS_2_1_228: HarnessSymbols = {
   entrypoint: /\bpLE\(\);var __acc_linux_/,
   telemetry: "IW",
@@ -185,6 +204,7 @@ const HARNESS_SYMBOLS_LEGACY: HarnessSymbols = {
 }
 
 function harnessSymbols(): HarnessSymbols {
+  if (isVersionAtLeast(targetVersion(), "2.1.258")) return HARNESS_SYMBOLS_2_1_258
   if (isVersionAtLeast(targetVersion(), "2.1.241")) return HARNESS_SYMBOLS_2_1_241
   if (isVersionAtLeast(targetVersion(), "2.1.238")) return HARNESS_SYMBOLS_2_1_238
   if (isVersionAtLeast(targetVersion(), "2.1.234")) return HARNESS_SYMBOLS_2_1_234

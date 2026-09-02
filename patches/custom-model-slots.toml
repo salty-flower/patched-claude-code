@@ -765,7 +765,7 @@ assert_contains = '''return __acc_custom_effort}'''
 [[patches]]
 name = "append-second-custom-model-option-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.258"
 rationale = "Append a second environment-configured row after the upstream custom-model row. This is the 2.1.250 minified-symbol variant."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
 locator_kind = "ast_transform"
@@ -812,7 +812,7 @@ assert_contains = '''if(n===a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{val
 [[patches]]
 name = "recognize-second-custom-model-option-2-1-250"
 target_version = "2.1.250"
-applies_to = ">=2.1.250 <2.2.0"
+applies_to = ">=2.1.250 <2.1.258"
 rationale = "Recognize the second configured custom model in direct parsing paths. This is the 2.1.250 minified-symbol variant."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
 locator_kind = "ast_transform"
@@ -887,7 +887,7 @@ assert_not_contains = '''function pe(e){return Ue(S(e))?.default_effort??"high"}
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["linux-x64"]
 rationale = """
 This is the 2.1.251 Linux minified-symbol variant of
@@ -921,7 +921,7 @@ assert_not_contains = '''return R(__acc_custom_effort,e)'''
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["linux-x64"]
 rationale = """
 This is the 2.1.251 Linux minified-symbol variant of
@@ -954,7 +954,7 @@ assert_not_contains = '''function _le(e){return dc(Ye(e))?.default_effort??"high
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-251"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["darwin-arm64"]
 rationale = """
 This is the 2.1.251 Darwin minified-symbol variant of
@@ -988,7 +988,7 @@ assert_not_contains = '''return R(__acc_custom_effort,e)'''
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-251"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.2.0"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["darwin-arm64"]
 rationale = """
 This is the 2.1.251 Darwin minified-symbol variant of
@@ -1017,3 +1017,147 @@ assert_contains = '''return __acc_custom_effort}}return Ql(Ye(e))?.default_effor
 kind = "static"
 name = "2.1.251 Darwin default effort drops stale locator"
 assert_not_contains = '''function Sle(e){return dc(Ye(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-258"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+rationale = "Append a second environment-configured row after the upstream custom-model row. The 2.1.258 picker uses local model binding d and row list o."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(d&&!o.some((B)=>B.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!o.some((B)=>B.value===__acc_custom_model_2))o.push({value:__acc_custom_model_2,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 second custom model option is appended"
+assert_contains = '''let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 second custom model drops stale symbols"
+assert_not_contains = '''let __acc_custom_model_2=g.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+[[patches]]
+name = "recognize-second-custom-model-option-2-1-258"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+rationale = "Recognize the second configured custom model in direct parsing paths. The 2.1.258 parser uses the rzt custom-option predicate and n model input."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source_regex = '''^if\([A-Za-z_$][A-Za-z0-9_$]*\(n\)\)return\{recognized:!0\};$''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(n===a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 second custom model is recognized"
+assert_contains = '''if(n===a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 recognition drops stale direct enum check"
+assert_not_contains = '''if(t===a.ANTHROPIC_CUSTOM_MODEL_OPTION)return{recognized:!0};'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-258-darwin"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Resolve a configured custom model's local effort before the global override. The 2.1.258 Darwin resolver is Mw with support gate yh, launch helper wN, environment helper GH, and return helper x."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Mw", source = '''function Mw(e,n,{honorLaunchPin:o=!0}={}){if(!yh(e))return;let r=o&&wN(e),u=k(e),d=GH();if(d===null&&!r)return;return x(d??(r?u:void 0)??n??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return x(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin custom models use local effort"
+assert_contains = '''return x(__acc_custom_effort,e)'''
+assert_not_contains = '''return _(__acc_custom_effort,e)'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-258-linux"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Resolve a configured custom model's local effort before the global override. The 2.1.258 Linux resolver is $w with support gate hh, launch helper mO, environment helper DR, and return helper x."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$w", source = '''function $w(e,n,{honorLaunchPin:o=!0}={}){if(!hh(e))return;let r=o&&mO(e),u=k(e),d=DR();if(d===null&&!r)return;return x(d??(r?u:void 0)??n??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return x(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux custom models use local effort"
+assert_contains = '''return x(__acc_custom_effort,e)'''
+assert_not_contains = '''return _(__acc_custom_effort,e)'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-258-darwin"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Show either custom option's model-local effort as its picker default. The 2.1.258 Darwin getter is ne and reads model metadata through Za(ze(e))."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "ne", source = '''function ne(e){return Za(ze(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin custom models have local picker defaults"
+assert_contains = '''return __acc_custom_effort}}return Za(ze(e))?.default_effort??"high"}'''
+assert_not_contains = '''function X(e){return Ql(Ye(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-258-linux"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Show either custom option's model-local effort as its picker default. The 2.1.258 Linux getter is ne and reads model metadata through Za(Ve(e))."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "ne", source = '''function ne(e){return Za(Ve(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux custom models have local picker defaults"
+assert_contains = '''return __acc_custom_effort}}return Za(Ve(e))?.default_effort??"high"}'''
+assert_not_contains = '''function X(e){return Ql(Xe(e))?.default_effort??"high"}'''

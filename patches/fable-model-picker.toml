@@ -2137,7 +2137,7 @@ assert_contains = '''if(v("fable5"))C(d,V());return d.push(ve),G(d,e,"opus")'''
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["darwin-arm64"]
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
@@ -2168,6 +2168,38 @@ name = "2.1.251 Darwin primary picker drops stale symbols"
 assert_not_contains = '''if(v("fable5"))C(d,V());return d.push(ve),G(d,e,"opus")'''
 
 [[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-258-darwin"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
+
+This is the 2.1.258 Darwin variant, re-anchored in function `V9r`: the
+subscription primary branch returns through `AZe`, with local model option
+array `v`, catalog availability helper `pP`, row inserter `W8`, and Fable-row
+helper `FZe`. Cleanup condition: upstream includes Fable in this branch
+whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "V9r", strings = ['''return v.push(yen),AZe(v,e,"opus")''', '''pP("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return v.push(yen),AZe(v,e,"opus")'''
+value = '''if(pP("fable51"))W8(v,FZe());return v.push(yen),AZe(v,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin primary OAuth picker inserts Fable"
+assert_contains = '''if(pP("fable51"))W8(v,FZe());return v.push(yen),AZe(v,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin primary picker drops stale symbols"
+assert_not_contains = '''if(S("fable5"))C(d,V());return d.push(Oe),z(d,e,"opus")'''
+
+[[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-250-darwin"
 target_version = "2.1.250"
 applies_to = ">=2.1.250 <2.1.251"
@@ -2189,7 +2221,7 @@ assert_contains = '''if(v("fable5"))C(i,V());return i.push(ve),G(i,e,"sonnet")''
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["darwin-arm64"]
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
@@ -2220,6 +2252,38 @@ name = "2.1.251 Darwin standard picker drops stale symbols"
 assert_not_contains = '''if(v("fable5"))C(i,V());return i.push(ve),G(i,e,"sonnet")'''
 
 [[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-258-darwin"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
+
+This is the 2.1.258 Darwin variant, re-anchored in function `V9r`: the
+subscription standard branch returns through `AZe`, with local model option
+array `_`, catalog availability helper `pP`, row inserter `W8`, and Fable-row
+helper `FZe`. Cleanup condition: upstream includes Fable in this branch
+whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "V9r", strings = ['''return _.push(yen),AZe(_,e,"sonnet")''', '''pP("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return _.push(yen),AZe(_,e,"sonnet")'''
+value = '''if(pP("fable51"))W8(_,FZe());return _.push(yen),AZe(_,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin standard OAuth picker inserts Fable"
+assert_contains = '''if(pP("fable51"))W8(_,FZe());return _.push(yen),AZe(_,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin standard picker drops stale symbols"
+assert_not_contains = '''if(S("fable5"))C(i,V());return i.push(Oe),z(i,e,"sonnet")'''
+
+[[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-250-linux"
 target_version = "2.1.250"
 applies_to = ">=2.1.250 <2.1.251"
@@ -2241,7 +2305,7 @@ assert_contains = '''if(_("fable5"))C(d,V());return d.push(Me),G(d,e,"opus")'''
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["linux-x64"]
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
@@ -2272,6 +2336,39 @@ name = "2.1.251 Linux primary picker drops stale symbols"
 assert_not_contains = '''if(_("fable5"))C(d,V());return d.push(Me),G(d,e,"opus")'''
 
 [[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-258-linux"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
+
+This is the 2.1.258 Linux variant, re-anchored in function `lXr`: the
+subscription primary branch returns through `HZe`, with local model option
+array `k`, catalog availability helper `cP`, row inserter `gY`, and Fable-row
+helper `WZe`. The Linux replacement deliberately uses its own `cP`/`gY`/`WZe`
+bindings rather than the Darwin symbols. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lXr", strings = ['''return k.push(ben),HZe(k,e,"opus")''', '''cP("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return k.push(ben),HZe(k,e,"opus")'''
+value = '''if(cP("fable51"))gY(k,WZe());return k.push(ben),HZe(k,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux primary OAuth picker inserts Fable"
+assert_contains = '''if(cP("fable51"))gY(k,WZe());return k.push(ben),HZe(k,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux primary picker drops stale symbols"
+assert_not_contains = '''if(h("fable5"))y(d,V());return d.push(Me),z(d,e,"opus")'''
+
+[[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-250-linux"
 target_version = "2.1.250"
 applies_to = ">=2.1.250 <2.1.251"
@@ -2293,7 +2390,7 @@ assert_contains = '''if(_("fable5"))C(i,V());return i.push(Me),G(i,e,"sonnet")''
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["linux-x64"]
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
@@ -2322,6 +2419,39 @@ assert_contains = '''if(h("fable5"))y(i,V());return i.push(Me),z(i,e,"sonnet")''
 kind = "static"
 name = "2.1.251 Linux standard picker drops stale symbols"
 assert_not_contains = '''if(_("fable5"))C(i,V());return i.push(Me),G(i,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-258-linux"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
+
+This is the 2.1.258 Linux variant, re-anchored in function `lXr`: the
+subscription standard branch returns through `HZe`, with local model option
+array `y`, catalog availability helper `cP`, row inserter `gY`, and Fable-row
+helper `WZe`. The Linux replacement deliberately uses its own `cP`/`gY`/`WZe`
+bindings rather than the Darwin symbols. Cleanup condition: upstream includes
+Fable in this branch whenever the bundled catalog and provider mapping expose it.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "lXr", strings = ['''return y.push(ben),HZe(y,e,"sonnet")''', '''cP("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return y.push(ben),HZe(y,e,"sonnet")'''
+value = '''if(cP("fable51"))gY(y,WZe());return y.push(ben),HZe(y,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux standard OAuth picker inserts Fable"
+assert_contains = '''if(cP("fable51"))gY(y,WZe());return y.push(ben),HZe(y,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux standard picker drops stale symbols"
+assert_not_contains = '''if(h("fable5"))y(i,V());return i.push(Me),z(i,e,"sonnet")'''
 
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-246"

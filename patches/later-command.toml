@@ -3192,7 +3192,6 @@ name = "later-command-submit-hook-2-1-250-darwin"
 target_version = "2.1.250"
 applies_to = ">=2.1.250 <2.1.251"
 rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
-platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -3249,7 +3248,7 @@ assert_contains = '''name:"later",description:"Schedule a prompt; use 10m or [YY
 [[patches]]
 name = "later-command-submit-hook-2-1-251"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 rationale = """
 Rebind the 2.1.250 submit hook to the 2.1.251 Linux prompt-submit scope. `It` is the input getter, `Tt` the mode, `_t` the filtered pasted-content map, `y3n` the expander, `b` the notification context, `Le` the queue, `et` the agent-id getter, `Ct` the normalized submit UUID (`Ct=De??Knt()` because the raw `De` may be undefined), `j` the input setter, `qe` the cursor setter, and `Z` the pasted-content setter; each name is taken from the 2.1.251 `vI` submit scope. The behavior remains governed by the referenced prompt-submit implementation.
 """
@@ -3292,12 +3291,11 @@ assert_not_contains = '''let __id="later-"+De'''
 [[patches]]
 name = "later-command-submit-hook-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 rationale = """
 Rebind the 2.1.250 submit hook to the 2.1.251 Darwin prompt-submit scope. `Pt` is the input getter, `kt` the mode, `Rt` the filtered pasted-content map, `TKn` the expander, `S` the notification context, `Fe` the queue, `et` the agent-id getter, `yt` the normalized submit UUID (`yt=Ie??Knt()` because the raw `Ie` may be undefined), `H` the input setter, `Ve` the cursor setter, and `Z` the pasted-content setter; each name is taken from the 2.1.251 Darwin submit scope. The behavior remains governed by the referenced prompt-submit implementation.
 """
 rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
-platforms = ["darwin-arm64"]
 locator_kind = "ast_transform"
 [patches.ast]
 schema = 1
@@ -3335,7 +3333,7 @@ assert_not_contains = '''let __id="later-"+Ie'''
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-251-linux"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["linux-x64"]
 rationale = """
 Re-anchor the Linux suggestion metadata insertion to the 2.1.251 command-loader graph. The upstream suggestion-list declaration is `let V=brr(r9([...F,...z]));`; `V` is the list being augmented, while `brr`, `r9`, `F`, and `z` are the current helper and spread locals identified by that declaration. This remains governed by the referenced command-suggestion behavior.
@@ -3373,7 +3371,7 @@ assert_not_contains = '''let W=F5n(G5([...O,...j]));'''
 [[patches]]
 name = "later-command-suggestion-metadata-2-1-251-darwin"
 target_version = "2.1.251"
-applies_to = ">=2.1.251 <2.1.252"
+applies_to = ">=2.1.251 <2.1.258"
 platforms = ["darwin-arm64"]
 rationale = """
 Re-anchor the Darwin suggestion metadata insertion to the 2.1.251 command-loader graph. The upstream suggestion-list declaration is `let z=krr(sz([...F,...W]));`; `z` is the list being augmented, while `krr`, `sz`, `F`, and `W` are the current helper and spread locals identified by that declaration. This remains governed by the referenced command-suggestion behavior.
@@ -3407,6 +3405,114 @@ assert_contains = '''let z=krr(sz([...F,...W]));if(!z.some'''
 kind = "static"
 name = "2.1.250 stale symbols are absent"
 assert_not_contains = '''let q=PYn(V9([...D,...j]));'''
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-258-linux"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Re-anchor Linux /later suggestion metadata to enclosing loader function `G7o`.
+Its declaration `let V=V7o(P8([...B,...G]));` proves `V` is the suggestion list
+and `V7o`, `P8`, `B`, and `G` are the local loader symbols used by the anchor.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let V=V7o(P8([...B,...G]));''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!V.some((v)=>v.name==="later"))V.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux /later suggestion metadata is rendered"
+assert_contains = '''let V=V7o(P8([...B,...G]));if(!V.some((v)=>v.name==="later")'''
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-258-darwin"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Re-anchor Darwin /later suggestion metadata to enclosing loader function `v7o`.
+Its declaration `let z=A7o(UV([...B,...W]));` proves `z` is the suggestion list
+and `A7o`, `UV`, `B`, and `W` are the local loader symbols used by the anchor.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", source = '''let z=A7o(UV([...B,...W]));''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!z.some((v)=>v.name==="later"))z.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin /later suggestion metadata is rendered"
+assert_contains = '''let z=A7o(UV([...B,...W]));if(!z.some((v)=>v.name==="later")'''
+
+[[patches]]
+name = "later-command-submit-hook-2-1-258"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+Re-anchor the /later submit hook to the 2.1.258 Linux composer callback `xio`.
+Its enclosing scope defines `JT`/`y2` as the submitted input, `Ws` as the
+composer state, `Rio` as the pasted-content map, `kl` as the notification
+context, `DM`/`hw`/`u_`/`uut` as input cleanup helpers, `GK` as the prompt
+submitter, and `Qlt` as the empty-submit guard; the inserted code relies only
+on those verified locals. The behavior remains governed by the referenced
+prompt-submit implementation.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(y2.trim()===""&&!mut){if(!(Aio&&q3n&&!dut&&Qlt()))_("prompt_submit_empty");return}''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(Ws.mode==="prompt"){let __trim=y2.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list",__jobs=globalThis.__acc_later_jobs??=(new Map);if(__trim==="/later list"){let __lines=[...__jobs.values()].slice(0,10).map((__t,__i)=>String(__i+1)+". "+(__t.prompt.length>20?__t.prompt.slice(0,17)+"...":__t.prompt)+" @ "+new Date(__t.at).toLocaleString());kl({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});DM("");hw({});u_(0);uut();return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __now=Date.now(),__prompt,__at;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();__at=__now+__delay}else{__prompt=__absolute[7].trim();let __base=new Date(__now),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__base.getFullYear(),__month=__hasDate?Number(__absolute[2]):__base.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__base.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__now)__candidate.setDate(__candidate.getDate()+1);__at=__candidate.getTime()}if(!__prompt||!Number.isFinite(__at)||__at<=__now){kl({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __id="later-"+Date.now().toString(36),__job={prompt:__prompt,at:__at};__jobs.set(__id,__job);setTimeout(()=>{if(!__jobs.delete(__id))return;GK(__prompt,{setCursorOffset:u_,clearBuffer:uut,resetHistory:()=>OM.current?.resetHistory()},{pastedContentsOverride:Rio})},Math.max(0,__at-Date.now()));kl({key:__id,kind:"feedback",text:"Scheduled "+__id+" for "+new Date(__at).toLocaleString(),priority:"immediate"});DM("");hw({});u_(0);uut();return}if(__trim.startsWith("/later")){kl({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux later submit anchor is rendered"
+assert_contains = '''if(y2.trim()===""&&!mut){if(!(Aio&&q3n&&!dut&&Qlt()))_("prompt_submit_empty");return}if(Ws.mode==="prompt")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Linux later submit symbols are absent"
+assert_not_contains = '''y3n(It,_t).expanded.trim()'''
+
+[[patches]]
+name = "later-command-submit-hook-2-1-258-darwin"
+target_version = "2.1.258"
+applies_to = ">=2.1.258 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+Re-anchor the /later submit hook to the 2.1.258 Darwin composer callback `bio`.
+Its enclosing scope defines `GT`/`i2` as the submitted input, `Gs` as the
+composer state, `kio` as the pasted-content map, `kl` as the notification
+context, `lM`/`Lw`/`M_`/`iut` as input cleanup helpers, `LK` as the prompt
+submitter, and `Qlt` as the empty-submit guard; the inserted code relies only
+on those verified locals. The behavior remains governed by the referenced
+prompt-submit implementation.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(i2.trim()===""&&!lut){if(!(_io&&q3n&&!sut&&Qlt()))y("prompt_submit_empty");return}''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(Gs.mode==="prompt"){let __trim=i2.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list",__jobs=globalThis.__acc_later_jobs??=(new Map);if(__trim==="/later list"){let __lines=[...__jobs.values()].slice(0,10).map((__t,__i)=>String(__i+1)+". "+(__t.prompt.length>20?__t.prompt.slice(0,17)+"...":__t.prompt)+" @ "+new Date(__t.at).toLocaleString());kl({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});lM("");Lw({});M_(0);iut();return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __now=Date.now(),__prompt,__at;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();__at=__now+__delay}else{__prompt=__absolute[7].trim();let __base=new Date(__now),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__base.getFullYear(),__month=__hasDate?Number(__absolute[2]):__base.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__base.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);if(!__hasDate&&__candidate.getTime()<=__now)__candidate.setDate(__candidate.getDate()+1);__at=__candidate.getTime()}if(!__prompt||!Number.isFinite(__at)||__at<=__now){kl({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __id="later-"+Date.now().toString(36),__job={prompt:__prompt,at:__at};__jobs.set(__id,__job);setTimeout(()=>{if(!__jobs.delete(__id))return;LK(__prompt,{setCursorOffset:M_,clearBuffer:iut,resetHistory:()=>dM.current?.resetHistory()},{pastedContentsOverride:kio})},Math.max(0,__at-Date.now()));kl({key:__id,kind:"feedback",text:"Scheduled "+__id+" for "+new Date(__at).toLocaleString(),priority:"immediate"});lM("");Lw({});M_(0);iut();return}if(__trim.startsWith("/later")){kl({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Darwin later submit anchor is rendered"
+assert_contains = '''if(i2.trim()===""&&!lut){if(!(_io&&q3n&&!sut&&Qlt()))y("prompt_submit_empty");return}if(Gs.mode==="prompt")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.251 Darwin later submit symbols are absent"
+assert_not_contains = '''TKn(Pt,Rt).expanded.trim()'''
 
 [[patches]]
 name = "later-command-submit-hook-2-1-246"

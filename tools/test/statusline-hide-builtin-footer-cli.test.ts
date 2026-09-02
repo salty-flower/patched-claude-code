@@ -37,7 +37,7 @@ function isVersionBefore(version: string, ceiling: string): boolean {
   return compareVersions(version, ceiling) < 0
 }
 
-const targetUses251LaterSymbols = isVersionAtLeast(TARGET_VERSION, "2.1.251") && isVersionBefore(TARGET_VERSION, "2.2.0")
+const targetUses251LaterSymbols = isVersionAtLeast(TARGET_VERSION, "2.1.251") && isVersionBefore(TARGET_VERSION, "2.1.258")
 
 test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.disabledFooter", async () => {
   const entrypoint = await renderRunnableBundle({
@@ -54,6 +54,26 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (TARGET_VERSION === "2.1.258") {
+      expect(patched).toContain("hideBuiltinFooter:M().optional().describe(\"Compatibility alias for hiding all built-in footer items.\")")
+      expect(patched).toContain("return __acc_hide_footer?hxe:lZt}")
+      expect(patched).toContain("effort_level:yh(nt)?Nw(nt,Fe):null")
+      expect(patched).toContain("permission_mode:I,model:")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=!0")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=ue")
+      const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+      const linuxPatched = readdirSync(linuxGraphDir)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+        .join("\n")
+      expect(linuxPatched).toContain("hideBuiltinFooter:O().optional().describe(\"Compatibility alias for hiding all built-in footer items.\")")
+      expect(linuxPatched).toContain("return __acc_hide_footer?fxe:OZt}")
+      expect(linuxPatched).toContain("effort_level:hh(nt)?Mw(nt,Oe):null")
+      expect(linuxPatched).toContain("permission_mode:P,model:")
+      expect(linuxPatched).toContain("globalThis.__acc_clipboard_image_available=!0")
+      expect(linuxPatched).toContain("globalThis.__acc_rate_limit_warning=ue")
+      return
+    }
     if (targetUses251LaterSymbols) {
       expect(patched).toContain(
         'new U("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(e).split(",").map((r)=>r.trim()).filter(Boolean);return e}))',

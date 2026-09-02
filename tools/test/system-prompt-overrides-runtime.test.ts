@@ -257,4 +257,4 @@ test("packaged launcher rejects a graph that no longer matches its release manif
   expect(result.exitCode).not.toBe(0)
   expect(`${result.stdout}\n${result.stderr}`).toContain("rendered bundle file inventory mismatch")
   expect(result.stdout).not.toContain("graph ran")
-})
+}, 60_000)

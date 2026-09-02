@@ -10,6 +10,7 @@ import {
   type PatchObligationLedger,
   type PatchObligationRegistry,
   retirementProposalSha256,
+  selectPatchEntriesForEvidence,
   verifyPatchObligations,
 } from "../lib/patch-obligations"
 
@@ -209,6 +210,7 @@ test("one current patch entry may realize multiple historical invariants", () =>
     patches: [patch()],
   })
   expect(report).toMatchObject({ status: "passed", errors: [] })
+  expect(selectPatchEntriesForEvidence(sharedLedger, [patch()], VERSION, "darwin-arm64")).toEqual(["gate-current"])
 })
 
 test("old entry mapping and skipped real-OS oracle are rejected", () => {

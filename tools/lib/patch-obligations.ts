@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { satisfies, valid } from "semver"
+import { patchApplies } from "./apply-patches"
 import { loadPatchEntriesFromDirectory, type PatchEntry } from "./patch-files"
 import { loadStageManifest } from "./stage-manifest"
 
@@ -109,6 +110,23 @@ export type VerifyPatchObligationsOptions = {
 
 export function obligationKey(value: Pick<PatchObligation, "familyId" | "invariantId">): string {
   return `${value.familyId}/${value.invariantId}`
+}
+
+export function selectPatchEntriesForEvidence(
+  ledger: PatchObligationLedger,
+  patches: PatchEntry[],
+  version: string,
+  platform: ObligationPlatform,
+): string[] {
+  const selected = new Set<string>()
+  for (const decision of ledger.decisions) {
+    if (decision.disposition !== "ported") continue
+    for (const name of decision.patchEntries ?? []) {
+      const entry = patches.find((candidate) => candidate.name === name && patchApplies(candidate, version))
+      if (entry && patchPlatforms(entry).includes(platform)) selected.add(name)
+    }
+  }
+  return [...selected].sort()
 }
 
 export function loadPatchObligationRegistry(root: string): PatchObligationRegistry {

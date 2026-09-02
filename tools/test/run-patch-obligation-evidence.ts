@@ -5,7 +5,6 @@ import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { valid } from "semver"
-import { patchApplies } from "../lib/apply-patches"
 import { createCommand, runCli } from "../lib/cli"
 import { loadPatchEntriesFromDirectory } from "../lib/patch-files"
 import {
@@ -15,6 +14,7 @@ import {
   type ObligationPlatform,
   obligationKey,
   type PatchEvidenceReceipt,
+  selectPatchEntriesForEvidence,
   verifyPatchObligations,
 } from "../lib/patch-obligations"
 import { captureChecked, runChecked } from "../lib/process"
@@ -115,14 +115,7 @@ function main(): number {
 
   const evidenceClass: EvidenceClass = args.platform === "darwin-arm64" ? "real-os-runtime" : "runtime"
   const decisions = new Map(ledger.decisions.map((decision) => [obligationKey(decision), decision]))
-  const selectedPatchEntries = ledger.decisions
-    .filter((decision) => decision.disposition === "ported")
-    .flatMap((decision) => decision.patchEntries ?? [])
-    .filter((name) => {
-      const entry = patches.find((candidate) => candidate.name === name && patchApplies(candidate, args.version))
-      return entry !== undefined && (!entry.platforms || entry.platforms.includes(args.platform))
-    })
-    .sort()
+  const selectedPatchEntries = selectPatchEntriesForEvidence(ledger, patches, args.version, args.platform)
   const executedOracleIds = registry.obligations
     .filter((obligation) => {
       const decision = decisions.get(obligationKey(obligation))

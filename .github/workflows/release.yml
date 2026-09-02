@@ -156,6 +156,7 @@ jobs:
           mkdir -p bin runtime dist "staging/$version"
           mkdir -p prompts
           cp ci-artifact/cli.js "staging/$version/cli.patched.js"
+          cp ci-artifact/staging/"$version"/stage-manifest.json "staging/$version/stage-manifest.json"
           cp -R ci-artifact/staging/"$version"/graph.patched "staging/$version/graph.patched"
           install -m755 ci-artifact/bin/claude-patched bin/claude-patched
           cp ci-artifact/runtime/macos-keychain.ts runtime/macos-keychain.ts

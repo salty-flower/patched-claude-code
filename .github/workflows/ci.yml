@@ -463,5 +463,6 @@ jobs:
             runtime/system-prompt-overrides.ts
             prompts/catalog/
             patch-obligations/
+            staging/${{ env.TARGET_VERSION }}/stage-manifest.json
             staging/${{ env.TARGET_VERSION }}/graph.patched/
           if-no-files-found: error

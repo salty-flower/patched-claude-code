@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.251
+function kOe(r){let t=r.split("+"),e={key:"",ctrl:!1,alt:!1,shift:!1,meta:!1,super:!1};for(let s of t){let a=s.toLowerCase();switch(a){case"ctrl":case"control":e.ctrl=!0;break;case"alt":case"opt":case"option":e.alt=!0;break;case"shift":e.shift=!0;break;case"meta":e.meta=!0;break;case"cmd":case"command":case"super":case"win":e.super=!0;break;case"esc":e.key="escape";break;case"return":e.key="enter";break;case"del":e.key="delete";break;case"space":e.key=" ";break;case"\u2191":e.key="up";break;case"\u2193":e.key="down";break;case"\u2190":e.key="left";break;case"\u2192":e.key="right";break;default:e.key=a;break}}return e}function jE(r){if(r===" ")return[kOe("space")];return r.trim().split(/\s+/).map(kOe)}function c(r){let t=[];if(r.ctrl)t.push("ctrl");if(r.alt)t.push("alt");if(r.shift)t.push("shift");if(r.meta)t.push("meta");if(r.super)t.push("cmd");let e=n(r.key);return t.push(e),t.join("+")}function n(r){switch(r){case"escape":return"Esc";case" ":return"space";case"tab":return"tab";case"enter":return"Enter";case"backspace":return"Backspace";case"delete":return"Delete";case"up":return"\u2191";case"down":return"\u2193";case"left":return"\u2190";case"right":return"\u2192";case"pageup":return"PageUp";case"pagedown":return"PageDown";case"home":return"Home";case"end":return"End";default:return r}}function vM(r){return r.map(c).join(" ")}function ajt(r,t="linux"){let e=[];if(r.ctrl)e.push("ctrl");if(r.alt||r.meta)e.push(t==="macos"?"opt":"alt");if(r.shift)e.push("shift");if(r.super)e.push(t==="macos"?"cmd":"super");let s=n(r.key);return e.push(s),e.join("+")}function uTe(r,t="linux"){return r.map((e)=>ajt(e,t)).join(" ")}function ngn(r){let t=[];for(let e of r)for(let[s,a]of Object.entries(e.bindings))t.push({chord:jE(s),action:a,context:e.context});return t}
+export{kOe,jE,vM,ajt,uTe,ngn};

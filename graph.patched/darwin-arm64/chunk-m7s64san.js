@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.251
+import{J}from"./chunk-38213y7h.js";import{c}from"./chunk-9rhc0mtn.js";import{y}from"./chunk-xtqqhw5t.js";import{Ae,oe,li,jc}from"./chunk-bsdtxcdc.js";import{ee}from"./chunk-z9mp80s2.js";import{s4}from"./chunk-dckv2srq.js";import{Nt}from"./chunk-vw68yttj.js";import{nM}from"./chunk-fy12d89p.js";class p{lastLoggedSessionId=null;autoOpenPending=!1}var hBe=new J(()=>new p);var bQ=110,Zkt=144,e0t="The diff panel shows git changes \u2014 the current directory isn\u2019t in a git repository";function t0t(e){hBe.of(e).autoOpenPending=!0}function q7t(e){let t=hBe.of(e),o=t.autoOpenPending;return t.autoOpenPending=!1,o}function ULn(e){hBe.of(e).autoOpenPending=!1}function jRe(){return s4(ee())!==null}function n0t({columns:e,isThinClient:t,isMainFocused:o,hasGitRepo:n}){return nM()&&Nt()&&!t&&o&&e>=bQ&&n}function r0t(e){let t=oe().diffSidebarOpen;if(t===!1)return!1;return e>=(t===!0?bQ:Zkt)&&jRe()}function o0t(e,t,o,n){let r=o==="diff"?"convo":"diff";ULn(e),t((i)=>i.replTab===r&&i.panelFileView===null?i:{...i,replTab:r,panelFileView:null});let f=r==="diff";if(oe().diffSidebarOpen!==f)Ae((i)=>({...i,diffSidebarOpen:f}),n);return y("repl_tab_switch",{tab:c(r)}),r}function wQ(e,t){ULn(e),t((o)=>o.replTab==="convo"&&o.panelFileView===null?o:{...o,replTab:"convo",panelFileView:null})}function G7t(e,t,o){if(wQ(e,t),oe().diffSidebarOpen!==!1)Ae((n)=>({...n,diffSidebarOpen:!1}),o);y("repl_tab_switch",{tab:c("convo")})}var a=["session","uncommitted","branch"];function z7t(){let e=li().diffSidebarBaseMode;return e==="uncommitted"||e==="branch"?e:"session"}function V7t(e,t){let o=a[(a.indexOf(e)+1)%a.length]??"session";return jc((n)=>n.diffSidebarBaseMode===o?n:{...n,diffSidebarBaseMode:o},t),y("repl_diff_base_switch",{mode:c(o)}),o}
+export{hBe,bQ,Zkt,e0t,t0t,q7t,ULn,jRe,n0t,r0t,o0t,wQ,G7t,z7t,V7t};

@@ -19,7 +19,9 @@ const targetUses229LaterSymbols = gte(TARGET_VERSION, "2.1.229") && lt(TARGET_VE
 const targetUses228LaterSymbols = gte(TARGET_VERSION, "2.1.228") && lt(TARGET_VERSION, "2.1.229")
 const targetUses227LaterSymbols = gte(TARGET_VERSION, "2.1.227") && lt(TARGET_VERSION, "2.1.228")
 const targetUses250LaterSymbols = gte(TARGET_VERSION, "2.1.250") && lt(TARGET_VERSION, "2.1.251")
-const targetUses251LaterSymbols = gte(TARGET_VERSION, "2.1.251") && lt(TARGET_VERSION, "2.2.0")
+const targetUses251LaterSymbols = gte(TARGET_VERSION, "2.1.251") && lt(TARGET_VERSION, "2.1.258")
+const targetUses258LaterSymbols = gte(TARGET_VERSION, "2.1.258") && lt(TARGET_VERSION, "2.2.0")
+const targetUsesSessionJobs = targetUses258LaterSymbols || targetUses251LaterSymbols || targetUses250LaterSymbols
 const targetUses241ExactFireSymbols = gte(TARGET_VERSION, "2.1.241") && lt(TARGET_VERSION, "2.1.250")
 const targetUses246LaterSymbols = gte(TARGET_VERSION, "2.1.246") && lt(TARGET_VERSION, "2.1.250")
 const targetUses241SubmitSymbols = targetUses241ExactFireSymbols && !targetUses246LaterSymbols
@@ -38,6 +40,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses258LaterSymbols ||
   targetUses251LaterSymbols ||
   targetUses250LaterSymbols ||
   targetUses238LaterSymbols ||
@@ -799,7 +802,7 @@ test.skipIf(!testLaterCommand)(
   "/later schedules a session-only one-shot cron before prompt queueing",
   () => {
     expect(applied).toBe(
-      targetUses251LaterSymbols || targetUses250LaterSymbols
+      targetUsesSessionJobs
         ? 4
         : targetUses246LaterSymbols
         ? 12
@@ -814,6 +817,8 @@ test.skipIf(!testLaterCommand)(
       "setTimeout(()=>{if(!__jobs.delete(__id))return;Ge.enqueue",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;Fe.enqueue",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;Le.enqueue",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;GK(",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;LK(",
       "await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)",
       "await Qjr(__cron,__prompt,!1,!1,g3()?.agentId)",
       "await iHr(__cron,__prompt,!1,!1,E4()?.agentId)",
@@ -908,6 +913,17 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses258LaterSymbols) {
+      expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
+      expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;LK(")
+      expect(patched).toContain("pastedContentsOverride:kio")
+      expect(patched).toContain("i2.trim()")
+      expect(patchedLinux).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;GK(")
+      expect(patchedLinux).toContain("pastedContentsOverride:Rio")
+      expect(patchedLinux).toContain("y2.trim()")
+      expect(patched).not.toContain("TKn(Pt,Rt).expanded.trim()")
+      expect(patchedLinux).not.toContain("y3n(It,_t).expanded.trim()")
+      expect(patched).not.toContain("__acc_schedule_later")
     } else if (targetUses251LaterSymbols) {
       expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
       expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;Fe.enqueue")
@@ -1058,7 +1074,7 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("jBt(!0)")
       expect(patched).not.toContain("DTe(!0)")
     }
-    if (targetUses251LaterSymbols || targetUses250LaterSymbols) {
+    if (targetUsesSessionJobs) {
       expect(patched).toContain('text:"Scheduled "+__id+" for "+new Date(__at).toLocaleString()')
     } else if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
       expect(patched).toContain('text:"Scheduled "+__id+" for "+__when.toLocaleString()')
@@ -1124,7 +1140,7 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("Zk().filter((__t)=>__t.later===!0&&!__t.recurring)")
       expect(patched).toContain("E7t(__t.cron,__t.createdAt)")
       expect(patched).not.toContain("gVt(__t.cron,__t.createdAt)")
-    } else if (targetUses251LaterSymbols || targetUses250LaterSymbols) {
+    } else if (targetUsesSessionJobs) {
       expect(patched).toContain("[...__jobs.values()]")
       expect(patched).not.toContain("Fde().filter((__t)=>__t.later===!0&&!__t.recurring)")
     } else if (targetUses246LaterSymbols) {
@@ -1211,14 +1227,14 @@ test.skipIf(!testLaterCommand)(
         '`${__d.getFullYear()}-${String(__d.getMonth()+1).padStart(2,"0")}-${String(__d.getDate()).padStart(2,"0")} ${String(__d.getHours()).padStart(2,"0")}:${String(__d.getMinutes()).padStart(2,"0")}:${String(__d.getSeconds()).padStart(2,"0")}`',
       )
     }
-    if (targetUses251LaterSymbols || targetUses250LaterSymbols) {
+    if (targetUsesSessionJobs) {
       expect(patched).toContain('__t.prompt.length>20?__t.prompt.slice(0,17)+"...":__t.prompt')
     } else if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
       expect(patched).toContain('__text=__raw.length>20?__raw.slice(0,17)+"...":__raw')
     } else {
       expect(patched).toContain("__raw.length>20?`${__raw.slice(0,17)}...`:__raw")
     }
-    if (targetUses251LaterSymbols || targetUses250LaterSymbols) {
+    if (targetUsesSessionJobs) {
       expect(patched).toContain('String(__i+1)+". "+(__t.prompt.length>20?')
     } else if (targetUses238LaterSymbols || targetUses234LaterSymbols) {
       expect(patched).toContain('return String(__i+1)+". "+__text+" @ "+__when')

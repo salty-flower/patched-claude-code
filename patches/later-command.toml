@@ -3292,6 +3292,7 @@ assert_not_contains = '''let __id="later-"+De'''
 name = "later-command-submit-hook-2-1-251-darwin"
 target_version = "2.1.251"
 applies_to = ">=2.1.251 <2.1.258"
+platforms = ["darwin-arm64"]
 rationale = """
 Rebind the 2.1.250 submit hook to the 2.1.251 Darwin prompt-submit scope. `Pt` is the input getter, `kt` the mode, `Rt` the filtered pasted-content map, `TKn` the expander, `S` the notification context, `Fe` the queue, `et` the agent-id getter, `yt` the normalized submit UUID (`yt=Ie??Knt()` because the raw `Ie` may be undefined), `H` the input setter, `Ve` the cursor setter, and `Z` the pasted-content setter; each name is taken from the 2.1.251 Darwin submit scope. The behavior remains governed by the referenced prompt-submit implementation.
 """

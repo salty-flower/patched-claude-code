@@ -17,7 +17,7 @@ afterAll(() => {
 function injectContextWindowHarness(source: string): string {
   if (source.includes("__acc_model_context_key") && source.includes("export{")) {
     const resolverMatch = source.match(
-      /function ([A-Za-z_$][\w$]*)\(e,t\)\{let __acc_model_context_key=/,
+      /function ([A-Za-z_$][\w$]*)\([A-Za-z_$][\w$]*,[A-Za-z_$][\w$]*\)\{let __acc_model_context_key=/,
     )
     if (!resolverMatch?.[1] || resolverMatch.index === undefined) {
       throw new Error("could not locate graph context-window resolver")
@@ -25,12 +25,11 @@ function injectContextWindowHarness(source: string): string {
     const initializer = source
       .slice(resolverMatch.index)
       .match(/var ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\(\(\)=>\{/)?.[1]
-    if (!initializer) throw new Error("could not locate graph context-window module initializer")
     const exportIndex = source.lastIndexOf("export{")
     if (exportIndex === -1) throw new Error("could not locate graph module exports")
     const resolver = resolverMatch[1]
     const harness =
-      `${initializer}();process.stdout.write(JSON.stringify({alpha:${resolver}("alpha/model",[]),beta:${resolver}("beta-model",[]),tagged:${resolver}("alpha/model[1m]",[]),fallback:${resolver}("unconfigured-model",[])}));process.exit(0);`
+      `${initializer ? `${initializer}();` : ""}process.stdout.write(JSON.stringify({alpha:${resolver}("alpha/model",[]),beta:${resolver}("beta-model",[]),tagged:${resolver}("alpha/model[1m]",[]),fallback:${resolver}("unconfigured-model",[])}));process.exit(0);`
     return `${source.slice(0, exportIndex)}${harness}${source.slice(exportIndex)}`
   }
 

@@ -422,7 +422,7 @@ test("live thinking rendering is not suppressed by brief mode", () => {
   }
   if (targetUses258ThinkingSymbols) {
     expect(patched).toContain(
-      "__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+      "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})",
     )
     const liveRowFunction = getFunctionSourceUntilNextDeclaration(patched, "function E4(")
     expect(liveRowFunction).not.toContain("streamingThinking:null")

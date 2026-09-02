@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { DEFAULT_TARGET_VERSION } from "../lib/target"
 import {
   buildTargetBumpSteps,
   executeTargetBumpSteps,
@@ -36,7 +37,7 @@ test("target bump preparation defines one ordered deterministic lane", () => {
     "run",
     "tools/patch/check-patch-carryover.ts",
     "--from",
-    "2.1.251",
+    DEFAULT_TARGET_VERSION,
     "--to",
     "2.1.218",
     "--result-file",

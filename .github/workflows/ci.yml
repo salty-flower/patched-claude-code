@@ -326,6 +326,30 @@ jobs:
           TARGET_VERSION: ${{ env.TARGET_VERSION }}
         run: bun run --cwd tools test
 
+  darwin-obligation-evidence:
+    name: darwin-obligation-evidence (macos-15)
+    needs: [changes, canonical-platform-merge]
+    if: needs.changes.outputs.full == 'true'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: Install missing macOS tools
+        run: brew install just
+
+      - name: Install tool dependencies
+        run: bun install --cwd tools --frozen-lockfile
+
+      - name: Reuse canonical stage for Darwin evidence
+        uses: actions/download-artifact@v6
+        with:
+          name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
+          path: staging/${{ env.TARGET_VERSION }}
+
       - name: Record Darwin patch-obligation evidence
         run: |
           just render "$TARGET_VERSION"
@@ -338,8 +362,46 @@ jobs:
           path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}/darwin-arm64.json
           if-no-files-found: error
 
+  linux-obligation-evidence:
+    name: linux-obligation-evidence (ubuntu-24.04)
+    needs: [changes, canonical-platform-merge]
+    if: needs.changes.outputs.full == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: Install missing Ubuntu tools for Linux evidence
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y just ripgrep
+
+      - name: Install tool dependencies
+        run: bun install --cwd tools --frozen-lockfile
+
+      - name: Reuse canonical stage for Linux evidence
+        uses: actions/download-artifact@v6
+        with:
+          name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
+          path: staging/${{ env.TARGET_VERSION }}
+
+      - name: Record Linux patch-obligation evidence
+        run: |
+          just render "$TARGET_VERSION"
+          just obligation-evidence "$TARGET_VERSION" linux-x64
+
+      - name: Upload Linux patch-obligation evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: patch-obligation-evidence-linux-${{ env.TARGET_VERSION }}
+          path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}/linux-x64.json
+          if-no-files-found: error
+
   verify:
-    needs: [changes, canonical-platform-merge, darwin-tool-test]
+    needs: [changes, canonical-platform-merge, darwin-tool-test, darwin-obligation-evidence, linux-obligation-evidence]
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-24.04
     steps:
@@ -388,10 +450,14 @@ jobs:
           name: patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}
           path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}
 
-      - name: Record Linux patch-obligation evidence
-        run: |
-          just render "$TARGET_VERSION"
-          just obligation-evidence "$TARGET_VERSION" linux-x64
+      - name: Reuse Linux patch-obligation evidence
+        uses: actions/download-artifact@v6
+        with:
+          name: patch-obligation-evidence-linux-${{ env.TARGET_VERSION }}
+          path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}
+
+      - name: Render patched graph for admission
+        run: just render "$TARGET_VERSION"
 
       - name: Admit patch obligations
         run: just obligation-admission "$TARGET_VERSION"

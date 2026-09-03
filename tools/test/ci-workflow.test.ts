@@ -82,7 +82,7 @@ test("ci runs tool tests on macOS using the canonical stage", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
   const start = workflow.indexOf("  darwin-tool-test:\n")
   expect(start).toBeGreaterThanOrEqual(0)
-  const next = workflow.indexOf("\n  verify:\n", start)
+  const next = workflow.indexOf("\n  darwin-obligation-evidence:\n", start)
   const job = workflow.slice(start, next === -1 ? workflow.length : next)
 
   expect(job).toContain("name: darwin-tool-test (macos-15)")
@@ -91,18 +91,28 @@ test("ci runs tool tests on macOS using the canonical stage", () => {
   expect(job).toContain("runs-on: macos-15")
   expect(job).toContain("canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}")
   expect(job).toContain("run: bun run --cwd tools test")
-  expect(job).toContain('just obligation-evidence "$TARGET_VERSION" darwin-arm64')
-  expect(job).toContain("patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}")
+  expect(job).not.toContain("obligation-evidence")
 })
 
 test("ci joins real-OS receipts before release admission", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
+  const darwinEvidence = workflowStep("Record Darwin patch-obligation evidence")
   const linuxEvidence = workflowStep("Record Linux patch-obligation evidence")
+  const renderForAdmission = workflowStep("Render patched graph for admission")
   const admission = workflowStep("Admit patch obligations")
 
-  expect(workflow).toContain("needs: [changes, canonical-platform-merge, darwin-tool-test]")
+  expect(workflow).toContain(
+    "needs: [changes, canonical-platform-merge, darwin-tool-test, darwin-obligation-evidence, linux-obligation-evidence]",
+  )
+  expect(workflow).toContain("name: darwin-obligation-evidence (macos-15)")
+  expect(workflow).toContain("name: linux-obligation-evidence (ubuntu-24.04)")
+  expect(darwinEvidence).toContain('just obligation-evidence "$TARGET_VERSION" darwin-arm64')
+  expect(workflow).toContain("patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}")
+  expect(workflow).toContain("patch-obligation-evidence-linux-${{ env.TARGET_VERSION }}")
   expect(workflow).toContain("Reuse Darwin patch-obligation evidence")
+  expect(workflow).toContain("Reuse Linux patch-obligation evidence")
   expect(linuxEvidence).toContain('just obligation-evidence "$TARGET_VERSION" linux-x64')
+  expect(renderForAdmission).toContain('just render "$TARGET_VERSION"')
   expect(admission).toContain('just obligation-admission "$TARGET_VERSION"')
   expect(workflow).toContain("dist/patch-obligation-evidence/")
 })

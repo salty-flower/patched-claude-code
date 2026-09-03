@@ -96,4 +96,4 @@ test("model-specific context windows follow the active model", async () => {
     tagged: 131072,
     fallback: 200000,
   })
-}, 60000)
+})

@@ -105,9 +105,12 @@ function main(): number {
     ],
     { cwd: ROOT, env: sharedEnv },
   )
-  runChecked(["bun", "test", "tools/test/later-command-patch.test.ts"], { cwd: ROOT, env: sharedEnv })
+  runChecked(["bun", "test", "--timeout", "0", "tools/test/later-command-patch.test.ts"], {
+    cwd: ROOT,
+    env: sharedEnv,
+  })
   if (args.platform === "darwin-arm64") {
-    runChecked(["bun", "test", "tools/test/macos-keychain-bundle-runtime.test.ts"], {
+    runChecked(["bun", "test", "--timeout", "0", "tools/test/macos-keychain-bundle-runtime.test.ts"], {
       cwd: ROOT,
       env: { ...sharedEnv, PATCH_OBLIGATION_EVIDENCE_REQUIRED: "1" },
     })

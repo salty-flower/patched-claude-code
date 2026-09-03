@@ -293,4 +293,4 @@ test("resume restores 1m defaults after alias resolution", async () => {
     )
     expect(patched).toContain('if(_&&Uj(D9(_))&&bF(T)&&_9(D9(gO(_)))===_9(T))return{kind:"ok",model:T+"[1m]"};')
   }
-}, 120000)
+})

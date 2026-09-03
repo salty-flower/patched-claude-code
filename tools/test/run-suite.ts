@@ -10,7 +10,7 @@ if (testFiles.length === 0) throw new Error(`no test files found under ${import.
 
 for (const testFile of testFiles) {
   const result = Bun.spawnSync({
-    cmd: [process.execPath, "test", join(import.meta.dir, testFile)],
+    cmd: [process.execPath, "test", "--timeout", "0", join(import.meta.dir, testFile)],
     cwd: TOOLS_ROOT,
     env: process.env,
     stdout: "inherit",

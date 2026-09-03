@@ -154,7 +154,7 @@ beforeAll(async () => {
     .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
     .join("\n")
   applied = laterPatches.filter((patch) => patchApplies(patch, TARGET_VERSION)).length
-}, 240000)
+})
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })

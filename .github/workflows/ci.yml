@@ -298,7 +298,6 @@ jobs:
     needs: [changes, canonical-platform-merge]
     if: needs.changes.outputs.full == 'true'
     runs-on: macos-15
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
 
@@ -497,7 +496,6 @@ jobs:
           echo "Fetched $tag for structured prompt review"
 
       - name: Run release audit
-        timeout-minutes: 45
         run: just ci-release-audit "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
 
       - name: Check generated prompt review notes

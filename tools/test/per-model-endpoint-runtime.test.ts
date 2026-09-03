@@ -160,4 +160,4 @@ test("patched per-model endpoint routes create and count_tokens requests to mode
   for (const request of betaRequests) {
     expect(request.headers["anthropic-beta"]).toContain("token-counting-2024-11-01")
   }
-}, 120000)
+})

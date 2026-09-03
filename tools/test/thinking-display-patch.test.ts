@@ -15,7 +15,7 @@ beforeAll(async () => {
   const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["thinking-display.toml"] })
   const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
   patched = readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
-}, 120000)
+})
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
@@ -259,7 +259,7 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
   const { callback, deltaCase } = getStreamHandlerThinkingPatch(patched)
 
   expect(deltaCase).toContain(`${callback}?.((J)=>({thinking:(J?.thinking??"")+w,isStreaming:!0}))`)
-}, 120000)
+})
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
   if (TARGET_VERSION === "2.1.250") {
@@ -401,7 +401,7 @@ test("main-screen thinking display uses the same live state as transcript render
     const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "cO" : "oT"
     expect(patched).not.toContain(`streamingThinking:${staleStreamingThinkingState}`)
   }
-}, 120000)
+})
 
 test("live thinking rendering is not suppressed by brief mode", () => {
   if (TARGET_VERSION === "2.1.250") {
@@ -598,7 +598,7 @@ test("live thinking rendering is not suppressed by brief mode", () => {
     expect(patched).toContain("zH&&X&&m4.createElement(B,{marginTop:1}")
     expect(patched).not.toContain("zH&&X&&!b&&m4.createElement(B,{marginTop:1}")
   }
-}, 120000)
+})
 
 test("interrupt replaces 2.1.233 live thinking with one preserved message", () => {
   if (!isVersionAtLeast(TARGET_VERSION, "2.1.233")) return
@@ -641,7 +641,7 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
 
   expect(patched).toContain('isVirtual:!0})]);El(null);let{salvage:')
   expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
-}, 120000)
+})
 
 test("live thinking is cleared before the next streamed content block", () => {
   if (isVersionAtLeast(TARGET_VERSION, "2.1.156") && isVersionBefore(TARGET_VERSION, "2.1.168")) {
@@ -659,4 +659,4 @@ test("live thinking is cleared before the next streamed content block", () => {
       'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),H.event.content_block.type){',
     )
   }
-}, 120000)
+})

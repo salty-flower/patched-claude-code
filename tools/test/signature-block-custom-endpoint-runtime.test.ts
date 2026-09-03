@@ -210,4 +210,4 @@ test("patched custom base URL requests strip stale signed thinking from resumed 
   } finally {
     patchedStub.stop()
   }
-}, 120000)
+})

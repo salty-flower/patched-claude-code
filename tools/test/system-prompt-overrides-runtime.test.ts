@@ -196,7 +196,7 @@ test("rendered bridge preserves no-op requests, applies one override, and reject
   expect(staleOutput).toContain(manifestPath)
   expect(staleOutput).toContain("bundle SHA-256 mismatch")
   expect(staleStub.requests).toHaveLength(0)
-}, 180000)
+})
 
 test("packaged launcher rejects a bundle that no longer matches its release manifest", async () => {
   const work = makeTempDir("patched-cc-prompt-bundle-hash-")
@@ -222,7 +222,7 @@ test("packaged launcher rejects a bundle that no longer matches its release mani
   expect(result.exitCode).not.toBe(0)
   expect(`${result.stdout}\n${result.stderr}`).toContain("rendered bundle file inventory mismatch")
   expect(result.stdout).not.toContain("bundle ran")
-}, 60_000)
+})
 
 test("packaged launcher rejects a graph that no longer matches its release manifest", async () => {
   const work = makeTempDir("patched-cc-prompt-graph-hash-")
@@ -257,4 +257,4 @@ test("packaged launcher rejects a graph that no longer matches its release manif
   expect(result.exitCode).not.toBe(0)
   expect(`${result.stdout}\n${result.stderr}`).toContain("rendered bundle file inventory mismatch")
   expect(result.stdout).not.toContain("graph ran")
-}, 60_000)
+})

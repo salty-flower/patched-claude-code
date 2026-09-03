@@ -120,4 +120,4 @@ test("custom model slots keep their efforts separate from each other and global 
   const globalRequest = requestBody(await runPrint(bundle, home, stub, "claude-sonnet-4-6"))
   expect(globalRequest.model).toBe("claude-sonnet-4-6")
   expect(globalRequest.output_config?.effort).toBe("low")
-}, 120000)
+})

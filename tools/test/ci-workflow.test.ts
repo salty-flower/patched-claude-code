@@ -30,7 +30,7 @@ test("ci runs release audit through one declarative just target", () => {
 
   expect(workflow).toContain(`TARGET_VERSION: "${DEFAULT_TARGET_VERSION}"`)
   expect(auditStep).toContain(`just ci-release-audit "$TARGET_VERSION" "${ciReleaseId}"`)
-  expect(auditStep).toContain("timeout-minutes: 45")
+  expect(workflow).not.toContain("timeout-minutes:")
   expect(swapStep).toContain("sudo fallocate -l 8G /mnt/pcc-audit.swap")
   expect(swapStep).toContain("sudo swapon /mnt/pcc-audit.swap")
   expect(previousCatalogStep).toContain("git ls-remote --tags origin")

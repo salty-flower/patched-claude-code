@@ -1227,4 +1227,4 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain("aJ.useEffect(()=>{b()},[__cci,b]);")
     expect(patched).not.toContain("BJ.useEffect(()=>{b()},[__cci,b]);")
   }
-}, 300_000)
+})

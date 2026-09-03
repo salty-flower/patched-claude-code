@@ -15242,14 +15242,15 @@ name = "statusline-footer-control-effort-notification-settings-2-1-258-linux"
 target_version = "2.1.258"
 applies_to = ">=2.1.258 <2.2.0"
 platforms = ["linux-x64"]
-rationale = "Use the 2.1.258 Linux b7 footer-settings selector when suppressing the effort notification."
+rationale = "Use the in-scope 2.1.258 Linux b7 footer-settings selector G when suppressing the effort notification; z belongs to a different component scope and raises a ReferenceError in the rendered Linux TUI."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
 locator_kind = "literal"
 locator_pattern = '''let Vat=Qto,too,ooo;if(is[120]!==Mc'''
-replacement = '''let Vat=Qto,__acc_hide_effort=z((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification")),too,ooo;if(is[120]!==Mc'''
+replacement = '''let Vat=Qto,__acc_hide_effort=G((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification")),too,ooo;if(is[120]!==Mc'''
 [[patches.tests]]
 kind = "static"
-assert_contains = '''__acc_hide_effort=z((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+assert_contains = '''__acc_hide_effort=G((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''__acc_hide_effort=z((E)=>E.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches]]
 name = "statusline-footer-control-effort-level-2-1-251-linux"
@@ -15303,12 +15304,17 @@ name = "statusline-footer-control-effort-level-2-1-258-linux"
 target_version = "2.1.258"
 applies_to = ">=2.1.258 <2.2.0"
 platforms = ["linux-x64"]
-rationale = "Re-anchor the persistent effort effect in the 2.1.258 Linux b7 footer component: the memo is Kso=Xme(zso,sMe,h_), the effect locals are YZ/yH/SH, and the alias is var Lv=\"effort-level\"; select footer settings locally because the notification selector belongs to a different component scope."
+rationale = "Re-anchor the persistent effort effect in the 2.1.258 Linux b7 footer component: the memo is Kso=Xme(zso,sMe,h_), the effect locals are YZ/yH/SH, the alias is var Lv=\"effort-level\", and the local store selector is G; select footer settings locally because the notification selector z belongs to a different component scope."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
 locator_kind = "literal"
 locator_pattern = '''let YZ=Kso,yH,SH;if(ki[369]!==kl||ki[370]!==YZ||ki[371]!==i0)yH=()=>{if(!YZ){i0(Lv);return}i0(Lv),kl({key:Lv,kind:"feedback",text:YZ,priority:"high",timeoutMs:1e4})},SH=[YZ,kl,i0],ki[369]=kl,ki[370]=YZ,ki[371]=i0,ki[372]=yH,ki[373]=SH;else yH=ki[372],SH=ki[373];'''
-replacement = '''let YZ=Kso,__acc_hide_effort_level=z((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer"),yH,SH;if(ki[369]!==kl||ki[370]!==YZ||ki[371]!==i0||ki[373]?.[3]!==__acc_hide_effort_level)yH=()=>{if(!YZ||__acc_hide_effort_level){i0(Lv);return}i0(Lv),kl({key:Lv,kind:"feedback",text:YZ,priority:"high",timeoutMs:1e4})},SH=[YZ,kl,i0,__acc_hide_effort_level],ki[369]=kl,ki[370]=YZ,ki[371]=i0,ki[372]=yH,ki[373]=SH;else yH=ki[372],SH=ki[373];'''
+replacement = '''let YZ=Kso,__acc_hide_effort_level=G((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer"),yH,SH;if(ki[369]!==kl||ki[370]!==YZ||ki[371]!==i0||ki[373]?.[3]!==__acc_hide_effort_level)yH=()=>{if(!YZ||__acc_hide_effort_level){i0(Lv);return}i0(Lv),kl({key:Lv,kind:"feedback",text:YZ,priority:"high",timeoutMs:1e4})},SH=[YZ,kl,i0,__acc_hide_effort_level],ki[369]=kl,ki[370]=YZ,ki[371]=i0,ki[372]=yH,ki[373]=SH;else yH=ki[372],SH=ki[373];'''
 expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.258 Linux effort selector uses the local footer store hook"
+assert_contains = '''__acc_hide_effort_level=G((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''__acc_hide_effort_level=z((E)=>E.settings.statusLine?.hideBuiltinFooter'''
 [[patches.tests]]
 kind = "static"
 assert_contains = '''if(!YZ||__acc_hide_effort_level){i0(Lv);return}'''

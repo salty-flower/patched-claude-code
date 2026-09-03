@@ -1,0 +1,17 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.258
+import{_n}from"./chunk-qkcr56w2.js";import{_}from"./chunk-0jrfbepr.js";import{yse}from"./chunk-h2gsgpx0.js";import{Tt}from"./chunk-akratr0p.js";import{o,n}from"./chunk-t50adtrb.js";import{tp}from"./chunk-d4qnhqqr.js";import{F}from"./chunk-q1xyrhsh.js";import{XB}from"./chunk-n3vt84pp.js";import{Dwe,Fr}from"./chunk-darxmw8c.js";import{Ie}from"./chunk-6yybdx8w.js";import{U,e,r}from"./chunk-v5r13aq1.js";import{hn,Ge,j}from"./chunk-xyxaqzpf.js";import{f}from"./chunk-bge67taw.js";j();j();var E=hn(!1);function DHe(io){let no=_(2),{children:C}=io,O;if(no[0]!==C)O=e(E.Provider,{value:!0,children:C}),no[0]=C,no[1]=O;else O=no[1];return O}function Fc(){let K=_(3),so=Ge(E),ao=Ge(XB),I=tp("app:toggleTranscript","Global","ctrl+o");if(so||ao){return null}let V;if(K[0]===f)V={keyCase:"lower"},K[0]=V;else V=K[0];let X;if(K[1]!==I)X=e(n,{dimColor:!0,children:e(F,{chord:I,action:"expand",parens:!0,format:V})}),K[1]=I,K[2]=X;else X=K[2];return X}function Uh(Eo){let M=_(8),{count:g,unit:v,expandable:W}=Eo,S=v===void 0?"line":v,w=W===void 0?!1:W;if(g<=0){return null}let A;if(M[0]!==g||M[1]!==S)A=yse(g,S),M[0]=g,M[1]=S,M[2]=A;else A=M[2];let h;if(M[3]!==w)h=w&&r(U,{children:[" ",e(Fc,{})]}),M[3]=w,M[4]=h;else h=M[4];let G;if(M[5]!==A||M[6]!==h)G=r(n,{dimColor:!0,children:[A,h]}),M[5]=A,M[6]=h,M[7]=G;else G=M[7];return G}var LHe=10;function OQt(i){if(typeof i==="string")return q(i,9);if(!Array.isArray(i))return!1;let s=0;for(let t of i){if(s+=1,s>10)return!0;if(t.type!=="text")continue;let a=t.text,l=0;while(s<=10){if(l=a.indexOf(`
+`,l),l===-1)break;l++,s++}if(s>10)return!0}return!1}function q(i,s){let t=0;for(let a=0;a<=s;a++){if(t=i.indexOf(`
+`,t),t===-1)return!1;t++}return!0}function Jd(Bo){let d=_(26),{result:m,verbose:p}=Bo,L,N,T,b,y,P,k;if(d[0]!==m||d[1]!==p){let c;if(typeof m!=="string")c="Tool execution failed";else{let u;if(d[9]!==m)u=Fr(m,"tool_use_error")??m,d[9]=m,d[10]=u;else u=d[10];let Do=Tt(u);let x=Dwe(Do).replace(/<\/?error>/g,"").trim();if(!p&&x.includes("InputValidationError: "))c="Invalid tool parameters";else if(x.startsWith("Error: ")||x.startsWith("Cancelled: "))c=x;else c=`Error: ${x}`}b=_n(c,`
+`)+1-LHe;T=Ie;N=o;k="column";L=n;y="error";P=p?c:c.split(`
+`).slice(0,LHe).join(`
+`);d[0]=m,d[1]=p,d[2]=L,d[3]=N,d[4]=T,d[5]=b,d[6]=y,d[7]=P,d[8]=k}else L=d[2],N=d[3],T=d[4],b=d[5],y=d[6],P=d[7],k=d[8];let u;if(d[11]!==L||d[12]!==y||d[13]!==P)u=e(L,{color:y,children:P}),d[11]=L,d[12]=y,d[13]=P,d[14]=u;else u=d[14];let B;if(d[15]!==b||d[16]!==p)B=!p&&e(Uh,{count:b,expandable:!0}),d[15]=b,d[16]=p,d[17]=B;else B=d[17];let D;if(d[18]!==N||d[19]!==k||d[20]!==u||d[21]!==B)D=r(N,{flexDirection:k,children:[u,B]}),d[18]=N,d[19]=k,d[20]=u,d[21]=B,d[22]=D;else D=d[22];let z;if(d[23]!==T||d[24]!==D)z=e(T,{children:D}),d[23]=T,d[24]=D,d[25]=z;else z=d[25];return z}
+export{DHe,Fc,Uh,LHe,OQt,Jd};

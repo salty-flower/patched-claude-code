@@ -1,0 +1,4351 @@
+{
+  "schema": 2,
+  "scope": "static-prompt-catalog",
+  "completeness": "partial",
+  "target": {
+    "upstreamVersion": "2.1.258",
+    "releaseId": "patch.1",
+    "upstreamBundleSha256": "sha256-GePb3mTqMS2icVJ++lC2bD2ducXU/0X1G/9NeSj+dv0=",
+    "patchedBundleSha256": "sha256-KieMCSByP2FJ5eEaPSVkhJxNWgPNMrj9m3K1V5jGjCU=",
+    "patchedEntrypointSha256": "sha256-XwL64BPr2Ew8lFVb+9+PoYDxyTFctg9B13qYkJ5H5ss=",
+    "patchSetSha256": "sha256-CAOmS3m4f+BxjU0EprDnnwYdQ2xcVFkLxz9QOIYeJw8="
+  },
+  "extractor": {
+    "schemaVersion": 3,
+    "rulesetSha256": "sha256-RNUbDep6VHvAl7drD8gvV5cQ2WZAErFATxa3HZrrE+I=",
+    "method": {
+      "schema": 3,
+      "candidateNodes": [
+        "StringLiteral",
+        "TemplateLiteral"
+      ],
+      "minimumCharacters": 160,
+      "minimumSignals": 2,
+      "signals": [
+        {
+          "id": "you-are",
+          "source": "\\byou are\\b",
+          "flags": "i"
+        },
+        {
+          "id": "your-task",
+          "source": "\\byour task\\b",
+          "flags": "i"
+        },
+        {
+          "id": "use-this-tool",
+          "source": "\\buse this tool\\b",
+          "flags": "i"
+        },
+        {
+          "id": "you-must",
+          "source": "\\byou must\\b",
+          "flags": "i"
+        },
+        {
+          "id": "do-not",
+          "source": "\\bdo not\\b",
+          "flags": "i"
+        },
+        {
+          "id": "respond",
+          "source": "\\brespond\\b",
+          "flags": "i"
+        },
+        {
+          "id": "instruction",
+          "source": "\\binstructions?\\b",
+          "flags": "i"
+        },
+        {
+          "id": "generate",
+          "source": "\\bgenerate\\b",
+          "flags": "i"
+        },
+        {
+          "id": "write",
+          "source": "\\bwrite\\b",
+          "flags": "i"
+        },
+        {
+          "id": "return",
+          "source": "\\breturn\\b",
+          "flags": "i"
+        },
+        {
+          "id": "output",
+          "source": "\\boutput\\b",
+          "flags": "i"
+        },
+        {
+          "id": "xml-tag",
+          "source": "<[a-z][^>]*>",
+          "flags": "i"
+        }
+      ],
+      "contextualTemplatePolicy": "gap",
+      "identity": "checked-in-lineage-with-non-authoritative-partial-ranking"
+    }
+  },
+  "identity": {
+    "schemaVersion": 2,
+    "lineageSetSha256": "sha256-KdJdz0fNgnPfmYL7/vJjPsBQjt4apqM9ySlFULPx4RI=",
+    "ledgerSha256": "sha256-vr2MGLBeJzNhJOBcIRtHdc0bPNT3qhMuP0jmaFZXpcA="
+  },
+  "entries": [
+    {
+      "id": "prompt-000116",
+      "lineageId": "prompt-000116",
+      "occurrenceId": "v2.1.258-0001",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:519623-520017",
+      "role": "system",
+      "ordinal": 1,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000116.md",
+      "contentBytes": 389,
+      "contentSha256": "sha256-NpZTXwBbKOvAhSd4AmXSa5w4Up/2GOE5xU9cP4kyjWo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 519623,
+        "endCodeUnit": 520017,
+        "sourceSha256": "sha256-8dD+TYlFXhzWXQsEbCCa9gZUE8/aEABLqc6kvY5L0lk="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000117",
+      "lineageId": "prompt-000117",
+      "occurrenceId": "v2.1.258-0002",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:521303-522273",
+      "role": "system",
+      "ordinal": 2,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000117.md",
+      "contentBytes": 959,
+      "contentSha256": "sha256-vKC76veXyEOaiY8gYjYz2oohi8xoOd88luruj3xf2D8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 521303,
+        "endCodeUnit": 522273,
+        "sourceSha256": "sha256-GEDx2tarQB/2rgwb12KNac2/rqmTWiouWFc7lTIQ6gU="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000218",
+      "lineageId": "prompt-000218",
+      "occurrenceId": "v2.1.258-0003",
+      "familyId": "permission-security",
+      "callsiteId": "patched:561416-563293",
+      "role": "system",
+      "ordinal": 3,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000218.md",
+      "contentBytes": 1874,
+      "contentSha256": "sha256-Cqv1js5IMqWH3R5dV6jCM/9uWT6h6Tvt+GgSASszg78=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 561416,
+        "endCodeUnit": 563293,
+        "sourceSha256": "sha256-jmZPRuXqEiMA/V8V0XozOIuXLz5KEbSv+By7MEHvnLw="
+      },
+      "detectorSignals": [
+        "instruction",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000440",
+      "lineageId": "prompt-000440",
+      "occurrenceId": "v2.1.258-0004",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:1247961-1248218",
+      "role": "unknown",
+      "ordinal": 4,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000440.md",
+      "contentBytes": 255,
+      "contentSha256": "sha256-6T8jtk362wM5GVVdQUv4QNVsGqf1DwrhVXhLkXOuLcg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 1247961,
+        "endCodeUnit": 1248218,
+        "sourceSha256": "sha256-jEuffQn4WeGmkOHYFhQSHXZ78uY3fPs73+iANDfA/ak="
+      },
+      "detectorSignals": [
+        "respond",
+        "write",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000441",
+      "lineageId": "prompt-000441",
+      "occurrenceId": "v2.1.258-0007",
+      "familyId": "permission-security",
+      "callsiteId": "patched:2052671-2053389",
+      "role": "system",
+      "ordinal": 7,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000441.md",
+      "contentBytes": 716,
+      "contentSha256": "sha256-xjDtiutmS4J5H1V/4VPCTRcU0IdzTBxAJUYdYnpm404=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 2052671,
+        "endCodeUnit": 2053389,
+        "sourceSha256": "sha256-8JkqgQBd4ier0BF4Bxg/b/37gldTbDoIR5jT6sp7UuU="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000335",
+      "lineageId": "prompt-000335",
+      "occurrenceId": "v2.1.258-0009",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:2115697-2115972",
+      "role": "system",
+      "ordinal": 9,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000335.md",
+      "contentBytes": 273,
+      "contentSha256": "sha256-tNR+WXuBdQ9bf75rYybsf80P0M0wDhUuORaHSkDaxcs=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 2115697,
+        "endCodeUnit": 2115972,
+        "sourceSha256": "sha256-34r5JpXGT0v4sUT6M/lhicNJt68es60dnoj4616Cxtc="
+      },
+      "detectorSignals": [
+        "instruction",
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000488",
+      "lineageId": "prompt-000488",
+      "occurrenceId": "v2.1.258-0014",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:2617652-2618007",
+      "role": "unknown",
+      "ordinal": 14,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000488.md",
+      "contentBytes": 350,
+      "contentSha256": "sha256-fKc7XB3A+0KkyuYOFoDuq3D9w3nRjveXRXDTnrwAo84=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 2617652,
+        "endCodeUnit": 2618007,
+        "sourceSha256": "sha256-sDy8jL6K6FEHNzIZyJz/JD0re+FdiUDYstu6y+aokrM="
+      },
+      "detectorSignals": [
+        "you-must",
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000444",
+      "lineageId": "prompt-000444",
+      "occurrenceId": "v2.1.258-0016",
+      "familyId": "permission-security",
+      "callsiteId": "patched:2703134-2703589",
+      "role": "system",
+      "ordinal": 16,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000444.md",
+      "contentBytes": 453,
+      "contentSha256": "sha256-i32AoUkFDUVC9vxBr3uIjti/BGrvzumpGTYJfHbUt/w=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 2703134,
+        "endCodeUnit": 2703589,
+        "sourceSha256": "sha256-AnwbUF31kCbdMA6cicoOO3Z7YuY0XQMzv2nA5giZFao="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000445",
+      "lineageId": "prompt-000445",
+      "occurrenceId": "v2.1.258-0017",
+      "familyId": "permission-security",
+      "callsiteId": "patched:2703593-2703958",
+      "role": "system",
+      "ordinal": 17,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000445.md",
+      "contentBytes": 363,
+      "contentSha256": "sha256-a2YUlwdadbxggdzDObGYN1gRCVrGqvL9VhpRbw8ygs8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 2703593,
+        "endCodeUnit": 2703958,
+        "sourceSha256": "sha256-HMzdTXUunUzXUl3bLo7c63ecs5TXYFoTSQ/v8MZy12M="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000165",
+      "lineageId": "prompt-000165",
+      "occurrenceId": "v2.1.258-0018",
+      "familyId": "agent",
+      "callsiteId": "patched:2971862-2974536",
+      "role": "system",
+      "ordinal": 18,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000165.md",
+      "contentBytes": 2662,
+      "contentSha256": "sha256-mQY4idQEppyv1ZLnLgdIDLjUfnsIGtio+klBbUdPZmM=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 2971862,
+        "endCodeUnit": 2974536,
+        "sourceSha256": "sha256-q0rOHCCywle8i275mTNsL5VoPBlw8Z6yj5lucxG1zH4="
+      },
+      "detectorSignals": [
+        "respond",
+        "instruction",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000436",
+      "lineageId": "prompt-000436",
+      "occurrenceId": "v2.1.258-0024",
+      "familyId": "compact",
+      "callsiteId": "patched:3738273-3838990",
+      "role": "system",
+      "ordinal": 24,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/compact/system/prompt-000436.md",
+      "contentBytes": 99780,
+      "contentSha256": "sha256-xIFhGSTEFmdMJ+qoG6OP3K5qQsh7mVm9L5eK1lZ2AWQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 3738273,
+        "endCodeUnit": 3838990,
+        "sourceSha256": "sha256-EPkWXlHts0W6e2kDnQMiQupj793o4yaQa3KN7Bgj1L8="
+      },
+      "detectorSignals": [
+        "you-are",
+        "instruction",
+        "write",
+        "return",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000373",
+      "lineageId": "prompt-000373",
+      "occurrenceId": "v2.1.258-0025",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:3898565-3900779",
+      "role": "unknown",
+      "ordinal": 25,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000373.md",
+      "contentBytes": 2195,
+      "contentSha256": "sha256-t9MBTXSWpAzQD9fH3Rrq3+GNuDgTem18ECX/eLbMpvE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 3898565,
+        "endCodeUnit": 3900779,
+        "sourceSha256": "sha256-Whha6Tit/jm5wGvbtdKXC7FJbxHbqVqaf0qhTlHA3WM="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000052",
+      "lineageId": "prompt-000052",
+      "occurrenceId": "v2.1.258-0028",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:5299567-5299730",
+      "role": "unknown",
+      "ordinal": 28,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000052.md",
+      "contentBytes": 161,
+      "contentSha256": "sha256-TxsC2iKlx/qkA+XkvSAP5dceZBieXORxnehxHUqoIkw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5299567,
+        "endCodeUnit": 5299730,
+        "sourceSha256": "sha256-wOF0CpAfEe47Ru0T2Wi1McsD6bWXeFsUkcFhyB9meAE="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000053",
+      "lineageId": "prompt-000053",
+      "occurrenceId": "v2.1.258-0029",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:5317685-5317975",
+      "role": "unknown",
+      "ordinal": 29,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000053.md",
+      "contentBytes": 288,
+      "contentSha256": "sha256-fm4so66ToFmC67gPnssrubYAsub12UlI2DXGjWoNLqU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5317685,
+        "endCodeUnit": 5317975,
+        "sourceSha256": "sha256-Jqn0FAeCudPxM+Sp1dLTBoq+UQsSGpAKi3Av3/ni2YU="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000054",
+      "lineageId": "prompt-000054",
+      "occurrenceId": "v2.1.258-0030",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:5318016-5318764",
+      "role": "user",
+      "ordinal": 30,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000054.md",
+      "contentBytes": 728,
+      "contentSha256": "sha256-E+gxr+D7sHfWkA/3KTsxcQ7tNZAv2a98hiqaaRZW2Yw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5318016,
+        "endCodeUnit": 5318764,
+        "sourceSha256": "sha256-02hJ+okYyWMDppdOea23fNL/1rQDDbzZwuJT7AJfgMc="
+      },
+      "detectorSignals": [
+        "you-must",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000055",
+      "lineageId": "prompt-000055",
+      "occurrenceId": "v2.1.258-0031",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:5320687-5321081",
+      "role": "unknown",
+      "ordinal": 31,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000055.md",
+      "contentBytes": 381,
+      "contentSha256": "sha256-f1spUI5c8sEhQXQyTO9QaP+QwtVmIuVM78y8yoFvqJM=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5320687,
+        "endCodeUnit": 5321081,
+        "sourceSha256": "sha256-GsAjQEoTxS1mPPD78DTeWrAkwPNiib5/Evt7V9cCETY="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000342",
+      "lineageId": "prompt-000342",
+      "occurrenceId": "v2.1.258-0037",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:5627342-5627910",
+      "role": "system",
+      "ordinal": 37,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000342.md",
+      "contentBytes": 566,
+      "contentSha256": "sha256-YYwrCdjX3z0ni0czvapFUXp9SWt+gW6kiLrbkWIXI5w=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5627342,
+        "endCodeUnit": 5627910,
+        "sourceSha256": "sha256-wyK+CB9DLU1jZSjc/s4WBaZhsnaMQ2xeWVHPa1rNV2c="
+      },
+      "detectorSignals": [
+        "you-are",
+        "you-must",
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000003",
+      "lineageId": "prompt-000003",
+      "occurrenceId": "v2.1.258-0039",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:5947077-5947473",
+      "role": "unknown",
+      "ordinal": 39,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000003.md",
+      "contentBytes": 391,
+      "contentSha256": "sha256-q/7Hi4boJlED7Ji1/yLCuvRyk8uQcii9C1ntOXC9P+4=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5947077,
+        "endCodeUnit": 5947473,
+        "sourceSha256": "sha256-dguZnthcNxPNrJqHjH+Uop/J2SLd59aFiCBHS+ebeQo="
+      },
+      "detectorSignals": [
+        "write",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000004",
+      "lineageId": "prompt-000004",
+      "occurrenceId": "v2.1.258-0040",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:5948762-5948936",
+      "role": "unknown",
+      "ordinal": 40,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000004.md",
+      "contentBytes": 172,
+      "contentSha256": "sha256-q7YZxh8EAp+ZlgOI02HIYEBlFNtTdeMcuu5Fklrtz/Q=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5948762,
+        "endCodeUnit": 5948936,
+        "sourceSha256": "sha256-l6fuv8bdSXvLkjCH5pcBFWjPN2UZAQmMiBfdS2hUpFY="
+      },
+      "detectorSignals": [
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000005",
+      "lineageId": "prompt-000005",
+      "occurrenceId": "v2.1.258-0041",
+      "familyId": "permission-security",
+      "callsiteId": "patched:5955584-5956322",
+      "role": "unknown",
+      "ordinal": 41,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/unknown/prompt-000005.md",
+      "contentBytes": 730,
+      "contentSha256": "sha256-aw9GQpXE8xxvLml1/gzdL+njbF+VWSrOUO8wqJc4jNE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5955584,
+        "endCodeUnit": 5956322,
+        "sourceSha256": "sha256-0RYq5nQt1nq9XB2KCqX+prQa09+ObMIeeMotAIIYRvs="
+      },
+      "detectorSignals": [
+        "use-this-tool",
+        "write",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000006",
+      "lineageId": "prompt-000006",
+      "occurrenceId": "v2.1.258-0042",
+      "familyId": "web-browser",
+      "callsiteId": "patched:5957045-5957690",
+      "role": "unknown",
+      "ordinal": 42,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/web-browser/unknown/prompt-000006.md",
+      "contentBytes": 640,
+      "contentSha256": "sha256-3UGYvnmcyJ7MT+Zvk4p6hmpBuh9Wk3xDeSEJ7XT9Z38=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5957045,
+        "endCodeUnit": 5957690,
+        "sourceSha256": "sha256-Rh8oyCOJloutECDmB5HsgE17TvYPob1DZHpsG1Uk0KI="
+      },
+      "detectorSignals": [
+        "you-must",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000354",
+      "lineageId": "prompt-000354",
+      "occurrenceId": "v2.1.258-0043",
+      "familyId": "web-browser",
+      "callsiteId": "patched:5963819-5964246",
+      "role": "system",
+      "ordinal": 43,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/web-browser/system/prompt-000354.md",
+      "contentBytes": 425,
+      "contentSha256": "sha256-XbrusoitDRTspSi6FXxO/JRQA1rjDVpng12Gcz3kXOs=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5963819,
+        "endCodeUnit": 5964246,
+        "sourceSha256": "sha256-8KSAcJ0oBWbxYzoKROqbbI5lNpC3sWs/0umzw7bz2GY="
+      },
+      "detectorSignals": [
+        "your-task",
+        "you-must"
+      ]
+    },
+    {
+      "id": "prompt-000007",
+      "lineageId": "prompt-000007",
+      "occurrenceId": "v2.1.258-0044",
+      "familyId": "tool-description",
+      "callsiteId": "patched:5968859-5969443",
+      "role": "tool",
+      "ordinal": 44,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/tool-description/tool/prompt-000007.md",
+      "contentBytes": 579,
+      "contentSha256": "sha256-vnnRbYnM/YYQVqgJmENOkbPI+rWNQXK6XRxi2hYchIA=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 5968859,
+        "endCodeUnit": 5969443,
+        "sourceSha256": "sha256-xnBQ+u02KTt5Jl47p6OBceJCNrIn/+z9hCKPNH3bdKY="
+      },
+      "detectorSignals": [
+        "use-this-tool",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000336",
+      "lineageId": "prompt-000336",
+      "occurrenceId": "v2.1.258-0046",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:7466658-7467069",
+      "role": "system",
+      "ordinal": 46,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000336.md",
+      "contentBytes": 406,
+      "contentSha256": "sha256-R7sdf3Aq7PUcKs3HSAC8embKWrpN2LytX1d/leWnw7I=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 7466658,
+        "endCodeUnit": 7467069,
+        "sourceSha256": "sha256-7xgGkRj+giO8620Mn7BOgrE6X8xXoALBIVvKAymRXiw="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000072",
+      "lineageId": "prompt-000072",
+      "occurrenceId": "v2.1.258-0047",
+      "familyId": "permission-security",
+      "callsiteId": "patched:7988312-7988927",
+      "role": "system",
+      "ordinal": 47,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000072.md",
+      "contentBytes": 607,
+      "contentSha256": "sha256-b41+njuqbJgAkUkoMdJcMWlHCaPOp1AvFf0reghQnfY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 7988312,
+        "endCodeUnit": 7988927,
+        "sourceSha256": "sha256-ynau3VMH7wBtTLI/yxzLHBEnoDUvVR5lDNpCYTcPMHE="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000402",
+      "lineageId": "prompt-000402",
+      "occurrenceId": "v2.1.258-0048",
+      "familyId": "permission-security",
+      "callsiteId": "patched:7989189-7989794",
+      "role": "system",
+      "ordinal": 48,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000402.md",
+      "contentBytes": 594,
+      "contentSha256": "sha256-7TXfCBwmlTaZha0UBNnaZh8Axfud+1dF1MJB7sMbyiA=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 7989189,
+        "endCodeUnit": 7989794,
+        "sourceSha256": "sha256-EcuMdBWb9ZS2sg1G1c5NoTdB/1mL9dAQoEywqoWC0c0="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000120",
+      "lineageId": "prompt-000120",
+      "occurrenceId": "v2.1.258-0050",
+      "familyId": "memory",
+      "callsiteId": "patched:8119227-8119772",
+      "role": "system",
+      "ordinal": 50,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/system/prompt-000120.md",
+      "contentBytes": 540,
+      "contentSha256": "sha256-lFrUTVw1mA1dcvsgX6dnKn4RgmOi6Iy9ioxfkLLkpLE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 8119227,
+        "endCodeUnit": 8119772,
+        "sourceSha256": "sha256-WYlFba6kGPfOJNoUXP8/Ql56jHJNMyKc/4wwRPoveY4="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000216",
+      "lineageId": "prompt-000216",
+      "occurrenceId": "v2.1.258-0052",
+      "familyId": "hook",
+      "callsiteId": "patched:8792768-8793132",
+      "role": "unknown",
+      "ordinal": 52,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/unknown/prompt-000216.md",
+      "contentBytes": 359,
+      "contentSha256": "sha256-hzUnnkuBunaxb4zafwrUDGJDAamSNp+Kdhgz29FRSMM=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 8792768,
+        "endCodeUnit": 8793132,
+        "sourceSha256": "sha256-qkNKyFRNNncV9ekG2fzdKzGu5rNmGmlcbFv5NO1F54Y="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000217",
+      "lineageId": "prompt-000217",
+      "occurrenceId": "v2.1.258-0053",
+      "familyId": "hook",
+      "callsiteId": "patched:8793197-8793673",
+      "role": "unknown",
+      "ordinal": 53,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/unknown/prompt-000217.md",
+      "contentBytes": 471,
+      "contentSha256": "sha256-Xrm+JWPmbPNvvwW+s2E0sQYtYX41ubGTuSKkZjFOglo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 8793197,
+        "endCodeUnit": 8793673,
+        "sourceSha256": "sha256-Vk9NodizATFM0c/PY3rEeVTifEeChzN0fbnW7weQwAQ="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000119",
+      "lineageId": "prompt-000119",
+      "occurrenceId": "v2.1.258-0056",
+      "familyId": "permission-security",
+      "callsiteId": "patched:9569060-9571735",
+      "role": "system",
+      "ordinal": 56,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000119.md",
+      "contentBytes": 2621,
+      "contentSha256": "sha256-ee6Mk6kqp+YWH2O4dIav/LKnfEyATvGpSSZBPHvFw0Q=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 9569060,
+        "endCodeUnit": 9571735,
+        "sourceSha256": "sha256-cSLpilgzrM3Moth0zrOlHiZGkGPLOx0piNVdejzcHJE="
+      },
+      "detectorSignals": [
+        "instruction",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000157",
+      "lineageId": "prompt-000157",
+      "occurrenceId": "v2.1.258-0057",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:9696991-9697256",
+      "role": "unknown",
+      "ordinal": 57,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000157.md",
+      "contentBytes": 263,
+      "contentSha256": "sha256-KcNVEvciC4U1uUl0Lgk2aKAf4Ur9giTIp9qufOWrHDk=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 9696991,
+        "endCodeUnit": 9697256,
+        "sourceSha256": "sha256-rPjHnI50rlD2OIw5jVDuSwsOP47v4cQXgg8PCMamqqg="
+      },
+      "detectorSignals": [
+        "generate",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000162",
+      "lineageId": "prompt-000162",
+      "occurrenceId": "v2.1.258-0059",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:10239005-10243684",
+      "role": "system",
+      "ordinal": 59,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000162.md",
+      "contentBytes": 4579,
+      "contentSha256": "sha256-0U3m2OHdWDalvyhi8oHz7KhfkvMVy4v8mlIzOnz96Rc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 10239005,
+        "endCodeUnit": 10243684,
+        "sourceSha256": "sha256-BqcO6Do1gB3mofTTP3pGZ9LmOJH9En3AbXiRMk8ydsM="
+      },
+      "detectorSignals": [
+        "you-are",
+        "your-task",
+        "instruction",
+        "generate",
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000181",
+      "lineageId": "prompt-000181",
+      "occurrenceId": "v2.1.258-0061",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:11107143-11107692",
+      "role": "unknown",
+      "ordinal": 61,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000181.md",
+      "contentBytes": 542,
+      "contentSha256": "sha256-MXNrgfYgtLlxH11q0XMLLiDQsvRTZgBnirk8LCoVXYU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11107143,
+        "endCodeUnit": 11107692,
+        "sourceSha256": "sha256-NfJ6Z83MRbuLuv1nmk0OmGVu79Qpao2ar5fl1xdLGmM="
+      },
+      "detectorSignals": [
+        "you-must",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000021",
+      "lineageId": "prompt-000021",
+      "occurrenceId": "v2.1.258-0063",
+      "familyId": "permission-security",
+      "callsiteId": "patched:11215017-11225729",
+      "role": "unknown",
+      "ordinal": 63,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/unknown/prompt-000021.md",
+      "contentBytes": 10704,
+      "contentSha256": "sha256-cZoUmLibE62TizsNWkZ25uDkoMSa4Lmn7aYcBL085g0=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11215017,
+        "endCodeUnit": 11225729,
+        "sourceSha256": "sha256-KEWw+laLshscIJ5mIorFNuRa8FmU+vkI/wTNORQn83U="
+      },
+      "detectorSignals": [
+        "write",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000457",
+      "lineageId": "prompt-000457",
+      "occurrenceId": "v2.1.258-0064",
+      "familyId": "permission-security",
+      "callsiteId": "patched:11276447-11278565",
+      "role": "system",
+      "ordinal": 64,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000457.md",
+      "contentBytes": 2104,
+      "contentSha256": "sha256-7vrTfn3utg3/Bs3xJHeSRZNa72EaQFAm+404NaYAYRo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11276447,
+        "endCodeUnit": 11278565,
+        "sourceSha256": "sha256-lsS/77eA7zaOPcqu5qRdIlE20T5TvOXo1G7tLwNa9Ro="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "write",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000424",
+      "lineageId": "prompt-000424",
+      "occurrenceId": "v2.1.258-0065",
+      "familyId": "hook",
+      "callsiteId": "patched:11634917-11637032",
+      "role": "system",
+      "ordinal": 65,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/system/prompt-000424.md",
+      "contentBytes": 2071,
+      "contentSha256": "sha256-ELG53z37btBsO5i1n37yFGkekcxTwA6NVoNKpFd8o60=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11634917,
+        "endCodeUnit": 11637032,
+        "sourceSha256": "sha256-bxCyianY/m/FuP4hvAGB2cnvNlPwXke+DlzsAI7aFSY="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000485",
+      "lineageId": "prompt-000485",
+      "occurrenceId": "v2.1.258-0066",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:11700090-11701009",
+      "role": "user",
+      "ordinal": 66,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000485.md",
+      "contentBytes": 911,
+      "contentSha256": "sha256-oR9Q9rPbaoOYFHxH4HBSBMTt7stEOqC7KC1lm7kXD64=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11700090,
+        "endCodeUnit": 11701009,
+        "sourceSha256": "sha256-k61a1o6edsQa1sREaUt/YbKM0Q1LcENf5ip65GSMSHU="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000045",
+      "lineageId": "prompt-000045",
+      "occurrenceId": "v2.1.258-0069",
+      "familyId": "agent",
+      "callsiteId": "patched:11868729-11869766",
+      "role": "system",
+      "ordinal": 69,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000045.md",
+      "contentBytes": 1032,
+      "contentSha256": "sha256-hOdMBV0143jtQHz9mX/r2EfGCRNtX73u4JEVhkW3keI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11868729,
+        "endCodeUnit": 11869766,
+        "sourceSha256": "sha256-NCd1v3ubjBOeW13MNVH0oM1mzPzr6V+E/rzFEFHthSc="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000047",
+      "lineageId": "prompt-000047",
+      "occurrenceId": "v2.1.258-0071",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:11873227-11873546",
+      "role": "unknown",
+      "ordinal": 71,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000047.md",
+      "contentBytes": 317,
+      "contentSha256": "sha256-VUZTvHdO5IpGnLQ4cV4lTZ2wuC0MZoORSF8wJfoOSTc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11873227,
+        "endCodeUnit": 11873546,
+        "sourceSha256": "sha256-nbPKTCnHcwjrdklMcGtdTDFsfqHHJ8Em6SqAgRgQaVI="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000438",
+      "lineageId": "prompt-000438",
+      "occurrenceId": "v2.1.258-0075",
+      "familyId": "agent",
+      "callsiteId": "patched:11929313-11929789",
+      "role": "system",
+      "ordinal": 75,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000438.md",
+      "contentBytes": 474,
+      "contentSha256": "sha256-2OrLXezuIZIFKYrrxCnZ7zM+J0saOhEfJiKLUcrmwO8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11929313,
+        "endCodeUnit": 11929789,
+        "sourceSha256": "sha256-LykayL9Im/9LGce1AGBz2B7CvDxKMIVNbk+GwlVSszA="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000489",
+      "lineageId": "prompt-000489",
+      "occurrenceId": "v2.1.258-0076",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:11930945-11931152",
+      "role": "user",
+      "ordinal": 76,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000489.md",
+      "contentBytes": 205,
+      "contentSha256": "sha256-qSXRzQab8FoXl0dyMv2tXC0qBaWBFcSqCWHU6rLUnVs=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11930945,
+        "endCodeUnit": 11931152,
+        "sourceSha256": "sha256-GLRZ2vwOfaGyaebEjaYYaNOgZbOqkTMhZZFC4oEf3d0="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000041",
+      "lineageId": "prompt-000041",
+      "occurrenceId": "v2.1.258-0077",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:11994016-11996037",
+      "role": "unknown",
+      "ordinal": 77,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000041.md",
+      "contentBytes": 2017,
+      "contentSha256": "sha256-6Rh6HvqkH210FKwHk2aWHg+0uARV9J5qRgzuss/rFYk=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 11994016,
+        "endCodeUnit": 11996037,
+        "sourceSha256": "sha256-fkkqc85iZKUy0XdmeMaFK/oYx+M70qac7zCH1JVCs0A="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000059",
+      "lineageId": "prompt-000059",
+      "occurrenceId": "v2.1.258-0080",
+      "familyId": "permission-security",
+      "callsiteId": "patched:12432581-12432840",
+      "role": "unknown",
+      "ordinal": 80,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/unknown/prompt-000059.md",
+      "contentBytes": 257,
+      "contentSha256": "sha256-6y58d/j5HjWPbb/003rfUpjQuojSedTQYA+T4+6Xx4c=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 12432581,
+        "endCodeUnit": 12432840,
+        "sourceSha256": "sha256-OlN+oDaE4UkC0ilqUJw/k4Ek0iFhMi3adddXvb4UbHo="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000107",
+      "lineageId": "prompt-000107",
+      "occurrenceId": "v2.1.258-0081",
+      "familyId": "tool-description",
+      "callsiteId": "patched:12522539-12523115",
+      "role": "tool",
+      "ordinal": 81,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/tool-description/tool/prompt-000107.md",
+      "contentBytes": 574,
+      "contentSha256": "sha256-WepBh/zVKy9n4jOwktHHuEGmtBVkaGNkNIhvtflkEpY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 12522539,
+        "endCodeUnit": 12523115,
+        "sourceSha256": "sha256-/v2vSdRms7MmQ43quWdL1Zs+MK49w1grvncaNkzyRN8="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000034",
+      "lineageId": "prompt-000034",
+      "occurrenceId": "v2.1.258-0083",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:12608767-12609154",
+      "role": "system",
+      "ordinal": 83,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000034.md",
+      "contentBytes": 382,
+      "contentSha256": "sha256-o8fNePe7BIWIH5NDuagcvnSdRJO55aMbipD95MgOsM4=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 12608767,
+        "endCodeUnit": 12609154,
+        "sourceSha256": "sha256-FEhnq+ghPe0IKwEIk1m6MZ88hrHEJAa7/TpFaktJ4Uc="
+      },
+      "detectorSignals": [
+        "you-are",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000070",
+      "lineageId": "prompt-000070",
+      "occurrenceId": "v2.1.258-0085",
+      "familyId": "title",
+      "callsiteId": "patched:13086767-13089011",
+      "role": "system",
+      "ordinal": 85,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/title/system/prompt-000070.md",
+      "contentBytes": 2230,
+      "contentSha256": "sha256-fJGBPJP/PQ/ukZcHm/OYJl4jPbdm0LwLzbyoI5HmgrI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13086767,
+        "endCodeUnit": 13089011,
+        "sourceSha256": "sha256-9WsdWid0zRAfjX111r3utP1fr4LUpYQJD76UjNixecU="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "instruction",
+        "generate",
+        "write",
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000095",
+      "lineageId": "prompt-000095",
+      "occurrenceId": "v2.1.258-0093",
+      "familyId": "agent",
+      "callsiteId": "patched:13525352-13526772",
+      "role": "user",
+      "ordinal": 93,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/user/prompt-000095.md",
+      "contentBytes": 1393,
+      "contentSha256": "sha256-zoAe+eBa7CTO2hOqqrENtJSthR5K2/hm79dBl94ymKY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13525352,
+        "endCodeUnit": 13526772,
+        "sourceSha256": "sha256-7STqoCwhABJch61rhh9YSPLV35OHwS38yiPsWdKi6Ko="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000100",
+      "lineageId": "prompt-000100",
+      "occurrenceId": "v2.1.258-0098",
+      "familyId": "agent",
+      "callsiteId": "patched:13533731-13534124",
+      "role": "user",
+      "ordinal": 98,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/user/prompt-000100.md",
+      "contentBytes": 388,
+      "contentSha256": "sha256-K43T1a5qXRIB65XK1VX20zdfTvSafQ333Cp39HWV7IM=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13533731,
+        "endCodeUnit": 13534124,
+        "sourceSha256": "sha256-Z/Gz6WiO30pVq74pdbEz0v1Kj5oJnGVCakz6YSRlnIA="
+      },
+      "detectorSignals": [
+        "use-this-tool",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000401",
+      "lineageId": "prompt-000401",
+      "occurrenceId": "v2.1.258-0099",
+      "familyId": "agent",
+      "callsiteId": "patched:13536190-13536582",
+      "role": "system",
+      "ordinal": 99,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000401.md",
+      "contentBytes": 384,
+      "contentSha256": "sha256-VOgWys7xiUiTzgMoaG/RP5UJhJRixSIr3I7h4/Laqd4=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13536190,
+        "endCodeUnit": 13536582,
+        "sourceSha256": "sha256-ly6a8lQi2kVzCOwzaG9q0tieeNenNkFkUW8ViG47UVA="
+      },
+      "detectorSignals": [
+        "you-are",
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000101",
+      "lineageId": "prompt-000101",
+      "occurrenceId": "v2.1.258-0100",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:13538862-13539633",
+      "role": "user",
+      "ordinal": 100,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000101.md",
+      "contentBytes": 758,
+      "contentSha256": "sha256-njd9+QhVKKvyZyVXQXUxbpCoCe8f2dbBNx1weEbhYfI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13538862,
+        "endCodeUnit": 13539633,
+        "sourceSha256": "sha256-ThBAeQ2QkQF+256ZPI1e/JK4vZvoaAyw24mCphky8Dw="
+      },
+      "detectorSignals": [
+        "do-not",
+        "respond"
+      ]
+    },
+    {
+      "id": "prompt-000102",
+      "lineageId": "prompt-000102",
+      "occurrenceId": "v2.1.258-0101",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:13539645-13540028",
+      "role": "user",
+      "ordinal": 101,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000102.md",
+      "contentBytes": 375,
+      "contentSha256": "sha256-goUgOxMEA22vr7QDc+ztEhG8Md2hJjQZqeuiRyTag1Q=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13539645,
+        "endCodeUnit": 13540028,
+        "sourceSha256": "sha256-NuLW7qAvzhNyLwbecBK1LLNfpetI2e5TMAqy/QW0kSM="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000376",
+      "lineageId": "prompt-000376",
+      "occurrenceId": "v2.1.258-0105",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:13722325-13722597",
+      "role": "system",
+      "ordinal": 105,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000376.md",
+      "contentBytes": 267,
+      "contentSha256": "sha256-7Vgvr0YyuytM1cYlJGqTkY0wG+F4Ws1Y8YTR2pkJhig=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13722325,
+        "endCodeUnit": 13722597,
+        "sourceSha256": "sha256-AOon0BHuNrtABGbPqVr7RIEGw0iPqyM7cIRNHme8t9A="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000106",
+      "lineageId": "prompt-000106",
+      "occurrenceId": "v2.1.258-0110",
+      "familyId": "agent",
+      "callsiteId": "patched:13843398-13844464",
+      "role": "unknown",
+      "ordinal": 110,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/unknown/prompt-000106.md",
+      "contentBytes": 1055,
+      "contentSha256": "sha256-6M6dimx1hekJJ804GEcZrMClKDuJsz7wojxwy66XzuQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13843398,
+        "endCodeUnit": 13844464,
+        "sourceSha256": "sha256-bY8togXRiYqZ7kg6zJ+13ST14MkT/rtiDfVA3rxffIk="
+      },
+      "detectorSignals": [
+        "do-not",
+        "return",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000364",
+      "lineageId": "prompt-000364",
+      "occurrenceId": "v2.1.258-0113",
+      "familyId": "memory",
+      "callsiteId": "patched:13886223-13888233",
+      "role": "system",
+      "ordinal": 113,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/system/prompt-000364.md",
+      "contentBytes": 1983,
+      "contentSha256": "sha256-ukxb9fbh2WiC77Sikyf5NtwXnrokCvEEBIMazBx1glg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13886223,
+        "endCodeUnit": 13888233,
+        "sourceSha256": "sha256-3vLU+SxWKwa4n41OKr/vlg6MxyOD1vpRyL13esumrs8="
+      },
+      "detectorSignals": [
+        "you-must",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000071",
+      "lineageId": "prompt-000071",
+      "occurrenceId": "v2.1.258-0115",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:13914840-13915399",
+      "role": "system",
+      "ordinal": 115,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000071.md",
+      "contentBytes": 557,
+      "contentSha256": "sha256-+sWnwSPl9xilyZmPMnZAkJcYxXalJKWywHuTS6duQso=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13914840,
+        "endCodeUnit": 13915399,
+        "sourceSha256": "sha256-jyUThNfIhi9POoI6T9UjQT3lAn6ZR30Qdqw4e6gC8yg="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000109",
+      "lineageId": "prompt-000109",
+      "occurrenceId": "v2.1.258-0116",
+      "familyId": "hook",
+      "callsiteId": "patched:13931219-13934700",
+      "role": "user",
+      "ordinal": 116,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/user/prompt-000109.md",
+      "contentBytes": 3467,
+      "contentSha256": "sha256-JYbGpuH7u9Ac5oOpAsf2Iy4VOKvxpmTXFgNXIqn1RrU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 13931219,
+        "endCodeUnit": 13934700,
+        "sourceSha256": "sha256-CIb0duX8fFYhRuYev8ZTjUrAcziMG0tU41he86hwU3E="
+      },
+      "detectorSignals": [
+        "use-this-tool",
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000111",
+      "lineageId": "prompt-000111",
+      "occurrenceId": "v2.1.258-0119",
+      "familyId": "memory",
+      "callsiteId": "patched:14012700-14015990",
+      "role": "system",
+      "ordinal": 119,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/system/prompt-000111.md",
+      "contentBytes": 3232,
+      "contentSha256": "sha256-bikwFZ6PGdRUwJM9CLAipMBSP2YMAle0ISk8oAqd7Y4=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14012700,
+        "endCodeUnit": 14015990,
+        "sourceSha256": "sha256-2UCYNxlQKtFnJOlChCuPVt7Aek5jqVHsxQ/LiA+ODoE="
+      },
+      "detectorSignals": [
+        "use-this-tool",
+        "instruction",
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000112",
+      "lineageId": "prompt-000112",
+      "occurrenceId": "v2.1.258-0120",
+      "familyId": "memory",
+      "callsiteId": "patched:14022975-14024939",
+      "role": "user",
+      "ordinal": 120,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/user/prompt-000112.md",
+      "contentBytes": 1929,
+      "contentSha256": "sha256-Y+djMEyVXr8/WOxIv/px/PVLh61O+DGc878oT+fhlBE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14022975,
+        "endCodeUnit": 14024939,
+        "sourceSha256": "sha256-0TlfW9BSLZPl+9gY4290PelxWcbIwrfsm5NmNGzUg3s="
+      },
+      "detectorSignals": [
+        "do-not",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000114",
+      "lineageId": "prompt-000114",
+      "occurrenceId": "v2.1.258-0122",
+      "familyId": "tool-description",
+      "callsiteId": "patched:14035626-14036360",
+      "role": "tool",
+      "ordinal": 122,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/tool-description/tool/prompt-000114.md",
+      "contentBytes": 732,
+      "contentSha256": "sha256-Vb2xdKO8xlMF86Srbc1SXuxRJXkwzBvxz2AGGAiojTo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14035626,
+        "endCodeUnit": 14036360,
+        "sourceSha256": "sha256-C2N0gjs36LEOdZc62vZJUcp+JaKrC8ToGTuXLL4jjKs="
+      },
+      "detectorSignals": [
+        "use-this-tool",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000486",
+      "lineageId": "prompt-000486",
+      "occurrenceId": "v2.1.258-0124",
+      "familyId": "memory",
+      "callsiteId": "patched:14197471-14198256",
+      "role": "user",
+      "ordinal": 124,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/user/prompt-000486.md",
+      "contentBytes": 774,
+      "contentSha256": "sha256-V0zh3kUgVDO82paDyjYlG1E8KXgZmc3AcjvhRvdOi6I=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14197471,
+        "endCodeUnit": 14198256,
+        "sourceSha256": "sha256-uYw5g63v5apVgpHx4xLa7P+xHzlHNBg8yfXXqONBKXs="
+      },
+      "detectorSignals": [
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000139",
+      "lineageId": "prompt-000139",
+      "occurrenceId": "v2.1.258-0126",
+      "familyId": "memory",
+      "callsiteId": "patched:14242570-14243730",
+      "role": "user",
+      "ordinal": 126,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/user/prompt-000139.md",
+      "contentBytes": 1135,
+      "contentSha256": "sha256-fGFqN5ZxtSQz/wl2reaDDxMqi47skAGcpdK3tXE8Qsg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14242570,
+        "endCodeUnit": 14243730,
+        "sourceSha256": "sha256-2BMVIWX0mXUZNgY+f/u4KmbBXuG0zyWFxvMf0dI7o2E="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000140",
+      "lineageId": "prompt-000140",
+      "occurrenceId": "v2.1.258-0127",
+      "familyId": "memory",
+      "callsiteId": "patched:14243735-14244885",
+      "role": "system",
+      "ordinal": 127,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/system/prompt-000140.md",
+      "contentBytes": 1127,
+      "contentSha256": "sha256-pGWWEvBEUay7KTm+bwa039BUj9vDwTKeE7VbQmg8PdU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14243735,
+        "endCodeUnit": 14244885,
+        "sourceSha256": "sha256-kwA8uHVsozdTxM0mg/LwlRvvSZUND0q3VyGizduQLDs="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000039",
+      "lineageId": "prompt-000039",
+      "occurrenceId": "v2.1.258-0132",
+      "familyId": "compact",
+      "callsiteId": "patched:14432390-14433500",
+      "role": "system",
+      "ordinal": 132,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/compact/system/prompt-000039.md",
+      "contentBytes": 1108,
+      "contentSha256": "sha256-bPtHGr30THvdtR3G/dSV6YXd9v6L13lFsJI+jcMOMss=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14432390,
+        "endCodeUnit": 14433500,
+        "sourceSha256": "sha256-KZBq5Zx9qn9vcaZk/CuLCC3hyIGg8ShmrF/J8ywEn8k="
+      },
+      "detectorSignals": [
+        "instruction",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000467",
+      "lineageId": "prompt-000467",
+      "occurrenceId": "v2.1.258-0134",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14440178-14440564",
+      "role": "unknown",
+      "ordinal": 134,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000467.md",
+      "contentBytes": 381,
+      "contentSha256": "sha256-XECpvDnNndCQofiJh8B5AayrfkOMUofCqdo1fcEXM38=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14440178,
+        "endCodeUnit": 14440564,
+        "sourceSha256": "sha256-bpHpCWTEzO5hyI+5byJOp1IMqhrv15FdsEYUGmSkAf8="
+      },
+      "detectorSignals": [
+        "do-not",
+        "respond",
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000468",
+      "lineageId": "prompt-000468",
+      "occurrenceId": "v2.1.258-0135",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14440682-14441068",
+      "role": "unknown",
+      "ordinal": 135,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000468.md",
+      "contentBytes": 381,
+      "contentSha256": "sha256-XECpvDnNndCQofiJh8B5AayrfkOMUofCqdo1fcEXM38=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14440682,
+        "endCodeUnit": 14441068,
+        "sourceSha256": "sha256-bpHpCWTEzO5hyI+5byJOp1IMqhrv15FdsEYUGmSkAf8="
+      },
+      "detectorSignals": [
+        "do-not",
+        "respond",
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000063",
+      "lineageId": "prompt-000063",
+      "occurrenceId": "v2.1.258-0136",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14633458-14633824",
+      "role": "unknown",
+      "ordinal": 136,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000063.md",
+      "contentBytes": 364,
+      "contentSha256": "sha256-GA1o3u2eWfwCh5/F11zGywfaQx+mNwz1yYr+v0/EIe8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14633458,
+        "endCodeUnit": 14633824,
+        "sourceSha256": "sha256-Nhhr6wtJfL0bhlQlWqdgCoW6KpS7h/YOD6ONxDUihhE="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000066",
+      "lineageId": "prompt-000066",
+      "occurrenceId": "v2.1.258-0138",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14644134-14644389",
+      "role": "unknown",
+      "ordinal": 138,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000066.md",
+      "contentBytes": 250,
+      "contentSha256": "sha256-c3U6v8QcuOXYeeO58BPPZ2kEh49ulYrbB7PbNgYnWYg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14644134,
+        "endCodeUnit": 14644389,
+        "sourceSha256": "sha256-idbLo1xv9Y2txGtMp4oa/NWpbJE3Rw0wvwKDF2kxlUQ="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000191",
+      "lineageId": "prompt-000191",
+      "occurrenceId": "v2.1.258-0140",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14948256-14949412",
+      "role": "user",
+      "ordinal": 140,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000191.md",
+      "contentBytes": 1136,
+      "contentSha256": "sha256-a6qTkEtcbrCo6j/5fbKVzLWtt9dupLdjlqlSMVtcjYg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14948256,
+        "endCodeUnit": 14949412,
+        "sourceSha256": "sha256-0Gy7t9LzZ/Zl5E79GSlisZVJrtutBM/WMRspP46vVAs="
+      },
+      "detectorSignals": [
+        "you-must",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000490",
+      "lineageId": "prompt-000490",
+      "occurrenceId": "v2.1.258-0141",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14949498-14949752",
+      "role": "unknown",
+      "ordinal": 141,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000490.md",
+      "contentBytes": 252,
+      "contentSha256": "sha256-diJuFB4+0tk51mdH8aT53tH1mtu2B0p7OiOPDA90W1M=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14949498,
+        "endCodeUnit": 14949752,
+        "sourceSha256": "sha256-nZ44sayE0nq071kgnUEGgYL32LDZq3IibVzD/0iiCNs="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000423",
+      "lineageId": "prompt-000423",
+      "occurrenceId": "v2.1.258-0142",
+      "familyId": "permission-security",
+      "callsiteId": "patched:14949757-14950954",
+      "role": "system",
+      "ordinal": 142,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000423.md",
+      "contentBytes": 1177,
+      "contentSha256": "sha256-0Rw6UJIwn7b9m7iFVkUOnRHYg64fatIojhiOf2IwaOQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14949757,
+        "endCodeUnit": 14950954,
+        "sourceSha256": "sha256-LX+KbACbiI8oS4ncgbHTZ4CT8v1lT7rf4HuquwHOlwo="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000167",
+      "lineageId": "prompt-000167",
+      "occurrenceId": "v2.1.258-0145",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14962969-14964336",
+      "role": "user",
+      "ordinal": 145,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000167.md",
+      "contentBytes": 1350,
+      "contentSha256": "sha256-wYSl1LS2oPw3SjfGn3KTer84vMyqLQzOBCeWj82jzMc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14962969,
+        "endCodeUnit": 14964336,
+        "sourceSha256": "sha256-d/eH2B2rjf+s1u1z3lpf1UEmBEFf14uJcTzcl+B3gl8="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000469",
+      "lineageId": "prompt-000469",
+      "occurrenceId": "v2.1.258-0146",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14968220-14970038",
+      "role": "user",
+      "ordinal": 146,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000469.md",
+      "contentBytes": 1816,
+      "contentSha256": "sha256-W6c1okkivcHyFxDu3XSkakIvxJ2uLBBrcZ+AQvQMoMs=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14968220,
+        "endCodeUnit": 14970038,
+        "sourceSha256": "sha256-hYp9iWvLxS/4rAY5OMf85BoMu9Ircg9nSWYmkpfhgzY="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000168",
+      "lineageId": "prompt-000168",
+      "occurrenceId": "v2.1.258-0147",
+      "familyId": "permission-security",
+      "callsiteId": "patched:14970571-14971957",
+      "role": "system",
+      "ordinal": 147,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000168.md",
+      "contentBytes": 1372,
+      "contentSha256": "sha256-B/VU2kIOBEUckYxmETiSu5qjZ0mbI5p740RACDKp2Mo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14970571,
+        "endCodeUnit": 14971957,
+        "sourceSha256": "sha256-YAy7IfC6ZfyrYTEHrbrCYFTKF0sSvP2vRjLAfldPzpw="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000171",
+      "lineageId": "prompt-000171",
+      "occurrenceId": "v2.1.258-0149",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14977002-14977492",
+      "role": "system",
+      "ordinal": 149,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000171.md",
+      "contentBytes": 488,
+      "contentSha256": "sha256-tXpLyNepXSyvrqNYue3L6qa1SiHZfQONROreiBhP2Bo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14977002,
+        "endCodeUnit": 14977492,
+        "sourceSha256": "sha256-nD9mHxWlx6jF5V/dIXkoTO3GACGU9HTThR84Od/FRnA="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000172",
+      "lineageId": "prompt-000172",
+      "occurrenceId": "v2.1.258-0150",
+      "familyId": "permission-security",
+      "callsiteId": "patched:14978940-14982543",
+      "role": "system",
+      "ordinal": 150,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000172.md",
+      "contentBytes": 3587,
+      "contentSha256": "sha256-+AGXOCfg5RXsGDCIg34hLJTSPLj11o1xKNKNI1YRFlw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14978940,
+        "endCodeUnit": 14982543,
+        "sourceSha256": "sha256-dOu8LriozK+3EpoYrs0eXrgQHN1i0jw13Dt6rk8ZS5E="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000175",
+      "lineageId": "prompt-000175",
+      "occurrenceId": "v2.1.258-0153",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14985330-14985592",
+      "role": "user",
+      "ordinal": 153,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000175.md",
+      "contentBytes": 257,
+      "contentSha256": "sha256-QGJ2nk4ee7rUXNYJGAdZSYf9NomKageCtn336w1torg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14985330,
+        "endCodeUnit": 14985592,
+        "sourceSha256": "sha256-6fYJEhS3x/i7sJTkh53JrSXHXuZdgYGl/R121yhZg+U="
+      },
+      "detectorSignals": [
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000176",
+      "lineageId": "prompt-000176",
+      "occurrenceId": "v2.1.258-0154",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14985975-14986472",
+      "role": "user",
+      "ordinal": 154,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000176.md",
+      "contentBytes": 495,
+      "contentSha256": "sha256-2PJYTdMeHcHIc2chgewsQfqAWVw5scKCtOM/EAaHDSc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14985975,
+        "endCodeUnit": 14986472,
+        "sourceSha256": "sha256-DhrsqxRiPPcwxsZlEHhSLUjS9WJbKKZtXiVt6/w+7J8="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000177",
+      "lineageId": "prompt-000177",
+      "occurrenceId": "v2.1.258-0155",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14986926-14987142",
+      "role": "unknown",
+      "ordinal": 155,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000177.md",
+      "contentBytes": 214,
+      "contentSha256": "sha256-PppQoBNtCgCOInt5baMYke3hFU7PO40Sfzte7eJtiyk=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14986926,
+        "endCodeUnit": 14987142,
+        "sourceSha256": "sha256-XxgBjmAkEaAHLvqx0/6TX3IRtVpKt2WKk9U57eN0yRU="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000180",
+      "lineageId": "prompt-000180",
+      "occurrenceId": "v2.1.258-0156",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:14988081-14988360",
+      "role": "system",
+      "ordinal": 156,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000180.md",
+      "contentBytes": 277,
+      "contentSha256": "sha256-Tk5I+yPOt2Swv7eLxDrQgJKEob0IDzImS7SCYlHoyjg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14988081,
+        "endCodeUnit": 14988360,
+        "sourceSha256": "sha256-7ivwp1Cb8nRYwaMj3bEB5xJCz2Y5td5P3ZoEyz9S0SM="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000182",
+      "lineageId": "prompt-000182",
+      "occurrenceId": "v2.1.258-0158",
+      "familyId": "agent",
+      "callsiteId": "patched:14995765-14996179",
+      "role": "system",
+      "ordinal": 158,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000182.md",
+      "contentBytes": 406,
+      "contentSha256": "sha256-ra68eAEwqQStsFSVu+9WfXLHxd+1vnGLcjXb0qNrFTw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 14995765,
+        "endCodeUnit": 14996179,
+        "sourceSha256": "sha256-i1NawCZ40dumJZrf6bqT1hh394wStQ/Vnazwyli4lZQ="
+      },
+      "detectorSignals": [
+        "you-are",
+        "respond"
+      ]
+    },
+    {
+      "id": "prompt-000183",
+      "lineageId": "prompt-000183",
+      "occurrenceId": "v2.1.258-0161",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15001831-15002285",
+      "role": "user",
+      "ordinal": 161,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000183.md",
+      "contentBytes": 449,
+      "contentSha256": "sha256-/PqbOFfISlm12qob34XZkHi8zjdYBhZPQFwjR1Y3oe4=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15001831,
+        "endCodeUnit": 15002285,
+        "sourceSha256": "sha256-tZUaKlsaGLA+4QODhuNeHiAA6dqzy384dvXII+0hktE="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000382",
+      "lineageId": "prompt-000382",
+      "occurrenceId": "v2.1.258-0164",
+      "familyId": "agent",
+      "callsiteId": "patched:15186694-15187002",
+      "role": "system",
+      "ordinal": 164,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000382.md",
+      "contentBytes": 306,
+      "contentSha256": "sha256-rhYnj8fs0BRnW9y3uz9Uc63ZUXacDkt4B6PX2mzwNvQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15186694,
+        "endCodeUnit": 15187002,
+        "sourceSha256": "sha256-H25r9I5aCd16X/iy3PYNNm+ilTbHWpvSAUwSQKNsg/A="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000143",
+      "lineageId": "prompt-000143",
+      "occurrenceId": "v2.1.258-0165",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15190454-15190640",
+      "role": "unknown",
+      "ordinal": 165,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000143.md",
+      "contentBytes": 184,
+      "contentSha256": "sha256-Pmp9rTJREMymu9r774j86NXGBTY1vyprOIRXRDmqC/c=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15190454,
+        "endCodeUnit": 15190640,
+        "sourceSha256": "sha256-alcSrJThkZMCrrX3riqgGr/0Q/I7C/PnphaddD3Th4I="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000144",
+      "lineageId": "prompt-000144",
+      "occurrenceId": "v2.1.258-0166",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15190645-15191066",
+      "role": "unknown",
+      "ordinal": 166,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000144.md",
+      "contentBytes": 410,
+      "contentSha256": "sha256-asd5lP3Np8z2L4HPTosdjIBk4ZWK/lYnJlqewXoH9yA=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15190645,
+        "endCodeUnit": 15191066,
+        "sourceSha256": "sha256-cT5rlxIOmAzbiUUmnl+FlalAPIg7P3k6DANvBkSFV4c="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000145",
+      "lineageId": "prompt-000145",
+      "occurrenceId": "v2.1.258-0167",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15191434-15191637",
+      "role": "unknown",
+      "ordinal": 167,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000145.md",
+      "contentBytes": 195,
+      "contentSha256": "sha256-0YVOwqDi6cWo60YGcF//kkEZGYOiiN5HF5egtdE0y5A=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15191434,
+        "endCodeUnit": 15191637,
+        "sourceSha256": "sha256-/S2JUONSeiiAz/euzIq4/Z//07ZH10Ek9NA/9X/eKxY="
+      },
+      "detectorSignals": [
+        "do-not",
+        "respond",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000146",
+      "lineageId": "prompt-000146",
+      "occurrenceId": "v2.1.258-0168",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15191642-15192066",
+      "role": "unknown",
+      "ordinal": 168,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000146.md",
+      "contentBytes": 422,
+      "contentSha256": "sha256-kYyfiy2vdc5pGPMt1jp+hnowM1P+a5mnoCoOOHMvbU8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15191642,
+        "endCodeUnit": 15192066,
+        "sourceSha256": "sha256-wZnkU7LDiRtbyu/8vCC4rPNN2iNzhyekoYYuYPRTSe4="
+      },
+      "detectorSignals": [
+        "respond",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000147",
+      "lineageId": "prompt-000147",
+      "occurrenceId": "v2.1.258-0169",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15192071-15192937",
+      "role": "unknown",
+      "ordinal": 169,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000147.md",
+      "contentBytes": 857,
+      "contentSha256": "sha256-+tbN1su+zGZ+4NNSQ0GIF06wpJAX5DYUCEJ9HDn6llM=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15192071,
+        "endCodeUnit": 15192937,
+        "sourceSha256": "sha256-0h4faA9iza/M3fan5j99KqRrnZE+VNnqr4hQ0zl6D54="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000471",
+      "lineageId": "prompt-000471",
+      "occurrenceId": "v2.1.258-0171",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15229656-15229869",
+      "role": "unknown",
+      "ordinal": 171,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000471.md",
+      "contentBytes": 208,
+      "contentSha256": "sha256-AS6moqqobE3AafC0MpjzLcST5C6r4HXxD8CbXBHojPI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15229656,
+        "endCodeUnit": 15229869,
+        "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000472",
+      "lineageId": "prompt-000472",
+      "occurrenceId": "v2.1.258-0173",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15230139-15230352",
+      "role": "unknown",
+      "ordinal": 173,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000472.md",
+      "contentBytes": 208,
+      "contentSha256": "sha256-AS6moqqobE3AafC0MpjzLcST5C6r4HXxD8CbXBHojPI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15230139,
+        "endCodeUnit": 15230352,
+        "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000187",
+      "lineageId": "prompt-000187",
+      "occurrenceId": "v2.1.258-0179",
+      "familyId": "memory",
+      "callsiteId": "patched:15354807-15360001",
+      "role": "user",
+      "ordinal": 179,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/user/prompt-000187.md",
+      "contentBytes": 5116,
+      "contentSha256": "sha256-Jq1ZbgUCS1t/21S+ejmuKxw28F95f0a2Kn3p9HrU61Y=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15354807,
+        "endCodeUnit": 15360001,
+        "sourceSha256": "sha256-2fFGNgTIYZiQ6nP697ROalXXn9p7k6CseBmAreRkTo0="
+      },
+      "detectorSignals": [
+        "you-must",
+        "do-not",
+        "generate",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000188",
+      "lineageId": "prompt-000188",
+      "occurrenceId": "v2.1.258-0180",
+      "familyId": "memory",
+      "callsiteId": "patched:15360760-15361996",
+      "role": "system",
+      "ordinal": 180,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/system/prompt-000188.md",
+      "contentBytes": 1234,
+      "contentSha256": "sha256-6uC/bdxjxjOBPQHVU0bulbNMR+kGpwiqcMDSToD1J9Q=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15360760,
+        "endCodeUnit": 15361996,
+        "sourceSha256": "sha256-ojJ+ArYgt5ysBcU4O8oukioh+aSs02ocWWCryVEwlAo="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000189",
+      "lineageId": "prompt-000189",
+      "occurrenceId": "v2.1.258-0181",
+      "familyId": "hook",
+      "callsiteId": "patched:15411276-15412739",
+      "role": "system",
+      "ordinal": 181,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/system/prompt-000189.md",
+      "contentBytes": 1455,
+      "contentSha256": "sha256-TwdDEQ96AWwFshrKMA/iwRHPx7yRtm+9aNLBAi399jk=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15411276,
+        "endCodeUnit": 15412739,
+        "sourceSha256": "sha256-bXOFikJDuIQ7MjyAd0IKz246PDbmMyhDyYM0uWAuyqw="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000190",
+      "lineageId": "prompt-000190",
+      "occurrenceId": "v2.1.258-0182",
+      "familyId": "hook",
+      "callsiteId": "patched:15412740-15413061",
+      "role": "system",
+      "ordinal": 182,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/system/prompt-000190.md",
+      "contentBytes": 319,
+      "contentSha256": "sha256-3WkD1bW8uz2MC+SHbnE8YO4PQpP4UWxTfphhmvhZFoU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15412740,
+        "endCodeUnit": 15413061,
+        "sourceSha256": "sha256-LmRskkZJSAfSNavJttypR+fSD4Ga4o7fJNHg2fJ1VRg="
+      },
+      "detectorSignals": [
+        "you-are",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000033",
+      "lineageId": "prompt-000033",
+      "occurrenceId": "v2.1.258-0183",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15526360-15526555",
+      "role": "system",
+      "ordinal": 183,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000033.md",
+      "contentBytes": 193,
+      "contentSha256": "sha256-12e3invoHY5jR0gEtvz8PBJApv1XamLPJfeEB2SzbbE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15526360,
+        "endCodeUnit": 15526555,
+        "sourceSha256": "sha256-BG0aV56xmidc4RhUyDmGCPQVeeMINOgFLo4RIWwZELA="
+      },
+      "detectorSignals": [
+        "you-must",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000201",
+      "lineageId": "prompt-000201",
+      "occurrenceId": "v2.1.258-0188",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:15621322-15621668",
+      "role": "system",
+      "ordinal": 188,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000201.md",
+      "contentBytes": 344,
+      "contentSha256": "sha256-n8Hehpxbs9BZbt+gsQj78gCZ8NanLzUN40gm/BeG2wA=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 15621322,
+        "endCodeUnit": 15621668,
+        "sourceSha256": "sha256-9s0iuN90X/rKs4jF2h5dzn+F4TnI8yfJz20OFjW4qrk="
+      },
+      "detectorSignals": [
+        "you-must",
+        "do-not",
+        "instruction"
+      ]
+    },
+    {
+      "id": "prompt-000008",
+      "lineageId": "prompt-000008",
+      "occurrenceId": "v2.1.258-0202",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:16293958-16294144",
+      "role": "unknown",
+      "ordinal": 202,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000008.md",
+      "contentBytes": 181,
+      "contentSha256": "sha256-g/0SifbDnnj+K//LvO08mOODercaVjm5sa/z0/kkMb0=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 16293958,
+        "endCodeUnit": 16294144,
+        "sourceSha256": "sha256-8gFcwzUNv8UlyOKTUc78u8lOSMkuNdEX1q48BCJwfGo="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000435",
+      "lineageId": "prompt-000435",
+      "occurrenceId": "v2.1.258-0205",
+      "familyId": "permission-security",
+      "callsiteId": "patched:17410405-17410930",
+      "role": "system",
+      "ordinal": 205,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000435.md",
+      "contentBytes": 523,
+      "contentSha256": "sha256-VSbfyjRJ7TvQn0fsg//+KVdd7B1dE1AO95pYbY7qmOo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 17410405,
+        "endCodeUnit": 17410930,
+        "sourceSha256": "sha256-mxupoNTKIUospe7BThmaJY6wzhjjKnLZa9znEW7f5/E="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000156",
+      "lineageId": "prompt-000156",
+      "occurrenceId": "v2.1.258-0206",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:17669022-17672118",
+      "role": "system",
+      "ordinal": 206,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000156.md",
+      "contentBytes": 3073,
+      "contentSha256": "sha256-dltbovoKMVo8dJx+VL9c70UAhKdF6wHmY3G4tjWdR1I=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 17669022,
+        "endCodeUnit": 17672118,
+        "sourceSha256": "sha256-Ye1nmf5KfXKoVJKxlYmcWDOtgWHKxXlOl1KUTCQBkTM="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "instruction",
+        "write",
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000416",
+      "lineageId": "prompt-000416",
+      "occurrenceId": "v2.1.258-0207",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:17672323-17672508",
+      "role": "system",
+      "ordinal": 207,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000416.md",
+      "contentBytes": 180,
+      "contentSha256": "sha256-MHBLTQWYO+v2JgDZGILQ9smKB0jceuV4zs5Ghkuw9RU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 17672323,
+        "endCodeUnit": 17672508,
+        "sourceSha256": "sha256-bB1xaSjGeXadaGS5PI6TwkIhMM4kxZOfhhGwQsfrWKE="
+      },
+      "detectorSignals": [
+        "instruction",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000375",
+      "lineageId": "prompt-000375",
+      "occurrenceId": "v2.1.258-0209",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:17929967-17931948",
+      "role": "user",
+      "ordinal": 209,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000375.md",
+      "contentBytes": 1936,
+      "contentSha256": "sha256-2GUA9EYTL63+0xU66rcyximL++ddGieSZLZayjUWWOU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 17929967,
+        "endCodeUnit": 17931948,
+        "sourceSha256": "sha256-pv6cg+CnMulRIN7aiovTxGNdTyjH7ZEFhrKojs+49Bw="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000466",
+      "lineageId": "prompt-000466",
+      "occurrenceId": "v2.1.258-0210",
+      "familyId": "permission-security",
+      "callsiteId": "patched:18592476-18594594",
+      "role": "system",
+      "ordinal": 210,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000466.md",
+      "contentBytes": 2104,
+      "contentSha256": "sha256-7vrTfn3utg3/Bs3xJHeSRZNa72EaQFAm+404NaYAYRo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 18592476,
+        "endCodeUnit": 18594594,
+        "sourceSha256": "sha256-lsS/77eA7zaOPcqu5qRdIlE20T5TvOXo1G7tLwNa9Ro="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "write",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000492",
+      "lineageId": "prompt-000492",
+      "occurrenceId": "v2.1.258-0211",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:18648398-18654474",
+      "role": "unknown",
+      "ordinal": 211,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000492.md",
+      "contentBytes": 6047,
+      "contentSha256": "sha256-oILy7jZwWdFdqpxoYSh2x3goaGJvO/UrgomsM0OKHMw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 18648398,
+        "endCodeUnit": 18654474,
+        "sourceSha256": "sha256-4UlgByGIgezgbCIJ0VrX3NuN9uWo7aDQd+xGBaxIosc="
+      },
+      "detectorSignals": [
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000338",
+      "lineageId": "prompt-000338",
+      "occurrenceId": "v2.1.258-0212",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:18688737-18688984",
+      "role": "unknown",
+      "ordinal": 212,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000338.md",
+      "contentBytes": 245,
+      "contentSha256": "sha256-HRWpeju136hDUUbHrAGYuCkRIHvUfzPuVzlOvozAkgc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 18688737,
+        "endCodeUnit": 18688984,
+        "sourceSha256": "sha256-jC0ns+XZml1paIwx5vTjrv8shJ1MjlaBxhC9kkVl+Hw="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000419",
+      "lineageId": "prompt-000419",
+      "occurrenceId": "v2.1.258-0213",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:18704948-18705187",
+      "role": "unknown",
+      "ordinal": 213,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000419.md",
+      "contentBytes": 237,
+      "contentSha256": "sha256-LhfhLT8/abemc2fYvWSblO+f5Csi7MxPXSYg0YhI0Zo=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 18704948,
+        "endCodeUnit": 18705187,
+        "sourceSha256": "sha256-upDlRkPOh1LTBux3JCIExI/jYfs1dPnX9W2+4OIXjc0="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000339",
+      "lineageId": "prompt-000339",
+      "occurrenceId": "v2.1.258-0214",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:18736518-18737182",
+      "role": "unknown",
+      "ordinal": 214,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000339.md",
+      "contentBytes": 656,
+      "contentSha256": "sha256-r5uV1W4bKiGoxdLg9TKShAyw0Mufn68HU7nsaQD4lPk=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 18736518,
+        "endCodeUnit": 18737182,
+        "sourceSha256": "sha256-h+7lrhZvK3MAbSvuCNUP0Tc+NErhtEiDLTrJ8I98Iyo="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000340",
+      "lineageId": "prompt-000340",
+      "occurrenceId": "v2.1.258-0215",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:18739718-18740193",
+      "role": "unknown",
+      "ordinal": 215,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000340.md",
+      "contentBytes": 470,
+      "contentSha256": "sha256-R7zzf96yQ+x8GPknh/t18ssmBTWnNae4kwI/xHuwSjc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 18739718,
+        "endCodeUnit": 18740193,
+        "sourceSha256": "sha256-oErDGgUnPmclEa6Iui/QFoLD6PmnbQ7szbEILtHpDbw="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000341",
+      "lineageId": "prompt-000341",
+      "occurrenceId": "v2.1.258-0216",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:18742455-18742656",
+      "role": "user",
+      "ordinal": 216,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000341.md",
+      "contentBytes": 196,
+      "contentSha256": "sha256-k/WqQR0Y30kSVz2FGGqTBs+gGdvavIgOaQNqPrtm678=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 18742455,
+        "endCodeUnit": 18742656,
+        "sourceSha256": "sha256-YM9jRwkI3KcULNK52aTFyFmBUXgwtFPUmTzXAq7CsHo="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000012",
+      "lineageId": "prompt-000012",
+      "occurrenceId": "v2.1.258-0219",
+      "familyId": "memory",
+      "callsiteId": "patched:20079317-20079977",
+      "role": "user",
+      "ordinal": 219,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/user/prompt-000012.md",
+      "contentBytes": 652,
+      "contentSha256": "sha256-LmOt+bz+RCwtpqemB+6lrsxi3Tuvnf9cHCTbMbBHJYc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 20079317,
+        "endCodeUnit": 20079977,
+        "sourceSha256": "sha256-Jemb5my7aAeIhceJAl12eKbzvdLD1azhoYrldtvztHU="
+      },
+      "detectorSignals": [
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000013",
+      "lineageId": "prompt-000013",
+      "occurrenceId": "v2.1.258-0220",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:20080477-20080640",
+      "role": "user",
+      "ordinal": 220,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000013.md",
+      "contentBytes": 161,
+      "contentSha256": "sha256-Ltpor52MYAR1qG+ABOdarZ5FwDowpjjc/npLnf/Y6nQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 20080477,
+        "endCodeUnit": 20080640,
+        "sourceSha256": "sha256-56giRVGL+U+zuoEZxQmue5/oMC1B/kfhooiVL0G0OVE="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000014",
+      "lineageId": "prompt-000014",
+      "occurrenceId": "v2.1.258-0221",
+      "familyId": "memory",
+      "callsiteId": "patched:20087263-20087753",
+      "role": "user",
+      "ordinal": 221,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/user/prompt-000014.md",
+      "contentBytes": 485,
+      "contentSha256": "sha256-e5c0dguTmt/yE3tFyBAjvP9uL5erCaoEYcXAGyW3mhI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 20087263,
+        "endCodeUnit": 20087753,
+        "sourceSha256": "sha256-1Rbtx1JdAJGENZ5xAng2mmbau6cccJgjl6vEnABtKaU="
+      },
+      "detectorSignals": [
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000016",
+      "lineageId": "prompt-000016",
+      "occurrenceId": "v2.1.258-0222",
+      "familyId": "memory",
+      "callsiteId": "patched:20097354-20097591",
+      "role": "system",
+      "ordinal": 222,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/system/prompt-000016.md",
+      "contentBytes": 235,
+      "contentSha256": "sha256-3vEBLLj7i6RwM110H98JO/L6r8p3CgctmTAQTrOGKCE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 20097354,
+        "endCodeUnit": 20097591,
+        "sourceSha256": "sha256-cZd4l1M0/Hxrltm4hIb3qrvVdIfRMzUAd8AiSY91/B4="
+      },
+      "detectorSignals": [
+        "instruction",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000403",
+      "lineageId": "prompt-000403",
+      "occurrenceId": "v2.1.258-0228",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:20711572-20712349",
+      "role": "system",
+      "ordinal": 228,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000403.md",
+      "contentBytes": 756,
+      "contentSha256": "sha256-/tFANewotARvEBH2LTtY4keI6lJhOm72sLbG1zkmhpY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 20711572,
+        "endCodeUnit": 20712349,
+        "sourceSha256": "sha256-18yV7B2Gyx0l+zGQyC9FJsyZyDVNg3Arzba10/JboGQ="
+      },
+      "detectorSignals": [
+        "your-task",
+        "respond"
+      ]
+    },
+    {
+      "id": "prompt-000494",
+      "lineageId": "prompt-000494",
+      "occurrenceId": "v2.1.258-0231",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:20961414-20961978",
+      "role": "unknown",
+      "ordinal": 231,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000494.md",
+      "contentBytes": 547,
+      "contentSha256": "sha256-QCuibIW/dqijaawCvEHACaOyAryVkfM5oZDMUKtW7P8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 20961414,
+        "endCodeUnit": 20961978,
+        "sourceSha256": "sha256-3jFDhb68CudpPBljgjaSbPjWQCUvRy2UzO81gUP+zuM="
+      },
+      "detectorSignals": [
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000428",
+      "lineageId": "prompt-000428",
+      "occurrenceId": "v2.1.258-0234",
+      "familyId": "web-browser",
+      "callsiteId": "patched:20972456-20973074",
+      "role": "system",
+      "ordinal": 234,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/web-browser/system/prompt-000428.md",
+      "contentBytes": 611,
+      "contentSha256": "sha256-W6kWxsnX0vR2cPTPjA+SZyQ/gxBoEICDm4c5tQdOztw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 20972456,
+        "endCodeUnit": 20973074,
+        "sourceSha256": "sha256-+hckYnnL6ZucrN6w7iurE7c6VzHlPn9wcjDxjXqCR+c="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000442",
+      "lineageId": "prompt-000442",
+      "occurrenceId": "v2.1.258-0239",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:21477578-21478892",
+      "role": "user",
+      "ordinal": 239,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000442.md",
+      "contentBytes": 1291,
+      "contentSha256": "sha256-I5heEtA8GAgKfbnhNdhmEakiYE1HP5PzPAJP64jEGjg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 21477578,
+        "endCodeUnit": 21478892,
+        "sourceSha256": "sha256-49mg/gLoRdQ/9d05qlBVGTeP3AX8P9fIWmsMt1ptswU="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000458",
+      "lineageId": "prompt-000458",
+      "occurrenceId": "v2.1.258-0244",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:21807295-21807726",
+      "role": "unknown",
+      "ordinal": 244,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000458.md",
+      "contentBytes": 429,
+      "contentSha256": "sha256-iNNrKAj+KmBFO1rfe7ofARoGrCBSgvxZ2+1rXnuyTZ4=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 21807295,
+        "endCodeUnit": 21807726,
+        "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA="
+      },
+      "detectorSignals": [
+        "write",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000459",
+      "lineageId": "prompt-000459",
+      "occurrenceId": "v2.1.258-0245",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:21880774-21881535",
+      "role": "unknown",
+      "ordinal": 245,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000459.md",
+      "contentBytes": 759,
+      "contentSha256": "sha256-YK8lfDJ/rZSTzdzJPrS107MC1fhVn0T49U00GDoIY8o=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 21880774,
+        "endCodeUnit": 21881535,
+        "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg="
+      },
+      "detectorSignals": [
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000460",
+      "lineageId": "prompt-000460",
+      "occurrenceId": "v2.1.258-0246",
+      "familyId": "hook",
+      "callsiteId": "patched:22000628-22001738",
+      "role": "unknown",
+      "ordinal": 246,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/unknown/prompt-000460.md",
+      "contentBytes": 1108,
+      "contentSha256": "sha256-hehe9Af4Qh6XWwMxG6y9skCn/tYCSTZkyQQ0pJEGYDQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 22000628,
+        "endCodeUnit": 22001738,
+        "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000461",
+      "lineageId": "prompt-000461",
+      "occurrenceId": "v2.1.258-0247",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:22144169-22146347",
+      "role": "unknown",
+      "ordinal": 247,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000461.md",
+      "contentBytes": 2176,
+      "contentSha256": "sha256-WMVmzUDeVoIPzy7Uz/TsQ40pqMi7iqJwAqoLMurZBCE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 22144169,
+        "endCodeUnit": 22146347,
+        "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000462",
+      "lineageId": "prompt-000462",
+      "occurrenceId": "v2.1.258-0248",
+      "familyId": "memory",
+      "callsiteId": "patched:22179016-22193859",
+      "role": "unknown",
+      "ordinal": 248,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/unknown/prompt-000462.md",
+      "contentBytes": 14840,
+      "contentSha256": "sha256-S/2LGEC16o9TK7+BS2KZKiFinT46Yzm4jEvyGsDICbw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 22179016,
+        "endCodeUnit": 22193859,
+        "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4="
+      },
+      "detectorSignals": [
+        "generate",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000463",
+      "lineageId": "prompt-000463",
+      "occurrenceId": "v2.1.258-0249",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:22248237-22254127",
+      "role": "unknown",
+      "ordinal": 249,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000463.md",
+      "contentBytes": 5888,
+      "contentSha256": "sha256-uFt/YzOXED2DqFdfwZuLVMaYSty8twhEWHl9AL4ae0Q=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 22248237,
+        "endCodeUnit": 22254127,
+        "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI="
+      },
+      "detectorSignals": [
+        "write",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000085",
+      "lineageId": "prompt-000085",
+      "occurrenceId": "v2.1.258-0250",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:22883288-22883948",
+      "role": "unknown",
+      "ordinal": 250,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000085.md",
+      "contentBytes": 655,
+      "contentSha256": "sha256-bg1J6/O+ZBGz5Nu3pXo/647di1ZlCjkuy7CeLRei3pM=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 22883288,
+        "endCodeUnit": 22883948,
+        "sourceSha256": "sha256-PDEXt8WAIsA1gXXIlubm1gv6oSBavA4ZjSN4qB2RCp0="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000086",
+      "lineageId": "prompt-000086",
+      "occurrenceId": "v2.1.258-0251",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:22885794-22886127",
+      "role": "unknown",
+      "ordinal": 251,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000086.md",
+      "contentBytes": 331,
+      "contentSha256": "sha256-fuHi+iZZf9gFTpiPk6i//TQa5Kb9hVTWvgXvRSMIv38=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 22885794,
+        "endCodeUnit": 22886127,
+        "sourceSha256": "sha256-KBAIog3i7HR072GDl8I1+frnlbV4g+p5SsmQ9sdjdKI="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000476",
+      "lineageId": "prompt-000476",
+      "occurrenceId": "v2.1.258-0252",
+      "familyId": "hook",
+      "callsiteId": "patched:22908257-22911840",
+      "role": "unknown",
+      "ordinal": 252,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/unknown/prompt-000476.md",
+      "contentBytes": 3581,
+      "contentSha256": "sha256-jWOP7m4xnGrJ90KHxbvMNf0k8lcDyiZTWV7xDGo4Ul8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 22908257,
+        "endCodeUnit": 22911840,
+        "sourceSha256": "sha256-zlQM0nTPOJwCDWNtUzLgGpOgTHs8kuEovlUc9CmWJwo="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000001",
+      "lineageId": "prompt-000001",
+      "occurrenceId": "v2.1.258-0253",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:23840712-23842042",
+      "role": "user",
+      "ordinal": 253,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000001.md",
+      "contentBytes": 1325,
+      "contentSha256": "sha256-sncmHyw+R/gD4v7LwIrCyvEC43ql45JgQfdWPDA4C5Q=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 23840712,
+        "endCodeUnit": 23842042,
+        "sourceSha256": "sha256-4YbLE0ouxpwnuhGjipOJeU8HFoqwEvBnVCeO+tQ5psY="
+      },
+      "detectorSignals": [
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000042",
+      "lineageId": "prompt-000042",
+      "occurrenceId": "v2.1.258-0255",
+      "familyId": "permission-security",
+      "callsiteId": "patched:23943419-23947263",
+      "role": "system",
+      "ordinal": 255,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000042.md",
+      "contentBytes": 3760,
+      "contentSha256": "sha256-bmvmXD1ISfWXW85yE4WAoQnGdkg4r10DpN0JgOGswE8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 23943419,
+        "endCodeUnit": 23947263,
+        "sourceSha256": "sha256-AYgpyHSsACem+Q8MZB3tzMaBghSij/SMxk1I129/N/w="
+      },
+      "detectorSignals": [
+        "instruction",
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000453",
+      "lineageId": "prompt-000453",
+      "occurrenceId": "v2.1.258-0260",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25244062-25244270",
+      "role": "system",
+      "ordinal": 260,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000453.md",
+      "contentBytes": 203,
+      "contentSha256": "sha256-xZcwsZ25zopMEl9F5ofmxJs64RzB0OBjMcCIHzzmdFc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25244062,
+        "endCodeUnit": 25244270,
+        "sourceSha256": "sha256-VzQdCN1qbvC+EfowhyXFB0GXnaeMhzyHwEynD02m4Zs="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000405",
+      "lineageId": "prompt-000405",
+      "occurrenceId": "v2.1.258-0261",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25251584-25251806",
+      "role": "system",
+      "ordinal": 261,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000405.md",
+      "contentBytes": 217,
+      "contentSha256": "sha256-EI5kedDz/iIy/bA6ElcNc/hey4GOG7cE3illKjMBgnY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25251584,
+        "endCodeUnit": 25251806,
+        "sourceSha256": "sha256-o5TJr/HwIJObLSZplU2Mfq+ScDEGJivMhKZU6DJjyaA="
+      },
+      "detectorSignals": [
+        "instruction",
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000426",
+      "lineageId": "prompt-000426",
+      "occurrenceId": "v2.1.258-0262",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25251810-25252029",
+      "role": "system",
+      "ordinal": 262,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000426.md",
+      "contentBytes": 214,
+      "contentSha256": "sha256-K+y7X5/crifrMbQhjpPDZTyvQFaJSvWj/jQNz9/7RJk=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25251810,
+        "endCodeUnit": 25252029,
+        "sourceSha256": "sha256-AgxKJD660sOFjtZJzRFvOOKIO0F55whnMUwNOu3E3fw="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000238",
+      "lineageId": "prompt-000238",
+      "occurrenceId": "v2.1.258-0279",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25434112-25435616",
+      "role": "system",
+      "ordinal": 279,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000238.md",
+      "contentBytes": 1448,
+      "contentSha256": "sha256-ESmExHFjAjNlSy1hXY3G9kE7XViT6ENCxNrIVVsHTW0=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25434112,
+        "endCodeUnit": 25435616,
+        "sourceSha256": "sha256-wliNswpOPC7Wg+5aci40tqXirLdLJTiZp/PYtn7GT7M="
+      },
+      "detectorSignals": [
+        "you-are",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000264",
+      "lineageId": "prompt-000264",
+      "occurrenceId": "v2.1.258-0280",
+      "familyId": "memory",
+      "callsiteId": "patched:25440338-25486541",
+      "role": "system",
+      "ordinal": 280,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/system/prompt-000264.md",
+      "contentBytes": 45011,
+      "contentSha256": "sha256-wrkWAZCWy5/Os7elP9kEgfBsTa2IhFwXQblZUk7yWOY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25440338,
+        "endCodeUnit": 25486541,
+        "sourceSha256": "sha256-Uk0d3dXuJBDu9TJ3bqYsm7m9AL1TMckCrZlHfJjDfJE="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "instruction",
+        "write",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000265",
+      "lineageId": "prompt-000265",
+      "occurrenceId": "v2.1.258-0281",
+      "familyId": "compact",
+      "callsiteId": "patched:25488576-25489900",
+      "role": "system",
+      "ordinal": 281,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/compact/system/prompt-000265.md",
+      "contentBytes": 1305,
+      "contentSha256": "sha256-kos3Hl+bzp+tsrcomTcP2YK8avz36dH/9LfFKvBRv+A=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25488576,
+        "endCodeUnit": 25489900,
+        "sourceSha256": "sha256-XNoaSPt6J7moIWQpgqM/2dYH6PQ5Fe5ytOupDOQJIb0="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000266",
+      "lineageId": "prompt-000266",
+      "occurrenceId": "v2.1.258-0282",
+      "familyId": "permission-security",
+      "callsiteId": "patched:25490014-25497659",
+      "role": "user",
+      "ordinal": 282,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/user/prompt-000266.md",
+      "contentBytes": 7541,
+      "contentSha256": "sha256-WXwi03NxhFbA95oB/eBlxl6oGcPurnbCpcoMk6/6Ry0=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25490014,
+        "endCodeUnit": 25497659,
+        "sourceSha256": "sha256-fpVsgEv40oZx0xYv7YlC7pmfBVyLDqO2y9cmB1cYxC0="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000350",
+      "lineageId": "prompt-000350",
+      "occurrenceId": "v2.1.258-0283",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25510047-25510652",
+      "role": "system",
+      "ordinal": 283,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000350.md",
+      "contentBytes": 603,
+      "contentSha256": "sha256-NIYOykmYBRTj3WGaYVWBbOXlD3LG+/sCWtm3v50YKnQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25510047,
+        "endCodeUnit": 25510652,
+        "sourceSha256": "sha256-3ANE+J0SfafDtgKJxeqiCM1Xq+gEdJFkacJFuYoXFTM="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not"
+      ]
+    },
+    {
+      "id": "prompt-000272",
+      "lineageId": "prompt-000272",
+      "occurrenceId": "v2.1.258-0287",
+      "familyId": "title",
+      "callsiteId": "patched:25522657-25529994",
+      "role": "system",
+      "ordinal": 287,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/title/system/prompt-000272.md",
+      "contentBytes": 7275,
+      "contentSha256": "sha256-9gTkYT8iEwb3jpHRx6xSRfSmXcqO0SwAUGJcECfLqtE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25522657,
+        "endCodeUnit": 25529994,
+        "sourceSha256": "sha256-SVLMGuwstr8QQsIYWKuAJXkRSuYJuAH/rw0twC3MzKk="
+      },
+      "detectorSignals": [
+        "you-are",
+        "your-task",
+        "do-not",
+        "write",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000273",
+      "lineageId": "prompt-000273",
+      "occurrenceId": "v2.1.258-0288",
+      "familyId": "memory",
+      "callsiteId": "patched:25530023-25533522",
+      "role": "user",
+      "ordinal": 288,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/user/prompt-000273.md",
+      "contentBytes": 3393,
+      "contentSha256": "sha256-sroEoJn95tqeJMARJAvUwlh+wGPkTEIB9fpv/811PUI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25530023,
+        "endCodeUnit": 25533522,
+        "sourceSha256": "sha256-TaCkH9bWW0eH9UaSUJyhvRokFt0tT8vkxfOAhzQbCXw="
+      },
+      "detectorSignals": [
+        "do-not",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000274",
+      "lineageId": "prompt-000274",
+      "occurrenceId": "v2.1.258-0289",
+      "familyId": "compact",
+      "callsiteId": "patched:25536325-25540687",
+      "role": "user",
+      "ordinal": 289,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/compact/user/prompt-000274.md",
+      "contentBytes": 4254,
+      "contentSha256": "sha256-bTB/VgzulGdWsX/wSMuoAoDMfQflD86YPPO8jsSlcdE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25536325,
+        "endCodeUnit": 25540687,
+        "sourceSha256": "sha256-l3gEOZEtZ77q+nHSstni4TU3xb2nveBORcTAtvDVE+c="
+      },
+      "detectorSignals": [
+        "write",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000275",
+      "lineageId": "prompt-000275",
+      "occurrenceId": "v2.1.258-0290",
+      "familyId": "hook",
+      "callsiteId": "patched:25540691-25544729",
+      "role": "user",
+      "ordinal": 290,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/user/prompt-000275.md",
+      "contentBytes": 3919,
+      "contentSha256": "sha256-HYMPak7qJZA63hEZJnmROCLpUxjFlUonrZU8INrwzsY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25540691,
+        "endCodeUnit": 25544729,
+        "sourceSha256": "sha256-64hTlj3rD/jtwh2+28OVk683XWIudPBir88m+F8UlQU="
+      },
+      "detectorSignals": [
+        "write",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000027",
+      "lineageId": "prompt-000027",
+      "occurrenceId": "v2.1.258-0292",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25760855-25761519",
+      "role": "user",
+      "ordinal": 292,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000027.md",
+      "contentBytes": 659,
+      "contentSha256": "sha256-7zTAxlEJ3Vx9o6jEeexck50Ao0AmvskhgA0W4R+NEL8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25760855,
+        "endCodeUnit": 25761519,
+        "sourceSha256": "sha256-6tkXuT9JyPhW1lZ6DPq0A5e2qI5RwnDalo8vsiwepR8="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000032",
+      "lineageId": "prompt-000032",
+      "occurrenceId": "v2.1.258-0294",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25775418-25775693",
+      "role": "system",
+      "ordinal": 294,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000032.md",
+      "contentBytes": 270,
+      "contentSha256": "sha256-CSxuzV/NU/+BdrqGntdybJHB6LHsTs+TXC1tfC0BYTY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25775418,
+        "endCodeUnit": 25775693,
+        "sourceSha256": "sha256-jedmwQKTh7J2KDhq9Wy7nWahvSSMSV0jr3ZU3XHLepk="
+      },
+      "detectorSignals": [
+        "instruction",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000029",
+      "lineageId": "prompt-000029",
+      "occurrenceId": "v2.1.258-0295",
+      "familyId": "tool-description",
+      "callsiteId": "patched:25780782-25780962",
+      "role": "tool",
+      "ordinal": 295,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/tool-description/tool/prompt-000029.md",
+      "contentBytes": 178,
+      "contentSha256": "sha256-b3QRQ5hIv8FOhyuAhCebf8X0ih+lY5c+9+ZBureDcM8=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25780782,
+        "endCodeUnit": 25780962,
+        "sourceSha256": "sha256-gIWsE5ciuw8tZa/k46bM2TXQ9TWlR30E0ruKJnqiuQw="
+      },
+      "detectorSignals": [
+        "use-this-tool",
+        "you-must",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000208",
+      "lineageId": "prompt-000208",
+      "occurrenceId": "v2.1.258-0299",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:25880849-25881686",
+      "role": "unknown",
+      "ordinal": 299,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000208.md",
+      "contentBytes": 835,
+      "contentSha256": "sha256-mEaxKQMC347I4nfGbWzRP+CSZEObVz+2SO7DDT8ueLk=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 25880849,
+        "endCodeUnit": 25881686,
+        "sourceSha256": "sha256-JjKzcd4uzuZqccFTDZiHFBNyhqnF5I5IXq0gy5cO+bc="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000411",
+      "lineageId": "prompt-000411",
+      "occurrenceId": "v2.1.258-0300",
+      "familyId": "permission-security",
+      "callsiteId": "patched:26713182-26716287",
+      "role": "user",
+      "ordinal": 300,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/user/prompt-000411.md",
+      "contentBytes": 3066,
+      "contentSha256": "sha256-arbnIlo51/RfLBOuBs71qEJS6XXPyUSA/zCCp9RFQQs=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 26713182,
+        "endCodeUnit": 26716287,
+        "sourceSha256": "sha256-4NP8M7bVGbl1tOc8XBwmuu+FTwQPKha6G51xLp9WS1Y="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000412",
+      "lineageId": "prompt-000412",
+      "occurrenceId": "v2.1.258-0301",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:26779986-26780630",
+      "role": "unknown",
+      "ordinal": 301,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000412.md",
+      "contentBytes": 637,
+      "contentSha256": "sha256-p/LOwcNZgOZpo3CdGBB7tfupZkORpxuNSVYBErbePiU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 26779986,
+        "endCodeUnit": 26780630,
+        "sourceSha256": "sha256-vcLCsmefxHXH+v83akdf+1dWQ4YhriMrACHJUSo/ENQ="
+      },
+      "detectorSignals": [
+        "do-not",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000413",
+      "lineageId": "prompt-000413",
+      "occurrenceId": "v2.1.258-0302",
+      "familyId": "permission-security",
+      "callsiteId": "patched:26784336-26786992",
+      "role": "system",
+      "ordinal": 302,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000413.md",
+      "contentBytes": 2641,
+      "contentSha256": "sha256-B2MPXbRWkLRiji8kR350nSvJAVYI/5FpIpq2w4WvoxY=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 26784336,
+        "endCodeUnit": 26786992,
+        "sourceSha256": "sha256-LUOI6hSCL9NHXXekWmUDXJGakEBNyvgFreZABVCW+O8="
+      },
+      "detectorSignals": [
+        "do-not",
+        "instruction",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000343",
+      "lineageId": "prompt-000343",
+      "occurrenceId": "v2.1.258-0303",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:26950516-26950700",
+      "role": "unknown",
+      "ordinal": 303,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000343.md",
+      "contentBytes": 179,
+      "contentSha256": "sha256-QT/fC3Ra+8g4xbPrkqSvde8j8ajVgmtLOi3pM6fmGtQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 26950516,
+        "endCodeUnit": 26950700,
+        "sourceSha256": "sha256-jyKZVXy4pBksj+z2MqKZ3xgVkdi/I3yJVj2ijSzwpS8="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000454",
+      "lineageId": "prompt-000454",
+      "occurrenceId": "v2.1.258-0304",
+      "familyId": "compact",
+      "callsiteId": "patched:27023641-27037905",
+      "role": "user",
+      "ordinal": 304,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/compact/user/prompt-000454.md",
+      "contentBytes": 13865,
+      "contentSha256": "sha256-2O72MiVyuyepq7yNkkaduT7mJpNbO7Nd9TkZdreXO58=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 27023641,
+        "endCodeUnit": 27037905,
+        "sourceSha256": "sha256-IbxEJTXU4rfxZbg7/qGBGXpzFlYdQDAiRRSu2UuoKJg="
+      },
+      "detectorSignals": [
+        "do-not",
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000455",
+      "lineageId": "prompt-000455",
+      "occurrenceId": "v2.1.258-0305",
+      "familyId": "compact",
+      "callsiteId": "patched:27037906-27052170",
+      "role": "user",
+      "ordinal": 305,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/compact/user/prompt-000455.md",
+      "contentBytes": 13865,
+      "contentSha256": "sha256-2O72MiVyuyepq7yNkkaduT7mJpNbO7Nd9TkZdreXO58=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 27037906,
+        "endCodeUnit": 27052170,
+        "sourceSha256": "sha256-IbxEJTXU4rfxZbg7/qGBGXpzFlYdQDAiRRSu2UuoKJg="
+      },
+      "detectorSignals": [
+        "do-not",
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000389",
+      "lineageId": "prompt-000389",
+      "occurrenceId": "v2.1.258-0306",
+      "familyId": "compact",
+      "callsiteId": "patched:27052641-27060712",
+      "role": "user",
+      "ordinal": 306,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/compact/user/prompt-000389.md",
+      "contentBytes": 7824,
+      "contentSha256": "sha256-q9OxvQj/f/72tZlq99Fng61+UpXw2+Y9lQfSpmbamyU=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 27052641,
+        "endCodeUnit": 27060712,
+        "sourceSha256": "sha256-AtMGlrSNLc64UigvTM2tMTGyob3CAW0Wh/+gPyYpxd0="
+      },
+      "detectorSignals": [
+        "do-not",
+        "respond",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000022",
+      "lineageId": "prompt-000022",
+      "occurrenceId": "v2.1.258-0307",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:27186194-27186796",
+      "role": "unknown",
+      "ordinal": 307,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000022.md",
+      "contentBytes": 595,
+      "contentSha256": "sha256-tzlxgswS467TtZ3MHwCnusWTFYODDV0HpvCdAtv/QdM=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 27186194,
+        "endCodeUnit": 27186796,
+        "sourceSha256": "sha256-6azCe4jWIO7aqyNcG7mWAOF9ZpEhfOGI1EODijc6zAY="
+      },
+      "detectorSignals": [
+        "do-not",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000369",
+      "lineageId": "prompt-000369",
+      "occurrenceId": "v2.1.258-0315",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:28267161-28267382",
+      "role": "user",
+      "ordinal": 315,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/user/prompt-000369.md",
+      "contentBytes": 219,
+      "contentSha256": "sha256-2rRB/exFRxDpJnD0gQlxF0HIXTKuYBYk43SvVTEB/yE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 28267161,
+        "endCodeUnit": 28267382,
+        "sourceSha256": "sha256-H/QGB7Zjr5lDeAjtcVKmX3GHfpi73Rqb7cJHxKWVD3o="
+      },
+      "detectorSignals": [
+        "do-not",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000009",
+      "lineageId": "prompt-000009",
+      "occurrenceId": "v2.1.258-0316",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:28929666-28929886",
+      "role": "unknown",
+      "ordinal": 316,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000009.md",
+      "contentBytes": 218,
+      "contentSha256": "sha256-6tKz8vjAHE7F3i9MI8VDiLfC0zxq1EY8JF/FUALiaeI=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 28929666,
+        "endCodeUnit": 28929886,
+        "sourceSha256": "sha256-O4bHNrbdrnmQ9SoqUP612ZegBDa2ebVpdZrmkrX/wV0="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000345",
+      "lineageId": "prompt-000345",
+      "occurrenceId": "v2.1.258-0317",
+      "familyId": "permission-security",
+      "callsiteId": "patched:29064267-29065529",
+      "role": "system",
+      "ordinal": 317,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/permission-security/system/prompt-000345.md",
+      "contentBytes": 1260,
+      "contentSha256": "sha256-DfT7jj53nv46lLgOehhF18jnmfzo5jvzYWexcQ9jYtA=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 29064267,
+        "endCodeUnit": 29065529,
+        "sourceSha256": "sha256-P5YqBlyCnhIaCVLBUB3V2UcJaMQPTPjO3dU77iNUar0="
+      },
+      "detectorSignals": [
+        "you-are",
+        "write"
+      ]
+    },
+    {
+      "id": "prompt-000501",
+      "lineageId": "prompt-000501",
+      "occurrenceId": "v2.1.258-0318",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:29343856-29344164",
+      "role": "unknown",
+      "ordinal": 318,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000501.md",
+      "contentBytes": 306,
+      "contentSha256": "sha256-5nQSwn6lQzdgKUk3H256qlY17sV86IFbnypDcVm2OLQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 29343856,
+        "endCodeUnit": 29344164,
+        "sourceSha256": "sha256-LgAlobmCKxRZinUCM/E9ljgbwWoVJhNbnxygFokWulQ="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000094",
+      "lineageId": "prompt-000094",
+      "occurrenceId": "v2.1.258-0321",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:30462593-30463037",
+      "role": "system",
+      "ordinal": 321,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000094.md",
+      "contentBytes": 440,
+      "contentSha256": "sha256-YZv64Z2ttF+Su7IsM/3lG92vi48C/OX7YR2QGfUrRic=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 30462593,
+        "endCodeUnit": 30463037,
+        "sourceSha256": "sha256-ADxV74TPhhzqvlQsGIYCI+h7nn77RJEmgYqolfLQ1zg="
+      },
+      "detectorSignals": [
+        "you-are",
+        "you-must",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000439",
+      "lineageId": "prompt-000439",
+      "occurrenceId": "v2.1.258-0322",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:30484835-30485186",
+      "role": "system",
+      "ordinal": 322,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000439.md",
+      "contentBytes": 349,
+      "contentSha256": "sha256-woxncMxslyAuDD6uQTp2SM6AbMX+cKb5DLrPn8Nj524=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 30484835,
+        "endCodeUnit": 30485186,
+        "sourceSha256": "sha256-Lzl5ju7rnlnEfSACdZTAff9Y8hLIPwhMaVXv4om+Vdo="
+      },
+      "detectorSignals": [
+        "instruction",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000088",
+      "lineageId": "prompt-000088",
+      "occurrenceId": "v2.1.258-0323",
+      "familyId": "agent",
+      "callsiteId": "patched:30491813-30492415",
+      "role": "system",
+      "ordinal": 323,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000088.md",
+      "contentBytes": 594,
+      "contentSha256": "sha256-6b5pqARRDXLobcBl0SQk4iXLLUUuDlMSaIcMZtXDlD0=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 30491813,
+        "endCodeUnit": 30492415,
+        "sourceSha256": "sha256-0RJ9CKyo0vHktfAGH6eOofbVOw8hc+L/H8XIMv5lcIk="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000089",
+      "lineageId": "prompt-000089",
+      "occurrenceId": "v2.1.258-0324",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:30492419-30492734",
+      "role": "system",
+      "ordinal": 324,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/system/prompt-000089.md",
+      "contentBytes": 307,
+      "contentSha256": "sha256-JaMeFPmpa29dx+DEKuEIUMuMCH+K3dMN2vD/K1JXJWg=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 30492419,
+        "endCodeUnit": 30492734,
+        "sourceSha256": "sha256-sjgolPH6MOYF9Mo5mPV1z3UFfLpmdoV7W+fNUWyhWSI="
+      },
+      "detectorSignals": [
+        "you-are",
+        "do-not",
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000084",
+      "lineageId": "prompt-000084",
+      "occurrenceId": "v2.1.258-0328",
+      "familyId": "agent",
+      "callsiteId": "patched:30647728-30665034",
+      "role": "system",
+      "ordinal": 328,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/agent/system/prompt-000084.md",
+      "contentBytes": 16877,
+      "contentSha256": "sha256-OGXe3ICCMddm37mQ73+B2Ld+FsAItsT5wYX6jeG1h8I=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 30647728,
+        "endCodeUnit": 30665034,
+        "sourceSha256": "sha256-r7kerRIFFI+5fBSBdu+RmvJjfqJvXGp5XeX6X++S1pY="
+      },
+      "detectorSignals": [
+        "respond",
+        "instruction",
+        "write",
+        "output",
+        "xml-tag"
+      ]
+    },
+    {
+      "id": "prompt-000478",
+      "lineageId": "prompt-000478",
+      "occurrenceId": "v2.1.258-0331",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:31772070-31772501",
+      "role": "unknown",
+      "ordinal": 331,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000478.md",
+      "contentBytes": 429,
+      "contentSha256": "sha256-iNNrKAj+KmBFO1rfe7ofARoGrCBSgvxZ2+1rXnuyTZ4=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 31772070,
+        "endCodeUnit": 31772501,
+        "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA="
+      },
+      "detectorSignals": [
+        "write",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000479",
+      "lineageId": "prompt-000479",
+      "occurrenceId": "v2.1.258-0332",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:31845384-31846145",
+      "role": "unknown",
+      "ordinal": 332,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000479.md",
+      "contentBytes": 759,
+      "contentSha256": "sha256-YK8lfDJ/rZSTzdzJPrS107MC1fhVn0T49U00GDoIY8o=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 31845384,
+        "endCodeUnit": 31846145,
+        "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg="
+      },
+      "detectorSignals": [
+        "return",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000480",
+      "lineageId": "prompt-000480",
+      "occurrenceId": "v2.1.258-0333",
+      "familyId": "hook",
+      "callsiteId": "patched:31964901-31966011",
+      "role": "unknown",
+      "ordinal": 333,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/hook/unknown/prompt-000480.md",
+      "contentBytes": 1108,
+      "contentSha256": "sha256-hehe9Af4Qh6XWwMxG6y9skCn/tYCSTZkyQQ0pJEGYDQ=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 31964901,
+        "endCodeUnit": 31966011,
+        "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000481",
+      "lineageId": "prompt-000481",
+      "occurrenceId": "v2.1.258-0334",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:32108151-32110329",
+      "role": "unknown",
+      "ordinal": 334,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000481.md",
+      "contentBytes": 2176,
+      "contentSha256": "sha256-WMVmzUDeVoIPzy7Uz/TsQ40pqMi7iqJwAqoLMurZBCE=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 32108151,
+        "endCodeUnit": 32110329,
+        "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM="
+      },
+      "detectorSignals": [
+        "write",
+        "output"
+      ]
+    },
+    {
+      "id": "prompt-000482",
+      "lineageId": "prompt-000482",
+      "occurrenceId": "v2.1.258-0335",
+      "familyId": "memory",
+      "callsiteId": "patched:32142967-32157810",
+      "role": "unknown",
+      "ordinal": 335,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/memory/unknown/prompt-000482.md",
+      "contentBytes": 14840,
+      "contentSha256": "sha256-S/2LGEC16o9TK7+BS2KZKiFinT46Yzm4jEvyGsDICbw=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 32142967,
+        "endCodeUnit": 32157810,
+        "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4="
+      },
+      "detectorSignals": [
+        "generate",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000483",
+      "lineageId": "prompt-000483",
+      "occurrenceId": "v2.1.258-0336",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:32212089-32217979",
+      "role": "unknown",
+      "ordinal": 336,
+      "classification": "static",
+      "kind": "fragment",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000483.md",
+      "contentBytes": 5888,
+      "contentSha256": "sha256-uFt/YzOXED2DqFdfwZuLVMaYSty8twhEWHl9AL4ae0Q=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 32212089,
+        "endCodeUnit": 32217979,
+        "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI="
+      },
+      "detectorSignals": [
+        "write",
+        "return"
+      ]
+    },
+    {
+      "id": "prompt-000452",
+      "lineageId": "prompt-000452",
+      "occurrenceId": "v2.1.258-0337",
+      "familyId": "auxiliary",
+      "callsiteId": "patched:33944881-33945424",
+      "role": "unknown",
+      "ordinal": 337,
+      "classification": "static",
+      "kind": "template",
+      "provenance": "upstream",
+      "contentFile": "entries/auxiliary/unknown/prompt-000452.md",
+      "contentBytes": 541,
+      "contentSha256": "sha256-OPE13O8QPjF71rkzoXzKuWYbdEiWJfrVLMENjlTXTFc=",
+      "source": {
+        "bundle": "patched",
+        "startCodeUnit": 33944881,
+        "endCodeUnit": 33945424,
+        "sourceSha256": "sha256-go1E5ef0HynSE665P2xNv1/Hcd4GzOR6vSYixrJHS8w="
+      },
+      "detectorSignals": [
+        "return",
+        "xml-tag"
+      ]
+    }
+  ],
+  "gapsFile": "gaps.json",
+  "gapsSha256": "sha256-7pIciNxIZhE0xSs1Zc3YSdQ9SVd/0yeaQ79GCji0ObE=",
+  "contentTreeSha256": "sha256-4FpsOfAOaMAbJeuVnd76vukJ26f2rhgp/fFYlSDKF4o=",
+  "summary": {
+    "candidates": 338,
+    "staticEntries": 166,
+    "contextualGaps": 172,
+    "opaqueGaps": 1
+  },
+  "limitations": [
+    "The catalog covers only candidates selected by the declared static literal ruleset.",
+    "Contextual gaps do not represent effective requests or canonical sample prompts.",
+    "Lineage identities are stable across versions but remain separate from runtime override section identities."
+  ],
+  "manifestSha256": "sha256-mvaDAe1XE+e4tsoHLqFie4iJOWPQaady+3oX+CxKLKk="
+}

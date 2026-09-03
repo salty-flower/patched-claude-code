@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.258
+import{sc}from"./chunk-tgbc60ar.js";import{gT,om}from"./chunk-darxmw8c.js";function Mye(e,t,s,r){let c=e.mcp.clients.some((i)=>i.name===t);if(!c&&r?.appendIfAbsent===!1)return e;let n=sc(t);return{...e,mcp:{...e.mcp,clients:c?e.mcp.clients.map((i)=>i.name===t?s.client:i):[...e.mcp.clients,s.client],tools:[...e.mcp.tools.filter((i)=>!om(i,t,n)),...s.tools],commands:[...e.mcp.commands.filter((i)=>!gT(i,t)),...s.commands],resources:s.resources?{...e.mcp.resources,[t]:s.resources}:e.mcp.resources,resourceTemplates:s.resourceTemplates?{...e.mcp.resourceTemplates,[t]:s.resourceTemplates}:e.mcp.resourceTemplates}}}function MUn(e,t,s){if(!e.clients.some((c)=>c.name===t&&c.type==="connected"))return e;let r=sc(t);return{...e,tools:[...e.tools.filter((c)=>!om(c,t,r)),...s]}}function Y0e(e,t,s){if(!e.mcp.clients.some((c)=>c.name===t&&c.type==="connected"))return e;let r=sc(t);return{...e,mcp:{...e.mcp,tools:[...e.mcp.tools.filter((c)=>!om(c,t,r)),...s]}}}function NUn(e,t,s){let r=new Set(e.clients),c=new Map(t.clients.map((o)=>[o.name,o])),n=s;for(let o of s.clients){if(!r.has(o))continue;let m=c.get(o.name),f=sc(o.name),p=(l)=>om(l,o.name,f);if(m===void 0){n={...n,clients:n.clients.filter((l)=>l!==o),tools:n.tools.filter((l)=>!p(l))};continue}if(m!==o)n={...n,clients:n.clients.map((l)=>l===o?m:l)};let S=t.tools.filter(p),T=n.tools.filter(p);if(S.length===T.length&&S.every((l,u)=>l===T[u]))continue;n={...n,tools:[...n.tools.filter((l)=>!p(l)),...S]}}let i=new Set(e.clients.map((o)=>o.name)),d=new Set(s.clients.map((o)=>o.name)),a=t.clients.filter((o)=>!i.has(o.name)&&!d.has(o.name));if(a.length>0){let o=a.map((m)=>[m.name,sc(m.name)]);n={...n,clients:[...n.clients,...a],tools:[...n.tools,...t.tools.filter((m)=>o.some(([f,p])=>om(m,f,p)))]}}return n}
+export{Mye,MUn,Y0e,NUn};

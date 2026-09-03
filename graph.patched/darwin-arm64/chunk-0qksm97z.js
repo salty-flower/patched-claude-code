@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.258
+import{TT}from"./chunk-smt6rj8e.js";import{wi}from"./chunk-qkcr56w2.js";import{_}from"./chunk-0jrfbepr.js";import{n}from"./chunk-t50adtrb.js";import{e,r}from"./chunk-v5r13aq1.js";import{ln}from"./chunk-bge67taw.js";var p=[" ","\u258F","\u258E","\u258D","\u258C","\u258B","\u258A","\u2589","\u2588"],x={fill:"\u25B0",empty:"\u25B1"},A={fill:"\u2588",empty:"\u2591"},S=()=>TT.hasGeometricShapesInkBleedBug()?A:x,T=(a)=>Math.min(1,Math.max(0,a)),B=(a,o)=>{let t=Math.floor(a*o),s=[wi(p.at(-1),t)];if(t<o){let f=a*o-t,m=Math.floor(f*(p.length-1));s.push(p[m]);let l=o-t-1;if(l>0)s.push(p[0].repeat(l))}return s.join("")};function Fy(q){let E=_(17),{ratio:g,width:c,fillColor:L,emptyColor:i,variant:I}=q,k=I===void 0?"block":I,u,h,P,y,b,C;if(E[0]!==i||E[1]!==L||E[2]!==g||E[3]!==k||E[4]!==c){C=ln;bb0:{let M=T(g);if(k==="pill"){let{fill:v,empty:K}=S();let H=Math.round(M*c);C=r(n,{children:[e(n,{color:L,children:wi(v,H)}),e(n,{color:i,dimColor:i===void 0,children:wi(K,c-H)})]});break bb0}u=n;h=L;P=i;y=`${Math.round(M*100)}%`;b=B(M,c)}E[0]=i,E[1]=L,E[2]=g,E[3]=k,E[4]=c,E[5]=u,E[6]=h,E[7]=P,E[8]=y,E[9]=b,E[10]=C}else u=E[5],h=E[6],P=E[7],y=E[8],b=E[9],C=E[10];if(C!==ln)return C;let Y;if(E[11]!==u||E[12]!==h||E[13]!==P||E[14]!==y||E[15]!==b)Y=e(u,{color:h,backgroundColor:P,"aria-label":y,children:b}),E[11]=u,E[12]=h,E[13]=P,E[14]=y,E[15]=b,E[16]=Y;else Y=E[16];return Y}
+export{Fy};

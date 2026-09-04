@@ -48,7 +48,10 @@ const targetUses251ThinkingSymbols =
   isVersionAtLeast(TARGET_VERSION, "2.1.251") && isVersionBefore(TARGET_VERSION, "2.1.258")
 
 const targetUses258ThinkingSymbols =
-  isVersionAtLeast(TARGET_VERSION, "2.1.258") && isVersionBefore(TARGET_VERSION, "2.2.0")
+  isVersionAtLeast(TARGET_VERSION, "2.1.258") && isVersionBefore(TARGET_VERSION, "2.1.259")
+
+const targetUses259ThinkingSymbols =
+  isVersionAtLeast(TARGET_VERSION, "2.1.259") && isVersionBefore(TARGET_VERSION, "2.2.0")
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -111,6 +114,11 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
   if (targetUses251ThinkingSymbols) {
     expect(patched).toContain('onStreamingText:C,onStreamingThinking:S,onCompactEvent:A')
     expect(patched).toContain('S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))')
+    return
+  }
+  if (targetUses259ThinkingSymbols) {
+    expect(patched).toContain("mut(e,{...n,onStreamingThinking:f})")
+    expect(patched).toContain('n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))')
     return
   }
   if (targetUses258ThinkingSymbols) {
@@ -278,6 +286,13 @@ test("main-screen thinking display uses the same live state as transcript render
     )
     return
   }
+  if (targetUses259ThinkingSymbols) {
+    expect(patched).toContain("__acc_streamingThinking=Ue(hq?.stream,(T)=>T.streamingThinking)")
+    expect(patched).toContain(
+      "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+    )
+    return
+  }
   if (targetUses258ThinkingSymbols) {
     expect(patched).toContain("__acc_streamingThinking=Ue(FR?.stream,(T)=>T.streamingThinking)")
     expect(patched).toContain(
@@ -418,6 +433,14 @@ test("live thinking rendering is not suppressed by brief mode", () => {
       "__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
     )
     expect(patched).not.toContain("!P&&!de&&!pe&&re&&x.isMain&&e(PXt,{})]})}")
+    return
+  }
+  if (targetUses259ThinkingSymbols) {
+    expect(patched).toContain(
+      "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+    )
+    const liveRowFunction = getFunctionSourceUntilNextDeclaration(patched, "function tz(")
+    expect(liveRowFunction).not.toContain("streamingThinking:null")
     return
   }
   if (targetUses258ThinkingSymbols) {
@@ -633,7 +656,7 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
     return
   }
 
-  if (targetUses251ThinkingSymbols || targetUses258ThinkingSymbols) {
+  if (targetUses251ThinkingSymbols || targetUses258ThinkingSymbols || targetUses259ThinkingSymbols) {
     expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
     expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
     return

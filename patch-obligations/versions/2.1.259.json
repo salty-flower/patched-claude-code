@@ -1,0 +1,909 @@
+{
+ "schema": 1,
+ "targetVersion": "2.1.259",
+ "decisions": [
+  {
+   "familyId": "agent-memory-discovery",
+   "invariantId": "agents-memory-additional-directories",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "agent-memory-discovery",
+   "invariantId": "agents-memory-ancestor-directories",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "agent-memory-discovery",
+   "invariantId": "agents-memory-file-detection",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "agent-memory-discovery",
+   "invariantId": "agents-memory-nested-directory",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "agent-memory-discovery",
+   "invariantId": "memory-file-realpath-overlap-dedup",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "anti-trace",
+   "invariantId": "disable-date-environment-fingerprint",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "anti-trace",
+   "invariantId": "disable-raw-api-body-otel",
+   "disposition": "ported",
+   "patchEntries": [
+    "disable-raw-api-body-otel-2-1-259-darwin",
+    "disable-raw-api-body-otel-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "anti-trace",
+   "invariantId": "require-explicit-assistant-response-otel",
+   "disposition": "ported",
+   "patchEntries": [
+    "require-explicit-assistant-response-otel-2-1-259-darwin",
+    "require-explicit-assistant-response-otel-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "channel-access",
+   "invariantId": "ask-user-question-channels-gate",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "channel-access",
+   "invariantId": "ask-user-question-channels-gate-askuser",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "channel-access",
+   "invariantId": "channels-feature-gate",
+   "disposition": "ported",
+   "patchEntries": [
+    "channels-feature-gate"
+   ]
+  },
+  {
+   "familyId": "channel-access",
+   "invariantId": "channels-provider-gate",
+   "disposition": "ported",
+   "patchEntries": [
+    "channels-provider-gate"
+   ]
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "append-second-custom-model-option",
+   "disposition": "ported",
+   "patchEntries": [
+    "append-second-custom-model-option-2-1-259-darwin",
+    "append-second-custom-model-option-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "custom-model-slot-applied-effort",
+   "disposition": "ported",
+   "patchEntries": [
+    "custom-model-slot-applied-effort-2-1-259-darwin",
+    "custom-model-slot-applied-effort-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "custom-model-slot-capabilities",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "custom-model-slot-default-effort",
+   "disposition": "ported",
+   "patchEntries": [
+    "custom-model-slot-default-effort-2-1-259-darwin",
+    "custom-model-slot-default-effort-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "custom-model-slot-picker-focus-effort",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "custom-model-slot-picker-hide-adjust-hint",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "custom-model-slot-picker-lock-effort",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "recognize-second-custom-model-option",
+   "disposition": "ported",
+   "patchEntries": [
+    "recognize-second-custom-model-option-2-1-258"
+   ]
+  },
+  {
+   "familyId": "custom-model-slots",
+   "invariantId": "validate-second-custom-model-option-without-probe",
+   "disposition": "ported",
+   "patchEntries": [
+    "validate-second-custom-model-option-without-probe-2-1-250"
+   ]
+  },
+  {
+   "familyId": "disable-background-agent-kill-on-global-interrupt",
+   "invariantId": "foreground-agent-handoff-before-cancel",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "disable-background-agent-kill-on-global-interrupt",
+   "invariantId": "global-interrupt-cancel-only",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-disable-default-prefetch",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-disable-default-prefetch-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-doctor-probe",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-doctor-probe-2-1-258"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-entrypoint-guard",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-entrypoint-guard-2-1-258"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-legacy-api-key-async-read",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-legacy-api-key-async-read-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-legacy-api-key-delete",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-legacy-api-key-delete-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-legacy-api-key-sync-read",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-legacy-api-key-sync-read-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-legacy-api-key-write",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-legacy-api-key-write-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-plugin-eval",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-plugin-eval-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-plugin-eval-child",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-plugin-eval-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-propagate-legacy-delete-failures",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-propagate-legacy-delete-failures-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-propagate-write-failures",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-propagate-write-failures-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-require-preload-at-entrypoint",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-session-store-resume",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-session-store-resume-2-1-259"
+   ]
+  },
+  {
+   "familyId": "explicit-macos-keychain",
+   "invariantId": "explicit-macos-keychain-storage-bridge",
+   "disposition": "ported",
+   "patchEntries": [
+    "explicit-macos-keychain-storage-bridge-2-1-259"
+   ]
+  },
+  {
+   "familyId": "fable-model-picker",
+   "invariantId": "api-key-picker-shows-local-fable",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "fable-model-picker",
+   "invariantId": "oauth-primary-picker-shows-local-fable",
+   "disposition": "ported",
+   "patchEntries": [
+    "oauth-primary-picker-shows-local-fable-2-1-259-darwin",
+    "oauth-primary-picker-shows-local-fable-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "fable-model-picker",
+   "invariantId": "oauth-standard-picker-shows-local-fable",
+   "disposition": "ported",
+   "patchEntries": [
+    "oauth-standard-picker-shows-local-fable-2-1-259-darwin",
+    "oauth-standard-picker-shows-local-fable-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "file-read-path-context",
+   "invariantId": "read-result-path-context",
+   "disposition": "ported",
+   "patchEntries": [
+    "read-result-path-context"
+   ]
+  },
+  {
+   "familyId": "file-read-path-context",
+   "invariantId": "read-result-path-image",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "file-read-path-context",
+   "invariantId": "read-result-path-notebook",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "file-read-path-context",
+   "invariantId": "read-result-path-parts",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "file-read-path-context",
+   "invariantId": "read-result-path-pdf",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "file-read-path-context",
+   "invariantId": "read-result-path-text",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "file-read-path-context",
+   "invariantId": "read-result-path-unchanged",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-exact-fire-time",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-fire-attachment-envelope",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-fire-forward-attachments",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-fire-task-attachments",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-import-scheduler-enable",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-import-session-scheduler",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-import-team-context",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-submit-hook",
+   "disposition": "ported",
+   "patchEntries": [
+    "later-command-submit-hook-2-1-259",
+    "later-command-submit-hook-2-1-259-darwin"
+   ]
+  },
+  {
+   "familyId": "later-command",
+   "invariantId": "later-command-suggestion-metadata",
+   "disposition": "ported",
+   "patchEntries": [
+    "later-command-suggestion-metadata-2-1-259-darwin",
+    "later-command-suggestion-metadata-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "mcp-result-rendering",
+   "invariantId": "mcp-result-render-array-text-full",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "mcp-result-rendering",
+   "invariantId": "mcp-result-render-string-full",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "mcp-result-rendering",
+   "invariantId": "mcp-result-render-text-block-full",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "per-model-context-window",
+   "invariantId": "resolve-model-specific-context-window",
+   "disposition": "ported",
+   "patchEntries": [
+    "resolve-model-specific-context-window-2-1-246",
+    "resolve-model-specific-context-window-2-1-251-linux"
+   ]
+  },
+  {
+   "familyId": "per-model-endpoint",
+   "invariantId": "disable-default-base-url-guard",
+   "disposition": "ported",
+   "patchEntries": [
+    "disable-default-base-url-guard"
+   ]
+  },
+  {
+   "familyId": "per-model-endpoint",
+   "invariantId": "inject-per-model-into-beta-count-tokens",
+   "disposition": "ported",
+   "patchEntries": [
+    "inject-per-model-into-beta-count-tokens-2-1-258"
+   ]
+  },
+  {
+   "familyId": "per-model-endpoint",
+   "invariantId": "inject-per-model-into-beta-create",
+   "disposition": "ported",
+   "patchEntries": [
+    "inject-per-model-into-beta-create-2-1-258"
+   ]
+  },
+  {
+   "familyId": "per-model-endpoint",
+   "invariantId": "inject-per-model-into-nonbeta-count-tokens",
+   "disposition": "ported",
+   "patchEntries": [
+    "inject-per-model-into-nonbeta-count-tokens-2-1-258"
+   ]
+  },
+  {
+   "familyId": "per-model-endpoint",
+   "invariantId": "inject-per-model-into-nonbeta-create",
+   "disposition": "ported",
+   "patchEntries": [
+    "inject-per-model-into-nonbeta-create-2-1-258"
+   ]
+  },
+  {
+   "familyId": "resume-1m-model-defaults",
+   "invariantId": "dedupe-opus-alias-1m-suffix",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "resume-1m-model-defaults",
+   "invariantId": "resume-allows-same-family-anthropic-model-default",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "resume-1m-model-defaults",
+   "invariantId": "resume-detects-1m-after-alias-resolution",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "resume-1m-model-defaults",
+   "invariantId": "resume-detects-default-1m-after-alias-resolution",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "resume-1m-model-defaults",
+   "invariantId": "resume-imports-resolved-default-model",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "signature-block-custom-endpoint",
+   "invariantId": "strip-signatures-for-custom-base-url",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-cli-global",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-cli-option",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-cli-option-2-1-258"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-cli-settings",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-clipboard-image-hint",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-clipboard-image-hint-2-1-259",
+    "statusline-footer-control-clipboard-image-hint-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-clipboard-image-hint-context",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-clipboard-image-hint-context-2-1-259",
+    "statusline-footer-control-clipboard-image-hint-context-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-command-length-mount",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-command-length-mount-2-1-259",
+    "statusline-footer-control-command-length-mount-2-1-258-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-command-length-update",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-command-length-update-2-1-233"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-effort-level",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-effort-level-2-1-259",
+    "statusline-footer-control-effort-level-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-effort-notification",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-effort-notification-2-1-259",
+    "statusline-footer-control-effort-notification-2-1-259-linux",
+    "statusline-footer-control-effort-notification-settings-2-1-259",
+    "statusline-footer-control-effort-notification-settings-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-mode-hint",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-mode-hint-2-1-259",
+    "statusline-footer-control-mode-hint-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-mode-hint-narrow",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-mode-hint-narrow-2-1-259",
+    "statusline-footer-control-mode-hint-narrow-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-mode-hint-state",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-rate-limit-warning",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-rate-limit-warning-2-1-258",
+    "statusline-footer-control-rate-limit-warning-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-rate-limit-warning-deps",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-rate-limit-warning-deps-2-1-259",
+    "statusline-footer-control-rate-limit-warning-deps-2-1-258-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-render",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-render-2-1-259",
+    "statusline-footer-control-render-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-render-output",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-render-state",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-render-state-2-1-259",
+    "statusline-footer-control-render-state-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-schema",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-footer-control-schema-2-1-258-darwin",
+    "statusline-footer-control-schema-2-1-258-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-teammate-spinner-gap",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-footer-control-terminal-columns",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-json-clipboard-image-refresh",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-json-clipboard-image-refresh-effect",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-json-clipboard-image-refresh-selector",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-json-effort-level",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-json-effort-level-2-1-259",
+    "statusline-json-effort-level-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "statusline-footer-control",
+   "invariantId": "statusline-json-permission-mode",
+   "disposition": "ported",
+   "patchEntries": [
+    "statusline-json-permission-mode-2-1-259",
+    "statusline-json-permission-mode-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "subagent-preserve-tool-results",
+   "invariantId": "subagent-preserve-tool-results",
+   "disposition": "ported",
+   "patchEntries": [
+    "subagent-preserve-tool-results"
+   ]
+  },
+  {
+   "familyId": "suppress-npm-native-installer-warning",
+   "invariantId": "suppress-npm-native-installer-warning-compute",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "suppress-npm-native-installer-warning",
+   "invariantId": "suppress-npm-native-installer-warning-setup-card",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "system-prompt-section-overrides",
+   "invariantId": "system-prompt-section-override-bridge",
+   "disposition": "ported",
+   "patchEntries": [
+    "system-prompt-section-override-bridge-2-1-220"
+   ]
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-clear-live-on-interrupt",
+   "disposition": "ported",
+   "patchEntries": [
+    "thinking-clear-live-on-interrupt-2-1-250"
+   ]
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-clear-live-on-next-block",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-blocks",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-expanded",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-brief",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-complete",
+   "disposition": "ported",
+   "patchEntries": [
+    "thinking-render-live-complete"
+   ]
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-delta",
+   "disposition": "ported",
+   "patchEntries": [
+    "thinking-render-live-delta-2-1-259-darwin",
+    "thinking-render-live-delta-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-main",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-output",
+   "disposition": "ported",
+   "patchEntries": [
+    "thinking-render-live-output-2-1-259-darwin",
+    "thinking-render-live-output-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-row",
+   "disposition": "ported",
+   "patchEntries": [
+    "thinking-render-live-row-cache-allocation-2-1-259-darwin",
+    "thinking-render-live-row-cache-allocation-2-1-259-linux",
+    "thinking-render-live-row-2-1-259-darwin",
+    "thinking-render-live-row-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-row-input",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-row-output",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-state",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "thinking-display",
+   "invariantId": "thinking-render-live-stream",
+   "disposition": "ported",
+   "patchEntries": [
+    "thinking-render-live-stream-2-1-259-darwin",
+    "thinking-render-live-stream-2-1-259-linux"
+   ]
+  },
+  {
+   "familyId": "transcript-preserve-repl-history",
+   "invariantId": "transcript-preserve-repl-history",
+   "disposition": "ported",
+   "patchEntries": [
+    "transcript-preserve-repl-history"
+   ]
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-capability-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-effort-command-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-effort-notification-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-flag-settings-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-help-label-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-help-menu-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-help-text-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-model-picker-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-model-picker-persist-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-settings-report-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-slider-confirm-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-slider-dialog-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-slider-dialog-secondary-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-slider-dialog-tertiary-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-slider-menu-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-startup-settings-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-thin-client-usage-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-typed-arg-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-usage-hint-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "ultracode-valid-options-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "xhigh-applied-effort-max-fallback",
+   "disposition": "retired"
+  },
+  {
+   "familyId": "ultracode-opus46-max",
+   "invariantId": "xhigh-settings-opus-max-fallback",
+   "disposition": "retired"
+  }
+ ],
+ "retirementProposal": {
+  "reason": "Retire the standalone mode-hint state carrier, which the ported 2.1.258 dense/narrow hint selectors subsume. The 78 signed historical retirements are carried unchanged and re-signed under this proposal.",
+  "evidenceRefs": [
+   "docs/records/2026-09-01-historical-patch-retirement-proposal.md",
+   "docs/records/2026-09-02-2.1.258-retirement-proposal.md"
+  ]
+ },
+ "retirementAcknowledgement": {
+  "approvedBy": "salty-flower",
+  "approvedAt": "2026-09-02",
+  "proposalSha256": "9aa3b079ceedb1de06ad4110d966a59ed3640d1649a09c7e2d5a80c85bfaf89a"
+ }
+}

@@ -21,9 +21,14 @@ const targetUses227LaterSymbols = gte(TARGET_VERSION, "2.1.227") && lt(TARGET_VE
 const targetUses250LaterSymbols = gte(TARGET_VERSION, "2.1.250") && lt(TARGET_VERSION, "2.1.251")
 const targetUses251LaterSymbols = gte(TARGET_VERSION, "2.1.251") && lt(TARGET_VERSION, "2.1.258")
 const targetUses258LaterSymbols = gte(TARGET_VERSION, "2.1.258") && lt(TARGET_VERSION, "2.1.259")
-const targetUses259LaterSymbols = gte(TARGET_VERSION, "2.1.259") && lt(TARGET_VERSION, "2.2.0")
+const targetUses259LaterSymbols = gte(TARGET_VERSION, "2.1.259") && lt(TARGET_VERSION, "2.1.260")
+const targetUses260LaterSymbols = gte(TARGET_VERSION, "2.1.260") && lt(TARGET_VERSION, "2.2.0")
 const targetUsesSessionJobs =
-  targetUses259LaterSymbols || targetUses258LaterSymbols || targetUses251LaterSymbols || targetUses250LaterSymbols
+  targetUses260LaterSymbols ||
+  targetUses259LaterSymbols ||
+  targetUses258LaterSymbols ||
+  targetUses251LaterSymbols ||
+  targetUses250LaterSymbols
 const targetUses241ExactFireSymbols = gte(TARGET_VERSION, "2.1.241") && lt(TARGET_VERSION, "2.1.250")
 const targetUses246LaterSymbols = gte(TARGET_VERSION, "2.1.246") && lt(TARGET_VERSION, "2.1.250")
 const targetUses241SubmitSymbols = targetUses241ExactFireSymbols && !targetUses246LaterSymbols
@@ -42,6 +47,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses260LaterSymbols ||
   targetUses259LaterSymbols ||
   targetUses258LaterSymbols ||
   targetUses251LaterSymbols ||
@@ -824,6 +830,8 @@ test.skipIf(!testLaterCommand)(
       "setTimeout(()=>{if(!__jobs.delete(__id))return;LK(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;u2(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;e2(",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;L2(",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;V2(",
       "await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)",
       "await Qjr(__cron,__prompt,!1,!1,g3()?.agentId)",
       "await iHr(__cron,__prompt,!1,!1,E4()?.agentId)",
@@ -918,6 +926,17 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses260LaterSymbols) {
+      expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
+      expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;L2(")
+      expect(patched).toContain("pastedContentsOverride:klo")
+      expect(patched).toContain("dz.trim()")
+      expect(patchedLinux).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;V2(")
+      expect(patchedLinux).toContain("pastedContentsOverride:Rlo")
+      expect(patchedLinux).toContain("bz.trim()")
+      expect(patched).not.toContain("L2.trim()")
+      expect(patchedLinux).not.toContain("R2.trim()")
+      expect(patched).not.toContain("__acc_schedule_later")
     } else if (targetUses259LaterSymbols) {
       expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
       expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;u2(")

@@ -13204,7 +13204,7 @@ assert_not_contains = '''hideBuiltinFooter:z().optional().describe("Compatibilit
 [[patches]]
 name = "statusline-footer-control-schema-2-1-258-darwin"
 target_version = "2.1.258"
-applies_to = ">=2.1.258 <2.2.0"
+applies_to = ">=2.1.258 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.258 Darwin settings schema uses M() for booleans, R(...) for arrays, and ee([...]) for enum items: sibling properties include allowManagedPermissionRulesOnly:M(), allowedHttpHookUrls:R(i()), and strictPluginOnlyCustomization:fs(...We([M(),R(ee(_ge))]))."
 rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
@@ -13247,7 +13247,7 @@ assert_not_contains = '''hideBuiltinFooter:G().optional().describe("Compatibilit
 [[patches]]
 name = "statusline-footer-control-schema-2-1-258-linux"
 target_version = "2.1.258"
-applies_to = ">=2.1.258 <2.2.0"
+applies_to = ">=2.1.258 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "The 2.1.258 Linux settings schema uses O() for booleans, T(...) for arrays, and ee([...]) for enum items: sibling properties include allowManagedPermissionRulesOnly:O(), allowedHttpHookUrls:T(i()), and strictPluginOnlyCustomization:ps(...Ge([O(),T(ee(fge))]))."
 rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
@@ -13263,6 +13263,46 @@ kind = "static"
 name = "2.1.258 Linux schema uses graph-local helpers"
 assert_contains = '''hideBuiltinFooter:O().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(ee(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
 assert_not_contains = '''hideBuiltinFooter:G().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:I(ie(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.260 Darwin settings schema uses O() for booleans, v(...) for arrays, and Y([...]) for enum items: sibling properties include allowManagedPermissionRulesOnly:O(), allowedHttpHookUrls:v(s()), and strictPluginOnlyCustomization:oi(...$e([O(),v(Y(ege))]))."
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:O().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:v(Y(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:O().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:v(Y(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+assert_not_contains = '''hideBuiltinFooter:M().optional().describe("Compatibility alias for hiding all built-in footer items.")'''
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "The 2.1.260 Linux settings schema uses P() for booleans, k(...) for arrays, and X([...]) for enum items: sibling properties include allowManagedPermissionRulesOnly:P(), allowedHttpHookUrls:k(s()), and strictPluginOnlyCustomization:oi(...Ne([P(),k(X(Jme))]))."
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:P().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:k(X(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:P().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:k(X(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+assert_not_contains = '''hideBuiltinFooter:O().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(ee('''
 
 [[patches]]
 name = "statusline-footer-control-effort-notification-2-1-241"
@@ -13619,7 +13659,7 @@ assert_not_contains = '''.option("--hide-builtin-footer [items]","Hide built-in 
 [[patches]]
 name = "statusline-footer-control-cli-option-2-1-258"
 target_version = "2.1.258"
-applies_to = ">=2.1.258 <2.2.0"
+applies_to = ">=2.1.258 <2.1.260"
 rationale = """
 Record the 2.1.258 footer override for both valued and bare CLI flags.
 
@@ -13642,6 +13682,32 @@ assert_contains = '''new F("--hide-builtin-footer [items]","Hide built-in footer
 kind = "static"
 name = "stale 2.1.251 Option constructor is absent"
 assert_not_contains = '''new U("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")'''
+
+[[patches]]
+name = "statusline-footer-control-cli-option-2-1-260"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+rationale = """
+Record the 2.1.260 footer override for both valued and bare CLI flags.
+
+The 2.1.260 option-chain scope uses Commander Option constructor `Y`; `F` is
+declared later in the module and triggers a temporal-dead-zone ReferenceError
+when captured here. The preset routes the bare form through the same parser as
+explicit item lists. Cleanup condition: upstream provides an equivalent footer
+option with bare-flag coverage.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+locator_kind = "literal"
+locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+replacement = '''.addOption(new Y("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(e).split(",").map((r)=>r.trim()).filter(Boolean);return e})).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 bare and valued CLI flags use the scope-local Option constructor"
+assert_contains = '''new Y("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 CLI option drops the temporal-dead-zone constructor"
+assert_not_contains = '''new F("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")'''
 
 [[patches]]
 name = "statusline-json-permission-mode-2-1-250"

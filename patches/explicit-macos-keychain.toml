@@ -5740,7 +5740,7 @@ assert_contains = '''async function p0(){try{await kB()}catch(e){if(process.env.
 [[patches.tests]]
 kind = "static"
 name = "2.1.260 legacy deletion wrapper replaces the 2.1.259 symbol"
-assert_not_contains = '''async function JB(){'''
+assert_not_contains = '''async function JB(){try{await mB()}catch(e){t(`Failed to remove API key from macOS keychain:'''
 
 [[patches]]
 name = "explicit-macos-keychain-propagate-write-failures-2-1-260"

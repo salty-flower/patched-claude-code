@@ -67,12 +67,16 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "CallExpression", callee_property = "createElement", string = "content:O,verbose:q" }
+match = { node = "CallExpression", callee_property = "createElement", object_property = "verbose" }
+
+[patches.ast.captures.content]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
 
 [patches.transform]
 op = "set_call_arg"
 index = 1
-value = '''{content:O,verbose:!0}'''
+value = '''{content:%%CAPTURE:content%%,verbose:!0}'''
 
 [[patches.tests]]
 kind = "static"
@@ -94,6 +98,7 @@ AST match fields are conjunctive:
 | `direct_string_literal` | Direct call argument string literal with this exact value. |
 | `object_property` | Descendant object property or method key. |
 | `object_property_direct` | Direct object property or method key on the matched node itself. |
+| `member_property` | Direct member-expression property key. |
 | `function_name` | Function declaration identifier. |
 | `method_name` | Object/class method key. |
 | `body_statement_count` | Number of top-level statements in a block body. |
@@ -102,6 +107,21 @@ AST match fields are conjunctive:
 | `string` | Substring contained in the matched node source. |
 | `strings` | Array of substrings; ALL must be contained in the matched node source. |
 | `parent_node` | Immediate parent Babel node type. |
+
+`[patches.ast.captures.<name>]` captures a minified identifier relative to
+the matched node:
+
+| Field | Rule |
+| --- | --- |
+| `kind` | Must be `identifier`. |
+| `path` | Dot-separated AST property/index path, e.g. `params.0`. |
+| `select` | Optional conjunctive AST match selecting exactly one descendant before applying `path`. |
+
+Transform string fields reference captures as `%%CAPTURE:<name>%%`.
+Capture paths MUST resolve inside the matched node to an `Identifier`.
+Descendant selectors MUST resolve exactly once within each matched node.
+Missing paths, ambiguous selectors, non-identifier nodes, invalid names, and
+undeclared placeholders fail the patch.
 
 Supported transform ops:
 
@@ -137,7 +157,8 @@ Supported transform ops:
 - `replacement` must not contain backreferences that resurrect minified
   identifier names from the locator's capture groups. Literal and regex
   patches are deterministic substitutions, not transforms.
-- Replacement code that names local minified identifiers MUST be version-scoped.
+- Replacement code that directly names local minified identifiers MUST be version-scoped.
+  Identifier names supplied only through AST capture placeholders are exempt.
   Its rationale MUST state the authored target version and the symbols being
   carried, e.g. "This is the 2.1.186 minified-symbol variant; hook namespace
   `Cb`, selector helper `_t`."
@@ -147,7 +168,7 @@ Supported transform ops:
 - `applies_to` uses standard semver ranges. When a patch needs different
   text per range, split it into two files. Version-specific minified-symbol
   variants MUST have an upper bound; do not leave them open-ended to `<2.2.0`
-  unless the replacement contains no local minified symbols.
+  unless the replacement contains no directly named local minified symbols.
 - `enabled = false` disables a patch entry without deleting its audit record.
   Omitted `enabled` means true. Disabled entries are skipped by render, verify,
   and patch-test scripts.

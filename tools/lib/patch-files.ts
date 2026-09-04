@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import * as TOML from "@iarna/toml"
-import type { AstLocator, AstTransform } from "./ast-transform-patches"
+import type { AstCapture, AstLocator, AstTransform } from "./ast-transform-patches"
 import type { PatchTest } from "./patch-tests"
 
 export type LocatorKind = "regex" | "literal" | "ast_transform"
@@ -67,11 +67,15 @@ export function loadPatchEntriesFromToml(rawToml: string, file: string): PatchEn
       rationale_ref: requiredString(entry.rationale_ref, `patches[${index}].rationale_ref`, file),
       locator_kind: kind,
       locator_pattern:
-        kind === "ast_transform" ? undefined : requiredString(entry.locator_pattern, `patches[${index}].locator_pattern`, file),
+        kind === "ast_transform"
+          ? undefined
+          : requiredString(entry.locator_pattern, `patches[${index}].locator_pattern`, file),
       expected_matches: optionalNumber(entry.expected_matches, `patches[${index}].expected_matches`, file),
-      replacement: kind === "ast_transform" ? undefined : requiredString(entry.replacement, `patches[${index}].replacement`, file),
+      replacement:
+        kind === "ast_transform" ? undefined : requiredString(entry.replacement, `patches[${index}].replacement`, file),
       ast: kind === "ast_transform" ? astLocator(entry.ast, `patches[${index}].ast`, file) : undefined,
-      transform: kind === "ast_transform" ? astTransform(entry.transform, `patches[${index}].transform`, file) : undefined,
+      transform:
+        kind === "ast_transform" ? astTransform(entry.transform, `patches[${index}].transform`, file) : undefined,
       gated_by_env: optionalInheritedString(entry.gated_by_env, parsed.gated_by_env, "gated_by_env", file),
       tests: Array.isArray(entry.tests) ? (entry.tests as PatchTest[]) : undefined,
     }
@@ -139,28 +143,54 @@ function locatorKind(value: string, file: string): LocatorKind {
 function astLocator(value: unknown, field: string, file: string): AstLocator {
   const record = requiredRecord(value, field, file)
   if (record.schema !== 1) throw new Error(`${file}: ${field}.schema must be 1`)
-  const match = requiredRecord(record.match, `${field}.match`, file)
-  const node = requiredString(match.node, `${field}.match.node`, file)
   return {
     schema: 1,
     anchor: optionalAstAnchor(record.anchor, `${field}.anchor`, file),
-    match: {
-      node,
-      callee_property: optionalString(match.callee_property, `${field}.match.callee_property`, file),
-      string_literal: optionalString(match.string_literal, `${field}.match.string_literal`, file),
-      direct_string_literal: optionalString(match.direct_string_literal, `${field}.match.direct_string_literal`, file),
-      object_property: optionalString(match.object_property, `${field}.match.object_property`, file),
-      object_property_direct: optionalString(match.object_property_direct, `${field}.match.object_property_direct`, file),
-      function_name: optionalString(match.function_name, `${field}.match.function_name`, file),
-      method_name: optionalString(match.method_name, `${field}.match.method_name`, file),
-      body_statement_count: optionalNumber(match.body_statement_count, `${field}.match.body_statement_count`, file),
-      source: optionalString(match.source, `${field}.match.source`, file),
-      source_regex: optionalString(match.source_regex, `${field}.match.source_regex`, file),
-      string: optionalString(match.string, `${field}.match.string`, file),
-      strings: optionalStrings(match.strings, `${field}.match.strings`, file),
-      parent_node: optionalString(match.parent_node, `${field}.match.parent_node`, file),
-    },
+    captures: optionalAstCaptures(record.captures, `${field}.captures`, file),
+    match: astMatch(record.match, `${field}.match`, file),
   }
+}
+
+function astMatch(value: unknown, field: string, file: string): AstLocator["match"] {
+  const match = requiredRecord(value, field, file)
+  return {
+    node: requiredString(match.node, `${field}.node`, file),
+    callee_property: optionalString(match.callee_property, `${field}.callee_property`, file),
+    string_literal: optionalString(match.string_literal, `${field}.string_literal`, file),
+    direct_string_literal: optionalString(match.direct_string_literal, `${field}.direct_string_literal`, file),
+    object_property: optionalString(match.object_property, `${field}.object_property`, file),
+    object_property_direct: optionalString(match.object_property_direct, `${field}.object_property_direct`, file),
+    member_property: optionalString(match.member_property, `${field}.member_property`, file),
+    function_name: optionalString(match.function_name, `${field}.function_name`, file),
+    method_name: optionalString(match.method_name, `${field}.method_name`, file),
+    body_statement_count: optionalNumber(match.body_statement_count, `${field}.body_statement_count`, file),
+    source: optionalString(match.source, `${field}.source`, file),
+    source_regex: optionalString(match.source_regex, `${field}.source_regex`, file),
+    string: optionalString(match.string, `${field}.string`, file),
+    strings: optionalStrings(match.strings, `${field}.strings`, file),
+    parent_node: optionalString(match.parent_node, `${field}.parent_node`, file),
+  }
+}
+
+function optionalAstCaptures(value: unknown, field: string, file: string): Record<string, AstCapture> | undefined {
+  if (value === undefined || value === null) return undefined
+  const captures = requiredRecord(value, field, file)
+  return Object.fromEntries(
+    Object.entries(captures).map(([name, capture]) => {
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new Error(`${file}: invalid AST capture name ${field}.${name}`)
+      const record = requiredRecord(capture, `${field}.${name}`, file)
+      const kind = requiredString(record.kind, `${field}.${name}.kind`, file)
+      if (kind !== "identifier") throw new Error(`${file}: ${field}.${name}.kind must be "identifier"`)
+      return [
+        name,
+        {
+          kind,
+          path: requiredString(record.path, `${field}.${name}.path`, file),
+          select: record.select === undefined ? undefined : astMatch(record.select, `${field}.${name}.select`, file),
+        },
+      ]
+    }),
+  )
 }
 
 function astTransform(value: unknown, field: string, file: string): AstTransform {

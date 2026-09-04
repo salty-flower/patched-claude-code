@@ -20,6 +20,7 @@ export type AstMatch = {
   direct_string_literal?: string
   object_property?: string
   object_property_direct?: string
+  member_property?: string
   function_name?: string
   method_name?: string
   body_statement_count?: number
@@ -30,10 +31,17 @@ export type AstMatch = {
   parent_node?: string
 }
 
+export type AstCapture = {
+  kind: "identifier"
+  path: string
+  select?: AstMatch
+}
+
 export type AstLocator = {
   schema: 1
   anchor?: "declaration"
   match: AstMatch
+  captures?: Record<string, AstCapture>
 }
 
 export type AstTransform =
@@ -106,6 +114,10 @@ type PlannedAstTransform = {
   edits: SourceEdit[]
 }
 
+const CAPTURE_PLACEHOLDER = /%%CAPTURE:([A-Za-z_][A-Za-z0-9_]*)%%/g
+const CAPTURE_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/
+const CAPTURE_PATH_SEGMENT = /^(?:[A-Za-z_][A-Za-z0-9_]*|0|[1-9][0-9]*)$/
+
 export function applyAstTransformPatches(
   source: string,
   patches: AstTransformPatch[],
@@ -175,7 +187,9 @@ export function verifyAstTransformPatches(
     }
 
     try {
-      const edits = matches.map((target) => editForTransform(source, target, patch.transform))
+      const edits = matches.map((target) =>
+        editForTransform(source, target, materializeTransform(source, target, patch.ast.captures, patch.transform)),
+      )
       rejectOverlappingEdits(edits)
       successfulEdits.push(...edits)
       results.push({
@@ -218,7 +232,9 @@ function planAstTransformPatches(
     if (matches.length !== expected) {
       throw new Error(`expected ${expected} AST match(es) for ${patch.name}, got ${matches.length}`)
     }
-    const edits = matches.map((target) => editForTransform(source, target, patch.transform))
+    const edits = matches.map((target) =>
+      editForTransform(source, target, materializeTransform(source, target, patch.ast.captures, patch.transform)),
+    )
     rejectOverlappingEdits(edits)
     return { patch, matches, edits }
   })
@@ -313,7 +329,10 @@ function findMatches(
   return (nodesByType.get(match.node) ?? []).filter((node) => matchesAstMatch(node, source, match, parentMap))
 }
 
-function buildAstIndexes(root: Record<string, unknown>): { parentMap: Map<AstNode, AstNode>; nodesByType: AstNodeIndex } {
+function buildAstIndexes(root: Record<string, unknown>): {
+  parentMap: Map<AstNode, AstNode>
+  nodesByType: AstNodeIndex
+} {
   const map = new Map<AstNode, AstNode>()
   const nodesByType: AstNodeIndex = new Map()
   visitWithParent(root, null, map, nodesByType)
@@ -370,6 +389,7 @@ function matchesAstMatch(node: AstNode, source: string, match: AstMatch, parentM
   if (match.direct_string_literal && !hasDirectStringLiteral(node, match.direct_string_literal)) return false
   if (match.object_property && !hasObjectProperty(node, match.object_property)) return false
   if (match.object_property_direct && !hasDirectObjectProperty(node, match.object_property_direct)) return false
+  if (match.member_property && !hasMemberProperty(node, match.member_property)) return false
   if (match.function_name && !hasFunctionName(node, match.function_name)) return false
   if (match.method_name && propertyKeyName(node) !== match.method_name) return false
   if (match.body_statement_count !== undefined && bodyStatementCount(node) !== match.body_statement_count) return false
@@ -423,7 +443,17 @@ function hasObjectProperty(node: AstNode, property: string): boolean {
 
 function hasDirectObjectProperty(node: AstNode, property: string): boolean {
   const properties = Array.isArray(node.properties) ? (node.properties as Array<Record<string, unknown>>) : []
-  return properties.some((item) => (item.type === "ObjectProperty" || item.type === "ObjectMethod") && propertyKeyName(item) === property)
+  return properties.some(
+    (item) => (item.type === "ObjectProperty" || item.type === "ObjectMethod") && propertyKeyName(item) === property,
+  )
+}
+
+function hasMemberProperty(node: AstNode, property: string): boolean {
+  if (node.type !== "MemberExpression" && node.type !== "OptionalMemberExpression") return false
+  const memberProperty = node.property as Record<string, unknown> | undefined
+  if (!memberProperty) return false
+  if (memberProperty.type === "Identifier") return memberProperty.name === property
+  return memberProperty.type === "StringLiteral" && memberProperty.value === property
 }
 
 function hasFunctionName(node: AstNode, name: string): boolean {
@@ -443,6 +473,116 @@ function propertyKeyName(node: Record<string, unknown>): string | null {
   if (key.type === "Identifier" && typeof key.name === "string") return key.name
   if (key.type === "StringLiteral" && typeof key.value === "string") return key.value
   return null
+}
+
+function materializeTransform(
+  source: string,
+  target: AstNode,
+  captureSpecs: Record<string, AstCapture> | undefined,
+  transform: AstTransform,
+): AstTransform {
+  const captures = resolveCaptures(source, target, captureSpecs)
+  const expand = (value: string): string => expandCapturePlaceholders(value, captures)
+
+  switch (transform.op) {
+    case "replace_node":
+      return { ...transform, value: expand(transform.value) }
+    case "replace_function_body":
+      return { ...transform, body: expand(transform.body) }
+    case "replace_function_body_with_first_var_initializer_return":
+    case "replace_with_consequent":
+      return transform
+    case "set_object_property":
+      return { ...transform, property: expand(transform.property), value: expand(transform.value) }
+    case "append_object_property":
+      return { ...transform, code: expand(transform.code) }
+    case "set_call_arg":
+      return { ...transform, value: expand(transform.value) }
+    case "append_call_arg":
+      return { ...transform, arg: expand(transform.arg) }
+    case "wrap_expression":
+      return { ...transform, template: expand(transform.template) }
+    case "prepend_function_body":
+    case "insert_before_node":
+    case "insert_after_node":
+      return { ...transform, code: expand(transform.code) }
+    case "replace_substring":
+    case "replace_substring_regex":
+      return { ...transform, find: expand(transform.find), value: expand(transform.value) }
+  }
+}
+
+function resolveCaptures(
+  source: string,
+  target: AstNode,
+  specs: Record<string, AstCapture> | undefined,
+): Map<string, string> {
+  const captures = new Map<string, string>()
+  for (const [name, spec] of Object.entries(specs ?? {})) {
+    if (!CAPTURE_NAME.test(name)) throw new Error(`invalid AST capture name ${JSON.stringify(name)}`)
+    if (spec.kind !== "identifier") throw new Error(`unsupported AST capture kind ${String(spec.kind)}`)
+    const captureRoot = spec.select ? selectCaptureRoot(source, target, name, spec.select) : target
+    const node = nodeAtCapturePath(captureRoot, spec.path)
+    if (node.type !== "Identifier") {
+      throw new Error(`AST capture ${name} path ${spec.path} must resolve to an Identifier, got ${node.type}`)
+    }
+    const value = source.slice(node.start, node.end)
+    if (value.length === 0) throw new Error(`AST capture ${name} resolved to an empty identifier source`)
+    captures.set(name, value)
+  }
+  return captures
+}
+
+function selectCaptureRoot(source: string, target: AstNode, name: string, match: AstMatch): AstNode {
+  const { parentMap, nodesByType } = buildAstIndexes(target)
+  const matches = findMatches(source, match, parentMap, nodesByType)
+  if (matches.length !== 1) {
+    throw new Error(`AST capture ${name} selector expected 1 match inside target, got ${matches.length}`)
+  }
+  return matches[0]
+}
+
+function nodeAtCapturePath(target: AstNode, path: string): AstNode {
+  const segments = path.split(".")
+  if (segments.length === 0 || segments.some((segment) => !CAPTURE_PATH_SEGMENT.test(segment))) {
+    throw new Error(`invalid AST capture path ${JSON.stringify(path)}`)
+  }
+
+  let current: unknown = target
+  for (const segment of segments) {
+    if (!current || typeof current !== "object") {
+      throw new Error(`AST capture path ${path} does not resolve inside the matched node`)
+    }
+    if (Array.isArray(current)) {
+      if (!/^\d+$/.test(segment)) throw new Error(`AST capture path ${path} expected an array index at ${segment}`)
+      current = current[Number(segment)]
+    } else {
+      if (/^\d+$/.test(segment)) throw new Error(`AST capture path ${path} cannot index an object with ${segment}`)
+      current = (current as Record<string, unknown>)[segment]
+    }
+  }
+
+  if (!current || typeof current !== "object" || Array.isArray(current)) {
+    throw new Error(`AST capture path ${path} did not resolve to an AST node`)
+  }
+  const record = current as Record<string, unknown>
+  if (typeof record.type !== "string" || typeof record.start !== "number" || typeof record.end !== "number") {
+    throw new Error(`AST capture path ${path} did not resolve to an AST node`)
+  }
+  if (record.start < target.start || record.end > target.end) {
+    throw new Error(`AST capture path ${path} resolves outside the matched node`)
+  }
+  return record as AstNode
+}
+
+function expandCapturePlaceholders(value: string, captures: Map<string, string>): string {
+  const expanded = value.replace(CAPTURE_PLACEHOLDER, (_placeholder, name: string) => {
+    const captured = captures.get(name)
+    if (captured === undefined) throw new Error(`AST transform references undeclared capture ${name}`)
+    return captured
+  })
+  if (expanded.includes("%%CAPTURE:")) throw new Error("AST transform contains an invalid capture placeholder")
+  return expanded
 }
 
 function editForTransform(source: string, target: AstNode, transform: AstTransform): SourceEdit {
@@ -494,7 +634,9 @@ function replaceFunctionBodyWithFirstVarInitializerReturnEdit(source: string, ta
   const statements = Array.isArray(block.body) ? (block.body as Array<Record<string, unknown>>) : []
   const first = statements[0]
   if (first?.type !== "VariableDeclaration") {
-    throw new Error("replace_function_body_with_first_var_initializer_return first statement must be a variable declaration")
+    throw new Error(
+      "replace_function_body_with_first_var_initializer_return first statement must be a variable declaration",
+    )
   }
   const declarations = Array.isArray(first.declarations) ? (first.declarations as Array<Record<string, unknown>>) : []
   const init = declarations[0]?.init as Record<string, unknown> | undefined

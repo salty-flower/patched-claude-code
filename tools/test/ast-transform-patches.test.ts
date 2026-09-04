@@ -1,5 +1,9 @@
 import { expect, test } from "bun:test"
-import { applyAstTransformPatches, verifyAstTransformPatch, verifyAstTransformPatches } from "../lib/ast-transform-patches"
+import {
+  applyAstTransformPatches,
+  verifyAstTransformPatch,
+  verifyAstTransformPatches,
+} from "../lib/ast-transform-patches"
 
 test("append_call_arg appends one argument to a uniquely matched call", () => {
   const result = applyAstTransformPatches('const out=tK.createElement(V,null,"Read image (",q,")")', [
@@ -24,16 +28,13 @@ test("append_call_arg appends one argument to a uniquely matched call", () => {
 })
 
 test("direct_string_literal matches only direct string arguments", () => {
-  const result = applyAstTransformPatches(
-    'const out=c("outer",c("inner"));const other=c("leaf")',
-    [
-      {
-        name: "append to direct inner call",
-        ast: { schema: 1, match: { node: "CallExpression", callee_property: "c", direct_string_literal: "inner" } },
-        transform: { op: "append_call_arg", arg: "Z" },
-      },
-    ],
-  )
+  const result = applyAstTransformPatches('const out=c("outer",c("inner"));const other=c("leaf")', [
+    {
+      name: "append to direct inner call",
+      ast: { schema: 1, match: { node: "CallExpression", callee_property: "c", direct_string_literal: "inner" } },
+      transform: { op: "append_call_arg", arg: "Z" },
+    },
+  ])
 
   expect(result.source).toBe('const out=c("outer",c("inner",Z));const other=c("leaf")')
 })
@@ -54,7 +55,10 @@ test("source_regex matches against the node source", () => {
   const result = applyAstTransformPatches("var outer=()=>{let C={target:1}};let C={target:2}", [
     {
       name: "replace top-level let",
-      ast: { schema: 1, match: { node: "VariableDeclaration", source_regex: "^let C=\\{target:2\\}", string: "target" } },
+      ast: {
+        schema: 1,
+        match: { node: "VariableDeclaration", source_regex: "^let C=\\{target:2\\}", string: "target" },
+      },
       transform: { op: "replace_node", value: "let C={target:3}" },
     },
   ])
@@ -129,6 +133,135 @@ test("replace_function_body preserves the function signature", () => {
   expect(result.source).toBe("function SP_(H,_=H){return H.filter(hn)}")
 })
 
+test("identifier captures carry minified bindings into transform templates", () => {
+  const patch = {
+    name: "return the feature input",
+    ast: {
+      schema: 1 as const,
+      match: { node: "FunctionDeclaration", string_literal: "stable-feature" },
+      captures: {
+        input: { kind: "identifier" as const, path: "params.0" },
+        helper: {
+          kind: "identifier" as const,
+          select: { node: "CallExpression", direct_string_literal: "stable-feature" },
+          path: "callee",
+        },
+      },
+    },
+    transform: {
+      op: "replace_function_body" as const,
+      body: '{return %%CAPTURE:helper%%(%%CAPTURE:input%%,"patched")}',
+    },
+  }
+
+  expect(applyAstTransformPatches('function a(x){return q(x,"stable-feature")}', [patch]).source).toBe(
+    'function a(x){return q(x,"patched")}',
+  )
+  expect(applyAstTransformPatches('function Z($Q){return $m($Q,"stable-feature")}', [patch]).source).toBe(
+    'function Z($Q){return $m($Q,"patched")}',
+  )
+})
+
+test("captures are resolved independently for every matched node", () => {
+  const result = applyAstTransformPatches('function a(x){return x+"stable"}function b(y){return y+"stable"}', [
+    {
+      name: "guard each input",
+      expectedMatches: 2,
+      ast: {
+        schema: 1,
+        match: { node: "FunctionDeclaration", string_literal: "stable" },
+        captures: { input: { kind: "identifier", path: "params.0" } },
+      },
+      transform: { op: "prepend_function_body", code: "if(!%%CAPTURE:input%%)return;" },
+    },
+  ])
+
+  expect(result.source).toBe(
+    'function a(x){if(!x)return;return x+"stable"}function b(y){if(!y)return;return y+"stable"}',
+  )
+})
+
+test("capture selectors fail closed when their semantic descendant is ambiguous", () => {
+  expect(() =>
+    applyAstTransformPatches('function a(x){first(x,"stable");second(x,"stable")}', [
+      {
+        name: "ambiguous helper",
+        ast: {
+          schema: 1,
+          match: { node: "FunctionDeclaration", string_literal: "stable" },
+          captures: {
+            helper: {
+              kind: "identifier",
+              select: { node: "CallExpression", direct_string_literal: "stable" },
+              path: "callee",
+            },
+          },
+        },
+        transform: { op: "prepend_function_body", code: "use(%%CAPTURE:helper%%);" },
+      },
+    ]),
+  ).toThrow("selector expected 1 match inside target, got 2")
+})
+
+test("capture selectors can identify member-expression properties", () => {
+  const result = applyAstTransformPatches('function a(x){return registry.resolve(x,"stable")}', [
+    {
+      name: "capture the receiver",
+      ast: {
+        schema: 1,
+        match: { node: "FunctionDeclaration", string_literal: "stable" },
+        captures: {
+          receiver: {
+            kind: "identifier",
+            select: { node: "MemberExpression", member_property: "resolve" },
+            path: "object",
+          },
+        },
+      },
+      transform: { op: "prepend_function_body", code: "warm(%%CAPTURE:receiver%%);" },
+    },
+  ])
+
+  expect(result.source).toBe('function a(x){warm(registry);return registry.resolve(x,"stable")}')
+})
+
+test("identifier captures fail closed on invalid paths and undeclared placeholders", () => {
+  const source = 'function a(x){return x+"stable"}'
+  expect(() =>
+    applyAstTransformPatches(source, [
+      {
+        name: "invalid binding path",
+        ast: {
+          schema: 1,
+          match: { node: "FunctionDeclaration", string_literal: "stable" },
+          captures: { input: { kind: "identifier", path: "body" } },
+        },
+        transform: { op: "prepend_function_body", code: "use(%%CAPTURE:input%%);" },
+      },
+    ]),
+  ).toThrow("must resolve to an Identifier, got BlockStatement")
+
+  expect(() =>
+    applyAstTransformPatches(source, [
+      {
+        name: "missing binding declaration",
+        ast: { schema: 1, match: { node: "FunctionDeclaration", string_literal: "stable" } },
+        transform: { op: "prepend_function_body", code: "use(%%CAPTURE:input%%);" },
+      },
+    ]),
+  ).toThrow("references undeclared capture input")
+
+  expect(() =>
+    applyAstTransformPatches(source, [
+      {
+        name: "malformed placeholder",
+        ast: { schema: 1, match: { node: "FunctionDeclaration", string_literal: "stable" } },
+        transform: { op: "prepend_function_body", code: "use(%%CAPTURE:bad-name%%);" },
+      },
+    ]),
+  ).toThrow("contains an invalid capture placeholder")
+})
+
 test("replace_function_body_with_first_var_initializer_return preserves minified initializer names", () => {
   const result = applyAstTransformPatches(
     'function SP_(H,_=H){let q=H.filter(hn);if(provider()==="ant")return q;let K=expand(_);return rewrite(q,K)}',
@@ -193,7 +326,7 @@ test("wrap_expression substitutes the matched expression into a template", () =>
 })
 
 test("replace_node replaces the exact matched node range", () => {
-  const result = applyAstTransformPatches("switch(t){case\"thinking_delta\":return;case\"x\":return}", [
+  const result = applyAstTransformPatches('switch(t){case"thinking_delta":return;case"x":return}', [
     {
       name: "stream thinking",
       ast: { schema: 1, match: { node: "SwitchCase", string_literal: "thinking_delta" } },
@@ -221,7 +354,7 @@ test("prepend_function_body inserts code at the start of a function body", () =>
     {
       name: "add path suffix locals",
       ast: { schema: 1, match: { node: "FunctionDeclaration", function_name: "read" } },
-      transform: { op: "prepend_function_body", code: "let P=arguments[2]?.input?.file_path,Z=P?` / ${P}`:\"\";" },
+      transform: { op: "prepend_function_body", code: 'let P=arguments[2]?.input?.file_path,Z=P?` / ${P}`:"";' },
     },
   ])
 
@@ -231,13 +364,16 @@ test("prepend_function_body inserts code at the start of a function body", () =>
 })
 
 test("insert_after_node inserts a sibling statement after the matched node", () => {
-  const result = applyAstTransformPatches('function load(P){let G=join(P,"CLAUDE.md");let W=join(P,".claude","CLAUDE.md")}', [
-    {
-      name: "load AGENTS.md",
-      ast: { schema: 1, match: { node: "VariableDeclaration", string: 'join(P,"CLAUDE.md")' } },
-      transform: { op: "insert_after_node", code: 'let Q=join(P,"AGENTS.md");' },
-    },
-  ])
+  const result = applyAstTransformPatches(
+    'function load(P){let G=join(P,"CLAUDE.md");let W=join(P,".claude","CLAUDE.md")}',
+    [
+      {
+        name: "load AGENTS.md",
+        ast: { schema: 1, match: { node: "VariableDeclaration", string: 'join(P,"CLAUDE.md")' } },
+        transform: { op: "insert_after_node", code: 'let Q=join(P,"AGENTS.md");' },
+      },
+    ],
+  )
 
   expect(result.source).toBe(
     'function load(P){let G=join(P,"CLAUDE.md");let Q=join(P,"AGENTS.md");let W=join(P,".claude","CLAUDE.md")}',
@@ -245,7 +381,7 @@ test("insert_after_node inserts a sibling statement after the matched node", () 
 })
 
 test("replace_substring rewrites a unique text range inside the matched node", () => {
-  const result = applyAstTransformPatches('function enabled(){if(flag())return!1;return!0}', [
+  const result = applyAstTransformPatches("function enabled(){if(flag())return!1;return!0}", [
     {
       name: "force enabled",
       ast: { schema: 1, match: { node: "FunctionDeclaration", function_name: "enabled" } },

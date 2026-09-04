@@ -125,9 +125,13 @@ locator_kind = "ast_transform"
 schema = 1
 match = { node = "CallExpression", callee_property = "createElement", string_literal = "Read image (" }
 
+[patches.ast.captures.element]
+kind = "identifier"
+path = "arguments.0"
+
 [patches.transform]
 op = "append_call_arg"
-arg = "Z"
+arg = "%%CAPTURE:element%%"
 
 [[patches.tests]]
 kind = "static"
@@ -149,12 +153,40 @@ assert_contains = '"Read image (",q,")",Z'
       locator_kind: "ast_transform",
       ast: {
         schema: 1,
+        captures: { element: { kind: "identifier", path: "arguments.0" } },
         match: { node: "CallExpression", callee_property: "createElement", string_literal: "Read image (" },
       },
-      transform: { op: "append_call_arg", arg: "Z" },
+      transform: { op: "append_call_arg", arg: "%%CAPTURE:element%%" },
       tests: [{ kind: "static", name: "path suffix is rendered", assert_contains: '"Read image (",q,")",Z' }],
     },
   ])
+})
+
+test("rejects unsupported AST capture kinds", () => {
+  expect(() =>
+    loadPatchEntriesFromToml(
+      `
+name = "ast-feature"
+target_version = "2.1.133"
+rationale = "Exercise capture validation."
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L1-L1"
+locator_kind = "ast_transform"
+
+[ast]
+schema = 1
+match = { node = "FunctionDeclaration", string_literal = "stable" }
+
+[ast.captures.input]
+kind = "source"
+path = "params.0"
+
+[transform]
+op = "prepend_function_body"
+code = "use(%%CAPTURE:input%%);"
+`,
+      "patches/ast-feature.toml",
+    ),
+  ).toThrow('kind must be "identifier"')
 })
 
 test("loads disabled patch entries while defaulting omitted enabled to true", () => {

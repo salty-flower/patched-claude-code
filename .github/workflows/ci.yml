@@ -5,9 +5,14 @@ on:
     branches: ["main"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      target_version:
+        description: "Claude Code version to audit"
+        required: false
+        default: "2.1.260"
 
 env:
-  TARGET_VERSION: "2.1.260"
+  TARGET_VERSION: ${{ inputs.target_version || '2.1.260' }}
   TARGET_SOURCE: canonical
   TARGET_PLATFORM_PACKAGE: "@anthropic-ai/claude-code-darwin-arm64"
 

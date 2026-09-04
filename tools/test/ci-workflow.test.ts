@@ -28,7 +28,7 @@ test("ci runs release audit through one declarative just target", () => {
   const promptReviewStep = workflowStep("Check generated prompt review notes")
   const ciReleaseId = "ci.$" + "{GITHUB_SHA::12}"
 
-  expect(workflow).toContain(`TARGET_VERSION: "${DEFAULT_TARGET_VERSION}"`)
+  expect(workflow).toContain(`TARGET_VERSION: \${{ inputs.target_version || '${DEFAULT_TARGET_VERSION}' }}`)
   expect(auditStep).toContain(`just ci-release-audit "$TARGET_VERSION" "${ciReleaseId}"`)
   expect(workflow).not.toContain("timeout-minutes:")
   expect(swapStep).toContain("sudo fallocate -l 8G /mnt/pcc-audit.swap")
@@ -118,9 +118,12 @@ test("ci joins real-OS receipts before release admission", () => {
 })
 
 test("ci handles workflow dispatch and rewritten push bases", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
   const classifyStep = workflowStep("Classify changed paths")
   const whitespaceStep = workflowStep("Check whitespace")
 
+  expect(workflow).toContain("TARGET_VERSION: ${{ inputs.target_version || '2.1.260' }}")
+  expect(workflow).toContain('target_version:\n        description: "Claude Code version to audit"')
   expect(classifyStep).toContain('git cat-file -e "${base}^{commit}"')
   expect(classifyStep).toContain('git rev-parse "${head}^"')
   expect(whitespaceStep).toContain('"$EVENT_NAME" == "workflow_dispatch"')

@@ -54,6 +54,38 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
+    if (TARGET_VERSION === "2.1.260") {
+      expect(patched).toContain('globalThis.__acc_disabled_footer=e==="all"')
+      expect(patched).toContain('hideBuiltinFooter:M().optional().describe("Compatibility alias for hiding all built-in footer items.")')
+      expect(patched).toContain("return __acc_hide_footer?mPe:Noo}")
+      expect(patched).toContain("effort_level:eh(wt)?ET(wt,st):null")
+      expect(patched).toContain("permission_mode:H,model:")
+      expect(patched).toContain("globalThis.__acc_clipboard_image_available=!0")
+      expect(patched).toContain("globalThis.__acc_rate_limit_warning=Se")
+      expect(patched).toContain("__acc_hide_effort_level=U((E)=>E.settings.statusLine?.hideBuiltinFooter")
+      expect(patched).toContain("__acc_hide_effort=U((E)=>E.settings.statusLine?.hideBuiltinFooter")
+      expect(patched).toContain(
+        "statusLine:{disabledFooter:globalThis.__acc_disabled_footer}",
+      )
+      const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+      const linuxPatched = readdirSync(linuxGraphDir)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+        .join("\n")
+      expect(linuxPatched).toContain('globalThis.__acc_disabled_footer=e==="all"')
+      expect(linuxPatched).toContain('hideBuiltinFooter:O().optional().describe("Compatibility alias for hiding all built-in footer items.")')
+      expect(linuxPatched).toContain("return __acc_hide_footer?JRe:joo}")
+      expect(linuxPatched).toContain("effort_level:Qg(Et)?ww(Et,st):null")
+      expect(linuxPatched).toContain("permission_mode:H,model:")
+      expect(linuxPatched).toContain("globalThis.__acc_clipboard_image_available=!0")
+      expect(linuxPatched).toContain("globalThis.__acc_rate_limit_warning=be")
+      expect(linuxPatched).toContain("__acc_hide_effort_level=B((E)=>E.settings.statusLine?.hideBuiltinFooter")
+      expect(linuxPatched).toContain("__acc_hide_effort=B((E)=>E.settings.statusLine?.hideBuiltinFooter")
+      expect(linuxPatched).toContain(
+        "statusLine:{disabledFooter:globalThis.__acc_disabled_footer}",
+      )
+      return
+    }
     if (TARGET_VERSION === "2.1.259") {
       expect(patched).toContain('globalThis.__acc_disabled_footer=e==="all"')
       expect(patched).toContain('hideBuiltinFooter:M().optional().describe("Compatibility alias for hiding all built-in footer items.")')

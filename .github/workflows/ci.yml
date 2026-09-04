@@ -21,11 +21,35 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       full: ${{ steps.classify.outputs.full }}
+      target_version: ${{ steps.coordinates.outputs.target_version }}
       typecheck: ${{ steps.classify.outputs.typecheck }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Resolve CI target version
+        id: coordinates
+        shell: bash
+        env:
+          DEFAULT_TARGET_VERSION: ${{ env.TARGET_VERSION }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          REQUESTED_TARGET_VERSION: ${{ inputs.target_version }}
+        run: |
+          set -euo pipefail
+          target_version="${REQUESTED_TARGET_VERSION:-$DEFAULT_TARGET_VERSION}"
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            subject="${HEAD_COMMIT_MESSAGE%%$'\n'*}"
+            if [[ "$subject" =~ ^release:\ claude-code-([0-9]+\.[0-9]+\.[0-9]+)-patch\.[0-9]+$ ]]; then
+              target_version="${BASH_REMATCH[1]}"
+            fi
+          fi
+          if [[ ! "$target_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "target version must be an explicit semver: $target_version" >&2
+            exit 2
+          fi
+          echo "target_version=$target_version" | tee -a "$GITHUB_OUTPUT"
 
       - name: Classify changed paths
         id: classify
@@ -108,6 +132,8 @@ jobs:
   routed-checks:
     runs-on: ubuntu-24.04
     needs: changes
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -164,6 +190,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-24.04
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -236,6 +264,8 @@ jobs:
     needs: changes
     if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.full == 'true'
     runs-on: macos-15
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -303,6 +333,8 @@ jobs:
     needs: [changes, canonical-platform-merge]
     if: needs.changes.outputs.full == 'true'
     runs-on: macos-15
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -335,6 +367,8 @@ jobs:
     needs: [changes, canonical-platform-merge]
     if: needs.changes.outputs.full == 'true'
     runs-on: macos-15
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -371,6 +405,8 @@ jobs:
     needs: [changes, canonical-platform-merge]
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-24.04
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -408,6 +444,8 @@ jobs:
     needs: [changes, canonical-platform-merge, darwin-tool-test, darwin-obligation-evidence, linux-obligation-evidence]
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-24.04
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
       - uses: actions/checkout@v6
 

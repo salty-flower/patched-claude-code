@@ -119,11 +119,18 @@ test("ci joins real-OS receipts before release admission", () => {
 
 test("ci handles workflow dispatch and rewritten push bases", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
+  const coordinatesStep = workflowStep("Resolve CI target version")
   const classifyStep = workflowStep("Classify changed paths")
   const whitespaceStep = workflowStep("Check whitespace")
 
   expect(workflow).toContain("TARGET_VERSION: ${{ inputs.target_version || '2.1.260' }}")
   expect(workflow).toContain('target_version:\n        description: "Claude Code version to audit"')
+  expect(workflow).toContain("target_version: ${{ steps.coordinates.outputs.target_version }}")
+  expect(workflow).toContain("TARGET_VERSION: ${{ needs.changes.outputs.target_version }}")
+  expect(coordinatesStep).toContain('target_version="${REQUESTED_TARGET_VERSION:-$DEFAULT_TARGET_VERSION}"')
+  expect(coordinatesStep).toContain("^release:\\ claude-code-([0-9]+\\.[0-9]+\\.[0-9]+)-patch\\.[0-9]+$")
+  expect(coordinatesStep).toContain('target_version="${BASH_REMATCH[1]}"')
+  expect(coordinatesStep).toContain('echo "target_version=$target_version" | tee -a "$GITHUB_OUTPUT"')
   expect(classifyStep).toContain('git cat-file -e "${base}^{commit}"')
   expect(classifyStep).toContain('git rev-parse "${head}^"')
   expect(whitespaceStep).toContain('"$EVENT_NAME" == "workflow_dispatch"')

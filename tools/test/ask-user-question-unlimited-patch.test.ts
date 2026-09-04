@@ -2,11 +2,13 @@ import { afterAll, beforeAll, expect, test } from "bun:test"
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { satisfies } from "semver"
 import { targetVersion } from "../lib/target"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
+const TEST_UNBOUNDED_QUESTIONS = satisfies(TARGET_VERSION, ">=2.1.260 <2.2.0")
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-ask-user-question-unlimited-"))
 const patchedGraphs: string[] = []
 
@@ -34,29 +36,32 @@ afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
 })
 
-test("AskUserQuestion accepts an unbounded number of questions on every platform", () => {
-  for (const graph of patchedGraphs) {
-    expect(graph).not.toContain("Questions to ask the user (1-4")
-    expect(graph).not.toContain("The 1-4 questions and 2-4 options bounds are hard schema constraints")
+test.skipIf(!TEST_UNBOUNDED_QUESTIONS)(
+  "AskUserQuestion accepts an unbounded number of questions on every platform",
+  () => {
+    for (const graph of patchedGraphs) {
+      expect(graph).not.toContain("Questions to ask the user (1-4")
+      expect(graph).not.toContain("The 1-4 questions and 2-4 options bounds are hard schema constraints")
 
-    const descriptions = [
-      "Questions to ask the user (one or more; no fixed maximum). Group related questions",
-      "Questions to ask the user (one or more; no fixed maximum, most important first). Group related questions",
-    ]
-    for (const description of descriptions) {
-      const descriptionIndex = graph.indexOf(description)
-      expect(descriptionIndex).toBeGreaterThan(-1)
-      const schemaPrefix = graph.slice(Math.max(0, descriptionIndex - 80), descriptionIndex)
-      expect(schemaPrefix).toContain(".min(1).describe(")
-      expect(schemaPrefix).not.toContain(".max(4)")
+      const descriptions = [
+        "Questions to ask the user (one or more; no fixed maximum). Group related questions",
+        "Questions to ask the user (one or more; no fixed maximum, most important first). Group related questions",
+      ]
+      for (const description of descriptions) {
+        const descriptionIndex = graph.indexOf(description)
+        expect(descriptionIndex).toBeGreaterThan(-1)
+        const schemaPrefix = graph.slice(Math.max(0, descriptionIndex - 80), descriptionIndex)
+        expect(schemaPrefix).toContain(".min(1).describe(")
+        expect(schemaPrefix).not.toContain(".max(4)")
+      }
+
+      expect(graph).toContain("Each choice question still accepts 2-4 options.")
+      expect(graph).toContain("Must have 2-4 options.")
     }
+  },
+)
 
-    expect(graph).toContain("Each choice question still accepts 2-4 options.")
-    expect(graph).toContain("Must have 2-4 options.")
-  }
-})
-
-test("AskUserQuestion description and prompt expose the unbounded contract", () => {
+test.skipIf(!TEST_UNBOUNDED_QUESTIONS)("AskUserQuestion description and prompt expose the unbounded contract", () => {
   for (const graph of patchedGraphs) {
     expect(graph).toContain("A call has no fixed question-count maximum.")
     expect(graph).toContain("Question batching:")

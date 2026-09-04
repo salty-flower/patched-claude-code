@@ -2,6 +2,7 @@
 import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
+import { gte, valid } from "semver"
 import { createCommand, runCli } from "../lib/cli"
 import { type ClaudeApiRequest, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
@@ -9,6 +10,7 @@ import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } f
 type Args = {
   bundle: string
   timeoutSeconds: number
+  version: string
 }
 
 type SseFrame = readonly [event: string, data: Record<string, unknown>]
@@ -32,10 +34,12 @@ const QUESTIONS = Array.from({ length: 6 }, (_, index) => {
 function parseArgs(argv: string[]): Args {
   const options = createCommand("ask-user-question-tui-smoke")
     .requiredOption("--bundle <cli.patched.js>", "rendered patched Claude Code bundle")
+    .requiredOption("--version <semver>", "target Claude Code version")
     .option("--timeout-seconds <seconds>", "PTY timeout", (value) => Number.parseInt(value, 10), 45)
     .parse(argv, { from: "user" })
-    .opts<{ bundle: string; timeoutSeconds: number }>()
-  return { bundle: options.bundle, timeoutSeconds: options.timeoutSeconds }
+    .opts<{ bundle: string; timeoutSeconds: number; version: string }>()
+  if (!valid(options.version)) throw new Error("--version must be an explicit semver")
+  return { bundle: options.bundle, timeoutSeconds: options.timeoutSeconds, version: options.version }
 }
 
 function requestBody(request: ClaudeApiRequest): Record<string, unknown> {
@@ -137,6 +141,10 @@ function hasToolResult(request: ClaudeApiRequest): boolean {
 
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
+  if (!gte(args.version, "2.1.260")) {
+    console.log(`skip: six-question AskUserQuestion PTY requires target >=2.1.260 (got ${args.version})`)
+    return 0
+  }
   if (!existsSync(args.bundle)) {
     console.error(`bundle missing: ${args.bundle}`)
     return 2

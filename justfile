@@ -50,7 +50,7 @@ _api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout
   bun run tools/test/oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/custom-model-slots-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
-  bun run tools/test/ask-user-question-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
+  bun run tools/test/ask-user-question-tui-smoke.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/thinking-stream-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{resume_timeout}}"
   bun run tools/test/background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js"

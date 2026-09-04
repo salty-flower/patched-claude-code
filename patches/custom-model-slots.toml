@@ -1047,7 +1047,7 @@ assert_not_contains = '''let __acc_custom_model_2=g.ANTHROPIC_CUSTOM_MODEL_OPTIO
 [[patches]]
 name = "append-second-custom-model-option-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "Append a second environment-configured row after the upstream custom-model row. The 2.1.259 Darwin picker uses local model binding f and row list o."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
@@ -1070,7 +1070,7 @@ assert_not_contains = '''if(d&&!o.some((B)=>B.value===d))o.push({value:d,label:a
 [[patches]]
 name = "append-second-custom-model-option-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "Append a second environment-configured row after the upstream custom-model row. The 2.1.259 Linux picker uses local model binding d and row list o."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
@@ -1142,7 +1142,7 @@ assert_not_contains = '''return _(__acc_custom_effort,e)'''
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "Resolve a configured custom model's local effort before the global override. The 2.1.259 Darwin resolver is XT with support gate Th, launch helper MN, and environment helper s0; the effort resolver x is unchanged."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
@@ -1188,7 +1188,7 @@ assert_not_contains = '''return _(__acc_custom_effort,e)'''
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "Resolve a configured custom model's local effort before the global override. The 2.1.259 Linux resolver is Kw with support gate Sh, launch helper CO, and environment helper XR; the effort resolver x is unchanged."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
@@ -1234,7 +1234,7 @@ assert_not_contains = '''function X(e){return Ql(Ye(e))?.default_effort??"high"}
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "Show either custom option's model-local effort as its picker default. The 2.1.259 Darwin getter is ne and reads model metadata through il(ze(e)); the metadata lookup helper drifted from Za to il."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
@@ -1280,7 +1280,7 @@ assert_not_contains = '''function X(e){return Ql(Xe(e))?.default_effort??"high"}
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "Show either custom option's model-local effort as its picker default. The 2.1.259 Linux getter is ne and reads model metadata through il(Ve(e)); the metadata lookup helper drifted from Za to il."
 rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
@@ -1299,3 +1299,203 @@ kind = "static"
 name = "2.1.259 Linux custom models have local picker defaults"
 assert_contains = '''return __acc_custom_effort}}return il(Ve(e))?.default_effort??"high"}'''
 assert_not_contains = '''function ne(e){return Za(Ve(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+This is the 2.1.260 Darwin minified-symbol variant of
+`append-second-custom-model-option`. In picker builder `gQr`, `a` is the
+settings namespace, `o` is the local option array, and `d` is the upstream
+custom-model binding. Append the second environment-configured row beside
+that upstream row.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(d&&!o.some((F)=>F.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!o.some((B)=>B.value===__acc_custom_model_2))o.push({value:__acc_custom_model_2,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin second custom model option uses current picker symbols"
+assert_contains = '''if(d&&!o.some((F)=>F.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin second custom model drops stale picker symbols"
+assert_not_contains = '''if(f&&!o.some((B)=>B.value===f))o.push({value:f,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??f'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+This is the 2.1.260 Linux minified-symbol variant of
+`append-second-custom-model-option`. In picker builder `LQr`, `a` is the
+settings namespace, `o` is the local option array, and `d` is the upstream
+custom-model binding. Append the second environment-configured row beside
+that upstream row; the upstream dedupe callback binding is now `N`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(d&&!o.some((N)=>N.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!o.some((B)=>B.value===__acc_custom_model_2))o.push({value:__acc_custom_model_2,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux second custom model option uses current picker symbols"
+assert_contains = '''if(d&&!o.some((N)=>N.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux second custom model drops stale picker symbols"
+assert_not_contains = '''if(d&&!o.some((B)=>B.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+This is the 2.1.260 Darwin minified-symbol variant of
+`custom-model-slot-applied-effort`. The applied-effort resolver is `TT`, its
+support gate is `eh`, launch helper is `wN`, default resolver is `D`,
+environment helper is `LH`, and normalized return helper is `P`. Resolve a
+configured custom model's local effort through the in-scope `P` helper before
+the global override.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "TT", source = '''function TT(e,n,{honorLaunchPin:o=!0}={}){if(!eh(e))return;let r=o&&wN(e),u=D(e),d=LH();if(d===null&&!r)return;return P(d??(r?u:void 0)??n??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return P(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin custom models use current effort helper"
+assert_contains = '''return P(__acc_custom_effort,e)}}if(!eh(e))return;let r=o&&wN(e),u=D(e),d=LH();'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin applied effort drops stale resolver symbols"
+assert_not_contains = '''function XT(e,n,{honorLaunchPin:o=!0}={}){if(!Th(e))return;'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+This is the 2.1.260 Linux minified-symbol variant of
+`custom-model-slot-applied-effort`. The applied-effort resolver is `Hw`, its
+support gate is `Qg`, launch helper is `pO`, default resolver is `k`,
+environment helper is `AR`, and normalized return helper is `P`. Resolve a
+configured custom model's local effort through the in-scope `P` helper before
+the global override.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Hw", source = '''function Hw(e,n,{honorLaunchPin:o=!0}={}){if(!Qg(e))return;let r=o&&pO(e),u=k(e),d=AR();if(d===null&&!r)return;return P(d??(r?u:void 0)??n??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return P(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux custom models use current effort helper"
+assert_contains = '''return P(__acc_custom_effort,e)}}if(!Qg(e))return;let r=o&&pO(e),u=k(e),d=AR();'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux applied effort drops stale resolver symbols"
+assert_not_contains = '''function Kw(e,n,{honorLaunchPin:o=!0}={}){if(!Sh(e))return;'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = """
+This is the 2.1.260 Darwin minified-symbol variant of
+`custom-model-slot-default-effort`. The default-effort getter is `oe`, the
+model normalizer is `Ue`, and the metadata lookup is `Ga`. The inserted code
+uses only its function parameter and patch-owned bindings to show either
+custom option's model-local picker default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oe", source = '''function oe(e){return Ga(Ue(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin custom models use current default-effort getter"
+assert_contains = '''return __acc_custom_effort}}return Ga(Ue(e))?.default_effort??"high"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin default effort drops stale getter symbols"
+assert_not_contains = '''function ne(e){return il(ze(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = """
+This is the 2.1.260 Linux minified-symbol variant of
+`custom-model-slot-default-effort`. The default-effort getter is `oe`, the
+model normalizer is `Fe`, and the metadata lookup is `Wa`. The inserted code
+uses only its function parameter and patch-owned bindings to show either
+custom option's model-local picker default.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oe", source = '''function oe(e){return Wa(Fe(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux custom models use current default-effort getter"
+assert_contains = '''return __acc_custom_effort}}return Wa(Fe(e))?.default_effort??"high"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux default effort drops stale getter symbols"
+assert_not_contains = '''function ne(e){return il(Ve(e))?.default_effort??"high"}'''

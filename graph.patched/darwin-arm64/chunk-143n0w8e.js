@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.259
+import{t}from"./chunk-84crg0gy.js";import{m}from"./chunk-55w4bsdv.js";import{Jke}from"./chunk-v3s7w1dm.js";import{P}from"./chunk-vtwn1md5.js";import{Zt,Fp,Rbt}from"./chunk-ayb9ctga.js";import{i,de,c,ge}from"./chunk-7a4adv8j.js";var f=m(()=>c({server_instructions:i().optional(),server_instructions_by_server:ge(i(),i()).optional(),tools:ge(i(),i()).optional(),search_hints:ge(i(),i()).optional(),param_descriptions:ge(i(),ge(i(),i())).optional(),prompts:ge(i(),i()).optional(),skills:ge(i(),i()).optional()})),l=m(()=>ge(i(),de()));function Zz(e){if(!e.pluginSource)return;let{name:r,marketplace:n}=Zt(e.pluginSource);if(!Fp(n)&&!Rbt(r,n))return;let u=P("tengu_official_plugin_prompt_overrides",{}),o=l().safeParse(u);if(!o.success){t("tengu_official_plugin_prompt_overrides: GB payload is not an object; ignoring",{level:"error"});return}let a=o.data[r];if(a===void 0)return;let p=f().safeParse(a);if(!p.success){t(`tengu_official_plugin_prompt_overrides: entry for '${r}' failed schema (${p.error.issues[0]?.message}); using baked-in text`,{level:"error"});return}let s=p.data;if(Object.keys(s).length===0)return;return{...s,server_instructions_by_server:d(s.server_instructions_by_server),tools:d(s.tools),search_hints:d(s.search_hints),param_descriptions:d(s.param_descriptions),prompts:d(s.prompts),skills:d(s.skills)}}function d(e){if(e===void 0)return;let r=Object.create(null);return Object.assign(r,e)}function yut(e,r){if(!e)return;let n=e.server_instructions_by_server;if(n){let u=Jke(r),o=u&&n[u.serverName];if(o!==void 0)return o}return e.server_instructions}function Sut(e,r){if(!r||!e.properties)return e;let n={...e.properties},u=!1;for(let[o,a]of Object.entries(r)){let p=n[o];if(p!==null&&typeof p==="object")n[o]={...p,description:a},u=!0}if(!u)return e;return{...e,properties:n}}
+export{Zz,yut,Sut};

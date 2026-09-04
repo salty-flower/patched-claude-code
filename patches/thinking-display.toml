@@ -5388,7 +5388,7 @@ assert_contains = '''if(!1){return null}'''
 [[patches]]
 name = "thinking-render-live-output-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.259 Darwin Messages component drifted from E4 to tz and from FR/Ue to the new main-screen refs; its stable streamingToolUses/placeholder row structure remains the same and the live snapshot selector is unchanged in role."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -5412,7 +5412,7 @@ assert_not_contains = '''pat(e,{...n,onStreamingThinking:d})'''
 [[patches]]
 name = "thinking-render-live-row-cache-allocation-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.259 Darwin live-thinking component is tz and its compiler memo is fq; allocate 34 slots so the added wrapper output remains inside the cache layout."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -5429,7 +5429,7 @@ assert_not_contains = '''let fq=y(33),'''
 [[patches]]
 name = "thinking-render-live-row-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.259 Darwin main-screen component is tz; its memo seam drifted to fq with locals Sde and bde, while the verified JSX factory and Ink Text component remain r and n."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -5450,7 +5450,7 @@ assert_not_contains = '''let rHt;if(cq[30]!==wde||cq[31]!==vde)rHt=r(U,{children
 [[patches]]
 name = "thinking-render-live-output-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "The 2.1.259 Linux Messages component drifted from m4 to V4; its live stream callback is already forwarded by the upstream dispatcher and the component retains the same streaming snapshot role."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -5474,7 +5474,7 @@ assert_not_contains = '''hat(e,{...n,onStreamingThinking:d})'''
 [[patches]]
 name = "thinking-render-live-row-cache-allocation-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "The 2.1.259 Linux live-thinking component is V4 and its compiler memo is xq; allocate 34 slots for the added wrapper output."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -5491,7 +5491,7 @@ assert_not_contains = '''let xq=y(33),'''
 [[patches]]
 name = "thinking-render-live-row-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "The 2.1.259 Linux main-screen component is V4; its memo seam drifted to xq with locals Cde and Tde, while the verified JSX factory and Ink Text component remain r and n."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -5512,7 +5512,7 @@ assert_not_contains = '''let RHt;if(kq[30]!==_de||kq[31]!==Cde)RHt=r(B,{children
 [[patches]]
 name = "thinking-render-live-delta-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.259 Darwin stream handler is jAe/mut. Dispatcher local f is forwarded as onStreamingThinking, but mut local f is onApiMetrics, so live text must call n.onStreamingThinking while progress continues through f; the fallback estimator is mSn."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -5533,7 +5533,7 @@ assert_not_contains = '''if(w)f?.((j)=>({thinking:(j?.thinking??"")+w,isStreamin
 [[patches]]
 name = "thinking-render-live-delta-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "The 2.1.259 Linux stream handler is xAe/yut. Dispatcher local d is forwarded as onStreamingThinking, but yut local d is onApiMetrics, so live text must call n.onStreamingThinking while progress continues through d; the fallback estimator is J_n."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -5554,7 +5554,7 @@ assert_not_contains = '''if(w)d?.((j)=>({thinking:(j?.thinking??"")+w,isStreamin
 [[patches]]
 name = "thinking-render-live-stream-2-1-259-darwin"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.259 Darwin dispatcher `jAe` already passes options object `n` to handler `mut`; explicitly rebind its destructured `onStreamingThinking:f` callback at the call site so this lineage remains mechanically verified."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -5575,7 +5575,7 @@ assert_not_contains = '''pat(e,{...n,onStreamingThinking:d})'''
 [[patches]]
 name = "thinking-render-live-stream-2-1-259-linux"
 target_version = "2.1.259"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
 rationale = "The 2.1.259 Linux dispatcher `xAe` already passes options object `n` to handler `yut`; explicitly rebind its destructured `onStreamingThinking:d` callback at the call site so this lineage remains mechanically verified."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -5592,3 +5592,205 @@ kind = "static"
 name = "2.1.259 Linux stream handler receives explicit live thinking callback"
 assert_contains = '''yut(e,{...n,onStreamingThinking:d})'''
 assert_not_contains = '''hat(e,{...n,onStreamingThinking:d})'''
+
+[[patches]]
+name = "thinking-render-live-output-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.260 Darwin live-output wrapper is i4. Its focused main-turn stream is `_P`, and the existing `Me` selector hook can subscribe to `streamingThinking` before the wrapper renders its messages and placeholder."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "i4", strings = ["streamingToolUses"] }
+[patches.transform]
+op = "replace_substring"
+find = '''a3o=Me(_P?.stream,aWt),q5e=Me(_P?.stream,lWt),M1t;'''
+value = '''a3o=Me(_P?.stream,aWt),__acc_streamingThinking=Me(_P?.stream,(T)=>T.streamingThinking),q5e=Me(_P?.stream,lWt),M1t;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=Me(_P?.stream,(T)=>T.streamingThinking)'''
+assert_not_contains = '''let __acc_streamingThinking=Ue(hq?.stream'''
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.260 Darwin live-output wrapper is i4 and its compiler memo is rq; allocate 34 slots for the added live-thinking wrapper output."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = '''function i4(j5e){let rq=_(33),'''
+replacement = '''function i4(j5e){let rq=_(34),'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin live row allocates the wrapper cache slot"
+assert_contains = '''function i4(j5e){let rq=_(34),'''
+assert_not_contains = '''function tz(MYe){let fq=y(34),'''
+
+[[patches]]
+name = "thinking-render-live-row-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.260 Darwin wrapper i4 returns the message output `zme` and placeholder `Qme` through memo `rq`; `e` remains its JSX factory, `n` is the in-scope Ink Text component, and `F` is the existing fragment component."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "i4", strings = ["streamingToolUses"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let I1t;if(rq[30]!==zme||rq[31]!==Qme)I1t=r(F,{children:[zme,Qme]}),rq[30]=zme,rq[31]=Qme,rq[32]=I1t;else I1t=rq[32];return I1t'''
+value = '''let I1t;if(rq[30]!==zme||rq[31]!==Qme||rq[32]!==__acc_streamingThinking)I1t=r(F,{children:[zme,Qme,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),rq[30]=zme,rq[31]=Qme,rq[32]=__acc_streamingThinking,rq[33]=I1t;else I1t=rq[33];return I1t'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+assert_not_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),fq[30]'''
+
+[[patches]]
+name = "thinking-render-live-output-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "The 2.1.260 Linux live-output wrapper is JK. Its focused main-turn stream is `TP`, and the existing `Me` selector hook can subscribe to `streamingThinking` before the wrapper renders its messages and placeholder."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "JK", strings = ["streamingToolUses"] }
+[patches.transform]
+op = "replace_substring"
+find = '''k3o=Me(TP?.stream,cWt),aXe=Me(TP?.stream,dWt),I1t;'''
+value = '''k3o=Me(TP?.stream,cWt),__acc_streamingThinking=Me(TP?.stream,(T)=>T.streamingThinking),aXe=Me(TP?.stream,dWt),I1t;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=Me(TP?.stream,(T)=>T.streamingThinking)'''
+assert_not_contains = '''streamingThinking:__acc_streamingThinking,messages:Aq'''
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "The 2.1.260 Linux live-output wrapper is JK and its compiler memo is CV; allocate 34 slots for the added live-thinking wrapper output."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = '''function JK(nXe){let CV=y(33),'''
+replacement = '''function JK(nXe){let CV=y(34),'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux live row allocates the wrapper cache slot"
+assert_contains = '''function JK(nXe){let CV=y(34),'''
+assert_not_contains = '''function V4(PYe){let xq=y(34),'''
+
+[[patches]]
+name = "thinking-render-live-row-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "The 2.1.260 Linux wrapper JK returns the message output `Yme` and placeholder `Xme` through memo `CV`; `e` remains its JSX factory, `n` is the in-scope Ink Text component, and `F` is the existing fragment component."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "JK", strings = ["streamingToolUses"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let D1t;if(CV[30]!==Yme||CV[31]!==Xme)D1t=r(F,{children:[Yme,Xme]}),CV[30]=Yme,CV[31]=Xme,CV[32]=D1t;else D1t=CV[32];return D1t'''
+value = '''let D1t;if(CV[30]!==Yme||CV[31]!==Xme||CV[32]!==__acc_streamingThinking)D1t=r(F,{children:[Yme,Xme,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),CV[30]=Yme,CV[31]=Xme,CV[32]=__acc_streamingThinking,CV[33]=D1t;else D1t=CV[33];return D1t'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+assert_not_contains = '''aE.streamingThinking?.thinking&&e(n,{dimColor:!0,children:aE.streamingThinking.thinking})'''
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.260 Darwin stream handler is `$it`; its options object is `n`, current delta is `U`, API metrics callback is `d`, and fallback estimator is `Kfn`, so live text must update `n.onStreamingThinking`."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$it", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:U}=e.event;if("estimated_tokens"in U&&typeof U.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:U.estimated_tokens})'''
+value = '''case"thinking_delta":{let{delta:U}=e.event,w=typeof U.thinking==="string"?U.thinking:"";if(w)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in U&&typeof U.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:U.estimated_tokens})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin thinking deltas update live state"
+assert_contains = '''case"thinking_delta":{let{delta:U}=e.event,w=typeof U.thinking==="string"?U.thinking:"";if(w)n.onStreamingThinking?.'''
+assert_not_contains = '''case"thinking_delta":{let{delta:U}=e.event,w=typeof U.thinking==="string"?U.thinking:"";if(w)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in U&&typeof U.estimated_tokens==="number")f?.'''
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "The 2.1.260 Linux stream handler is Git; its options object is `n`, current delta is `F`, API metrics callback is `d`, and fallback estimator is `Epn`, so live text must update `n.onStreamingThinking`."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Git", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:F}=e.event;if("estimated_tokens"in F&&typeof F.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:F.estimated_tokens})'''
+value = '''case"thinking_delta":{let{delta:F}=e.event,w=typeof F.thinking==="string"?F.thinking:"";if(w)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in F&&typeof F.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:F.estimated_tokens})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux thinking deltas update live state"
+assert_contains = '''case"thinking_delta":{let{delta:F}=e.event,w=typeof F.thinking==="string"?F.thinking:"";if(w)n.onStreamingThinking?.'''
+assert_not_contains = '''case"thinking_delta":{let{delta:U}=e.event,w=typeof U.thinking==="string"?U.thinking:"";if(w)n.onStreamingThinking?.'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-260-darwin"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.260 Darwin dispatcher VTe retains `onStreamingThinking` as local `d` and calls handler `$it`; explicitly rebind the callback at that call site."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "VTe", strings = ["onStreamingThinking"] }
+[patches.transform]
+op = "replace_substring"
+find = '''$it(e,n)'''
+value = '''$it(e,{...n,onStreamingThinking:d})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Darwin stream handler receives explicit live thinking callback"
+assert_contains = '''$it(e,{...n,onStreamingThinking:d})'''
+assert_not_contains = '''mut(e,{...n,onStreamingThinking:f})'''
+
+[[patches]]
+name = "thinking-render-live-stream-2-1-260-linux"
+target_version = "2.1.260"
+applies_to = ">=2.1.260 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "The 2.1.260 Linux dispatcher Fwe retains `onStreamingThinking` as local `d` and calls handler Git; explicitly rebind the callback at that call site."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Fwe", strings = ["onStreamingThinking"] }
+[patches.transform]
+op = "replace_substring"
+find = '''Git(e,n)'''
+value = '''Git(e,{...n,onStreamingThinking:d})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.260 Linux stream handler receives explicit live thinking callback"
+assert_contains = '''Git(e,{...n,onStreamingThinking:d})'''
+assert_not_contains = '''yut(e,{...n,onStreamingThinking:d})'''

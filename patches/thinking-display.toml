@@ -5452,7 +5452,7 @@ name = "thinking-render-live-output-2-1-259-linux"
 target_version = "2.1.259"
 applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
-rationale = "The 2.1.259 Linux Messages component drifted from m4 to V4; its live stream callback is already forwarded by the upstream dispatcher and the component retains the same streaming snapshot role."
+rationale = "The 2.1.259 Linux Messages wrapper is V4. Its focused main-turn stream is Pq, and the existing Fe selector hook can subscribe to streamingThinking inside the wrapper scope before rendering the messages and placeholder."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
 [patches.ast]
@@ -5460,16 +5460,16 @@ schema = 1
 match = { node = "FunctionDeclaration", function_name = "V4", strings = ["streamingToolUses"] }
 [patches.transform]
 op = "replace_substring"
-find = '''Cde=e(v5e,{...aE,messages:Aq,'''
-value = '''Cde=e(v5e,{...aE,streamingThinking:__acc_streamingThinking,messages:Aq,'''
+find = '''IYe=Fe((AYe?Pq:null)?.stream,Fjt)??m3,sP=bde?Pq:null,'''
+value = '''IYe=Fe((AYe?Pq:null)?.stream,Fjt)??m3,__acc_streamingThinking=Fe((AYe?Pq:null)?.stream,(T)=>T.streamingThinking),sP=bde?Pq:null,'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.259 Linux live output subscribes to thinking"
-assert_contains = '''streamingThinking:__acc_streamingThinking'''
+assert_contains = '''__acc_streamingThinking=Fe((AYe?Pq:null)?.stream,(T)=>T.streamingThinking)'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.259 Linux output does not use stale dispatcher symbols"
-assert_not_contains = '''hat(e,{...n,onStreamingThinking:d})'''
+assert_not_contains = '''streamingThinking:__acc_streamingThinking'''
 
 [[patches]]
 name = "thinking-render-live-row-cache-allocation-2-1-259-linux"
@@ -5493,7 +5493,7 @@ name = "thinking-render-live-row-2-1-259-linux"
 target_version = "2.1.259"
 applies_to = ">=2.1.259 <2.1.260"
 platforms = ["linux-x64"]
-rationale = "The 2.1.259 Linux main-screen component is V4; its memo seam drifted to xq with locals Cde and Tde, while the verified JSX factory and Ink Text component remain r and n."
+rationale = "The 2.1.259 Linux main-screen component is V4; its memo seam drifted to xq with locals Cde and Tde, while the scoped live selector, JSX factory, and Ink Text component remain __acc_streamingThinking, r, and n."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
 locator_kind = "ast_transform"
 [patches.ast]
@@ -5502,11 +5502,11 @@ match = { node = "FunctionDeclaration", function_name = "V4", strings = ["stream
 [patches.transform]
 op = "replace_substring"
 find = '''let ojt;if(xq[30]!==Cde||xq[31]!==Tde)ojt=r(B,{children:[Cde,Tde]}),xq[30]=Cde,xq[31]=Tde,xq[32]=ojt;else ojt=xq[32];return ojt'''
-value = '''let ojt;if(xq[30]!==Cde||xq[31]!==Tde||xq[32]!==aE.streamingThinking)ojt=r(B,{children:[Cde,Tde,aE.streamingThinking?.thinking&&e(n,{dimColor:!0,children:aE.streamingThinking.thinking})]}),xq[30]=Cde,xq[31]=Tde,xq[32]=aE.streamingThinking,xq[33]=ojt;else ojt=xq[33];return ojt'''
+value = '''let ojt;if(xq[30]!==Cde||xq[31]!==Tde||xq[32]!==__acc_streamingThinking)ojt=r(B,{children:[Cde,Tde,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),xq[30]=Cde,xq[31]=Tde,xq[32]=__acc_streamingThinking,xq[33]=ojt;else ojt=xq[33];return ojt'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.259 Linux live thinking row is rendered"
-assert_contains = '''aE.streamingThinking?.thinking&&e(n,{dimColor:!0,children:aE.streamingThinking.thinking})'''
+assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
 assert_not_contains = '''let RHt;if(kq[30]!==_de||kq[31]!==Cde)RHt=r(B,{children:[_de,Cde]})'''
 
 [[patches]]

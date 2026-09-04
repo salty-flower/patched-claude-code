@@ -10,11 +10,17 @@ const TARGET_VERSION = targetVersion()
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-thinking-"))
 let patched = ""
+let linuxPatched = ""
 
 beforeAll(async () => {
   const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["thinking-display.toml"] })
   const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
   patched = readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
+  const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+  linuxPatched = readdirSync(linuxGraphDir)
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+    .join("\n")
 })
 
 afterAll(() => {
@@ -431,6 +437,20 @@ test("main-screen thinking display uses the same live state as transcript render
     const staleStreamingThinkingState = isVersionAtLeast(TARGET_VERSION, "2.1.156") ? "cO" : "oT"
     expect(patched).not.toContain(`streamingThinking:${staleStreamingThinkingState}`)
   }
+})
+
+test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
+  if (!targetUses259ThinkingSymbols) return
+
+  expect(linuxPatched).toContain(
+    "__acc_streamingThinking=Fe((AYe?Pq:null)?.stream,(T)=>T.streamingThinking)",
+  )
+  expect(linuxPatched).not.toContain("streamingThinking:__acc_streamingThinking")
+
+  const liveRowFunction = getFunctionSourceUntilNextDeclaration(linuxPatched, "function V4(PYe)")
+  expect(liveRowFunction).toContain(
+    "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+  )
 })
 
 test("live thinking rendering is not suppressed by brief mode", () => {

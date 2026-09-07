@@ -1,6 +1,6 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-target := env_var_or_default("TARGET_VERSION", "2.1.260")
+target := env_var_or_default("TARGET_VERSION", "2.1.263")
 source := env_var_or_default("TARGET_SOURCE", "canonical")
 platform := env_var_or_default("TARGET_PLATFORM", "darwin-arm64")
 release_id := env_var_or_default("RELEASE_ID", "patch.local")

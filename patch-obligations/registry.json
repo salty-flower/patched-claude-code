@@ -132,6 +132,118 @@
     },
     {
       "familyId": "ask-user-question-unlimited",
+      "invariantId": "ask-user-question-extended-description",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L62-L67"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ask-user-question-unlimited/ask-user-question-extended-description"
+      ]
+    },
+    {
+      "familyId": "ask-user-question-unlimited",
+      "invariantId": "ask-user-question-remove-extended-question-cap",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L62-L67"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ask-user-question-unlimited/ask-user-question-remove-extended-question-cap"
+      ]
+    },
+    {
+      "familyId": "ask-user-question-unlimited",
+      "invariantId": "ask-user-question-remove-standard-question-cap",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L62-L67"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ask-user-question-unlimited/ask-user-question-remove-standard-question-cap"
+      ]
+    },
+    {
+      "familyId": "ask-user-question-unlimited",
+      "invariantId": "ask-user-question-standard-host-description",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L62-L67"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ask-user-question-unlimited/ask-user-question-standard-host-description"
+      ]
+    },
+    {
+      "familyId": "ask-user-question-unlimited",
+      "invariantId": "ask-user-question-standard-sdk-description",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L62-L67"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ask-user-question-unlimited/ask-user-question-standard-sdk-description"
+      ]
+    },
+    {
+      "familyId": "ask-user-question-unlimited",
+      "invariantId": "ask-user-question-tool-description",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/prompt.ts#L7-L8"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ask-user-question-unlimited/ask-user-question-tool-description"
+      ]
+    },
+    {
+      "familyId": "ask-user-question-unlimited",
+      "invariantId": "ask-user-question-tool-prompt",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/prompt.ts#L32-L44"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "ask-user-question-unlimited/ask-user-question-tool-prompt"
+      ]
+    },
+    {
+      "familyId": "ask-user-question-unlimited",
       "invariantId": "unbounded-coherent-question-batch",
       "introducedVersion": "2.1.260",
       "rationaleRefs": [
@@ -2213,6 +2325,6 @@
   "maintainerAcknowledgement": {
     "approvedBy": "salty-flower",
     "approvedAt": "2026-09-07",
-    "catalogSha256": "c7de29bfd88303b729e1c3e942914474e7c8c3d33bdc1cd065d61afe3fa6c8e6"
+    "catalogSha256": "bdc9d39e6cb80752382b40f68444f553b19a8e3ea9cdf646e0cfe549b42cd4cc"
   }
 }

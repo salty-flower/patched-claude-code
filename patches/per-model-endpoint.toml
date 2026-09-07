@@ -1,5 +1,5 @@
 name = "per-model-endpoint"
-target_version = "2.1.168"
+target_version = "2.1.263"
 applies_to = ">=2.1.168 <2.2.0"
 
 rationale = """
@@ -2675,7 +2675,7 @@ assert_not_contains = '''timeout:c??600000,...(Vb?{defaultBaseURL:Vb}:{})'''
 
 [[patches]]
 name = "inject-per-model-into-beta-create-2-1-258"
-target_version = "2.1.258"
+target_version = "2.1.263"
 applies_to = ">=2.1.258 <2.2.0"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
 rationale = "Re-anchored to the 2.1.258 `Te.create` request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `o` is the normalized request body, `a` the timeout, `n` and `s` the beta and user-profile locals, `i` the helper-header object, `t` the request options, and `r` the stream options."
@@ -2709,7 +2709,7 @@ assert_contains = '''ANTHROPIC_MODEL_API_KEY_'''
 
 [[patches]]
 name = "inject-per-model-into-nonbeta-create-2-1-258"
-target_version = "2.1.258"
+target_version = "2.1.263"
 applies_to = ">=2.1.258 <2.2.0"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
 rationale = "Re-anchored to the 2.1.258 `Te.create` request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `n` is the normalized request body, `s` the timeout, `r` the user-profile local, `o` the helper-header object, `t` the request options, and `e` the stream options."
@@ -2743,7 +2743,7 @@ assert_contains = '''ANTHROPIC_MODEL_AUTH_TOKEN_'''
 
 [[patches]]
 name = "inject-per-model-into-beta-count-tokens-2-1-258"
-target_version = "2.1.258"
+target_version = "2.1.263"
 applies_to = ">=2.1.258 <2.2.0"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
 rationale = "Re-anchored to the 2.1.258 `Te.countTokens` beta request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `r` is the normalized input, `n` the betas local, `s` the user-profile local, `o` the request body, and `t` the request options."
@@ -2777,7 +2777,7 @@ assert_contains = '''ANTHROPIC_MODEL_BASE_URL_'''
 
 [[patches]]
 name = "inject-per-model-into-nonbeta-count-tokens-2-1-258"
-target_version = "2.1.258"
+target_version = "2.1.263"
 applies_to = ">=2.1.258 <2.2.0"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
 rationale = "Re-anchored to the 2.1.258 `Te.countTokens` non-beta request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `r` is the user-profile local, `n` the normalized request body, and `t` the request options."

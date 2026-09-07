@@ -1,5 +1,5 @@
 name = "per-model-context-window"
-target_version = "2.1.238"
+target_version = "2.1.263"
 applies_to = ">=2.1.238 <2.2.0"
 
 rationale = """
@@ -85,7 +85,7 @@ assert_not_contains = '''process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS=parseInt(pro
 
 [[patches]]
 name = "resolve-model-specific-context-window-2-1-246"
-target_version = "2.1.246"
+target_version = "2.1.263"
 applies_to = ">=2.1.246 <2.2.0"
 platforms = ["darwin-arm64"]
 rationale = "Resolve a positive per-model context-window declaration before every upstream detection path."
@@ -112,7 +112,7 @@ assert_not_contains = '''process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS=parseInt(pro
 
 [[patches]]
 name = "resolve-model-specific-context-window-2-1-251-linux"
-target_version = "2.1.251"
+target_version = "2.1.263"
 applies_to = ">=2.1.251 <2.2.0"
 platforms = ["linux-x64"]
 rationale = "Apply the stable per-model context-window preamble to the 2.1.251 Linux graph."

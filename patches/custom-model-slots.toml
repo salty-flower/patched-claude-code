@@ -790,7 +790,7 @@ assert_not_contains = '''let __acc_custom_model_2=g.ANTHROPIC_CUSTOM_MODEL_OPTIO
 
 [[patches]]
 name = "validate-second-custom-model-option-without-probe-2-1-250"
-target_version = "2.1.250"
+target_version = "2.1.263"
 applies_to = ">=2.1.250 <2.2.0"
 rationale = "Treat the explicitly configured second custom model as prevalidated. This is the 2.1.250 minified-symbol variant."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
@@ -1093,7 +1093,7 @@ assert_not_contains = '''if(f&&!o.some((B)=>B.value===f))o.push({value:f,label:a
 [[patches]]
 name = "recognize-second-custom-model-option-2-1-258"
 target_version = "2.1.258"
-applies_to = ">=2.1.258 <2.2.0"
+applies_to = ">=2.1.258 <2.1.263"
 rationale = "Recognize the second configured custom model in direct parsing paths. The 2.1.258 parser uses the rzt custom-option predicate and n model input."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
 locator_kind = "ast_transform"
@@ -1303,7 +1303,7 @@ assert_not_contains = '''function ne(e){return Za(Ve(e))?.default_effort??"high"
 [[patches]]
 name = "append-second-custom-model-option-2-1-260-darwin"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = """
 This is the 2.1.260 Darwin minified-symbol variant of
@@ -1336,7 +1336,7 @@ assert_not_contains = '''if(f&&!o.some((B)=>B.value===f))o.push({value:f,label:a
 [[patches]]
 name = "append-second-custom-model-option-2-1-260-linux"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["linux-x64"]
 rationale = """
 This is the 2.1.260 Linux minified-symbol variant of
@@ -1369,7 +1369,7 @@ assert_not_contains = '''if(d&&!o.some((B)=>B.value===d))o.push({value:d,label:a
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-260-darwin"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = """
 This is the 2.1.260 Darwin minified-symbol variant of
@@ -1403,7 +1403,7 @@ assert_not_contains = '''function XT(e,n,{honorLaunchPin:o=!0}={}){if(!Th(e))ret
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-260-linux"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["linux-x64"]
 rationale = """
 This is the 2.1.260 Linux minified-symbol variant of
@@ -1437,7 +1437,7 @@ assert_not_contains = '''function Kw(e,n,{honorLaunchPin:o=!0}={}){if(!Sh(e))ret
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-260-darwin"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = """
 This is the 2.1.260 Darwin minified-symbol variant of
@@ -1470,7 +1470,7 @@ assert_not_contains = '''function ne(e){return il(ze(e))?.default_effort??"high"
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-260-linux"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["linux-x64"]
 rationale = """
 This is the 2.1.260 Linux minified-symbol variant of
@@ -1499,3 +1499,198 @@ assert_contains = '''return __acc_custom_effort}}return Wa(Fe(e))?.default_effor
 kind = "static"
 name = "2.1.260 Linux default effort drops stale getter symbols"
 assert_not_contains = '''function ne(e){return il(Ve(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "recognize-second-custom-model-option-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+rationale = "Port recognize-second-custom-model-option to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: trimmed model t and settings a, following the configured-model recognition predicate. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source_regex = '''^if\([A-Za-z_$][A-Za-z0-9_$]*\(t\)\)return\{recognized:!0\};$''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(t===a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 second custom model is recognized"
+assert_contains = '''if(t===a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of recognize-second-custom-model-option-2-1-258"
+assert_not_contains = '''if(n===a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-263-darwin"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port append-second-custom-model-option to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: fto, option array o, settings a, custom model d, callback N, label helper pUe. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(d&&!o.some((N)=>N.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??pUe(d)??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!o.some((B)=>B.value===__acc_custom_model_2))o.push({value:__acc_custom_model_2,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin second custom model option uses current picker symbols"
+assert_contains = '''if(d&&!o.some((N)=>N.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??pUe(d)??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of append-second-custom-model-option-2-1-260-darwin"
+assert_not_contains = '''if(d&&!o.some((F)=>F.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-263-linux"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Port append-second-custom-model-option to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: Pto, option array o, settings a, custom model d, callback N, label helper t1e. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(d&&!o.some((N)=>N.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??t1e(d)??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!o.some((B)=>B.value===__acc_custom_model_2))o.push({value:__acc_custom_model_2,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux second custom model option uses current picker symbols"
+assert_contains = '''if(d&&!o.some((N)=>N.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??t1e(d)??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of append-second-custom-model-option-2-1-260-linux"
+assert_not_contains = '''if(d&&!o.some((N)=>N.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??d,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${d})`});let __acc_custom_model_2=a.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-263-darwin"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port custom-model-slot-applied-effort to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: MT, zh, UN, VH, t. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "MT", source = '''function MT(e,t,{honorLaunchPin:o=!0}={}){if(!zh(e))return;let r=o&&UN(e),u=D(e),d=VH();if(d===null&&!r)return;return P(d??(r?u:void 0)??t??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return P(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin custom models use current effort helper"
+assert_contains = '''return P(__acc_custom_effort,e)}}if(!zh(e))return;let r=o&&UN(e),u=D(e),d=VH();'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of custom-model-slot-applied-effort-2-1-260-darwin"
+assert_not_contains = '''return P(__acc_custom_effort,e)}}if(!eh(e))return;let r=o&&wN(e),u=D(e),d=LH();'''
+
+[[patches]]
+name = "custom-model-slot-applied-effort-2-1-263-linux"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Port custom-model-slot-applied-effort to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: $w, Wh, LO, D, MI, t. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "$w", source = '''function $w(e,t,{honorLaunchPin:o=!0}={}){if(!Wh(e))return;let r=o&&LO(e),u=D(e),d=MI();if(d===null&&!r)return;return P(d??(r?u:void 0)??t??u,e)}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return P(__acc_custom_effort,e)}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux custom models use current effort helper"
+assert_contains = '''return P(__acc_custom_effort,e)}}if(!Wh(e))return;let r=o&&LO(e),u=D(e),d=MI();'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of custom-model-slot-applied-effort-2-1-260-linux"
+assert_not_contains = '''return P(__acc_custom_effort,e)}}if(!Qg(e))return;let r=o&&pO(e),u=k(e),d=AR();'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-263-darwin"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port custom-model-slot-default-effort to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: Qa. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oe", source = '''function oe(e){return Qa(Ue(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin custom models use current default-effort getter"
+assert_contains = '''return __acc_custom_effort}}return Qa(Ue(e))?.default_effort??"high"}'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of custom-model-slot-default-effort-2-1-260-darwin"
+assert_not_contains = '''return __acc_custom_effort}}return Ga(Ue(e))?.default_effort??"high"}'''
+
+[[patches]]
+name = "custom-model-slot-default-effort-2-1-263-linux"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Port custom-model-slot-default-effort to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: Qa, Be. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L279-L303"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oe", source = '''function oe(e){return Qa(Be(e))?.default_effort??"high"}''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''for(let [__acc_custom_model_var,__acc_custom_effort_var]of[["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL"],["ANTHROPIC_CUSTOM_MODEL_OPTION_2","ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL"]]){let __acc_custom_model=process.env[__acc_custom_model_var]?.trim();if(__acc_custom_model&&e.toLowerCase()===__acc_custom_model.toLowerCase()){let __acc_custom_effort=process.env[__acc_custom_effort_var]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_custom_effort??""))return __acc_custom_effort}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux custom models use current default-effort getter"
+assert_contains = '''return __acc_custom_effort}}return Qa(Be(e))?.default_effort??"high"}'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of custom-model-slot-default-effort-2-1-260-linux"
+assert_not_contains = '''return __acc_custom_effort}}return Wa(Fe(e))?.default_effort??"high"}'''

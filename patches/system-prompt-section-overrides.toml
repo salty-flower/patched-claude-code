@@ -1,6 +1,6 @@
 name = "system-prompt-section-overrides"
 enabled = true
-target_version = "2.1.220"
+target_version = "2.1.263"
 applies_to = ">=2.1.217 <2.2.0"
 
 [[patches]]
@@ -51,7 +51,7 @@ assert_contains = '''Symbol.for("patched-claude-code.system-prompt-overrides.v1"
 
 [[patches]]
 name = "system-prompt-section-override-bridge-2-1-220"
-target_version = "2.1.220"
+target_version = "2.1.263"
 applies_to = ">=2.1.220 <2.2.0"
 rationale = """
 Hand the normally composed main-session prompt vector to the repo-owned preload helper, then recover only its effective vector. This 2.1.220 bridge uses a structural final-filter locator and no version-local symbol in inserted code; the locator was re-verified against the 2.1.221 bundle and matches the same final-filter seam, so the bridge carries through 2.1.221. Remove it when upstream provides native section export and sparse override support.

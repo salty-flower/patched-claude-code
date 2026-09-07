@@ -5044,7 +5044,7 @@ assert_not_contains = '''legacyApiKey.update("Claude Code-doctor-probe",Ae(),"pr
 [[patches]]
 name = "explicit-macos-keychain-doctor-probe-2-1-258"
 target_version = "2.1.258"
-applies_to = ">=2.1.258 <2.2.0"
+applies_to = ">=2.1.258 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Make the macOS doctor writeability probe use only the selected Keychain.
 
@@ -5081,7 +5081,7 @@ assert_not_contains = '''legacyApiKey.update("Claude Code-doctor-probe",xC(),"pr
 
 [[patches]]
 name = "explicit-macos-keychain-entrypoint-guard-2-1-258"
-target_version = "2.1.258"
+target_version = "2.1.263"
 applies_to = ">=2.1.258 <2.2.0"
 platforms = ["darwin-arm64"]
 rationale = '''Fail closed at the graph entrypoint when an explicit Keychain is requested without the packaged preload bridge.
@@ -5596,7 +5596,7 @@ assert_not_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let 
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-sync-read-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Route synchronous legacy managed API-key lookup through selected secure storage.
 
@@ -5626,7 +5626,7 @@ assert_not_contains = '''function Cpe(){if(_o()||Uc())return null;{if(process.en
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-async-read-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Route asynchronous legacy managed API-key lookup through selected secure storage.
 
@@ -5656,7 +5656,7 @@ assert_not_contains = '''async function Fpe(){if(_o()||Uc())return null;{if(proc
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-write-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Route legacy API-key creation through the explicit Keychain bridge.
 
@@ -5686,7 +5686,7 @@ assert_not_contains = '''await d.legacyApiKey.update(Gx(),Hv(),e),s("tengu_api_k
 [[patches]]
 name = "explicit-macos-keychain-legacy-api-key-delete-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Route low-level legacy managed API-key deletion through the explicit bridge.
 
@@ -5715,7 +5715,7 @@ assert_not_contains = '''await e.legacyApiKey.delete(Gx(),Hv());return}if(proces
 [[patches]]
 name = "explicit-macos-keychain-propagate-legacy-delete-failures-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Rethrow legacy Keychain deletion failures under explicit selection and materialized mode.
 
@@ -5745,7 +5745,7 @@ assert_not_contains = '''async function JB(){try{await mB()}catch(e){t(`Failed t
 [[patches]]
 name = "explicit-macos-keychain-propagate-write-failures-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Propagate explicit-Keychain OAuth credential write failures to callers.
 
@@ -5775,7 +5775,7 @@ assert_not_contains = '''async function h5t('''
 [[patches]]
 name = "explicit-macos-keychain-disable-default-prefetch-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Skip default-Keychain prefetch during explicit or materialized credential operation.
 
@@ -5804,7 +5804,7 @@ assert_not_contains = '''function CHn(){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH
 [[patches]]
 name = "explicit-macos-keychain-plugin-eval-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Make explicit Keychain selection outrank inherited API credentials during plugin evaluation.
 
@@ -5835,7 +5835,7 @@ assert_not_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH===void 0&&(!Fn
 [[patches]]
 name = "explicit-macos-keychain-storage-bridge-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''Route the 2.1.260 macOS secure-storage factory through the repo-owned explicit-Keychain bridge.
 
@@ -5866,7 +5866,7 @@ assert_not_contains = '''serviceName:Gx(V5),accountName:Hv(),mutateWithLock:(e,t
 [[patches]]
 name = "explicit-macos-keychain-session-store-resume-2-1-260"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = '''SessionStore resume must materialize credentials only from selected secure storage.
 
@@ -5893,3 +5893,291 @@ assert_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let V=aw
 kind = "static"
 name = "2.1.260 SessionStore resume replaces the 2.1.259 symbols"
 assert_not_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let O=await(await import("./chunk-qgq43xev.js")).Tn().readAsync();R=O?S(O):void 0}else{try{R=await qs'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-sync-read-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-legacy-api-key-sync-read to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: wfe, Gfe, uo, Fc, Sx, tv. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wfe", strings = ["Failed to read API key from macOS keychain", "/login managed key"] }
+[patches.transform]
+op = "replace_substring"
+find = '''function wfe(){if(uo()||Fc())return null;{'''
+value = '''function wfe(){if(uo()||Fc())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let e=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!e)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");let t=e.legacyApiKey.read(Sx(),tv());return t?{key:t,source:"/login managed key"}:null}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return null;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 synchronous legacy read uses the selected Keychain"
+assert_contains = '''function wfe(){if(uo()||Fc())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-legacy-api-key-sync-read-2-1-260"
+assert_not_contains = '''function hfe(){if(lo()||Ic())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-async-read-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-legacy-api-key-async-read to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: wfe, Gfe, uo, Fc, Sx, tv. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1051-L1092"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Gfe", strings = ["Failed to read API key from macOS keychain", "/login managed key"] }
+[patches.transform]
+op = "replace_substring"
+find = '''async function Gfe(){if(uo()||Fc())return null;{'''
+value = '''async function Gfe(){if(uo()||Fc())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let n=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!n)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");let r=await n.legacyApiKey.readAsync(Sx(),tv());return r?{key:r,source:"/login managed key"}:null}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return null;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 asynchronous legacy read uses the selected Keychain"
+assert_contains = '''async function Gfe(){if(uo()||Fc())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-legacy-api-key-async-read-2-1-260"
+assert_not_contains = '''async function Pfe(){if(lo()||Ic())return null;{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-write-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-legacy-api-key-write to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: vsr, Sx, tv. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1100-L1166"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "vsr", strings = ["Invalid API key format", "tengu_api_key_saved_to_keychain"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let o=!0;if(o){'''
+value = '''let o=!0;if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let f=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!f)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");await f.legacyApiKey.update(Sx(),tv(),e),i("tengu_api_key_saved_to_keychain",{})}else if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw Error("Materialized credential mode refuses legacy Keychain writes.");else if(o){'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 legacy API-key login writes through the selected Keychain"
+assert_contains = '''await f.legacyApiKey.update(Sx(),tv(),e),i("tengu_api_key_saved_to_keychain",{})}else if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-legacy-api-key-write-2-1-260"
+assert_not_contains = '''await f.legacyApiKey.update(fx(),NC(),e),i("tengu_api_key_saved_to_keychain",{})}else if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")'''
+
+[[patches]]
+name = "explicit-macos-keychain-legacy-api-key-delete-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-legacy-api-key-delete to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: XB, Sx, tv. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/authPortable.ts#L1-L17"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "XB", string = "security delete-generic-password" }
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let e=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!e)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");await e.legacyApiKey.delete(Sx(),tv());return}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw Error("Materialized credential mode refuses legacy Keychain deletion.");'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 legacy API-key deletion uses the selected Keychain"
+assert_contains = '''await e.legacyApiKey.delete(Sx(),tv());return}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-legacy-api-key-delete-2-1-260"
+assert_not_contains = '''await e.legacyApiKey.delete(fx(),NC());return}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")'''
+
+[[patches]]
+name = "explicit-macos-keychain-propagate-legacy-delete-failures-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-propagate-legacy-delete-failures to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: X0, XB, n. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1170-L1191"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "X0", string = "Failed to remove API key from macOS keychain" }
+[patches.transform]
+op = "replace_substring"
+find = '''catch(e){n(`Failed to remove API key from macOS keychain:'''
+value = '''catch(e){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw e;n(`Failed to remove API key from macOS keychain:'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 legacy deletion failures propagate"
+assert_contains = '''async function X0(){try{await XB()}catch(e){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw e;'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-propagate-legacy-delete-failures-2-1-260"
+assert_not_contains = '''async function p0(){try{await kB()}catch(e){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")throw e;'''
+
+[[patches]]
+name = "explicit-macos-keychain-propagate-write-failures-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-propagate-write-failures to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: zKt, D, n. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/auth.ts#L1194-L1253"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "zKt", strings = ["tengu_oauth_tokens_saved", "Failed to save OAuth tokens"] }
+[patches.transform]
+op = "replace_substring"
+find = '''catch(D){return n(`Failed to save OAuth tokens:'''
+value = '''catch(D){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)throw Error("Unable to access the explicitly selected macOS Keychain. Ensure CLAUDE_CODE_KEYCHAIN_PATH names an existing, unlocked, writable Keychain.");return n(`Failed to save OAuth tokens:'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 OAuth write failures propagate"
+assert_contains = '''catch(D){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)throw Error("Unable to access the explicitly selected macOS Keychain.'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-propagate-write-failures-2-1-260"
+assert_not_contains = '''catch(N){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0)throw Error("Unable to access the explicitly selected macOS Keychain.'''
+
+[[patches]]
+name = "explicit-macos-keychain-disable-default-prefetch-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-disable-default-prefetch to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: Zxn. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/keychainPrefetch.ts#L60-L91"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Zxn", string = "pending" }
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 explicit selection suppresses default-Keychain prefetch"
+assert_contains = '''function Zxn(){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return;'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-disable-default-prefetch-2-1-260"
+assert_not_contains = '''function ORn(){if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0||process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return;'''
+
+[[patches]]
+name = "explicit-macos-keychain-storage-bridge-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-storage-bridge to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: v, E, _, Sx, $5, tv. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L1-L17"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", source = "v(E,_)", parent_node = "ReturnStatement" }
+[patches.transform]
+op = "wrap_expression"
+template = '''((e,t)=>{if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let r=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!r)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");return r.secureStorage({defaultStorage:e,serviceName:Sx($5),accountName:tv(),mutateWithLock:(e,t)=>d(e,t)})}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return t;return e})(%%EXPR%%,_)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 storage factory uses the explicit bridge"
+assert_contains = '''serviceName:Sx($5),accountName:tv(),mutateWithLock:(e,t)=>d(e,t)'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-storage-bridge-2-1-260"
+assert_not_contains = '''serviceName:fx(t5),accountName:NC(),mutateWithLock:(e,t)=>d(e,t)'''
+
+[[patches]]
+name = "explicit-macos-keychain-session-store-resume-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port explicit-macos-keychain-session-store-resume to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: resume tr, config S and C, credentials _, path D, home et, reader zs, default-Keychain er, serializer b; chunk-y7b7kf5n.js exports secure-storage accessor yn. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "tr", strings = ["SessionStore.load() timed out", ".credentials.json", "CLAUDE_CODE_OAUTH_TOKEN"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let S=o?.CLAUDE_CONFIG_DIR??process.env.CLAUDE_CONFIG_DIR,C=S??D(et(),".claude"),_;try{_=await zs(D(C,".credentials.json"),"utf-8")}catch(V){if(!W(V))throw V}if(!S&&!(o??process.env).ANTHROPIC_API_KEY&&!(o??process.env).CLAUDE_CODE_OAUTH_TOKEN)_=await er()??_;'''
+value = '''let S=o?.CLAUDE_CONFIG_DIR??process.env.CLAUDE_CONFIG_DIR,C=S??D(et(),".claude"),_;if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let V=await(await import("./chunk-y7b7kf5n.js")).yn().readAsync();_=V?b(V):void 0}else{try{_=await zs(D(C,".credentials.json"),"utf-8")}catch(V){if(!W(V))throw V}if(!S&&!(o??process.env).ANTHROPIC_API_KEY&&!(o??process.env).CLAUDE_CODE_OAUTH_TOKEN)_=await er()??_}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 SessionStore resume reads only selected secure storage"
+assert_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let V=await(await import("./chunk-y7b7kf5n.js")).yn().readAsync();_=V?b(V):void 0}else{try{_=await zs'''
+
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of explicit-macos-keychain-session-store-resume-2-1-260"
+assert_not_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let V=await(await import("./chunk-ped3cn2k.js"))._n().readAsync();_=V?S(V):void 0}else{try{_=await Hs'''
+
+[[patches]]
+name = "explicit-macos-keychain-doctor-probe-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Doctor function ge retains its locator but its account helper changed from yv to tv; the body calls tv and Bf for probe creation and deletion."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/macOsKeychainStorage.ts#L97-L175"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "FunctionDeclaration"
+function_name = "ge"
+strings = ["Claude Code-doctor-probe", "macOS Keychain is not writable"]
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH!==void 0){let e=globalThis[Symbol.for("patched-claude-code.macos-keychain.v1")];if(!e)throw Error("CLAUDE_CODE_KEYCHAIN_PATH requires the packaged claude-patched launcher; refusing to use the default Keychain without its preload bridge.");try{await e.legacyApiKey.update("Claude Code-doctor-probe",tv(),"probe");await e.legacyApiKey.delete("Claude Code-doctor-probe",tv());return null}catch(t){let r=t instanceof Error?t.message:String(t);return{issue:`macOS Keychain is not writable (${r})`,fix:"Create or unlock the Keychain selected by CLAUDE_CODE_KEYCHAIN_PATH, then retry."}}}if(process.env.PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS==="1")return{issue:"macOS Keychain diagnostics are unavailable in materialized credential mode.",fix:"Run doctor from the parent claude-patched process."};'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 doctor probe uses the selected Keychain"
+assert_contains = '''await e.legacyApiKey.update("Claude Code-doctor-probe",tv(),"probe");await e.legacyApiKey.delete("Claude Code-doctor-probe",tv());return null}catch(t){'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 doctor variant replaces the 2.1.258 account helper"
+assert_not_contains = '''await e.legacyApiKey.update("Claude Code-doctor-probe",yv(),"probe");await e.legacyApiKey.delete("Claude Code-doctor-probe",yv());return null}catch(t){'''
+
+
+[[patches]]
+name = "explicit-macos-keychain-plugin-eval-2-1-263"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Plugin selector _a retains its locator but its credential guard changed. The current scope proves gateway flag r, settings a, first-party In, API-key mode xg, descriptor IU, and guards U6, d0, bg, lDe, Zc."
+rationale_ref = "reference/v2.1.88/sources/src/utils/secureStorage/index.ts#L6-L16"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "_a", strings = ["gateway session expires in", "a long run may lose auth part-way", "CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR"] }
+[patches.transform]
+op = "replace_substring"
+find = '''if(r)return null;if(!In()||(xg()?void 0:a.ANTHROPIC_API_KEY)||IU("CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR")||!!U6()||d0()||a.ANTHROPIC_UNIX_SOCKET||bg()||Object.keys(lDe()).some((d)=>d.toLowerCase()==="x-api-key")||Zc())return null;'''
+value = '''if(r)return null;if(process.env.CLAUDE_CODE_KEYCHAIN_PATH===void 0&&(!In()||(xg()?void 0:a.ANTHROPIC_API_KEY)||IU("CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR")||!!U6()||d0()||a.ANTHROPIC_UNIX_SOCKET||bg()||Object.keys(lDe()).some((d)=>d.toLowerCase()==="x-api-key")||Zc()))return null;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 plugin eval selects the explicit Keychain before inherited credentials"
+assert_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH===void 0&&(!In()||(xg()?void 0:a.ANTHROPIC_API_KEY)||IU("CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 plugin eval replaces the 2.1.260 guard symbols"
+assert_not_contains = '''if(process.env.CLAUDE_CODE_KEYCHAIN_PATH===void 0&&(!On()||(gg()?void 0:a.ANTHROPIC_API_KEY)||nU("CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR")'''

@@ -1983,7 +1983,7 @@ platforms = ["darwin-arm64"]
 rationale = "Require explicit assistant-response OTel opt-in in the 2.1.260 Darwin module graph. The telemetry attribute namespace remains `a`; the gate drifted from `Ttr` to `N7n`, and its use in the `assistant_response` event still selects between response content and `<REDACTED>`."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 locator_kind = "literal"
 locator_pattern = '''function N7n(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
 replacement = '''function N7n(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
@@ -2004,7 +2004,7 @@ platforms = ["linux-x64"]
 rationale = "Require explicit assistant-response OTel opt-in in the 2.1.260 Linux module graph. The telemetry attribute namespace remains `a`; the gate drifted from `Yer` to `tYn`, and its use in the `assistant_response` event still selects between response content and `<REDACTED>`."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 locator_kind = "literal"
 locator_pattern = '''function tYn(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
 replacement = '''function tYn(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
@@ -2025,7 +2025,7 @@ platforms = ["darwin-arm64"]
 rationale = "Disable raw API body OTel capture in the 2.1.260 Darwin module graph. The raw-body gate drifted from `Vqn` to `U6n` and its config getter from `qqn` to `B6n`; the two request/response body consumers still invoke the gate before serializing content for an event or trace file."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 locator_kind = "literal"
 locator_pattern = '''function U6n(){return B6n().mode!=="disabled"}'''
 replacement = '''function U6n(){return!1}'''
@@ -2046,7 +2046,7 @@ platforms = ["linux-x64"]
 rationale = "Disable raw API body OTel capture in the 2.1.260 Linux module graph. The raw-body gate drifted from `bqn` to `G6n` and its config getter from `_qn` to `W6n`; the two request/response body consumers still invoke the gate before serializing content for an event or trace file."
 rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 locator_kind = "literal"
 locator_pattern = '''function G6n(){return W6n().mode!=="disabled"}'''
 replacement = '''function G6n(){return!1}'''
@@ -2060,3 +2060,87 @@ assert_contains = '''function G6n(){return!1}'''
 kind = "static"
 name = "2.1.260 Linux raw-body gate no longer carries 2.1.259 symbols"
 assert_not_contains = '''function bqn(){return!1}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-263-darwin"
+platforms = ["darwin-arm64"]
+rationale = "Require explicit assistant-response OTel opt-in in the 2.1.263 module graph. Gate gJn still chooses response content versus redaction, and imported namespace a supplies the typed OTel settings."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function gJn(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function gJn(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin assistant response logging requires explicit opt-in"
+assert_contains = '''function gJn(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin assistant-response gate no longer carries 2.1.260 symbols"
+assert_not_contains = '''function N7n(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-263-linux"
+platforms = ["linux-x64"]
+rationale = "Require explicit assistant-response OTel opt-in in the 2.1.263 module graph. Gate PJn still chooses response content versus redaction, and imported namespace a supplies the typed OTel settings."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function PJn(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function PJn(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux assistant response logging requires explicit opt-in"
+assert_contains = '''function PJn(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux assistant-response gate no longer carries 2.1.260 symbols"
+assert_not_contains = '''function tYn(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-263-darwin"
+platforms = ["darwin-arm64"]
+rationale = "Disable raw API body OTel capture in the 2.1.263 module graph. Gate XCn guards both request and response body consumers; its configuration getter still reads OTEL_LOG_RAW_API_BODIES and supports inline events and local trace files."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function XCn(){return YCn().mode!=="disabled"}'''
+replacement = '''function XCn(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin raw API body logging is disabled"
+assert_contains = '''function XCn(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin raw-body gate no longer carries 2.1.260 symbols"
+assert_not_contains = '''function U6n(){return!1}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-263-linux"
+platforms = ["linux-x64"]
+rationale = "Disable raw API body OTel capture in the 2.1.263 module graph. Gate Exn guards both request and response body consumers; its configuration getter still reads OTEL_LOG_RAW_API_BODIES and supports inline events and local trace files."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+locator_kind = "literal"
+locator_pattern = '''function Exn(){return wxn().mode!=="disabled"}'''
+replacement = '''function Exn(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux raw API body logging is disabled"
+assert_contains = '''function Exn(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux raw-body gate no longer carries 2.1.260 symbols"
+assert_not_contains = '''function G6n(){return!1}'''

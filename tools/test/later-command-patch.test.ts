@@ -22,8 +22,10 @@ const targetUses250LaterSymbols = gte(TARGET_VERSION, "2.1.250") && lt(TARGET_VE
 const targetUses251LaterSymbols = gte(TARGET_VERSION, "2.1.251") && lt(TARGET_VERSION, "2.1.258")
 const targetUses258LaterSymbols = gte(TARGET_VERSION, "2.1.258") && lt(TARGET_VERSION, "2.1.259")
 const targetUses259LaterSymbols = gte(TARGET_VERSION, "2.1.259") && lt(TARGET_VERSION, "2.1.260")
-const targetUses260LaterSymbols = gte(TARGET_VERSION, "2.1.260") && lt(TARGET_VERSION, "2.2.0")
+const targetUses260LaterSymbols = gte(TARGET_VERSION, "2.1.260") && lt(TARGET_VERSION, "2.1.263")
+const targetUses263LaterSymbols = gte(TARGET_VERSION, "2.1.263") && lt(TARGET_VERSION, "2.2.0")
 const targetUsesSessionJobs =
+  targetUses263LaterSymbols ||
   targetUses260LaterSymbols ||
   targetUses259LaterSymbols ||
   targetUses258LaterSymbols ||
@@ -47,6 +49,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses263LaterSymbols ||
   targetUses260LaterSymbols ||
   targetUses259LaterSymbols ||
   targetUses258LaterSymbols ||
@@ -823,6 +826,8 @@ test.skipIf(!testLaterCommand)(
     )
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
     expectContainsOneOf(patched, [
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;XY(",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;IY(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;Ge.enqueue",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;Fe.enqueue",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;Le.enqueue",
@@ -926,6 +931,16 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses263LaterSymbols) {
+      expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
+      expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;XY(")
+      expect(patched).toContain("pastedContentsOverride:cyo")
+      expect(patched).toContain("C5.trim()")
+      expect(patchedLinux).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;IY(")
+      expect(patchedLinux).toContain("pastedContentsOverride:gyo")
+      expect(patchedLinux).toContain("a5.trim()")
+      expect(patched).not.toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;L2(")
+      expect(patchedLinux).not.toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;V2(")
     } else if (targetUses260LaterSymbols) {
       expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
       expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;L2(")

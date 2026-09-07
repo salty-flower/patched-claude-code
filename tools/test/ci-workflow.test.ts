@@ -123,7 +123,7 @@ test("ci handles workflow dispatch and rewritten push bases", () => {
   const classifyStep = workflowStep("Classify changed paths")
   const whitespaceStep = workflowStep("Check whitespace")
 
-  expect(workflow).toContain("TARGET_VERSION: ${{ inputs.target_version || '2.1.260' }}")
+  expect(workflow).toContain("TARGET_VERSION: ${{ inputs.target_version || '2.1.263' }}")
   expect(workflow).toContain('target_version:\n        description: "Claude Code version to audit"')
   expect(workflow).toContain("target_version: ${{ steps.coordinates.outputs.target_version }}")
   expect(workflow).toContain("TARGET_VERSION: ${{ needs.changes.outputs.target_version }}")

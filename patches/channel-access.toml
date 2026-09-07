@@ -1,5 +1,5 @@
 name = "channel-access"
-target_version = "2.1.133"
+target_version = "2.1.263"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1010,7 +1010,7 @@ assert_not_contains = '''return W_t()'''
 
 [[patches]]
 name = "channels-feature-gate"
-target_version = "2.1.133"
+target_version = "2.1.263"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1045,7 +1045,7 @@ assert_contains = '''return!0}'''
 
 [[patches]]
 name = "channels-provider-gate"
-target_version = "2.1.133"
+target_version = "2.1.263"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """

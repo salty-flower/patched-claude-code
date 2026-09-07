@@ -9,10 +9,10 @@ on:
       target_version:
         description: "Claude Code version to audit"
         required: false
-        default: "2.1.260"
+        default: "2.1.263"
 
 env:
-  TARGET_VERSION: ${{ inputs.target_version || '2.1.260' }}
+  TARGET_VERSION: ${{ inputs.target_version || '2.1.263' }}
   TARGET_SOURCE: canonical
   TARGET_PLATFORM_PACKAGE: "@anthropic-ai/claude-code-darwin-arm64"
 

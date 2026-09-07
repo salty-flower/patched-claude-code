@@ -2668,7 +2668,7 @@ assert_contains = '''if(d!==void 0||h("fable5"))H(n,d??Ce())'''
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-260-darwin"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
@@ -2702,7 +2702,7 @@ assert_not_contains = '''if(yI("fable51"))c7(k,prt());return k.push(_sn),urt(k,e
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-260-darwin"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["darwin-arm64"]
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
@@ -2736,7 +2736,7 @@ assert_not_contains = '''if(yI("fable51"))c7(y,prt());return y.push(_sn),urt(y,e
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-260-linux"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["linux-x64"]
 rationale = """
 Insert the catalog-backed Fable row into the primary Claude.ai OAuth picker.
@@ -2770,7 +2770,7 @@ assert_not_contains = '''if(vI("fable51"))M9(k,Rrt());return k.push(Ssn),xrt(k,e
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-260-linux"
 target_version = "2.1.260"
-applies_to = ">=2.1.260 <2.2.0"
+applies_to = ">=2.1.260 <2.1.263"
 platforms = ["linux-x64"]
 rationale = """
 Insert the catalog-backed Fable row into the standard Claude.ai OAuth picker.
@@ -2800,3 +2800,103 @@ assert_contains = '''if(uR("fable51"))$G(y,Jve());return y.push(ctn),u7e(y,e,"so
 kind = "static"
 name = "2.1.260 Linux standard picker drops stale symbols"
 assert_not_contains = '''if(vI("fable51"))M9(y,Rrt());return y.push(Ssn),xrt(y,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-263-darwin"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port oauth-primary-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: oto, YA, iz, jxe, S7e, irn. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oto", strings = ['''return E.push(irn),S7e(E,e,"opus")''', '''YA("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return E.push(irn),S7e(E,e,"opus")'''
+value = '''if(YA("fable51"))iz(E,jxe());return E.push(irn),S7e(E,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin primary OAuth picker inserts Fable"
+assert_contains = '''if(YA("fable51"))iz(E,jxe());return E.push(irn),S7e(E,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of oauth-primary-picker-shows-local-fable-2-1-260-darwin"
+assert_not_contains = '''if(DR("fable51"))PG(E,XCe());return E.push(otn),h7e(E,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-263-darwin"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["darwin-arm64"]
+rationale = "Port oauth-standard-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: oto, YA, iz, jxe, S7e, irn. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oto", strings = ['''return _.push(irn),S7e(_,e,"sonnet")''', '''YA("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return _.push(irn),S7e(_,e,"sonnet")'''
+value = '''if(YA("fable51"))iz(_,jxe());return _.push(irn),S7e(_,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Darwin standard OAuth picker inserts Fable"
+assert_contains = '''if(YA("fable51"))iz(_,jxe());return _.push(irn),S7e(_,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of oauth-standard-picker-shows-local-fable-2-1-260-darwin"
+assert_not_contains = '''if(DR("fable51"))PG(_,XCe());return _.push(otn),h7e(_,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-263-linux"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Port oauth-primary-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: wto, XA, Mz, txe, O7e, drn. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wto", strings = ['''return E.push(drn),O7e(E,e,"opus")''', '''XA("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return E.push(drn),O7e(E,e,"opus")'''
+value = '''if(XA("fable51"))Mz(E,txe());return E.push(drn),O7e(E,e,"opus")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux primary OAuth picker inserts Fable"
+assert_contains = '''if(XA("fable51"))Mz(E,txe());return E.push(drn),O7e(E,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of oauth-primary-picker-shows-local-fable-2-1-260-linux"
+assert_not_contains = '''if(uR("fable51"))$G(E,Jve());return E.push(ctn),u7e(E,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-263-linux"
+target_version = "2.1.263"
+applies_to = ">=2.1.263 <2.2.0"
+platforms = ["linux-x64"]
+rationale = "Port oauth-standard-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: wto, XA, Mz, txe, O7e, drn. Preserve the original behavior and baseline rationale."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wto", strings = ['''return y.push(drn),O7e(y,e,"sonnet")''', '''XA("fable51")'''] }
+[patches.transform]
+op = "replace_substring"
+find = '''return y.push(drn),O7e(y,e,"sonnet")'''
+value = '''if(XA("fable51"))Mz(y,txe());return y.push(drn),O7e(y,e,"sonnet")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 Linux standard OAuth picker inserts Fable"
+assert_contains = '''if(XA("fable51"))Mz(y,txe());return y.push(drn),O7e(y,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.263 removes previous variant of oauth-standard-picker-shows-local-fable-2-1-260-linux"
+assert_not_contains = '''if(uR("fable51"))$G(y,Jve());return y.push(ctn),u7e(y,e,"sonnet")'''

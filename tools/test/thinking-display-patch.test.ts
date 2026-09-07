@@ -60,7 +60,9 @@ const targetUses259ThinkingSymbols =
   isVersionAtLeast(TARGET_VERSION, "2.1.259") && isVersionBefore(TARGET_VERSION, "2.1.260")
 
 const targetUses260ThinkingSymbols =
-  isVersionAtLeast(TARGET_VERSION, "2.1.260") && isVersionBefore(TARGET_VERSION, "2.2.0")
+  isVersionAtLeast(TARGET_VERSION, "2.1.260") && isVersionBefore(TARGET_VERSION, "2.1.263")
+const targetUses263ThinkingSymbols =
+  isVersionAtLeast(TARGET_VERSION, "2.1.263") && isVersionBefore(TARGET_VERSION, "2.2.0")
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -114,6 +116,14 @@ function getFunctionSourceUntilNextDeclaration(body: string, signature: string):
 }
 
 test("thinking deltas update the stream handler's live thinking callback", () => {
+  if (targetUses263ThinkingSymbols) {
+    for (const [body, handler, stale] of [[patched, "aut", "$it"], [linuxPatched, "put", "Git"]]) {
+      expect(body).toContain(`${handler}(e,{...t,onStreamingThinking:d})`)
+      expect(body).toContain('t.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))')
+      expect(body).not.toContain(`${stale}(e,{...n,onStreamingThinking:d})`)
+    }
+    return
+  }
   if (TARGET_VERSION === "2.1.250") {
     expect(patched).toContain('onStreamingText:T,onStreamingThinking:S,onCompactEvent:E')
     expect(patched).toContain('S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))')
@@ -284,6 +294,13 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 })
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (targetUses263ThinkingSymbols) {
+    for (const [body, stream] of [[patched, "nA"], [linuxPatched, "aA"]]) {
+      expect(body).toContain(`__acc_streamingThinking=Me(${stream}?.stream,(T)=>T.streamingThinking)`)
+      expect(body).toContain("__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})")
+    }
+    return
+  }
   if (TARGET_VERSION === "2.1.250") {
     expect(patched).toContain("onStreamingThinking:this.stream.setStreamingThinking")
     expect(patched).toContain("__acc_streamingThinking=Ze(d.stream,(Ke)=>Ke.streamingThinking)")
@@ -454,6 +471,19 @@ test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
 })
 
 test("live thinking rendering is not suppressed by brief mode", () => {
+  if (targetUses263ThinkingSymbols) {
+    for (const [body, signature, memo, children] of [
+      [patched, "function jz(g7e)", "MU", "Qhe,Yhe,Jhe"],
+      [linuxPatched, "function D4(m7e)", "$U", "eye,oye,nye"],
+    ]) {
+      const wrapper = getFunctionSourceUntilNextDeclaration(body!, signature!)
+      expect(wrapper).toContain("(39)")
+      expect(wrapper).toContain(`children:[${children},__acc_streamingThinking?.thinking`)
+      expect(wrapper).toContain(`${memo}[37]=__acc_streamingThinking,${memo}[38]=`)
+      expect(wrapper).not.toContain("streamingThinking:null")
+    }
+    return
+  }
   if (TARGET_VERSION === "2.1.250") {
     expect(patched).toContain(
       "__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
@@ -703,7 +733,8 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
     targetUses251ThinkingSymbols ||
     targetUses258ThinkingSymbols ||
     targetUses259ThinkingSymbols ||
-    targetUses260ThinkingSymbols
+    targetUses260ThinkingSymbols ||
+    targetUses263ThinkingSymbols
   ) {
     expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
     expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')

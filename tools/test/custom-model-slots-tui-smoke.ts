@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:f
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
+import { startClaudeApiStub } from "./helpers/claude-api-stub"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 
 type Args = {
@@ -22,7 +23,7 @@ function parseArgs(argv: string[]): Args {
   return { bundle: options.bundle, timeoutSeconds: options.timeoutSeconds }
 }
 
-async function runCustomModel(bundle: string, model: string, expectedEffort: string, timeoutSeconds: number): Promise<void> {
+async function runCustomModel(bundle: string, model: string, expectedEffort: string, timeoutSeconds: number, baseUrl: string): Promise<void> {
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-custom-model-tui-")))
   try {
     const configDir = join(home, ".claude")
@@ -41,11 +42,12 @@ async function runCustomModel(bundle: string, model: string, expectedEffort: str
       )}\n`,
     )
 
-    const exitInput = "\x04\x04"
+    const exitInput = "\x04"
     const commandEnv = {
       HOME: home,
       CLAUDE_CONFIG_DIR: configDir,
       ANTHROPIC_API_KEY: "stub-api-key",
+      ANTHROPIC_BASE_URL: baseUrl,
       ANTHROPIC_CUSTOM_MODEL_OPTION: CUSTOM_MODEL_1,
       ANTHROPIC_CUSTOM_MODEL_OPTION_NAME: "Custom One",
       ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL: "medium",
@@ -76,6 +78,9 @@ async function runCustomModel(bundle: string, model: string, expectedEffort: str
       tuiCommand,
       [
         "sleep 10",
+        `printf %s ${shellQuote(exitInput)}`,
+        // Separate key events so the second press sees the exit confirmation state.
+        "sleep 0.5",
         `printf %s ${shellQuote(exitInput)}`,
       ].join("; "),
     )
@@ -114,10 +119,15 @@ async function main(): Promise<number> {
     return 2
   }
   const bundle = resolve(args.bundle)
-  await runCustomModel(bundle, CUSTOM_MODEL_1, "medium", args.timeoutSeconds)
-  await runCustomModel(bundle, CUSTOM_MODEL_2, "high", args.timeoutSeconds)
-  console.log("ok: both custom model slots rendered in the PTY with independent effort")
-  return 0
+  const stub = await startClaudeApiStub()
+  try {
+    await runCustomModel(bundle, CUSTOM_MODEL_1, "medium", args.timeoutSeconds, stub.baseUrl)
+    await runCustomModel(bundle, CUSTOM_MODEL_2, "high", args.timeoutSeconds, stub.baseUrl)
+    console.log("ok: both custom model slots rendered in the PTY with independent effort")
+    return 0
+  } finally {
+    stub.stop()
+  }
 }
 
 if (import.meta.main) await runCli(main)

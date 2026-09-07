@@ -117,6 +117,19 @@ function main(): number {
   }
 
   const evidenceClass: EvidenceClass = args.platform === "darwin-arm64" ? "real-os-runtime" : "runtime"
+  if (
+    ledger.decisions.some(
+      (decision) =>
+        decision.familyId === "ask-user-question-unlimited" &&
+        decision.invariantId === "unbounded-coherent-question-batch" &&
+        decision.disposition === "ported",
+    )
+  ) {
+    runChecked(
+      ["bun", "run", "tools/test/ask-user-question-tui-smoke.ts", "--version", args.version, "--bundle", dispatcher],
+      { cwd: ROOT, env: sharedEnv },
+    )
+  }
   const decisions = new Map(ledger.decisions.map((decision) => [obligationKey(decision), decision]))
   const selectedPatchEntries = selectPatchEntriesForEvidence(ledger, patches, args.version, args.platform)
   const executedOracleIds = registry.obligations

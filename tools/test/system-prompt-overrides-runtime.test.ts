@@ -7,9 +7,10 @@ import {
   type PromptManifest,
   type SystemPromptBridgeOutput,
 } from "../../runtime/system-prompt-overrides"
+import { writeEmbeddedResourceAudit } from "../lib/embedded-resource-audit"
 import { inspectPromptIdentityObservations, inspectPromptIdentityObservationsFromPath } from "../lib/prompt-catalog"
 import { bootstrapPromptIdentityFiles } from "../lib/prompt-identity"
-import { writeReleasePayload } from "../lib/release-payload"
+import { sha256, writeReleasePayload } from "../lib/release-payload"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
@@ -239,6 +240,25 @@ test("packaged launcher rejects a graph that no longer matches its release manif
     mkdirSync(graphDir, { recursive: true })
     writeFileSync(join(graphDir, "cli.js"), 'process.stdout.write("graph ran\\n")\n')
   }
+  const graphManifestPath = join(rendered, "graph-manifest.json")
+  writeFileSync(
+    graphManifestPath,
+    JSON.stringify({
+      version: TARGET_VERSION,
+      platforms: ["darwin-arm64", "linux-x64"].map((platform) => {
+        const bytes = readFileSync(join(rendered, "graph.patched", platform, "cli.js"))
+        const identity = { encoding: "identity", bytes: bytes.length, sha256: sha256(bytes).hex }
+        return { platform, files: [{ path: "cli.js", loader: 1, upstream: identity, materialized: identity }] }
+      }),
+    }),
+  )
+  const resourceAudit = writeEmbeddedResourceAudit({
+    graphRoot: join(rendered, "graph.patched"),
+    graphManifestPath,
+    outDir: join(rendered, "builtin-skill-resources"),
+  })
+  expect(resourceAudit.entries).toHaveLength(0)
+  expect(resourceAudit.gaps).toHaveLength(0)
   const identityRoot = join(work, "prompt-identities")
   bootstrapPromptIdentityFiles(identityRoot, TARGET_VERSION, inspectPromptIdentityObservations(source, TARGET_VERSION))
   writeReleasePayload({

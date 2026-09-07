@@ -1,6 +1,7 @@
 import { cpSync, mkdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { applyPatchEntries } from "../../lib/apply-patches"
+import { validateEmbeddedResourceAudit } from "../../lib/embedded-resource-audit"
 import {
   applyPatchEntriesToGraphBundle,
   dispatcherSource,
@@ -53,6 +54,11 @@ export async function renderRunnableBundle(options: {
       await Bun.write(join(outGraph, path), text)
     }
   }
+  // Resource bytes are copied unchanged by selective JavaScript patching.
+  // Carry their stage audit so this runnable fixture can also be packaged.
+  const stagedAudit = join(root, "staging", version, "builtin-skill-resources")
+  validateEmbeddedResourceAudit(stagedAudit, join(outDir, "graph.patched"))
+  cpSync(stagedAudit, join(outDir, "builtin-skill-resources"), { recursive: true })
   const dispatcherPath = join(outDir, "cli.patched.js")
   await Bun.write(dispatcherPath, dispatcherSource("rendered"))
   return dispatcherPath

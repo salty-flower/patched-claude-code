@@ -180,7 +180,13 @@ async function runClaudeUntilMessageRequest(
 test("patched custom base URL requests strip stale signed thinking from resumed transcripts", async () => {
   const dir = makeTempDir("patched-cc-signature-runtime-")
   const transcript = writeSignedThinkingTranscript(dir)
-  const patchedBundle = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(dir, "rendered"), patchFiles: ["signature-block-custom-endpoint.toml"] })
+  const patchedBundle = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: join(dir, "rendered"),
+    patchFiles: ["signature-block-custom-endpoint.toml"],
+    platforms: "host",
+  })
 
   const unpatchedStub = await startClaudeApiStub()
   try {

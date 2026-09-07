@@ -131,6 +131,24 @@
       ]
     },
     {
+      "familyId": "ask-user-question-unlimited",
+      "invariantId": "unbounded-coherent-question-batch",
+      "introducedVersion": "2.1.260",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L62-L67",
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/prompt.ts#L7-L8",
+        "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/prompt.ts#L32-L44"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "ask-user-question-unlimited/unbounded-coherent-question-batch"
+      ]
+    },
+    {
       "familyId": "channel-access",
       "invariantId": "ask-user-question-channels-gate",
       "introducedVersion": "2.1.133",
@@ -2194,7 +2212,7 @@
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "salty-flower",
-    "approvedAt": "2026-09-01",
-    "catalogSha256": "cfb0439d65b1e4a05c022b03dfd8cb4851342dccd7f6037ab845c65795295b2c"
+    "approvedAt": "2026-09-07",
+    "catalogSha256": "c7de29bfd88303b729e1c3e942914474e7c8c3d33bdc1cd065d61afe3fa6c8e6"
   }
 }

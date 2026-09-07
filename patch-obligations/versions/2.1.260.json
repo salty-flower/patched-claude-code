@@ -51,6 +51,20 @@
    ]
   },
   {
+   "familyId": "ask-user-question-unlimited",
+   "invariantId": "unbounded-coherent-question-batch",
+   "disposition": "ported",
+   "patchEntries": [
+    "ask-user-question-extended-description",
+    "ask-user-question-remove-extended-question-cap",
+    "ask-user-question-remove-standard-question-cap",
+    "ask-user-question-standard-host-description",
+    "ask-user-question-standard-sdk-description",
+    "ask-user-question-tool-description",
+    "ask-user-question-tool-prompt"
+   ]
+  },
+  {
    "familyId": "channel-access",
    "invariantId": "ask-user-question-channels-gate",
    "disposition": "retired"

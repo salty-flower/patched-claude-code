@@ -2,7 +2,7 @@
   "schema": 2,
   "scope": "prompt-occurrence-ledger",
   "upstreamVersion": "2.1.260",
-  "inventorySha256": "sha256-9hbhc823ek5VdmBNtvbq9fNnGkwXfrx9cTbP2wWd8/w=",
+  "inventorySha256": "sha256-Jr9LnZD25Cq7tXs1GzNTiFZDl9ASG4iP3lbnolJH6+c=",
   "lineageSetSha256": "sha256-bmveHjTACpidExZWlUuPcckwNo06dnKBKFiWGHIhvyI=",
   "occurrences": [
     {
@@ -3191,13 +3191,14 @@
       "sourceSha256": "sha256-o3DuJmQZPZ1il70iFY1+sSdred4ZImCTP+IqIHtudcA=",
       "textMinHash": "BLmzTAL5cCkBNKqBAD4XDAA+WSQBp9NrAfF3ngA1UcMARak9Ab5rQgHETCgHkJKYACL/aACFe1MB7g6dB0xMpAG+xmMCjO7lAX/X1wBGAxgErnp/AEkPmADhZlMBIAdwAxOZsgCnfxwBRg8ZAXrQRgCKoTsBAktKALbi3QDM8OM=",
       "normalizedTokenCount": 180,
-      "astContextSha256": "sha256-+MX5mgExwwm2KBDyL7zrtfXmjiCME+xyj3d/VVhw9QU=",
+      "astContextSha256": "sha256-r/vWjBdl3Lm8APlJMh60QpYIArC8IwJ7itHYpMakqjk=",
       "lineageId": "prompt-000023",
       "relation": "carry",
       "predecessors": [
         "v2.1.259-0266"
       ],
-      "evidence": "unique-exact-observation"
+      "evidence": "maintainer-rule",
+      "rationale": "Same occurrence, source bytes, detector text, and predecessor identity; refresh AST context after the rendered bundle changed its surrounding syntax. No prompt text or lineage assignment changed."
     },
     {
       "occurrenceId": "v2.1.260-0168",
@@ -6641,5 +6642,5 @@
       "evidence": "unique-exact-observation"
     }
   ],
-  "ledgerSha256": "sha256-Puwal58Q3xPEI8W+logln7ZAZeOVLMVPwtxf/R/obLg="
+  "ledgerSha256": "sha256-+pWdwNRElt2UDEtYF9Ffz4WS96c63688F5a77dqn9vo="
 }

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
-import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
+import { hostGraphPlatform, renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
@@ -38,9 +38,7 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
     throw new Error("could not locate bundled Anthropic client symbols")
   }
   const initializerMatches = [
-    ...source
-      .slice(0, classMatch.index)
-      .matchAll(/var ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\(\(\)=>\{/g),
+    ...source.slice(0, classMatch.index).matchAll(/var ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\(\(\)=>\{/g),
   ]
   const initializerMatch = initializerMatches.at(-1)
   return { init: initializerMatch?.[1] ?? "", client }
@@ -69,7 +67,7 @@ function injectSdkHarness(source: string): string {
 }
 
 function renderPerModelHarness(entrypoint: string): string {
-  const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
+  const graphDir = join(entrypoint, "..", "graph.patched", hostGraphPlatform())
   if (!existsSync(graphDir)) {
     writeFileSync(entrypoint, injectSdkHarness(readFileSync(entrypoint, "utf8")))
     return entrypoint
@@ -125,7 +123,13 @@ function requestKey(request: ClaudeApiRequest): string {
 
 test("patched per-model endpoint routes create and count_tokens requests to model-local auth", async () => {
   const dir = makeTempDir("patched-cc-per-model-runtime-")
-  const bundle = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: join(dir, "rendered"), patchFiles: ["per-model-endpoint.toml"] })
+  const bundle = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: join(dir, "rendered"),
+    patchFiles: ["per-model-endpoint.toml"],
+    platforms: "host",
+  })
   const harness = renderPerModelHarness(bundle)
 
   const globalStub = await startTrackedStub()

@@ -60,6 +60,11 @@ platform evidence jobs run concurrently.
 `just ci-runtime-audit <version>` renders once, checks the committed prompt ledger,
 then runs version smoke, patch tests, and the full API-stub PTY matrix.
 Both tool-test jobs remain required packaging gates.
+Graph verification checks all applicable locators against each file's original bytes,
+with one initial AST parse per file and bounded worker batches.
+Pure execution tests may use selective host-only fixtures.
+Cross-platform static checks and packaging tests must retain both graphs;
+host-only fixtures deliberately omit the complete packaging resource audit.
 Use `just prompt-identity-check <version>` for a read-only check of an existing render;
 missing or stale decisions fail without preparing or finalizing a ledger.
 

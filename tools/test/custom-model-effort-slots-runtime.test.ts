@@ -35,12 +35,7 @@ function requestBody(request: ClaudeApiRequest): {
   return request.jsonBody as { model?: string; output_config?: { effort?: string } }
 }
 
-async function runPrint(
-  bundle: string,
-  home: string,
-  stub: ClaudeApiStub,
-  model: string,
-): Promise<ClaudeApiRequest> {
+async function runPrint(bundle: string, home: string, stub: ClaudeApiStub, model: string): Promise<ClaudeApiRequest> {
   const before = stub.requests.length
   const proc = Bun.spawn({
     cmd: [
@@ -104,6 +99,7 @@ test("custom model slots keep their efforts separate from each other and global 
     version: TARGET_VERSION,
     outDir: join(work, "rendered"),
     patchFiles: ["custom-model-slots.toml"],
+    platforms: "host",
   })
 
   const stub = await startClaudeApiStub({ text: "custom model effort ok" })

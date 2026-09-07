@@ -18,11 +18,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { patchApplies, patchSkipReason } from "../lib/apply-patches"
-import {
-  type AstTransformPatch,
-  prepareAstTransformPatches,
-  verifyAstTransformPatches,
-} from "../lib/ast-transform-patches"
+import { type AstTransformPatch, verifyAstTransformPatches } from "../lib/ast-transform-patches"
 import { createCommand, runCli } from "../lib/cli"
 import {
   isDualGraphStaged,
@@ -34,6 +30,7 @@ import {
 import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { loadPatchTestsFromToml } from "../lib/patch-tests"
+import { groupGraphVerificationFiles, verifyGraphFilesInWorker } from "../lib/verify-graph-file"
 
 type Patch = PatchEntry
 type LocatorResult = { ok: boolean; msg: string; matches: number }
@@ -41,7 +38,6 @@ type PatchRecord = { file: string; patches: Patch[]; fileTests: unknown[] }
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const VERIFY_PLATFORM = process.env.PCC_VERIFY_PLATFORM
-const PATCH_FILE_BATCH_SIZE = 4
 
 export function parseArgs(argv: string[]): { patches: string[]; target?: string; quietSkips?: boolean } {
   const program = createCommand("verify-patches")
@@ -194,25 +190,22 @@ function batchVerifyAstLocators(
   for (const [key, group] of groups) {
     const view = viewsByKey.get(key)
     if (!view) continue
-    const expectedByPatch = new Map(group.map((entry) => [entry.patch.name, entry.astPatch.expectedMatches ?? 1]))
     // Locate phase: sum per-file match counts into bundle-level totals.
-    const totals = new Map<string, number>(group.map((entry) => [entry.patch.name, 0]))
-    const failures = new Map<string, string>()
+    // Index by entry, not name: separate TOML files may reuse local names.
+    const totals = group.map(() => 0)
+    const failures = new Map<number, string>()
     if (view.bundle) {
-      for (const file of view.bundle.files) {
-        const { results } = prepareAstTransformPatches(
-          file.text,
+      const bundle = view.bundle
+      for (const files of groupGraphVerificationFiles(bundle.files)) {
+        const fileResults = verifyGraphFilesInWorker(
+          files.map((file) => join(bundle.root, file.path)),
           group.map((entry) => entry.astPatch),
-          {
-            collectMatches: true,
-            independent: true,
-          },
         )
-        for (let i = 0; i < group.length; i++) {
-          const name = group[i].patch.name
-          const count = results[i].matches
-          totals.set(name, (totals.get(name) ?? 0) + count)
-          if (!results[i].ok) failures.set(name, `${view.label}/${file.path}: ${results[i].message}`)
+        for (const [fileIndex, results] of fileResults.entries()) {
+          for (let i = 0; i < group.length; i++) {
+            totals[i] += results[i].matches
+            if (!results[i].ok) failures.set(i, `${view.label}/${files[fileIndex].path}: ${results[i].message}`)
+          }
         }
       }
     } else {
@@ -221,20 +214,28 @@ function batchVerifyAstLocators(
         group.map((entry) => entry.astPatch),
       )
       for (let i = 0; i < group.length; i++) {
-        totals.set(group[i].patch.name, results[i].matches)
-        if (!results[i].ok && results[i].matches > 0) failures.set(group[i].patch.name, results[i].message)
+        totals[i] = results[i].matches
+        if (!results[i].ok) failures.set(i, results[i].message)
       }
     }
-    for (const entry of group) {
-      const expected = expectedByPatch.get(entry.patch.name) ?? 1
-      const total = totals.get(entry.patch.name) ?? 0
-      const failure = failures.get(entry.patch.name)
+    for (const [index, entry] of group.entries()) {
+      const expected = entry.astPatch.expectedMatches ?? 1
+      const total = totals[index]
+      const failure = failures.get(index)
+      // A later platform must never erase a failure in an earlier graph.
+      if (out.get(entry.patch)?.ok === false) continue
       out.set(
         entry.patch,
         failure
           ? { ok: false, msg: failure, matches: total }
           : total === expected
-            ? { ok: true, msg: `AST locator matches ${total} node(s) in ${view.label}`, matches: total }
+            ? {
+                ok: true,
+                msg: [out.get(entry.patch)?.msg, `AST locator matches ${total} node(s) in ${view.label}`]
+                  .filter(Boolean)
+                  .join("; "),
+                matches: total,
+              }
             : { ok: false, msg: `${view.label}: expected ${expected} AST match(es), got ${total}`, matches: total },
       )
     }
@@ -268,28 +269,6 @@ function verifyRationaleRef(p: Patch): { ok: boolean; msg: string } {
 
 function main(): number {
   const { patches: files, target, quietSkips } = parseArgs(process.argv.slice(2))
-
-  const targetVersion = target ? inferTargetVersion(target) : undefined
-  if (!VERIFY_PLATFORM && target && targetVersion && isDualGraphStaged(ROOT, targetVersion)) {
-    let allOk = true
-    for (const platform of stagedGraphPlatforms(ROOT, targetVersion)) {
-      for (let start = 0; start < files.length; start += PATCH_FILE_BATCH_SIZE) {
-        const batch = files.slice(start, start + PATCH_FILE_BATCH_SIZE)
-        console.log(`verifying ${targetVersion} graph/${platform} patch files ${start + 1}-${start + batch.length}`)
-        const args = [process.execPath, import.meta.path, ...batch, "--against", target]
-        if (quietSkips) args.push("--quiet-skips")
-        const result = Bun.spawnSync(args, {
-          cwd: ROOT,
-          env: { ...process.env, PCC_VERIFY_PLATFORM: platform },
-          stdin: "inherit",
-          stdout: "inherit",
-          stderr: "inherit",
-        })
-        allOk &&= result.exitCode === 0
-      }
-    }
-    return allOk ? 0 : 1
-  }
 
   if (files.length === 0) {
     console.error("no patches to verify (patches/ is empty)")

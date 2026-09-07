@@ -35,6 +35,7 @@ export type EmbeddedFile = {
   contents: Uint8Array
   isEntrypoint: boolean
   loader: number
+  encoding: number
   moduleFormat: number
   side: number
 }
@@ -161,6 +162,7 @@ export function extractStandalone(binary: Uint8Array): ExtractedStandalone {
       contents: slicePointer(binary, offsets.payloadStart, contents),
       isEntrypoint: i === offsets.entrypointId,
       loader: binary[moduleOffset + 49],
+      encoding: binary[moduleOffset + 48],
       moduleFormat: binary[moduleOffset + 50],
       side: binary[moduleOffset + 51],
     })
@@ -227,7 +229,7 @@ function main(): number {
     }
     writeFileSync(
       join(args.outDir, "manifest.json"),
-      JSON.stringify(
+      `${JSON.stringify(
         {
           byteCount: graph.byteCount,
           payloadStart: graph.payloadStart,
@@ -240,13 +242,14 @@ function main(): number {
             bytes: file.contents.byteLength,
             isEntrypoint: file.isEntrypoint,
             loader: file.loader,
+            encoding: file.encoding,
             moduleFormat: file.moduleFormat,
             side: file.side,
           })),
         },
         null,
         2,
-      ) + "\n",
+      )}\n`,
     )
   }
 

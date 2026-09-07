@@ -40,9 +40,17 @@ Released graphs MUST expose embedded text assets as UTF-8 bytes.
 | JavaScript (`1`) | Rewrite Bun-root specifiers to graph-relative paths. | Unresolved specifier or parse failure. |
 | Compressed text (`5`) | Require Zstandard frame magic; decompress without renaming. | Missing magic, decompression failure, or invalid UTF-8. |
 | Native binary (`10`) | Preserve bytes. | None beyond inventory integrity. |
-| Plain text (`13`) | Preserve bytes. | None beyond inventory integrity. |
+| Plain text (`13`) | Decode the record's encoding into UTF-8; route runtime references to a byte-identical `.embedded.txt` sidecar. | Unknown encoding, invalid text, or sidecar collision. |
 
-Runtime paths MUST remain unchanged.
+Original asset paths MUST remain available for audit.
+Plain-text runtime paths MUST use the recorded `runtimePath` sidecar,
+even when the original extension is executable (`.js`, `.mjs`, or `.cjs`).
+Never infer an embedded resource's loader from its extension:
+loading an embedded skill script must return its text, not execute its CLI.
+Text encoding is the module record's byte at offset `48`:
+`0` UTF-8 bytes, `1` Latin-1, `2` UTF-16LE.
+Preserve native byte hashes separately from the decoded UTF-8 hashes.
+The disk text loader's module namespace MUST be unwrapped to the original string value.
 The upstream runtime accepts compressed or identity-encoded text by inspecting frame magic.
 
 `graph-manifest.json` MUST bind both representations for every file:
@@ -50,6 +58,10 @@ The upstream runtime accepts compressed or identity-encoded text by inspecting f
 - upstream encoding, byte count, and SHA-256;
 - materialized encoding, byte count, and SHA-256;
 - deterministic transformation identifier.
+- plain-text runtime sidecar path, with bytes identical to the materialized asset.
+
+Regression tests MUST import a text-loader executable-extension fixture in a child process
+with Claude CLI arguments and prove it returns text without running the script.
 
 ## Manifest Contract
 

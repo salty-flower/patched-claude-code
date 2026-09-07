@@ -23,15 +23,19 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { parseSync } from "oxc-parser"
+import { validateEmbeddedResourceAudit, writeEmbeddedResourceAudit } from "../lib/embedded-resource-audit"
 import { extractStandalone } from "../lib/extract-bun-standalone"
 import {
   assertBunfsRefsResolve,
-  DUAL_GRAPH_SOURCE,
   DEFAULT_GRAPH_PLATFORMS,
+  DUAL_GRAPH_POLICY,
+  DUAL_GRAPH_SOURCE,
+  decodeStandaloneText,
   dispatcherSource,
   expandZstdTextAsset,
   rewriteBunfsSpecifiers,
   sha256HexBytes,
+  textAssetRuntimePath,
 } from "../lib/graph-bundle"
 import { DIRECT_LATEST_URL, directManifestUrl, directNativeBinaryUrl } from "../lib/upstream-channels"
 
@@ -59,13 +63,15 @@ type ExtractedFile = {
   contents: Uint8Array
   isEntrypoint: boolean
   loader: number
+  encoding: number
 }
 
 type MaterializedFileReport = {
   path: string
   loader: number
-  transformation: "identity" | "bunfs-specifier-rewrite-v1" | "zstd-decompress-v1"
-  upstream: { encoding: "identity" | "zstd"; bytes: number; sha256: string }
+  transformation: "identity" | "bunfs-specifier-rewrite-v2" | "zstd-decompress-v1" | "text-transcode-v1"
+  runtimePath?: string
+  upstream: { encoding: "identity" | "zstd" | "latin1" | "utf16le"; bytes: number; sha256: string }
   materialized: { encoding: "identity"; bytes: number; sha256: string }
 }
 
@@ -77,7 +83,9 @@ function parseArgs(argv: string[]): Args {
     if (arg === "--version") version = argv[++i]
     else if (arg === "--platform") platforms.push(argv[++i])
     else if (arg === "--help" || arg === "-h") {
-      console.log("usage: bun run tools/platform/stage-dual-graph.ts --version <ver> [--platform darwin-arm64 --platform linux-x64]")
+      console.log(
+        "usage: bun run tools/platform/stage-dual-graph.ts --version <ver> [--platform darwin-arm64 --platform linux-x64]",
+      )
       process.exit(0)
     } else throw new Error(`unexpected argument: ${arg}`)
   }
@@ -115,7 +123,7 @@ function downloadOrRead(url: string, path: string, expectedSha256: string): Uint
 }
 
 function assertParses(platform: string, path: string, text: string): void {
-  let ast
+  let ast: ReturnType<typeof parseSync>
   try {
     ast = parseSync("staged.js", text, { astType: "js", lang: "js", sourceType: "module" })
   } catch (error) {
@@ -156,6 +164,10 @@ function materializePlatform(
 
   // Pre-pass: the graph-relative path set every specifier must resolve to.
   const knownPaths = new Set<string>(graph.files.map((file) => (file.isEntrypoint ? "cli.js" : file.path)))
+  const textAssets = new Set(graph.files.filter((file) => file.loader === 13).map((file) => file.path))
+  for (const path of textAssets) {
+    if (knownPaths.has(textAssetRuntimePath(path))) throw new Error(`text asset sidecar collision: ${path}`)
+  }
 
   for (const file of graph.files as ExtractedFile[]) {
     const isEntrypoint = file.isEntrypoint
@@ -166,7 +178,13 @@ function materializePlatform(
     const target = join(graphDir, targetName)
     mkdirSync(dirname(target), { recursive: true })
     const upstream = {
-      encoding: (file.loader === 5 ? "zstd" : "identity") as "identity" | "zstd",
+      encoding: (file.loader === 5
+        ? "zstd"
+        : file.loader === 13 && file.encoding === 2
+          ? "utf16le"
+          : file.loader === 13 && file.encoding === 1
+            ? "latin1"
+            : "identity") as MaterializedFileReport["upstream"]["encoding"],
       bytes: file.contents.byteLength,
       sha256: sha256HexBytes(file.contents),
     }
@@ -175,14 +193,14 @@ function materializePlatform(
       const text = decoder.decode(file.contents)
       assertBunfsRefsResolve(text, knownPaths, `${platform}/${targetName}`)
       const fromDir = targetName.includes("/") ? targetName.slice(0, targetName.lastIndexOf("/")) : ""
-      const rewritten = rewriteBunfsSpecifiers(text, fromDir)
+      const rewritten = rewriteBunfsSpecifiers(text, fromDir, textAssets)
       assertParses(platform, targetName, rewritten)
       const bytes = Buffer.from(rewritten, "utf8")
       writeFileSync(target, bytes)
       files.push({
         path: targetName,
         loader: file.loader,
-        transformation: rewritten === text ? "identity" : "bunfs-specifier-rewrite-v1",
+        transformation: rewritten === text ? "identity" : "bunfs-specifier-rewrite-v2",
         upstream,
         materialized: { encoding: "identity", bytes: bytes.byteLength, sha256: sha256HexBytes(bytes) },
       })
@@ -207,16 +225,22 @@ function materializePlatform(
       continue
     }
 
-    writeFileSync(target, file.contents)
+    const materialized =
+      file.loader === 13 ? decodeStandaloneText(file.contents, file.encoding, targetName) : file.contents
+    writeFileSync(target, materialized)
+    if (file.loader === 13) {
+      writeFileSync(join(graphDir, textAssetRuntimePath(targetName)), materialized)
+    }
     files.push({
       path: targetName,
+      ...(file.loader === 13 ? { runtimePath: textAssetRuntimePath(targetName) } : {}),
       loader: file.loader,
-      transformation: "identity",
+      transformation: file.loader === 13 ? "text-transcode-v1" : "identity",
       upstream,
       materialized: {
         encoding: "identity",
-        bytes: file.contents.byteLength,
-        sha256: sha256HexBytes(file.contents),
+        bytes: materialized.byteLength,
+        sha256: sha256HexBytes(materialized),
       },
     })
   }
@@ -226,7 +250,8 @@ function materializePlatform(
 
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
-  const version = args.version === "latest" ? await (await fetch(DIRECT_LATEST_URL)).text().then((t) => t.trim()) : args.version
+  const version =
+    args.version === "latest" ? await (await fetch(DIRECT_LATEST_URL)).text().then((t) => t.trim()) : args.version
   const manifest = await fetchJson<DirectManifest>(directManifestUrl(version))
 
   const stagedDir = join(ROOT, "staging", version)
@@ -272,7 +297,7 @@ async function main(): Promise<number> {
 
   writeFileSync(
     join(stagedDir, "graph-manifest.json"),
-    JSON.stringify(
+    `${JSON.stringify(
       {
         schema: 2,
         mergePolicy: "canonical-dual-graph-v1",
@@ -283,13 +308,23 @@ async function main(): Promise<number> {
       },
       null,
       2,
-    ) + "\n",
+    )}\n`,
   )
+
+  const resourceAuditDir = join(stagedDir, "builtin-skill-resources")
+  rmSync(resourceAuditDir, { recursive: true, force: true })
+  const resourceAudit = writeEmbeddedResourceAudit({
+    graphRoot,
+    graphManifestPath: join(stagedDir, "graph-manifest.json"),
+    outDir: resourceAuditDir,
+  })
+  validateEmbeddedResourceAudit(resourceAuditDir, graphRoot)
+  console.error(`audited ${resourceAudit.entries.length} built-in skill resources (no upstream code executed)`)
 
   writeFileSync(join(stagedDir, "cli.js"), dispatcherSource("staged"))
   writeFileSync(
     join(stagedDir, "stage-manifest.json"),
-    JSON.stringify(
+    `${JSON.stringify(
       {
         package: "@anthropic-ai/claude-code",
         version,
@@ -303,7 +338,7 @@ async function main(): Promise<number> {
         platforms: platformReports,
         basePlatform: args.platforms[0],
         dualGraph: {
-          mergePolicy: "canonical-dual-graph-v1",
+          mergePolicy: DUAL_GRAPH_POLICY,
           graphDir: "graph",
           dispatcher: "cli.js",
           platforms: args.platforms,
@@ -313,7 +348,7 @@ async function main(): Promise<number> {
       },
       null,
       2,
-    ) + "\n",
+    )}\n`,
   )
 
   console.error(`canonical dual-graph ${version} [${args.platforms.join("+")}] -> ${graphRoot}`)

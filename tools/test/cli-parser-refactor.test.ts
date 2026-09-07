@@ -99,6 +99,23 @@ test("stage-target reuses a matching canonical platform merge", () => {
   ).toBe(false)
 })
 
+test("stage-target rejects cached graphs predating text-loader preservation", () => {
+  const args = parseStageTargetArgs(["--version", "2.1.263", "--source", "canonical"], {})
+  const manifest = {
+    channel: "canonical" as const,
+    basePlatform: "darwin-arm64",
+    dualGraph: {
+      mergePolicy: "canonical-dual-graph-v1",
+      graphDir: "graph",
+      dispatcher: "cli.js",
+      platforms: ["darwin-arm64", "linux-x64"],
+    },
+  }
+  expect(stageManifestMatchesArgs(args, manifest)).toBe(false)
+  manifest.dualGraph.mergePolicy = "canonical-dual-graph-text-loaders-v2"
+  expect(stageManifestMatchesArgs(args, manifest)).toBe(true)
+})
+
 test("prepare-target-bump parses a source and report output", () => {
   expect(parsePrepareTargetBumpArgs(["--version", "2.1.218", "--source", "direct", "-o", "bump.json"])).toEqual({
     version: "2.1.218",

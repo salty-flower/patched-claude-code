@@ -51,6 +51,7 @@ _api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout
   bun run tools/test/custom-model-slots-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/ask-user-question-tui-smoke.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
+  bun run tools/test/builtin-skill-tui-smoke.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/thinking-stream-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/resume-transcript-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js" --timeout-seconds "{{resume_timeout}}"
   bun run tools/test/background-agent-interrupt-pty.ts --bundle "staging/{{version}}/cli.patched.js"
@@ -95,7 +96,7 @@ ci-package-audit version=target release_id=release_id: \
   test -s prompts/catalog/manifest.json
   bun ./cli.js --version
   git ls-tree -r --name-only "claude-code-{{version}}-{{release_id}}" > source-tag-files.txt
-  shopt -s nullglob globstar; catalog_files=(prompts/catalog/manifest.json prompts/catalog/gaps.json prompts/catalog/entries/**/*.md); { printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/macos-keychain.ts runtime/release-integrity.ts runtime/system-prompt-overrides.ts; printf '%s\n' "${catalog_files[@]}"; for payload_file in patch-obligations/**/* graph.patched/**/* graph/**/*; do [[ -f "$payload_file" ]] && printf '%s\n' "$payload_file"; done; } | sort > expected-source-tag-files.txt
+  shopt -s nullglob globstar; catalog_files=(prompts/catalog/manifest.json prompts/catalog/gaps.json prompts/catalog/entries/**/*.md); { printf '%s\n' bin/claude-patched cli.js flake.lock flake.nix manifest.json package.json runtime/macos-keychain.ts runtime/release-integrity.ts runtime/system-prompt-overrides.ts; printf '%s\n' "${catalog_files[@]}"; for payload_file in prompts/builtin-skills/**/* patch-obligations/**/* graph.patched/**/* graph/**/*; do [[ -f "$payload_file" ]] && printf '%s\n' "$payload_file"; done; } | sort > expected-source-tag-files.txt
   diff -u expected-source-tag-files.txt source-tag-files.txt
 
 prompt-catalog version=target release_id=release_id:

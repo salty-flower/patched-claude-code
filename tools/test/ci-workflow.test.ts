@@ -49,6 +49,8 @@ test("ci runs final packaging through a rendered-only declarative just target", 
   expect(workflow).toContain("sudo apt-get install -y just ripgrep")
   expect(workflow).toContain("rg --version")
   expect(workflow).toContain("prompts/catalog/")
+  expect(workflow).toContain("prompts/builtin-skills/")
+  expect(workflow).toContain("builtin-skill-resources/")
   expect(workflow).toContain("dist/release-notes.md")
   expect(workflow).toContain("dist/prompt-review.md")
   expect(workflow).toContain("staging/${{ env.TARGET_VERSION }}/graph.patched/")

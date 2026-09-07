@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto"
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import {
   computeRuntimeBundleIntegrity,
   type RuntimeBundleFile,
   type RuntimeGraphDirectory,
 } from "../../runtime/release-integrity"
+import { embeddedResourceTreeSha256, validateEmbeddedResourceAudit } from "./embedded-resource-audit"
 import { loadPatchEntriesFromToml, type PatchEntry } from "./patch-files"
 import {
   PROMPT_CATALOG_RULESET_SHA256,
@@ -69,6 +70,14 @@ export type ReleaseManifest = {
     entries: number
     contextualGaps: number
     opaqueGaps: number
+    sha256: string
+  }
+  builtinSkillResources?: {
+    path: "prompts/builtin-skills"
+    schema: 1
+    completeness: "partial"
+    entries: number
+    scripts: number
     sha256: string
   }
   patchObligations?: {
@@ -198,6 +207,32 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
       opaqueGaps: catalog.manifest.summary.opaqueGaps,
       sha256: catalog.treeSha256,
     },
+  }
+  if (graphDirectoryName !== null) {
+    const stagedAudit = join(dirname(upstreamInput), "builtin-skill-resources")
+    const reusableAudit = join(options.root, "prompts", "builtin-skills")
+    const auditSource = existsSync(join(stagedAudit, "manifest.json")) ? stagedAudit : reusableAudit
+    if (!existsSync(join(auditSource, "manifest.json")))
+      throw new Error(`built-in skill resource audit missing: ${stagedAudit}`)
+    const audit = validateEmbeddedResourceAudit(auditSource, join(dirname(options.input), graphDirectoryName))
+    if (audit.version !== options.version)
+      throw new Error(`built-in skill resource audit version mismatch: ${audit.version}`)
+    const auditOutput = join(options.outDir, "prompts", "builtin-skills")
+    if (resolve(auditSource) !== resolve(auditOutput)) {
+      // This generated subtree belongs to the current artifact; old chunk names
+      // must not survive a target bump and become unlisted audit resources.
+      rmSync(auditOutput, { recursive: true, force: true })
+      cpSync(auditSource, auditOutput, { recursive: true, force: true })
+    }
+    validateEmbeddedResourceAudit(auditOutput, join(dirname(options.input), graphDirectoryName))
+    manifest.builtinSkillResources = {
+      path: "prompts/builtin-skills",
+      schema: 1,
+      completeness: "partial",
+      entries: audit.entries.length,
+      scripts: audit.entries.filter((entry) => entry.kind === "script").length,
+      sha256: embeddedResourceTreeSha256(auditOutput),
+    }
   }
   const runtimeFiles = ["macos-keychain.ts", "release-integrity.ts", "system-prompt-overrides.ts"]
   for (const file of runtimeFiles) {

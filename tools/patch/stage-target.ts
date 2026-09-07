@@ -4,6 +4,7 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
+import { DUAL_GRAPH_POLICY } from "../lib/graph-bundle"
 import { runWithHeavyLock } from "../lib/heavy-lock"
 import { runChecked } from "../lib/process"
 import { loadStageManifest, type StageManifest } from "../lib/stage-manifest"
@@ -66,7 +67,7 @@ export function stageManifestMatchesArgs(args: Args, manifest: StageManifest): b
   return (
     manifest.channel === "canonical" &&
     manifest.basePlatform === args.canonicalBase &&
-    (manifest.canonical !== undefined || manifest.dualGraph !== undefined)
+    (manifest.canonical !== undefined || manifest.dualGraph?.mergePolicy === DUAL_GRAPH_POLICY)
   )
 }
 

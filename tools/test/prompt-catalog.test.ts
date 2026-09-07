@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { validateEmbeddedResourceAudit, writeEmbeddedResourceAudit } from "../lib/embedded-resource-audit"
 import {
   inspectPromptIdentityObservations,
   readPromptCatalogManifest,
@@ -385,9 +386,32 @@ test("release payload publishes both platform graphs and records the graph direc
     bootstrapPromptIdentityFiles(identityRoot, "2.1.217", inspectPromptIdentityObservations(source, "2.1.217"))
     for (const platform of ["darwin-arm64", "linux-x64"]) {
       mkdirSync(join(rendered, "graph.patched", platform), { recursive: true })
-      writeFileSync(join(rendered, "graph.patched", platform, "cli.js"), `// ${platform}\n`)
+      writeFileSync(
+        join(rendered, "graph.patched", platform, "cli.js"),
+        'var f={"reference.txt":load("./asset.txt")};export{f as SKILL_FILES}\n',
+      )
       writeFileSync(join(rendered, "graph.patched", platform, "asset.txt"), `${platform}\n`)
     }
+    const graphManifestPath = join(root, "graph-manifest.json")
+    writeFileSync(
+      graphManifestPath,
+      JSON.stringify({
+        version: "2.1.217",
+        platforms: ["darwin-arm64", "linux-x64"].map((platform) => ({
+          platform,
+          files: ["cli.js", "asset.txt"].map((path) => {
+            const bytes = readFileSync(join(rendered, "graph.patched", platform, path))
+            const identity = { encoding: "identity", bytes: bytes.length, sha256: sha256(bytes).hex }
+            return { path, loader: path === "cli.js" ? 1 : 13, upstream: identity, materialized: identity }
+          }),
+        })),
+      }),
+    )
+    writeEmbeddedResourceAudit({
+      graphRoot: join(rendered, "graph.patched"),
+      graphManifestPath,
+      outDir: join(root, "builtin-skill-resources"),
+    })
 
     const outDir = join(root, "payload")
     const payload = writeReleasePayload({
@@ -401,6 +425,14 @@ test("release payload publishes both platform graphs and records the graph direc
     })
 
     expect(payload.manifest.runtime.graphDirectory).toBe("graph.patched")
+    expect(payload.manifest.builtinSkillResources).toMatchObject({
+      path: "prompts/builtin-skills",
+      entries: 2,
+      scripts: 0,
+    })
+    expect(
+      validateEmbeddedResourceAudit(join(outDir, "prompts", "builtin-skills"), join(outDir, "graph.patched")).entries,
+    ).toHaveLength(2)
     expect(payload.manifest.bundle.entrypointSha256).toBe(payload.cliHash.sri)
     expect(payload.manifest.bundle.sha256).not.toBe(payload.manifest.bundle.entrypointSha256)
     expect(payload.manifest.bundle.files.map((file) => file.path)).toEqual([

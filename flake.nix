@@ -68,7 +68,9 @@
             || builtins.match "${root}/graph/.*" path != null
             || path == "${root}/prompts"
             || path == "${root}/prompts/catalog"
-            || builtins.match "${root}/prompts/catalog/.*" path != null;
+            || builtins.match "${root}/prompts/catalog/.*" path != null
+            || path == "${root}/prompts/builtin-skills"
+            || builtins.match "${root}/prompts/builtin-skills/.*" path != null;
         };
         patchedClaudeCode =
           if hasReleasePayload then
@@ -96,6 +98,9 @@
                 install -Dm0644 package.json "$out/share/patched-claude-code/package.json"
                 mkdir -p "$out/share/patched-claude-code/prompts"
                 cp -R prompts/catalog "$out/share/patched-claude-code/prompts/catalog"
+                if [ -d prompts/builtin-skills ]; then
+                  cp -R prompts/builtin-skills "$out/share/patched-claude-code/prompts/builtin-skills"
+                fi
                 makeWrapper ${pkgs.bun}/bin/bun "$out/bin/claude-patched" \
                   --set PATCHED_CLAUDE_CODE_RELEASE_MANIFEST "$out/share/patched-claude-code/manifest.json" \
                   --set PATCHED_CLAUDE_CODE_BUNDLE "$out/lib/patched-claude-code/cli.js" \

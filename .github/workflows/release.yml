@@ -190,6 +190,7 @@ jobs:
           cp ci-artifact/runtime/release-integrity.ts runtime/release-integrity.ts
           cp ci-artifact/runtime/system-prompt-overrides.ts runtime/system-prompt-overrides.ts
           cp -R ci-artifact/prompts/catalog prompts/catalog
+          cp -R ci-artifact/prompts/builtin-skills prompts/builtin-skills
           cp -R ci-artifact/dist/patch-obligation-evidence dist/patch-obligation-evidence
           cp ci-artifact/dist/patch-obligation-admission-*.json dist/
           echo "reused=true" >> "$GITHUB_OUTPUT"
@@ -271,6 +272,7 @@ jobs:
             runtime/release-integrity.ts
             runtime/system-prompt-overrides.ts
             prompts/catalog/
+            prompts/builtin-skills/
           if-no-files-found: error
 
       - name: Publish GitHub release

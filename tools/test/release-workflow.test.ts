@@ -40,6 +40,7 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(reuseStep).toContain("cp ci-artifact/runtime/release-integrity.ts runtime/release-integrity.ts")
   expect(reuseStep).toContain("cp ci-artifact/runtime/system-prompt-overrides.ts runtime/system-prompt-overrides.ts")
   expect(reuseStep).toContain("cp -R ci-artifact/prompts/catalog prompts/catalog")
+  expect(reuseStep).toContain("cp -R ci-artifact/prompts/builtin-skills prompts/builtin-skills")
   expect(reuseStep).toContain("cp -R ci-artifact/dist/patch-obligation-evidence dist/patch-obligation-evidence")
   expect(renderStep).toContain('just render "${{ steps.coord.outputs.version }}"')
   expect(smokeStep).toContain('just smoke-rendered "${{ steps.coord.outputs.version }}"')

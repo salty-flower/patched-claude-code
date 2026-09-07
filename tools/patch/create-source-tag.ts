@@ -58,6 +58,7 @@ export function sourceTagFiles(root: string = ROOT): TagFile[] {
     { path: "flake.lock", mode: "100644", required: false },
     ...payloadFiles(root, "patch-obligations"),
     ...payloadFiles(root, "prompts/catalog"),
+    ...payloadFiles(root, "prompts/builtin-skills"),
     ...(graphDirectoryName === null ? [] : payloadFiles(root, graphDirectoryName)),
   ]
 }

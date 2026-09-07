@@ -1,13 +1,14 @@
 import { createHash } from "node:crypto"
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join, relative } from "node:path"
+import { parseSync } from "oxc-parser"
+import { patchSkipReason } from "./apply-patches"
 import {
+  type AstTransformPatch,
   applyAstTransformPatches,
   verifyAstTransformPatch,
   verifyAstTransformPatches,
-  type AstTransformPatch,
 } from "./ast-transform-patches"
-import { patchSkipReason } from "./apply-patches"
 import type { PatchEntry } from "./patch-files"
 
 // Dual-graph target layout support.
@@ -19,6 +20,7 @@ import type { PatchEntry } from "./patch-files"
 // plus a small platform-dispatcher at staging/<version>/cli.js.
 
 export const DUAL_GRAPH_SOURCE = "canonical-dual-graph"
+export const DUAL_GRAPH_POLICY = "canonical-dual-graph-text-loaders-v2"
 
 export const GRAPH_DIR_NAME = "graph"
 export const GRAPH_PATCHED_DIR_NAME = "graph.patched"
@@ -55,15 +57,13 @@ export function dispatcherSource(kind: "staged" | "rendered"): string {
     "// disk with /$bunfs/root/ specifiers rewritten to graph-relative paths.",
     'const platformDir = process.platform === "darwin" ? "darwin-arm64" : process.platform === "linux" ? "linux-x64" : null',
     "if (!platformDir) {",
-    "  console.error(`unsupported platform: ${process.platform}`)",
+    '  console.error("unsupported platform: " + process.platform)',
     "  process.exit(1)",
     "}",
     `await import(new URL(\`./${dirName}/\${platformDir}/cli.js\`, import.meta.url).href)`,
     "",
   ].join("\n")
 }
-
-const BUNFS_REF_PATTERN = /\/\$bunfs\/root\//g
 
 function graphRelativePrefix(fromDir: string): string {
   const depth = fromDir === "" ? 0 : fromDir.split("/").filter(Boolean).length
@@ -73,9 +73,62 @@ function graphRelativePrefix(fromDir: string): string {
 // Rewrite absolute Bun-standalone specifiers (`/$bunfs/root/<path>`) to
 // paths relative to the referencing file's directory so the materialized
 // graph resolves identically from any nesting depth.
-export function rewriteBunfsSpecifiers(text: string, fromDir: string): string {
+export function rewriteBunfsSpecifiers(text: string, fromDir: string, textAssets: Set<string> = new Set()): string {
   const prefix = graphRelativePrefix(fromDir)
-  return text.replace(BUNFS_REF_PATTERN, prefix)
+  const rewritten = text.replace(
+    /\/\$bunfs\/root\/([A-Za-z0-9_./-]+)/g,
+    (_match, path: string) => `${prefix}${textAssets.has(path) ? textAssetRuntimePath(path) : path}`,
+  )
+  if (textAssets.size === 0 || !rewritten.includes("import.meta.require")) return rewritten
+  // Disk text imports return an ES module namespace; standalone's text
+  // loader returns the string itself. Preserve that distinction for assets
+  // only, leaving all ordinary require() results untouched.
+  const parsed = parseSync("graph.js", rewritten)
+  if (parsed.errors.length) throw new Error("cannot preserve text loader: invalid module")
+  const ranges: Array<{ start: number; end: number }> = []
+  const visit = (value: unknown): void => {
+    if (!value || typeof value !== "object") return
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item)
+      return
+    }
+    const node = value as Record<string, unknown>
+    if (
+      node.type === "MemberExpression" &&
+      typeof node.start === "number" &&
+      typeof node.end === "number" &&
+      rewritten.slice(node.start, node.end) === "import.meta.require"
+    ) {
+      ranges.push({ start: node.start, end: node.end })
+      return
+    }
+    for (const child of Object.values(node)) visit(child)
+  }
+  visit(parsed.program)
+  let result = rewritten
+  for (const range of ranges.sort((a, b) => b.start - a.start)) {
+    result =
+      result.slice(0, range.start) +
+      '((...args)=>{const value=import.meta.require(...args);return typeof args[0]==="string"&&args[0].endsWith(".embedded.txt")?value.default:value})' +
+      result.slice(range.end)
+  }
+  return result
+}
+
+// Bun standalone records the loader independently of the filename. On disk,
+// require() infers it from the extension: a text-loader .mjs would execute.
+// Keep the original audit bytes and route runtime imports to a text sidecar.
+export function textAssetRuntimePath(path: string): string {
+  return `${path}.embedded.txt`
+}
+
+export function decodeStandaloneText(bytes: Uint8Array, encoding: number, label: string): Uint8Array {
+  let text: string
+  if (encoding === 0) text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes)
+  else if (encoding === 1) text = Buffer.from(bytes).toString("latin1")
+  else if (encoding === 2) text = new TextDecoder("utf-16le", { fatal: true, ignoreBOM: true }).decode(bytes)
+  else throw new Error(`${label}: unsupported standalone text encoding ${encoding}`)
+  return new TextEncoder().encode(text)
 }
 
 // Every rewritten specifier must land on a file that exists in the graph;
@@ -177,12 +230,10 @@ export function applyPatchEntriesToGraphBundle(
 
   const flushAst = (): void => {
     if (pendingAst.length === 0) return
-    const batch: AstTransformPatch[] = pendingAst.map((patch) => ({
-      name: patch.name,
-      expectedMatches: undefined,
-      ast: patch.ast!,
-      transform: patch.transform!,
-    }))
+    const batch: AstTransformPatch[] = pendingAst.map((patch) => {
+      if (!patch.ast || !patch.transform) throw new Error(`missing AST transform: ${patch.name}`)
+      return { name: patch.name, expectedMatches: undefined, ast: patch.ast, transform: patch.transform }
+    })
     const localCounts = new Map<string, Map<string, number>>()
     const totals = new Map<string, number>(batch.map((entry) => [entry.name, 0]))
     for (const [path, text] of current) {
@@ -217,7 +268,8 @@ export function applyPatchEntriesToGraphBundle(
       const localBatch: AstTransformPatch[] = batch
         .filter((entry) => (counts.get(entry.name) ?? 0) > 0)
         .map((entry) => ({ ...entry, expectedMatches: counts.get(entry.name) }))
-      const before = current.get(path)!
+      const before = current.get(path)
+      if (before === undefined) throw new Error(`missing graph file: ${path}`)
       const result = (() => {
         try {
           return applyAstTransformPatches(before, localBatch)
@@ -260,10 +312,13 @@ export function applyPatchEntriesToGraphBundle(
       }
     }
     if (total !== expected) {
-      throw new Error(`[${patch.name}] expected ${expected} locator match(es) across ${bundle.platform} graph, got ${total}`)
+      throw new Error(
+        `[${patch.name}] expected ${expected} locator match(es) across ${bundle.platform} graph, got ${total}`,
+      )
     }
     for (const path of touched) {
-      const before = current.get(path)!
+      const before = current.get(path)
+      if (before === undefined) throw new Error(`missing graph file: ${path}`)
       const after = replaceInText(before, patch)
       if (after !== before) changedFiles.add(path)
       current.set(path, after)

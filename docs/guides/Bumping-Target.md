@@ -13,6 +13,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 | Stage, patch-carryover warnings, obligation coverage, locator/native verification, tool tests | Drift classification and replacement-symbol proof |
 | Render, version smoke, rendered patch tests | Anti-trace dossier generation and invariant review |
 | Prompt identity preparation and report | Unresolved lineage decisions |
+| Built-in skill resource extraction and byte verification | Review new scripts, templates, and resource-map changes |
 | Machine-readable handoff | PTY/TUI exercise, metadata update, commit |
 
 ## Workflow
@@ -45,6 +46,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    repacking is out of scope. Update
    [`../rules/Native-Bundle-Extraction.md`](../rules/Native-Bundle-Extraction.md)
    when a new native version is smoke-tested.
+
+   Dual-graph staging also emits the [built-in skill resource audit](Builtin-Skill-Resources.md).
+   Review auxiliary files as data; importing a skill module is not a safe extraction method.
 
 2. **Classify drift and prove replacement symbols.**
 

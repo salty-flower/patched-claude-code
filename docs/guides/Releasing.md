@@ -55,10 +55,11 @@ gh workflow run release.yml \
 
 ## CI audit and admission
 
-After canonical staging, Linux runtime auditing, Darwin tool tests, and both
+After canonical staging, Linux runtime auditing, Linux and Darwin tool tests, and both
 platform evidence jobs run concurrently.
 `just ci-runtime-audit <version>` renders once, checks the committed prompt ledger,
-then runs tool tests, version smoke, patch tests, and the full API-stub PTY matrix.
+then runs version smoke, patch tests, and the full API-stub PTY matrix.
+Both tool-test jobs remain required packaging gates.
 Use `just prompt-identity-check <version>` for a read-only check of an existing render;
 missing or stale decisions fail without preparing or finalizing a ledger.
 
@@ -68,7 +69,8 @@ and both platform receipts from the same workflow run.
 packaging, source-tag generation, and payload inventory checks without rendering again.
 Packaging still validates prompt identities against the rendered bundle.
 Only the final job uploads the release-consumable artifact.
-`just ci-release-audit` composes both halves for local use with platform receipts available.
+`just ci-release-audit` composes tool tests and both audit halves for local use
+with platform receipts available.
 
 For branch debugging, dispatch `ci.yml` with the branch ref and `target_version`;
 watch the run with `gh run watch <run-id> --exit-status`.

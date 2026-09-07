@@ -1,9 +1,96 @@
+// biome-ignore-all lint/suspicious/noTemplateCurlyInString: Fixtures contain literal JavaScript templates.
 import { expect, test } from "bun:test"
 import {
+  type AstTransformPatch,
   applyAstTransformPatches,
+  prepareAstTransformPatches,
   verifyAstTransformPatch,
   verifyAstTransformPatches,
 } from "../lib/ast-transform-patches"
+
+test("graph preparation collects local counts and emits reusable bytes in two parses", () => {
+  const phases: string[] = []
+  const patch: AstTransformPatch = {
+    name: "calls",
+    expectedMatches: 3,
+    ast: { schema: 1, match: { node: "CallExpression", callee_property: "run" } },
+    transform: { op: "append_call_arg", arg: "true" },
+  }
+  const result = prepareAstTransformPatches("x.run();y.run()", [patch], {
+    collectMatches: true,
+    onParse: (phase) => phases.push(phase),
+  })
+  expect(result.results[0]).toMatchObject({ ok: true, matches: 2 })
+  expect(result.source).toBe("x.run(true);y.run(true)")
+  expect(phases).toEqual(["initial", "final"])
+  expect(prepareAstTransformPatches("x.run();y.run()", [patch]).results[0].ok).toBe(false)
+})
+
+test("graph preparation rejects invalid captures, syntax, and overlapping edits", () => {
+  const patch: AstTransformPatch = {
+    name: "calls",
+    ast: { schema: 1, match: { node: "CallExpression" } },
+    transform: { op: "append_call_arg", arg: "true" },
+  }
+  for (const patches of [
+    [patch, { ...patch, name: "overlap", transform: { op: "replace_node" as const, value: "false" } }],
+    [{ ...patch, transform: { op: "append_call_arg" as const, arg: "[" } }],
+    [{ ...patch, transform: { op: "append_call_arg" as const, arg: "%%CAPTURE:missing%%" } }],
+  ]) {
+    const result = prepareAstTransformPatches("x.run()", patches, { collectMatches: true })
+    expect(result.results.some((entry) => !entry.ok)).toBe(true)
+    expect(result.source).toBe("x.run()")
+  }
+})
+
+test("independent locator audits share the initial parse without combining ordered transforms", () => {
+  const phases: string[] = []
+  const patch: AstTransformPatch = {
+    name: "calls",
+    ast: { schema: 1, match: { node: "CallExpression" } },
+    transform: { op: "append_call_arg", arg: "true" },
+  }
+  const result = prepareAstTransformPatches("x.run()", [patch, patch], {
+    collectMatches: true,
+    independent: true,
+    onParse: (phase) => phases.push(phase),
+  })
+  expect(result.results.every((entry) => entry.ok)).toBe(true)
+  expect(phases).toEqual(["initial", "final", "final"])
+  expect(result.source).toBe("x.run()")
+})
+
+test("legacy verification validates final JavaScript even with no edits", () => {
+  const result = verifyAstTransformPatches("const value: number = 1", [
+    {
+      name: "absent",
+      expectedMatches: 0,
+      ast: { schema: 1, match: { node: "CallExpression" } },
+      transform: { op: "append_call_arg", arg: "true" },
+    },
+  ])
+  expect(result[0].ok).toBe(false)
+  expect(result[0].message).toContain("JavaScript parse failed")
+})
+
+test("graph preparation cannot let two individually invalid transforms repair each other", () => {
+  const patches: AstTransformPatch[] = [
+    {
+      name: "open",
+      ast: { schema: 1, match: { node: "NumericLiteral", source: "1" } },
+      transform: { op: "replace_node", value: "[1" },
+    },
+    {
+      name: "close",
+      ast: { schema: 1, match: { node: "NumericLiteral", source: "2" } },
+      transform: { op: "replace_node", value: "2]" },
+    },
+  ]
+  expect(prepareAstTransformPatches("f(1,2)", patches).results.every((result) => result.ok)).toBe(true)
+  const result = prepareAstTransformPatches("f(1,2)", patches, { collectMatches: true, validateIndividually: true })
+  expect(result.results.every((entry) => !entry.ok)).toBe(true)
+  expect(result.source).toBe("f(1,2)")
+})
 
 test("append_call_arg appends one argument to a uniquely matched call", () => {
   const result = applyAstTransformPatches('const out=tK.createElement(V,null,"Read image (",q,")")', [

@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noTemplateCurlyInString: Assertions match literal GitHub Actions and shell interpolation syntax.
 import { expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
@@ -17,7 +18,7 @@ function workflowJob(name: string): string {
   const start = WORKFLOW.indexOf(`\n  ${name}:\n`)
   expect(start).toBeGreaterThanOrEqual(0)
   const remaining = WORKFLOW.slice(start + 1)
-  const next = remaining.search(/\n  [a-z][a-z-]*:\n/)
+  const next = remaining.search(/\n {2}[a-z][a-z-]*:\n/)
   return remaining.slice(0, next === -1 ? remaining.length : next)
 }
 
@@ -107,6 +108,33 @@ test("ci runs tool tests on macOS using the canonical stage", () => {
   expect(job).not.toContain("obligation-evidence")
 })
 
+test("ci runs Linux tool tests independently of runtime rendering", () => {
+  const job = workflowJob("linux-tool-test")
+  const reuse = workflowStep("Reuse canonical stage for Linux tool tests", job)
+  const swap = workflowStep("Configure Linux tool-test swap", job)
+
+  expect(job).toContain("name: linux-tool-test (ubuntu-24.04)")
+  expect(job).toContain("needs: [changes, canonical-platform-merge]")
+  expect(job).toContain("if: needs.changes.outputs.full == 'true'")
+  expect(job).toContain("runs-on: ubuntu-24.04")
+  expect(job).toContain("TARGET_VERSION: ${{ needs.changes.outputs.target_version }}")
+  expect(job).toContain("sudo apt-get install -y just ripgrep")
+  expect(job).toContain("bun install --cwd tools --frozen-lockfile")
+  expect(reuse).toContain("actions/download-artifact@v8.0.1")
+  expect(reuse).toContain("name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}")
+  expect(reuse).toContain("path: staging/${{ env.TARGET_VERSION }}")
+  expect(swap).toContain("sudo fallocate -l 8G /mnt/pcc-tool-test.swap")
+  expect(swap).toContain("sudo swapon /mnt/pcc-tool-test.swap")
+  expect(job.indexOf("Reuse canonical stage for Linux tool tests")).toBeLessThan(job.indexOf("Run Linux tool tests"))
+  expect(job.indexOf("Configure Linux tool-test swap")).toBeLessThan(job.indexOf("Run Linux tool tests"))
+  expect(workflowStep("Run Linux tool tests", job)).toContain("run: bun run --cwd tools test")
+  expect(job).not.toContain("just render")
+  expect(job).not.toContain("just stage")
+  expect(job).not.toContain("linux-release-audit")
+  expect(job).not.toContain("always()")
+  expect(job).not.toContain("continue-on-error")
+})
+
 test("ci joins real-OS receipts before release admission", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
   const darwinEvidence = workflowStep("Record Darwin patch-obligation evidence")
@@ -115,7 +143,7 @@ test("ci joins real-OS receipts before release admission", () => {
   const packaging = workflowStep("Run packaging audit", verify)
 
   expect(workflow).toContain(
-    "needs: [changes, linux-release-audit, darwin-tool-test, darwin-obligation-evidence, linux-obligation-evidence]",
+    "needs: [changes, linux-release-audit, linux-tool-test, darwin-tool-test, darwin-obligation-evidence, linux-obligation-evidence]",
   )
   expect(workflow).toContain("name: darwin-obligation-evidence (macos-15)")
   expect(workflow).toContain("name: linux-obligation-evidence (ubuntu-24.04)")
@@ -139,12 +167,15 @@ test("ci joins real-OS receipts before release admission", () => {
   expect(workflow).toContain("dist/patch-obligation-evidence/")
 })
 
-test("ci overlaps the complete Linux audit with Darwin tests and platform evidence", () => {
+test("ci overlaps Linux runtime auditing with both tool suites and platform evidence", () => {
   const audit = workflowJob("linux-release-audit")
   expect(audit).toContain("needs: [changes, canonical-platform-merge]")
   expect(audit).toContain("if: needs.changes.outputs.full == 'true'")
   expect(audit).toContain('just ci-runtime-audit "$TARGET_VERSION"')
+  expect(audit).not.toContain("linux-tool-test")
   expect(audit).not.toContain("darwin-tool-test")
+  expect(audit).not.toContain("bun run --cwd tools test")
+  expect(audit).not.toContain("just tool-test")
   expect(audit).not.toContain("obligation-evidence")
   expect(audit).not.toContain("always()")
   expect(audit).not.toContain("continue-on-error")
@@ -166,6 +197,7 @@ test("ci overlaps the complete Linux audit with Darwin tests and platform eviden
 
 test("ci checks PTY dependencies before expensive Linux rendering", () => {
   for (const [jobName, dependencyStep, renderStep] of [
+    ["linux-tool-test", "Check Linux tool-test dependencies", "Run Linux tool tests"],
     ["linux-release-audit", "Check Linux audit dependencies", "Run Linux runtime audit"],
     ["linux-obligation-evidence", "Check Linux evidence PTY dependencies", "Record Linux patch-obligation evidence"],
   ] as const) {

@@ -3,12 +3,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join, relative } from "node:path"
 import { parseSync } from "oxc-parser"
 import { patchSkipReason } from "./apply-patches"
-import {
-  type AstTransformPatch,
-  applyAstTransformPatches,
-  verifyAstTransformPatch,
-  verifyAstTransformPatches,
-} from "./ast-transform-patches"
+import { type AstTransformOptions, type AstTransformPatch, prepareAstTransformPatches } from "./ast-transform-patches"
 import type { PatchEntry } from "./patch-files"
 
 // Dual-graph target layout support.
@@ -215,12 +210,13 @@ function replaceInText(text: string, patch: PatchEntry): string {
 // equal `expected_matches`. Regex/literal replacements splice into each
 // matching file. AST transforms are batched exactly like the single-file
 // pipeline (flushed before the next regex patch); their expected counts are
-// validated as bundle totals, then applied per file with locally pinned
-// counts so the single-source planner accepts per-file subsets.
+// validated as bundle totals before committing prepared per-file output.
+// Preparation retains output bytes only, never a graph-wide collection of ASTs.
 export function applyPatchEntriesToGraphBundle(
   bundle: LoadedGraphBundle,
   patches: PatchEntry[],
   version: string,
+  options: AstTransformOptions = {},
 ): GraphPatchOutcome {
   const current: MutableBundle = new Map(bundle.files.map((file) => [file.path, file.text]))
   const changedFiles = new Set<string>()
@@ -234,26 +230,25 @@ export function applyPatchEntriesToGraphBundle(
       if (!patch.ast || !patch.transform) throw new Error(`missing AST transform: ${patch.name}`)
       return { name: patch.name, expectedMatches: undefined, ast: patch.ast, transform: patch.transform }
     })
-    const localCounts = new Map<string, Map<string, number>>()
+    const preparedTexts = new Map<string, string>()
     const totals = new Map<string, number>(batch.map((entry) => [entry.name, 0]))
     for (const [path, text] of current) {
-      const results = verifyAstTransformPatches(text, batch)
-      const here = new Map<string, number>()
+      const prepared = prepareAstTransformPatches(text, batch, {
+        ...options,
+        collectMatches: true,
+        validateIndividually: true,
+      })
+      const results = prepared.results
       for (let i = 0; i < batch.length; i++) {
         const count = results[i].matches
-        if (count > 0) {
-          const localPatch = { ...batch[i], expectedMatches: count }
-          const localResult = verifyAstTransformPatch(text, localPatch)
-          if (!localResult.ok) {
-            throw new Error(
-              `[${batch[i].name}] AST transform is not applicable to ${bundle.platform}/${path}: ${localResult.message}`,
-            )
-          }
-          here.set(batch[i].name, count)
+        if (!results[i].ok) {
+          throw new Error(
+            `[${batch[i].name}] AST transform is not applicable to ${bundle.platform}/${path}: ${results[i].message}`,
+          )
         }
         totals.set(batch[i].name, (totals.get(batch[i].name) ?? 0) + count)
       }
-      if (here.size > 0) localCounts.set(path, here)
+      if (prepared.source !== text) preparedTexts.set(path, prepared.source)
     }
     for (const patch of pendingAst) {
       const expected = patch.expected_matches ?? 1
@@ -264,23 +259,9 @@ export function applyPatchEntriesToGraphBundle(
         )
       }
     }
-    for (const [path, counts] of localCounts) {
-      const localBatch: AstTransformPatch[] = batch
-        .filter((entry) => (counts.get(entry.name) ?? 0) > 0)
-        .map((entry) => ({ ...entry, expectedMatches: counts.get(entry.name) }))
-      const before = current.get(path)
-      if (before === undefined) throw new Error(`missing graph file: ${path}`)
-      const result = (() => {
-        try {
-          return applyAstTransformPatches(before, localBatch)
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error)
-          const names = localBatch.map((entry) => entry.name).join(", ")
-          throw new Error(`failed to apply AST patches to ${bundle.platform}/${path} (${names}): ${message}`)
-        }
-      })()
-      if (result.source !== before) changedFiles.add(path)
-      current.set(path, result.source)
+    for (const [path, source] of preparedTexts) {
+      changedFiles.add(path)
+      current.set(path, source)
     }
     applied += pendingAst.length
     pendingAst = []

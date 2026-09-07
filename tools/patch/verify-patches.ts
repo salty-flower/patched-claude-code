@@ -15,21 +15,21 @@
 //   bun run tools/patch/verify-patches.ts patches/<one>.toml           # single patch
 //   bun run tools/patch/verify-patches.ts --against staging/<v>/cli.js # explicit target
 
-import { readFileSync, existsSync, readdirSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import {
-  verifyAstTransformPatch,
-  verifyAstTransformPatches,
-  type AstTransformPatch,
-} from "../lib/ast-transform-patches"
 import { patchApplies, patchSkipReason } from "../lib/apply-patches"
+import {
+  type AstTransformPatch,
+  prepareAstTransformPatches,
+  verifyAstTransformPatches,
+} from "../lib/ast-transform-patches"
 import { createCommand, runCli } from "../lib/cli"
 import {
   isDualGraphStaged,
+  type LoadedGraphBundle,
   loadGraphBundle,
   stagedGraphPlatforms,
   stagedGraphRoot,
-  type LoadedGraphBundle,
 } from "../lib/graph-bundle"
 import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
@@ -131,12 +131,7 @@ function countMatchesInView(view: TargetView, p: Patch): number {
   return (body.match(new RegExp(p.locator_pattern ?? "", "g")) || []).length
 }
 
-function verifyLocator(
-  p: Patch,
-  views: TargetView[],
-  astResults: Map<Patch, LocatorResult>,
-): LocatorResult {
-  let matches: number
+function verifyLocator(p: Patch, views: TargetView[], astResults: Map<Patch, LocatorResult>): LocatorResult {
   if (p.locator_kind === "ast_transform") {
     if (!p.ast || !p.transform) return { ok: false, msg: "missing AST transform metadata", matches: 0 }
     return astResults.get(p) ?? { ok: false, msg: "AST transform was not batch-verified", matches: 0 }
@@ -155,7 +150,7 @@ function verifyLocator(
     }
     total += count
   }
-  matches = total
+  const matches = total
   return { ok: true, msg: `locator matches ${matches} time(s) per view (expected ${expected})`, matches }
 }
 
@@ -205,25 +200,26 @@ function batchVerifyAstLocators(
     const failures = new Map<string, string>()
     if (view.bundle) {
       for (const file of view.bundle.files) {
-        const results = verifyAstTransformPatches(file.text, group.map((entry) => ({
-          ...entry.astPatch,
-          expectedMatches: undefined,
-        })))
+        const { results } = prepareAstTransformPatches(
+          file.text,
+          group.map((entry) => entry.astPatch),
+          {
+            collectMatches: true,
+            independent: true,
+          },
+        )
         for (let i = 0; i < group.length; i++) {
           const name = group[i].patch.name
           const count = results[i].matches
           totals.set(name, (totals.get(name) ?? 0) + count)
-          if (count > 0) {
-            const localResult = verifyAstTransformPatch(file.text, {
-              ...group[i].astPatch,
-              expectedMatches: count,
-            })
-            if (!localResult.ok) failures.set(name, `${view.label}/${file.path}: ${localResult.message}`)
-          }
+          if (!results[i].ok) failures.set(name, `${view.label}/${file.path}: ${results[i].message}`)
         }
       }
     } else {
-      const results = verifyAstTransformPatches(view.body ?? "", group.map((entry) => entry.astPatch))
+      const results = verifyAstTransformPatches(
+        view.body ?? "",
+        group.map((entry) => entry.astPatch),
+      )
       for (let i = 0; i < group.length; i++) {
         totals.set(group[i].patch.name, results[i].matches)
         if (!results[i].ok && results[i].matches > 0) failures.set(group[i].patch.name, results[i].message)
@@ -238,8 +234,8 @@ function batchVerifyAstLocators(
         failure
           ? { ok: false, msg: failure, matches: total }
           : total === expected
-          ? { ok: true, msg: `AST locator matches ${total} node(s) in ${view.label}`, matches: total }
-          : { ok: false, msg: `${view.label}: expected ${expected} AST match(es), got ${total}`, matches: total },
+            ? { ok: true, msg: `AST locator matches ${total} node(s) in ${view.label}`, matches: total }
+            : { ok: false, msg: `${view.label}: expected ${expected} AST match(es), got ${total}`, matches: total },
       )
     }
   }

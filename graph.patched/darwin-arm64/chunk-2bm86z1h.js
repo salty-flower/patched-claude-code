@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.260
+import{u}from"./chunk-gnrvsty9.js";import{y}from"./chunk-m0jywms0.js";import{YNe,SSn}from"./chunk-40zfdkve.js";import{H6}from"./chunk-rpg2kszv.js";var k={startedSeen:[],completedSeen:[],startedPublishes:{},invokeT0:null},fBn=H6("workshopTelemetry",k);function mBn(t){t.set((e)=>({...e,invokeT0:performance.now()}))}function gBn(t){if(t===void 0||t.invokeT0===null)return t;return{...t,invokeT0:null}}function S(t,e){if(t.startedSeen.includes(e))return t;return{...t,startedSeen:[...t.startedSeen,e]}}function m(t,e){if(t.completedSeen.includes(e))return t;return{...t,completedSeen:[...t.completedSeen,e]}}function hBn(t,e,a,i,r,d){if(y("workshop_turn",{artifact_slug:YNe(e),artifact_version:SSn(a),decisions_total:r,decisions_resolved:d,state:u(i)}),i!=="started")return;let s=!0;if(t.set((n)=>(s=n.startedSeen.includes(e),S(n,e))),!s)y("workshop_build_started",{artifact_slug:YNe(e)})}function Ynn(t,e,a,i,r,d){let s;t.set((l)=>{let o=l;if(o.invokeT0!==null)o={...o,invokeT0:null};if(i==="started")o=S(o,e);if(r.n>0)o=m(o,e);else if(i==="started"&&!o.completedSeen.includes(e)){let c=(o.startedPublishes[e]??0)+1;if(o={...o,startedPublishes:{...o.startedPublishes,[e]:c}},c>=2)o=m(o,e)}return s={prev:l,next:o},o});let{prev:n,next:p}=s;if(n.invokeT0!==null&&d)y("workshop_first_page",{invoke_to_publish_ms:Math.round(performance.now()-n.invokeT0),first_publish_state:u(i)});if(!n.startedSeen.includes(e)&&p.startedSeen.includes(e))y("workshop_build_started",{artifact_slug:YNe(e)});if(!n.completedSeen.includes(e)&&p.completedSeen.includes(e)){let l=r.n>0?"structural":"post_kickoff_republish";y("workshop_build_completed",{artifact_slug:YNe(e),artifact_version:SSn(a),source:u(l),deliverables_n:r.n,deliverables_pr:r.pr,deliverables_artifact:r.artifact,deliverables_other:r.other})}}
+export{fBn,mBn,gBn,hBn,Ynn};

@@ -21,14 +21,19 @@ test("Just defaults to the shared active target", () => {
 test("ci release audit target declares shared staged-bundle work once", () => {
   const recipe = recipeBlock("ci-release-audit")
   expect(recipe).toContain("(ci-runtime-audit version source)")
+  expect(recipe).toContain("(tool-test version source)")
   expect(recipe).toContain("(ci-package-audit version release_id)")
+  expect(recipe.indexOf("(ci-runtime-audit version source)")).toBeLessThan(recipe.indexOf("(tool-test version source)"))
+  expect(recipe.indexOf("(tool-test version source)")).toBeLessThan(
+    recipe.indexOf("(ci-package-audit version release_id)"),
+  )
   const runtime = recipeBlock("ci-runtime-audit")
   const packaging = recipeBlock("ci-package-audit")
 
-  expect(runtime).toContain("(tool-test version source)")
+  expect(runtime).not.toContain("(tool-test version source)")
   expect(runtime).toContain("(render version source)")
   expect(runtime.indexOf("(prompt-identity-check version)")).toBeGreaterThan(runtime.indexOf("(render version source)"))
-  expect(runtime.indexOf("(prompt-identity-check version)")).toBeLessThan(runtime.indexOf("(tool-test version source)"))
+  expect(runtime.indexOf("(prompt-identity-check version)")).toBeLessThan(runtime.indexOf("(smoke-rendered version)"))
   expect(runtime).toContain("(smoke-rendered version)")
   expect(runtime).toContain("(_patch-test-rendered version)")
   expect(runtime).toContain("(_api-stub-smoke-rendered version resume_transcript_timeout)")

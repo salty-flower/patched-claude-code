@@ -76,12 +76,12 @@ _release-source-rendered version=target release_id=release_id: \
 
 ci-release-audit version=target release_id=release_id source=source: \
   (ci-runtime-audit version source) \
+  (tool-test version source) \
   (ci-package-audit version release_id)
 
 ci-runtime-audit version=target source=source: \
   (render version source) \
   (prompt-identity-check version) \
-  (tool-test version source) \
   (smoke-rendered version) \
   (_patch-test-rendered version) \
   (_api-stub-smoke-rendered version resume_transcript_timeout)

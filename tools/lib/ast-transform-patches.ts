@@ -94,6 +94,22 @@ export type AstTransformOptions = {
   onParse?: (phase: AstTransformParsePhase) => void
 }
 
+export type AstTransformPrepareOptions = AstTransformOptions & {
+  // Graph callers enforce expected counts across files, not per file.
+  collectMatches?: boolean
+  // Locator audits can contain transforms from different pipeline batches.
+  independent?: boolean
+  // Rendering also rejects transforms whose invalid syntax is repaired by another.
+  validateIndividually?: boolean
+}
+
+export type PreparedAstTransforms = {
+  results: AstTransformVerifyResult[]
+  // No AST nodes or closures escape preparation; graph callers retain bytes only.
+  source: string
+  reports: AstTransformReport[]
+}
+
 type AstNode = Record<string, unknown> & {
   type: string
   start: number
@@ -126,7 +142,7 @@ export function applyAstTransformPatches(
   if (patches.length === 0) return { source, reports: [] }
 
   const ast = parseProgram(source, options, "initial")
-  const planned = planAstTransformPatches(source, ast.program as Record<string, unknown>, patches)
+  const planned = planAstTransformPatches(source, ast.program as unknown as Record<string, unknown>, patches)
   const edits = planned.flatMap((item) => item.edits)
   rejectOverlappingEdits(edits)
 
@@ -157,27 +173,41 @@ export function verifyAstTransformPatches(
   patches: AstTransformPatch[],
   options: AstTransformOptions = {},
 ): AstTransformVerifyResult[] {
-  if (patches.length === 0) return []
+  return prepareAstTransformPatches(source, patches, options).results
+}
 
-  let ast: parser.ParseResult<any>
+export function prepareAstTransformPatches(
+  source: string,
+  patches: AstTransformPatch[],
+  options: AstTransformPrepareOptions = {},
+): PreparedAstTransforms {
+  if (patches.length === 0) return { source, results: [], reports: [] }
+
+  let ast: ReturnType<typeof parser.parse>
   try {
     ast = parseProgram(source, options, "initial")
   } catch (error) {
-    return patches.map(() => ({
-      ok: false,
-      matches: 0,
-      message: error instanceof Error ? error.message : String(error),
-    }))
+    return {
+      source,
+      reports: [],
+      results: patches.map(() => ({
+        ok: false,
+        matches: 0,
+        message: error instanceof Error ? error.message : String(error),
+      })),
+    }
   }
 
   const results: AstTransformVerifyResult[] = []
   const successfulEdits: SourceEdit[] = []
-  const { parentMap, nodesByType } = buildAstIndexes(ast.program as Record<string, unknown>)
+  let individuallyValidated = 0
+  const reports: AstTransformReport[] = []
+  const { parentMap, nodesByType } = buildAstIndexes(ast.program as unknown as Record<string, unknown>)
 
   for (const patch of patches) {
     const matches = findMatches(source, patch.ast.match, parentMap, nodesByType)
     const expected = patch.expectedMatches ?? 1
-    if (matches.length !== expected) {
+    if (!options.collectMatches && matches.length !== expected) {
       results.push({
         ok: false,
         matches: matches.length,
@@ -191,7 +221,12 @@ export function verifyAstTransformPatches(
         editForTransform(source, target, materializeTransform(source, target, patch.ast.captures, patch.transform)),
       )
       rejectOverlappingEdits(edits)
+      if ((options.independent || options.validateIndividually) && edits.length > 0) {
+        validateFinalProgram(applyEdits(source, edits), options)
+        individuallyValidated++
+      }
       successfulEdits.push(...edits)
+      reports.push({ name: patch.name, op: patch.transform.op, matches: matches.length, ...rangeForEdits(edits) })
       results.push({
         ok: true,
         matches: matches.length,
@@ -208,16 +243,22 @@ export function verifyAstTransformPatches(
     }
   }
 
+  if (options.independent) return { source, results, reports }
   try {
     rejectOverlappingEdits(successfulEdits)
     const transformed = applyEdits(source, successfulEdits)
-    validateFinalProgram(transformed, options)
+    if ((successfulEdits.length > 0 || !options.collectMatches) && individuallyValidated !== 1) {
+      validateFinalProgram(transformed, options)
+    }
+    return { source: results.every((result) => result.ok) ? transformed : source, results, reports }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    return results.map((result) => (result.ok ? { ...result, ok: false, message } : result))
+    return {
+      source,
+      reports: [],
+      results: results.map((result) => (result.ok ? { ...result, ok: false, message } : result)),
+    }
   }
-
-  return results
 }
 
 function planAstTransformPatches(
@@ -244,7 +285,7 @@ function validateFinalProgram(source: string, options: AstTransformOptions): voi
   options.onParse?.("final")
   // Graph-era chunk files are ESM modules; try script first for legacy
   // parity, then module, mirroring parseProgram.
-  let ast = parseWithOxc("patched-bundle.js", source, {
+  const ast = parseWithOxc("patched-bundle.js", source, {
     astType: "js",
     lang: "js",
     preserveParens: true,
@@ -278,13 +319,13 @@ function parseProgram(
   source: string,
   options: AstTransformOptions = {},
   phase: AstTransformParsePhase = "initial",
-): parser.ParseResult<any> {
+): ReturnType<typeof parser.parse> {
   options.onParse?.(phase)
   // Graph-era chunk files are ESM modules with import/export statements,
   // which script-mode parsing rejects. Legacy single-file bundles are
   // script-shaped. Try script first to keep legacy behavior identical, then
   // fall back to module parsing.
-  let scriptResult = parser.parse(source, {
+  const scriptResult = parser.parse(source, {
     allowReturnOutsideFunction: true,
     errorRecovery: true,
     plugins: ["jsx", "typescript"],

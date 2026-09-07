@@ -8,7 +8,7 @@
 import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
-import { runWithHeavyLock } from "../lib/heavy-lock"
+import { createCommand, runCli } from "../lib/cli"
 import {
   applyPatchEntriesToGraphBundle,
   dispatcherSource,
@@ -17,7 +17,7 @@ import {
   stagedGraphRoot,
   stagedPatchedGraphRoot,
 } from "../lib/graph-bundle"
-import { createCommand, runCli } from "../lib/cli"
+import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromDirectory } from "../lib/patch-files"
 import { runChecked } from "../lib/process"
 
@@ -58,14 +58,14 @@ function renderGraphBatch(version: string, platform: string, patchIndices: numbe
   const outDir = join(patchedRoot, platform)
   const bundle = loadGraphBundle(outDir, platform)
   const outcome = applyPatchEntriesToGraphBundle(bundle, patches, version)
-  for (const [path, text] of outcome.texts) {
+  for (const path of outcome.changedFiles) {
+    const text = outcome.texts.get(path)
+    if (text === undefined) throw new Error(`missing rendered graph file: ${path}`)
     const target = join(outDir, path)
     mkdirSync(dirname(target), { recursive: true })
     writeFileSync(target, text)
   }
-  console.error(
-    `rendered ${platform} patch batch (${outcome.applied}/${patches.length} patch entries applied)`,
-  )
+  console.error(`rendered ${platform} patch batch (${outcome.applied}/${patches.length} patch entries applied)`)
   return 0
 }
 
@@ -86,10 +86,12 @@ function renderDualGraph(version: string): number {
     )
     const units: number[][] = []
     for (const index of applicableIndices) {
-      if (patches[index].locator_kind === "ast_transform" && units.at(-1)?.every(
-        (unitIndex) => patches[unitIndex].locator_kind === "ast_transform",
-      )) {
-        units.at(-1)!.push(index)
+      const previousUnit = units.at(-1)
+      if (
+        patches[index].locator_kind === "ast_transform" &&
+        previousUnit?.every((unitIndex) => patches[unitIndex].locator_kind === "ast_transform")
+      ) {
+        previousUnit.push(index)
       } else {
         units.push([index])
       }
@@ -133,7 +135,16 @@ function main(): number {
 
   if (!args.input && !args.output && isDualGraphStaged(ROOT, args.version)) {
     if (!args.skipVerify) {
-      runChecked(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", join(ROOT, "staging", args.version, "cli.js")], { cwd: ROOT })
+      runChecked(
+        [
+          "bun",
+          "run",
+          join(ROOT, "tools", "patch", "verify-patches.ts"),
+          "--against",
+          join(ROOT, "staging", args.version, "cli.js"),
+        ],
+        { cwd: ROOT },
+      )
     }
     if (RENDER_PLATFORM && RENDER_PATCH_INDICES) {
       return renderGraphBatch(args.version, RENDER_PLATFORM, JSON.parse(RENDER_PATCH_INDICES) as number[])

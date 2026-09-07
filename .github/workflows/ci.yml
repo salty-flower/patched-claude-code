@@ -24,7 +24,7 @@ jobs:
       target_version: ${{ steps.coordinates.outputs.target_version }}
       typecheck: ${{ steps.classify.outputs.typecheck }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -93,7 +93,7 @@ jobs:
 
             while IFS= read -r path; do
               case "$path" in
-                patches/*|patch-obligations/*|reference/*|justfile)
+                patches/*|patch-obligations/*|prompt-identities/*|reference/*|justfile)
                   full=true
                   typecheck=true
                   ;;
@@ -135,7 +135,7 @@ jobs:
     env:
       TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -193,7 +193,7 @@ jobs:
     env:
       TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -247,7 +247,7 @@ jobs:
           fi
 
       - name: Upload canonical stage
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
           path: |
@@ -267,7 +267,7 @@ jobs:
     env:
       TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -319,7 +319,7 @@ jobs:
           fi
 
       - name: Upload canonical stage report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: canonical-platform-merge-macos-15-${{ env.TARGET_VERSION }}
           path: |
@@ -336,14 +336,19 @@ jobs:
     env:
       TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.13"
 
       - name: Install missing macOS tools
-        run: brew install just
+        run: |
+          brew install just coreutils
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Check tool-test timeout dependency
+        run: timeout --version
 
       - name: Install tool dependencies
         run: bun install --cwd tools --frozen-lockfile
@@ -352,7 +357,7 @@ jobs:
         run: just typecheck
 
       - name: Reuse canonical stage
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8.0.1
         with:
           name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
           path: staging/${{ env.TARGET_VERSION }}
@@ -370,7 +375,7 @@ jobs:
     env:
       TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -388,7 +393,7 @@ jobs:
         run: bun install --cwd tools --frozen-lockfile
 
       - name: Reuse canonical stage for Darwin evidence
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8.0.1
         with:
           name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
           path: staging/${{ env.TARGET_VERSION }}
@@ -399,7 +404,7 @@ jobs:
           just obligation-evidence "$TARGET_VERSION" darwin-arm64
 
       - name: Upload Darwin patch-obligation evidence
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}
           path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}/darwin-arm64.json
@@ -413,7 +418,7 @@ jobs:
     env:
       TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -424,11 +429,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y just ripgrep
 
+      - name: Check Linux evidence PTY dependencies
+        run: |
+          timeout --version
+          script --version
+
       - name: Install tool dependencies
         run: bun install --cwd tools --frozen-lockfile
 
       - name: Reuse canonical stage for Linux evidence
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8.0.1
         with:
           name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
           path: staging/${{ env.TARGET_VERSION }}
@@ -439,20 +449,85 @@ jobs:
           just obligation-evidence "$TARGET_VERSION" linux-x64
 
       - name: Upload Linux patch-obligation evidence
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: patch-obligation-evidence-linux-${{ env.TARGET_VERSION }}
           path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}/linux-x64.json
           if-no-files-found: error
 
-  verify:
-    needs: [changes, canonical-platform-merge, darwin-tool-test, darwin-obligation-evidence, linux-obligation-evidence]
+  linux-release-audit:
+    name: linux-release-audit (ubuntu-24.04)
+    needs: [changes, canonical-platform-merge]
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-24.04
     env:
       TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: Install missing Ubuntu audit tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y just ripgrep
+
+      - name: Check Linux audit dependencies
+        run: |
+          set -euo pipefail
+          bun --version
+          just --version
+          jq --version
+          git --version
+          tar --version
+          curl --version
+          rg --version
+          sha256sum --version
+          node --version
+          npm --version
+          timeout --version
+          script --version
+
+      - name: Install tool dependencies
+        run: bun install --cwd tools --frozen-lockfile
+
+      - name: Typecheck tools
+        run: just typecheck
+
+      - name: Reuse canonical stage for Linux audit
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
+          path: staging/${{ env.TARGET_VERSION }}
+
+      - name: Configure Linux runtime audit swap
+        run: |
+          sudo fallocate -l 8G /mnt/pcc-audit.swap
+          sudo chmod 600 /mnt/pcc-audit.swap
+          sudo mkswap /mnt/pcc-audit.swap
+          sudo swapon /mnt/pcc-audit.swap
+          free -h
+
+      - name: Run Linux runtime audit
+        run: just ci-runtime-audit "$TARGET_VERSION"
+
+      - name: Upload audited stage
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: audited-stage-${{ env.TARGET_VERSION }}
+          path: staging/${{ env.TARGET_VERSION }}/
+          if-no-files-found: error
+
+  verify:
+    needs: [changes, linux-release-audit, darwin-tool-test, darwin-obligation-evidence, linux-obligation-evidence]
+    if: needs.changes.outputs.full == 'true'
+    runs-on: ubuntu-24.04
+    env:
+      TARGET_VERSION: ${{ needs.changes.outputs.target_version }}
+    steps:
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -485,29 +560,23 @@ jobs:
       - name: Typecheck tools
         run: just typecheck
 
-      - name: Reuse canonical stage
-        uses: actions/download-artifact@v6
+      - name: Reuse audited stage
+        uses: actions/download-artifact@v8.0.1
         with:
-          name: canonical-stage-ubuntu-24.04-${{ env.TARGET_VERSION }}
+          name: audited-stage-${{ env.TARGET_VERSION }}
           path: staging/${{ env.TARGET_VERSION }}
 
       - name: Reuse Darwin patch-obligation evidence
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8.0.1
         with:
           name: patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}
           path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}
 
       - name: Reuse Linux patch-obligation evidence
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8.0.1
         with:
           name: patch-obligation-evidence-linux-${{ env.TARGET_VERSION }}
           path: dist/patch-obligation-evidence/${{ env.TARGET_VERSION }}
-
-      - name: Render patched graph for admission
-        run: just render "$TARGET_VERSION"
-
-      - name: Admit patch obligations
-        run: just obligation-admission "$TARGET_VERSION"
 
       - name: Configure audit swap
         run: |
@@ -543,8 +612,8 @@ jobs:
           git fetch --no-tags origin "refs/tags/$tag:refs/tags/$tag"
           echo "Fetched $tag for structured prompt review"
 
-      - name: Run release audit
-        run: just ci-release-audit "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
+      - name: Run packaging audit
+        run: just ci-package-audit "$TARGET_VERSION" "ci.${GITHUB_SHA::12}"
 
       - name: Check generated prompt review notes
         shell: bash
@@ -555,7 +624,7 @@ jobs:
           rg -q '^## Prompt review$' dist/release-notes.md
 
       - name: Upload CI artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: patched-claude-code-${{ env.TARGET_VERSION }}
           path: |

@@ -20,7 +20,7 @@ jobs:
   poll:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload prompt identity review
         if: steps.detect.outputs.action != 'none' && steps.identity.outputs.status != 'ready-existing'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: prompt-identity-${{ steps.detect.outputs.version }}
           path: |

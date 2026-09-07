@@ -1,5 +1,7 @@
+// biome-ignore-all lint/suspicious/noTemplateCurlyInString: GitHub Actions expressions are literal workflow syntax.
 import { expect, test } from "bun:test"
-import { readFileSync } from "node:fs"
+import { mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { DEFAULT_TARGET_VERSION } from "../lib/target"
 
@@ -15,7 +17,7 @@ function workflowStep(name: string): string {
 
 test("release workflow renders once and reuses the rendered bundle", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "release.yml"), "utf8")
-  const reuseStep = workflowStep("Reuse CI artifact (release-commit path)")
+  const reuseStep = workflowStep("Reuse audited CI artifact")
   const renderStep = workflowStep("Verify and render patched bundle")
   const smokeStep = workflowStep("Smoke patched bundle")
   const patchTestStep = workflowStep("Patch tests")
@@ -60,4 +62,124 @@ test("release workflow defaults to the current target version", () => {
   const workflow = readFileSync(join(ROOT, ".github", "workflows", "release.yml"), "utf8")
 
   expect(workflow).toContain(`default: "${DEFAULT_TARGET_VERSION}"`)
+})
+
+test("explicit dispatch reuses the same restoration path; ordinary dispatch still renders", () => {
+  const step = workflowStep("Reuse audited CI artifact")
+  expect(step).toContain("(github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')) ||")
+  expect(step).toContain("(github.event_name == 'workflow_dispatch' && inputs.ci_run_id != '')")
+  expect(step).toContain("REQUESTED_CI_RUN_ID: ${{ inputs.ci_run_id }}")
+  expect(workflowStep("Verify and render patched bundle")).toContain("if: steps.reuse.outputs.reused != 'true'")
+})
+
+function runReuseGate(
+  overrides: {
+    sha?: string
+    path?: string
+    status?: string
+    conclusion?: string
+    missingArtifact?: boolean
+    explicit?: boolean
+  } = {},
+) {
+  const step = workflowStep("Reuse audited CI artifact")
+  const body = step
+    .slice(step.indexOf("        run: |\n") + "        run: |\n".length)
+    .split("\n")
+    .map((line) => line.replace(/^ {10}/, ""))
+    .join("\n")
+    .split("\ncp ci-artifact/cli.js cli.js")[0]
+    .replaceAll("${{ steps.coord.outputs.version }}", "2.1.260")
+  const directory = mkdtempSync(join(tmpdir(), "release-reuse-gate-"))
+  try {
+    return Bun.spawnSync(
+      [
+        "bash",
+        "-c",
+        `
+gh() {
+  if [[ "$1" == "api" ]]; then
+    if [[ -n "\${watched:-}" ]]; then
+      printf '%s' "$RUN_METADATA" | jq '.status = "completed" | .conclusion = "success"'
+    else
+      printf '%s' "$RUN_METADATA"
+    fi
+  elif [[ "$1 $2" == "run list" ]]; then
+    printf '123'
+  elif [[ "$1 $2" == "run watch" ]]; then
+    [[ "$3 $4" == "123 --exit-status" ]] || return 1
+    watched=true
+    echo watched
+  elif [[ "$1 $2" == "run download" ]]; then
+    [[ "$3 $4 $5 $6 $7" == "123 --name patched-claude-code-2.1.260 --dir ci-artifact" ]] || return 1
+    [[ "$MISSING_ARTIFACT" != "true" ]]
+  else
+    return 1
+  fi
+}
+${body}
+`,
+      ],
+      {
+        cwd: directory,
+        env: {
+          ...process.env,
+          GITHUB_SHA: "same-commit",
+          GITHUB_REPOSITORY: "owner/repo",
+          GITHUB_OUTPUT: join(directory, "output"),
+          REQUESTED_CI_RUN_ID: overrides.explicit === false ? "" : "123",
+          MISSING_ARTIFACT: String(overrides.missingArtifact ?? false),
+          RUN_METADATA: JSON.stringify({
+            head_sha: overrides.sha ?? "same-commit",
+            path: overrides.path ?? ".github/workflows/ci.yml",
+            status: overrides.status ?? "completed",
+            conclusion: overrides.conclusion ?? "success",
+          }),
+        },
+      },
+    )
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+}
+
+test("audited reuse accepts a successful same-commit target artifact", () => {
+  const result = runReuseGate()
+  expect(result.stderr.toString()).toBe("")
+  expect(result.exitCode).toBe(0)
+})
+
+test("audited reuse blocks wrong commit and wrong workflow", () => {
+  for (const overrides of [{ sha: "other-commit" }, { path: ".github/workflows/release.yml" }]) {
+    const result = runReuseGate(overrides)
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr.toString()).toContain("this exact commit")
+  }
+})
+
+test("audited reuse blocks failed, cancelled, and skipped CI", () => {
+  for (const conclusion of ["failure", "cancelled", "skipped"]) {
+    const result = runReuseGate({ conclusion })
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr.toString()).toContain("CI run did not succeed")
+  }
+})
+
+test("explicit CI reuse fails closed on a missing target artifact", () => {
+  const result = runReuseGate({ missingArtifact: true })
+  expect(result.exitCode).toBe(1)
+  expect(result.stderr.toString()).toContain("lacks the target artifact patched-claude-code-2.1.260")
+  expect(result.stdout.toString()).not.toContain("will render from scratch")
+})
+
+test("release-commit missing artifact preserves the existing render fallback", () => {
+  const result = runReuseGate({ missingArtifact: true, explicit: false })
+  expect(result.exitCode).toBe(0)
+  expect(result.stdout.toString()).toContain("will render from scratch")
+})
+
+test("audited reuse watches an unfinished run with exit-status and rechecks completion", () => {
+  const result = runReuseGate({ status: "in_progress", conclusion: "" })
+  expect(result.exitCode).toBe(0)
+  expect(result.stdout.toString()).toContain("watched")
 })

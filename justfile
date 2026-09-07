@@ -74,11 +74,18 @@ _release-source-rendered version=target release_id=release_id: \
   (_release-tag version release_id)
 
 ci-release-audit version=target release_id=release_id source=source: \
-  (tool-test version source) \
+  (ci-runtime-audit version source) \
+  (ci-package-audit version release_id)
+
+ci-runtime-audit version=target source=source: \
   (render version source) \
+  (prompt-identity-check version) \
+  (tool-test version source) \
   (smoke-rendered version) \
   (_patch-test-rendered version) \
-  (_api-stub-smoke-rendered version resume_transcript_timeout) \
+  (_api-stub-smoke-rendered version resume_transcript_timeout)
+
+ci-package-audit version=target release_id=release_id: \
   (_package-rendered version release_id) \
   (_release-source-rendered version release_id)
   test -s cli.js
@@ -99,6 +106,9 @@ prompt-identity-draft version previous_version:
 
 prompt-identity-prepare version=target:
   bun run tools/patch/prepare-prompt-identity-bump.ts --version "{{version}}"
+
+prompt-identity-check version=target:
+  tools/patch/resource-guard.sh bun run tools/patch/check-prompt-identities.ts --version "{{version}}"
 
 prompt-identity-audit *args:
   bun run tools/patch/audit-prompt-identity-history.ts {{args}}

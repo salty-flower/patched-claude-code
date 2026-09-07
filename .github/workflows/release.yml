@@ -20,6 +20,10 @@ on:
         type: boolean
         required: true
         default: false
+      ci_run_id:
+        description: "Optional successful ci.yml run on this exact commit to reuse (requested target artifact required)"
+        type: string
+        required: false
 
 permissions:
   actions: read
@@ -36,7 +40,7 @@ jobs:
       }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -107,13 +111,14 @@ jobs:
       - name: Typecheck tools
         run: just typecheck
 
-      - name: Reuse CI artifact (release-commit path)
+      - name: Reuse audited CI artifact
         id: reuse
         if: >-
-          github.event_name == 'push' &&
-          startsWith(github.ref, 'refs/heads/')
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')) ||
+          (github.event_name == 'workflow_dispatch' && inputs.ci_run_id != '')
         env:
           GH_TOKEN: ${{ github.token }}
+          REQUESTED_CI_RUN_ID: ${{ inputs.ci_run_id }}
         run: |
           set -euo pipefail
           version="${{ steps.coord.outputs.version }}"
@@ -121,8 +126,12 @@ jobs:
 
           # Full release audit can exceed 10 min on GitHub runners.
           deadline=$((SECONDS + 1800))
-          run_id=""
-          while [[ $SECONDS -lt $deadline ]]; do
+          run_id="${REQUESTED_CI_RUN_ID:-}"
+          if [[ -n "$run_id" && ! "$run_id" =~ ^[0-9]+$ ]]; then
+            echo "CI run id must be numeric" >&2
+            exit 1
+          fi
+          while [[ -z "$run_id" && $SECONDS -lt $deadline ]]; do
             run_id=$(gh run list \
               --workflow=ci.yml \
               --commit "$GITHUB_SHA" \
@@ -138,13 +147,31 @@ jobs:
             exit 1
           fi
 
-          echo "Found CI run $run_id — waiting for completion"
-          if ! gh run watch "$run_id" --exit-status; then
-            echo "CI run failed — aborting release" >&2
+          validate_ci_run() {
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" > ci-run.json
+            if ! jq -e --arg sha "$GITHUB_SHA" '
+              .head_sha == $sha and .path == ".github/workflows/ci.yml"
+            ' ci-run.json >/dev/null; then
+              echo "CI run must belong to ci.yml on this exact commit — aborting release" >&2
+              exit 1
+            fi
+          }
+          validate_ci_run
+          if [[ "$(jq -r '.status' ci-run.json)" != "completed" ]]; then
+            echo "Found CI run $run_id — waiting for completion"
+            gh run watch "$run_id" --exit-status
+            validate_ci_run
+          fi
+          if ! jq -e '.status == "completed" and .conclusion == "success"' ci-run.json >/dev/null; then
+            echo "CI run did not succeed — aborting release" >&2
             exit 1
           fi
 
           if ! gh run download "$run_id" --name "$artifact_name" --dir ci-artifact 2>/dev/null; then
+            if [[ -n "${REQUESTED_CI_RUN_ID:-}" ]]; then
+              echo "Requested CI run lacks the target artifact $artifact_name — aborting release" >&2
+              exit 1
+            fi
             echo "Artifact not found (verify job may have been skipped) — will render from scratch"
             echo "reused=false" >> "$GITHUB_OUTPUT"
             exit 0
@@ -227,7 +254,7 @@ jobs:
           git push origin "refs/tags/$tag:refs/heads/claude-code-latest" --force
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: patched-claude-code-${{ steps.coord.outputs.version }}-${{ steps.coord.outputs.release_id }}
           path: |

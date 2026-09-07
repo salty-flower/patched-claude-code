@@ -377,7 +377,12 @@ jobs:
           bun-version: "1.3.13"
 
       - name: Install missing macOS tools
-        run: brew install just
+        run: |
+          brew install just coreutils
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Check PTY timeout dependency
+        run: timeout --version
 
       - name: Install tool dependencies
         run: bun install --cwd tools --frozen-lockfile

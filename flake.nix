@@ -123,6 +123,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             bun
+            coreutils # GNU timeout for local PTY harnesses, including on Darwin.
             jq
             nushell
             python3

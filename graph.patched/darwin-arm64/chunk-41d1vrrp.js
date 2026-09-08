@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.263
+import{oje,Vnt,nOn,Kn,sje,fB,rOn,bXt,wXt,_z,Abr,Knt,oOn}from"./chunk-z5vtnzjg.js";import"./chunk-510m1t2d.js";export{sje as drainStdoutBeforeExit,Abr as exitWithError,wXt as getStdoutDrainBudgetMs,Vnt as handleStreamGoneErrors,rOn as isExitExternallyClocked,oje as isStdinUnusableError,oOn as iterateStreamUntilClose,fB as markStdoutDrainExternallyClocked,bXt as outstandingStdoutBytes,Knt as peekForStdinData,nOn as registerProcessIOErrorHandlers,_z as writeToStderr,Kn as writeToStdout};

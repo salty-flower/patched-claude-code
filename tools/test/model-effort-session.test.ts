@@ -9,7 +9,14 @@ type EffortResult = {
   cli: boolean
   effortByModel: Map<string, string>
 }
-type Resolver = (model: string, operation?: "set" | "clear", value?: string, fallback?: string) => EffortResult
+type Resolver = (
+  model: string,
+  operation?: "set" | "clear",
+  value?: string,
+  fallback?: string,
+  honorLaunchPin?: boolean,
+  agentOverride?: string,
+) => EffortResult
 type Owner = { effortByModel?: Map<string, string>; effortLaunchValue?: string }
 
 const patches = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches/model-effort-session.toml"))
@@ -53,6 +60,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(read("sonnet").value).toBe("max")
     // A subagent caller can pass the main loop's effort as fallback; slot defaults still win.
     expect(read("sonnet", undefined, undefined, "low").value).toBe("max")
+    // An agent definition/tool override is distinct from an inherited fallback and wins over the slot default.
+    expect(read("sonnet", undefined, undefined, "low", true, "xhigh")).toMatchObject({
+      value: "xhigh",
+      source: "agent override",
+    })
     expect(read("GPT-5.6-LUNA[1m]", "set", "high").value).toBe("high")
     expect(read("gpt-6-astra").value).toBe("low")
     expect(read("sonnet").value).toBe("high")

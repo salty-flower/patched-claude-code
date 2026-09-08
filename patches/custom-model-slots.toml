@@ -1745,6 +1745,7 @@ assert_contains = '''const __acc_dup=(rows,slug)=>rows.some((row)=>'''
 
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-263-darwin"
+enabled = false # Superseded by model-effort-session.toml.
 target_version = "2.1.263"
 applies_to = ">=2.1.263 <2.2.0"
 platforms = ["darwin-arm64"]
@@ -1773,6 +1774,7 @@ assert_not_contains = '''return P(__acc_custom_effort,e)}}if(!eh(e))return;let r
 
 [[patches]]
 name = "custom-model-slot-applied-effort-2-1-263-linux"
+enabled = false # Superseded by model-effort-session.toml.
 target_version = "2.1.263"
 applies_to = ">=2.1.263 <2.2.0"
 platforms = ["linux-x64"]
@@ -1801,6 +1803,7 @@ assert_not_contains = '''return P(__acc_custom_effort,e)}}if(!Qg(e))return;let r
 
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-263-darwin"
+enabled = false # Superseded by model-effort-session.toml.
 target_version = "2.1.263"
 applies_to = ">=2.1.263 <2.2.0"
 platforms = ["darwin-arm64"]
@@ -1829,6 +1832,7 @@ assert_not_contains = '''return __acc_custom_effort}}return Ga(Ue(e))?.default_e
 
 [[patches]]
 name = "custom-model-slot-default-effort-2-1-263-linux"
+enabled = false # Superseded by model-effort-session.toml.
 target_version = "2.1.263"
 applies_to = ">=2.1.263 <2.2.0"
 platforms = ["linux-x64"]

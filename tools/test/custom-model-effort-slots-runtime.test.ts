@@ -98,7 +98,7 @@ test("custom model slots keep their efforts separate from each other and global 
     root: ROOT,
     version: TARGET_VERSION,
     outDir: join(work, "rendered"),
-    patchFiles: ["custom-model-slots.toml"],
+    patchFiles: ["custom-model-slots.toml", "model-effort-session.toml", "model-effort-capabilities.toml"],
     platforms: "host",
   })
 

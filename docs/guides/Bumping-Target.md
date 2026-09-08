@@ -30,6 +30,8 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    failed step. The terminal stays compact and prints a bounded log tail on
    failure.
 
+   Tool tests include effort resolver, capability, and stub-backed request/retry regressions.
+
    Obligation coverage is fail-closed.
    Add one explicit target decision for every row governed by
    [`../rules/Patch-Obligations.md`](../rules/Patch-Obligations.md); the previous
@@ -137,7 +139,9 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    ```
 
    This covers OAuth setup, the baseline stub-backed TUI, transcript resume,
-   and background-agent interrupt handling without sending model requests.
+   and background-agent interrupt handling without sending requests to live model backends.
+   The effort harness checks model-local choices, CLI precedence, picker adjustments,
+   firstParty capabilities, and backend rejection recovery against rendered output and captured stub requests.
    Passing the matrix does not replace the manual rendered-TUI baseline.
 
    Every target bump must include this baseline before commit:

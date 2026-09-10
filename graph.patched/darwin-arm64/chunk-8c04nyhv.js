@@ -1,0 +1,14 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.266
+import"./chunk-cet8na02.js";import"./chunk-3k7pa7mk.js";import"./chunk-wmtek349.js";import"./chunk-awrvr02y.js";import"./chunk-wkyng8j1.js";import"./chunk-jxvdfgn0.js";import{t}from"./chunk-w930ag8r.js";import"./chunk-3kadfzjs.js";import"./chunk-fz55wskw.js";import"./chunk-0v0wzs89.js";import"./chunk-7tpgnqqk.js";import"./chunk-w6n61axt.js";import"./chunk-qymratxs.js";import"./chunk-jww0ztav.js";import"./chunk-e0gvmsm3.js";import"./chunk-554z0m6d.js";import{uo}from"./chunk-ceb7648g.js";import"./chunk-mx473n83.js";import"./chunk-qc0xda2j.js";import"./chunk-2rwvzqjc.js";import"./chunk-2e3zzta4.js";import"./chunk-2kk5r9ez.js";import"./chunk-1rwk4zv5.js";import"./chunk-v6bnm6m1.js";import{Wsn}from"./chunk-5k51me75.js";import"./chunk-67177kp4.js";import"./chunk-c7cjjpnh.js";import"./chunk-m13zrw5b.js";import"./chunk-5c50n20w.js";import"./chunk-5dnafksn.js";import{basename as l}from"path";async function x(s,e){let o=await Wsn(),a=uo(e.session);if(!o.success){if(a)return t(`heapdump failed: ${o.error}`,{level:"error"}),{type:"text",value:"Failed to create heap dump (detail withheld on this connection)"};return{type:"text",value:`Failed to create heap dump: ${o.error}`}}let p=a?l(o.heapPath):o.heapPath,r=a?l(o.diagPath):o.diagPath;if(a)t(`heapdump written: ${o.heapPath} ${o.diagPath}`);let i=[p,r,"",u(o.diagnostics)];return i.push("","Open the .heapsnapshot in Chrome DevTools \u2192 Memory \u2192 Load to inspect retainers."),{type:"text",value:i.join(`
+`)}}function u(s){let{memoryUsage:e,resourceUsage:o,analysis:a}=s,p=e.external-e.arrayBuffers,r=Math.max(0,e.rss-e.heapTotal-e.external),i=e.heapTotal>e.external+r?"\u2014 most memory is JS heap (inspect the .heapsnapshot)":"\u2014 most memory is native (NOT in the .heapsnapshot)",h=a.potentialLeaks.length?a.potentialLeaks.map((c)=>`  \u26A0 ${c}`).join(`
+`):"  (no obvious leak indicators)";return[`RSS ${n(e.rss)} (peak ${n(o.maxRSS)}) ${i}`,`  JS heap        ${n(e.heapTotal).padStart(8)}  in snapshot`,`  array buffers  ${n(e.arrayBuffers).padStart(8)}  not in snapshot`,`  other external ${n(p).padStart(8)}  not in snapshot`,`  unaccounted    ${n(r).padStart(8)}  not in snapshot (code/JIT/stacks/allocator)`,h].join(`
+`)}function n(s){return`${(s/1073741824).toFixed(2)} GB`}export{x as call};

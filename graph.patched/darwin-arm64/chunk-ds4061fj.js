@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.266
+import{c$e}from"./chunk-12wp63j2.js";import{te,U_}from"./chunk-4kwsawbv.js";import{Vs}from"./chunk-qvqnm0ba.js";var YWn=30000,MR="bridge-failed",Ube="disabled after repeated failures \xB7 restart to retry",Esn="Remote Control not started here";function XWn(t,{crossSessionMessaging:e},r=new Date){let n=t.startedAt>0&&t.startedAt<=r.getTime()?` (started ${U_(new Date(t.startedAt),{now:r})})`:"";return`${Esn} \xB7 another Claude Code on this machine${n} already has Remote Control for this conversation${e?", so this terminal can't see your sessions on other machines and they can't reach it":""} \xB7 run /remote-control to move it to this terminal`}var Asn=150;function due(){let t=new Date,e=String(t.getHours()).padStart(2,"0"),r=String(t.getMinutes()).padStart(2,"0"),n=String(t.getSeconds()).padStart(2,"0");return`${e}:${r}:${n}`}function wut(t,e){return`${c$e(void 0,e)}/code?environment=${t}`}function Csn(t,e){let r=e+20;return e+10-t%r}function tOe(t,e){let r=te(t),n=e-1,i=e+1;if(n>=r||i<0)return{before:t,shimmer:"",after:""};let m=Math.max(0,n),s=0,c="",a="",l="";for(let{segment:o}of Vs().segment(t)){let u=te(o);if(s+u<=m)c+=o;else if(s>i)l+=o;else a+=o;s+=u}return{before:c,shimmer:a,after:l}}function Bbe({error:t,connected:e,sessionActive:r,reconnecting:n}){if(t)return{label:"/rc failed",color:"error"};if(n)return{label:"/rc reconnecting",color:"warning"};if(r||e)return{label:"/rc active",color:"success"};return{label:"/rc connecting\u2026",color:"warning"}}function Q3e(t){return`Code anywhere with the Claude mobile app or ${t}`}function Z3e(t){return`Continue coding in the Claude mobile app or ${t}`}var vsn="Run /remote-control to retry",JWn="Re-run `claude remote-control` to try again";function QWn(t,e){return`\x1B]8;;${e}\x07${t}\x1B]8;;\x07`}
+export{YWn,MR,Ube,Esn,XWn,Asn,due,wut,Csn,tOe,Bbe,Q3e,Z3e,vsn,JWn,QWn};

@@ -1,0 +1,129 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.266
+import{Lm}from"./chunk-cet8na02.js";import"./chunk-3k7pa7mk.js";import"./chunk-wmtek349.js";import"./chunk-awrvr02y.js";import{i}from"./chunk-mx473n83.js";import"./chunk-jxvdfgn0.js";import"./chunk-qc0xda2j.js";import{_t,gt}from"./chunk-vryy7b5x.js";import"./chunk-3kadfzjs.js";import"./chunk-7tpgnqqk.js";import"./chunk-w6n61axt.js";import{a}from"./chunk-qymratxs.js";import"./chunk-jww0ztav.js";import"./chunk-wkyng8j1.js";import"./chunk-w930ag8r.js";import"./chunk-fz55wskw.js";import"./chunk-0v0wzs89.js";import"./chunk-e0gvmsm3.js";import"./chunk-554z0m6d.js";import"./chunk-2rwvzqjc.js";import"./chunk-7rf51wwn.js";import"./chunk-dzrwt8xb.js";import"./chunk-71dy1chz.js";import"./chunk-2kk5r9ez.js";import"./chunk-pqwwfxy7.js";import"./chunk-jreee4z9.js";import"./chunk-4kwsawbv.js";import"./chunk-v6bnm6m1.js";import"./chunk-2e3zzta4.js";import"./chunk-az7e2tjv.js";import"./chunk-tfmhv9d3.js";import"./chunk-ddafccqq.js";import"./chunk-mrb6zwbg.js";import"./chunk-1qb0n0qf.js";import"./chunk-1rwk4zv5.js";import"./chunk-1swgmcv7.js";import"./chunk-6qn08fa6.js";import"./chunk-ja8knfm8.js";import"./chunk-e3rr1gh2.js";import"./chunk-1wykq8yr.js";import"./chunk-0at68b1q.js";import"./chunk-wtkjh5e3.js";import"./chunk-herm3ypf.js";import"./chunk-hs6h748p.js";import"./chunk-vnz3x6qp.js";import"./chunk-damz565h.js";import"./chunk-12bhy101.js";import"./chunk-t77qcb29.js";import"./chunk-pcpcxqfq.js";import"./chunk-82syb43r.js";import{Dn}from"./chunk-k2g2a0ht.js";import"./chunk-t8z8yg5e.js";import"./chunk-dt93d1mc.js";import"./chunk-ydfa467f.js";import"./chunk-2qz5gct0.js";import"./chunk-yqjvt149.js";import"./chunk-hndhb8as.js";import"./chunk-93ete5jm.js";import"./chunk-23qdenmd.js";import"./chunk-6yh8411d.js";import"./chunk-4nssmbdg.js";import"./chunk-62vz25mj.js";import"./chunk-543x12r6.js";import"./chunk-ex1zbngg.js";import"./chunk-jh9jc98c.js";import"./chunk-7zp201hw.js";import"./chunk-d7xqqjds.js";import"./chunk-hjmm0v46.js";import"./chunk-as958m82.js";import"./chunk-gdxma5w6.js";import"./chunk-f7wmxkyz.js";import"./chunk-d9kyssva.js";import{lEn}from"./chunk-jqkpfkjk.js";import{Nt}from"./chunk-zt6267d7.js";import{As}from"./chunk-tts7pkxe.js";import"./chunk-zfh30w3p.js";import"./chunk-2bygyys4.js";import{$k,EQ}from"./chunk-wk0y9srz.js";import{Em,vb,bQ,Qv}from"./chunk-wngybhv2.js";import"./chunk-6qmagevf.js";import{po}from"./chunk-ab45j50j.js";import"./chunk-f2pbqezq.js";import"./chunk-9q1qf2b1.js";import"./chunk-b9a7s3a6.js";import"./chunk-w32gvtac.js";import"./chunk-xhjkfwqt.js";import"./chunk-8gge0ryh.js";import"./chunk-nme86ep2.js";import"./chunk-mmyses0x.js";import"./chunk-qx5qnn4x.js";import{io}from"./chunk-79hnjxh7.js";import"./chunk-4sa61azs.js";import"./chunk-veznfhtx.js";import"./chunk-n2ferc0h.js";import"./chunk-evxfwc2t.js";import"./chunk-9pvbzahe.js";import"./chunk-wsr3ak69.js";import{SN}from"./chunk-s061x8ya.js";import{AAt}from"./chunk-8hqq8f75.js";import"./chunk-s1rfmke7.js";import{Zi,KTe,bse,mS,Eg}from"./chunk-qck9ypwm.js";import"./chunk-h4djyd62.js";import{ua}from"./chunk-gsryksdx.js";import"./chunk-2dpppm15.js";import"./chunk-v3qyatpe.js";import"./chunk-n68c1hqr.js";import"./chunk-jz4faxgn.js";import"./chunk-6k08hk0c.js";import"./chunk-ep9a7r42.js";import"./chunk-2s1d68xx.js";import"./chunk-j6enpas3.js";import"./chunk-pp1ggth1.js";import"./chunk-c7cjjpnh.js";import"./chunk-7ctrabpn.js";import"./chunk-m13zrw5b.js";import"./chunk-5c50n20w.js";import"./chunk-v643fbk1.js";import"./chunk-aynexwte.js";import"./chunk-5dnafksn.js";var r=((...args)=>{const value=import.meta.require(...args);return typeof args[0]==="string"&&args[0].endsWith(".embedded.txt")?value.default:value})("./chunk-091y6tw2.js"),b="10m";function y(){return EQ()?` Before you stop, send a one-line outcome via ${$k} \u2014 the user may be away and waiting to hear it's done. Skip this if you're stopping because the user just told you to; they're already here.`:""}var p=/^\d+[smhd]$/,m=/^every\s+(\d+)\s*(s|sec|secs|second|seconds|m|min|mins|minute|minutes|h|hr|hrs|hour|hours|d|day|days)\s*$/i;function _(e){let o=e[1],t=e[2].toLowerCase();if(t.startsWith("s"))return`${o}s`;if(t.startsWith("h"))return`${o}h`;if(t.startsWith("d"))return`${o}d`;return`${o}m`}var N="| Interval pattern      | Cron expression     | Notes                                    |\n|-----------------------|---------------------|------------------------------------------|\n| `Nm` where N \u2264 59   | `*/N * * * *`     | every N minutes                          |\n| `Nm` where N \u2265 60   | `0 */H * * *`     | round to hours (H = N/60, must divide 24)|\n| `Nh` where N \u2264 23   | `0 */N * * *`     | every N hours                            |\n| `Nd`                | `0 0 */N * *`     | every N days at midnight local           |\n| `Ns`                | treat as `ceil(N/60)m` | cron minimum granularity is 1 minute  |\n\n**If the interval doesn't cleanly divide its unit** (e.g. `7m` \u2192 `*/7 * * * *` gives uneven gaps at :56\u2192:00; `90m` \u2192 1.5h which cron can't express), pick the nearest clean interval and tell the user what you rounded to before scheduling.";function T(){if(!a.CLAUDE_CODE_REMOTE&&!_t()&&Dn()&&gt()&&Nt("allow_remote_sessions")&&Nt(SN)&&Lm().length===0)return`
+## Offer cloud first
+
+Before any scheduling step, check whether EITHER is true:
+- the parsed interval (rule 1 or 2) is **\u226560 minutes**, or
+- regardless of which rule matched, the original input uses daily phrasing ("every morning", "daily", "every day", "each night", "every weekday")
+
+If either is true, call ${As} first:
+- \`question\`: "This loop stops when you close this session. Set it up as a cloud schedule instead so it keeps running?"
+- \`header\`: "Schedule"
+- \`options\`: \`[{label: "Cloud schedule (recommended)", description: "Runs in Anthropic's cloud even after you close this session"}, {label: "This session only", description: "Runs in this terminal until you exit"}]\`
+
+If they pick **Cloud schedule**: do NOT call ${Em}. Invoke the \`schedule\` skill directly via the ${io} tool with \`args\` set to their original input verbatim (e.g. \`${io}({skill: "schedule", args: "every morning tell me a joke"})\`), then follow that skill's instructions to completion. Do NOT tell the user to run /schedule themselves. **Then stop \u2014 do not continue to any section below** (no ${Em}, no ${Zi}, no "execute the prompt now").
+If they pick **This session only**:
+- If the trigger was a parsed \u226560-minute interval (rule 1 or 2): continue below with that interval.
+- If the trigger was daily phrasing only (rule 3, no parsed interval): do NOT call ${Em}. Explain that a daily-cadence loop won't fire before this session closes, so there's nothing useful to schedule locally \u2014 suggest they either pick Cloud schedule, or re-run \`/loop\` with an explicit shorter interval (e.g. \`/loop 1h <prompt>\`) if they want a session loop. Then stop.
+If neither trigger condition was met: continue below.
+`;return""}function I(){if(!a.CLAUDE_CODE_REMOTE&&!_t()&&Dn()&&gt()&&Nt("allow_remote_sessions")&&Nt(SN)){if(Lm().length>0)return` End the confirmation with this exact line on its own, italicized: ${"`_Runs until you close this session \xB7 For durable cloud-based loops, use /schedule_`"}`;return` Only if you did NOT show the cloud-offer ${As} above (i.e., neither trigger condition applied), end the confirmation with this exact line on its own, italicized: ${"`_Runs until you close this session \xB7 For durable cloud-based loops, use /schedule_`"}. If the user already answered that question, omit this line.`}return""}function E(){return`Usage: /loop [interval] <prompt>
+
+Run a prompt or slash command on a recurring interval \u2014 or with no interval, let the model self-pace based on the task.
+
+Intervals: Ns, Nm, Nh, Nd (e.g. 5m, 30m, 2h, 1d). Minimum granularity is 1 minute.
+If no interval is specified, the model picks a delay between iterations based on what it's doing.
+
+Examples:
+  /loop 5m /babysit-prs
+  /loop 30m check the deploy
+  /loop 1h /standup 1
+  /loop check the deploy          (dynamic \u2014 model picks delays)
+  /loop check the deploy every 20m`}function A(e){let o=`The user wants you to self-pace. Decide what makes the next iteration worth running \u2014 a passage of time, or an observable event.
+
+1. **Run the parsed prompt now.** If it's a slash command, invoke it via the Skill tool; otherwise act on it directly.
+2. **If the next run is gated on an event** (CI finishing, a log line matching, a file changing, a PR comment) and no ${ua} is already running for it: arm one now with \`persistent: true\`. Its events arrive as \`<task-notification>\` messages and wake this loop immediately \u2014 you do not wait for the ${Zi} deadline. Arm once; on later iterations call ${mS} first and skip this step if a monitor is already running.
+3. **Briefly confirm**: that you're self-pacing, whether a ${ua} is the primary wake signal, that you ran the task now, and what fallback delay you're about to pick. Write this as text *before* calling ${Zi} \u2014 the turn ends as soon as that tool returns.
+4. **Then, as the last action of this turn, decide whether the loop continues.** If the task needs another iteration, call ${Zi} with:
+   - \`delaySeconds\`: with a ${ua} armed this is the **fallback heartbeat** \u2014 how long to wait if no event fires (lean 1200\u20131800s; idle ticks more frequent than the task needs are pure overhead). Without a ${ua} this is the cadence \u2014 pick based on what you observed. Read the tool's own description for cache-aware delay guidance.
+   - \`reason\`: one short sentence on why you picked that delay.
+   - \`prompt\`: the full original /loop input verbatim, prefixed with \`/loop \` so the next firing re-enters this skill and continues the loop. For example, if the user typed \`/loop check the deploy\`, pass \`/loop check the deploy\` as the prompt.
+   - \`noop\`: \`true\` if this tick changed nothing ("still waiting", "quiet hold"); \`false\` if it did something worth keeping. Consecutive \`noop: true\` ticks collapse in the terminal.
+   If it doesn't need another iteration, stop instead (step 6) \u2014 re-arming is a per-turn choice, not a default.
+5. **If you were woken by a \`<task-notification>\`** rather than this prompt: handle the event in the context of the loop task, then make the same decision. If the loop should continue, call ${Zi} again with the same \`prompt\` and the same 1200\u20131800s \`delaySeconds\` from step 4 (the ${ua} remains the wake signal; the new wakeup is only the fallback heartbeat). If the event means the work is finished, stop (step 6).
+6. **To stop the loop** \u2014 the task is complete, further iterations can't make progress, or the user asked you to stop \u2014 call ${Zi} with \`stop: true\` (no other fields) and ${Eg} any ${ua} you armed (use ${mS} to find the task ID if it is no longer in context). Stopping is the loop's normal ending \u2014 the user can restart it anytime with /loop.${y()}`;return`# /loop \u2014 schedule a recurring or self-paced prompt
+
+Parse the input below into \`[interval] <prompt\u2026>\` and schedule it.
+
+## Parsing (in priority order)
+
+1. **Leading token**: if the first whitespace-delimited token matches \`^\\d+[smhd]$\` (e.g. \`5m\`, \`2h\`), that's the interval; the rest is the prompt.
+2. **Trailing "every" clause**: otherwise, if the input ends with \`every <N><unit>\` or \`every <N> <unit-word>\` (e.g. \`every 20m\`, \`every 5 minutes\`, \`every 2 hours\`), extract that as the interval and strip it from the prompt. Only match when what follows "every" is a time expression \u2014 \`check every PR\` has no interval.
+3. **No interval**: otherwise, the entire input is the prompt and you'll self-pace dynamically (see "Dynamic mode" below).
+
+If the resulting prompt is empty, show usage \`/loop [interval] <prompt>\` and stop.
+
+Examples:
+- \`5m /babysit-prs\` \u2192 interval \`5m\`, prompt \`/babysit-prs\` (rule 1)
+- \`check the deploy every 20m\` \u2192 interval \`20m\`, prompt \`check the deploy\` (rule 2)
+- \`run tests every 5 minutes\` \u2192 interval \`5m\`, prompt \`run tests\` (rule 2)
+- \`check the deploy\` \u2192 no interval \u2192 dynamic mode, prompt \`check the deploy\` (rule 3)
+- \`check every PR\` \u2192 no interval \u2192 dynamic mode, prompt \`check every PR\` (rule 3 \u2014 "every" not followed by time)
+- \`5m\` \u2192 empty prompt \u2192 show usage
+${T()}
+## Fixed-interval mode (rules 1 and 2)
+
+Convert the interval to a cron expression:
+
+${N}
+
+Then:
+1. Call ${Em} with: \`cron\` (the expression above), \`prompt\` (the parsed prompt verbatim), \`recurring: true\`.
+2. Briefly confirm: what's scheduled, the cron expression, the human-readable cadence, that recurring tasks auto-expire after ${bQ} days, and that the user can cancel sooner with ${vb} (include the job ID).${I()}
+3. **Then immediately execute the parsed prompt now** \u2014 don't wait for the first cron fire. If it's a slash command, invoke it via the Skill tool; otherwise act on it directly.
+
+## Dynamic mode (rule 3 \u2014 no interval)
+
+${o}
+
+## Input
+
+${e}`}var f=(e,o,t)=>{let s=e?`## Loop tasks (from ${e.path})`:"## Autonomous-loop instructions (for the immediate execution and every fire)",n;if(e)n=e.content;else r.logAutonomousLoopActivation(),n=r.getAutonomousLoopPreamble();let h=e?"the loop.md tasks":"the autonomous check";if(o){let c=e?r.LOOP_FILE_DYNAMIC_SENTINEL:bse,k=e?`# /loop \u2014 loop.md tasks with dynamic pacing
+
+The user invoked \`/loop\` with no prompt and no interval and has a loop-tasks file at \`${e.path}\`. Run those tasks now, then self-pace the next iteration via ${Zi} \u2014 no cron.`:`# /loop \u2014 autonomous default with dynamic pacing
+
+The user invoked \`/loop\` with no prompt and no interval. Run the autonomous check now, then self-pace the next iteration via ${Zi} \u2014 no cron.`,v=e?`that you're running tasks from \`${e.path}\` in dynamic-pacing mode, that you ran the first tick now`:"that this is the autonomous default in dynamic-pacing mode, that you ran the check now",O=`1. **Run ${h} now**, following the instructions inlined below.
+2. **If the next tick is gated on an event** (CI finishing, a PR comment, a log line) and no ${ua} is already running for it: arm one now with \`persistent: true\`. Its events wake this loop immediately \u2014 you do not wait for the ${Zi} deadline. Arm once; on later ticks call ${mS} first and skip if a monitor is already running.
+3. **Briefly confirm**: ${v}, whether a ${ua} is the primary wake signal, and what fallback delay you're about to pick. Write this as text *before* calling ${Zi} \u2014 the turn ends as soon as that tool returns.
+4. **Then, as the last action of this turn, decide whether the loop continues.** If the next check is worth running, call ${Zi} with:
+   - \`delaySeconds\`: with a ${ua} armed this is the fallback heartbeat (lean 1200\u20131800s). Without one, pick based on what you observed this turn \u2014 quiet branch? wait longer. Lots in flight? wait shorter. Read the tool's own description for cache-aware delay guidance.
+   - \`reason\`: one short sentence on why you picked that delay.
+   - \`prompt\`: the literal string \`${c}\` \u2014 the dynamic-mode sentinel expands at fire time to the full instructions (first fire / first fire post-compact / loop.md edited) or a dynamic-pacing-specific short reminder (subsequent fires). Do not pass the full instructions; that is handled automatically.
+   - \`noop\`: \`true\` if this tick changed nothing ("still waiting", "quiet hold"); \`false\` if it did something worth keeping. Consecutive \`noop: true\` ticks collapse in the terminal.
+   If it isn't, stop instead (step 6) \u2014 re-arming is a per-turn choice, not a default.
+5. **If woken by a \`<task-notification>\`** rather than this prompt: handle the event, then make the same decision. If the loop should continue, call ${Zi} again with \`${c}\` and the same 1200\u20131800s \`delaySeconds\` (the ${ua} remains the wake signal; the new wakeup is only the fallback heartbeat). If the event means the work is finished, stop (step 6).
+6. **To stop the loop** \u2014 the task is complete, further iterations can't make progress, or the user asked you to stop \u2014 call ${Zi} with \`stop: true\` (no other fields) and ${Eg} any ${ua} you armed (use ${mS} to find the task ID if it is no longer in context). Stopping is the loop's normal ending \u2014 the user can restart it anytime with /loop.${y()}`;return`${k}
+
+## Action
+
+${O}
+
+${s}
+
+${n}`}let l=e?r.LOOP_FILE_SENTINEL:KTe,u=e?`# /loop \u2014 schedule loop.md tasks
+
+The user invoked \`/loop\` with no prompt (input was empty or just the interval \`${t}\`) and has a loop-tasks file at \`${e.path}\`. Schedule a recurring cron that runs those tasks each tick, then run the first tick immediately.`:`# /loop \u2014 schedule the autonomous default
+
+The user invoked \`/loop\` with no prompt (input was empty or just the interval \`${t}\`). Schedule the autonomous-loop default and then run the first autonomous check immediately.`,g=e?"it expands at fire time to the full loop.md contents on first delivery (and whenever loop.md has been edited since last fire), and to a short reminder on subsequent unchanged fires. The long instructions stay in the cached message-prefix.":"it expands at fire time to the full autonomous-loop instructions on first delivery, and to a short reminder on subsequent fires (the long instructions stay in the cached message-prefix).",w=e?`what's scheduled, the cron expression, the human-readable cadence, that it's running tasks from \`${e.path}\`, that recurring tasks auto-expire after ${bQ} days, and that the user can cancel sooner with ${vb} (include the job ID).`:`what's scheduled, the cron expression, the human-readable cadence, that recurring tasks auto-expire after ${bQ} days, and that they can cancel sooner with ${vb} (include the job ID). Mention this is the autonomous default and that the autonomous-loop instructions are baked in.`;return`${u}
+
+## Action
+
+1. Convert \`${t}\` to a 5-field cron expression. Supported suffixes: \`s\` \u2192 ceil to nearest minute, \`m\` (minutes), \`h\` (hours), \`d\` (days). Examples: \`5m\` \u2192 \`*/5 * * * *\`, \`1h\` \u2192 \`0 * * * *\`, \`1d\` \u2192 \`0 0 * * *\`. If the interval doesn't cleanly divide its unit, round to the nearest clean interval and tell the user what you rounded to.
+2. Call ${Em} with:
+   - \`cron\`: the expression from step 1
+   - \`prompt\`: the literal string \`${l}\` \u2014 ${g}
+   - \`recurring\`: \`true\`
+3. Briefly confirm: ${w}
+4. **Then immediately run ${h} now**, following the instructions inlined below. Don't wait for the first cron fire.
+
+${s}
+
+${n}`};function G(){po({name:AAt,menuDescription:"Repeat a prompt or command on an interval (e.g. /loop 5m /foo)",aliases:["proactive"],description:"Run a prompt or slash command on a recurring interval (e.g. /loop 5m /foo). Omit the interval to let the model self-pace.",whenToUse:'When the user wants to set up a recurring task, poll for status, or run something repeatedly on an interval (e.g. "check the deploy every 5 minutes", "keep running /babysit-prs"). Do NOT invoke for one-off tasks.',get argumentHint(){return"[interval] [prompt]"},userInvocable:!0,argsMayContainSlashCommands:!0,isEnabled:Qv,async getPromptForCommand(e,o){let t=e.trim();if(!o.options?.isSkillPreload&&!o.options?.modelScheduledOrigin)i("tengu_loop_command",{has_args:t.length>0,is_interval_only:p.test(t)||m.test(t)});{let s=t.match(m),n=!t,h=p.test(t)||s!==null;if(n||h){let l=s?_(s):t||b,u=await r.readLoopFileAsync(o.storageV5);if(n){if(!o.options?.isSkillPreload&&!o.options?.modelScheduledOrigin)lEn();return[{type:"text",text:f(u,!0,l)}]}return[{type:"text",text:f(u,!1,l)}]}}if(!t)return[{type:"text",text:E()}];if(!o.options?.isSkillPreload&&!o.options?.modelScheduledOrigin)lEn();return[{type:"text",text:A(t)}]}})}export{G as registerLoopSkill};

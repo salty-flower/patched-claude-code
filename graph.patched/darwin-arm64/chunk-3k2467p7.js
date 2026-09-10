@@ -1,0 +1,13 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.266
+import{M}from"./chunk-wmtek349.js";import{mr}from"./chunk-12bhy101.js";import{l,z}from"./chunk-wkyng8j1.js";import{Kt}from"./chunk-az7e2tjv.js";import{Ce}from"./chunk-tfmhv9d3.js";import{b,q,t}from"./chunk-w930ag8r.js";import{be}from"./chunk-3kadfzjs.js";import{m}from"./chunk-7tpgnqqk.js";import{s,T,c,k}from"./chunk-5vjkaf25.js";import{dirname as g,join as w}from"path";var D=50,y=m(()=>c({version:k(1),sessions:T(c({id:s(),reason:s(),at:s()}))})),u="device-unbound-creates";function d(){return w(be(),"state",`${u}.json`)}async function f(r){let o=await r.readText();if(o===void 0)return[];let n=v(o);if(!n.success)return[];let e=await r.retentionCutoff();return e===null?n.data.sessions:n.data.sessions.filter((i)=>!C(i.at,e))}function v(r){try{return y().safeParse(q(r))}catch{return{success:!1}}}function C(r,o){let n=Date.parse(r);return Number.isNaN(n)||n<o.getTime()}async function AEr(r,o,n){try{let e=mr(r),a=[...(await f(n)).filter((p)=>mr(p.id)!==e),{id:e,reason:o,at:n.now().toISOString()}].slice(-D);await n.writeText(b({version:1,sessions:a},null,2)+`
+`)}catch(e){t(`[deviceBind] unbound create not recorded (${l(e)})`)}}async function Ycn(r,o,n){try{let e=mr(r),i=(await f(n)).find((a)=>mr(a.id)===e);return i!==void 0&&o(i.reason)?i.reason:void 0}catch(e){t(`[deviceBind] unbound-create record unreadable (${l(e)})`);return}}function Xcn(r){let o=M()&&r!==void 0?r:void 0,n=Ce.state(u);return{readText:async()=>{if(o){let e=await o.readText([n]);if(!e.ok)throw Error("device unbound-creates read failed");let i=e.value.items[0];return i.found?i.value:void 0}try{return await Kt().read(d())}catch(e){if(z(e))return;throw e}},writeText:async(e)=>{if(o){if(!(await o.write(n,e,{mode:384})).ok)throw Error("device unbound-creates write failed");return}let i=d();await Kt().mkdir(g(i),448),await Kt().atomicWrite(i,e,384)},now:()=>new Date,retentionCutoff:async()=>{let e=await import("./chunk-hg0qrp9a.js");return await e.isRetentionCleanupSafe(r)?e.getCutoffDate():null}}}
+export{AEr,Ycn,Xcn};

@@ -25,7 +25,9 @@ const targetUses259LaterSymbols = gte(TARGET_VERSION, "2.1.259") && lt(TARGET_VE
 const targetUses260LaterSymbols = gte(TARGET_VERSION, "2.1.260") && lt(TARGET_VERSION, "2.1.263")
 const targetUses263LaterSymbols = gte(TARGET_VERSION, "2.1.263") && lt(TARGET_VERSION, "2.1.266")
 const targetUses266LaterSymbols = gte(TARGET_VERSION, "2.1.266") && lt(TARGET_VERSION, "2.1.267")
+const targetUses267LaterSymbols = gte(TARGET_VERSION, "2.1.267") && lt(TARGET_VERSION, "2.1.268")
 const targetUsesSessionJobs =
+  targetUses267LaterSymbols ||
   targetUses266LaterSymbols ||
   targetUses263LaterSymbols ||
   targetUses260LaterSymbols ||
@@ -51,6 +53,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses267LaterSymbols ||
   targetUses266LaterSymbols ||
   targetUses263LaterSymbols ||
   targetUses260LaterSymbols ||
@@ -841,6 +844,8 @@ test.skipIf(!testLaterCommand)(
       "setTimeout(()=>{if(!__jobs.delete(__id))return;L2(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;V2(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;I5(",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;yX(",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;wX(",
       "await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)",
       "await Qjr(__cron,__prompt,!1,!1,g3()?.agentId)",
       "await iHr(__cron,__prompt,!1,!1,E4()?.agentId)",
@@ -936,6 +941,30 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses267LaterSymbols) {
+      expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
+      expect(patched).toContain(
+        'if(WX.trim()===""&&!PCt){if(!(uvo&&Avr&&!TCt&&Swt()))S("prompt_submit_empty");return}if(Ea.mode==="prompt")',
+      )
+      expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;yX(")
+      expect(patched).toContain("pastedContentsOverride:avo")
+      expect(patched).toContain('let re=eMs(M5([...D,...G]));if(!re.some((v)=>v.name==="later")')
+      expect(patchedLinux).toContain(
+        'if(YX.trim()===""&&!JCt){if(!(hvo&&zvr&&!XCt&&Ywt()))b("prompt_submit_empty");return}if(Ia.mode==="prompt")',
+      )
+      expect(patchedLinux).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;wX(")
+      expect(patchedLinux).toContain("pastedContentsOverride:pvo")
+      expect(patchedLinux).toContain('let re=EMs(x8([...L,...G]));if(!re.some((v)=>v.name==="later")')
+      expect(patched).not.toContain(
+        'if(sX.trim()===""&&!Cwt){if(!(YSo&&Jbr&&!vwt&&mvt()))S("prompt_submit_empty");return}if(ga.mode==="prompt")',
+      )
+      expect(patched).not.toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;I5(")
+      expect(patched).not.toContain('let re=i_s(yK([...N,...V]));if(!re.some((v)=>v.name==="later")')
+      expect(patchedLinux).not.toContain(
+        'if(TX.trim()===""&&!cwt){if(!(ZSo&&fSr&&!lwt&&ovt()))b("prompt_submit_empty");return}if(ga.mode==="prompt")',
+      )
+      expect(patchedLinux).not.toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;Y5(")
+      expect(patchedLinux).not.toContain('let re=I_s(u8([...L,...q]));if(!re.some((v)=>v.name==="later")')
     } else if (targetUses266LaterSymbols) {
       expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
       expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;I5(")

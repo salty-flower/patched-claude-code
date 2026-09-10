@@ -2927,6 +2927,31 @@ assert_contains = '''if(RR("fable51"))KG(E,iRe());return E.push(lin),nJe(E,e,"op
 assert_not_contains = '''if(YA("fable51"))iz(E,jxe());return E.push(irn),S7e(E,e,"opus")'''
 
 [[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-267-darwin"
+lineage = "oauth-primary-picker-shows-local-fable"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.267 primary OAuth picker still omits Fable from the first-party branch exercised by local OAuth sessions even when PP confirms a local catalog mapping. Insert the existing row before the branch return; entitlement and catalog availability remain unchanged. Current Darwin builder Lho, catalog predicate PP, insertion helper Aq, and Fable row EMe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L290-L304"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Lho", strings = ['''return v.push(Edn),Art(v,e,"opus")''', '''PP("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return v.push(Edn),Art(v,e,"opus")'''
+value = '''if(PP("fable51"))Aq(v,EMe());return v.push(Edn),Art(v,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin primary OAuth picker uses catalog-backed Fable availability"
+assert_contains = '''if(PP("fable51"))Aq(v,EMe());return v.push(Edn),Art(v,e,"opus")'''
+assert_not_contains = '''if(RR("fable51"))KG(E,iRe());return E.push(lin),nJe(E,e,"opus")'''
+
+[[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-266-linux"
 lineage = "oauth-primary-picker-shows-local-fable"
 target_version = "2.1.266"
@@ -2950,6 +2975,31 @@ kind = "static"
 name = "2.1.266 Linux primary OAuth picker uses catalog-backed Fable availability"
 assert_contains = '''if(AR("fable51"))nq(k,dRe());return k.push(pin),UJe(k,e,"opus")'''
 assert_not_contains = '''if(XA("fable51"))Mz(E,txe());return E.push(drn),O7e(E,e,"opus")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-267-linux"
+lineage = "oauth-primary-picker-shows-local-fable"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "The 2.1.267 primary OAuth picker still omits Fable from the first-party branch exercised by local OAuth sessions even when iI confirms a local catalog mapping. Insert the existing row before the branch return; entitlement and catalog availability remain unchanged. Current Linux builder eyo, catalog predicate iI, insertion helper cV, and Fable row AMe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L290-L304"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "eyo", strings = ['''return k.push(Pdn),zrt(k,e,"opus")''', '''iI("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return k.push(Pdn),zrt(k,e,"opus")'''
+value = '''if(iI("fable51"))cV(k,AMe());return k.push(Pdn),zrt(k,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux primary OAuth picker uses catalog-backed Fable availability"
+assert_contains = '''if(iI("fable51"))cV(k,AMe());return k.push(Pdn),zrt(k,e,"opus")'''
+assert_not_contains = '''if(AR("fable51"))nq(k,dRe());return k.push(pin),UJe(k,e,"opus")'''
 
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-266-darwin"
@@ -2977,6 +3027,31 @@ assert_contains = '''if(RR("fable51"))KG(y,iRe());return y.push(lin),nJe(y,e,"so
 assert_not_contains = '''if(YA("fable51"))iz(_,jxe());return _.push(irn),S7e(_,e,"sonnet")'''
 
 [[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-267-darwin"
+lineage = "oauth-standard-picker-shows-local-fable"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.267 standard OAuth picker still omits Fable from its first-party branch even when PP confirms a local catalog mapping. Insert the existing row before the branch return. Current Darwin builder Lho, catalog predicate PP, insertion helper Aq, and Fable row EMe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L307-L323"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Lho", strings = ['''return y.push(Edn),Art(y,e,"sonnet")''', '''PP("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return y.push(Edn),Art(y,e,"sonnet")'''
+value = '''if(PP("fable51"))Aq(y,EMe());return y.push(Edn),Art(y,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin standard OAuth picker inserts catalog-backed Fable"
+assert_contains = '''if(PP("fable51"))Aq(y,EMe());return y.push(Edn),Art(y,e,"sonnet")'''
+assert_not_contains = '''if(RR("fable51"))KG(y,iRe());return y.push(lin),nJe(y,e,"sonnet")'''
+
+[[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-266-linux"
 lineage = "oauth-standard-picker-shows-local-fable"
 target_version = "2.1.266"
@@ -3000,3 +3075,28 @@ kind = "static"
 name = "2.1.266 Linux standard OAuth picker inserts catalog-backed Fable"
 assert_contains = '''if(AR("fable51"))nq(y,dRe());return y.push(pin),UJe(y,e,"sonnet")'''
 assert_not_contains = '''if(XA("fable51"))Mz(y,txe());return y.push(drn),O7e(y,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-267-linux"
+lineage = "oauth-standard-picker-shows-local-fable"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "The 2.1.267 standard OAuth picker still omits Fable from its first-party branch even when iI confirms a local catalog mapping. Insert the existing row before the branch return. Current Linux builder eyo, catalog predicate iI, insertion helper cV, and Fable row AMe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L307-L323"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "eyo", strings = ['''return y.push(Pdn),zrt(y,e,"sonnet")''', '''iI("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return y.push(Pdn),zrt(y,e,"sonnet")'''
+value = '''if(iI("fable51"))cV(y,AMe());return y.push(Pdn),zrt(y,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux standard OAuth picker inserts catalog-backed Fable"
+assert_contains = '''if(iI("fable51"))cV(y,AMe());return y.push(Pdn),zrt(y,e,"sonnet")'''
+assert_not_contains = '''if(AR("fable51"))nq(y,dRe());return y.push(pin),UJe(y,e,"sonnet")'''

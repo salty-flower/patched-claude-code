@@ -65,6 +65,8 @@ const targetUses263ThinkingSymbols =
   isVersionAtLeast(TARGET_VERSION, "2.1.263") && isVersionBefore(TARGET_VERSION, "2.1.266")
 const targetUses266ThinkingSymbols =
   isVersionAtLeast(TARGET_VERSION, "2.1.266") && isVersionBefore(TARGET_VERSION, "2.1.267")
+const targetUses267ThinkingSymbols =
+  isVersionAtLeast(TARGET_VERSION, "2.1.267") && isVersionBefore(TARGET_VERSION, "2.1.268")
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -118,6 +120,21 @@ function getFunctionSourceUntilNextDeclaration(body: string, signature: string):
 }
 
 test("thinking deltas update the stream handler's live thinking callback", () => {
+  if (targetUses267ThinkingSymbols) {
+    for (const [body, dispatcher, handler, estimator, staleEstimator] of [
+      [patched, "ITe", "Qgt", "lAn", "vbn"],
+      [linuxPatched, "kTe", "rht", "$vn", "Jbn"],
+    ]) {
+      expect(body).toContain(`function ${dispatcher}(e,n){let{onMessage:r,onTombstone:o,onStreamingThinking:d`)
+      expect(body).toContain(`${handler}(e,n)`)
+      expect(body).toContain(
+        'n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))',
+      )
+      expect(body).toContain(`estimatedTokensDelta:${estimator}(w)`)
+      expect(body).not.toContain(`estimatedTokensDelta:${staleEstimator}(w)`)
+    }
+    return
+  }
   if (targetUses266ThinkingSymbols) {
     for (const [body, dispatcher, handler] of [[patched, "Tve", "dft"], [linuxPatched, "_Ae", "yft"]]) {
       expect(body).toContain(`function ${dispatcher}(e,n){let{onMessage:r,onTombstone:o,onStreamingThinking:d`)
@@ -304,6 +321,18 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 })
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (targetUses267ThinkingSymbols) {
+    for (const [body, subscription] of [
+      [patched, "__acc_streamingThinking=De((kot?S2:null)?.stream,(T)=>T.streamingThinking)"],
+      [linuxPatched, "__acc_streamingThinking=Oe((Tot?h2:null)?.stream,(T)=>T.streamingThinking)"],
+    ]) {
+      expect(body).toContain(subscription)
+      expect(body).toContain(
+        "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+      )
+    }
+    return
+  }
   if (targetUses266ThinkingSymbols) {
     for (const [body, subscription] of [
       [patched, "__acc_streamingThinking=Le((zet?H2:null)?.stream,(T)=>T.streamingThinking)"],
@@ -491,6 +520,19 @@ test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
 })
 
 test("live thinking rendering is not suppressed by brief mode", () => {
+  if (targetUses267ThinkingSymbols) {
+    for (const [body, signature, memo, children] of [
+      [patched, "function T9(bot)", "HH", "XSe,JSe,ZSe"],
+      [linuxPatched, "function y6(Cot)", "$H", "nke,ike,uke"],
+    ] as const) {
+      const wrapper = getFunctionSourceUntilNextDeclaration(body, signature)
+      expect(wrapper).toContain("(39)")
+      expect(wrapper).toContain(`children:[${children},__acc_streamingThinking?.thinking`)
+      expect(wrapper).toContain(`${memo}[37]=__acc_streamingThinking,${memo}[38]=`)
+      expect(wrapper).not.toContain("streamingThinking:null")
+    }
+    return
+  }
   if (targetUses266ThinkingSymbols) {
     for (const [body, signature, memo, children] of [
       [patched, "function o9(Get)", "YU", "Qbe,Ybe,Xbe"],
@@ -768,7 +810,8 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
     targetUses259ThinkingSymbols ||
     targetUses260ThinkingSymbols ||
     targetUses263ThinkingSymbols ||
-    targetUses266ThinkingSymbols
+    targetUses266ThinkingSymbols ||
+    targetUses267ThinkingSymbols
   ) {
     expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
     expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')

@@ -41,7 +41,7 @@ function isVersionBefore(version: string, ceiling: string): boolean {
 const targetUses251LaterSymbols = isVersionAtLeast(TARGET_VERSION, "2.1.251") && isVersionBefore(TARGET_VERSION, "2.1.258")
 
 test("footer schema parses settings with the target graph's actual schema constructors", async () => {
-  if (TARGET_VERSION !== "2.1.263" && TARGET_VERSION !== "2.1.266") return
+  if (TARGET_VERSION !== "2.1.263" && TARGET_VERSION !== "2.1.266" && TARGET_VERSION !== "2.1.267") return
   const patches = loadPatchEntriesFromFile(join(ROOT, "patches", "statusline-footer-control.toml"))
   for (const platform of ["darwin-arm64", "linux-x64"]) {
     const graphDir = join(ROOT, "staging", TARGET_VERSION, "graph", platform)
@@ -101,16 +101,23 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
     expect(patched).toContain(
       '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]',
     )
-    if (TARGET_VERSION === "2.1.266") {
+    if (TARGET_VERSION === "2.1.266" || TARGET_VERSION === "2.1.267") {
       const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
       const linuxPatched = readdirSync(linuxGraphDir)
         .filter((file) => file.endsWith(".js"))
         .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
         .join("\n")
-      for (const [bundle, footer, effort, permission, warning, selector] of [
-        [patched, "K0e:dfo", "uy(Zt)?fA(Zt,at)", "I", "be", "F"],
-        [linuxPatched, "s0e:ffo", "cy(Zt)?pE(Zt,at)", "P", "Se", "B"],
-      ]) {
+      const targetSymbols =
+        TARGET_VERSION === "2.1.267"
+          ? [
+              [patched, "$Ne:Tgo", "$h(_e)?TA(_e,G)", "n", "be", "U"],
+              [linuxPatched, "VNe:Igo", "Nh(_e)?AE(_e,G)", "n", "Se", "B"],
+            ]
+          : [
+              [patched, "K0e:dfo", "uy(Zt)?fA(Zt,at)", "I", "be", "F"],
+              [linuxPatched, "s0e:ffo", "cy(Zt)?pE(Zt,at)", "P", "Se", "B"],
+            ]
+      for (const [bundle, footer, effort, permission, warning, selector] of targetSymbols) {
         expect(bundle).toContain('new Y("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
         expect(bundle).toContain('globalThis.__acc_disabled_footer=e==="all"')
         expect(bundle).toContain(`return __acc_hide_footer?${footer}}`)
@@ -122,8 +129,16 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         expect(bundle).toContain("globalThis.__acc_clipboard_image_available=!0")
         expect(bundle).toContain("statusLine:{disabledFooter:globalThis.__acc_disabled_footer}")
       }
-      expect(patched).toContain('hideBuiltinFooter:P().optional().describe("Compatibility alias for hiding all built-in footer items.")')
+      const darwinBooleanHelper = TARGET_VERSION === "2.1.267" ? "I" : "P"
+      expect(patched).toContain(
+        `hideBuiltinFooter:${darwinBooleanHelper}().optional().describe("Compatibility alias for hiding all built-in footer items.")`,
+      )
       expect(linuxPatched).toContain('hideBuiltinFooter:H().optional().describe("Compatibility alias for hiding all built-in footer items.")')
+      if (TARGET_VERSION === "2.1.267") {
+        expect(patched).not.toContain("__acc_hide_effort_level=F((E)=>E.settings.statusLine?.hideBuiltinFooter")
+        expect(patched).not.toContain("__acc_hide_effort=F((E)=>E.settings.statusLine?.hideBuiltinFooter")
+        expect(patched).not.toContain("n0e();let __acc_hide_mode=F((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter")
+      }
       return
     }
     if (TARGET_VERSION === "2.1.263") {

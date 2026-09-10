@@ -1,5 +1,5 @@
 name = "statusline-footer-control"
-target_version = "2.1.263"
+target_version = "2.1.267"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -15657,7 +15657,7 @@ assert_not_contains = '''showHint:!__acc_hide_mode&&Ent,denseShowHint:Dnt'''
 [[patches]]
 name = "statusline-footer-control-command-length-mount-2-1-259"
 target_version = "2.1.263"
-applies_to = ">=2.1.259 <2.2.0"
+applies_to = ">=2.1.259 <2.1.267"
 platforms = ["darwin-arm64"]
 rationale = "Avoid a missing-command crash in the 2.1.259 Darwin status-line mount; the graph local drifted from `T` to `w`."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
@@ -16269,7 +16269,7 @@ value = '''lst(at,{isTerminalFocused:i,canPasteImages:a,addNotification:h,clock:
 kind = "static"
 name = "2.1.260 Linux clipboard context locals"
 assert_contains = '''lst(at,{isTerminalFocused:i,canPasteImages:a,addNotification:h,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
-assert_not_contains = '''cat(ct,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:'''
+assert_not_contains = '''mct(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
 
 [[patches]]
 name = "statusline-footer-control-effort-notification-settings-2-1-260"
@@ -16502,6 +16502,32 @@ name = "2.1.266 linux rejects stale enum helper"
 assert_not_contains = '''disabledFooter:k(X(["footer","permission_mode"'''
 
 [[patches]]
+name = "statusline-footer-control-schema-2-1-267-linux"
+lineage = "statusline-footer-control-schema"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux settings imports boolean H, array T, and enum Y in the status-line schema module. Reuse those scope-local constructors for the footer controls."
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:H().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(Y(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:H().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(Y(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+assert_not_contains = '''hideBuiltinFooter:O().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(ee('''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 linux rejects stale enum helper"
+assert_not_contains = '''disabledFooter:k(X(["footer","permission_mode"'''
+
+[[patches]]
 name = "statusline-footer-control-schema-2-1-266-darwin"
 lineage = "statusline-footer-control-schema"
 target_version = "2.1.266"
@@ -16528,6 +16554,32 @@ name = "2.1.266 darwin rejects stale enum helper"
 assert_not_contains = '''disabledFooter:v(Y(["footer","permission_mode"'''
 
 [[patches]]
+name = "statusline-footer-control-schema-2-1-267-darwin"
+lineage = "statusline-footer-control-schema"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin settings imports boolean I, array T, and enum X in the status-line schema module. Reuse those scope-local constructors for the footer controls."
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hideVimModeIndicator", string = "Hide the built-in" }
+[patches.transform]
+op = "append_object_property"
+code = 'hideBuiltinFooter:I().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(X(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional().describe("Built-in footer items to hide when a custom status line is configured.")'
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin schema uses graph-local helpers"
+assert_contains = '''hideBuiltinFooter:I().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(X(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"])).optional()'''
+assert_not_contains = '''hideBuiltinFooter:P().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:T(Y('''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 darwin rejects stale enum helper"
+assert_not_contains = '''disabledFooter:v(Y(["footer","permission_mode"'''
+
+[[patches]]
 name = "statusline-json-effort-level-2-1-266-linux"
 lineage = "statusline-json-effort-level"
 target_version = "2.1.266"
@@ -16548,6 +16600,29 @@ assert_not_contains = '''effort_level:Sh(et)?Yw(et,Oe):null'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''effort_level:Qg(Et)?ww(Et,st):null,...Qg(Et)&&{effort:{level:ww(Et,st)}},'''
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-267-linux"
+lineage = "statusline-json-effort-level"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux JSON builder djo derives model _e and receives effortValue:G; its existing nested effort uses Nh(_e) and AE(_e,G). Reuse those exact helpers and inputs for effort_level."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "literal"
+locator_pattern = '''...Nh(_e)&&{effort:{level:AE(_e,G)}},'''
+replacement = '''effort_level:Nh(_e)?AE(_e,G):null,...Nh(_e)&&{effort:{level:AE(_e,G)}},'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux effort JSON locals"
+assert_contains = '''effort_level:Nh(_e)?AE(_e,G):null,...Nh(_e)&&{effort:{level:AE(_e,G)}},'''
+assert_not_contains = '''effort_level:cy(Zt)?pE(Zt,at):null,...cy(Zt)&&{effort:{level:pE(Zt,at)}},'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''effort_level:Qg(Et)?ww(Et,st):null,...Qg(Et)&&{effort:{level:ww(Et,st)}},'''
 
 [[patches]]
@@ -16574,6 +16649,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''effort_level:eh(wt)?ET(wt,st):null,...eh(wt)&&{effort:{level:ET(wt,st)}},'''
 
 [[patches]]
+name = "statusline-json-effort-level-2-1-267"
+lineage = "statusline-json-effort-level"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin JSON builder V1o derives model _e and receives effortValue:G; its existing nested effort uses $h(_e) and TA(_e,G). Reuse those exact helpers and inputs for effort_level."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "literal"
+locator_pattern = '''...$h(_e)&&{effort:{level:TA(_e,G)}},'''
+replacement = '''effort_level:$h(_e)?TA(_e,G):null,...$h(_e)&&{effort:{level:TA(_e,G)}},'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin effort JSON locals"
+assert_contains = '''effort_level:$h(_e)?TA(_e,G):null,...$h(_e)&&{effort:{level:TA(_e,G)}},'''
+assert_not_contains = '''effort_level:uy(Zt)?fA(Zt,at):null,...uy(Zt)&&{effort:{level:fA(Zt,at)}},'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''effort_level:eh(wt)?ET(wt,st):null,...eh(wt)&&{effort:{level:ET(wt,st)}},'''
+
+[[patches]]
 name = "statusline-json-permission-mode-2-1-266-linux"
 lineage = "statusline-json-permission-mode"
 target_version = "2.1.266"
@@ -16597,6 +16695,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''return{...pa(R,st),...uo&&{session_name:uo},permission_mode:P,model:'''
 
 [[patches]]
+name = "statusline-json-permission-mode-2-1-267-linux"
+lineage = "statusline-json-permission-mode"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux JSON builder djo destructures permissionMode:n and session:e, derives session name Pe, and spreads xa(e,U). Expose that permission parameter alongside the existing session and model fields."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "literal"
+locator_pattern = '''return{...xa(e,U),...Pe&&{session_name:Pe},model:'''
+replacement = '''return{...xa(e,U),...Pe&&{session_name:Pe},permission_mode:n,model:'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux permission JSON locals"
+assert_contains = '''return{...xa(e,U),...Pe&&{session_name:Pe},permission_mode:n,model:'''
+assert_not_contains = '''return{...ka(w,st),...ao&&{session_name:ao},permission_mode:P,model:'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''return{...pa(R,st),...uo&&{session_name:uo},permission_mode:P,model:'''
+
+[[patches]]
 name = "statusline-json-permission-mode-2-1-266"
 lineage = "statusline-json-permission-mode"
 target_version = "2.1.266"
@@ -16617,6 +16738,29 @@ assert_not_contains = '''return{...Ea(w,Le),...to&&{session_name:to},permission_
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''return{...fa(w,st),...uo&&{session_name:uo},permission_mode:H,model:'''
+
+[[patches]]
+name = "statusline-json-permission-mode-2-1-267"
+lineage = "statusline-json-permission-mode"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin JSON builder V1o destructures permissionMode:n and session:e, derives session name Pe, and spreads xa(e,U). Expose that permission parameter alongside the existing session and model fields."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "literal"
+locator_pattern = '''return{...xa(e,U),...Pe&&{session_name:Pe},model:'''
+replacement = '''return{...xa(e,U),...Pe&&{session_name:Pe},permission_mode:n,model:'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin permission JSON locals"
+assert_contains = '''return{...xa(e,U),...Pe&&{session_name:Pe},permission_mode:n,model:'''
+assert_not_contains = '''return{...Ca(w,st),...ao&&{session_name:ao},permission_mode:I,model:'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''return{...fa(w,st),...uo&&{session_name:uo},permission_mode:H,model:'''
 
 [[patches]]
@@ -16648,6 +16792,34 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''let Ste=Bco,__acc_hide_effort_level=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches]]
+name = "statusline-footer-control-effort-level-2-1-267-linux"
+lineage = "statusline-footer-control-effort-level"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux persistent effort effect binds Qse=_wo, callback uW, dependencies dW, cache Zi, notifier bc, dismissor UL, and key fT. B is the imported app-state selector; include the hide state in both cache invalidation and effect dependencies."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''let Qse=_wo,uW,dW;if(Zi[359]!==bc||Zi[360]!==Qse||Zi[361]!==UL)uW=()=>{if(!Qse){UL(fT);return}UL(fT),bc({key:fT,kind:"feedback",text:Qse,priority:"high",timeoutMs:1e4})},dW=[Qse,bc,UL],Zi[359]=bc,Zi[360]=Qse,Zi[361]=UL,Zi[362]=uW,Zi[363]=dW;else uW=Zi[362],dW=Zi[363];'''
+replacement = '''let Qse=_wo,__acc_hide_effort_level=B((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer"),uW,dW;if(Zi[359]!==bc||Zi[360]!==Qse||Zi[361]!==UL||Zi[363]?.[3]!==__acc_hide_effort_level)uW=()=>{if(!Qse||__acc_hide_effort_level){UL(fT);return}UL(fT),bc({key:fT,kind:"feedback",text:Qse,priority:"high",timeoutMs:1e4})},dW=[Qse,bc,UL,__acc_hide_effort_level],Zi[359]=bc,Zi[360]=Qse,Zi[361]=UL,Zi[362]=uW,Zi[363]=dW;else uW=Zi[362],dW=Zi[363];'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux persistent effort locals"
+assert_contains = '''let Qse=_wo,__acc_hide_effort_level=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''let cse=avo,__acc_hide_effort_level=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux persistent effort dependency"
+assert_contains = '''dW=[Qse,bc,UL,__acc_hide_effort_level]'''
+assert_not_contains = '''q1=[cse,dc,sO,__acc_hide_effort_level]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''let Ste=Bco,__acc_hide_effort_level=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-effort-level-2-1-266"
 lineage = "statusline-footer-control-effort-level"
 target_version = "2.1.266"
@@ -16676,6 +16848,34 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''let hte=Ico,__acc_hide_effort_level=U((E)=>E.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches]]
+name = "statusline-footer-control-effort-level-2-1-267"
+lineage = "statusline-footer-control-effort-level"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin persistent effort effect binds Gse=bwo, callback vW, dependencies wW, cache Zi, notifier hc, dismissor KL, and key yT. The same chunk imports app-state selector U from chunk-5xharng0.js; include the hide state in both cache invalidation and effect dependencies."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''let Gse=bwo,vW,wW;if(Zi[359]!==hc||Zi[360]!==Gse||Zi[361]!==KL)vW=()=>{if(!Gse){KL(yT);return}KL(yT),hc({key:yT,kind:"feedback",text:Gse,priority:"high",timeoutMs:1e4})},wW=[Gse,hc,KL],Zi[359]=hc,Zi[360]=Gse,Zi[361]=KL,Zi[362]=vW,Zi[363]=wW;else vW=Zi[362],wW=Zi[363];'''
+replacement = '''let Gse=bwo,__acc_hide_effort_level=U((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer"),vW,wW;if(Zi[359]!==hc||Zi[360]!==Gse||Zi[361]!==KL||Zi[363]?.[3]!==__acc_hide_effort_level)vW=()=>{if(!Gse||__acc_hide_effort_level){KL(yT);return}KL(yT),hc({key:yT,kind:"feedback",text:Gse,priority:"high",timeoutMs:1e4})},wW=[Gse,hc,KL,__acc_hide_effort_level],Zi[359]=hc,Zi[360]=Gse,Zi[361]=KL,Zi[362]=vW,Zi[363]=wW;else vW=Zi[362],wW=Zi[363];'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin persistent effort locals"
+assert_contains = '''let Gse=bwo,__acc_hide_effort_level=U((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''let rse=rvo,__acc_hide_effort_level=F((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin persistent effort dependency"
+assert_contains = '''wW=[Gse,hc,KL,__acc_hide_effort_level]'''
+assert_not_contains = '''U1=[rse,dc,_O,__acc_hide_effort_level]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''let hte=Ico,__acc_hide_effort_level=U((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-effort-notification-2-1-266-linux"
 lineage = "statusline-footer-control-effort-notification"
 target_version = "2.1.266"
@@ -16696,6 +16896,29 @@ assert_not_contains = '''&&HU.length&&BG())Nc({key:"ultrathink-active"'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''&&vH.length&&O2())Hc({key:"ultrathink-active"'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-2-1-267-linux"
+lineage = "statusline-footer-control-effort-notification"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux ultrathink effect uses effort matches j1, gate zW(), and notifier xu. Gate that existing notification with the preceding hide selector."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''if(j1.length&&zW())xu({key:"ultrathink-active"'''
+replacement = '''if(!__acc_hide_effort&&!globalThis.__acc_disabled_footer?.includes("footer")&&!globalThis.__acc_disabled_footer?.includes("effort_notification")&&j1.length&&zW())xu({key:"ultrathink-active"'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux effort notification locals"
+assert_contains = '''&&j1.length&&zW())xu({key:"ultrathink-active"'''
+assert_not_contains = '''&&v1.length&&SW())Ru({key:"ultrathink-active"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''&&vH.length&&O2())Hc({key:"ultrathink-active"'''
 
 [[patches]]
@@ -16722,6 +16945,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''let put=Qro,__acc_hide_effort=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches]]
+name = "statusline-footer-control-effort-notification-settings-2-1-267-linux"
+lineage = "statusline-footer-control-effort-notification-settings"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux prompt input binds Fvt=Byo, then memoizes ultrathink notifier xu in Zs[112]. The imported app-state selector B is available before this effect and all later returns."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''let Fvt=Byo,qyo,Vyo;if(Zs[112]!==xu'''
+replacement = '''let Fvt=Byo,__acc_hide_effort=B((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification")),qyo,Vyo;if(Zs[112]!==xu'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux effort notification settings locals"
+assert_contains = '''let Fvt=Byo,__acc_hide_effort=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''let rkt=vho,__acc_hide_effort=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''let put=Qro,__acc_hide_effort=B((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-effort-notification-2-1-266"
 lineage = "statusline-footer-control-effort-notification"
 target_version = "2.1.266"
@@ -16745,6 +16991,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''&&IH.length&&z6())Uc({key:"ultrathink-active"'''
 
 [[patches]]
+name = "statusline-footer-control-effort-notification-2-1-267"
+lineage = "statusline-footer-control-effort-notification"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin ultrathink effect uses effort matches J1, gate ZW(), and notifier Au. Gate that existing notification with the preceding hide selector."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''if(J1.length&&ZW())Au({key:"ultrathink-active"'''
+replacement = '''if(!__acc_hide_effort&&!globalThis.__acc_disabled_footer?.includes("footer")&&!globalThis.__acc_disabled_footer?.includes("effort_notification")&&J1.length&&ZW())Au({key:"ultrathink-active"'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin effort notification locals"
+assert_contains = '''&&J1.length&&ZW())Au({key:"ultrathink-active"'''
+assert_not_contains = '''&&g1.length&&HW())xu({key:"ultrathink-active"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''&&IH.length&&z6())Uc({key:"ultrathink-active"'''
+
+[[patches]]
 name = "statusline-footer-control-effort-notification-settings-2-1-266"
 lineage = "statusline-footer-control-effort-notification-settings"
 target_version = "2.1.266"
@@ -16765,6 +17034,29 @@ assert_not_contains = '''let rkt=bho,__acc_hide_effort=U((E)=>E.settings.statusL
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''let sut=$ro,__acc_hide_effort=U((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-settings-2-1-267"
+lineage = "statusline-footer-control-effort-notification-settings"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin prompt input binds pvt=Eyo, then memoizes ultrathink notifier Au in Zs[112]. The same chunk imports app-state selector U from chunk-5xharng0.js before this effect and all later returns."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "literal"
+locator_pattern = '''let pvt=Eyo,Byo,Uyo;if(Zs[112]!==Au'''
+replacement = '''let pvt=Eyo,__acc_hide_effort=U((E)=>E.settings.statusLine?.hideBuiltinFooter||E.settings.statusLine?.disabledFooter?.includes("effort_notification")),Byo,Uyo;if(Zs[112]!==Au'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin effort notification settings locals"
+assert_contains = '''let pvt=Eyo,__acc_hide_effort=U((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''let rkt=bho,__acc_hide_effort=F((E)=>E.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''let sut=$ro,__acc_hide_effort=U((E)=>E.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches]]
@@ -16795,6 +17087,33 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''lst(at,{isTerminalFocused:i,canPasteImages:a,addNotification:h,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
 
 [[patches]]
+name = "statusline-footer-control-clipboard-image-hint-context-2-1-267-linux"
+lineage = "statusline-footer-control-clipboard-image-hint-context"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux udt destructures terminal focus i and paste support a, obtains notifier c from Ar() and clock m from Et(), then calls cdt(at,context). Append the footer override to that context."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "udt", strings = ["isTerminalFocused", "canPasteImages"] }
+[patches.transform]
+op = "replace_substring"
+find = '''cdt(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m})'''
+value = '''cdt(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux clipboard context locals"
+assert_contains = '''cdt(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+assert_not_contains = '''mct(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''lst(at,{isTerminalFocused:i,canPasteImages:a,addNotification:h,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+
+[[patches]]
 name = "statusline-footer-control-clipboard-image-hint-context-2-1-266"
 lineage = "statusline-footer-control-clipboard-image-hint-context"
 target_version = "2.1.266"
@@ -16822,6 +17141,33 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''bst(at,{isTerminalFocused:i,canPasteImages:a,addNotification:h,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
 
 [[patches]]
+name = "statusline-footer-control-clipboard-image-hint-context-2-1-267"
+lineage = "statusline-footer-control-clipboard-image-hint-context"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin pdt destructures terminal focus i and paste support a, obtains notifier c from Cr() and clock m from vt(), then calls ddt(at,context). Append the footer override to that context."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "pdt", strings = ["isTerminalFocused", "canPasteImages"] }
+[patches.transform]
+op = "replace_substring"
+find = '''ddt(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m})'''
+value = '''ddt(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin clipboard context locals"
+assert_contains = '''ddt(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+assert_not_contains = '''jct(at,{isTerminalFocused:i,canPasteImages:a,addNotification:c,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''bst(at,{isTerminalFocused:i,canPasteImages:a,addNotification:h,clock:m,statusLine:{disabledFooter:globalThis.__acc_disabled_footer}})'''
+
+[[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-266-linux"
 lineage = "statusline-footer-control-clipboard-image-hint"
 target_version = "2.1.266"
@@ -16842,6 +17188,29 @@ assert_not_contains = '''if(await Wer()&&(globalThis.__acc_clipboard_image_avail
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''if(await J6n()&&(globalThis.__acc_clipboard_image_available=!0'''
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-267-linux"
+lineage = "statusline-footer-control-clipboard-image-hint"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux clipboard registry probes asr(), stores Date.now() local f into a, and calls notifier l with key st. Preserve those bindings while exposing clipboard availability and suppressing the hint."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "literal"
+locator_pattern = '''if(await asr())a=f,l({key:st,kind:"contextual"'''
+replacement = '''if(await asr()&&(globalThis.__acc_clipboard_image_available=!0,!globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")&&!globalThis.__acc_disabled_footer?.includes("footer")))a=f,l({key:st,kind:"contextual"'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux clipboard registry locals"
+assert_contains = '''if(await asr()&&(globalThis.__acc_clipboard_image_available=!0'''
+assert_not_contains = '''if(await ztr()&&(globalThis.__acc_clipboard_image_available=!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''if(await J6n()&&(globalThis.__acc_clipboard_image_available=!0'''
 
 [[patches]]
@@ -16868,6 +17237,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''if(await O7n()&&(globalThis.__acc_clipboard_image_available=!0'''
 
 [[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-267"
+lineage = "statusline-footer-control-clipboard-image-hint"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin clipboard registry probes Psr(), stores Date.now() local f into a, and calls notifier l with key st. Preserve those bindings while exposing clipboard availability and suppressing the hint."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "literal"
+locator_pattern = '''if(await Psr())a=f,l({key:st,kind:"contextual"'''
+replacement = '''if(await Psr()&&(globalThis.__acc_clipboard_image_available=!0,!globalThis.__acc_disabled_footer?.includes("clipboard_image_hint")&&!globalThis.__acc_disabled_footer?.includes("footer")))a=f,l({key:st,kind:"contextual"'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin clipboard registry locals"
+assert_contains = '''if(await Psr()&&(globalThis.__acc_clipboard_image_available=!0'''
+assert_not_contains = '''if(await vnr()&&(globalThis.__acc_clipboard_image_available=!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''if(await O7n()&&(globalThis.__acc_clipboard_image_available=!0'''
+
+[[patches]]
 name = "statusline-footer-control-mode-hint-narrow-2-1-266-linux"
 lineage = "statusline-footer-control-mode-hint-narrow"
 target_version = "2.1.266"
@@ -16891,6 +17283,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''toolPermissionContext:__acc_hide_mode?void 0:hst,showHint:!__acc_hide_mode&&Ust,denseShowHint:!__acc_hide_mode&&jst'''
 
 [[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-267-linux"
+lineage = "statusline-footer-control-mode-hint-narrow"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux Iie passes permission context uyt and hint booleans Pyt/Myt to Hyt. Gate those three props with the preceding hide selector."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "literal"
+locator_pattern = '''toolPermissionContext:uyt,showHint:Pyt,denseShowHint:Myt'''
+replacement = '''toolPermissionContext:__acc_hide_mode?void 0:uyt,showHint:!__acc_hide_mode&&Pyt,denseShowHint:!__acc_hide_mode&&Myt'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux mode-hint call locals"
+assert_contains = '''toolPermissionContext:__acc_hide_mode?void 0:uyt,showHint:!__acc_hide_mode&&Pyt,denseShowHint:!__acc_hide_mode&&Myt'''
+assert_not_contains = '''toolPermissionContext:__acc_hide_mode?void 0:Fgt,showHint:!__acc_hide_mode&&nht,denseShowHint:!__acc_hide_mode&&rht'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''toolPermissionContext:__acc_hide_mode?void 0:hst,showHint:!__acc_hide_mode&&Ust,denseShowHint:!__acc_hide_mode&&jst'''
+
+[[patches]]
 name = "statusline-footer-control-mode-hint-narrow-2-1-266"
 lineage = "statusline-footer-control-mode-hint-narrow"
 target_version = "2.1.266"
@@ -16911,6 +17326,29 @@ assert_not_contains = '''toolPermissionContext:__acc_hide_mode?void 0:Int,showHi
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''toolPermissionContext:__acc_hide_mode?void 0:Zit,showHint:!__acc_hide_mode&&vst,denseShowHint:!__acc_hide_mode&&Cst'''
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-2-1-267"
+lineage = "statusline-footer-control-mode-hint-narrow"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin Pie passes permission context lyt and hint booleans Cyt/Tyt to Nyt. Gate those three props with the preceding hide selector."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "literal"
+locator_pattern = '''toolPermissionContext:lyt,showHint:Cyt,denseShowHint:Tyt'''
+replacement = '''toolPermissionContext:__acc_hide_mode?void 0:lyt,showHint:!__acc_hide_mode&&Cyt,denseShowHint:!__acc_hide_mode&&Tyt'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin mode-hint call locals"
+assert_contains = '''toolPermissionContext:__acc_hide_mode?void 0:lyt,showHint:!__acc_hide_mode&&Cyt,denseShowHint:!__acc_hide_mode&&Tyt'''
+assert_not_contains = '''toolPermissionContext:__acc_hide_mode?void 0:Ngt,showHint:!__acc_hide_mode&&Ygt,denseShowHint:!__acc_hide_mode&&Xgt'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''toolPermissionContext:__acc_hide_mode?void 0:Zit,showHint:!__acc_hide_mode&&vst,denseShowHint:!__acc_hide_mode&&Cst'''
 
 [[patches]]
@@ -16941,6 +17379,33 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''JTe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches]]
+name = "statusline-footer-control-mode-hint-2-1-267-linux"
+lineage = "statusline-footer-control-mode-hint"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux Iie calls TDe() then binds Cyt=que() before every early return. Its existing F settings selector is in scope; add the hide selector there to preserve hook order."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Iie", strings = ["hideVimModeIndicator", "suppressHintExceptStatusline", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''TDe();let Cyt=que(),Xpo;'''
+value = '''TDe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter||Bn.settings.statusLine?.disabledFooter?.includes("permission_mode")||Bn.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),Cyt=que(),Xpo;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux mode selector and locals"
+assert_contains = '''TDe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''bEe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''JTe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-mode-hint-2-1-266"
 lineage = "statusline-footer-control-mode-hint"
 target_version = "2.1.266"
@@ -16968,6 +17433,33 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''nxe();let __acc_hide_mode=F((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches]]
+name = "statusline-footer-control-mode-hint-2-1-267"
+lineage = "statusline-footer-control-mode-hint"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin Pie calls n0e() then binds vyt=ede() before every early return. The same chunk imports app-state selector U from chunk-5xharng0.js; add the hide selector there to preserve hook order."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Pie", strings = ["hideVimModeIndicator", "suppressHintExceptStatusline", "vimIndicatorShown"] }
+[patches.transform]
+op = "replace_substring"
+find = '''n0e();let vyt=ede(),Vpo;'''
+value = '''n0e();let __acc_hide_mode=U((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter||Ho.settings.statusLine?.disabledFooter?.includes("permission_mode")||Ho.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),vyt=ede(),Vpo;'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin mode selector and locals"
+assert_contains = '''n0e();let __acc_hide_mode=U((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''iDe();let __acc_hide_mode=F((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''nxe();let __acc_hide_mode=F((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-render-2-1-266-linux"
 lineage = "statusline-footer-control-render"
 target_version = "2.1.266"
@@ -16991,6 +17483,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''return __acc_hide_footer?JRe:joo}'''
 
 [[patches]]
+name = "statusline-footer-control-render-2-1-267-linux"
+lineage = "statusline-footer-control-render"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux nkt builds the custom status-line row as VNe=e(uDe,{transcript:FI,vimMode:x5}) inside composite Igo. Return that row alone when the built-in footer is hidden so the custom status line remains visible."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "literal"
+locator_pattern = '''return Igo}'''
+replacement = '''return __acc_hide_footer?VNe:Igo}'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux footer return locals"
+assert_contains = '''return __acc_hide_footer?VNe:Igo}'''
+assert_not_contains = '''return __acc_hide_footer?s0e:ffo}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''return __acc_hide_footer?JRe:joo}'''
+
+[[patches]]
 name = "statusline-footer-control-render-2-1-266"
 lineage = "statusline-footer-control-render"
 target_version = "2.1.266"
@@ -17011,6 +17526,29 @@ assert_not_contains = '''return __acc_hide_footer?Rxe:BZt}'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''return __acc_hide_footer?mPe:Noo}'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-267"
+lineage = "statusline-footer-control-render"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin HSt builds the custom status-line row as $Ne=e(LDe,{transcript:kI,vimMode:E5}) inside composite Tgo. Return that row alone when the built-in footer is hidden so the custom status line remains visible."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "literal"
+locator_pattern = '''return Tgo}'''
+replacement = '''return __acc_hide_footer?$Ne:Tgo}'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin footer return locals"
+assert_contains = '''return __acc_hide_footer?$Ne:Tgo}'''
+assert_not_contains = '''return __acc_hide_footer?K0e:dfo}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''return __acc_hide_footer?mPe:Noo}'''
 
 [[patches]]
@@ -17041,6 +17579,33 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''let Uoo=Boo,__acc_hide_footer=Uoo?.hideBuiltinFooter'''
 
 [[patches]]
+name = "statusline-footer-control-render-state-2-1-267-linux"
+lineage = "statusline-footer-control-render-state"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux nkt reads app state through Mi(), normalizes statusLine with ZEe(), and binds Mgo=Pgo. Read the hide setting from that normalized status-line value."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "nkt", strings = ["hideVimModeIndicator", "showExpandPasteHint"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Mgo=Pgo,$Ne='''
+value = '''let Mgo=Pgo,__acc_hide_footer=Mgo?.hideBuiltinFooter||Mgo?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer"),$Ne='''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux footer state locals"
+assert_contains = '''let Mgo=Pgo,__acc_hide_footer=Mgo?.hideBuiltinFooter'''
+assert_not_contains = '''let mfo=dfo,__acc_hide_footer=mfo?.hideBuiltinFooter'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''let Uoo=Boo,__acc_hide_footer=Uoo?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-render-state-2-1-266"
 lineage = "statusline-footer-control-render-state"
 target_version = "2.1.266"
@@ -17068,6 +17633,33 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''let Eoo=Ioo,__acc_hide_footer=Eoo?.hideBuiltinFooter'''
 
 [[patches]]
+name = "statusline-footer-control-render-state-2-1-267"
+lineage = "statusline-footer-control-render-state"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin HSt reads app state through Oi(), normalizes statusLine with lve(), and binds Cgo=wgo. Read the hide setting from that normalized status-line value."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "HSt", strings = ["hideVimModeIndicator", "showExpandPasteHint"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let Cgo=wgo,BNe='''
+value = '''let Cgo=wgo,__acc_hide_footer=Cgo?.hideBuiltinFooter||Cgo?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer"),BNe='''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin footer state locals"
+assert_contains = '''let Cgo=wgo,__acc_hide_footer=Cgo?.hideBuiltinFooter'''
+assert_not_contains = '''let cfo=lfo,__acc_hide_footer=cfo?.hideBuiltinFooter'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''let Eoo=Ioo,__acc_hide_footer=Eoo?.hideBuiltinFooter'''
+
+[[patches]]
 name = "statusline-footer-control-rate-limit-warning-2-1-266-linux"
 lineage = "statusline-footer-control-rate-limit-warning"
 target_version = "2.1.266"
@@ -17088,6 +17680,29 @@ assert_not_contains = '''globalThis.__acc_rate_limit_warning=ue;if(!__acc_hide_r
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''effortValue:ge,store:c})=>{let be=Uln(ee,pe)'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-267-linux"
+lineage = "statusline-footer-control-rate-limit-warning"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux rate-limit registry callback destructures notifier P, limits ee, model le, and effort ge. Its warning is Se=i_n(ee,le), with lever Ce=jXn(ee,le,ge) and overage xe=BXn(le). Added c and d are fresh callback locals."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "literal"
+locator_pattern = '''return({addNotification:P,claudeAiLimits:ee,mainLoopModel:le,effortValue:ge})=>{let Se=i_n(ee,le);if(!Se||Se===w)return;w=Se;let Ce=jXn(ee,le,ge),xe=ee.rateLimitType==="overage"?BXn(le):null;if(P({key:"rate-limit-warning",segments:'''
+replacement = '''return({addNotification:P,claudeAiLimits:ee,mainLoopModel:le,effortValue:ge,store:c})=>{let Se=i_n(ee,le);if(!Se||Se===w)return;w=Se;let Ce=jXn(ee,le,ge),xe=ee.rateLimitType==="overage"?BXn(le):null,d=c.getState().settings?.statusLine,__acc_hide_rate_limit_warning=d?.hideBuiltinFooter||d?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer");globalThis.__acc_rate_limit_warning=Se;if(!__acc_hide_rate_limit_warning&&P({key:"rate-limit-warning",segments:'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux rate-limit callback locals"
+assert_contains = '''effortValue:ge,store:c})=>{let Se=i_n(ee,le)'''
+assert_not_contains = '''effortValue:ge,store:c})=>{let Se=Bgn(ee,ce)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''effortValue:ge,store:c})=>{let be=Uln(ee,pe)'''
 
 [[patches]]
@@ -17114,6 +17729,29 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''effortValue:fe,store:c})=>{let Se=fcn(ee,ge)'''
 
 [[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-267"
+lineage = "statusline-footer-control-rate-limit-warning"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin rate-limit registry callback destructures notifier P, limits ee, model ae, and effort ge. Its warning is be=I_n(ee,ae), with lever ke=SXn(ee,ae,ge) and overage xe=_Xn(ae). Added c and d are fresh callback locals."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "literal"
+locator_pattern = '''return({addNotification:P,claudeAiLimits:ee,mainLoopModel:ae,effortValue:ge})=>{let be=I_n(ee,ae);if(!be||be===w)return;w=be;let ke=SXn(ee,ae,ge),xe=ee.rateLimitType==="overage"?_Xn(ae):null;if(P({key:"rate-limit-warning",segments:'''
+replacement = '''return({addNotification:P,claudeAiLimits:ee,mainLoopModel:ae,effortValue:ge,store:c})=>{let be=I_n(ee,ae);if(!be||be===w)return;w=be;let ke=SXn(ee,ae,ge),xe=ee.rateLimitType==="overage"?_Xn(ae):null,d=c.getState().settings?.statusLine,__acc_hide_rate_limit_warning=d?.hideBuiltinFooter||d?.disabledFooter?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer");globalThis.__acc_rate_limit_warning=be;if(!__acc_hide_rate_limit_warning&&P({key:"rate-limit-warning",segments:'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin rate-limit callback locals"
+assert_contains = '''effortValue:ge,store:c})=>{let be=I_n(ee,ae)'''
+assert_not_contains = '''effortValue:ge,store:c})=>{let be=hhn(ee,ce)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''effortValue:fe,store:c})=>{let Se=fcn(ee,ge)'''
+
+[[patches]]
 name = "statusline-footer-control-rate-limit-warning-deps-2-1-266-linux"
 lineage = "statusline-footer-control-rate-limit-warning-deps"
 target_version = "2.1.266"
@@ -17134,6 +17772,29 @@ assert_not_contains = '''deps:(R)=>[R.claudeAiLimits,R.mainLoopModel,R.effortVal
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''deps:(R)=>[R.claudeAiLimits,R.mainLoopModel,R.effortValue,R.addNotification,R.store],setup()'''
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-deps-2-1-267-linux"
+lineage = "statusline-footer-control-rate-limit-warning-deps"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux rate-limit registry deps receives w and setup receives the same registered context; include w.store for the hide setting."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/notifs/useRateLimitWarningNotification.tsx#L16-L26"
+locator_kind = "literal"
+locator_pattern = '''deps:(w)=>[w.claudeAiLimits,w.mainLoopModel,w.effortValue,w.addNotification],setup()'''
+replacement = '''deps:(w)=>[w.claudeAiLimits,w.mainLoopModel,w.effortValue,w.addNotification,w.store],setup()'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux rate-limit dependency local"
+assert_contains = '''deps:(w)=>[w.claudeAiLimits,w.mainLoopModel,w.effortValue,w.addNotification,w.store],setup()'''
+assert_not_contains = '''deps:(R)=>[R.claudeAiLimits,R.mainLoopModel,R.effortValue,R.addNotification,R.store],setup()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''deps:(R)=>[R.claudeAiLimits,R.mainLoopModel,R.effortValue,R.addNotification,R.store],setup()'''
 
 [[patches]]
@@ -17160,6 +17821,47 @@ name = "2.1.266 excludes previous target inserted symbols"
 assert_not_contains = '''command_length:R.command?.length??0,padding:R.padding'''
 
 [[patches]]
+name = "statusline-footer-control-command-length-mount-2-1-267-linux"
+lineage = "statusline-footer-control-command-length-mount"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 Linux StatusLine mount destructures statusLine:e from this.#t before reporting command length; guard its optional command."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+locator_kind = "literal"
+locator_pattern = '''command_length:e.command.length,padding:e.padding'''
+replacement = '''command_length:e.command?.length??0,padding:e.padding'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux command-length local"
+assert_contains = '''command_length:e.command?.length??0,padding:e.padding'''
+assert_not_contains = '''command_length:w.command?.length??0,padding:w.padding'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
+assert_not_contains = '''command_length:R.command?.length??0,padding:R.padding'''
+
+[[patches]]
+name = "statusline-footer-control-command-length-mount-2-1-267"
+lineage = "statusline-footer-control-command-length-mount"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 Darwin StatusLine mount destructures statusLine:e from this.#t before reporting command length; guard its optional command."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+locator_kind = "literal"
+locator_pattern = '''command_length:e.command.length,padding:e.padding'''
+replacement = '''command_length:e.command?.length??0,padding:e.padding'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin command-length local"
+assert_contains = '''command_length:e.command?.length??0,padding:e.padding'''
+assert_not_contains = '''command_length:w.command?.length??0,padding:w.padding'''
+
+[[patches]]
 name = "statusline-footer-control-cli-option-2-1-266-linux"
 lineage = "statusline-footer-control-cli-option"
 target_version = "2.1.266"
@@ -17182,6 +17884,31 @@ assert_not_contains = '''new F("--hide-builtin-footer [items]","Hide built-in fo
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''new q("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''
+
+[[patches]]
+name = "statusline-footer-control-cli-option-2-1-267-linux"
+lineage = "statusline-footer-control-cli-option"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["linux-x64"]
+rationale = "2.1.267 The Linux option chain in chunk-hzpgmj6j.js constructs the adjacent --inherit-permission-mode option with Y. Use that same Commander Option constructor for the valued and bare footer flag."
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+locator_kind = "literal"
+locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+replacement = '''.addOption(new Y("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(e).split(",").map((r)=>r.trim()).filter(Boolean);return e})).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux bare and valued CLI flags use the scope-local Option constructor"
+assert_contains = '''new Y("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Linux CLI option drops the temporal-dead-zone constructor"
+assert_not_contains = '''new F("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''new q("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''
 
 [[patches]]
@@ -17887,4 +18614,29 @@ assert_not_contains = '''new F("--hide-builtin-footer [items]","Hide built-in fo
 [[patches.tests]]
 kind = "static"
 name = "2.1.266 excludes previous target inserted symbols"
+assert_not_contains = '''new q("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''
+
+[[patches]]
+name = "statusline-footer-control-cli-option-2-1-267"
+lineage = "statusline-footer-control-cli-option"
+target_version = "2.1.267"
+applies_to = ">=2.1.267 <2.1.268"
+platforms = ["darwin-arm64"]
+rationale = "2.1.267 The Darwin option chain in chunk-179106zq.js constructs the adjacent --inherit-permission-mode option with Y. Use that same Commander Option constructor for the valued and bare footer flag."
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+locator_kind = "literal"
+locator_pattern = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+replacement = '''.addOption(new Y("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(e).split(",").map((r)=>r.trim()).filter(Boolean);return e})).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin bare and valued CLI flags use the scope-local Option constructor"
+assert_contains = '''new Y("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 Darwin CLI option drops the temporal-dead-zone constructor"
+assert_not_contains = '''new F("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.267 excludes previous target inserted symbols"
 assert_not_contains = '''new q("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"'''

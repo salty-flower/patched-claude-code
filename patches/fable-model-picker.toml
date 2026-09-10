@@ -2804,7 +2804,7 @@ assert_not_contains = '''if(vI("fable51"))M9(y,Rrt());return y.push(Ssn),xrt(y,e
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-263-darwin"
 target_version = "2.1.263"
-applies_to = ">=2.1.263 <2.2.0"
+applies_to = ">=2.1.263 <2.1.266"
 platforms = ["darwin-arm64"]
 rationale = "Port oauth-primary-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: oto, YA, iz, jxe, S7e, irn. Preserve the original behavior and baseline rationale."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
@@ -2829,7 +2829,7 @@ assert_not_contains = '''if(DR("fable51"))PG(E,XCe());return E.push(otn),h7e(E,e
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-263-darwin"
 target_version = "2.1.263"
-applies_to = ">=2.1.263 <2.2.0"
+applies_to = ">=2.1.263 <2.1.266"
 platforms = ["darwin-arm64"]
 rationale = "Port oauth-standard-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: oto, YA, iz, jxe, S7e, irn. Preserve the original behavior and baseline rationale."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
@@ -2854,7 +2854,7 @@ assert_not_contains = '''if(DR("fable51"))PG(_,XCe());return _.push(otn),h7e(_,e
 [[patches]]
 name = "oauth-primary-picker-shows-local-fable-2-1-263-linux"
 target_version = "2.1.263"
-applies_to = ">=2.1.263 <2.2.0"
+applies_to = ">=2.1.263 <2.1.266"
 platforms = ["linux-x64"]
 rationale = "Port oauth-primary-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: wto, XA, Mz, txe, O7e, drn. Preserve the original behavior and baseline rationale."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
@@ -2879,7 +2879,7 @@ assert_not_contains = '''if(uR("fable51"))$G(E,Jve());return E.push(ctn),u7e(E,e
 [[patches]]
 name = "oauth-standard-picker-shows-local-fable-2-1-263-linux"
 target_version = "2.1.263"
-applies_to = ">=2.1.263 <2.2.0"
+applies_to = ">=2.1.263 <2.1.266"
 platforms = ["linux-x64"]
 rationale = "Port oauth-standard-picker-shows-local-fable to 2.1.263 after inspecting the containing graph scope. Verified current scope bindings: wto, XA, Mz, txe, O7e, drn. Preserve the original behavior and baseline rationale."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
@@ -2900,3 +2900,103 @@ assert_contains = '''if(XA("fable51"))Mz(y,txe());return y.push(drn),O7e(y,e,"so
 kind = "static"
 name = "2.1.263 removes previous variant of oauth-standard-picker-shows-local-fable-2-1-260-linux"
 assert_not_contains = '''if(uR("fable51"))$G(y,Jve());return y.push(ctn),u7e(y,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-266-darwin"
+lineage = "oauth-primary-picker-shows-local-fable"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.266 primary OAuth picker still omits Fable from the first-party branch exercised by local OAuth sessions even when RR confirms a local catalog mapping. Insert the existing row before the branch return; entitlement and catalog availability remain unchanged. Current builder cao, catalog predicate RR, insertion helper KG, and Fable row iRe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "cao", strings = ['''return E.push(lin),nJe(E,e,"opus")''', '''RR("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return E.push(lin),nJe(E,e,"opus")'''
+value = '''if(RR("fable51"))KG(E,iRe());return E.push(lin),nJe(E,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.266 Darwin primary OAuth picker uses catalog-backed Fable availability"
+assert_contains = '''if(RR("fable51"))KG(E,iRe());return E.push(lin),nJe(E,e,"opus")'''
+assert_not_contains = '''if(YA("fable51"))iz(E,jxe());return E.push(irn),S7e(E,e,"opus")'''
+
+[[patches]]
+name = "oauth-primary-picker-shows-local-fable-2-1-266-linux"
+lineage = "oauth-primary-picker-shows-local-fable"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "The 2.1.266 primary OAuth picker still omits Fable from the first-party branch exercised by local OAuth sessions even when AR confirms a local catalog mapping. Insert the existing row before the branch return; entitlement and catalog availability remain unchanged. Current builder xao, catalog predicate AR, insertion helper nq, and Fable row dRe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "xao", strings = ['''return k.push(pin),UJe(k,e,"opus")''', '''AR("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return k.push(pin),UJe(k,e,"opus")'''
+value = '''if(AR("fable51"))nq(k,dRe());return k.push(pin),UJe(k,e,"opus")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.266 Linux primary OAuth picker uses catalog-backed Fable availability"
+assert_contains = '''if(AR("fable51"))nq(k,dRe());return k.push(pin),UJe(k,e,"opus")'''
+assert_not_contains = '''if(XA("fable51"))Mz(E,txe());return E.push(drn),O7e(E,e,"opus")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-266-darwin"
+lineage = "oauth-standard-picker-shows-local-fable"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.266 standard OAuth picker still omits Fable from its first-party branch even when RR confirms a local catalog mapping. Insert the existing row before the branch return. Current builder cao, catalog predicate RR, insertion helper KG, and Fable row iRe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "cao", strings = ['''return y.push(lin),nJe(y,e,"sonnet")''', '''RR("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return y.push(lin),nJe(y,e,"sonnet")'''
+value = '''if(RR("fable51"))KG(y,iRe());return y.push(lin),nJe(y,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.266 Darwin standard OAuth picker inserts catalog-backed Fable"
+assert_contains = '''if(RR("fable51"))KG(y,iRe());return y.push(lin),nJe(y,e,"sonnet")'''
+assert_not_contains = '''if(YA("fable51"))iz(_,jxe());return _.push(irn),S7e(_,e,"sonnet")'''
+
+[[patches]]
+name = "oauth-standard-picker-shows-local-fable-2-1-266-linux"
+lineage = "oauth-standard-picker-shows-local-fable"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "The 2.1.266 standard OAuth picker still omits Fable from its first-party branch even when AR confirms a local catalog mapping. Insert the existing row before the branch return. Current builder xao, catalog predicate AR, insertion helper nq, and Fable row dRe were verified in the containing scope."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L68-L76"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "xao", strings = ['''return y.push(pin),UJe(y,e,"sonnet")''', '''AR("fable51")'''] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''return y.push(pin),UJe(y,e,"sonnet")'''
+value = '''if(AR("fable51"))nq(y,dRe());return y.push(pin),UJe(y,e,"sonnet")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.266 Linux standard OAuth picker inserts catalog-backed Fable"
+assert_contains = '''if(AR("fable51"))nq(y,dRe());return y.push(pin),UJe(y,e,"sonnet")'''
+assert_not_contains = '''if(XA("fable51"))Mz(y,txe());return y.push(drn),O7e(y,e,"sonnet")'''

@@ -234,7 +234,7 @@ async function main(): Promise<number> {
       "sleep 3",
       ...QUESTIONS.flatMap(() => [`printf %s ${shellQuote(enterInput)}`, "sleep 1"]),
       `printf %s ${shellQuote(enterInput)}`,
-      "sleep 4",
+      "sleep 8",
       `printf %s ${shellQuote(exitInput)}`,
       "sleep 1",
       `printf %s ${shellQuote(enterInput)}`,

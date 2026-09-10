@@ -17384,7 +17384,7 @@ lineage = "statusline-footer-control-mode-hint"
 target_version = "2.1.267"
 applies_to = ">=2.1.267 <2.1.268"
 platforms = ["linux-x64"]
-rationale = "2.1.267 Linux Iie calls TDe() then binds Cyt=que() before every early return. Its existing F settings selector is in scope; add the hide selector there to preserve hook order."
+rationale = "2.1.267 Linux Iie calls TDe() then binds Cyt=que() before every early return. The same function already calls the app-state selector U(wfo); F is React.Fragment in this chunk and must not be called. Add the hide selector with U here to preserve hook order."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
 locator_kind = "ast_transform"
 [patches.ast]
@@ -17393,12 +17393,12 @@ match = { node = "FunctionDeclaration", function_name = "Iie", strings = ["hideV
 [patches.transform]
 op = "replace_substring"
 find = '''TDe();let Cyt=que(),Xpo;'''
-value = '''TDe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter||Bn.settings.statusLine?.disabledFooter?.includes("permission_mode")||Bn.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),Cyt=que(),Xpo;'''
+value = '''TDe();let __acc_hide_mode=U((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter||Bn.settings.statusLine?.disabledFooter?.includes("permission_mode")||Bn.settings.statusLine?.disabledFooter?.includes("mode"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer"),Cyt=que(),Xpo;'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.267 Linux mode selector and locals"
-assert_contains = '''TDe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
-assert_not_contains = '''bEe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
+assert_contains = '''TDe();let __acc_hide_mode=U((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
+assert_not_contains = '''TDe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter'''
 
 [[patches.tests]]
 kind = "static"

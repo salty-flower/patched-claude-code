@@ -138,6 +138,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         expect(patched).not.toContain("__acc_hide_effort_level=F((E)=>E.settings.statusLine?.hideBuiltinFooter")
         expect(patched).not.toContain("__acc_hide_effort=F((E)=>E.settings.statusLine?.hideBuiltinFooter")
         expect(patched).not.toContain("n0e();let __acc_hide_mode=F((Ho)=>Ho.settings.statusLine?.hideBuiltinFooter")
+        expect(linuxPatched).toContain("TDe();let __acc_hide_mode=U((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter")
+        expect(linuxPatched).not.toContain("TDe();let __acc_hide_mode=F((Bn)=>Bn.settings.statusLine?.hideBuiltinFooter")
       }
       return
     }

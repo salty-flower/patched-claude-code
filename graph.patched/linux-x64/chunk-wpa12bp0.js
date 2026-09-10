@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.267
+import{B}from"./chunk-6n7yk222.js";import{Dm}from"./chunk-5hega5z8.js";import{a}from"./chunk-1bwwmttj.js";import{q}from"./chunk-g07wjpxf.js";import{Iu}from"./chunk-m8bh20pj.js";import{Q5,der}from"./chunk-2byjyg85.js";import{dirname as o,join as t}from"path";var UWn=1e4;function BWn(e){try{let n=Dm(a.CLAUDE_CODE_REMOTE_SESSION_ID??"","remote session id");return{sessionId:n,path:t(o(e),".ccr-dir-sync",`worker-${n}.json`)}}catch{return null}}function jWn(e){let n=der(e,(r)=>{q("error","dir_sync_lane_verdict_listener_threw",{verdict:e,rejected:!0,first:r})});switch(n.kind){case"delivered":if(n.threw.length>0)q("error","dir_sync_lane_verdict_listener_threw",{verdict:e,listeners:n.listeners,threw:n.threw.length,first:n.threw[0]});return;case"out_of_order":q("error","dir_sync_lane_verdict_out_of_order",{verdict:e,basis:n.basis});return;case"repeat":case"queued":return}}function Bct(e){Q5.of(B()).stage(e)}function zWn(e){Q5.of(B()).markCopyCleared(e)}async function non(){let e=await Iu();if(e)Q5.of(B()).openGate();return e}
+export{UWn,BWn,jWn,Bct,zWn,non};

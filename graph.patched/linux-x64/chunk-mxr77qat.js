@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.267
+import{SI,V_,NM,Lp,Nf,Jle,eGe,ANn,TNn,eit,CNn,tGe,XPe,tit,YT,nGe,RL,af,mj,nit,rGe,rit,Qle,UZt,oit,BZt,sit,RNn,jZt,xNn,INn,oGe,Zle,ece,iit,PNn,ait,zZt,HNn,MNn,JPe}from"./chunk-vzc7jamd.js";export{rit as BASH_COMMAND_CLAMP_CRASH_REASON,rGe as BASH_COMMAND_CLAMP_DENY_REASON,JPe as CAN_USE_TOOL_ABORTED_DENY_REASON,iit as CAN_USE_TOOL_ABORTED_REASON,ait as CAN_USE_TOOL_INVALID_RESULT_DENY_REASON,Zle as CAN_USE_TOOL_INVALID_RESULT_REASON,HNn as CAN_USE_TOOL_PROMPT_TOOL_GONE_DENY_REASON,zZt as CAN_USE_TOOL_PROMPT_TOOL_GONE_REASON,MNn as CAN_USE_TOOL_REQUEST_FAILED_DENY_REASON,ece as CAN_USE_TOOL_REQUEST_FAILED_REASON,PNn as CAN_USE_TOOL_STREAM_CLOSED_DENY_REASON,oGe as CAN_USE_TOOL_STREAM_CLOSED_REASON,UZt as CLASSIFIER_PARSE_FAILURE_REASON_STEM,oit as CLASSIFIER_TRANSCRIPT_TOO_LONG_REASON,Qle as CLASSIFIER_UNAVAILABLE_REASON,SI as EXTERNAL_PERMISSION_MODES,RNn as HOOK_ALLOW_FLAGGED_HEADLESS_DENY_REASON,sit as HOOK_REWRITE_HEADLESS_DENY_REASON,BZt as HOOK_REWRITTEN_INPUT_ASK_REASON,nGe as INLINE_CODE_FLAGS,xNn as NO_APPROVAL_SURFACE_DENY_REASON,jZt as NO_APPROVAL_SURFACE_REASON,YT as OUTSIDE_READS_BLOCKED_DENY_REASON,CNn as PERMISSION_DECISION_REASON_TYPES,V_ as PERMISSION_MODES,NM as PERMISSION_MODE_MANUAL_ALIAS,INn as PROMPT_TOOL_ALLOW_FLAGGED_MCP_DENY_REASON,XPe as READ_ONLY_AUTO_ALLOW_REASON,tit as RESTRICTED_MODE_DENY_REASON,tGe as SANDBOX_AUTO_ALLOW_REASON,Jle as UNRECOGNIZED_PERMISSION_MODE_ERROR,eGe as isBypassImmuneCircuitBreaker,ANn as isClassifierRoutedCircuitBreaker,RL as isOutsideReadsBlockedAsk,TNn as isPreAskDeny,eit as isRecordableDenial,Lp as normalizePermissionModeAlias,af as outsideReadsRuntimePathAsk,nit as outsideReadsSedScriptAsk,mj as outsideReadsTooComplexAsk,Nf as parsePermissionMode};

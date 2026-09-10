@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.267
+import{y}from"./chunk-spjasdq6.js";import{o,n}from"./chunk-q8bwyp41.js";import{xe}from"./chunk-kx1rn64c.js";import{e,r}from"./chunk-qs39f0kj.js";import{It}from"./chunk-czkhkbb0.js";function ZLt(){return e(xe,{height:1,children:e(n,{dimColor:!0,children:"Fetching\u2026"})})}function gMe(h){let g=y(7),{bytes:u,status:R}=h,a;if(g[0]!==u)a=It(u),g[0]=u,g[1]=a;else a=g[1];let m;if(g[2]!==a)m=e(n,{bold:!0,children:a}),g[2]=a,g[3]=m;else m=g[3];const i=R!==void 0&&` (${R})`;let d;if(g[4]!==m||g[5]!==i)d=e(xe,{height:1,children:r(n,{children:["Received ",m,i]})}),g[4]=m,g[5]=i,g[6]=d;else d=g[6];return d}function qGn({bytes:t,code:s,codeText:c,result:l},x,{verbose:f}){let p=e(gMe,{bytes:t,status:`${s} ${c}`});if(f)return r(o,{flexDirection:"column",children:[p,e(o,{flexDirection:"column",children:e(n,{children:l})})]});return p}
+export{ZLt,gMe,qGn};

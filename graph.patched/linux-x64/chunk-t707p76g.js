@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.267
+import{t}from"./chunk-cmg3b5hg.js";import{m}from"./chunk-vp9rx3bq.js";import{BPe}from"./chunk-8fer6cmv.js";import{I}from"./chunk-ce4ppmnp.js";import{jn,of,g_e}from"./chunk-b84ke5ee.js";import{s,se,c,fe}from"./chunk-wvjc3h2t.js";var f=m(()=>c({server_instructions:s().optional(),server_instructions_by_server:fe(s(),s()).optional(),tools:fe(s(),s()).optional(),search_hints:fe(s(),s()).optional(),param_descriptions:fe(s(),fe(s(),s())).optional(),prompts:fe(s(),s()).optional(),skills:fe(s(),s()).optional()})),l=m(()=>fe(s(),se()));function l5(e){if(!e.pluginSource)return;let{name:r,marketplace:n}=jn(e.pluginSource);if(!of(n)&&!g_e(r,n))return;let u=I("tengu_official_plugin_prompt_overrides",{}),i=l().safeParse(u);if(!i.success){t("tengu_official_plugin_prompt_overrides: GB payload is not an object; ignoring",{level:"error"});return}let a=i.data[r];if(a===void 0)return;let p=f().safeParse(a);if(!p.success){t(`tengu_official_plugin_prompt_overrides: entry for '${r}' failed schema (${p.error.issues[0]?.message}); using baked-in text`,{level:"error"});return}let o=p.data;if(Object.keys(o).length===0)return;return{...o,server_instructions_by_server:d(o.server_instructions_by_server),tools:d(o.tools),search_hints:d(o.search_hints),param_descriptions:d(o.param_descriptions),prompts:d(o.prompts),skills:d(o.skills)}}function d(e){if(e===void 0)return;let r=Object.create(null);return Object.assign(r,e)}function lmt(e,r){if(!e)return;let n=e.server_instructions_by_server;if(n){let u=BPe(r),i=u&&n[u.serverName];if(i!==void 0)return i}return e.server_instructions}function cmt(e,r){if(!r||!e.properties)return e;let n={...e.properties},u=!1;for(let[i,a]of Object.entries(r)){let p=n[i];if(p!==null&&typeof p==="object")n[i]={...p,description:a},u=!0}if(!u)return e;return{...e,properties:n}}
+export{l5,lmt,cmt};

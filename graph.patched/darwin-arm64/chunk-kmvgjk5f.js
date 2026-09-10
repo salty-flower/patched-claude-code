@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.267
+import{y}from"./chunk-jy8hazaz.js";import{i}from"./chunk-z0p50v56.js";import{o,n,tv}from"./chunk-ykvaeqdn.js";import{Fe}from"./chunk-ncdpy2yz.js";import{tr}from"./chunk-5xharng0.js";import{e,r}from"./chunk-qs39f0kj.js";import{d,M}from"./chunk-xgsrj7pc.js";import{p}from"./chunk-bkhfcpjc.js";M();function W3e(A){let t=y(17),{Wizard:u,cancelledEvent:v,onDone:C}=A,g=tv(),x=tr(),[a,B]=d(null),E;if(t[0]!==g||t[1]!==x)E=()=>{g.exit();let{proactivityLevel:j,toolPermissionContext:q}=x.getState();import("./chunk-eextvrxn.js").then((F)=>F.execRelaunch({proactivity:{proactivityLevel:j,toolPermissionContext:q}}))},t[0]=g,t[1]=x,t[2]=E;else E=t[2];const P=a!==null;let J;if(t[3]!==P)J={context:"Confirmation",isActive:P},t[3]=P,t[4]=J;else J=t[4];if(Fe("confirm:yes",E,J),a!==null){let s;if(t[5]!==a)s=e(n,{color:"success",children:a}),t[5]=a,t[6]=s;else s=t[6];let c;if(t[7]===p)c=r(n,{dimColor:!0,children:["Press ",e(n,{bold:!0,children:"Enter"})," to restart Claude Code."]}),t[7]=c;else c=t[7];let l;if(t[8]!==s)l=r(o,{flexDirection:"column",gap:1,marginTop:1,children:[s,c]}),t[8]=s,t[9]=l;else l=t[9];return l}let s;if(t[10]===p)s=(G)=>B(G),t[10]=s;else s=t[10];let c;if(t[11]!==v||t[12]!==C)c=()=>{i(v,{}),C()},t[11]=v,t[12]=C,t[13]=c;else c=t[13];let l;if(t[14]!==u||t[15]!==c)l=e(u,{onComplete:s,onCancel:c}),t[14]=u,t[15]=c,t[16]=l;else l=t[16];return l}
+export{W3e};

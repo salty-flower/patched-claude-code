@@ -23,8 +23,10 @@ const targetUses251LaterSymbols = gte(TARGET_VERSION, "2.1.251") && lt(TARGET_VE
 const targetUses258LaterSymbols = gte(TARGET_VERSION, "2.1.258") && lt(TARGET_VERSION, "2.1.259")
 const targetUses259LaterSymbols = gte(TARGET_VERSION, "2.1.259") && lt(TARGET_VERSION, "2.1.260")
 const targetUses260LaterSymbols = gte(TARGET_VERSION, "2.1.260") && lt(TARGET_VERSION, "2.1.263")
-const targetUses263LaterSymbols = gte(TARGET_VERSION, "2.1.263") && lt(TARGET_VERSION, "2.2.0")
+const targetUses263LaterSymbols = gte(TARGET_VERSION, "2.1.263") && lt(TARGET_VERSION, "2.1.266")
+const targetUses266LaterSymbols = gte(TARGET_VERSION, "2.1.266") && lt(TARGET_VERSION, "2.1.267")
 const targetUsesSessionJobs =
+  targetUses266LaterSymbols ||
   targetUses263LaterSymbols ||
   targetUses260LaterSymbols ||
   targetUses259LaterSymbols ||
@@ -49,6 +51,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
+  targetUses266LaterSymbols ||
   targetUses263LaterSymbols ||
   targetUses260LaterSymbols ||
   targetUses259LaterSymbols ||
@@ -837,6 +840,7 @@ test.skipIf(!testLaterCommand)(
       "setTimeout(()=>{if(!__jobs.delete(__id))return;e2(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;L2(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;V2(",
+      "setTimeout(()=>{if(!__jobs.delete(__id))return;I5(",
       "await Zqr(__cron,__prompt,!1,!1,F3()?.agentId)",
       "await Qjr(__cron,__prompt,!1,!1,g3()?.agentId)",
       "await iHr(__cron,__prompt,!1,!1,E4()?.agentId)",
@@ -845,6 +849,7 @@ test.skipIf(!testLaterCommand)(
       "await gsH(__cron,__prompt,!1,!1,void 0)",
       "await hoH(__cron,__prompt,!1,!1,void 0)",
       "await SeH(__cron,__prompt,!1,!1,void 0)",
+      "await __acc_schedule_later(__cron,__prompt,!1,!1,__acc_team_context()?.agentId)",
       "__e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
       "F_e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
       "Y2e({id:__id,cron:__cron,prompt:__prompt,createdAt:Date.now(),recurring:!1,later:!0})",
@@ -931,6 +936,16 @@ test.skipIf(!testLaterCommand)(
       )
       expect(patched).toContain("DTe(!0)")
       expect(patched).not.toContain("tTe(!0)")
+    } else if (targetUses266LaterSymbols) {
+      expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
+      expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;I5(")
+      expect(patched).toContain("pastedContentsOverride:KSo")
+      expect(patched).toContain("sX.trim()")
+      expect(patchedLinux).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;Y5(")
+      expect(patchedLinux).toContain("pastedContentsOverride:YSo")
+      expect(patchedLinux).toContain("TX.trim()")
+      expect(patched).not.toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;XY(")
+      expect(patchedLinux).not.toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;IY(")
     } else if (targetUses263LaterSymbols) {
       expect(patched).toContain("globalThis.__acc_later_jobs??=(new Map)")
       expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;XY(")

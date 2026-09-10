@@ -419,7 +419,7 @@ rationale = "Authored against 2.1.263. Do not offer the global ultracode workflo
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
 locator_kind = "literal"
 locator_pattern = '''if(ib(n)){let O=l.width+3'''
-replacement = '''if(false){let O=l.width+3'''
+replacement = '''if(false){let L=l.width+3'''
 expected_matches = 1
 
 [[patches.tests]]
@@ -544,3 +544,661 @@ replacement = '''!patchedEffort.session(Ji??ol()).cli&&!Vo&&r(t,{color:"subtle",
 kind = "static"
 name = "CLI effort pin hides picker adjust hint linux-x64"
 assert_contains = '''!patchedEffort.session(Ji??ol()).cli&&!Vo&&r(t,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches]]
+name = "model-effort-command-darwin-arm64-2-1-266"
+lineage = "model-effort-command"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Handle ordinary local effort before persistent or global writes, reporting the normalized effective model value. Preserve the original remote command path and native ultracode validation/workflow with persistence disabled; successful ultracode changes also update this model session effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "literal"
+locator_pattern = '''async function Gbe(t,o,n=!0,r){'''
+replacement = '''async function Gbe(t,o,n=!0,r){if(!Wn()){const current=pA.session(et()),input=t.trim().toLowerCase();if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(input==="ultracode"){const result=await patchedNativeEffortDarwin(t,o,!1,r);if(result.effortUpdate){const effective=pA.session(et(),"set",result.effortUpdate.value);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result;}const reset=input==="auto"||input==="unset",requested=reset?void 0:kBe(input);if(!reset&&requested===null||!reset&&requested===void 0)return{message:`Invalid effort: ${t}. ${E(et())}`};const effective=pA.session(et(),reset?"clear":"set",requested);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));return{message:`${reset?"Reset":"Set"} effort to ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}return patchedNativeEffortDarwin(t,o,n,r);}async function patchedNativeEffortDarwin(t,o,n=!0,r){'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-command-darwin-arm64 renders"
+assert_contains = '''async function Gbe(t,o,n=!0,r){if(!Wn()){const current=pA.session(et()),input=t.trim().toLowerCase();if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(input==="ultracode"){const result=await patchedNativeEffortDarwin(t,o,!1,r);if(result.effortUpdate){const effective=pA.session(et(),"set",result.effortUpdate.value);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result;}const reset=input==="auto"||input==="unset",requested=reset?void 0:kBe(input);if(!reset&&requested===null||!reset&&requested===void 0)return{message:`Invalid effort: ${t}. ${E(et())}`};const effective=pA.session(et(),reset?"clear":"set",requested);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));return{message:`${reset?"Reset":"Set"} effort to ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}return patchedNativeEffortDarwin(t,o,n,r);}async function patchedNativeEffortDarwin(t,o,n=!0,r){'''
+
+[[patches]]
+name = "model-effort-current-darwin-arm64-2-1-266"
+lineage = "model-effort-current"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Read the same model resolver used by requests, including source and unsupported effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "literal"
+locator_pattern = '''function aVe(t,o,n){'''
+replacement = '''function aVe(t,o,n){if(!Wn()){const effective=pA.session(o);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-current-darwin-arm64 renders"
+assert_contains = '''function aVe(t,o,n){if(!Wn()){const effective=pA.session(o);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}'''
+
+[[patches]]
+name = "model-effort-model-import-darwin-arm64-2-1-266"
+lineage = "model-effort-model-import"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Make the shared resolver available to model confirmation. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L1-L30"
+locator_kind = "literal"
+locator_pattern = '''import{H0,Rx,Za,wie,Eie,l4}'''
+replacement = '''import{pA as patchedEffort,H0,Rx,Za,wie,Eie,l4}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-import-darwin-arm64 renders"
+assert_contains = '''import{pA as patchedEffort,H0,Rx,Za,wie,Eie,l4}'''
+
+[[patches]]
+name = "model-effort-picker-import-darwin-arm64-2-1-266"
+lineage = "model-effort-picker-import"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Make the request resolver available to picker focus and keyboard adjustment. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "literal"
+locator_pattern = '''import{km,i4,uy'''
+replacement = '''import{pA as patchedEffort,km,i4,uy'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-import-darwin-arm64 renders"
+assert_contains = '''import{pA as patchedEffort,km,i4,uy'''
+
+[[patches]]
+name = "model-effort-picker-focus-darwin-arm64-2-1-266"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Each focused model reads its own session value instead of inheriting the previous row. Current bindings oT, So, co, ol. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "literal"
+locator_pattern = '''if(mo(ni),!Wo()&&Bo===void 0)Fn(hxe(ni))'''
+replacement = '''mo(ni),Fn(patchedEffort.session(mT(ni)??sl()).value)'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-focus-darwin-arm64 renders"
+assert_contains = '''mo(ni),Fn(patchedEffort.session(mT(ni)??sl()).value)'''
+
+[[patches]]
+name = "model-effort-picker-arrows-darwin-arm64-2-1-266"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Arrow keys change only the focused model immediately and respect the CLI pin. Exclude the global ultracode workflow from model-scoped effort levels. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "literal"
+locator_pattern = '''Fn((nn)=>Aut(pi?$a.defaultEffort:nn??$a.defaultEffort,ni,$a.capLevels,$a.supportsMax,$a.supportsXHigh,$a.supportsUltra)),Kn(!0)'''
+replacement = '''(()=>{const selected=patchedEffort.session(ri??sl());if(selected.cli)return;const next=Aut(selected.value??$a.defaultEffort,ni,$a.capLevels,$a.supportsMax,$a.supportsXHigh,!1),effective=patchedEffort.session(ri??sl(),"set",next);Fn(effective.value);Xe(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Kn(!0)})()'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-arrows-darwin-arm64 renders"
+assert_contains = '''(()=>{const selected=patchedEffort.session(ri??sl());if(selected.cli)return;const next=Aut(selected.value??$a.defaultEffort,ni,$a.capLevels,$a.supportsMax,$a.supportsXHigh,!1),effective=patchedEffort.session(ri??sl(),"set",next);Fn(effective.value);Xe(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Kn(!0)})()'''
+
+[[patches]]
+name = "model-effort-picker-select-darwin-arm64-2-1-266"
+lineage = "model-effort-picker-select"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Selection must not persist effort or copy it into session-global state; adjustments are already model-scoped. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "literal"
+locator_pattern = '''function Ps(ni){'''
+replacement = '''function Ps(ni){ee(ni===nC?null:ni,void 0);return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-select-darwin-arm64 renders"
+assert_contains = '''function Ps(ni){ee(ni===nC?null:ni,void 0);return;'''
+
+[[patches]]
+name = "model-effort-model-no-persist-darwin-arm64-2-1-266"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Suppress effort persistence on model confirmation; model default persistence remains independent. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''w?.fromUltracode)wie(ie,o);else if(w!==void 0)l4(w.level,sj(s),ie,o)'''
+replacement = '''false)void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-no-persist-darwin-arm64 renders"
+assert_contains = '''false)void 0'''
+
+[[patches]]
+name = "model-effort-model-state-darwin-arm64-2-1-266"
+lineage = "model-effort-model-state"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Model switching refreshes subscribers without changing the session-global effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''...w!==void 0&&{sessionEffort:Rx(w.level),ultracode:w.ultracode}'''
+replacement = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-state-darwin-arm64 renders"
+assert_contains = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches]]
+name = "model-effort-model-echo-darwin-arm64-2-1-266"
+lineage = "model-effort-model-echo"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Always report the effective selected model value and its source, including direct model selection without a picker effort payload. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "regex"
+locator_pattern = '''if\(w!==void 0\)\{let Ee=w\.ultracode\?"ultracode":w\.level;[\s\S]*?takes over\`\}\}'''
+replacement = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-echo-darwin-arm64 renders"
+assert_contains = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches]]
+name = "model-effort-picker-display-darwin-arm64-2-1-266"
+lineage = "model-effort-picker-display"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Render the request resolver result instead of upstream coercion of the previous row effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''is=br&&wr!==void 0&&wr!=="ultracode"?tB(wr,br):wr'''
+replacement = '''is=patchedEffort.session(br??sl()).value'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-display-darwin-arm64 renders"
+assert_contains = '''is=patchedEffort.session(br??sl()).value'''
+
+[[patches]]
+name = "model-effort-command-linux-x64-2-1-266"
+lineage = "model-effort-command"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Handle ordinary local effort before persistent or global writes, reporting the normalized effective model value. Preserve the original remote command path and native ultracode validation/workflow with persistence disabled; successful ultracode changes also update this model session effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "literal"
+locator_pattern = '''async function jSe(t,o,n=!0,r){'''
+replacement = '''async function jSe(t,o,n=!0,r){if(!zn()){const current=dE.session(et()),input=t.trim().toLowerCase();if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(input==="ultracode"){const result=await patchedNativeEffortLinux(t,o,!1,r);if(result.effortUpdate){const effective=dE.session(et(),"set",result.effortUpdate.value);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result;}const reset=input==="auto"||input==="unset",requested=reset?void 0:h1e(input);if(!reset&&requested===null||!reset&&requested===void 0)return{message:`Invalid effort: ${t}. ${E(et())}`};const effective=dE.session(et(),reset?"clear":"set",requested);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));return{message:`${reset?"Reset":"Set"} effort to ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}return patchedNativeEffortLinux(t,o,n,r);}async function patchedNativeEffortLinux(t,o,n=!0,r){'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-command-linux-x64 renders"
+assert_contains = '''async function jSe(t,o,n=!0,r){if(!zn()){const current=dE.session(et()),input=t.trim().toLowerCase();if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(input==="ultracode"){const result=await patchedNativeEffortLinux(t,o,!1,r);if(result.effortUpdate){const effective=dE.session(et(),"set",result.effortUpdate.value);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result;}const reset=input==="auto"||input==="unset",requested=reset?void 0:h1e(input);if(!reset&&requested===null||!reset&&requested===void 0)return{message:`Invalid effort: ${t}. ${E(et())}`};const effective=dE.session(et(),reset?"clear":"set",requested);o(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));return{message:`${reset?"Reset":"Set"} effort to ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}return patchedNativeEffortLinux(t,o,n,r);}async function patchedNativeEffortLinux(t,o,n=!0,r){'''
+
+[[patches]]
+name = "model-effort-current-linux-x64-2-1-266"
+lineage = "model-effort-current"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Read the same model resolver used by requests, including source and unsupported effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "literal"
+locator_pattern = '''function nKe(t,o,n){'''
+replacement = '''function nKe(t,o,n){if(!zn()){const effective=dE.session(o);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-current-linux-x64 renders"
+assert_contains = '''function nKe(t,o,n){if(!zn()){const effective=dE.session(o);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}'''
+
+[[patches]]
+name = "model-effort-model-import-linux-x64-2-1-266"
+lineage = "model-effort-model-import"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Make the shared resolver available to model confirmation. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L1-L30"
+locator_kind = "literal"
+locator_pattern = '''import{SP,wx,Za,yie,_ie,JK}'''
+replacement = '''import{dE as patchedEffort,SP,wx,Za,yie,_ie,JK}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-import-linux-x64 renders"
+assert_contains = '''import{dE as patchedEffort,SP,wx,Za,yie,_ie,JK}'''
+
+[[patches]]
+name = "model-effort-picker-import-linux-x64-2-1-266"
+lineage = "model-effort-picker-import"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Make the request resolver available to picker focus and keyboard adjustment. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "literal"
+locator_pattern = '''import{Am,YK,cy'''
+replacement = '''import{dE as patchedEffort,Am,YK,cy'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-import-linux-x64 renders"
+assert_contains = '''import{dE as patchedEffort,Am,YK,cy'''
+
+[[patches]]
+name = "model-effort-picker-focus-linux-x64-2-1-266"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Each focused model reads its own session value instead of inheriting the previous row. Current bindings aT, yo, co, ol. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "literal"
+locator_pattern = '''if(mo(ni),!Wo()&&No===void 0)On(uxe(ni))'''
+replacement = '''mo(ni),On(patchedEffort.session(dT(ni)??sl()).value)'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-focus-linux-x64 renders"
+assert_contains = '''mo(ni),On(patchedEffort.session(dT(ni)??sl()).value)'''
+
+[[patches]]
+name = "model-effort-picker-arrows-linux-x64-2-1-266"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Arrow keys change only the focused model immediately and respect the CLI pin. Exclude the global ultracode workflow from model-scoped effort levels. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "literal"
+locator_pattern = '''On((nn)=>Iut(pi?ja.defaultEffort:nn??ja.defaultEffort,ni,ja.capLevels,ja.supportsMax,ja.supportsXHigh,ja.supportsUltra)),Vn(!0)'''
+replacement = '''(()=>{const selected=patchedEffort.session(ri??sl());if(selected.cli)return;const next=Iut(selected.value??ja.defaultEffort,ni,ja.capLevels,ja.supportsMax,ja.supportsXHigh,!1),effective=patchedEffort.session(ri??sl(),"set",next);On(effective.value);Xe(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Vn(!0)})()'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-arrows-linux-x64 renders"
+assert_contains = '''(()=>{const selected=patchedEffort.session(ri??sl());if(selected.cli)return;const next=Iut(selected.value??ja.defaultEffort,ni,ja.capLevels,ja.supportsMax,ja.supportsXHigh,!1),effective=patchedEffort.session(ri??sl(),"set",next);On(effective.value);Xe(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Vn(!0)})()'''
+
+[[patches]]
+name = "model-effort-picker-select-linux-x64-2-1-266"
+lineage = "model-effort-picker-select"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Selection must not persist effort or copy it into session-global state; adjustments are already model-scoped. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "literal"
+locator_pattern = '''function Ms(ni){'''
+replacement = '''function Ms(ni){ee(ni===tC?null:ni,void 0);return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-select-linux-x64 renders"
+assert_contains = '''function Ms(ni){ee(ni===tC?null:ni,void 0);return;'''
+
+[[patches]]
+name = "model-effort-model-no-persist-linux-x64-2-1-266"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Suppress effort persistence on model confirmation; model default persistence remains independent. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''P?.fromUltracode)yie(ie,o);else if(P!==void 0)JK(P.level,Yj(s),ie,o)'''
+replacement = '''false)void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-no-persist-linux-x64 renders"
+assert_contains = '''false)void 0'''
+
+[[patches]]
+name = "model-effort-model-state-linux-x64-2-1-266"
+lineage = "model-effort-model-state"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Model switching refreshes subscribers without changing the session-global effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''...P!==void 0&&{sessionEffort:wx(P.level),ultracode:P.ultracode}'''
+replacement = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-state-linux-x64 renders"
+assert_contains = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches]]
+name = "model-effort-model-echo-linux-x64-2-1-266"
+lineage = "model-effort-model-echo"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Always report the effective selected model value and its source, including direct model selection without a picker effort payload. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "regex"
+locator_pattern = '''if\(P!==void 0\)\{let Ee=P\.ultracode\?"ultracode":P\.level;[\s\S]*?takes over\`\}\}'''
+replacement = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-model-echo-linux-x64 renders"
+assert_contains = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches]]
+name = "model-effort-picker-display-linux-x64-2-1-266"
+lineage = "model-effort-picker-display"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Render the request resolver result instead of upstream coercion of the previous row effort. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''is=Sr&&vr!==void 0&&vr!=="ultracode"?qB(vr,Sr):vr'''
+replacement = '''is=patchedEffort.session(Sr??sl()).value'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-display-linux-x64 renders"
+assert_contains = '''is=patchedEffort.session(Sr??sl()).value'''
+
+[[patches]]
+name = "model-effort-picker-source-darwin-arm64-2-1-266"
+lineage = "model-effort-picker-source"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Show the resolver source instead of calling a session override the default merely because values match. Current binding Xi. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''is===vi?" (default)":""'''
+replacement = '''` (${patchedEffort.session(br??sl()).source})`'''
+
+[[patches.tests]]
+kind = "static"
+name = "picker source darwin-arm64"
+assert_contains = '''` (${patchedEffort.session(br??sl()).source})`'''
+
+[[patches]]
+name = "model-effort-picker-source-linux-x64-2-1-266"
+lineage = "model-effort-picker-source"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Show the resolver source instead of calling a session override the default merely because values match. Current binding Ji. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''is===Ci?" (default)":""'''
+replacement = '''` (${patchedEffort.session(Sr??sl()).source})`'''
+
+[[patches.tests]]
+kind = "static"
+name = "picker source linux-x64"
+assert_contains = '''` (${patchedEffort.session(Sr??sl()).source})`'''
+
+[[patches]]
+name = "model-effort-inline-echo-darwin-arm64-2-1-266"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. The inline /model name route has a separate success message; append its resolved effort after model mutation. Current bindings Be and Jt. Retire when upstream reports applied effort on direct model switches."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = '''if(Mt!==void 0&&je!==null)'''
+replacement = '''{const effective=patchedEffort.session(je);Uo=Uo.then((message)=>message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`);}if(Mt!==void 0&&je!==null)'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-inline-echo-darwin-arm64 renders"
+assert_contains = '''{const effective=patchedEffort.session(je);Uo=Uo.then((message)=>message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`);}if(Mt!==void 0&&je!==null)'''
+
+[[patches]]
+name = "model-effort-inline-echo-linux-x64-2-1-266"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. The inline /model name route has a separate success message; append its resolved effort after model mutation. Current bindings Be and qt. Retire when upstream reports applied effort on direct model switches."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = '''if(Mt!==void 0&&De!==null)'''
+replacement = '''{const effective=patchedEffort.session(De);Uo=Uo.then((message)=>message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`);}if(Mt!==void 0&&De!==null)'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-inline-echo-linux-x64 renders"
+assert_contains = '''{const effective=patchedEffort.session(De);Uo=Uo.then((message)=>message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`);}if(Mt!==void 0&&De!==null)'''
+
+[[patches]]
+name = "model-effort-slider-import-darwin-arm64-2-1-266"
+lineage = "model-effort-slider-import"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Import the shared effort resolver into the slider. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''import{km,i4,qF,Mb,MC,ZZe'''
+replacement = '''import{pA as patchedEffort,km,i4,qF,Mb,MC,ZZe'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-import-darwin-arm64 renders"
+assert_contains = '''import{pA as patchedEffort,km,i4,qF,Mb,MC,ZZe'''
+
+[[patches]]
+name = "model-effort-slider-initial-darwin-arm64-2-1-266"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Select the current effective model effort instead of session-global or environment state. Current function ft, model n and geometry u. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function ft(t,c,l,u){'''
+replacement = '''function ft(t,c,l,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-initial-darwin-arm64 renders"
+assert_contains = '''function ft(t,c,l,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+
+[[patches]]
+name = "model-effort-slider-guard-darwin-arm64-2-1-266"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. A CLI pin or omitted backend effort has no editable slider value, so show the truthful current-status message. The newly enabled alternate selector bypasses this patch set's model-scoped slider and session-only behavior, so keep the established slider path. Current model hook Ka, status component fn, JSX factory e, memo helper y, and alternate-selector gate tn were verified in scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function gn(Ie){let Xn=y(4);if(tn()){'''
+replacement = '''function gn(Ie){const effective=patchedEffort.session(Ka());if(effective.cli||effective.value===undefined)return e(fn,{onDone:Ie.onDone});let Xn=y(4);if(false){'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-guard-darwin-arm64 renders"
+assert_contains = '''function gn(Ie){const effective=patchedEffort.session(Ka());if(effective.cli||effective.value===undefined)return e(fn,{onDone:Ie.onDone});let Xn=y(4);if(false){'''
+assert_not_contains = '''function gn(Ie){let Xn=y(4);if(tn()){'''
+
+[[patches]]
+name = "model-effort-slider-workflow-darwin-arm64-2-1-266"
+lineage = "model-effort-slider-workflow"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Do not offer the global ultracode workflow in a model-only effort selector. Current geometry local l. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''if(Mb(t)){let L=l.width+3'''
+replacement = '''if(false){let L=l.width+3'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-workflow-darwin-arm64 renders"
+assert_contains = '''if(false){let L=l.width+3'''
+
+[[patches]]
+name = "model-effort-slider-scope-darwin-arm64-2-1-266"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Both rendered footer variants state the new scope without implying that Enter saves a global default. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''s for this session only'''
+replacement = '''this model, this session'''
+expected_matches = 2
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-scope-darwin-arm64 renders"
+assert_contains = '''this model, this session'''
+
+[[patches]]
+name = "model-effort-slider-import-linux-x64-2-1-266"
+lineage = "model-effort-slider-import"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Import the shared effort resolver into the slider. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''import{Am,YK,UN,DS,Dk,GZe'''
+replacement = '''import{dE as patchedEffort,Am,YK,UN,DS,Dk,GZe'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-import-linux-x64 renders"
+assert_contains = '''import{dE as patchedEffort,Am,YK,UN,DS,Dk,GZe'''
+
+[[patches]]
+name = "model-effort-slider-initial-linux-x64-2-1-266"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Select the current effective model effort instead of session-global or environment state. Current function ft, model n and geometry u. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function ft(t,c,l,u){'''
+replacement = '''function ft(t,c,l,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-initial-linux-x64 renders"
+assert_contains = '''function ft(t,c,l,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+
+[[patches]]
+name = "model-effort-slider-guard-linux-x64-2-1-266"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. A CLI pin or omitted backend effort has no editable slider value, so show the truthful current-status message. The newly enabled alternate selector bypasses this patch set's model-scoped slider and session-only behavior, so keep the established slider path. Current model hook Ka, status component fn, JSX factory e, memo helper y, and alternate-selector gate tn were verified in scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function gn(Ie){let Xn=y(4);if(tn()){'''
+replacement = '''function gn(Ie){const effective=patchedEffort.session(Ka());if(effective.cli||effective.value===undefined)return e(fn,{onDone:Ie.onDone});let Xn=y(4);if(false){'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-guard-linux-x64 renders"
+assert_contains = '''function gn(Ie){const effective=patchedEffort.session(Ka());if(effective.cli||effective.value===undefined)return e(fn,{onDone:Ie.onDone});let Xn=y(4);if(false){'''
+assert_not_contains = '''function gn(Ie){let Xn=y(4);if(tn()){'''
+
+[[patches]]
+name = "model-effort-slider-workflow-linux-x64-2-1-266"
+lineage = "model-effort-slider-workflow"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Do not offer the global ultracode workflow in a model-only effort selector. Current geometry local l. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''if(DS(t)){let R=l.width+3'''
+replacement = '''if(false){let R=l.width+3'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-workflow-linux-x64 renders"
+assert_contains = '''if(false){let R=l.width+3'''
+
+[[patches]]
+name = "model-effort-slider-scope-linux-x64-2-1-266"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Both rendered footer variants state the new scope without implying that Enter saves a global default. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''s for this session only'''
+replacement = '''this model, this session'''
+expected_matches = 2
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-scope-linux-x64 renders"
+assert_contains = '''this model, this session'''
+
+[[patches]]
+name = "model-effort-picker-cli-hint-darwin-arm64-2-1-266"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.266. Hide the adjustment hint when CLI --effort disables arrow changes; the source label already identifies the pin. Retire when upstream makes the hint match model-scoped effort controls."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''(!Ho||Zo==="")&&r(n,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+replacement = '''!patchedEffort.session(br??sl()).cli&&(!Ho||Zo==="")&&r(n,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "CLI effort pin hides picker adjust hint darwin-arm64"
+assert_contains = '''!patchedEffort.session(br??sl()).cli&&(!Ho||Zo==="")&&r(n,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches]]
+name = "model-effort-picker-cli-hint-linux-x64-2-1-266"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.266"
+applies_to = ">=2.1.266 <2.1.267"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.266. Hide the adjustment hint when CLI --effort disables arrow changes; the source label already identifies the pin. Retire when upstream makes the hint match model-scoped effort controls."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''(!Ho||Zo==="")&&r(n,{color:"subtle",children:[" ",e(O,{chord:["left","right"],action:"adjust"})]})'''
+replacement = '''!patchedEffort.session(Sr??sl()).cli&&(!Ho||Zo==="")&&r(n,{color:"subtle",children:[" ",e(O,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "CLI effort pin hides picker adjust hint linux-x64"
+assert_contains = '''!patchedEffort.session(Sr??sl()).cli&&(!Ho||Zo==="")&&r(n,{color:"subtle",children:[" ",e(O,{chord:["left","right"],action:"adjust"})]})'''

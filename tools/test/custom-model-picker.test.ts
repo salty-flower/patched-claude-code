@@ -46,7 +46,7 @@ function picker(patch: PatchEntry): (rows: Row[], environment: Environment) => R
 }
 
 test("every historical picker variant participates in the behavior regression", () => {
-  expect(pickerPatches).toHaveLength(11)
+  expect(pickerPatches).toHaveLength(13)
 })
 
 for (const patch of pickerPatches) {

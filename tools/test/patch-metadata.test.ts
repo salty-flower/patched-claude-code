@@ -39,6 +39,28 @@ test("evaluates static patch tests against rendered bundle text", () => {
   ])
 })
 
+test.each([
+  ["patched", true],
+  ["patched stale", false],
+  ["stale", false],
+  ["unrelated", false],
+] as const)("checks both static assertions against %s", (source, ok) => {
+  expect(
+    evaluateStaticPatchTests(source, [
+      {
+        kind: "static",
+        name: "current without stale",
+        assert_contains: "patched",
+        assert_not_contains: "stale",
+      },
+    ])[0]?.ok,
+  ).toBe(ok)
+})
+
+test("empty static tests cannot pass", () => {
+  expect(evaluateStaticPatchTests("anything", [{ kind: "static", name: "missing assertions" }])[0]?.ok).toBe(false)
+})
+
 test("normalizes multi-patch TOML entries with inherited metadata", () => {
   const patches = loadPatchEntriesFromToml(
     `

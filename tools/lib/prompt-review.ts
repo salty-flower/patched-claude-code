@@ -6,6 +6,7 @@ import {
   type PromptCatalogEntry,
   type PromptCatalogGap,
   type PromptCatalogManifest,
+  readHistoricalPromptCatalogManifest,
   readPromptCatalogManifest,
   validateCatalogContents,
 } from "./prompt-catalog"
@@ -438,7 +439,7 @@ function readCatalogItems(root: string, manifest: PromptCatalogManifest): Map<st
 
 function readOptionalCatalog(root: string, expectedVersion: string | null): PromptCatalogManifest | null {
   if (!expectedVersion || !existsSync(join(root, "manifest.json"))) return null
-  const manifest = readPromptCatalogManifest(root)
+  const manifest = readHistoricalPromptCatalogManifest(root)
   if (manifest.target.upstreamVersion !== expectedVersion) {
     throw new Error(
       `previous prompt catalog version mismatch: expected ${expectedVersion}, got ${manifest.target.upstreamVersion}`,

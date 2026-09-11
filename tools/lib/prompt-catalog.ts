@@ -357,6 +357,15 @@ export function rebindPromptCatalog(
 }
 
 export function readPromptCatalogManifest(root: string): PromptCatalogManifest {
+  return readCatalogManifest(root, true)
+}
+
+// Historical catalogs are immutable release evidence, not input to today's extractor.
+export function readHistoricalPromptCatalogManifest(root: string): PromptCatalogManifest {
+  return readCatalogManifest(root, false)
+}
+
+function readCatalogManifest(root: string, requireCurrentRuleset: boolean): PromptCatalogManifest {
   const path = join(root, "manifest.json")
   const value = JSON.parse(decodeUtf8(readFileSync(path), path)) as PromptCatalogManifest
   if (
@@ -365,7 +374,10 @@ export function readPromptCatalogManifest(root: string): PromptCatalogManifest {
     value.completeness !== "partial" ||
     !Array.isArray(value.entries) ||
     value.identity?.schemaVersion !== 2 ||
-    value.extractor?.rulesetSha256 !== PROMPT_CATALOG_RULESET_SHA256
+    value.extractor?.schemaVersion !== 3 ||
+    value.extractor.method?.schema !== 3 ||
+    value.extractor.rulesetSha256 !== digest(JSON.stringify(value.extractor.method)) ||
+    (requireCurrentRuleset && value.extractor.rulesetSha256 !== PROMPT_CATALOG_RULESET_SHA256)
   ) {
     throw new Error(`invalid prompt catalog manifest: ${path}`)
   }

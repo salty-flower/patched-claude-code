@@ -31,6 +31,7 @@ The *target* is the Claude Code version we patch and ship. The *reference*
    failure.
 
    Tool tests include effort resolver, capability, and stub-backed request/retry regressions.
+   See [Testing](Testing.md) for active-entry contracts, focused reruns, and complete failure summaries.
 
    Obligation coverage is fail-closed.
    Add one explicit target decision for every row governed by

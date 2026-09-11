@@ -51,28 +51,28 @@ export function loadPatchTestsFromToml(rawToml: string): PatchTest[] {
 
 export function evaluateStaticPatchTests(bundleText: string, tests: StaticPatchTest[]): PatchTestResult[] {
   return tests.map((patchTest) => {
+    const assertions: Array<{ ok: boolean; message: string }> = []
     if (patchTest.assert_contains !== undefined) {
       const ok = bundleText.includes(patchTest.assert_contains)
-      return {
+      assertions.push({
         ok,
-        name: patchTest.name,
         message: ok ? "contains expected text" : `missing expected text: ${patchTest.assert_contains}`,
-      }
+      })
     }
-
     if (patchTest.assert_not_contains !== undefined) {
       const ok = !bundleText.includes(patchTest.assert_not_contains)
-      return {
+      assertions.push({
         ok,
-        name: patchTest.name,
         message: ok ? "does not contain forbidden text" : `contains forbidden text: ${patchTest.assert_not_contains}`,
-      }
+      })
     }
-
     return {
-      ok: false,
+      ok: assertions.length > 0 && assertions.every((assertion) => assertion.ok),
       name: patchTest.name,
-      message: "static test must set assert_contains or assert_not_contains",
+      message:
+        assertions.length > 0
+          ? assertions.map((assertion) => assertion.message).join("; ")
+          : "static test must set assert_contains or assert_not_contains",
     }
   })
 }

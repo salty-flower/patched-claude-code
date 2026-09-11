@@ -2,7 +2,12 @@ import { expect, test } from "bun:test"
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { inspectPromptIdentityObservations, writePromptCatalog } from "../lib/prompt-catalog"
+import {
+  inspectPromptIdentityObservations,
+  type PromptCatalogManifest,
+  readPromptCatalogManifest,
+  writePromptCatalog,
+} from "../lib/prompt-catalog"
 import {
   bootstrapPromptIdentityFiles,
   buildPromptIdentityDraft,
@@ -14,7 +19,22 @@ import { sha256 } from "../lib/release-payload"
 const STATIC_PROMPT =
   "You are a release audit assistant. Your task is to inspect deterministic evidence, return a concise result, and do not claim that runtime-only values were recovered. Write the output without adding unstated context."
 
-test("prompt review renders inline unchanged IDs and traced side-by-side changes", () => {
+function writeManifest(root: string, manifest: PromptCatalogManifest): void {
+  const { manifestSha256: _previous, ...payload } = manifest
+  writeFileSync(
+    join(root, "manifest.json"),
+    JSON.stringify(
+      {
+        ...payload,
+        manifestSha256: sha256(Buffer.from(`${JSON.stringify(payload, null, 2)}\n`)).sri,
+      },
+      null,
+      2,
+    ),
+  )
+}
+
+test.each([false, true])("prompt review renders traced changes with historical ruleset=%s", (historicalRuleset) => {
   const root = mkdtempSync(join(tmpdir(), "patched-cc-prompt-review-"))
   try {
     const identityRoot = join(root, "prompt-identities")
@@ -72,12 +92,26 @@ test("prompt review renders inline unchanged IDs and traced side-by-side changes
       identityRoot,
     })
 
-    const result = renderPromptReviewMarkdown({
+    const previousManifest = readPromptCatalogManifest(previousCatalog)
+    if (historicalRuleset) {
+      // Emulate an immutable release produced before a detector-rule change.
+      previousManifest.extractor.method = {
+        ...previousManifest.extractor.method,
+        signals: previousManifest.extractor.method.signals.slice(1),
+      }
+      previousManifest.extractor.rulesetSha256 = sha256(
+        Buffer.from(JSON.stringify(previousManifest.extractor.method)),
+      ).sri
+      writeManifest(previousCatalog, previousManifest)
+      expect(() => readPromptCatalogManifest(previousCatalog)).toThrow()
+    }
+    const reviewOptions = {
       catalogDir: currentCatalog,
       identityRoot,
       upstreamVersion: "2.1.218",
       previousCatalogDir: previousCatalog,
-    })
+    }
+    const result = renderPromptReviewMarkdown(reviewOptions)
     expect(result.summary).toMatchObject({
       previousVersion: "2.1.217",
       candidates: 1,
@@ -92,6 +126,33 @@ test("prompt review renders inline unchanged IDs and traced side-by-side changes
     expect(result.markdown).toContain("brief result")
     expect(result.releaseMarkdown).toContain("concise result")
     expect(result.releaseMarkdown).toContain("brief result")
+
+    if (historicalRuleset) {
+      const currentManifest = readPromptCatalogManifest(currentCatalog)
+      writeManifest(currentCatalog, { ...currentManifest, extractor: previousManifest.extractor })
+      expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("invalid prompt catalog manifest")
+      writeManifest(currentCatalog, currentManifest)
+
+      writeManifest(previousCatalog, {
+        ...previousManifest,
+        target: { ...previousManifest.target, upstreamVersion: "2.1.216" },
+      })
+      expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("previous prompt catalog version mismatch")
+
+      writeManifest(previousCatalog, {
+        ...previousManifest,
+        extractor: { ...previousManifest.extractor, rulesetSha256: "sha256-invalid" },
+      })
+      expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("invalid prompt catalog manifest")
+      writeManifest(previousCatalog, previousManifest)
+
+      const contentPath = join(previousCatalog, previousManifest.entries[0]!.contentFile)
+      writeFileSync(contentPath, "corrupted historical text")
+      expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("prompt catalog content mismatch")
+      writeFileSync(contentPath, STATIC_PROMPT)
+      writeFileSync(join(previousCatalog, "gaps.json"), "[]\n")
+      expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("prompt catalog gaps SHA-256 mismatch")
+    }
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

@@ -15,6 +15,7 @@ import {
   type PatchTest,
   type PtyPatchTest,
 } from "../lib/patch-tests"
+import { makeScriptCommand, shellQuote, timeoutCommand } from "./helpers/pty"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -71,20 +72,15 @@ function runCliTest(bundle: string, test: CliPatchTest): { ok: boolean; message:
   return { ok: true, message: "CLI assertion passed" }
 }
 
-function shellQuote(value: string): string {
-  return `'${value.replaceAll("'", "'\\''")}'`
-}
-
 function runPtyTest(bundle: string, test: PtyPatchTest): { ok: boolean; message: string } {
   const timeoutSeconds = test.timeout_seconds ?? 15
   const command = [
-    "timeout",
-    `${timeoutSeconds}s`,
+    ...timeoutCommand(timeoutSeconds),
     "bun",
     shellQuote(bundle),
     ...(test.args ?? []).map(shellQuote),
   ].join(" ")
-  const scriptCommand = `printf %s ${shellQuote(test.input ?? "/exit\n")} | script -q -e -c ${shellQuote(command)} /dev/null`
+  const scriptCommand = makeScriptCommand(command, `printf %s ${shellQuote(test.input ?? "/exit\n")}`)
   const result = Bun.spawnSync({
     cmd: ["bash", "-lc", scriptCommand],
     cwd: ROOT,
@@ -105,15 +101,20 @@ function inferVersionFromBundle(bundle: string): string | undefined {
   return bundle.match(/(?:^|\/)staging\/([^/]+)\/cli\.patched\.js$/)?.[1]
 }
 
-function renderedBundleText(bundle: string, platform?: string): string {
+type BundleView = { platform?: string; text: string }
+
+function renderedBundleViews(bundle: string, platform?: string): BundleView[] {
   const entrypoint = readFileSync(bundle, "utf8")
   const graphRoot = join(dirname(bundle), "graph.patched")
-  if (!existsSync(join(graphRoot, "darwin-arm64", "cli.js"))) return entrypoint
-  const platforms = platform ? [platform] : ["darwin-arm64", "linux-x64"]
-  const graphTexts = platforms.flatMap((graphPlatform) =>
-    loadGraphBundle(join(graphRoot, graphPlatform), graphPlatform).files.map((file) => file.text),
-  )
-  return [entrypoint, ...graphTexts].join("\n")
+  if (!existsSync(graphRoot)) return [{ platform, text: entrypoint }]
+  return (platform ? [platform] : ["darwin-arm64", "linux-x64"]).map((graphPlatform) => {
+    const root = join(graphRoot, graphPlatform)
+    if (!existsSync(join(root, "cli.js"))) throw new Error(`rendered platform graph missing: ${root}`)
+    return {
+      platform: graphPlatform,
+      text: [entrypoint, ...loadGraphBundle(root, graphPlatform).files.map((file) => file.text)].join("\n"),
+    }
+  })
 }
 
 function patchTestsForTarget(rawToml: string, version?: string, platform?: string): PatchTest[] {
@@ -151,38 +152,65 @@ function main(): number {
     return 2
   }
 
-  const bundleText = renderedBundleText(args.bundle, args.platform)
+  const views = renderedBundleViews(args.bundle, args.platform)
   const targetVersion = args.version ?? inferVersionFromBundle(args.bundle)
   const patchFiles = args.patches.length > 0 ? args.patches : defaultPatchFiles()
+  const hostPlatform =
+    process.platform === "darwin" ? "darwin-arm64" : process.platform === "linux" ? "linux-x64" : undefined
   let allOk = true
 
   for (const patchFile of patchFiles) {
-    const selection = selectPatchTestsForTarget(readFileSync(patchFile, "utf8"), targetVersion, args.platform)
-    const tests = selection.tests
-    if (selection.skipped) {
+    const entries = loadPatchEntriesFromToml(readFileSync(patchFile, "utf8"), patchFile).filter(
+      (entry) =>
+        (!targetVersion || patchApplies(entry, targetVersion)) &&
+        (!args.platform || !entry.platforms || entry.platforms.includes(args.platform)),
+    )
+    if (entries.length === 0) {
       console.log(`[skip] ${patchFile}: no patch entries apply to ${targetVersion}`)
       continue
     }
-    if (tests.length === 0) {
-      console.log(`[FAIL] ${patchFile}: no [[tests]] entries`)
-      allOk = false
-      continue
-    }
-
-    for (const patchTest of tests) {
-      let result: { ok: boolean; message: string }
-      if (patchTest.kind === "static") {
-        result = evaluateStaticPatchTests(bundleText, [patchTest])[0]
-      } else if (patchTest.kind === "cli") {
-        result = runCliTest(args.bundle, patchTest)
-      } else {
-        result = runPtyTest(args.bundle, patchTest as PatchTest & PtyPatchTest)
+    for (const entry of entries) {
+      if (!entry.tests?.length) {
+        console.log(`[FAIL] ${patchFile}:${entry.name}: no [[tests]] entries`)
+        allOk = false
+        continue
       }
-
-      allOk &&= result.ok
-      console.log(
-        `[${result.ok ? "ok" : "FAIL"}] ${patchFile}: ${patchTest.kind} ${patchTest.name} - ${result.message}`,
+      const entryViews = views.filter(
+        (view) => !view.platform || !entry.platforms || entry.platforms.includes(view.platform),
       )
+      if (entryViews.length === 0) {
+        console.log(`[FAIL] ${patchFile}:${entry.name}: no matching rendered platform`)
+        allOk = false
+        continue
+      }
+      for (const patchTest of entry.tests) {
+        if (patchTest.kind === "static") {
+          for (const view of entryViews) {
+            const result = evaluateStaticPatchTests(view.text, [patchTest])[0]
+            allOk &&= result.ok
+            console.log(
+              `[${result.ok ? "ok" : "FAIL"}] ${patchFile}:${entry.name} [${view.platform ?? "bundle"}]: static ${patchTest.name} - ${result.message}`,
+            )
+          }
+          continue
+        }
+        if (
+          (args.platform && args.platform !== hostPlatform) ||
+          (entry.platforms && (!hostPlatform || !entry.platforms.includes(hostPlatform)))
+        ) {
+          console.log(
+            `[FAIL] ${patchFile}:${entry.name}: ${patchTest.kind} ${patchTest.name} requires its native platform`,
+          )
+          allOk = false
+          continue
+        }
+        const result =
+          patchTest.kind === "cli" ? runCliTest(args.bundle, patchTest) : runPtyTest(args.bundle, patchTest)
+        allOk &&= result.ok
+        console.log(
+          `[${result.ok ? "ok" : "FAIL"}] ${patchFile}:${entry.name} [${hostPlatform ?? "host"}]: ${patchTest.kind} ${patchTest.name} - ${result.message}`,
+        )
+      }
     }
   }
 

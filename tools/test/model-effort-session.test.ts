@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test"
 import { resolve } from "node:path"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { targetVersion } from "../lib/target"
+import { activePatch, captureIdentifier } from "./helpers/patch-contract"
 
 type EffortResult = {
   slug: string
@@ -17,44 +19,68 @@ type Resolver = (
   honorLaunchPin?: boolean,
   agentOverride?: string,
 ) => EffortResult
-type Owner = { effortByModel?: Map<string, string>; effortLaunchValue?: string }
+type EffortTable = { default?: string; byModel: Record<string, string> }
+type Owner = {
+  effortByModel?: Map<string, string>
+  effortLaunchValue?: string
+  mainLoopEffortState: () => { settingsEffortTable?: EffortTable }
+}
 
 const patches = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches/model-effort-session.toml"))
 
 for (const platform of ["darwin-arm64", "linux-x64"]) {
   test(`${platform}: shipped resolver enforces model/session precedence and truthful unsupported state`, () => {
-    const patch = patches.find((entry) => entry.name === `effort-session-resolver-${platform}`)
-    if (!patch?.replacement) throw new Error("resolver patch missing")
-    // Execute the actual replacement helper, with external bundle dependencies controlled.
-    // No duplicate implementation of the precedence rules lives in this fixture.
-    const helper = patch.replacement.slice(0, patch.replacement.indexOf(";function ") + 1)
-    const darwin = platform === "darwin-arm64"
-    const resolverName = darwin ? "MT" : "$w"
+    const patch = activePatch(patches, targetVersion(), platform, "effort-session-resolver-")
+    if (!patch.replacement) throw new Error("resolver patch missing")
+    const source = patch.replacement
+    const binding = (role: string, pattern: RegExp) => captureIdentifier(source, role, pattern)
+    const resolverName = binding("resolver", /^([\w$]+)\.session=/)
     const environment: Record<string, string> = {
       ANTHROPIC_CUSTOM_MODEL_OPTION: " gpt-5.6-luna[1m] ",
       ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL: "max",
     }
-    let owner: Owner = {}
+    const state: { settingsEffortTable?: EffortTable } = {}
+    let owner: Owner = { mainLoopEffortState: () => state }
     const rejected = new Set<string>()
-    const normalize = (model: string) => (model.toLowerCase() === "sonnet" ? "gpt-5.6-luna[1m]" : model.trim())
+    const unsupported = new Set<string>()
+    let environmentEffort: string | null | undefined
+    const normalize = (model: string) =>
+      model.trim().toLowerCase() === "sonnet"
+        ? "gpt-5.6-luna"
+        : model
+            .trim()
+            .toLowerCase()
+            .replace(/\[1m\]$/, "")
     const bindings: Record<string, unknown> = {
-      [resolverName]: {},
-      [darwin ? "drt" : "Ynt"]: () => owner,
-      [darwin ? "wt" : "Ht"]: normalize,
-      [darwin ? "VH" : "MI"]: () => "medium",
-      [darwin ? "UN" : "LO"]: () => false,
-      [darwin ? "bHt" : "tIt"]: (model: string) => rejected.has(model),
-      [darwin ? "zh" : "Wh"]: () => true,
-      P: (value: string) => value,
-      D: () => "high",
-      X: () => ({}),
-      q: () => undefined,
-      ol: () => "gpt-5.6-luna",
+      [binding("session owner", /const owner=([\w$]+)\(Symbol\.for/)]: () => owner,
+      [binding("model normalization", /slug=([\w$]+)\(model/)]: normalize,
+      [binding("default model", /model\?\?([\w$]+)\(\)/)]: () => "gpt-5.6-luna",
+      [binding("environment effort", /const configured=([\w$]+)\(\)/)]: () => environmentEffort,
+      [binding("launch default predicate", /honorLaunchPin&&([\w$]+)\(slug\)/)]: () => false,
+      [binding("model effort default", /chosen=([\w$]+)\(slug\);source="model launch default"/)]: () => "medium",
+      [binding(
+        "backend rejection",
+        /if\(([\w$]+)\(slug\)\)\{chosen=undefined;source="backend default \(effort unsupported\)"/,
+      )]: (model: string) => rejected.has(model),
+      [binding("capability", /else if\(!([\w$]+)\(slug\)\)/)]: (model: string) => !unsupported.has(model),
+      [binding("organization normalization", /const normalized=([\w$]+)\(chosen,slug\)/)]: (value: string) => value,
+      [binding("per-model table predicate", /undefined:([\w$]+)\(table\)\?/)]: () => true,
+      [binding("table lookup", /\(table\)\?([\w$]+)\(table,slug\)/)]: (table: EffortTable, slug: string) =>
+        table.byModel[slug] ?? table.default,
       process: { env: environment },
     }
-    const read = new Function(...Object.keys(bindings), `${helper}return ${resolverName}.session;`)(
-      ...Object.values(bindings),
-    ) as Resolver
+    // Execute both the active replacement and its public wrapper, not a reimplementation.
+    const { read, turn } = new Function(
+      ...Object.keys(bindings),
+      `${source}}return {read:${resolverName}.session,turn:${resolverName}};`,
+    )(...Object.values(bindings)) as {
+      read: Resolver
+      turn: (
+        model: string,
+        fallback?: string,
+        options?: { turnEffort?: string; agentOverride?: string },
+      ) => string | undefined
+    }
     expect(read("sonnet")).toMatchObject({ slug: "gpt-5.6-luna", value: "max", source: "configured default" })
     expect(read("gpt-6-astra", "set", "low").value).toBe("low")
     expect(read("sonnet").value).toBe("max")
@@ -71,7 +97,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(read("sonnet", "clear").value).toBe("max")
     expect(read("gpt-6-astra").value).toBe("low")
     const firstSession = owner
-    owner = {}
+    owner = { mainLoopEffortState: () => state }
     expect(read("sonnet").value).toBe("max")
     expect(read("gpt-6-astra").value).toBe("medium")
     owner.effortLaunchValue = "low"
@@ -83,5 +109,18 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     rejected.add("gpt-5.6-luna")
     expect(read("sonnet")).toMatchObject({ value: undefined, source: "backend default (effort unsupported)" })
     expect(read("gpt-6-astra").value).toBe("low")
+    rejected.clear()
+    expect(turn("sonnet", "low", { turnEffort: "xhigh" })).toBe("xhigh")
+    expect(turn("sonnet", "low", { turnEffort: "high", agentOverride: "max" })).toBe("max")
+    state.settingsEffortTable = { default: "high", byModel: { "other-model": "low" } }
+    expect(read("other-model")).toMatchObject({ value: "low", source: "configured model default" })
+    expect(read("unconfigured")).toMatchObject({ value: "high", source: "configured default" })
+    environmentEffort = "xhigh"
+    expect(read("unconfigured")).toMatchObject({ value: "xhigh", source: "environment default" })
+    environmentEffort = null
+    expect(read("unconfigured")).toMatchObject({ value: undefined, source: "effort omitted by environment" })
+    environmentEffort = undefined
+    unsupported.add("other-model")
+    expect(read("other-model")).toMatchObject({ value: undefined, source: "backend default (effort not supported)" })
   })
 }

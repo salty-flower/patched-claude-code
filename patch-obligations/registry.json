@@ -131,6 +131,22 @@
       ]
     },
     {
+      "familyId": "anti-trace",
+      "invariantId": "neutralize-project-thread-author-marker",
+      "introducedVersion": "2.1.268",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/messages.ts#L1615-L1636"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "anti-trace/neutralize-project-thread-author-marker"
+      ]
+    },
+    {
       "familyId": "ask-user-question-unlimited",
       "invariantId": "ask-user-question-extended-description",
       "introducedVersion": "2.1.260",
@@ -2324,7 +2340,7 @@
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "salty-flower",
-    "approvedAt": "2026-09-07",
-    "catalogSha256": "bdc9d39e6cb80752382b40f68444f553b19a8e3ea9cdf646e0cfe549b42cd4cc"
+    "approvedAt": "2026-09-11",
+    "catalogSha256": "45a4549df0f74132d055804e88a2267225308718328d9d0cd65e2e9c7054a130"
   }
 }

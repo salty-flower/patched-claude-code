@@ -76,6 +76,7 @@ test("model-specific context windows follow the active model", async () => {
       ...process.env,
       CLAUDE_CODE_MAX_CONTEXT_TOKENS_alpha_model: "131072",
       CLAUDE_CODE_MAX_CONTEXT_TOKENS_beta_model: "262144",
+      CLAUDE_CODE_MAX_CONTEXT_TOKENS: "345678",
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
     },
     stdout: "pipe",
@@ -93,6 +94,6 @@ test("model-specific context windows follow the active model", async () => {
     alpha: 131072,
     beta: 262144,
     tagged: 131072,
-    fallback: 200000,
+    fallback: 345678,
   })
 })

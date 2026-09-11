@@ -219,6 +219,28 @@ assert_contains = '''function xat(e){if(e===Symbol.for("patched-cc.effort-sessio
 assert_not_contains = '''function yst(e){if(e===Symbol.for("patched-cc.effort-session"))'''
 
 [[patches]]
+name = "effort-session-owner-2-1-268-darwin-arm64"
+lineage = "effort-session-owner"
+platforms = ["darwin-arm64"]
+rationale = "Expose the 2.1.268 model-selection owner to the session resolver without changing saved settings. The native graph keeps the session selector and the default/byModel settings table; setter vct and singleton n were inspected in the target graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function vct(e){n().modelSelection.replaceMainLoopEffortState(e)}'''
+replacement = '''function vct(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort session owner is active on darwin-arm64"
+assert_contains = '''function vct(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 darwin-arm64 effort session owner no longer carries 2.1.267 symbols"
+assert_not_contains = '''function xat(e){if(e===Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
 name = "effort-session-resolver-2-1-266-darwin-arm64"
 lineage = "effort-session-resolver"
 platforms = ["darwin-arm64"]
@@ -253,6 +275,28 @@ kind = "static"
 name = "2.1.267 effort session resolver is active on darwin-arm64"
 assert_contains = '''CA.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
 assert_not_contains = '''pA.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches]]
+name = "effort-session-resolver-2-1-268-darwin-arm64"
+lineage = "effort-session-resolver"
+platforms = ["darwin-arm64"]
+rationale = "Resolve model-specific session defaults and overrides across the 2.1.268 default/byModel effort table. Bindings NA, vct, Xye, dl, fP, G1, D, Z, ee, XMt, qh, and P were inspected in the target graph; the native backend-rejection latch remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function NA(e,n,{honorLaunchPin:o=!0,turnEffort:r}={}){'''
+replacement = '''NA.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride){const owner=vct(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},slug=Xye(model??dl());owner.effortByModel??=new Map();const cli=owner.effortLaunchValue!==undefined;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}let chosen,source;const own=owner.effortByModel.get(slug);let slot;for(const key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const modelName=process.env[key]?.trim();if(modelName&&Xye(modelName)===slug){const level=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(level??"")){slot=level;break}}}if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==undefined){chosen=agentOverride;source="agent override"}else if(own!==undefined){chosen=own;source="this session"}else if(slot!==undefined){chosen=slot;source="configured default"}else{const configured=fP();if(configured!==undefined){chosen=configured===null?undefined:configured;source=configured===null?"effort omitted by environment":"environment default"}else if(honorLaunchPin&&G1(slug)){chosen=D(slug);source="model launch default"}else{const table=state.settingsEffortTable,tableValue=table===undefined?undefined:ee(table)?Z(table,slug):table.default;chosen=fallback??tableValue??D(slug);source=tableValue!==undefined?Object.hasOwn(table.byModel,slug)?"configured model default":"configured default":"model default"}}if(XMt(slug)){chosen=undefined;source="backend default (effort unsupported)"}else if(!qh(slug)){chosen=undefined;source="backend default (effort not supported)"}else if(chosen!==undefined){const normalized=P(chosen,slug);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};function NA(e,n,{honorLaunchPin:o=!0,turnEffort:r,agentOverride:patchedAgentOverride}={}){return NA.session(e,undefined,undefined,n,o,patchedAgentOverride??r).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort session resolver is active on darwin-arm64"
+assert_contains = '''NA.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 darwin-arm64 effort session resolver no longer carries 2.1.267 symbols"
+assert_not_contains = '''CA.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
 
 [[patches]]
 name = "effort-launch-pin-2-1-266-darwin-arm64"
@@ -291,6 +335,28 @@ assert_contains = '''function Q2e(e){let n=A(e);xat(Symbol.for("patched-cc.effor
 assert_not_contains = '''function xBe(e){yst(Symbol.for("patched-cc.effort-session"))'''
 
 [[patches]]
+name = "effort-launch-pin-2-1-268-darwin-arm64"
+lineage = "effort-launch-pin"
+platforms = ["darwin-arm64"]
+rationale = "Pin parsed CLI effort in the model-scoped session owner when 2.1.268 constructs its native sessionEffort/settingsEffortTable pair. Initializer x6e, parser A, owner vct, and state setter vct were inspected in the target graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function x6e(e){let n=A(e);'''
+replacement = '''function x6e(e){let n=A(e);vct(Symbol.for("patched-cc.effort-session")).effortLaunchValue=n;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort launch pin is active on darwin-arm64"
+assert_contains = '''function x6e(e){let n=A(e);vct(Symbol.for("patched-cc.effort-session")).effortLaunchValue=n;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 darwin-arm64 effort launch pin no longer carries 2.1.267 symbols"
+assert_not_contains = '''function Q2e(e){let n=A(e);xat(Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
 name = "effort-model-state-selector-2-1-266-darwin-arm64"
 lineage = "effort-model-state-selector"
 platforms = ["darwin-arm64"]
@@ -325,6 +391,28 @@ kind = "static"
 name = "2.1.267 effort model-state selector is active on darwin-arm64"
 assert_contains = '''function rl(e,n){return CA.session(n??e.mainLoopModelForSession??e.mainLoopModel??ul()).value;'''
 assert_not_contains = '''function Za(e,n){return pA.session'''
+
+[[patches]]
+name = "effort-model-state-selector-2-1-268-darwin-arm64"
+lineage = "effort-model-state-selector"
+platforms = ["darwin-arm64"]
+rationale = "Route the 2.1.268 application-state selector through the model-scoped request resolver. Selector ul, resolver NA, and default model dl were inspected after the upstream effort-table rewrite."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "regex"
+locator_pattern = '''function ul\(e,n\)\{(?=let o=e\.sessionEffort)'''
+replacement = '''function ul(e,n){return NA.session(n??e.mainLoopModelForSession??e.mainLoopModel??dl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort model-state selector is active on darwin-arm64"
+assert_contains = '''function ul(e,n){return NA.session(n??e.mainLoopModelForSession??e.mainLoopModel??dl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 darwin-arm64 effort model-state selector no longer carries 2.1.267 symbols"
+assert_not_contains = '''function rl(e,n){return CA.session'''
 
 [[patches]]
 name = "effort-effective-suffix-2-1-266-darwin-arm64"
@@ -363,6 +451,28 @@ assert_contains = '''function Dtt(e,n,o){const actual=CA.session(e);return actua
 assert_not_contains = '''function eet(e,n){const actual=pA.session'''
 
 [[patches]]
+name = "effort-effective-suffix-2-1-268-darwin-arm64"
+lineage = "effort-effective-suffix"
+platforms = ["darwin-arm64"]
+rationale = "Report the effective model-scoped effort and source. The 2.1.268 suffix helper Srt and request resolver NA were inspected after the effort-table rewrite."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function Srt(e,n,o){'''
+replacement = '''function Srt(e,n,o){const actual=NA.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effective effort suffix is active on darwin-arm64"
+assert_contains = '''function Srt(e,n,o){const actual=NA.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 darwin-arm64 effective effort suffix no longer carries 2.1.267 symbols"
+assert_not_contains = '''function Dtt(e,n,o){const actual=CA.session'''
+
+[[patches]]
 name = "effort-session-owner-2-1-266-linux-x64"
 lineage = "effort-session-owner"
 platforms = ["linux-x64"]
@@ -397,6 +507,28 @@ kind = "static"
 name = "2.1.267 effort session owner is active on linux-x64"
 assert_contains = '''function yat(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
 assert_not_contains = '''function Tst(e){if(e===Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-session-owner-2-1-268-linux-x64"
+lineage = "effort-session-owner"
+platforms = ["linux-x64"]
+rationale = "Expose the 2.1.268 model-selection owner to the session resolver without changing saved settings. The native graph keeps the session selector and the default/byModel settings table; setter pct and singleton n were inspected in the target graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function pct(e){n().modelSelection.replaceMainLoopEffortState(e)}'''
+replacement = '''function pct(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort session owner is active on linux-x64"
+assert_contains = '''function pct(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 linux-x64 effort session owner no longer carries 2.1.267 symbols"
+assert_not_contains = '''function yat(e){if(e===Symbol.for("patched-cc.effort-session"))'''
 
 [[patches]]
 name = "effort-session-resolver-2-1-266-linux-x64"
@@ -435,6 +567,28 @@ assert_contains = '''kE.session=function(model,operation,value,fallback,honorLau
 assert_not_contains = '''dE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
 
 [[patches]]
+name = "effort-session-resolver-2-1-268-linux-x64"
+lineage = "effort-session-resolver"
+platforms = ["linux-x64"]
+rationale = "Resolve model-specific session defaults and overrides across the 2.1.268 default/byModel effort table. Bindings LE, pct, jye, dl, rH, $F, D, Z, ee, DLt, qh, and P were inspected in the target graph; the native backend-rejection latch remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function LE(e,n,{honorLaunchPin:o=!0,turnEffort:r}={}){'''
+replacement = '''LE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride){const owner=pct(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},slug=jye(model??dl());owner.effortByModel??=new Map();const cli=owner.effortLaunchValue!==undefined;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}let chosen,source;const own=owner.effortByModel.get(slug);let slot;for(const key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const modelName=process.env[key]?.trim();if(modelName&&jye(modelName)===slug){const level=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(level??"")){slot=level;break}}}if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==undefined){chosen=agentOverride;source="agent override"}else if(own!==undefined){chosen=own;source="this session"}else if(slot!==undefined){chosen=slot;source="configured default"}else{const configured=rH();if(configured!==undefined){chosen=configured===null?undefined:configured;source=configured===null?"effort omitted by environment":"environment default"}else if(honorLaunchPin&&$F(slug)){chosen=D(slug);source="model launch default"}else{const table=state.settingsEffortTable,tableValue=table===undefined?undefined:ee(table)?Z(table,slug):table.default;chosen=fallback??tableValue??D(slug);source=tableValue!==undefined?Object.hasOwn(table.byModel,slug)?"configured model default":"configured default":"model default"}}if(DLt(slug)){chosen=undefined;source="backend default (effort unsupported)"}else if(!qh(slug)){chosen=undefined;source="backend default (effort not supported)"}else if(chosen!==undefined){const normalized=P(chosen,slug);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};function LE(e,n,{honorLaunchPin:o=!0,turnEffort:r,agentOverride:patchedAgentOverride}={}){return LE.session(e,undefined,undefined,n,o,patchedAgentOverride??r).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort session resolver is active on linux-x64"
+assert_contains = '''LE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 linux-x64 effort session resolver no longer carries 2.1.267 symbols"
+assert_not_contains = '''kE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches]]
 name = "effort-launch-pin-2-1-266-linux-x64"
 lineage = "effort-launch-pin"
 platforms = ["linux-x64"]
@@ -469,6 +623,28 @@ kind = "static"
 name = "2.1.267 effort launch pin is active on linux-x64"
 assert_contains = '''function Uje(e){let n=A(e);yat(Symbol.for("patched-cc.effort-session")).effortLaunchValue=n;'''
 assert_not_contains = '''function _1e(e){Tst(Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-launch-pin-2-1-268-linux-x64"
+lineage = "effort-launch-pin"
+platforms = ["linux-x64"]
+rationale = "Pin parsed CLI effort in the model-scoped session owner when 2.1.268 constructs its native sessionEffort/settingsEffortTable pair. Initializer yze, parser A, owner pct, and state setter pct were inspected in the target graph."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function yze(e){let n=A(e);'''
+replacement = '''function yze(e){let n=A(e);pct(Symbol.for("patched-cc.effort-session")).effortLaunchValue=n;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort launch pin is active on linux-x64"
+assert_contains = '''function yze(e){let n=A(e);pct(Symbol.for("patched-cc.effort-session")).effortLaunchValue=n;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 linux-x64 effort launch pin no longer carries 2.1.267 symbols"
+assert_not_contains = '''function Uje(e){let n=A(e);yat(Symbol.for("patched-cc.effort-session"))'''
 
 [[patches]]
 name = "effort-model-state-selector-2-1-266-linux-x64"
@@ -507,6 +683,28 @@ assert_contains = '''function rl(e,n){return kE.session(n??e.mainLoopModelForSes
 assert_not_contains = '''function Za(e,n){return dE.session'''
 
 [[patches]]
+name = "effort-model-state-selector-2-1-268-linux-x64"
+lineage = "effort-model-state-selector"
+platforms = ["linux-x64"]
+rationale = "Route the 2.1.268 application-state selector through the model-scoped request resolver. Selector ul, resolver LE, and default model dl were inspected after the upstream effort-table rewrite."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "regex"
+locator_pattern = '''function ul\(e,n\)\{(?=let o=e\.sessionEffort)'''
+replacement = '''function ul(e,n){return LE.session(n??e.mainLoopModelForSession??e.mainLoopModel??dl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effort model-state selector is active on linux-x64"
+assert_contains = '''function ul(e,n){return LE.session(n??e.mainLoopModelForSession??e.mainLoopModel??dl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 linux-x64 effort model-state selector no longer carries 2.1.267 symbols"
+assert_not_contains = '''function rl(e,n){return kE.session'''
+
+[[patches]]
 name = "effort-effective-suffix-2-1-266-linux-x64"
 lineage = "effort-effective-suffix"
 platforms = ["linux-x64"]
@@ -541,3 +739,25 @@ kind = "static"
 name = "2.1.267 effective effort suffix is active on linux-x64"
 assert_contains = '''function wtt(e,n,o){const actual=kE.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
 assert_not_contains = '''function qZe(e,n){const actual=dE.session'''
+
+[[patches]]
+name = "effort-effective-suffix-2-1-268-linux-x64"
+lineage = "effort-effective-suffix"
+platforms = ["linux-x64"]
+rationale = "Report the effective model-scoped effort and source. The 2.1.268 suffix helper ort and request resolver LE were inspected after the effort-table rewrite."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function ort(e,n,o){'''
+replacement = '''function ort(e,n,o){const actual=LE.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 effective effort suffix is active on linux-x64"
+assert_contains = '''function ort(e,n,o){const actual=LE.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 linux-x64 effective effort suffix no longer carries 2.1.267 symbols"
+assert_not_contains = '''function wtt(e,n,o){const actual=kE.session'''

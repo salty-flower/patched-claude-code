@@ -146,7 +146,7 @@ async function main(): Promise<number> {
   const sessionId = stringField(firstEvent.sessionId, "sessionId")
   // Keep the fixture shaped like a real transcript while replaying from a temp cwd.
   stringField(firstEvent.cwd, "cwd")
-  const expectedContent = typeof firstEvent.content === "string" ? firstEvent.content.slice(0, 32) : "Claude Code"
+  const expectedContent = stringField(firstEvent.content, "content").slice(0, 32)
 
   const stub = await startClaudeApiStub({ text: "stub ok" })
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-resume-transcript-")))
@@ -268,12 +268,7 @@ async function main(): Promise<number> {
       console.error(diagnosticStderr)
       return 1
     }
-    if (!normalizedOutput.includes("Claude Code")) {
-      console.error("resume transcript TUI did not render Claude Code")
-      console.error(output)
-      return 1
-    }
-    if (expectedContent !== "Claude Code" && !normalizedOutput.includes(expectedContent)) {
+    if (!normalizedOutput.includes(expectedContent)) {
       console.error(`resume transcript TUI did not render fixture content: ${expectedContent}`)
       console.error(output)
       return 1

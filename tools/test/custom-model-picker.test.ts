@@ -1,12 +1,15 @@
 import { describe, expect, test } from "bun:test"
 import { resolve } from "node:path"
+import { patchApplies } from "../lib/apply-patches"
 import { applyAstTransformPatches } from "../lib/ast-transform-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
+import { targetVersion } from "../lib/target"
 
 type Row = { value: string; label?: string; description?: string }
 type Environment = Record<string, string | undefined>
 const entries = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches/custom-model-slots.toml"))
 const pickerPatches = entries.filter((entry) => entry.name.startsWith("append-second-custom-model-option"))
+const TARGET_VERSION = targetVersion()
 
 function picker(patch: PatchEntry): (rows: Row[], environment: Environment) => Row[] {
   const source = patch.ast?.match.source
@@ -45,8 +48,13 @@ function picker(patch: PatchEntry): (rows: Row[], environment: Environment) => R
   return (rows, environment) => execute({ env: environment }, structuredClone(rows))
 }
 
-test("every historical picker variant participates in the behavior regression", () => {
-  expect(pickerPatches).toHaveLength(15)
+test("picker variants have unique identities and current platform coverage", () => {
+  expect(new Set(pickerPatches.map((patch) => patch.name)).size).toBe(pickerPatches.length)
+
+  const active = pickerPatches.filter((patch) => patchApplies(patch, TARGET_VERSION))
+  for (const platform of ["darwin-arm64", "linux-x64"]) {
+    expect(active.filter((patch) => patch.platforms?.includes(platform) ?? true)).toHaveLength(1)
+  }
 })
 
 for (const patch of pickerPatches) {

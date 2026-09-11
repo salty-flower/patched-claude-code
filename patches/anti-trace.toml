@@ -2188,6 +2188,27 @@ name = "2.1.267 Darwin assistant-response gate no longer carries 2.1.266 symbols
 assert_not_contains = '''function unr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
 
 [[patches]]
+name = "require-explicit-assistant-response-otel-2-1-268-darwin"
+platforms = ["darwin-arm64"]
+rationale = "Require explicit assistant-response OTel opt-in in the 2.1.268 Darwin module graph. Gate _cr chooses the assistant_response response payload versus <REDACTED>, and imported namespace a supplies the typed OTel settings."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function _cr(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function _cr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin assistant response logging requires explicit opt-in"
+assert_contains = '''function _cr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin assistant-response gate no longer carries 2.1.267 symbols"
+assert_not_contains = '''function Lsr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
 name = "require-explicit-assistant-response-otel-2-1-266-linux"
 platforms = ["linux-x64"]
 rationale = "Require explicit assistant-response OTel opt-in in the 2.1.266 module graph. Gate Rtr still chooses response content versus redaction, and imported namespace a supplies the typed OTel settings."
@@ -2228,6 +2249,27 @@ assert_contains = '''function qor(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'
 kind = "static"
 name = "2.1.267 Linux assistant-response gate no longer carries 2.1.266 symbols"
 assert_not_contains = '''function Rtr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-268-linux"
+platforms = ["linux-x64"]
+rationale = "Require explicit assistant-response OTel opt-in in the 2.1.268 Linux module graph. Gate $lr chooses the assistant_response response payload versus <REDACTED>, and imported namespace a supplies the typed OTel settings."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function $lr(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function $lr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux assistant response logging requires explicit opt-in"
+assert_contains = '''function $lr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux assistant-response gate no longer carries 2.1.267 symbols"
+assert_not_contains = '''function qor(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
 
 [[patches]]
 name = "disable-raw-api-body-otel-2-1-266-darwin"
@@ -2272,6 +2314,27 @@ name = "2.1.267 Darwin raw-body gate no longer carries 2.1.266 symbols"
 assert_not_contains = '''function YRn(){return!1}'''
 
 [[patches]]
+name = "disable-raw-api-body-otel-2-1-268-darwin"
+platforms = ["darwin-arm64"]
+rationale = "Disable raw API body OTel capture in the 2.1.268 Darwin module graph. Gate jHn guards both request and response body consumers; getter HHn still reads OTEL_LOG_RAW_API_BODIES and selects disabled, inline-event, or local-file capture."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function jHn(){return HHn().mode!=="disabled"}'''
+replacement = '''function jHn(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin raw API body logging is disabled"
+assert_contains = '''function jHn(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin raw-body gate no longer carries 2.1.267 symbols"
+assert_not_contains = '''function hFn(){return!1}'''
+
+[[patches]]
 name = "disable-raw-api-body-otel-2-1-266-linux"
 platforms = ["linux-x64"]
 rationale = "Disable raw API body OTel capture in the 2.1.266 module graph. Gate gPn guards both request and response body consumers; its configuration getter still reads OTEL_LOG_RAW_API_BODIES and supports inline events and local trace files."
@@ -2312,3 +2375,44 @@ assert_contains = '''function JFn(){return!1}'''
 kind = "static"
 name = "2.1.267 Linux raw-body gate no longer carries 2.1.266 symbols"
 assert_not_contains = '''function gPn(){return!1}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-268-linux"
+platforms = ["linux-x64"]
+rationale = "Disable raw API body OTel capture in the 2.1.268 Linux module graph. Gate t1n guards both request and response body consumers; getter e1n still reads OTEL_LOG_RAW_API_BODIES and selects disabled, inline-event, or local-file capture."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function t1n(){return e1n().mode!=="disabled"}'''
+replacement = '''function t1n(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux raw API body logging is disabled"
+assert_contains = '''function t1n(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux raw-body gate no longer carries 2.1.267 symbols"
+assert_not_contains = '''function JFn(){return!1}'''
+
+[[patches]]
+name = "neutralize-project-thread-author-marker-2-1-268"
+rationale = "Keep server-supplied project-thread author role and account identifiers out of model-visible user-message markers. Claude Code 2.1.268 routes this helper into both returned and relayed timeline markers; replace the classification with a fixed repo-authored label until upstream stops including author_kind and author_id in API-bound text."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L1615-L1636"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+locator_kind = "literal"
+locator_pattern = '''function F(e){let t=e.author_kind==="owner"?"the project owner":"a member of the project";return le.test(e.author_id)?`${t} (${e.author_id})`:t}'''
+replacement = '''function F(e){return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 project thread markers use a neutral author label"
+assert_contains = '''function F(e){return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 project thread markers omit author role and account identifiers"
+assert_not_contains = '''function F(e){let t=e.author_kind==="owner"?"the project owner":"a member of the project";return le.test(e.author_id)?`${t} (${e.author_id})`:t}'''

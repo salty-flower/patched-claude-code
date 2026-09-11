@@ -1900,6 +1900,30 @@ assert_contains = '''if(o===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())
 assert_not_contains = '''if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
 
 [[patches]]
+name = "validate-second-custom-model-option-without-probe-2-1-268"
+lineage = "validate-second-custom-model-option-without-probe"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+rationale = "Read the repo-defined second slot directly from process.env. In 2.1.268 the prevalidation argument moved from o to r while the settings namespace remains a; retire when upstream registers the second slot."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(r===a.ANTHROPIC_CUSTOM_MODEL_OPTION)return{valid:!0};''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(r===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 second custom model is prevalidated"
+assert_contains = '''if(r===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 prevalidation no longer carries 2.1.267 symbols"
+assert_not_contains = '''if(o===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+
+[[patches]]
 name = "recognize-second-custom-model-option-2-1-266"
 lineage = "recognize-second-custom-model-option"
 target_version = "2.1.266"
@@ -1942,6 +1966,31 @@ assert_not_contains = '''if(dYt(n))return{recognized:!0};'''
 kind = "static"
 name = "2.1.267 recognition excludes previous Linux helper"
 assert_not_contains = '''if(W9t(n))return{recognized:!0};'''
+
+[[patches]]
+name = "recognize-second-custom-model-option-2-1-268"
+lineage = "recognize-second-custom-model-option"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+rationale = "Read the repo-defined second slot directly from process.env. The 2.1.268 recognition predicate receives n through Darwin helper JQt and Linux helper xQt; retire when upstream registers the second slot."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source_regex = '''^if\([A-Za-z_$][A-Za-z0-9_$]*\(n\)\)return\{recognized:!0\};$''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 second custom model is recognized"
+assert_contains = '''if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+assert_not_contains = '''if(cXt(n))return{recognized:!0};'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 recognition no longer carries 2.1.267 Linux helper symbols"
+assert_not_contains = '''if(jXt(n))return{recognized:!0};'''
 
 [[patches]]
 name = "append-second-custom-model-option-2-1-266-darwin"
@@ -1998,6 +2047,37 @@ assert_contains = '''if(!__acc_dup(o,d)){if(d&&!o.some((D)=>D.value===d))o.push(
 assert_not_contains = '''ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??E2e(d)'''
 
 [[patches]]
+name = "append-second-custom-model-option-2-1-268-darwin"
+lineage = "append-second-custom-model-option"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "Wrap the 2.1.268 Darwin slot-one row, preserving alias-aware duplicate suppression and adding the unregistered second slot. Current slot binding _, callback binding U, and label helper wWe replace 2.1.267 bindings d, D, and Gje."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(_&&!o.some((U)=>U.value===_))o.push({value:_,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??wWe(_)??_,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${_})`});''' }
+[patches.ast.captures.rows]
+kind = "identifier"
+path = "consequent.expression.callee.object"
+[patches.ast.captures.slot]
+kind = "identifier"
+path = "test.left"
+[patches.transform]
+op = "wrap_expression"
+template = '''{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!__acc_dup(%%CAPTURE:rows%%,__acc_custom_model_2))%%CAPTURE:rows%%.push({value:__acc_custom_model_2,label:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin picker inserts second custom slot"
+assert_contains = '''if(!__acc_dup(o,_)){if(_&&!o.some((U)=>U.value===_))o.push({value:_,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??wWe(_)??_'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin picker no longer carries 2.1.267 symbols"
+assert_not_contains = '''if(!__acc_dup(o,d)){if(d&&!o.some((D)=>D.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??Gje(d)??d'''
+
+[[patches]]
 name = "append-second-custom-model-option-2-1-266-linux"
 lineage = "append-second-custom-model-option"
 target_version = "2.1.266"
@@ -2050,3 +2130,34 @@ kind = "static"
 name = "2.1.267 Linux picker inserts second custom slot"
 assert_contains = '''if(!__acc_dup(o,d)){if(d&&!o.some((L)=>L.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??M2e(d)??d'''
 assert_not_contains = '''ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??uje(d)'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-268-linux"
+lineage = "append-second-custom-model-option"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "Wrap the 2.1.268 Linux slot-one row, preserving alias-aware duplicate suppression and adding the unregistered second slot. Current slot binding _, callback binding U, and label helper cWe replace 2.1.267 bindings d, L, and M2e."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(_&&!o.some((U)=>U.value===_))o.push({value:_,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??cWe(_)??_,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${_})`});''' }
+[patches.ast.captures.rows]
+kind = "identifier"
+path = "consequent.expression.callee.object"
+[patches.ast.captures.slot]
+kind = "identifier"
+path = "test.left"
+[patches.transform]
+op = "wrap_expression"
+template = '''{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!__acc_dup(%%CAPTURE:rows%%,__acc_custom_model_2))%%CAPTURE:rows%%.push({value:__acc_custom_model_2,label:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux picker inserts second custom slot"
+assert_contains = '''if(!__acc_dup(o,_)){if(_&&!o.some((U)=>U.value===_))o.push({value:_,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??cWe(_)??_'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux picker no longer carries 2.1.267 symbols"
+assert_not_contains = '''if(!__acc_dup(o,d)){if(d&&!o.some((L)=>L.value===d))o.push({value:d,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??M2e(d)??d'''

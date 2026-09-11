@@ -27,6 +27,13 @@ if (process.env.PATCH_OBLIGATION_EVIDENCE_REQUIRED === "1" && (process.platform 
 }
 const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
+// Keychain tests own their credential source. Explicit per-case overrides are
+// applied after this object when a test intentionally exercises env credentials.
+const CLEARED_CALLER_AUTH_ENV = {
+  ANTHROPIC_API_KEY: undefined,
+  ANTHROPIC_AUTH_TOKEN: undefined,
+  CLAUDE_CODE_OAUTH_TOKEN: undefined,
+} as const
 
 function compareVersions(left: string, right: string): number {
   const parts = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10))
@@ -347,6 +354,7 @@ async function runBundle(
     cwd: home,
     env: {
       ...process.env,
+      ...CLEARED_CALLER_AUTH_ENV,
       HOME: home,
       CLAUDE_CONFIG_DIR: join(home, ".claude"),
       CLAUDE_CODE_KEYCHAIN_PATH: keychainPath,
@@ -915,6 +923,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
         cwd: home,
         env: {
           ...process.env,
+          ...CLEARED_CALLER_AUTH_ENV,
           HOME: home,
           CLAUDE_CONFIG_DIR: configDir,
           CLAUDE_CODE_KEYCHAIN_PATH: keychainPath,
@@ -943,6 +952,12 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
       })
       const command = [
         "env",
+        "-u",
+        "ANTHROPIC_API_KEY",
+        "-u",
+        "ANTHROPIC_AUTH_TOKEN",
+        "-u",
+        "CLAUDE_CODE_OAUTH_TOKEN",
         env,
         "bun",
         "--preload",

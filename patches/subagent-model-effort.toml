@@ -540,6 +540,33 @@ assert_contains = '''effort:X(["low","medium","high","xhigh","max"]).optional().
 assert_not_contains = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(xi()'''
 
 [[patches]]
+name = "agent-model-and-effort-schema-2-1-268-darwin-arm64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.268 Darwin Agent schema uses Y for enums, s for strings, and Pi for the coordinator predicate. Accept a full model ID and expose the explicit effort override at this validated boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "model", strings = ["Optional model override for this agent.", "Agents run in the background by default;"] }
+[patches.transform]
+op = "replace_substring"
+find = '''model:Y(["sonnet","opus","haiku","fable"]).optional()'''
+value = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?" Unavailable on this session: this parameter is ignored — do not set it.":"")),model:s().optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin Agent schema accepts custom models and effort"
+assert_contains = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(Pi()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin Agent schema no longer carries 2.1.267 symbols"
+assert_not_contains = '''effort:X(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(Di()'''
+
+[[patches]]
 name = "agent-model-and-effort-schema-2-1-266-linux-x64"
 lineage = "agent-model-and-effort-schema"
 target_version = "2.1.266"
@@ -582,6 +609,33 @@ kind = "static"
 name = "2.1.267 Linux Agent schema accepts custom models and effort"
 assert_contains = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(Oi()'''
 assert_not_contains = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(xi()'''
+
+[[patches]]
+name = "agent-model-and-effort-schema-2-1-268-linux-x64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "The 2.1.268 Linux Agent schema also uses Y for enums, s for strings, and Pi for the coordinator predicate. Accept a full model ID and expose the explicit effort override at this validated boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "model", strings = ["Optional model override for this agent.", "Agents run in the background by default;"] }
+[patches.transform]
+op = "replace_substring"
+find = '''model:Y(["sonnet","opus","haiku","fable"]).optional()'''
+value = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?" Unavailable on this session: this parameter is ignored — do not set it.":"")),model:s().optional()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux Agent schema accepts custom models and effort"
+assert_contains = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(Pi()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux Agent schema no longer carries 2.1.267 symbols"
+assert_not_contains = '''effort:Y(["low","medium","high","xhigh","max"]).optional().describe(`Optional effort override for this agent. Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort. Ignored for fork agents.`+(Oi()'''
 
 [[patches]]
 name = "agent-effective-effort-2-1-266-darwin-arm64"
@@ -628,6 +682,33 @@ assert_contains = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(Di()&
 assert_not_contains = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(xi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)'''
 
 [[patches]]
+name = "agent-effective-effort-2-1-268-darwin-arm64"
+lineage = "agent-effective-effort"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.268 Darwin Agent call keeps input e and model F at method entry, with Pi guarding forced coordinator inheritance. Resolve effort beside model and suppress both under the same guard."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L239-L253"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "call", strings = ["CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL", "subagent_launch", "makeStream", "agentDefinition"] }
+[patches.transform]
+op = "replace_substring"
+find = '''F=e.model,U=Date.now();if(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=void 0;'''
+value = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=patchedAgentEffort=void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin Agent effort mirrors coordinator model suppression"
+assert_contains = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=patchedAgentEffort=void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin Agent effort no longer carries 2.1.267 symbols"
+assert_not_contains = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(Di()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=patchedAgentEffort=void 0;'''
+
+[[patches]]
 name = "agent-ordinary-effort-2-1-266-darwin-arm64"
 lineage = "agent-ordinary-effort"
 target_version = "2.1.266"
@@ -670,6 +751,33 @@ kind = "static"
 name = "2.1.267 Darwin ordinary agents apply tool effort without changing forks"
 assert_contains = '''if(patchedAgentEffort!==void 0&&!en)vt={...vt,effort:patchedAgentEffort};let jr=en?"inherit":G'''
 assert_not_contains = '''if(patchedAgentEffort!==void 0&&!en)dt={...dt,effort:patchedAgentEffort};let _o=en?"inherit":V'''
+
+[[patches]]
+name = "agent-ordinary-effort-2-1-268-darwin-arm64"
+lineage = "agent-ordinary-effort"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "After 2.1.268 plugin rewriting, Darwin binds the selected definition as qt and fork state as Nt. Clone the definition only for ordinary agents before resolving its model."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L603-L635"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "call", strings = ["CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL", "subagent_launch", "makeStream", "agentDefinition"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let ks=Yr?qt.color:void 0;if(ks)j2e(qt.agentType,ks);let fo=Nt?"inherit":V,'''
+value = '''let ks=Yr?qt.color:void 0;if(ks)j2e(qt.agentType,ks);if(patchedAgentEffort!==void 0&&!Nt)qt={...qt,effort:patchedAgentEffort};let fo=Nt?"inherit":V,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin ordinary agents apply tool effort without changing forks"
+assert_contains = '''if(patchedAgentEffort!==void 0&&!Nt)qt={...qt,effort:patchedAgentEffort};let fo=Nt?"inherit":V'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin ordinary agent effort no longer carries 2.1.267 symbols"
+assert_not_contains = '''if(patchedAgentEffort!==void 0&&!en)vt={...vt,effort:patchedAgentEffort};let jr=en?"inherit":G'''
 
 [[patches]]
 name = "agent-effective-effort-2-1-266-linux-x64"
@@ -716,6 +824,33 @@ assert_contains = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(Oi()&
 assert_not_contains = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(xi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)'''
 
 [[patches]]
+name = "agent-effective-effort-2-1-268-linux-x64"
+lineage = "agent-effective-effort"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "The 2.1.268 Linux Agent call keeps input e and model F at method entry, with Pi guarding forced coordinator inheritance. Resolve effort beside model and suppress both under the same guard."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L239-L253"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "call", strings = ["CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL", "subagent_launch", "makeStream", "agentDefinition"] }
+[patches.transform]
+op = "replace_substring"
+find = '''F=e.model,U=Date.now();if(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=void 0;'''
+value = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=patchedAgentEffort=void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux Agent effort mirrors coordinator model suppression"
+assert_contains = '''F=e.model,patchedAgentEffort=e.effort,U=Date.now();if(Pi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=patchedAgentEffort=void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux Agent effort no longer carries 2.1.267 symbols"
+assert_not_contains = '''F=e.model,patchedAgentEffort=e.effort,B=Date.now();if(Oi()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)F=patchedAgentEffort=void 0;'''
+
+[[patches]]
 name = "agent-ordinary-effort-2-1-266-linux-x64"
 lineage = "agent-ordinary-effort"
 target_version = "2.1.266"
@@ -758,3 +893,30 @@ kind = "static"
 name = "2.1.267 Linux ordinary agents apply tool effort without changing forks"
 assert_contains = '''if(patchedAgentEffort!==void 0&&!en)kt={...kt,effort:patchedAgentEffort};let jr=en?"inherit":G'''
 assert_not_contains = '''if(patchedAgentEffort!==void 0&&!en)dt={...dt,effort:patchedAgentEffort};let _o=en?"inherit":q'''
+
+[[patches]]
+name = "agent-ordinary-effort-2-1-268-linux-x64"
+lineage = "agent-ordinary-effort"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "After 2.1.268 plugin rewriting, Linux binds the selected definition as Vt and fork state as $t. Clone the definition only for ordinary agents before resolving its model."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L603-L635"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "call", strings = ["CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL", "subagent_launch", "makeStream", "agentDefinition"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let ws=Kr?Vt.color:void 0;if(ws)Uje(Vt.agentType,ws);let fo=$t?"inherit":q,'''
+value = '''let ws=Kr?Vt.color:void 0;if(ws)Uje(Vt.agentType,ws);if(patchedAgentEffort!==void 0&&!$t)Vt={...Vt,effort:patchedAgentEffort};let fo=$t?"inherit":q,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux ordinary agents apply tool effort without changing forks"
+assert_contains = '''if(patchedAgentEffort!==void 0&&!$t)Vt={...Vt,effort:patchedAgentEffort};let fo=$t?"inherit":q'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux ordinary agent effort no longer carries 2.1.267 symbols"
+assert_not_contains = '''if(patchedAgentEffort!==void 0&&!en)kt={...kt,effort:patchedAgentEffort};let jr=en?"inherit":G'''

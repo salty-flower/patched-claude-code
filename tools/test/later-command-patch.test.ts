@@ -12,6 +12,15 @@ const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
 const laterPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "later-command.toml"))
 const testLaterCommand = laterPatches.some((patch) => patchApplies(patch, TARGET_VERSION))
+
+function patchTransformCode(entry: PatchEntry): string | undefined {
+  return entry.transform && "code" in entry.transform ? entry.transform.code : undefined
+}
+
+const targetUsesSessionJobs = laterPatches.some(
+  (patch) =>
+    patchApplies(patch, TARGET_VERSION) && patchTransformCode(patch)?.includes("globalThis.__acc_later_jobs") === true,
+)
 const targetUses238LaterSymbols = gte(TARGET_VERSION, "2.1.238") && lt(TARGET_VERSION, "2.1.241")
 const targetUses234LaterSymbols = gte(TARGET_VERSION, "2.1.234") && lt(TARGET_VERSION, "2.1.238")
 const targetUses233LaterSymbols = gte(TARGET_VERSION, "2.1.233") && lt(TARGET_VERSION, "2.1.234")
@@ -26,15 +35,6 @@ const targetUses260LaterSymbols = gte(TARGET_VERSION, "2.1.260") && lt(TARGET_VE
 const targetUses263LaterSymbols = gte(TARGET_VERSION, "2.1.263") && lt(TARGET_VERSION, "2.1.266")
 const targetUses266LaterSymbols = gte(TARGET_VERSION, "2.1.266") && lt(TARGET_VERSION, "2.1.267")
 const targetUses267LaterSymbols = gte(TARGET_VERSION, "2.1.267") && lt(TARGET_VERSION, "2.1.268")
-const targetUsesSessionJobs =
-  targetUses267LaterSymbols ||
-  targetUses266LaterSymbols ||
-  targetUses263LaterSymbols ||
-  targetUses260LaterSymbols ||
-  targetUses259LaterSymbols ||
-  targetUses258LaterSymbols ||
-  targetUses251LaterSymbols ||
-  targetUses250LaterSymbols
 const targetUses241ExactFireSymbols = gte(TARGET_VERSION, "2.1.241") && lt(TARGET_VERSION, "2.1.250")
 const targetUses246LaterSymbols = gte(TARGET_VERSION, "2.1.246") && lt(TARGET_VERSION, "2.1.250")
 const targetUses241SubmitSymbols = targetUses241ExactFireSymbols && !targetUses246LaterSymbols
@@ -53,14 +53,7 @@ const targetUses212LaterSymbols = gte(TARGET_VERSION, "2.1.212") && lt(TARGET_VE
 const targetUses210LaterSymbols = gte(TARGET_VERSION, "2.1.210") && lt(TARGET_VERSION, "2.1.212")
 const targetUses208LaterSymbols = gte(TARGET_VERSION, "2.1.208") && lt(TARGET_VERSION, "2.1.210")
 const targetUsesAbsoluteLater =
-  targetUses267LaterSymbols ||
-  targetUses266LaterSymbols ||
-  targetUses263LaterSymbols ||
-  targetUses260LaterSymbols ||
-  targetUses259LaterSymbols ||
-  targetUses258LaterSymbols ||
-  targetUses251LaterSymbols ||
-  targetUses250LaterSymbols ||
+  targetUsesSessionJobs ||
   targetUses238LaterSymbols ||
   targetUses234LaterSymbols ||
   targetUses233LaterSymbols ||
@@ -110,7 +103,8 @@ const activeSubmitHooks = Object.fromEntries(submitHookPlatforms.map((platform) 
 >
 
 function submitHookCode(entry: PatchEntry): string {
-  if (entry.transform && "code" in entry.transform) return entry.transform.code
+  const code = patchTransformCode(entry)
+  if (code !== undefined) return code
   throw new Error(`${entry.name} does not contain a code transform`)
 }
 
@@ -831,7 +825,11 @@ test.skipIf(!testLaterCommand)(
             : 2,
     )
     expect(patched).toContain("__trim.match(/^\\/later\\s+(\\d+)\\s*([smhd])\\s+([\\s\\S]+)$/i)")
-    expectContainsOneOf(patched, [
+    if (targetUsesSessionJobs) {
+      expect(patched).toContain("setTimeout(()=>{if(!__jobs.delete(__id))return;")
+      expect(patched).toContain("},{pastedContentsOverride:")
+    } else {
+      expectContainsOneOf(patched, [
       "setTimeout(()=>{if(!__jobs.delete(__id))return;XY(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;IY(",
       "setTimeout(()=>{if(!__jobs.delete(__id))return;Ge.enqueue",
@@ -875,7 +873,8 @@ test.skipIf(!testLaterCommand)(
       "AZe({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "aot({id:__id,cron:__cron,prompt:__prompt,createdAt:__createdAt,recurring:!1,later:!0,laterAt:__when.getTime()})",
       "__id=await __acc_schedule_later(__cron,__prompt,!1,!1,__acc_team_context()?.agentId),__task=Fde().find",
-    ])
+      ])
+    }
     expectContainsOneOf(patched, [
       "__jobs.set(__id,__job)",
       "if(__task)__task.later=!0",
@@ -1158,7 +1157,7 @@ test.skipIf(!testLaterCommand)(
       expect(patched).not.toContain("G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n")
       expect(patched).toContain("jSe(!0)")
       expect(patched).not.toContain("ESe(!0)")
-    } else if (targetUsesAbsoluteLater) {
+    } else if (targetUsesAbsoluteLater && !targetUsesSessionJobs) {
       expect(patched).toContain("laterAt:__when.getTime()")
       expect(patched).toContain("G.later===!0&&Number.isFinite(G.laterAt)&&G.laterAt>G.createdAt?G.laterAt:M8n")
       expect(patched).not.toContain(

@@ -22,6 +22,7 @@ const PROMPT_SIGNALS = [
   { id: "use-this-tool", pattern: /\buse this tool\b/i },
   { id: "you-must", pattern: /\byou must\b/i },
   { id: "do-not", pattern: /\bdo not\b/i },
+  { id: "never-claim", pattern: /\bnever claim\b/i },
   { id: "respond", pattern: /\brespond\b/i },
   { id: "instruction", pattern: /\binstructions?\b/i },
   { id: "generate", pattern: /\bgenerate\b/i },

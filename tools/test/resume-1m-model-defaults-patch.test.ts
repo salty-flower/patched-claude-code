@@ -105,51 +105,10 @@ test("resume restores 1m defaults after alias resolution", async () => {
     return
   }
 
-  if (TARGET_VERSION === "2.1.259") {
-    expect(applied).toBe(0)
-    expect(patched).toContain(
-      'if((r&&ou(r)||n!==void 0&&ou(n))&&wv(m)&&(cr(m)===i||r&&ze(Et(cr(r)))===ze(m)))return{kind:"ok",model:m+"[1m]"};',
-    )
-    return
-  }
-
-  if (TARGET_VERSION === "2.1.263") {
-    expect(applied).toBe(0)
-    expect(patched).toContain(
-      'if((o&&tc(o)||r!==void 0&&tc(r))&&GC(c)&&(er(c)===s||o&&Ue(wt(er(o)))===Ue(c)))return{kind:"ok",model:c+"[1m]"};',
-    )
-    return
-  }
-
-  if (TARGET_VERSION === "2.1.266") {
-    expect(applied).toBe(0)
-    expect(patched).toContain(
-      'if((r&&cc(r)||n!==void 0&&cc(n))&&wT(c)&&(Zn(c)===s||r&&Ue(Ct(Zn(r)))===Ue(c)))return{kind:"ok",model:c+"[1m]"};',
-    )
-    return
-  }
-
-  if (TARGET_VERSION === "2.1.267") {
-    expect(applied).toBe(0)
-    expect(patched).toContain(
-      'if((r&&dc(r)||n!==void 0&&dc(n))&&DT(c)&&(er(c)===s||r&&Be(kt(er(r)))===Be(c)))return{kind:"ok",model:c+"[1m]"};',
-    )
-    return
-  }
-
-  if (TARGET_VERSION === "2.1.260") {
-    expect(applied).toBe(0)
-    expect(patched).toContain(
-      'if((r&&Vc(r)||n!==void 0&&Vc(n))&&RC(c)&&(Qn(c)===s||r&&Ue(St(Qn(r)))===Ue(c)))return{kind:"ok",model:c+"[1m]"};',
-    )
-    return
-  }
-
   if (isVersionAtLeast(TARGET_VERSION, "2.1.258")) {
     expect(applied).toBe(0)
-    expect(patched).toContain(
-      'if((r&&Qc(r)||n!==void 0&&Qc(n))&&uv(m)&&(hr(m)===i||r&&ze(At(hr(r)))===ze(m)))return{kind:"ok",model:m+"[1m]"};',
-    )
+    const nativeResolvedOneMillionModel = /if\(\((?<configured>[\w$]+)&&(?<isOneMillion>[\w$]+)\(\k<configured>\)\|\|(?<fallback>[\w$]+)!==void 0&&\k<isOneMillion>\(\k<fallback>\)\)&&[\w$]+\((?<model>[\w$]+)\)&&\((?<resolve>[\w$]+)\(\k<model>\)===[\w$]+\|\|\k<configured>&&(?<normalize>[\w$]+)\([\w$]+\(\k<resolve>\(\k<configured>\)\)\)===\k<normalize>\(\k<model>\)\)\)return\{kind:"ok",model:\k<model>\+"\[1m\]"};/g
+    expect([...patched.matchAll(nativeResolvedOneMillionModel)]).toHaveLength(1)
     return
   }
 

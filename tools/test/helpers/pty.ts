@@ -8,11 +8,12 @@ export function shellEnvironment(environment: Record<string, string>): string {
     .join(" ")
 }
 
-export function makeScriptCommand(command: string, inputCommand: string): string {
+export function makeScriptCommand(command: string, inputCommand: string, outputPath = "/dev/null"): string {
+  const output = shellQuote(outputPath)
   if (process.platform === "darwin") {
-    return `(${inputCommand}) | script -q -e /dev/null bash -lc ${shellQuote(command)}`
+    return `(${inputCommand}) | script -q -e ${output} bash -lc ${shellQuote(command)}`
   }
-  return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} /dev/null`
+  return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} ${output}`
 }
 
 export function timeoutCommand(seconds: number, killAfterSeconds = 5): string[] {

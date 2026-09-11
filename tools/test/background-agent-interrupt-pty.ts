@@ -151,6 +151,8 @@ async function main(): Promise<number> {
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-agent-pty-home-")))
   const configDir = join(home, ".claude")
   const foregroundReadyFiles = agentPromptMarkers.map((_, index) => join(home, `foreground-agent-${index + 1}-ready`))
+  const parentFollowupReadyFile = join(home, "parent-followup-ready")
+  const ptyCaptureFile = join(home, "pty.typescript")
   const exitStartedFile = join(home, "exit-started")
   mkdirSync(configDir, { recursive: true })
   let requestCount = 0
@@ -226,32 +228,35 @@ async function main(): Promise<number> {
     }
 
     if (hasToolResult) {
-      return hangingSse([
+      writeFileSync(parentFollowupReadyFile, "ready\n")
+      return hangingSse(
         [
-          "message_start",
-          {
-            type: "message_start",
-            message: {
-              id: "msg_stub_followup",
-              type: "message",
-              role: "assistant",
-              model: modelName(body),
-              content: [],
-              stop_reason: null,
-              usage: { input_tokens: 1, output_tokens: 1 },
+          [
+            "message_start",
+            {
+              type: "message_start",
+              message: {
+                id: "msg_stub_followup",
+                type: "message",
+                role: "assistant",
+                model: modelName(body),
+                content: [],
+                stop_reason: null,
+                usage: { input_tokens: 1, output_tokens: 1 },
+              },
             },
-          },
+          ],
+          ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }],
+          [
+            "content_block_delta",
+            {
+              type: "content_block_delta",
+              index: 0,
+              delta: { type: "text_delta", text: "Background agent is running." },
+            },
+          ],
         ],
-        ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }],
-        [
-          "content_block_delta",
-          {
-            type: "content_block_delta",
-            index: 0,
-            delta: { type: "text_delta", text: "Background agent is running." },
-          },
-        ],
-      ])
+      )
     }
 
     return new Response(sse(body, [{ type: "text", text: "Stub follow-up complete." }], "end_turn"), {
@@ -289,6 +294,8 @@ async function main(): Promise<number> {
       "timeout",
       `${timeoutSeconds}s`,
       "env",
+      "-u",
+      "ANTHROPIC_AUTH_TOKEN",
       envPrefix,
       "bun",
       shellQuote(bundle),
@@ -303,7 +310,9 @@ async function main(): Promise<number> {
     const prompt = "\\x1b[200~Start three synchronous agents in parallel and keep them running.\\x1b[201~"
     const exit = "\\x1b[200~/exit\\x1b[201~"
     const waitForFiles = (files: string[]) =>
-      `for i in $(seq 1 160); do ${files.map((file) => `test -f ${shellQuote(file)}`).join(" && ")} && break; sleep 0.1; done`
+      `for i in $(seq 1 200); do ${files.map((file) => `test -f ${shellQuote(file)}`).join(" && ")} && break; sleep 0.1; done`
+    const waitForOutput = (text: string) =>
+      `for i in $(seq 1 200); do rg -qF ${shellQuote(text)} ${shellQuote(ptyCaptureFile)} 2>/dev/null && break; sleep 0.1; done`
     const inputCommand = [
       "sleep 2",
       `printf %b ${shellQuote(prompt)}`,
@@ -312,18 +321,22 @@ async function main(): Promise<number> {
       waitForFiles(foregroundReadyFiles),
       "sleep 1",
       `printf '\\033'`,
-      "sleep 3",
+      waitForFiles([parentFollowupReadyFile]),
+      "sleep 0.5",
       `printf '\\033'`,
-      "sleep 2",
+      waitForOutput("What should Claude"),
+      "sleep 0.5",
       `touch ${shellQuote(exitStartedFile)}`,
+      `printf '\\025'`,
+      "sleep 0.2",
       `printf %b ${shellQuote(exit)}`,
-      "sleep 1",
+      "sleep 0.5",
       `printf %b ${shellQuote(enter)}`,
       "sleep 1",
       `printf %b ${shellQuote(enter)}`,
     ].join("; ")
     const child = Bun.spawn({
-      cmd: ["bash", "-lc", makeScriptCommand(command, inputCommand)],
+      cmd: ["bash", "-lc", makeScriptCommand(command, inputCommand, ptyCaptureFile)],
       cwd: home,
       stdout: "pipe",
       stderr: "pipe",
@@ -337,6 +350,11 @@ async function main(): Promise<number> {
     const normalized = normalizeTuiOutput(output)
     if (exitCode !== 0) {
       console.error(`PTY exited ${exitCode}`)
+      console.error(output)
+      return 1
+    }
+    if (!existsSync(parentFollowupReadyFile) || !normalized.includes("What should Claude do instead?")) {
+      console.error("PTY did not observe the parent follow-up stream open and return to the composer")
       console.error(output)
       return 1
     }

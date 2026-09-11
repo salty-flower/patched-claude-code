@@ -2,11 +2,25 @@ import { afterAll, beforeAll, expect, test } from "bun:test"
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { patchApplies } from "../lib/apply-patches"
+import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
+const activeThinkingPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "thinking-display.toml")).filter((patch) =>
+  patchApplies(patch, TARGET_VERSION),
+)
+const targetUsesVersionLocalThinkingGraph = activeThinkingPatches.some(
+  (patch) => patch.name.startsWith("thinking-render-live-delta-") && patch.target_version === TARGET_VERSION,
+)
+const targetClearsLiveThinkingWithStream = activeThinkingPatches.some(
+  (patch) =>
+    patch.name.startsWith("thinking-clear-live-on-interrupt-") &&
+    patch.transform?.op === "insert_after_node" &&
+    patch.transform.code === "this.stream.setStreamingThinking(null);",
+)
 
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-thinking-"))
 let patched = ""
@@ -90,6 +104,22 @@ function getThinkingDeltaCaseAt(body: string, deltaIndex: number): string {
   return body.slice(deltaIndex, nextCaseIndex)
 }
 
+function getLiveThinkingDeltaCase(body: string): string {
+  let searchFrom = 0
+  while (true) {
+    const callbackIndex = body.indexOf(".onStreamingThinking?.(", searchFrom)
+    if (callbackIndex === -1) break
+    const deltaIndex = body.lastIndexOf('case"thinking_delta":{', callbackIndex)
+    if (deltaIndex !== -1) {
+      const deltaCase = getThinkingDeltaCaseAt(body, deltaIndex)
+      if (callbackIndex < deltaIndex + deltaCase.length) return deltaCase
+    }
+    searchFrom = callbackIndex + 1
+  }
+
+  throw new Error("Could not find thinking_delta case with a live thinking callback")
+}
+
 function getStreamHandlerThinkingPatch(body: string): { callback: string; deltaCase: string } {
   let searchFrom = 0
   while (true) {
@@ -120,6 +150,16 @@ function getFunctionSourceUntilNextDeclaration(body: string, signature: string):
 }
 
 test("thinking deltas update the stream handler's live thinking callback", () => {
+  if (targetUsesVersionLocalThinkingGraph) {
+    for (const body of [patched, linuxPatched]) {
+      const deltaCase = getLiveThinkingDeltaCase(body)
+      expect(deltaCase).toMatch(
+        /\.onStreamingThinking\?\.\(\([\w$]+\)=>\(\{thinking:\([\w$]+\?\.thinking\?\?""\)\+w,isStreaming:!0}\)\)/,
+      )
+      expect(deltaCase).toMatch(/estimatedTokensDelta:[\w$]+\(w\)/)
+    }
+    return
+  }
   if (targetUses267ThinkingSymbols) {
     for (const [body, dispatcher, handler, estimator, staleEstimator] of [
       [patched, "ITe", "Qgt", "lAn", "vbn"],
@@ -321,6 +361,15 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 })
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (targetUsesVersionLocalThinkingGraph) {
+    for (const body of [patched, linuxPatched]) {
+      expect(body).toContain("(T)=>T.streamingThinking")
+      expect(body).toContain(
+        "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+      )
+    }
+    return
+  }
   if (targetUses267ThinkingSymbols) {
     for (const [body, subscription] of [
       [patched, "__acc_streamingThinking=De((kot?S2:null)?.stream,(T)=>T.streamingThinking)"],
@@ -520,6 +569,21 @@ test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
 })
 
 test("live thinking rendering is not suppressed by brief mode", () => {
+  if (targetUsesVersionLocalThinkingGraph) {
+    const marker = "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})"
+    for (const body of [patched, linuxPatched]) {
+      const markerIndex = body.indexOf(marker)
+      expect(markerIndex).toBeGreaterThanOrEqual(0)
+      const functionStart = body.lastIndexOf("function ", markerIndex)
+      const functionEnd = body.indexOf("function ", markerIndex)
+      expect(functionStart).toBeGreaterThanOrEqual(0)
+      expect(functionEnd).toBeGreaterThan(markerIndex)
+      const wrapper = body.slice(functionStart, functionEnd)
+      expect(wrapper).toContain("children:[")
+      expect(wrapper).not.toContain("streamingThinking:null")
+    }
+    return
+  }
   if (targetUses267ThinkingSymbols) {
     for (const [body, signature, memo, children] of [
       [patched, "function T9(bot)", "HH", "XSe,JSe,ZSe"],
@@ -804,15 +868,7 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
     return
   }
 
-  if (
-    targetUses251ThinkingSymbols ||
-    targetUses258ThinkingSymbols ||
-    targetUses259ThinkingSymbols ||
-    targetUses260ThinkingSymbols ||
-    targetUses263ThinkingSymbols ||
-    targetUses266ThinkingSymbols ||
-    targetUses267ThinkingSymbols
-  ) {
+  if (targetClearsLiveThinkingWithStream) {
     expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
     expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
     return

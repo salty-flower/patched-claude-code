@@ -6091,6 +6091,32 @@ assert_contains = '''__acc_streamingThinking=De((kot?S2:null)?.stream,(T)=>T.str
 assert_not_contains = '''__acc_streamingThinking=Le((zet?H2:null)?.stream,(T)=>T.streamingThinking)'''
 
 [[patches]]
+name = "thinking-render-live-output-2-1-268-darwin"
+lineage = "thinking-render-live-output"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.268 Darwin live-output wrapper is oK. Its focused main turn is zz, and Le already selects P8t from that turn's stream for streaming tool uses. Select streamingThinking through the same graph-local subscription seam."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oK", strings = ["streamingToolUses", "hidePlaceholder"] }
+[patches.transform]
+op = "replace_substring"
+find = '''Tnt=Le((_nt?zz:null)?.stream,P8t)??zee,yA=Ike?zz:null,'''
+value = '''Tnt=Le((_nt?zz:null)?.stream,P8t)??zee,__acc_streamingThinking=Le((_nt?zz:null)?.stream,(T)=>T.streamingThinking),yA=Ike?zz:null,'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=Le((_nt?zz:null)?.stream,(T)=>T.streamingThinking)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin live output no longer carries 2.1.267 symbols"
+assert_not_contains = '''__acc_streamingThinking=De((kot?S2:null)?.stream,(T)=>T.streamingThinking)'''
+
+[[patches]]
 name = "thinking-render-live-row-cache-allocation-2-1-266-darwin"
 lineage = "thinking-render-live-row-cache-allocation"
 target_version = "2.1.266"
@@ -6124,6 +6150,28 @@ kind = "static"
 name = "2.1.267 Darwin live row allocates the wrapper cache slot"
 assert_contains = '''function T9(bot){let HH=y(39),'''
 assert_not_contains = '''function o9(Get){let YU=y(39),'''
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-268-darwin"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.268 Darwin live-output wrapper oK allocates 38 compiler-memo slots in graph-local array Pj. Allocate slot 38 for the added live-thinking wrapper output."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = '''function oK(wnt){let Pj=_(38),'''
+replacement = '''function oK(wnt){let Pj=_(39),'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin live row allocates the wrapper cache slot"
+assert_contains = '''function oK(wnt){let Pj=_(39),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin live row cache allocation no longer carries 2.1.267 symbols"
+assert_not_contains = '''function T9(bot){let HH=y(39),'''
 
 [[patches]]
 name = "thinking-render-live-row-2-1-266-darwin"
@@ -6170,6 +6218,32 @@ assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,childre
 assert_not_contains = '''let OJt;if(YU[34]!==Qbe||YU[35]!==Ybe||YU[36]!==Xbe||YU[37]!==__acc_streamingThinking)'''
 
 [[patches]]
+name = "thinking-render-live-row-2-1-268-darwin"
+lineage = "thinking-render-live-row"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.268 Darwin wrapper oK memoizes its final fragment in Pj[37]. The same graph scope renders that fragment with r(F, ...), elements with e(...), and Ink text with n; extend the fragment with streamed thinking and move the result to the newly allocated Pj[38]."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oK", strings = ["streamingToolUses", "hidePlaceholder"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let o8t;if(Pj[34]!==Fke||Pj[35]!==Uke||Pj[36]!==Hke)o8t=r(F,{children:[Fke,Uke,Hke]}),Pj[34]=Fke,Pj[35]=Uke,Pj[36]=Hke,Pj[37]=o8t;else o8t=Pj[37];return o8t'''
+value = '''let o8t;if(Pj[34]!==Fke||Pj[35]!==Uke||Pj[36]!==Hke||Pj[37]!==__acc_streamingThinking)o8t=r(F,{children:[Fke,Uke,Hke,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),Pj[34]=Fke,Pj[35]=Uke,Pj[36]=Hke,Pj[37]=__acc_streamingThinking,Pj[38]=o8t;else o8t=Pj[38];return o8t'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin live thinking row no longer carries 2.1.267 symbols"
+assert_not_contains = '''let w6t;if(HH[34]!==XSe||HH[35]!==JSe||HH[36]!==ZSe||HH[37]!==__acc_streamingThinking)'''
+
+[[patches]]
 name = "thinking-render-live-output-2-1-266-linux"
 lineage = "thinking-render-live-output"
 target_version = "2.1.266"
@@ -6214,6 +6288,32 @@ assert_contains = '''__acc_streamingThinking=Oe((Tot?h2:null)?.stream,(T)=>T.str
 assert_not_contains = '''__acc_streamingThinking=De((Qet?W2:null)?.stream,(T)=>T.streamingThinking)'''
 
 [[patches]]
+name = "thinking-render-live-output-2-1-268-linux"
+lineage = "thinking-render-live-output"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "The 2.1.268 Linux live-output wrapper is Y6. Its focused main turn is R2, and De already selects O8t from that turn's stream for streaming tool uses. Select streamingThinking through the same graph-local subscription seam."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Y6", strings = ["streamingToolUses", "hidePlaceholder"] }
+[patches.transform]
+op = "replace_substring"
+find = '''xnt=De((Tnt?R2:null)?.stream,O8t)??Yee,jA=Nke?R2:null,'''
+value = '''xnt=De((Tnt?R2:null)?.stream,O8t)??Yee,__acc_streamingThinking=De((Tnt?R2:null)?.stream,(T)=>T.streamingThinking),jA=Nke?R2:null,'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux live output subscribes to thinking"
+assert_contains = '''__acc_streamingThinking=De((Tnt?R2:null)?.stream,(T)=>T.streamingThinking)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux live output no longer carries 2.1.267 symbols"
+assert_not_contains = '''__acc_streamingThinking=Oe((Tot?h2:null)?.stream,(T)=>T.streamingThinking)'''
+
+[[patches]]
 name = "thinking-render-live-row-cache-allocation-2-1-266-linux"
 lineage = "thinking-render-live-row-cache-allocation"
 target_version = "2.1.266"
@@ -6247,6 +6347,28 @@ kind = "static"
 name = "2.1.267 Linux live row allocates the wrapper cache slot"
 assert_contains = '''function y6(Cot){let $H=y(39),'''
 assert_not_contains = '''function Y3(Ket){let lH=y(39),'''
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-268-linux"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "The 2.1.268 Linux live-output wrapper Y6 allocates 38 compiler-memo slots in graph-local array sj. Allocate slot 38 for the added live-thinking wrapper output."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = '''function Y6(wnt){let sj=_(38),'''
+replacement = '''function Y6(wnt){let sj=_(39),'''
+expected_matches = 1
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux live row allocates the wrapper cache slot"
+assert_contains = '''function Y6(wnt){let sj=_(39),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux live row cache allocation no longer carries 2.1.267 symbols"
+assert_not_contains = '''function y6(Cot){let $H=y(39),'''
 
 [[patches]]
 name = "thinking-render-live-row-2-1-266-linux"
@@ -6291,6 +6413,32 @@ kind = "static"
 name = "2.1.267 Linux live thinking row is rendered"
 assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
 assert_not_contains = '''let XJt;if(lH[34]!==$be||lH[35]!==Wbe||lH[36]!==qbe||lH[37]!==__acc_streamingThinking)'''
+
+[[patches]]
+name = "thinking-render-live-row-2-1-268-linux"
+lineage = "thinking-render-live-row"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "The 2.1.268 Linux wrapper Y6 memoizes its final fragment in sj[37]. The same graph scope renders that fragment with r(F, ...), elements with e(...), and Ink text with n; extend the fragment with streamed thinking and move the result to the newly allocated sj[38]."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Y6", strings = ["streamingToolUses", "hidePlaceholder"] }
+[patches.transform]
+op = "replace_substring"
+find = '''let o8t;if(sj[34]!==Lke||sj[35]!==Fke||sj[36]!==Bke)o8t=r(F,{children:[Lke,Fke,Bke]}),sj[34]=Lke,sj[35]=Fke,sj[36]=Bke,sj[37]=o8t;else o8t=sj[37];return o8t'''
+value = '''let o8t;if(sj[34]!==Lke||sj[35]!==Fke||sj[36]!==Bke||sj[37]!==__acc_streamingThinking)o8t=r(F,{children:[Lke,Fke,Bke,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),sj[34]=Lke,sj[35]=Fke,sj[36]=Bke,sj[37]=__acc_streamingThinking,sj[38]=o8t;else o8t=sj[38];return o8t'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux live thinking row is rendered"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux live thinking row no longer carries 2.1.267 symbols"
+assert_not_contains = '''let U6t;if($H[34]!==nke||$H[35]!==ike||$H[36]!==uke||$H[37]!==__acc_streamingThinking)'''
 
 [[patches]]
 name = "thinking-render-live-delta-2-1-266-darwin"
@@ -6343,6 +6491,32 @@ assert_contains = '''else if(w.length>0)d?.({type:"thinking_progress",estimatedT
 assert_not_contains = '''estimatedTokensDelta:vbn(w)'''
 
 [[patches]]
+name = "thinking-render-live-delta-2-1-268-darwin"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.268 Darwin stream handler n_t retains its options object as n and the current delta as F. Update n.onStreamingThinking before preserving both the estimated-token path and the graph-local vTn fallback estimator."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "n_t", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:F}=e.event;if("estimated_tokens"in F&&typeof F.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:F.estimated_tokens});else if("thinking"in F&&typeof F.thinking==="string"&&F.thinking.length>0)d?.({type:"thinking_progress",estimatedTokensDelta:vTn(F.thinking)});return}'''
+value = '''case"thinking_delta":{let{delta:F}=e.event,w=typeof F.thinking==="string"?F.thinking:"";if(w)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in F&&typeof F.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:F.estimated_tokens});else if(w.length>0)d?.({type:"thinking_progress",estimatedTokensDelta:vTn(w)});return}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin thinking deltas update live state"
+assert_contains = '''case"thinking_delta":{let{delta:F}=e.event,w=typeof F.thinking==="string"?F.thinking:"";if(w)n.onStreamingThinking?.'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Darwin thinking deltas no longer carry 2.1.267 symbols"
+assert_not_contains = '''estimatedTokensDelta:lAn(w)'''
+
+[[patches]]
 name = "thinking-render-live-delta-2-1-266-linux"
 lineage = "thinking-render-live-delta"
 target_version = "2.1.266"
@@ -6391,3 +6565,29 @@ kind = "static"
 name = "2.1.267 Linux thinking deltas retain the current fallback estimator"
 assert_contains = '''else if(w.length>0)d?.({type:"thinking_progress",estimatedTokensDelta:$vn(w)})'''
 assert_not_contains = '''estimatedTokensDelta:Jbn(w)'''
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-268-linux"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.268"
+applies_to = ">=2.1.268 <2.1.269"
+platforms = ["linux-x64"]
+rationale = "The 2.1.268 Linux stream handler l_t retains its options object as n and the current delta as F. Update n.onStreamingThinking before preserving both the estimated-token path and the graph-local QAn fallback estimator."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "l_t", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:F}=e.event;if("estimated_tokens"in F&&typeof F.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:F.estimated_tokens});else if("thinking"in F&&typeof F.thinking==="string"&&F.thinking.length>0)d?.({type:"thinking_progress",estimatedTokensDelta:QAn(F.thinking)});return}'''
+value = '''case"thinking_delta":{let{delta:F}=e.event,w=typeof F.thinking==="string"?F.thinking:"";if(w)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}));if("estimated_tokens"in F&&typeof F.estimated_tokens==="number")d?.({type:"thinking_progress",estimatedTokensDelta:F.estimated_tokens});else if(w.length>0)d?.({type:"thinking_progress",estimatedTokensDelta:QAn(w)});return}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux thinking deltas update live state"
+assert_contains = '''case"thinking_delta":{let{delta:F}=e.event,w=typeof F.thinking==="string"?F.thinking:"";if(w)n.onStreamingThinking?.'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.268 Linux thinking deltas no longer carry 2.1.267 symbols"
+assert_not_contains = '''estimatedTokensDelta:$vn(w)'''

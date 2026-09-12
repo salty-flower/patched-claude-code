@@ -48,5 +48,13 @@ bun test tools/test/later-command-patch.test.ts
 - Catalog：历史版本仍须通过 schema、manifest、ruleset 自校验、内容 hash 和版本检查；不能借兼容历史数据放松当前 catalog 校验。
 - 失败汇总：保留完整输出；后续成功文件不得把整个 suite 的退出状态改成成功。
 
-本次未改造 obligation receipt 的 oracle 报告协议，也未增加共享 render cache。
-逐 oracle 的实际执行回执仍需独立收敛；不能把当前文件级退出状态解释成新增的逐 oracle 执行证明。
+## Oracle 执行回执
+
+`just obligation-evidence <version> <platform>` 使用隔离的临时目录收集逐项结果，生成 schema 2 receipt。
+静态 oracle 关联 ledger 中当前 entry 的全部实际 TOML 测试结果；运行时 oracle 由断言完成后的 callback 报告。
+Receipt 保留检查名称、逐 oracle evidence class 和 passed／failed／skipped，admission 不再按整份 receipt 的最高 class 推算覆盖。
+找不到观察结果时记为 skipped 并失败；重跑开始时删除同一路径的旧 receipt，避免旧成功结果残留。
+
+当前 graph 的 Keychain 白盒 mutation、legacy、resume 和 doctor 用例仍会跳过，不能由 plugin-eval 或 TUI startup 的成功替代。
+默认预取抑制、OAuth 写入失败传播和 legacy delete 外层失败传播还缺少有效 runtime observer。
+这些缺口会阻断 macOS evidence／release admission，必须补齐测试后重新生成回执；不得调整 maintainer acknowledgement 或降低证据要求来绕过。

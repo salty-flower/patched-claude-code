@@ -68,8 +68,15 @@ export type PatchObligationLedger = {
   retirementAcknowledgement?: RetirementAcknowledgement
 }
 
+export type OracleEvidenceResult = {
+  oracleId: string
+  evidenceClass: EvidenceClass
+  outcome: "passed" | "failed" | "skipped"
+  checks: string[]
+}
+
 export type PatchEvidenceReceipt = {
-  schema: 1
+  schema: 2
   targetVersion: string
   sourceCommit: string
   platform: ObligationPlatform
@@ -80,6 +87,7 @@ export type PatchEvidenceReceipt = {
   evidenceClass: EvidenceClass
   outcome: "passed" | "failed"
   skippedOracleIds: string[]
+  oracleResults: OracleEvidenceResult[]
 }
 
 export type PatchObligationReport = {
@@ -306,29 +314,158 @@ function verifyEvidence(
     else patchedHashes.set(platform, sha256Hex(readFileSync(path)))
   }
 
+  const decisions = new Map(ledger.decisions.map((decision) => [obligationKey(decision), decision]))
   const validReceipts: PatchEvidenceReceipt[] = []
   for (const receipt of receipts) {
-    const prefix = `receipt ${receipt.platform}`
-    if (receipt.targetVersion !== options.version) errors.push(`${prefix}: stale target ${receipt.targetVersion}`)
-    if (receipt.sourceCommit !== sourceCommit) errors.push(`${prefix}: source commit mismatch`)
-    if (receipt.upstreamEntrypointSha256 !== upstreamHashes.get(receipt.platform)) {
-      errors.push(`${prefix}: upstream entrypoint hash mismatch`)
-    }
-    if (receipt.patchedEntrypointSha256 !== patchedHashes.get(receipt.platform)) {
-      errors.push(`${prefix}: patched entrypoint hash mismatch`)
-    }
-    if (receipt.outcome !== "passed") errors.push(`${prefix}: outcome is ${receipt.outcome}`)
-    if (receipt.skippedOracleIds.length > 0) errors.push(`${prefix}: skipped oracles are not admissible`)
-    for (const name of receipt.selectedPatchEntries) {
-      const entry = activeByName.get(name)
-      if (!entry || !patchPlatforms(entry).includes(receipt.platform)) {
-        errors.push(`${prefix}: selected inactive or wrong-platform patch entry ${name}`)
+    const platform = receipt && typeof receipt === "object" ? (receipt as { platform?: unknown }).platform : undefined
+    const prefix = `receipt ${typeof platform === "string" ? platform : "unknown"}`
+    const receiptErrors: string[] = []
+
+    if (!receipt || typeof receipt !== "object" || Array.isArray(receipt)) {
+      receiptErrors.push(`${prefix}: expected object`)
+    } else {
+      if (receipt.schema !== 2) {
+        receiptErrors.push(`${prefix}: schema must be 2; regenerate receipt with current runner`)
+      }
+      if (receipt.targetVersion !== options.version) {
+        receiptErrors.push(`${prefix}: stale target ${receipt.targetVersion}`)
+      }
+      if (receipt.sourceCommit !== sourceCommit) receiptErrors.push(`${prefix}: source commit mismatch`)
+      if (receipt.upstreamEntrypointSha256 !== upstreamHashes.get(receipt.platform)) {
+        receiptErrors.push(`${prefix}: upstream entrypoint hash mismatch`)
+      }
+      if (receipt.patchedEntrypointSha256 !== patchedHashes.get(receipt.platform)) {
+        receiptErrors.push(`${prefix}: patched entrypoint hash mismatch`)
+      }
+      if (receipt.outcome !== "passed") receiptErrors.push(`${prefix}: outcome is ${receipt.outcome}`)
+      if (!isEvidenceClassValue(receipt.evidenceClass)) {
+        receiptErrors.push(`${prefix}: unsupported evidence class ${String(receipt.evidenceClass)}`)
+      }
+
+      const selectedPatchEntries = runtimeStringArray(
+        receipt.selectedPatchEntries,
+        `${prefix}.selectedPatchEntries`,
+        receiptErrors,
+      )
+      if (selectedPatchEntries) {
+        for (const name of selectedPatchEntries) {
+          const entry = activeByName.get(name)
+          if (!entry || !patchPlatforms(entry).includes(receipt.platform)) {
+            receiptErrors.push(`${prefix}: selected inactive or wrong-platform patch entry ${name}`)
+          }
+        }
+      }
+
+      const oracleResults = Array.isArray(receipt.oracleResults) ? (receipt.oracleResults as unknown[]) : undefined
+      if (!oracleResults) {
+        receiptErrors.push(`${prefix}.oracleResults: expected array`)
+      } else {
+        const resultProjections: Array<{ oracleId: string; outcome: OracleEvidenceResult["outcome"] }> = []
+        const resultById = new Map<string, OracleEvidenceResult>()
+        for (const [index, value] of oracleResults.entries()) {
+          const resultPath = `${prefix}.oracleResults[${index}]`
+          if (!value || typeof value !== "object" || Array.isArray(value)) {
+            receiptErrors.push(`${resultPath}: expected object`)
+            continue
+          }
+          const record = value as Record<string, unknown>
+          const oracleId = record.oracleId
+          if (typeof oracleId !== "string" || oracleId.length === 0) {
+            receiptErrors.push(`${resultPath}.oracleId: expected non-empty string`)
+            continue
+          }
+          if (resultOutcomeIsValid(record.outcome)) {
+            resultProjections.push({ oracleId, outcome: record.outcome })
+          }
+          if (resultById.has(oracleId)) {
+            receiptErrors.push(`${prefix}: duplicate oracle result ${oracleId}`)
+            continue
+          }
+
+          const resultEvidenceClass = record.evidenceClass
+          let resultValid = true
+          if (!isEvidenceClassValue(resultEvidenceClass)) {
+            receiptErrors.push(`${resultPath}.evidenceClass: unsupported evidence class ${String(resultEvidenceClass)}`)
+            resultValid = false
+          }
+
+          const resultOutcome = record.outcome
+          if (resultOutcome !== "passed" && resultOutcome !== "failed" && resultOutcome !== "skipped") {
+            receiptErrors.push(`${resultPath}.outcome: expected passed, failed, or skipped`)
+            resultValid = false
+          } else if (resultOutcome !== "passed") {
+            receiptErrors.push(`${prefix}: oracle ${oracleId} outcome is ${resultOutcome}`)
+          }
+
+          const checks = runtimeStringArray(record.checks, `${resultPath}.checks`, receiptErrors)
+          if (resultOutcome === "passed" && checks?.length === 0) {
+            receiptErrors.push(`${resultPath}.checks: passed result requires at least one check`)
+            resultValid = false
+          }
+
+          const obligation = registry.obligations.find(({ oracleIds }) => oracleIds.includes(oracleId))
+          if (!obligation) {
+            receiptErrors.push(`${prefix}: unknown oracle ${oracleId}`)
+          } else {
+            const decision = decisions.get(obligationKey(obligation))
+            if (decision?.disposition === "retired") {
+              receiptErrors.push(`${prefix}: retired oracle ${oracleId}`)
+            } else if (!obligation.requiredPlatforms.includes(receipt.platform)) {
+              receiptErrors.push(`${prefix}: wrong-platform oracle ${oracleId} for ${receipt.platform}`)
+            } else if (!decision) {
+              receiptErrors.push(`${prefix}: oracle ${oracleId} has no target disposition`)
+            }
+          }
+
+          if (
+            resultValid &&
+            isEvidenceClassValue(resultEvidenceClass) &&
+            (resultOutcome === "passed" || resultOutcome === "failed" || resultOutcome === "skipped") &&
+            checks
+          ) {
+            resultById.set(oracleId, {
+              oracleId,
+              evidenceClass: resultEvidenceClass,
+              outcome: resultOutcome,
+              checks,
+            })
+          }
+        }
+
+        const executedOracleIds = runtimeStringArray(
+          receipt.executedOracleIds,
+          `${prefix}.executedOracleIds`,
+          receiptErrors,
+        )
+        const skippedOracleIds = runtimeStringArray(
+          receipt.skippedOracleIds,
+          `${prefix}.skippedOracleIds`,
+          receiptErrors,
+        )
+        const expectedExecuted = resultProjections
+          .filter(({ outcome }) => outcome !== "skipped")
+          .map(({ oracleId }) => oracleId)
+        const expectedSkipped = resultProjections
+          .filter(({ outcome }) => outcome === "skipped")
+          .map(({ oracleId }) => oracleId)
+        if (executedOracleIds && !sameStringSet(executedOracleIds, expectedExecuted)) {
+          receiptErrors.push(`${prefix}: executedOracleIds do not match oracleResults`)
+        }
+        if (skippedOracleIds && !sameStringSet(skippedOracleIds, expectedSkipped)) {
+          receiptErrors.push(`${prefix}: skippedOracleIds do not match oracleResults`)
+        }
+        if (skippedOracleIds && skippedOracleIds.length > 0) {
+          receiptErrors.push(`${prefix}: skipped oracles are not admissible`)
+        }
+
+        if (receiptErrors.length === 0) {
+          validReceipts.push({ ...receipt, oracleResults: [...resultById.values()] })
+        }
       }
     }
-    validReceipts.push(receipt)
+    errors.push(...receiptErrors)
   }
 
-  const decisions = new Map(ledger.decisions.map((decision) => [obligationKey(decision), decision]))
   for (const obligation of registry.obligations) {
     const key = obligationKey(obligation)
     const decision = decisions.get(key)
@@ -336,8 +473,17 @@ function verifyEvidence(
     for (const platform of obligation.requiredPlatforms) {
       const candidates = validReceipts.filter((receipt) => receipt.platform === platform)
       const satisfied = candidates.some((receipt) => {
-        if (evidenceRank(receipt.evidenceClass) < evidenceRank(obligation.evidenceClass)) return false
-        if (!obligation.oracleIds.every((oracle) => receipt.executedOracleIds.includes(oracle))) return false
+        const results = new Map(receipt.oracleResults.map((result) => [result.oracleId, result]))
+        if (
+          !obligation.oracleIds.every((oracle) => {
+            const result = results.get(oracle)
+            return (
+              result?.outcome === "passed" &&
+              evidenceRank(result.evidenceClass) >= evidenceRank(obligation.evidenceClass)
+            )
+          })
+        )
+          return false
         return (
           decision.disposition !== "ported" ||
           (decision.patchEntries ?? [])
@@ -543,11 +689,11 @@ function parseAcknowledgement(value: unknown, path: string): MaintainerAcknowled
 
 function parseReceipt(value: unknown, path: string): PatchEvidenceReceipt {
   const record = requiredRecord(value, path)
-  if (record.schema !== 1) throw new Error(`${path}: schema must be 1`)
+  if (record.schema !== 2) throw new Error(`${path}: schema must be 2; regenerate receipt with current runner`)
   const outcome = requiredString(record.outcome, `${path}.outcome`)
   if (outcome !== "passed" && outcome !== "failed") throw new Error(`${path}.outcome: expected passed or failed`)
   return {
-    schema: 1,
+    schema: 2,
     targetVersion: semverString(record.targetVersion, `${path}.targetVersion`),
     sourceCommit: requiredString(record.sourceCommit, `${path}.sourceCommit`),
     platform: platform(record.platform, `${path}.platform`),
@@ -558,6 +704,27 @@ function parseReceipt(value: unknown, path: string): PatchEvidenceReceipt {
     evidenceClass: evidenceClass(record.evidenceClass, `${path}.evidenceClass`),
     outcome,
     skippedOracleIds: stringArray(record.skippedOracleIds, `${path}.skippedOracleIds`),
+    oracleResults: requiredArray(record.oracleResults, `${path}.oracleResults`).map((item, index) =>
+      parseOracleEvidenceResult(item, `${path}.oracleResults[${index}]`),
+    ),
+  }
+}
+
+function parseOracleEvidenceResult(value: unknown, path: string): OracleEvidenceResult {
+  const record = requiredRecord(value, path)
+  const outcome = requiredString(record.outcome, `${path}.outcome`)
+  if (outcome !== "passed" && outcome !== "failed" && outcome !== "skipped") {
+    throw new Error(`${path}.outcome: expected passed, failed, or skipped`)
+  }
+  const checks = stringArray(record.checks, `${path}.checks`)
+  if (outcome === "passed" && checks.length === 0) {
+    throw new Error(`${path}.checks: passed result requires at least one check`)
+  }
+  return {
+    oracleId: requiredString(record.oracleId, `${path}.oracleId`),
+    evidenceClass: evidenceClass(record.evidenceClass, `${path}.evidenceClass`),
+    outcome,
+    checks,
   }
 }
 
@@ -616,10 +783,44 @@ function platformArray(value: unknown, path: string): ObligationPlatform[] {
 
 function evidenceClass(value: unknown, path: string): EvidenceClass {
   const candidate = requiredString(value, path)
-  if (candidate !== "static" && candidate !== "runtime" && candidate !== "real-os-runtime") {
+  if (!isEvidenceClassValue(candidate)) {
     throw new Error(`${path}: unsupported evidence class ${candidate}`)
   }
   return candidate
+}
+
+function isEvidenceClassValue(value: unknown): value is EvidenceClass {
+  return value === "static" || value === "runtime" || value === "real-os-runtime"
+}
+
+function resultOutcomeIsValid(value: unknown): value is OracleEvidenceResult["outcome"] {
+  return value === "passed" || value === "failed" || value === "skipped"
+}
+
+function runtimeStringArray(value: unknown, path: string, errors: string[]): string[] | undefined {
+  if (!Array.isArray(value)) {
+    errors.push(`${path}: expected array`)
+    return undefined
+  }
+  const values: string[] = []
+  let valid = true
+  for (const [index, item] of value.entries()) {
+    if (typeof item !== "string" || item.length === 0) {
+      errors.push(`${path}[${index}]: expected non-empty string`)
+      valid = false
+    } else {
+      values.push(item)
+    }
+  }
+  if (new Set(values).size !== values.length) {
+    errors.push(`${path}: duplicate values`)
+    valid = false
+  }
+  return valid ? values : undefined
+}
+
+function sameStringSet(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((value) => right.includes(value))
 }
 
 function sha256String(value: unknown, path: string): string {

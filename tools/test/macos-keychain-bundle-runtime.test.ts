@@ -1,10 +1,11 @@
-import { afterAll, afterEach, expect, test } from "bun:test"
+import { afterAll, afterEach, expect } from "bun:test"
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
 import { join } from "node:path"
 import { targetVersion } from "../lib/target"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
+import { keychainOracleTest } from "./helpers/oracle-test"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
@@ -408,7 +409,9 @@ function writeHarnessBundle(dir: string): string {
   return path
 }
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+keychainOracleTest(
+  ["explicit-macos-keychain-entrypoint-guard"],
+  process.platform !== "darwin" || !RENDERED,
   "raw and preloaded bundles fail closed before credential lookup",
   async () => {
     const home = makeTempDir("patched-cc-keychain-raw-")
@@ -460,9 +463,12 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
 )
 
 // The injected white-box harness relies on bundle-wide lexical symbols. A
-// graph target deliberately keeps those private inside separate ESM modules;
-// its credential behavior is covered by the real plugin-eval and TUI tests.
-test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
+// graph target deliberately keeps those private inside separate ESM modules.
+// The real plugin-eval and TUI tests cover only their own credential paths;
+// skipped white-box checks remain missing evidence for the other invariants.
+keychainOracleTest(
+  ["explicit-macos-keychain-storage-bridge"],
+  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
   "public Keychain selection outranks materialized mode for OAuth lookup",
   async () => {
     const home = makeTempDir("patched-cc-keychain-oauth-priority-")
@@ -506,7 +512,9 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
+keychainOracleTest(
+  ["explicit-macos-keychain-storage-bridge"],
+  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
   `rendered ${targetVersion()} OAuth saver refresh and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-saver-")
@@ -558,7 +566,9 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
+keychainOracleTest(
+  ["explicit-macos-keychain-storage-bridge"],
+  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
   `rendered ${targetVersion()} serializes concurrent secure-storage mutations across processes`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-atomic-")
@@ -595,7 +605,9 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
+keychainOracleTest(
+  ["explicit-macos-keychain-session-store-resume"],
+  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
   `rendered ${targetVersion()} SessionStore resume and plugin eval materialize only selected credentials`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialize-")
@@ -667,7 +679,9 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+keychainOracleTest(
+  ["explicit-macos-keychain-plugin-eval", "explicit-macos-keychain-plugin-eval-child"],
+  process.platform !== "darwin" || !RENDERED,
   "real plugin eval child uses materialized selected-Keychain credentials without preload",
   async () => {
     const home = makeTempDir("patched-cc-keychain-plugin-eval-")
@@ -711,18 +725,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
           ANTHROPIC_BASE_URL: stub.baseUrl,
           CLAUDE_CODE_WALNUT_SPIRE: "1",
         },
-        [
-          "plugin",
-          "eval",
-          "--ablation",
-          "none",
-          "--runs",
-          "1",
-          "--json",
-          "--output-dir",
-          outputDir,
-          pluginDir,
-        ],
+        ["plugin", "eval", "--ablation", "none", "--runs", "1", "--json", "--output-dir", outputDir, pluginDir],
       )
       if (result.exitCode !== 0) console.error(`${result.stdout}\n${result.stderr}`)
       expect(result.exitCode).toBe(0)
@@ -747,7 +750,14 @@ test.skipIf(process.platform !== "darwin" || !RENDERED)(
   90_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
+keychainOracleTest(
+  [
+    "explicit-macos-keychain-legacy-api-key-async-read",
+    "explicit-macos-keychain-legacy-api-key-sync-read",
+    "explicit-macos-keychain-legacy-api-key-write",
+    "explicit-macos-keychain-legacy-api-key-delete",
+  ],
+  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
   `rendered ${targetVersion()} legacy API-key save lookup and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-legacy-")
@@ -811,7 +821,13 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
+keychainOracleTest(
+  [
+    "explicit-macos-keychain-doctor-probe",
+    "explicit-macos-keychain-legacy-api-key-write",
+    "explicit-macos-keychain-legacy-api-key-delete",
+  ],
+  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
   "materialized mode rejects default-Keychain legacy mutations and doctor probes",
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialized-closed-")
@@ -833,9 +849,7 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
         CLAUDE_KEYCHAIN_LEGACY_KEY: "sk-ant-synthetic_materialized_rejected",
       })
       expect(write.exitCode).not.toBe(0)
-      expect(`${write.stdout}\n${write.stderr}`).toContain(
-        "Materialized credential mode refuses legacy Keychain",
-      )
+      expect(`${write.stdout}\n${write.stderr}`).toContain("Materialized credential mode refuses legacy Keychain")
       expect(readGenericPassword(defaultPath, legacyService, account).stdout).toBe(legacySentinel)
 
       const deleted = await runBundle(harness, home, undefined, {
@@ -863,7 +877,9 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
+keychainOracleTest(
+  ["explicit-macos-keychain-doctor-probe"],
+  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
   `rendered ${targetVersion()} doctor probe never touches the default Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-doctor-")
@@ -893,7 +909,9 @@ test.skipIf(process.platform !== "darwin" || !RENDERED || GRAPH_TARGET)(
   60_000,
 )
 
-test.skipIf(process.platform !== "darwin" || !RENDERED)(
+keychainOracleTest(
+  ["explicit-macos-keychain-storage-bridge"],
+  process.platform !== "darwin" || !RENDERED,
   `rendered ${targetVersion()} auth lookup and TUI startup use the process-selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-tui-")

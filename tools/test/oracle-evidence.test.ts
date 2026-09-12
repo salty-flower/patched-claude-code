@@ -3,9 +3,38 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import type { PatchEntry } from "../lib/patch-files"
-import type { PatchObligationLedger, PatchObligationRegistry } from "../lib/patch-obligations"
+import {
+  loadPatchObligationLedger,
+  loadPatchObligationRegistry,
+  type PatchObligationLedger,
+  type PatchObligationRegistry,
+} from "../lib/patch-obligations"
+import { targetVersion } from "../lib/target"
 import { collectOracleEvidence, type EmbeddedCheck, readEmbeddedReport } from "./helpers/collect-oracle-evidence"
 import { type OracleCheck, readOracleChecks } from "./helpers/oracle-evidence"
+import { runtimeOracleChecks } from "./helpers/runtime-oracle-checks"
+
+test("every active Keychain oracle has an explicit runtime callback roster", () => {
+  const root = join(import.meta.dir, "../..")
+  const version = targetVersion()
+  const registry = loadPatchObligationRegistry(root)
+  const ledger = loadPatchObligationLedger(root, version)
+  const roster = runtimeOracleChecks(version)
+  for (const obligation of registry.obligations.filter((item) => item.familyId === "explicit-macos-keychain")) {
+    const decision = ledger.decisions.find(
+      (item) => item.familyId === obligation.familyId && item.invariantId === obligation.invariantId,
+    )
+    expect(decision).toBeDefined()
+    for (const oracle of obligation.oracleIds) {
+      if (decision?.disposition === "retired") {
+        expect(roster[oracle]).toBeUndefined()
+      } else {
+        expect(roster[oracle]?.length).toBeGreaterThan(0)
+        expect(new Set(roster[oracle]).size).toBe(roster[oracle]?.length)
+      }
+    }
+  }
+})
 
 function first<T>(values: T[]): T {
   const value = values[0]

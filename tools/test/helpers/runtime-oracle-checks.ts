@@ -15,6 +15,15 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
   }
   for (const [invariant, checks] of Object.entries({
     "entrypoint-guard": [keychain("raw and preloaded bundles fail closed before credential lookup")],
+    "disable-default-prefetch": [
+      keychain("native default-Keychain prefetch runs only without explicit or materialized selection"),
+    ],
+    "propagate-write-failures": [
+      keychain("native OAuth saver propagates selected-Keychain access failures to its caller"),
+    ],
+    "propagate-legacy-delete-failures": [
+      keychain("native legacy-delete outer wrapper propagates explicit and materialized failures"),
+    ],
     "storage-bridge": [
       keychain("public Keychain selection outranks materialized mode for OAuth lookup"),
       keychain(`rendered ${version} OAuth saver refresh and delete use only the selected Keychain`),
@@ -22,7 +31,7 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
       keychain(`rendered ${version} auth lookup and TUI startup use the process-selected Keychain`),
     ],
     "session-store-resume": [
-      keychain(`rendered ${version} SessionStore resume and plugin eval materialize only selected credentials`),
+      keychain(`rendered ${version} SessionStore materializes selected credentials and plugin eval selects them`),
     ],
     "plugin-eval": [plugin],
     "plugin-eval-child": [plugin],

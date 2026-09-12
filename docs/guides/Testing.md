@@ -55,6 +55,9 @@ bun test tools/test/later-command-patch.test.ts
 Receipt 保留检查名称、逐 oracle evidence class 和 passed／failed／skipped，admission 不再按整份 receipt 的最高 class 推算覆盖。
 找不到观察结果时记为 skipped 并失败；重跑开始时删除同一路径的旧 receipt，避免旧成功结果残留。
 
-当前 graph 的 Keychain 白盒 mutation、legacy、resume 和 doctor 用例仍会跳过，不能由 plugin-eval 或 TUI startup 的成功替代。
-默认预取抑制、OAuth 写入失败传播和 legacy delete 外层失败传播还缺少有效 runtime observer。
-这些缺口会阻断 macOS evidence／release admission，必须补齐测试后重新生成回执；不得调整 maintainer acknowledgement 或降低证据要求来绕过。
+Keychain graph 测试只在临时渲染副本中追加测试导出，按当前 active patch 定位原生函数并保留模块依赖。
+Mutation、legacy、resume 和 doctor 必须在真实 macOS 的独立测试 Keychain 上执行，不能由 plugin-eval 或 TUI startup 的成功替代。
+预取测试逐条件启动新进程，在 subprocess 边界记录调用；无选择的对照必须触发默认读取，显式／materialized 选择必须没有读取尝试。
+对照拦截默认读取，不获取用户默认 Keychain 的凭据。
+失败传播测试在 preload 成功后移除测试 Keychain，再调用原生 OAuth saver 和 legacy delete 外层包装器；仅证明 preload 拒绝或底层 helper 抛错不算通过。
+缺报、跳过或失败仍阻断 macOS evidence／release admission；不得调整 maintainer acknowledgement 或降低证据要求来绕过。

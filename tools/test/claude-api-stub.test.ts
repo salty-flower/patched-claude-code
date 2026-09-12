@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test"
-import { type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
+import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 
 const stubs: ClaudeApiStub[] = []
 
@@ -78,4 +78,75 @@ test("ClaudeApiStub supports request-aware response overrides", async () => {
 
   expect(response.status).toBe(202)
   expect(await response.json()).toEqual({ path: "/v1/messages", model: "claude-test" })
+})
+
+test("ClaudeApiStub notifies listeners after capture and waiter resolution", async () => {
+  const stub = await startTrackedStub()
+  const events: string[] = []
+  const observed: ClaudeApiRequest[] = []
+  const waiter = stub.waitForRequest((request) => {
+    expect(stub.requests).toContain(request)
+    events.push("waiter")
+    return true
+  })
+  const unsubscribe = stub.onRequest((request) => {
+    expect(stub.requests).toContain(request)
+    events.push("listener")
+    observed.push(request)
+  })
+
+  const response = await fetch(`${stub.baseUrl}/v1/messages`, { method: "POST", body: "{}" })
+
+  expect(response.status).toBe(200)
+  const request = await waiter
+  expect(observed).toEqual([request])
+  expect(events).toEqual(["waiter", "listener"])
+  unsubscribe()
+})
+
+test("ClaudeApiStub notifies every subscribed listener", async () => {
+  const stub = await startTrackedStub()
+  const calls: string[] = []
+  const unsubscribeFirst = stub.onRequest(({ order }) => calls.push(`first:${order}`))
+  const unsubscribeSecond = stub.onRequest(({ order }) => calls.push(`second:${order}`))
+
+  const response = await fetch(`${stub.baseUrl}/v1/messages`, { method: "POST", body: "{}" })
+
+  expect(response.status).toBe(200)
+  expect(calls).toEqual(["first:0", "second:0"])
+  unsubscribeFirst()
+  unsubscribeSecond()
+})
+
+test("ClaudeApiStub subscriptions do not replay and unsubscribe idempotently", async () => {
+  const stub = await startTrackedStub()
+  await fetch(`${stub.baseUrl}/v1/messages`, { method: "POST", body: "{}" })
+
+  const observed: ClaudeApiRequest[] = []
+  const unsubscribe = stub.onRequest((request) => observed.push(request))
+  expect(observed).toEqual([])
+  expect(stub.requests).toHaveLength(1)
+
+  const secondResponse = await fetch(`${stub.baseUrl}/v1/messages`, { method: "POST", body: "{}" })
+  expect(secondResponse.status).toBe(200)
+  expect(observed).toEqual([stub.requests[1]])
+
+  unsubscribe()
+  unsubscribe()
+  const thirdResponse = await fetch(`${stub.baseUrl}/v1/messages`, { method: "POST", body: "{}" })
+  expect(thirdResponse.status).toBe(200)
+  expect(observed).toHaveLength(1)
+})
+
+test("ClaudeApiStub observer failures use the request handler error path", async () => {
+  const stub = await startTrackedStub()
+  stub.onRequest(() => {
+    throw new Error("observer failed")
+  })
+
+  const response = await fetch(`${stub.baseUrl}/v1/messages`, { method: "POST", body: "{}" })
+
+  expect(response.status).toBe(500)
+  expect(await response.text()).toBe("observer failed")
+  expect(stub.requests).toHaveLength(1)
 })

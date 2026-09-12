@@ -179,6 +179,7 @@ export class ClaudeApiStub {
   readonly responder?: ClaudeApiResponder
   #server: Server
   #waiters: RequestWaiter[] = []
+  #listeners = new Set<(request: ClaudeApiRequest) => void>()
   #order = 0
   #port = 0
 
@@ -205,8 +206,19 @@ export class ClaudeApiStub {
       clearTimeout(waiter.timeout)
       waiter.reject(new Error("ClaudeApiStub stopped before matching request arrived"))
     }
+    this.#listeners.clear()
     this.#server.closeAllConnections?.()
     this.#server.close()
+  }
+
+  onRequest(listener: (request: ClaudeApiRequest) => void): () => void {
+    this.#listeners.add(listener)
+    let subscribed = true
+    return () => {
+      if (!subscribed) return
+      subscribed = false
+      this.#listeners.delete(listener)
+    }
   }
 
   waitForRequest(predicate: RequestPredicate = () => true, timeoutMs = 20000): Promise<ClaudeApiRequest> {
@@ -239,6 +251,7 @@ export class ClaudeApiStub {
       this.#order += 1
       this.requests.push(captured)
       this.#resolveWaiters(captured)
+      for (const listener of this.#listeners) listener(captured)
       if (request.method !== "POST" || !this.#isKnownPath(url.pathname)) {
         await writeResponse(
           response,

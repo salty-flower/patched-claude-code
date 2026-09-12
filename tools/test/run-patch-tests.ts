@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Execute tests embedded in patches/*.toml against a rendered patched bundle.
 
-import { existsSync, readdirSync, readFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
 import { createCommand, runCli } from "../lib/cli"
@@ -23,7 +23,23 @@ type Args = {
   bundle?: string
   version?: string
   platform?: string
+  resultFile?: string
   patches: string[]
+}
+
+export type PatchTestReportResult = {
+  patchEntry: string
+  platform: string
+  kind: "static" | "cli" | "pty"
+  testName: string
+  outcome: "passed" | "failed"
+  message: string
+}
+
+export type PatchTestReport = {
+  schema: 1
+  targetVersion: string
+  results: PatchTestReportResult[]
 }
 
 export function parseArgs(argv: string[]): Args {
@@ -32,14 +48,16 @@ export function parseArgs(argv: string[]): Args {
     .option("--bundle <cli.patched.js>")
     .option("--version <ver>", "target version for applies_to-filtered patch tests")
     .option("--platform <platform>", "select one rendered platform graph")
+    .option("--result-file <path>", "machine-readable test result report")
     .parse(argv, { from: "user" })
-  const options = program.opts<{ bundle?: string; version?: string; platform?: string }>()
+  const options = program.opts<{ bundle?: string; version?: string; platform?: string; resultFile?: string }>()
 
   return {
     patches: program.args,
     ...(options.bundle ? { bundle: options.bundle } : {}),
     ...(options.version ? { version: options.version } : {}),
     ...(options.platform ? { platform: options.platform } : {}),
+    ...(options.resultFile ? { resultFile: options.resultFile } : {}),
   }
 }
 
@@ -117,6 +135,32 @@ function renderedBundleViews(bundle: string, platform?: string): BundleView[] {
   })
 }
 
+function reportPlatform(args: Args, view: BundleView | undefined, hostPlatform: string | undefined): string {
+  return args.platform ?? view?.platform ?? hostPlatform ?? "bundle"
+}
+
+function failurePlatforms(
+  args: Args,
+  entry: { platforms?: string[] },
+  views: BundleView[],
+  hostPlatform: string | undefined,
+): string[] {
+  if (args.platform) return [args.platform]
+  const matchingPlatforms = views
+    .filter((view) => !view.platform || !entry.platforms || entry.platforms.includes(view.platform))
+    .map((view) => reportPlatform(args, view, hostPlatform))
+  if (matchingPlatforms.length > 0) return [...new Set(matchingPlatforms)]
+  if (entry.platforms && entry.platforms.length > 0) return [...entry.platforms]
+  return [hostPlatform ?? "bundle"]
+}
+
+function writePatchTestReport(resultFile: string, targetVersion: string, results: PatchTestReportResult[]): void {
+  mkdirSync(dirname(resultFile), { recursive: true })
+  const report: PatchTestReport = { schema: 1, targetVersion, results }
+  writeFileSync(resultFile, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o644 })
+  console.error(`wrote ${resultFile}`)
+}
+
 function patchTestsForTarget(rawToml: string, version?: string, platform?: string): PatchTest[] {
   if (!version) return loadPatchTestsFromToml(rawToml)
   const entries = loadPatchEntriesFromToml(rawToml, "<inline>")
@@ -143,9 +187,17 @@ export function selectPatchTestsForTarget(
 
 function main(): number {
   const args = parseArgs(process.argv.slice(2))
+  if (args.resultFile) rmSync(args.resultFile, { force: true })
   if (!args.bundle) {
     console.error("missing --bundle <cli.patched.js>")
     return 2
+  }
+  const targetVersion = args.version ?? inferVersionFromBundle(args.bundle)
+  if (args.resultFile) {
+    if (!targetVersion) {
+      console.error("cannot write --result-file without a resolved target version")
+      return 2
+    }
   }
   if (!existsSync(args.bundle)) {
     console.error(`bundle missing: ${args.bundle}`)
@@ -153,11 +205,11 @@ function main(): number {
   }
 
   const views = renderedBundleViews(args.bundle, args.platform)
-  const targetVersion = args.version ?? inferVersionFromBundle(args.bundle)
   const patchFiles = args.patches.length > 0 ? args.patches : defaultPatchFiles()
   const hostPlatform =
     process.platform === "darwin" ? "darwin-arm64" : process.platform === "linux" ? "linux-x64" : undefined
   let allOk = true
+  const reportResults: PatchTestReportResult[] = []
 
   for (const patchFile of patchFiles) {
     const entries = loadPatchEntriesFromToml(readFileSync(patchFile, "utf8"), patchFile).filter(
@@ -172,6 +224,16 @@ function main(): number {
     for (const entry of entries) {
       if (!entry.tests?.length) {
         console.log(`[FAIL] ${patchFile}:${entry.name}: no [[tests]] entries`)
+        for (const platform of failurePlatforms(args, entry, views, hostPlatform)) {
+          reportResults.push({
+            patchEntry: entry.name,
+            platform,
+            kind: "static",
+            testName: "missing tests",
+            outcome: "failed",
+            message: "no [[tests]] entries",
+          })
+        }
         allOk = false
         continue
       }
@@ -180,6 +242,16 @@ function main(): number {
       )
       if (entryViews.length === 0) {
         console.log(`[FAIL] ${patchFile}:${entry.name}: no matching rendered platform`)
+        for (const platform of failurePlatforms(args, entry, views, hostPlatform)) {
+          reportResults.push({
+            patchEntry: entry.name,
+            platform,
+            kind: "static",
+            testName: "missing rendered platform",
+            outcome: "failed",
+            message: "no matching rendered platform",
+          })
+        }
         allOk = false
         continue
       }
@@ -188,6 +260,14 @@ function main(): number {
           for (const view of entryViews) {
             const result = evaluateStaticPatchTests(view.text, [patchTest])[0]
             allOk &&= result.ok
+            reportResults.push({
+              patchEntry: entry.name,
+              platform: reportPlatform(args, view, hostPlatform),
+              kind: patchTest.kind,
+              testName: patchTest.name,
+              outcome: result.ok ? "passed" : "failed",
+              message: result.message,
+            })
             console.log(
               `[${result.ok ? "ok" : "FAIL"}] ${patchFile}:${entry.name} [${view.platform ?? "bundle"}]: static ${patchTest.name} - ${result.message}`,
             )
@@ -198,6 +278,15 @@ function main(): number {
           (args.platform && args.platform !== hostPlatform) ||
           (entry.platforms && (!hostPlatform || !entry.platforms.includes(hostPlatform)))
         ) {
+          const platform = args.platform ?? hostPlatform ?? entry.platforms?.[0] ?? "host"
+          reportResults.push({
+            patchEntry: entry.name,
+            platform,
+            kind: patchTest.kind,
+            testName: patchTest.name,
+            outcome: "failed",
+            message: `${patchTest.kind} test requires its native platform`,
+          })
           console.log(
             `[FAIL] ${patchFile}:${entry.name}: ${patchTest.kind} ${patchTest.name} requires its native platform`,
           )
@@ -207,6 +296,14 @@ function main(): number {
         const result =
           patchTest.kind === "cli" ? runCliTest(args.bundle, patchTest) : runPtyTest(args.bundle, patchTest)
         allOk &&= result.ok
+        reportResults.push({
+          patchEntry: entry.name,
+          platform: args.platform ?? hostPlatform ?? "host",
+          kind: patchTest.kind,
+          testName: patchTest.name,
+          outcome: result.ok ? "passed" : "failed",
+          message: result.message,
+        })
         console.log(
           `[${result.ok ? "ok" : "FAIL"}] ${patchFile}:${entry.name} [${hostPlatform ?? "host"}]: ${patchTest.kind} ${patchTest.name} - ${result.message}`,
         )
@@ -214,6 +311,7 @@ function main(): number {
     }
   }
 
+  if (args.resultFile && targetVersion) writePatchTestReport(args.resultFile, targetVersion, reportResults)
   return allOk ? 0 : 1
 }
 

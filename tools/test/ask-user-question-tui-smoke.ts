@@ -5,6 +5,7 @@ import { join, resolve } from "node:path"
 import { gte, valid } from "semver"
 import { createCommand, runCli } from "../lib/cli"
 import { type ClaudeApiRequest, startClaudeApiStub } from "./helpers/claude-api-stub"
+import { recordOracleCheck } from "./helpers/oracle-evidence"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 
 type Args = {
@@ -293,6 +294,16 @@ async function main(): Promise<number> {
 
     if (process.env.TUI_SMOKE_SHOW_OUTPUT === "1") console.log(normalized)
     console.log("ok: PTY rendered and submitted six AskUserQuestion prompts in one tool call")
+    const platform = process.env.PCC_VERIFY_PLATFORM
+    if (platform === "darwin-arm64" || platform === "linux-x64") {
+      recordOracleCheck({
+        oracleIds: ["ask-user-question-unlimited/unbounded-coherent-question-batch"],
+        platform,
+        evidenceClass: "runtime",
+        check: "ask-user-question-tui-smoke.ts: rendered and submitted six questions",
+        outcome: "passed",
+      })
+    }
     return 0
   } finally {
     stub.stop()

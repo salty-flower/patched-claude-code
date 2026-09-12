@@ -4,6 +4,7 @@ import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { createLaterCommandHarness, laterSubmitHookPlatforms } from "./helpers/later-command-harness"
+import { recordOracleCheck } from "./helpers/oracle-evidence"
 
 const version = targetVersion()
 const entries = loadPatchEntriesFromFile(join(import.meta.dir, "../../patches/later-command.toml"))
@@ -78,6 +79,13 @@ if (!usesDirectSubmit) {
       expect(h.jobs.size).toBe(0)
       h.run("/later list")
       expect(h.notices.at(-1)?.text).toBe("No pending /later prompts")
+      recordOracleCheck({
+        oracleIds: ["later-command/later-command-submit-hook"],
+        platform,
+        evidenceClass: "runtime",
+        check: "later-command-patch.test.ts: active /later schedules once, lists, and forwards pasted contents",
+        outcome: "passed",
+      })
     })
 
     test(`${platform}: simultaneous /later jobs remain distinct`, () => {

@@ -40,6 +40,15 @@ The receipt binds:
 - executed oracle IDs and evidence class;
 - zero skipped required oracles.
 
+Receipts MUST use schema 2 and include each oracle's outcome, evidence class, and observed check names.
+The executed/skipped ID lists MUST match those outcomes; schema 1 receipts MUST be regenerated.
+Registry membership and a successful suite exit MUST NOT count as execution.
+Static evidence MUST observe every test of every mapped current platform entry.
+Runtime checks MUST record success only after their assertions complete, and explicitly record conditional skips.
+Every runtime oracle MUST have an explicit required callback roster; missing or duplicate callback results MUST block.
+Absent observers MUST remain skipped; a stronger receipt-level class MUST NOT promote weaker individual checks.
+Each attempt MUST invalidate its previous receipt before running and isolate intermediate observations from other runs.
+
 `just obligation-admission <version>` MUST reject missing, failed, skipped, stale, wrong-platform, hash-mismatched, or weaker-class evidence.
 `static < runtime < real-os-runtime`; stronger evidence MAY satisfy a weaker requirement on the same platform.
 

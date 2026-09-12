@@ -450,6 +450,7 @@ jobs:
           just obligation-evidence "$TARGET_VERSION" darwin-arm64
 
       - name: Upload Darwin patch-obligation evidence
+        if: ${{ !cancelled() && hashFiles('dist/patch-obligation-evidence/**/darwin-arm64.json') != '' }}
         uses: actions/upload-artifact@v7.0.1
         with:
           name: patch-obligation-evidence-darwin-${{ env.TARGET_VERSION }}
@@ -495,6 +496,7 @@ jobs:
           just obligation-evidence "$TARGET_VERSION" linux-x64
 
       - name: Upload Linux patch-obligation evidence
+        if: ${{ !cancelled() && hashFiles('dist/patch-obligation-evidence/**/linux-x64.json') != '' }}
         uses: actions/upload-artifact@v7.0.1
         with:
           name: patch-obligation-evidence-linux-${{ env.TARGET_VERSION }}

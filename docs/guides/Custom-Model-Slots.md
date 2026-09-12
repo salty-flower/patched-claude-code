@@ -73,6 +73,9 @@ including absent tier rows, annotated pins, duplicate slots, and direct slot 2 e
 The API-stub PTY smoke test opens `/model`, enumerates a complete row-selection cycle,
 selects a distinct second slot, and checks both pinned-tier deduplication and unrelated-slot visibility.
 `tools/test/model-effort-session-tui-smoke.ts` checks session choices against rendered screens and captured local API requests.
+It advances on parsed terminal updates and captured HTTP requests, not fixed input delays or polling.
+Text submission requires a ready cursor-line prompt and a complete input echo before Enter.
+`--timeout-seconds` bounds the whole PTY session (default 180 seconds); it is a hang watchdog, not a per-interaction deadline.
 `tools/test/subagent-model-effort-smoke.ts` makes an `Agent` call with a custom-slot model and explicit effort,
 then checks the model-visible prompt, rendered schema, and subagent's captured local API request.
 Run the existing `bump-prepare` and `api-stub-smoke` steps in [Bumping the Target Version](Bumping-Target.md#workflow);

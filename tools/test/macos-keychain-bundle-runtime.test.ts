@@ -5,6 +5,7 @@ import { tmpdir, userInfo } from "node:os"
 import { join } from "node:path"
 import { targetVersion } from "../lib/target"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
+import { writeGraphCredentialHarness } from "./helpers/keychain-graph-harness"
 import { keychainOracleTest } from "./helpers/oracle-test"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
@@ -359,6 +360,8 @@ async function runBundle(
       HOME: home,
       CLAUDE_CONFIG_DIR: join(home, ".claude"),
       CLAUDE_CODE_KEYCHAIN_PATH: keychainPath,
+      [MATERIALIZED_ENV]: undefined,
+      CLAUDE_KEYCHAIN_REMOVE_BEFORE_ACTION: undefined,
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
       ...extraEnv,
     },
@@ -404,6 +407,9 @@ function injectCredentialHarness(source: string): string {
 }
 
 function writeHarnessBundle(dir: string): string {
+  if (GRAPH_TARGET) {
+    return writeGraphCredentialHarness({ root: ROOT, version: targetVersion(), renderDir: RENDER_DIR, outDir: dir })
+  }
   const path = join(dir, "cli.keychain-harness.js")
   writeFileSync(path, injectCredentialHarness(readFileSync(BUNDLE, "utf8")))
   return path
@@ -462,13 +468,112 @@ keychainOracleTest(
   30_000,
 )
 
-// The injected white-box harness relies on bundle-wide lexical symbols. A
-// graph target deliberately keeps those private inside separate ESM modules.
-// The real plugin-eval and TUI tests cover only their own credential paths;
-// skipped white-box checks remain missing evidence for the other invariants.
+keychainOracleTest(
+  ["explicit-macos-keychain-disable-default-prefetch"],
+  process.platform !== "darwin" || !RENDERED || !GRAPH_TARGET,
+  "native default-Keychain prefetch runs only without explicit or materialized selection",
+  async () => {
+    const home = makeTempDir("patched-cc-keychain-prefetch-")
+    prepareProfile(home)
+    const keychainPath = join(home, "prefetch profile.keychain-db")
+    const harness = writeHarnessBundle(home)
+    createAndUnlockKeychain(keychainPath)
+    try {
+      // Each invocation is a fresh process: the native prefetch is a singleton.
+      // Observe attempted subprocess calls without reading the user's default credentials.
+      const env = { CLAUDE_KEYCHAIN_HARNESS_ACTION: "prefetch" }
+      const control = await runBundle(harness, home, undefined, { ...env, [MATERIALIZED_ENV]: "0" })
+      expect(control.exitCode).toBe(0)
+      const calls = (JSON.parse(control.stdout) as { calls: Array<{ file: string; args: string[] }> }).calls
+      expect(calls).toHaveLength(2)
+      for (const call of calls) {
+        expect(call.file).toMatch(/(?:^|\/)security$/)
+        expect(call.args[0]).toBe("find-generic-password")
+        expect(call.args).not.toContain(keychainPath)
+      }
+      for (const [path, mode] of [
+        [keychainPath, "0"],
+        [undefined, "1"],
+        [keychainPath, "1"],
+      ] as const) {
+        const selected = await runBundle(harness, home, path, { ...env, [MATERIALIZED_ENV]: mode })
+        expect(selected.exitCode).toBe(0)
+        expect(JSON.parse(selected.stdout)).toEqual({ calls: [] })
+      }
+    } finally {
+      security(["delete-keychain", keychainPath])
+    }
+  },
+  60_000,
+)
+
+keychainOracleTest(
+  ["explicit-macos-keychain-propagate-write-failures"],
+  process.platform !== "darwin" || !RENDERED || !GRAPH_TARGET,
+  "native OAuth saver propagates selected-Keychain access failures to its caller",
+  async () => {
+    const home = makeTempDir("patched-cc-keychain-write-failure-")
+    const configDir = prepareProfile(home)
+    const keychainPath = join(home, "write failure.keychain-db")
+    const harness = writeHarnessBundle(home)
+    createAndUnlockKeychain(keychainPath)
+    try {
+      const failed = await runBundle(harness, home, keychainPath, {
+        CLAUDE_KEYCHAIN_REMOVE_BEFORE_ACTION: "1",
+        CLAUDE_KEYCHAIN_HARNESS_ACTION: "oauth-write-refresh",
+        CLAUDE_KEYCHAIN_ACCESS_A: "synthetic-write-failure-access",
+        CLAUDE_KEYCHAIN_REFRESH_A: "synthetic-write-failure-refresh",
+        CLAUDE_KEYCHAIN_ACCESS_B: "synthetic-write-failure-second-access",
+        CLAUDE_KEYCHAIN_REFRESH_B: "synthetic-write-failure-second-refresh",
+      })
+      expect(failed.stderr).toContain("Keychain fixture removed before native action")
+      expect(failed.exitCode).not.toBe(0)
+      expect(failed.stderr).toContain("Unable to access the explicitly selected macOS Keychain")
+      expect(`${failed.stdout}\n${failed.stderr}`).not.toContain("synthetic-write-failure")
+      expect(existsSync(join(configDir, ".credentials.json"))).toBe(false)
+    } finally {
+      if (existsSync(keychainPath)) security(["delete-keychain", keychainPath])
+    }
+  },
+  60_000,
+)
+
+keychainOracleTest(
+  ["explicit-macos-keychain-propagate-legacy-delete-failures"],
+  process.platform !== "darwin" || !RENDERED || !GRAPH_TARGET,
+  "native legacy-delete outer wrapper propagates explicit and materialized failures",
+  async () => {
+    const home = makeTempDir("patched-cc-keychain-delete-failure-")
+    prepareProfile(home)
+    const keychainPath = join(home, "delete failure.keychain-db")
+    const harness = writeHarnessBundle(home)
+    createAndUnlockKeychain(keychainPath)
+    try {
+      const failed = await runBundle(harness, home, keychainPath, {
+        CLAUDE_KEYCHAIN_REMOVE_BEFORE_ACTION: "1",
+        CLAUDE_KEYCHAIN_HARNESS_ACTION: "legacy-delete-outer",
+      })
+      expect(failed.stderr).toContain("Keychain fixture removed before native action")
+      expect(failed.exitCode).not.toBe(0)
+      expect(failed.stderr).toContain("Unable to access the Keychain requested by CLAUDE_CODE_KEYCHAIN_PATH")
+      const materialized = await runBundle(harness, home, undefined, {
+        [MATERIALIZED_ENV]: "1",
+        CLAUDE_KEYCHAIN_HARNESS_ACTION: "legacy-delete-outer",
+      })
+      expect(materialized.exitCode).not.toBe(0)
+      expect(materialized.stderr).toContain("Materialized credential mode refuses legacy Keychain deletion")
+    } finally {
+      if (existsSync(keychainPath)) security(["delete-keychain", keychainPath])
+    }
+  },
+  60_000,
+)
+
+// Graph fixtures expose the native module functions through test-only exports;
+// legacy single-file fixtures retain their original lexical harness.
 keychainOracleTest(
   ["explicit-macos-keychain-storage-bridge"],
-  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
+  process.platform !== "darwin" || !RENDERED,
   "public Keychain selection outranks materialized mode for OAuth lookup",
   async () => {
     const home = makeTempDir("patched-cc-keychain-oauth-priority-")
@@ -514,7 +619,7 @@ keychainOracleTest(
 
 keychainOracleTest(
   ["explicit-macos-keychain-storage-bridge"],
-  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
+  process.platform !== "darwin" || !RENDERED,
   `rendered ${targetVersion()} OAuth saver refresh and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-saver-")
@@ -568,7 +673,7 @@ keychainOracleTest(
 
 keychainOracleTest(
   ["explicit-macos-keychain-storage-bridge"],
-  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
+  process.platform !== "darwin" || !RENDERED,
   `rendered ${targetVersion()} serializes concurrent secure-storage mutations across processes`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-atomic-")
@@ -607,8 +712,8 @@ keychainOracleTest(
 
 keychainOracleTest(
   ["explicit-macos-keychain-session-store-resume"],
-  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
-  `rendered ${targetVersion()} SessionStore resume and plugin eval materialize only selected credentials`,
+  process.platform !== "darwin" || !RENDERED,
+  `rendered ${targetVersion()} SessionStore materializes selected credentials and plugin eval selects them`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialize-")
     const configDir = prepareProfile(home)
@@ -757,7 +862,7 @@ keychainOracleTest(
     "explicit-macos-keychain-legacy-api-key-write",
     "explicit-macos-keychain-legacy-api-key-delete",
   ],
-  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
+  process.platform !== "darwin" || !RENDERED,
   `rendered ${targetVersion()} legacy API-key save lookup and delete use only the selected Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-legacy-")
@@ -827,7 +932,7 @@ keychainOracleTest(
     "explicit-macos-keychain-legacy-api-key-write",
     "explicit-macos-keychain-legacy-api-key-delete",
   ],
-  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
+  process.platform !== "darwin" || !RENDERED,
   "materialized mode rejects default-Keychain legacy mutations and doctor probes",
   async () => {
     const home = makeTempDir("patched-cc-keychain-materialized-closed-")
@@ -879,7 +984,7 @@ keychainOracleTest(
 
 keychainOracleTest(
   ["explicit-macos-keychain-doctor-probe"],
-  process.platform !== "darwin" || !RENDERED || GRAPH_TARGET,
+  process.platform !== "darwin" || !RENDERED,
   `rendered ${targetVersion()} doctor probe never touches the default Keychain`,
   async () => {
     const home = makeTempDir("patched-cc-keychain-doctor-")

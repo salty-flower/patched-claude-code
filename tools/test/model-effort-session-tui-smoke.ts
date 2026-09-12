@@ -5,7 +5,9 @@ import { join, resolve } from "node:path"
 import { Terminal } from "@xterm/headless"
 import { createCommand, runCli } from "../lib/cli"
 import { type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
-import { makeScriptCommand, shellEnvironment, shellQuote } from "./helpers/pty"
+import { EventConditions } from "./helpers/event-conditions"
+import { shellEnvironment, shellQuote } from "./helpers/pty"
+import { effortCommandResult, emptyPrompt, submitPtyText } from "./helpers/pty-input"
 
 const LUNA = "gpt-5.6-luna"
 const ASTRA = "gpt-6-astra"
@@ -69,9 +71,14 @@ async function session(
     TERM: "xterm-256color",
   }
   const cli = cliEffort ? ` --effort ${shellQuote(cliEffort)}` : ""
-  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s 180s env ${shellEnvironment(environment)} bun ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
+  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${timeout}s env ${shellEnvironment(environment)} bun ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
   const proc = Bun.spawn({
-    cmd: ["bash", "-lc", makeScriptCommand(command, "cat")],
+    // Own script directly: a `cat | script` shell keeps waiting for cat after
+    // the TUI exits, masking the process-exit event needed by the watchdog.
+    cmd:
+      process.platform === "darwin"
+        ? ["script", "-q", "-e", "/dev/null", "bash", "-lc", command]
+        : ["script", "-q", "-e", "-c", command, "/dev/null"],
     cwd: home,
     env: cleanEnv,
     stdin: "pipe",
@@ -79,31 +86,53 @@ async function session(
     stderr: "pipe",
   })
   let screen = ""
+  let lastInteractiveScreen = ""
   let transcript = ""
   let exited = false
-  void proc.exited.then(() => {
+  let outputError: unknown
+  const events = new EventConditions()
+  const unsubscribe = stub.onRequest(() => events.notify())
+  void proc.exited.then((code) => {
     exited = true
+    events.fail(new Error(`PTY exited ${code}${code === 124 ? " (whole-session watchdog expired)" : ""}`))
   })
   const output = (async () => {
     for await (const chunk of proc.stdout) {
       transcript += new TextDecoder().decode(chunk)
       await new Promise<void>((done) => terminal.write(chunk, done))
       screen = screenText(terminal)
+      if (screen.includes("❯")) lastInteractiveScreen = screen
+      if (/TypeError|ReferenceError|React error #\d+/.test(screen)) events.fail(new Error(screen))
+      else events.notify()
     }
-  })()
+  })().catch((error: unknown) => {
+    outputError = error
+    events.fail(error instanceof Error ? error : new Error(String(error)))
+  })
   const errors = new Response(proc.stderr).text()
   async function waitFor(predicate: () => boolean, description: string): Promise<void> {
-    const deadline = Date.now() + timeout * 1000
-    while (!predicate()) {
-      if (exited || Date.now() > deadline) throw new Error(`${description}\n${screen}`)
-      await Bun.sleep(30)
+    try {
+      await events.waitFor(predicate, description)
+    } catch (error) {
+      throw new Error(`${error instanceof Error ? error.message : error}\n${lastInteractiveScreen || screen}`, {
+        cause: error,
+      })
     }
-    if (/TypeError|ReferenceError|React error #\d+/.test(screen)) throw new Error(screen)
   }
   async function key(value: string): Promise<void> {
     proc.stdin.write(value)
     await proc.stdin.flush()
-    await Bun.sleep(150)
+  }
+  function inputLine(): string {
+    const buffer = terminal.buffer.active
+    return (buffer.getLine(buffer.baseY + buffer.cursorY)?.translateToString(true) ?? "").replaceAll("\u00a0", " ")
+  }
+  function inputReady(): boolean {
+    return emptyPrompt(inputLine()) && !/esc to interrupt/i.test(screen)
+  }
+  async function submit(text: string): Promise<void> {
+    await waitFor(inputReady, `input not idle before ${text}`)
+    await submitPtyText({ line: inputLine, key, waitFor }, text)
   }
   function snapshot(label: string): void {
     if (process.env.TUI_SMOKE_SHOW_OUTPUT !== "1") return
@@ -115,28 +144,24 @@ async function session(
     )
   }
   async function commandText(text: string, expected: RegExp): Promise<void> {
-    await key(text)
-    await key("\r")
+    await submit(text)
+    const completed = () => {
+      if (text === "/model") return expected.test(screen)
+      const result = effortCommandResult(screen, text)
+      return result !== undefined && expected.test(result) && inputReady()
+    }
     if (text.startsWith("/model ")) {
-      await waitFor(
-        () => screen.includes("Switch model?") || screen.includes(`❯ ${text}`),
-        "model switch did not render",
-      )
+      await waitFor(() => screen.includes("Switch model?") || completed(), "model switch did not render")
       if (screen.includes("Switch model?")) await key("\r")
     }
-    await waitFor(() => {
-      if (text === "/model") return expected.test(screen)
-      const commandPosition = screen.lastIndexOf(`❯ ${text}`)
-      return commandPosition !== -1 && expected.test(screen.slice(commandPosition + text.length + 2))
-    }, `${text}: expected fresh command output ${expected}`)
+    await waitFor(completed, `${text}: expected fresh command output ${expected}`)
     if (text === "/effort high" || text === "/effort current") snapshot(text)
   }
   let sequence = 0
   async function request(model: string, effort: string | undefined): Promise<void> {
     const marker = `effort-probe-${Date.now()}-${sequence++}`
     const from = stub.requests.length
-    await key(marker)
-    await key("\r")
+    await submit(marker)
     await waitFor(
       () =>
         stub.requests.slice(from).some((request) => conversationRequest(request) && request.rawBody.includes(marker)),
@@ -152,24 +177,30 @@ async function session(
       const markerPosition = screen.lastIndexOf(marker)
       return markerPosition !== -1 && screen.slice(markerPosition + marker.length).includes("effort stub done")
     }, "fresh stub answer missing")
-    await Bun.sleep(500)
+    await waitFor(inputReady, "input prompt not idle after fresh answer")
     console.log(`ok: rendered interaction sent ${model}/${effort}`)
   }
   async function picker(): Promise<void> {
     await commandText("/model", /Select model/)
     const selected = () => screen.match(/❯\s+\d+\.\s+([^\n]+)/)?.[1] ?? ""
-    for (let count = 0; !selected().includes("Luna effort test") && count < 20; count++) await key("\x1b[B")
+    for (let count = 0; !selected().includes("Luna effort test") && count < 20; count++) {
+      const previous = selected()
+      await key("\x1b[B")
+      await waitFor(() => selected() !== previous, "picker selection did not advance")
+    }
     await waitFor(() => selected().includes("Luna effort test"), "Luna picker row missing")
     const pickerText = () => screen.slice(screen.lastIndexOf("Select model"))
     await waitFor(() => /Max effort/.test(pickerText()), "picker does not display Luna max")
     await key("\x1b[D")
     await waitFor(() => /Xhigh effort/i.test(pickerText()), "left arrow did not adjust Luna max to xhigh")
     await key("\r")
-    await waitFor(() => !screen.includes("Select model"), "picker did not close")
+    await waitFor(
+      () => !screen.includes("Select model") && screen.includes("with xhigh effort") && inputReady(),
+      "picker did not commit xhigh and restore the input prompt",
+    )
   }
   async function slider(): Promise<void> {
-    await key("/effort")
-    await key("\r")
+    await submit("/effort")
     await waitFor(() => screen.includes("←/→ to adjust") && screen.includes("▲"), "effort slider did not open")
     const sliderLevel = () => {
       const lines = screen.split("\n")
@@ -188,7 +219,7 @@ async function session(
     await key("\x1b[D")
     await waitFor(() => sliderLevel() === "xhigh", "effort slider did not adjust max to xhigh")
     await key("\r")
-    await waitFor(() => !screen.includes("▲"), "effort slider did not close")
+    await waitFor(() => !screen.includes("▲") && inputReady(), "effort slider did not restore input")
   }
   try {
     await waitFor(() => screen.includes("Claude Code") && screen.includes("❯"), "startup prompt missing")
@@ -204,13 +235,12 @@ async function session(
           "footer retains rejected max effort",
         ),
     })
-    await key("/exit")
-    await key("\r")
+    await submit("/exit")
     proc.stdin.end()
     const code = await proc.exited
     await output
     const stderr = await errors
-    if (code !== 0 || /TypeError|ReferenceError|React error #\d+/.test(transcript + stderr))
+    if (outputError || code !== 0 || /TypeError|ReferenceError|React error #\d+/.test(transcript + stderr))
       throw new Error(`PTY exited ${code}\n${transcript}\n${stderr}`)
     const settings = (await Bun.file(join(configDir, "settings.json")).json()) as {
       effortLevel?: string
@@ -222,6 +252,8 @@ async function session(
     console.error(error instanceof Error ? error.message : error)
     throw error
   } finally {
+    unsubscribe()
+    events.fail(new Error("PTY session disposed"))
     if (!exited) {
       await key("\x03")
       await key("\x03")
@@ -238,10 +270,13 @@ async function main(): Promise<number> {
   const options = createCommand("model-effort-session-tui-smoke")
     .requiredOption("--bundle <cli.patched.js>", "rendered patched Claude Code bundle")
     .option("--recovery-only", "run only the backend rejection PTY scenario")
-    .option("--timeout-seconds <seconds>", "timeout per rendered interaction", Number, 20)
+    .option("--timeout-seconds <seconds>", "whole-session safety watchdog (not an interaction delay)", Number, 180)
     .parse(process.argv.slice(2), { from: "user" })
     .opts<{ bundle: string; timeoutSeconds: number; recoveryOnly?: boolean }>()
   const bundle = resolve(options.bundle)
+  if (!Number.isSafeInteger(options.timeoutSeconds) || options.timeoutSeconds <= 0) {
+    throw new Error("--timeout-seconds must be a positive integer")
+  }
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-model-effort-session-")))
   const configDir = join(home, ".claude")
   mkdirSync(configDir)

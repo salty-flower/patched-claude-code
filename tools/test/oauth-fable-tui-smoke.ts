@@ -91,6 +91,8 @@ async function main(): Promise<number> {
       ...unsetEnvironment,
       envPrefix,
       "bun",
+      "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(bundle),
       "--hide-builtin-footer",
       "--thinking-display",

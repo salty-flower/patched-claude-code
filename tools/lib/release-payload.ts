@@ -14,6 +14,7 @@ import {
   rebindPromptCatalog,
   writePromptCatalog,
 } from "./prompt-catalog"
+import { RUNTIME_PRELOAD_FILES, RUNTIME_SUPPORT_FILES } from "./runtime-support"
 import { loadStageManifest, type StageManifest } from "./stage-manifest"
 
 export const RELEASE_NAME = "patched-claude-code"
@@ -27,7 +28,7 @@ export type PatchFile = {
 }
 
 export type ReleaseManifest = {
-  schema: 2
+  schema: 3
   name: typeof RELEASE_NAME
   upstream: {
     package: typeof UPSTREAM_PACKAGE
@@ -47,7 +48,7 @@ export type ReleaseManifest = {
   runtime: {
     command: "bun"
     entrypoint: "cli.js"
-    preload: "runtime/system-prompt-overrides.ts"
+    preloads: Array<(typeof RUNTIME_PRELOAD_FILES)[number]>
     graphDirectory: "graph.patched" | "graph" | null
   }
   patchSet: {
@@ -234,17 +235,16 @@ export function writeReleasePayload(options: ReleasePayloadOptions): ReleasePayl
       sha256: embeddedResourceTreeSha256(auditOutput),
     }
   }
-  const runtimeFiles = ["macos-keychain.ts", "release-integrity.ts", "system-prompt-overrides.ts"]
-  for (const file of runtimeFiles) {
-    const source = join(options.root, "runtime", file)
+  for (const file of RUNTIME_SUPPORT_FILES) {
+    const source = join(options.root, file)
     if (!existsSync(source)) throw new Error(`runtime helper missing: ${source}`)
   }
 
   mkdirSync(join(options.outDir, "bin"), { recursive: true })
   mkdirSync(join(options.outDir, "runtime"), { recursive: true })
-  for (const file of runtimeFiles) {
-    const source = join(options.root, "runtime", file)
-    const output = join(options.outDir, "runtime", file)
+  for (const file of RUNTIME_SUPPORT_FILES) {
+    const source = join(options.root, file)
+    const output = join(options.outDir, file)
     if (resolve(source) !== resolve(output)) copyFileSync(source, output)
   }
   if (graphDirectoryName !== null) {
@@ -264,7 +264,7 @@ set -eu
 dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 export PATCHED_CLAUDE_CODE_RELEASE_MANIFEST="$dir/manifest.json"
 export PATCHED_CLAUDE_CODE_BUNDLE="$dir/cli.js"
-exec bun --preload "$dir/runtime/system-prompt-overrides.ts" "$dir/cli.js" "$@"
+exec bun${RUNTIME_PRELOAD_FILES.map((file) => ` --preload "$dir/${file}"`).join("")} "$dir/cli.js" "$@"
 `,
     { mode: 0o755 },
   )
@@ -364,7 +364,7 @@ function buildReleaseManifest(
   const patchSetSource = patches.map(({ patch, raw }) => `${patch.name}\0${raw}`).join("\n")
 
   return {
-    schema: 2,
+    schema: 3,
     name: RELEASE_NAME,
     upstream: {
       package: UPSTREAM_PACKAGE,
@@ -384,7 +384,7 @@ function buildReleaseManifest(
     runtime: {
       command: "bun",
       entrypoint: "cli.js",
-      preload: "runtime/system-prompt-overrides.ts",
+      preloads: [...RUNTIME_PRELOAD_FILES],
       graphDirectory: graphDirectoryName,
     },
     patchSet: {

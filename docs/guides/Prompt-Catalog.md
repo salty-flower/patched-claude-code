@@ -64,9 +64,21 @@ For each unresolved occurrence, inspect `candidateMatches`:
 | `astContextMatch` | Same AST parent/property path |
 | `familyMatch`, `roleMatch`, `classificationMatch` | Diagnostic hints only |
 
-Candidates are ranked evidence, not decisions. Copy a candidate lineage into a
-reviewed `carry` rule only after inspecting the prompt diff. No candidate or a
-low score does not prove the prompt is new.
+Candidates are ranked evidence, not decisions.
+Copy a candidate lineage into a reviewed `carry` rule only after inspecting the prompt diff.
+No candidate or a low score does not prove the prompt is new.
+
+Duplicate text does not collapse callsites into one lineage:
+
+| Transition | Decision |
+| --- | --- |
+| One predecessor → one semantically continuous occurrence | `carry` |
+| One predecessor → multiple continuous occurrences | One callsite `carry`; each additional occurrence `split` from the predecessor into a new lineage |
+| Distinct existing callsites become byte-identical | Keep their existing lineages separate |
+| One occurrence combines semantics from multiple predecessors | `merge` into a new lineage |
+
+Use AST context to choose which duplicate callsite carries the predecessor.
+Text equality alone never merges lineages.
 
 Never use an ordinal, offset, content hash, inferred family, or model judgment
 as lineage authority.

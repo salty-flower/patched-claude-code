@@ -3,16 +3,11 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { valid } from "semver"
+import { lt, valid } from "semver"
 import { createCommand, runCli } from "../lib/cli"
 import { runWithHeavyLock } from "../lib/heavy-lock"
-import type { PromptIdentityBumpPreparation } from "../lib/prompt-identity-bump"
-import {
-  DEFAULT_TARGET_VERSION,
-  parseTargetSource,
-  parseTargetSourceOption,
-  type TargetSource,
-} from "../lib/target"
+import { latestPreviousLedgerVersion, type PromptIdentityBumpPreparation } from "../lib/prompt-identity-bump"
+import { parseTargetSource, parseTargetSourceOption, type TargetSource } from "../lib/target"
 import type { PatchCarryoverReport } from "./check-patch-carryover"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
@@ -21,12 +16,13 @@ const MANUAL_GATES = [
   "resolve every patch-carryover warning with a successor or upstream-equivalence evidence",
   "classify locator and replacement-symbol drift",
   "generate and review the anti-trace dossier and invariants",
-  "exercise the rendered PTY/TUI path",
+  "run the complete local API-stub matrix and manual rendered PTY/TUI baseline",
   "update target metadata and commit with audit evidence",
 ] as const
 
 type Args = {
   version?: string
+  previousVersion?: string
   source: TargetSource
   outFile?: string
 }
@@ -50,6 +46,7 @@ export type TargetBumpPreparationReport = {
   scope: "target-bump-preparation"
   target: {
     version: string
+    previousVersion: string
     source: TargetSource
   }
   status: "manual-review-ready" | "prompt-review-required" | "failed"
@@ -67,6 +64,7 @@ export function parseArgs(argv: string[], env: Record<string, string | undefined
   return createCommand("prepare-target-bump")
     .description("Run deterministic target-bump preparation and write a review handoff report")
     .requiredOption("--version <ver>", "target upstream version")
+    .option("--from-version <ver>", "previous finalized target; defaults to the newest lower prompt-identity ledger")
     .option(
       "--source <source>",
       "bundle source: canonical, npm, or direct",
@@ -78,7 +76,15 @@ export function parseArgs(argv: string[], env: Record<string, string | undefined
     .opts<Args>()
 }
 
-export function buildTargetBumpSteps(root: string, version: string, source: TargetSource): TargetBumpStep[] {
+export function buildTargetBumpSteps(
+  root: string,
+  version: string,
+  source: TargetSource,
+  previousVersion: string,
+): TargetBumpStep[] {
+  if (!valid(previousVersion) || !valid(version) || !lt(previousVersion, version)) {
+    throw new Error(`previous target must be lower than target: ${previousVersion} -> ${version}`)
+  }
   const upstream = join("staging", version, "cli.js")
   const patched = join("staging", version, "cli.patched.js")
   const identityDraft = join("dist", `prompt-identities-${version}.draft.json`)
@@ -100,7 +106,7 @@ export function buildTargetBumpSteps(root: string, version: string, source: Targ
         "run",
         "tools/patch/check-patch-carryover.ts",
         "--from",
-        DEFAULT_TARGET_VERSION,
+        previousVersion,
         "--to",
         version,
         "--result-file",
@@ -231,11 +237,15 @@ function main(): number {
   if (!new Set(["canonical", "npm", "direct"]).has(args.source)) {
     throw new Error(`unsupported source: ${args.source}; expected canonical, npm, or direct`)
   }
+  const previousVersion = args.previousVersion ?? latestPreviousLedgerVersion(join(ROOT, "prompt-identities"), version)
+  if (!valid(previousVersion) || !lt(previousVersion, version)) {
+    throw new Error(`previous target must be lower than target: ${previousVersion} -> ${version}`)
+  }
   const reportFile = args.outFile ?? join(ROOT, "dist", `target-bump-${version}.json`)
   const logsRoot = join(ROOT, "dist", `target-bump-${version}.logs`)
   const identityResultFile = join(ROOT, "dist", `prompt-identity-bump-${version}.json`)
   const carryoverResultFile = join(ROOT, "dist", `patch-carryover-${version}.json`)
-  const steps = buildTargetBumpSteps(ROOT, version, args.source)
+  const steps = buildTargetBumpSteps(ROOT, version, args.source, previousVersion)
   const results = executeTargetBumpSteps(steps, runStep, (step, index, total) => {
     console.error(`\n==> [${index + 1}/${total}] ${step.label}`)
   })
@@ -251,7 +261,7 @@ function main(): number {
   const report: TargetBumpPreparationReport = {
     schema: 1,
     scope: "target-bump-preparation",
-    target: { version, source: args.source },
+    target: { version, previousVersion, source: args.source },
     status,
     steps: results,
     patchCarryover,

@@ -35,6 +35,7 @@
           && builtins.pathExists ./cli.js
           && builtins.pathExists ./package.json
           && builtins.pathExists ./bin/claude-patched
+          && builtins.pathExists ./runtime/bun-ant-cell-segmenter.ts
           && builtins.pathExists ./runtime/macos-keychain.ts
           && builtins.pathExists ./runtime/release-integrity.ts
           && builtins.pathExists ./runtime/system-prompt-overrides.ts
@@ -59,6 +60,7 @@
             || path == "${root}/bin"
             || path == "${root}/bin/claude-patched"
             || path == "${root}/runtime"
+            || path == "${root}/runtime/bun-ant-cell-segmenter.ts"
             || path == "${root}/runtime/macos-keychain.ts"
             || path == "${root}/runtime/release-integrity.ts"
             || path == "${root}/runtime/system-prompt-overrides.ts"
@@ -86,6 +88,7 @@
               installPhase = ''
                 runHook preInstall
                 install -Dm0644 cli.js "$out/lib/patched-claude-code/cli.js"
+                install -Dm0644 runtime/bun-ant-cell-segmenter.ts "$out/lib/patched-claude-code/bun-ant-cell-segmenter.ts"
                 install -Dm0644 runtime/macos-keychain.ts "$out/lib/patched-claude-code/macos-keychain.ts"
                 install -Dm0644 runtime/release-integrity.ts "$out/lib/patched-claude-code/release-integrity.ts"
                 install -Dm0644 runtime/system-prompt-overrides.ts "$out/lib/patched-claude-code/system-prompt-overrides.ts"
@@ -106,6 +109,8 @@
                   --set PATCHED_CLAUDE_CODE_BUNDLE "$out/lib/patched-claude-code/cli.js" \
                   --add-flags "--preload" \
                   --add-flags "$out/lib/patched-claude-code/system-prompt-overrides.ts" \
+                  --add-flags "--preload" \
+                  --add-flags "$out/lib/patched-claude-code/bun-ant-cell-segmenter.ts" \
                   --add-flags "$out/lib/patched-claude-code/cli.js"
                 runHook postInstall
               '';

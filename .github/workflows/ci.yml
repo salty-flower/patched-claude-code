@@ -9,10 +9,10 @@ on:
       target_version:
         description: "Claude Code version to audit"
         required: false
-        default: "2.1.268"
+        default: "2.1.273"
 
 env:
-  TARGET_VERSION: ${{ inputs.target_version || '2.1.268' }}
+  TARGET_VERSION: ${{ inputs.target_version || '2.1.273' }}
   TARGET_SOURCE: canonical
   TARGET_PLATFORM_PACKAGE: "@anthropic-ai/claude-code-darwin-arm64"
 
@@ -688,6 +688,7 @@ jobs:
             package.json
             bin/claude-patched
             runtime/macos-keychain.ts
+            runtime/bun-ant-cell-segmenter.ts
             runtime/release-integrity.ts
             runtime/system-prompt-overrides.ts
             prompts/catalog/

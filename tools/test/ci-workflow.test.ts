@@ -236,6 +236,7 @@ test("ci routes workflow and pre-commit wiring edits through tool tests", () => 
   expect(workflow).toContain(".github/workflows/*|.pre-commit-config.yaml)")
   expect(workflow).toContain("runtime/*)")
   expect(workflow).toContain("patch-obligations/*|prompt-identities/*|reference/*")
+  expect(workflow).toContain("runtime/bun-ant-cell-segmenter.ts")
   expect(workflow).toContain("runtime/macos-keychain.ts")
   expect(workflow).toContain("runtime/release-integrity.ts")
 })

@@ -41,10 +41,18 @@ function isVersionBefore(version: string, ceiling: string): boolean {
 }
 
 test("resume restores 1m defaults after alias resolution", async () => {
-  const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["resume-1m-model-defaults.toml"] })
+  const entrypoint = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: tempDir,
+    patchFiles: ["resume-1m-model-defaults.toml"],
+  })
   const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
   const patched = existsSync(graphDir)
-    ? readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
+    ? readdirSync(graphDir)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(graphDir, file), "utf8"))
+        .join("\n")
     : readFileSync(entrypoint, "utf8")
   const applied = loadPatchEntriesFromFile(PATCH_FILE).filter((patch) => patchApplies(patch, TARGET_VERSION)).length
 
@@ -68,27 +76,21 @@ test("resume restores 1m defaults after alias resolution", async () => {
 
   if (TARGET_VERSION === "2.1.234") {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||jo(ys(V.ANTHROPIC_MODEL))!==jo(o.model)))return;',
-    )
+    expect(patched).toContain('if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||jo(ys(V.ANTHROPIC_MODEL))!==jo(o.model)))return;')
     expect(patched).toContain("let r=new Set(y3u.map((i)=>jo(i))),n=ys(t??TA()),o=Ad(n);")
     return
   }
 
   if (TARGET_VERSION === "2.1.238") {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||Fo(Ss(V.ANTHROPIC_MODEL))!==Fo(o.model)))return;',
-    )
+    expect(patched).toContain('if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||Fo(Ss(V.ANTHROPIC_MODEL))!==Fo(o.model)))return;')
     expect(patched).toContain("let r=new Set(rfd.map((i)=>Fo(i))),n=Ss(t??CE()),o=ld(n);")
     return
   }
 
   if (TARGET_VERSION === "2.1.241") {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(G.ANTHROPIC_MODEL&&(o.kind!=="ok"||Ho(Ss(G.ANTHROPIC_MODEL))!==Ho(o.model)))return;',
-    )
+    expect(patched).toContain('if(G.ANTHROPIC_MODEL&&(o.kind!=="ok"||Ho(Ss(G.ANTHROPIC_MODEL))!==Ho(o.model)))return;')
     expect(patched).toContain("let r=new Set(dAd.map((i)=>Ho(i))),n=Ss(t??Kv()),o=fd(n);")
     return
   }
@@ -105,9 +107,22 @@ test("resume restores 1m defaults after alias resolution", async () => {
     return
   }
 
+  if (isVersionAtLeast(TARGET_VERSION, "2.1.273")) {
+    expect(applied).toBe(0)
+    // 2.1.273 lifts the one-million acceptance into a named local and adds a second
+    // path: a per-model `modelId` override that resolves through the same predicate.
+    // The final gate became `(primary||secondary) && supported(model)`. The captured
+    // names differ per platform, so every binding is a backreference, not a literal.
+    const nativeResolvedOneMillionModel =
+      /let (?<primary>[\w$]+)=\((?<configured>[\w$]+)&&(?<isOneMillion>[\w$]+)\(\k<configured>\)\|\|(?<fallback>[\w$]+)!==void 0&&\k<isOneMillion>\(\k<fallback>\)\)&&\((?<resolve>[\w$]+)\((?<model>[\w$]+)\)===[\w$]+\|\|\k<configured>&&(?<normalize>[\w$]+)\([\w$]+\(\k<resolve>\(\k<configured>\)\)\)===\k<normalize>\(\k<model>\)\),(?<secondary>[\w$]+)=[\w$]+\([\w$]+\)\?\.modelId,(?<secondaryOk>[\w$]+)=\k<secondary>!==void 0&&\k<isOneMillion>\(\k<secondary>\)&&\k<normalize>\(\k<resolve>\(\k<secondary>\)\)===\k<normalize>\(\k<model>\);if\(\(\k<primary>\|\|\k<secondaryOk>\)&&[\w$]+\(\k<model>\)\)return\{kind:"ok",model:\k<model>\+"\[1m\]"\};/g
+    expect([...patched.matchAll(nativeResolvedOneMillionModel)]).toHaveLength(1)
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.258")) {
     expect(applied).toBe(0)
-    const nativeResolvedOneMillionModel = /if\(\((?<configured>[\w$]+)&&(?<isOneMillion>[\w$]+)\(\k<configured>\)\|\|(?<fallback>[\w$]+)!==void 0&&\k<isOneMillion>\(\k<fallback>\)\)&&[\w$]+\((?<model>[\w$]+)\)&&\((?<resolve>[\w$]+)\(\k<model>\)===[\w$]+\|\|\k<configured>&&(?<normalize>[\w$]+)\([\w$]+\(\k<resolve>\(\k<configured>\)\)\)===\k<normalize>\(\k<model>\)\)\)return\{kind:"ok",model:\k<model>\+"\[1m\]"};/g
+    const nativeResolvedOneMillionModel =
+      /if\(\((?<configured>[\w$]+)&&(?<isOneMillion>[\w$]+)\(\k<configured>\)\|\|(?<fallback>[\w$]+)!==void 0&&\k<isOneMillion>\(\k<fallback>\)\)&&[\w$]+\((?<model>[\w$]+)\)&&\((?<resolve>[\w$]+)\(\k<model>\)===[\w$]+\|\|\k<configured>&&(?<normalize>[\w$]+)\([\w$]+\(\k<resolve>\(\k<configured>\)\)\)===\k<normalize>\(\k<model>\)\)\)return\{kind:"ok",model:\k<model>\+"\[1m\]"\};/g
     expect([...patched.matchAll(nativeResolvedOneMillionModel)]).toHaveLength(1)
     return
   }
@@ -130,27 +145,21 @@ test("resume restores 1m defaults after alias resolution", async () => {
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.233")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||zo(cs(V.ANTHROPIC_MODEL))!==zo(o.model)))return;',
-    )
+    expect(patched).toContain('if(V.ANTHROPIC_MODEL&&(o.kind!=="ok"||zo(cs(V.ANTHROPIC_MODEL))!==zo(o.model)))return;')
     expect(patched).toContain("let r=new Set(EDu.map((i)=>zo(i))),n=cs(t??qA()),o=kd(n);")
     return
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.229")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(Q.ANTHROPIC_MODEL&&(o.kind!=="ok"||Bo(ls(Q.ANTHROPIC_MODEL))!==Bo(o.model)))return;',
-    )
+    expect(patched).toContain('if(Q.ANTHROPIC_MODEL&&(o.kind!=="ok"||Bo(ls(Q.ANTHROPIC_MODEL))!==Bo(o.model)))return;')
     expect(patched).toContain("let r=new Set(Amu.map((i)=>Bo(i))),n=ls(t??ms()),o=dd(n);")
     return
   }
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.228") && isVersionBefore(TARGET_VERSION, "2.1.229")) {
     expect(applied).toBe(2)
-    expect(patched).toContain(
-      'if(X.ANTHROPIC_MODEL&&(o.kind!=="ok"||Do(as(X.ANTHROPIC_MODEL))!==Do(o.model)))return;',
-    )
+    expect(patched).toContain('if(X.ANTHROPIC_MODEL&&(o.kind!=="ok"||Do(as(X.ANTHROPIC_MODEL))!==Do(o.model)))return;')
     expect(patched).toContain("let r=new Set(Kcu.map((i)=>Do(i))),n=as(t??fs()),o=cd(n);")
     return
   }
@@ -166,7 +175,9 @@ test("resume restores 1m defaults after alias resolution", async () => {
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.221")) {
     expect(applied).toBe(2)
-    expect(patched).toContain('if(re.ANTHROPIC_MODEL&&(o.kind!=="ok"||co(Oi(re.ANTHROPIC_MODEL))!==co(o.model)))return;')
+    expect(patched).toContain(
+      'if(re.ANTHROPIC_MODEL&&(o.kind!=="ok"||co(Oi(re.ANTHROPIC_MODEL))!==co(o.model)))return;',
+    )
     expect(patched).toContain("let r=new Set(BFc.map((i)=>co(i))),n=Oi(t??Gi()),o=rd(n);")
     return
   }

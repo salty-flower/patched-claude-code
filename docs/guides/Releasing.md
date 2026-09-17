@@ -123,6 +123,7 @@ and scheduled promotion also move `claude-code-latest` to that tag commit.
 | `manifest.json` | Deterministic source manifest |
 | `package.json` | Minimal package metadata and `claude-patched` bin declaration |
 | `bin/claude-patched` | Bun wrapper for direct shell use |
+| `runtime/bun-ant-cell-segmenter.ts` | Stock-Bun compatibility for the renderer's private CellSegmenter API |
 | `runtime/macos-keychain.ts` | Explicit macOS credential-Keychain bridge |
 | `runtime/release-integrity.ts` | Shared dispatcher and graph inventory verifier |
 | `runtime/system-prompt-overrides.ts` | Preloaded section-override helper |

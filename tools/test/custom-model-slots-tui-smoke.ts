@@ -71,7 +71,7 @@ async function runPicker(bundle: string, scenario: PickerCase, timeoutSeconds: n
       ([key]) => !key.startsWith("ANTHROPIC_") && !key.startsWith("CLAUDE_CODE_") && key !== "CLAUDE_CONFIG_DIR",
     ),
   )
-  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${Math.max(timeoutSeconds, 45)}s env ${shellEnvironment(environment)} bun ${shellQuote(bundle)} --bare --model ${shellQuote(environment.ANTHROPIC_CUSTOM_MODEL_OPTION)}`
+  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${Math.max(timeoutSeconds, 45)}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(environment.ANTHROPIC_CUSTOM_MODEL_OPTION)}`
   const proc = Bun.spawn({
     // Bun uses a socket for stdin:"pipe"; Darwin script requires a real pipe.
     cmd: ["bash", "-lc", makeScriptCommand(command, "cat")],
@@ -245,6 +245,8 @@ async function runCustomModel(
       "env",
       shellEnvironment(commandEnv),
       "bun",
+      "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(bundle),
       "--bare",
       "--model",

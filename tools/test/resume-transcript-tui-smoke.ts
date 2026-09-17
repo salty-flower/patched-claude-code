@@ -204,6 +204,8 @@ async function main(): Promise<number> {
       ...(args.captureResumeError ? ["-u", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] : []),
       envPrefix,
       "bun",
+      "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(bundle),
       ...(args.hideBuiltinFooter ? ["--hide-builtin-footer"] : []),
       ...(args.thinkingDisplay ? ["--thinking-display", args.thinkingDisplay] : []),

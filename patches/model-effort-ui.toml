@@ -2742,3 +2742,849 @@ assert_contains = '''!patchedEffort.session(Zr??dl()).cli&&(!Bo||on==="")&&r(n,{
 kind = "static"
 name = "2.1.268 Linux picker CLI hint no longer carries 2.1.267 symbols"
 assert_not_contains = '''!patchedEffort.session(Gr??ul()).cli&&(!Fo||Jo==="")&&r(n,{color:"subtle",children:[" ",e(O,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches]]
+name = "model-effort-picker-import-darwin-arm64-2-1-273"
+lineage = "model-effort-picker-import"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Make the request resolver available to picker focus and keyboard adjustment. The DE export and the picker effort import group beginning Z9, Yy, nB, wV, OE, and rMe were verified in the graph. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "literal"
+locator_pattern = '''import{Z9,Yy,nB,wV,OE,rMe,KT,kve,QJ,rB,ZJ,SO,sB,oP,eQ,Rve,Ol,iMe,YT,Xpe,bO,Pun,t5,CC,fw,Ept,Z1}from"./chunk-qqvjsfs3.js"'''
+replacement = '''import{DE as patchedEffort,Z9,Yy,nB,wV,OE,rMe,KT,kve,QJ,rB,ZJ,SO,sB,oP,eQ,Rve,Ol,iMe,YT,Xpe,bO,Pun,t5,CC,fw,Ept,Z1}from"./chunk-qqvjsfs3.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-import-darwin-arm64-2-1-273 renders"
+assert_contains = '''import{DE as patchedEffort,Z9,Yy,nB,wV,OE,rMe,KT,kve,QJ,rB,ZJ,SO,sB,oP,eQ,Rve,Ol,iMe,YT,Xpe,bO,Pun,t5,CC,fw,Ept,Z1}from"./chunk-qqvjsfs3.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin picker resolver import no longer carries 2.1.268 symbols"
+assert_not_contains = '''import{NA as patchedEffort,sq,qh,j1,Ez,tw,P0e,fC,Yye,gY,W1,hY,fP,G1,d0,yY,Xye,ul,D0e,mC,Zae,mP,iJt,aq,FA,qS,Srt,V1}'''
+
+[[patches]]
+name = "model-effort-picker-import-linux-x64-2-1-273"
+lineage = "model-effort-picker-import"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Make the request resolver available to picker focus and keyboard adjustment. The Hv export and the picker effort import group beginning q5, Ky, VU, fK, Pv, and KDe were verified in the graph. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "literal"
+locator_pattern = '''import{q5,Ky,VU,fK,Pv,KDe,qT,_Ee,q7,KU,V7,lO,XU,XP,K7,bEe,Hl,JDe,VT,zpe,cO,dun,K5,vA,pw,cpt,j$}from"./chunk-nc4fc0sr.js"'''
+replacement = '''import{Hv as patchedEffort,q5,Ky,VU,fK,Pv,KDe,qT,_Ee,q7,KU,V7,lO,XU,XP,K7,bEe,Hl,JDe,VT,zpe,cO,dun,K5,vA,pw,cpt,j$}from"./chunk-nc4fc0sr.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-import-linux-x64-2-1-273 renders"
+assert_contains = '''import{Hv as patchedEffort,q5,Ky,VU,fK,Pv,KDe,qT,_Ee,q7,KU,V7,lO,XU,XP,K7,bEe,Hl,JDe,VT,zpe,cO,dun,K5,vA,pw,cpt,j$}from"./chunk-nc4fc0sr.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux picker resolver import no longer carries 2.1.268 symbols"
+assert_not_contains = '''import{LE as patchedEffort,K4,qh,OF,fG,ew,EIe,pA,Bye,aY,DF,lY,rH,$F,oI,cY,jye,ul,TIe,fA,qae,oH,FJt,X4,$E,qb,ort,NF}'''
+
+[[patches]]
+name = "model-effort-picker-focus-darwin-arm64-2-1-273"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Each focused model reads its own session value instead of inheriting the previous row. Current callback model es, canonicalizer DT, default-model helper vl, effort setter Rn, focus setter bo, and remote gate Ko were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "literal"
+locator_pattern = '''if(bo(es),!Ko()&&Nn===void 0)Rn(SAe(es))'''
+replacement = '''bo(es),Rn(patchedEffort.session(DT(es)??vl()).value)'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-focus-darwin-arm64-2-1-273 renders"
+assert_contains = '''bo(es),Rn(patchedEffort.session(DT(es)??vl()).value)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin picker focus no longer carries 2.1.268 symbols"
+assert_not_contains = '''go(Bs),jn(patchedEffort.session(HT(Bs)??dl()).value)'''
+
+[[patches]]
+name = "model-effort-picker-focus-linux-x64-2-1-273"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Each focused model reads its own session value instead of inheriting the previous row. Current callback model ns, canonicalizer kT, default-model helper vl, effort setter Rn, focus setter So, and remote gate Ko were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "literal"
+locator_pattern = '''if(So(ns),!Ko()&&Nn===void 0)Rn(kAe(ns))'''
+replacement = '''So(ns),Rn(patchedEffort.session(kT(ns)??vl()).value)'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-focus-linux-x64-2-1-273 renders"
+assert_contains = '''So(ns),Rn(patchedEffort.session(kT(ns)??vl()).value)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux picker focus no longer carries 2.1.268 symbols"
+assert_not_contains = '''go(Bs),jn(patchedEffort.session(BT(Bs)??dl()).value)'''
+
+[[patches]]
+name = "model-effort-picker-arrows-darwin-arm64-2-1-273"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Arrow keys change only the focused model immediately and respect the CLI pin. Exclude the global ultracode workflow from model-scoped effort levels. Current selected model ki, canonical model wr, default-model helper vl, geometry ra, direction es, step helper Tpt, effort setter Rn, application-state setter He, and dirty setter Fn were verified together inside the picker arrow callback. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "literal"
+locator_pattern = '''Rn((ln)=>Tpt(Os?ra.defaultEffort:ln??ra.defaultEffort,es,ra.capLevels,ra.supportsMax,ra.supportsXHigh,ra.supportsUltra)),Fn(!0)'''
+replacement = '''(()=>{const selected=patchedEffort.session(wr??vl());if(selected.cli)return;const next=Tpt(selected.value??ra.defaultEffort,es,ra.capLevels,ra.supportsMax,ra.supportsXHigh,!1),effective=patchedEffort.session(wr??vl(),"set",next);Rn(effective.value);He(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Fn(!0)})()'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-arrows-darwin-arm64-2-1-273 renders"
+assert_contains = '''(()=>{const selected=patchedEffort.session(wr??vl());if(selected.cli)return;const next=Tpt(selected.value??ra.defaultEffort,es,ra.capLevels,ra.supportsMax,ra.supportsXHigh,!1),effective=patchedEffort.session(wr??vl(),"set",next);Rn(effective.value);He(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Fn(!0)})()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin picker arrows no longer carry 2.1.268 symbols"
+assert_not_contains = '''(()=>{const selected=patchedEffort.session(si??dl());if(selected.cli)return;const next=Bmt(selected.value??$a.defaultEffort,Bs,$a.capLevels,$a.supportsMax,$a.supportsXHigh,!1),effective=patchedEffort.session(si??dl(),"set",next);jn(effective.value);Je(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Vn(!0)})()'''
+
+[[patches]]
+name = "model-effort-picker-arrows-linux-x64-2-1-273"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Arrow keys change only the focused model immediately and respect the CLI pin. Exclude the global ultracode workflow from model-scoped effort levels. Current selected model Si, canonical model Cr, default-model helper vl, geometry la, direction ns, step helper Ppt, effort setter Rn, application-state setter He, and dirty setter $n were verified together inside the picker arrow callback. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "literal"
+locator_pattern = '''Rn((ln)=>Ppt(Us?la.defaultEffort:ln??la.defaultEffort,ns,la.capLevels,la.supportsMax,la.supportsXHigh,la.supportsUltra)),$n(!0)'''
+replacement = '''(()=>{const selected=patchedEffort.session(Cr??vl());if(selected.cli)return;const next=Ppt(selected.value??la.defaultEffort,ns,la.capLevels,la.supportsMax,la.supportsXHigh,!1),effective=patchedEffort.session(Cr??vl(),"set",next);Rn(effective.value);He(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));$n(!0)})()'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-arrows-linux-x64-2-1-273 renders"
+assert_contains = '''(()=>{const selected=patchedEffort.session(Cr??vl());if(selected.cli)return;const next=Ppt(selected.value??la.defaultEffort,ns,la.capLevels,la.supportsMax,la.supportsXHigh,!1),effective=patchedEffort.session(Cr??vl(),"set",next);Rn(effective.value);He(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));$n(!0)})()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux picker arrows no longer carry 2.1.268 symbols"
+assert_not_contains = '''(()=>{const selected=patchedEffort.session(si??dl());if(selected.cli)return;const next=jmt(selected.value??$a.defaultEffort,Bs,$a.capLevels,$a.supportsMax,$a.supportsXHigh,!1),effective=patchedEffort.session(si??dl(),"set",next);jn(effective.value);Je(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));Vn(!0)})()'''
+
+[[patches]]
+name = "model-effort-picker-select-darwin-arm64-2-1-273"
+lineage = "model-effort-picker-select"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Selection must not persist effort or copy it into session-global state; adjustments are already model-scoped. Current selection helper Us, selected model es, default sentinel yC, and selection callback O were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "literal"
+locator_pattern = '''function Us(es){'''
+replacement = '''function Us(es){O(es===yC?null:es,void 0);return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-select-darwin-arm64-2-1-273 renders"
+assert_contains = '''function Us(es){O(es===yC?null:es,void 0);return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin picker select no longer carries 2.1.268 symbols"
+assert_not_contains = '''function es(Bs){ee(Bs===EC?null:Bs,void 0);return;'''
+
+[[patches]]
+name = "model-effort-picker-select-linux-x64-2-1-273"
+lineage = "model-effort-picker-select"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Selection must not persist effort or copy it into session-global state; adjustments are already model-scoped. Current selection helper $s, selected model ns, default sentinel nC, and selection callback O were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "literal"
+locator_pattern = '''function $s(ns){'''
+replacement = '''function $s(ns){O(ns===nC?null:ns,void 0);return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-select-linux-x64-2-1-273 renders"
+assert_contains = '''function $s(ns){O(ns===nC?null:ns,void 0);return;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux picker select no longer carries 2.1.268 symbols"
+assert_not_contains = '''function es(Bs){ee(Bs===wC?null:Bs,void 0);return;'''
+
+[[patches]]
+name = "model-effort-picker-display-darwin-arm64-2-1-273"
+lineage = "model-effort-picker-display"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Render the request resolver result instead of upstream coercion of the previous row effort. Current canonical focused model Lr, default-model helper vl, and display effort kr were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''kr=Lr&&mr!==void 0&&mr!=="ultracode"?rB(mr,Lr):mr'''
+replacement = '''kr=patchedEffort.session(Lr??vl()).value'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-display-darwin-arm64-2-1-273 renders"
+assert_contains = '''kr=patchedEffort.session(Lr??vl()).value'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin picker display no longer carries 2.1.268 symbols"
+assert_not_contains = '''vs=patchedEffort.session(Zr??dl()).value'''
+
+[[patches]]
+name = "model-effort-picker-display-linux-x64-2-1-273"
+lineage = "model-effort-picker-display"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Render the request resolver result instead of upstream coercion of the previous row effort. Current canonical focused model Hr, default-model helper vl, and display effort wr were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''wr=Hr&&mr!==void 0&&mr!=="ultracode"?KU(mr,Hr):mr'''
+replacement = '''wr=patchedEffort.session(Hr??vl()).value'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-display-linux-x64-2-1-273 renders"
+assert_contains = '''wr=patchedEffort.session(Hr??vl()).value'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux picker display no longer carries 2.1.268 symbols"
+assert_not_contains = '''ks=patchedEffort.session(Zr??dl()).value'''
+
+[[patches]]
+name = "model-effort-picker-source-darwin-arm64-2-1-273"
+lineage = "model-effort-picker-source"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Show the resolver source instead of calling a session override the default merely because values match. Current canonical focused model Lr and default-model helper vl were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''kr===Gr?" (default)":""'''
+replacement = '''` (${patchedEffort.session(Lr??vl()).source})`'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-source-darwin-arm64-2-1-273 renders"
+assert_contains = '''` (${patchedEffort.session(Lr??vl()).source})`'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin picker source no longer carries 2.1.268 symbols"
+assert_not_contains = '''` (${patchedEffort.session(Zr??dl()).source})`'''
+
+[[patches]]
+name = "model-effort-picker-source-linux-x64-2-1-273"
+lineage = "model-effort-picker-source"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Show the resolver source instead of calling a session override the default merely because values match. Current canonical focused model Hr and default-model helper vl were verified in the picker scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''wr===Gr?" (default)":""'''
+replacement = '''` (${patchedEffort.session(Hr??vl()).source})`'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-source-linux-x64-2-1-273 renders"
+assert_contains = '''` (${patchedEffort.session(Hr??vl()).source})`'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux picker source no longer carries 2.1.268 symbols"
+assert_not_contains = '''` (${patchedEffort.session(Zr??dl()).source})`'''
+
+[[patches]]
+name = "model-effort-picker-cli-hint-darwin-arm64-2-1-273"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Hide the adjustment hint when CLI --effort disables arrow changes; the source label already identifies the pin. Current canonical focused model Lr, default-model helper vl, search state $o and rn, JSX helpers r and e, and key hint L were verified in the picker scope. Retire when upstream makes the hint match model-scoped effort controls."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''(!$o||rn==="")&&r(n,{color:"subtle",children:[" ",e(L,{chord:["left","right"],action:"adjust"})]})'''
+replacement = '''!patchedEffort.session(Lr??vl()).cli&&(!$o||rn==="")&&r(n,{color:"subtle",children:[" ",e(L,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-cli-hint-darwin-arm64-2-1-273 renders"
+assert_contains = '''!patchedEffort.session(Lr??vl()).cli&&(!$o||rn==="")&&r(n,{color:"subtle",children:[" ",e(L,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin picker CLI hint no longer carries 2.1.268 symbols"
+assert_not_contains = '''!patchedEffort.session(Zr??dl()).cli&&(!Fo||on==="")&&r(n,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches]]
+name = "model-effort-picker-cli-hint-linux-x64-2-1-273"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Hide the adjustment hint when CLI --effort disables arrow changes; the source label already identifies the pin. Current canonical focused model Hr, default-model helper vl, search state jo and rn, JSX helpers r and e, and key hint D were verified in the picker scope. Retire when upstream makes the hint match model-scoped effort controls."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "literal"
+locator_pattern = '''(!jo||rn==="")&&r(n,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+replacement = '''!patchedEffort.session(Hr??vl()).cli&&(!jo||rn==="")&&r(n,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-picker-cli-hint-linux-x64-2-1-273 renders"
+assert_contains = '''!patchedEffort.session(Hr??vl()).cli&&(!jo||rn==="")&&r(n,{color:"subtle",children:[" ",e(D,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux picker CLI hint no longer carries 2.1.268 symbols"
+assert_not_contains = '''!patchedEffort.session(Zr??dl()).cli&&(!Bo||on==="")&&r(n,{color:"subtle",children:[" ",e(O,{chord:["left","right"],action:"adjust"})]})'''
+
+[[patches]]
+name = "model-effort-slider-import-darwin-arm64-2-1-273"
+lineage = "model-effort-slider-import"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Import the shared effort resolver into the slider. The DE export and slider effort import group beginning Z9, nB, OE, KT, wpt, and oMe were verified in the graph. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''import{Z9,nB,OE,KT,wpt,oMe,FLr,oB,SO,sB,bO,Jpe,CC}from"./chunk-qqvjsfs3.js"'''
+replacement = '''import{DE as patchedEffort,Z9,nB,OE,KT,wpt,oMe,FLr,oB,SO,sB,bO,Jpe,CC}from"./chunk-qqvjsfs3.js"'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-import-darwin-arm64-2-1-273 renders"
+assert_contains = '''import{DE as patchedEffort,Z9,nB,OE,KT,wpt,oMe,FLr,oB,SO,sB,bO,Jpe,CC}from"./chunk-qqvjsfs3.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin slider resolver import no longer carries 2.1.268 symbols"
+assert_not_contains = '''import{NA as patchedEffort,sq,j1,tw,fC,_rt,I0e,Fmr,z1,fP,G1,mP,ele,FA}'''
+
+[[patches]]
+name = "model-effort-slider-import-linux-x64-2-1-273"
+lineage = "model-effort-slider-import"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Import the shared effort resolver into the slider. The Hv export and slider effort import group beginning q5, VU, Pv, qT, lpt, and YDe were verified in the graph. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''import{q5,VU,Pv,qT,lpt,YDe,nDr,YU,lO,XU,cO,Wpe,vA}from"./chunk-nc4fc0sr.js"'''
+replacement = '''import{Hv as patchedEffort,q5,VU,Pv,qT,lpt,YDe,nDr,YU,lO,XU,cO,Wpe,vA}from"./chunk-nc4fc0sr.js"'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-import-linux-x64-2-1-273 renders"
+assert_contains = '''import{Hv as patchedEffort,q5,VU,Pv,qT,lpt,YDe,nDr,YU,lO,XU,cO,Wpe,vA}from"./chunk-nc4fc0sr.js"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux slider resolver import no longer carries 2.1.268 symbols"
+assert_not_contains = '''import{LE as patchedEffort,K4,OF,ew,pA,rrt,kIe,tmr,LF,rH,$F,oH,Vae,$E}'''
+
+[[patches]]
+name = "model-effort-slider-initial-darwin-arm64-2-1-273"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Select the current effective model effort instead of session-global or environment state. Current function ft, model t, geometry u, and imported resolver alias patchedEffort were verified in the slider scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function ft(t,c,o,u){'''
+replacement = '''function ft(t,c,o,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-initial-darwin-arm64-2-1-273 renders"
+assert_contains = '''function ft(t,c,o,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin slider initial index no longer carries 2.1.268 symbols"
+assert_not_contains = '''function ft(t,c,l,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+
+[[patches]]
+name = "model-effort-slider-initial-linux-x64-2-1-273"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Select the current effective model effort instead of session-global or environment state. Current function ft, model t, geometry u, and imported resolver alias patchedEffort were verified in the slider scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function ft(t,c,o,u){'''
+replacement = '''function ft(t,c,o,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-initial-linux-x64-2-1-273 renders"
+assert_contains = '''function ft(t,c,o,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux slider initial index no longer carries 2.1.268 symbols"
+assert_not_contains = '''function ft(t,c,l,u){const effective=patchedEffort.session(t),index=u.levels.findIndex(level=>level.value===effective.value);return index<0?0:index;'''
+
+[[patches]]
+name = "model-effort-slider-guard-darwin-arm64-2-1-273"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. A CLI pin or omitted backend effort has no editable slider value, so show the truthful current-status message. The alternate selector bypasses this patch set's model-scoped slider and session-only behavior, so keep the established slider path. Current model hook Nl, status component mn, JSX factory e, memo helper b, memo local Bn, and alternate-selector gate on were verified in the slider scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function pn(Oe){let Bn=b(4);if(on()){'''
+replacement = '''function pn(Oe){const effective=patchedEffort.session(Nl());if(effective.cli||effective.value===undefined)return e(mn,{onDone:Oe.onDone});let Bn=b(4);if(false){'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-guard-darwin-arm64-2-1-273 renders"
+assert_contains = '''function pn(Oe){const effective=patchedEffort.session(Nl());if(effective.cli||effective.value===undefined)return e(mn,{onDone:Oe.onDone});let Bn=b(4);if(false){'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin slider guard no longer carries 2.1.268 symbols"
+assert_not_contains = '''function pn(Ie){const effective=patchedEffort.session(sl());if(effective.cli||effective.value===undefined)return e(mn,{onDone:Ie.onDone});let _n=_(4);if(false){'''
+
+[[patches]]
+name = "model-effort-slider-guard-linux-x64-2-1-273"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. A CLI pin or omitted backend effort has no editable slider value, so show the truthful current-status message. The alternate selector bypasses this patch set's model-scoped slider and session-only behavior, so keep the established slider path. Current model hook Ll, status component mn, JSX factory e, memo helper S, memo local Bn, and alternate-selector gate on were verified in the slider scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''function pn(Oe){let Bn=S(4);if(on()){'''
+replacement = '''function pn(Oe){const effective=patchedEffort.session(Ll());if(effective.cli||effective.value===undefined)return e(mn,{onDone:Oe.onDone});let Bn=S(4);if(false){'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-guard-linux-x64-2-1-273 renders"
+assert_contains = '''function pn(Oe){const effective=patchedEffort.session(Ll());if(effective.cli||effective.value===undefined)return e(mn,{onDone:Oe.onDone});let Bn=S(4);if(false){'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux slider guard no longer carries 2.1.268 symbols"
+assert_not_contains = '''function pn(Ie){const effective=patchedEffort.session(sl());if(effective.cli||effective.value===undefined)return e(mn,{onDone:Ie.onDone});let _n=_(4);if(false){'''
+
+[[patches]]
+name = "model-effort-slider-workflow-darwin-arm64-2-1-273"
+lineage = "model-effort-slider-workflow"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Do not offer the global ultracode workflow in a model-only effort selector. Current model t, geometry local o, ultracode gate OE, and width local P were verified in the slider scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''if(OE(t)){let P=o.width+3'''
+replacement = '''if(false){let P=o.width+3'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-workflow-darwin-arm64-2-1-273 renders"
+assert_contains = '''if(false){let P=o.width+3'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin slider workflow no longer carries 2.1.268 symbols"
+assert_not_contains = '''if(tw(t)){let I=l.width+3'''
+
+[[patches]]
+name = "model-effort-slider-workflow-linux-x64-2-1-273"
+lineage = "model-effort-slider-workflow"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Do not offer the global ultracode workflow in a model-only effort selector. Current model t, geometry local o, ultracode gate Pv, and width local O were verified in the slider scope. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''if(Pv(t)){let O=o.width+3'''
+replacement = '''if(false){let O=o.width+3'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-workflow-linux-x64-2-1-273 renders"
+assert_contains = '''if(false){let O=o.width+3'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux slider workflow no longer carries 2.1.268 symbols"
+assert_not_contains = '''if(ew(t)){let I=l.width+3'''
+
+[[patches]]
+name = "model-effort-slider-scope-darwin-arm64-2-1-273"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Both rendered footer variants use the same session-only source text in the slider scope; replace both without implying that Enter saves a global default. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''s for this session only'''
+replacement = '''this model, this session'''
+expected_matches = 2
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-scope-darwin-arm64-2-1-273 renders"
+assert_contains = '''this model, this session'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin slider scope no longer carries 2.1.268 symbols"
+assert_not_contains = '''s for this session only'''
+
+[[patches]]
+name = "model-effort-slider-scope-linux-x64-2-1-273"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Both rendered footer variants use the same session-only source text in the slider scope; replace both without implying that Enter saves a global default. Retire when the upstream effort selector uses the model-scoped resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = '''s for this session only'''
+replacement = '''this model, this session'''
+expected_matches = 2
+
+[[patches.tests]]
+kind = "static"
+name = "model-effort-slider-scope-linux-x64-2-1-273 renders"
+assert_contains = '''this model, this session'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux slider scope no longer carries 2.1.268 symbols"
+assert_not_contains = '''s for this session only'''
+
+[[patches]]
+name = "model-effort-command-darwin-arm64-2-1-273"
+lineage = "model-effort-command"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Handle ordinary local effort before persistent or global writes, reporting the normalized effective model value. Preserve the original remote command path and native ultracode validation/workflow with persistence disabled; successful ultracode changes also update this model session effort. Current bindings nxe, er, DE, tt, kqe, and E were verified in the effort-command chunk (chunk-a9kq98bj.js). Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "literal"
+locator_pattern = '''async function nxe(t,r,n=!0,o){'''
+replacement = '''async function nxe(t,r,n=!0,o){if(!er()){const current=DE.session(tt()),input=t.trim().toLowerCase();if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(input==="ultracode"){const result=await patchedNativeEffortDarwin(t,r,!1,o);if(result.effortUpdate){const effective=DE.session(tt(),"set",result.effortUpdate.value);r(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result;}const reset=input==="auto"||input==="unset",requested=reset?void 0:kqe(input);if(!reset&&requested===null||!reset&&requested===void 0)return{message:`Invalid effort: ${t}. ${E(tt())}`};const effective=DE.session(tt(),reset?"clear":"set",requested);r(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));return{message:`${reset?"Reset":"Set"} effort to ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}return patchedNativeEffortDarwin(t,r,n,o);}async function patchedNativeEffortDarwin(t,r,n=!0,o){'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin effort command is active"
+assert_contains = '''async function nxe(t,r,n=!0,o){if(!er()){const current=DE.session(tt()),input=t.trim().toLowerCase();'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin effort command no longer carries 2.1.268 symbols"
+assert_not_contains = '''async function rAe(t,r,n=!0,o){if(!Qn()){const current=NA.session(tt()),input=t.trim().toLowerCase();'''
+
+[[patches]]
+name = "model-effort-command-linux-x64-2-1-273"
+lineage = "model-effort-command"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Handle ordinary local effort before persistent or global writes, reporting the normalized effective model value. Preserve the original remote command path and native ultracode validation/workflow with persistence disabled; successful ultracode changes also update this model session effort. Current bindings VRe, er, Hv, tt, m3e, and g were verified in the effort-command chunk (chunk-st9e74ch.js). Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "literal"
+locator_pattern = '''async function VRe(t,r,n=!0,o){'''
+replacement = '''async function VRe(t,r,n=!0,o){if(!er()){const current=Hv.session(tt()),input=t.trim().toLowerCase();if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(input==="ultracode"){const result=await patchedNativeEffortLinux(t,r,!1,o);if(result.effortUpdate){const effective=Hv.session(tt(),"set",result.effortUpdate.value);r(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result;}const reset=input==="auto"||input==="unset",requested=reset?void 0:m3e(input);if(!reset&&requested===null||!reset&&requested===void 0)return{message:`Invalid effort: ${t}. ${g(tt())}`};const effective=Hv.session(tt(),reset?"clear":"set",requested);r(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));return{message:`${reset?"Reset":"Set"} effort to ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}return patchedNativeEffortLinux(t,r,n,o);}async function patchedNativeEffortLinux(t,r,n=!0,o){'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux effort command is active"
+assert_contains = '''async function VRe(t,r,n=!0,o){if(!er()){const current=Hv.session(tt()),input=t.trim().toLowerCase();'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux effort command no longer carries 2.1.268 symbols"
+assert_not_contains = '''async function Kve(t,r,n=!0,o){if(!Jn()){const current=LE.session(tt()),input=t.trim().toLowerCase();'''
+
+[[patches]]
+name = "model-effort-current-darwin-arm64-2-1-273"
+lineage = "model-effort-current"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Read the same model resolver used by requests, including source and unsupported effort. Current bindings oQe, er, and DE were verified in the effort-command scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "literal"
+locator_pattern = '''function oQe(t,r,n){'''
+replacement = '''function oQe(t,r,n){if(!er()){const effective=DE.session(r);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin effort current is active"
+assert_contains = '''function oQe(t,r,n){if(!er()){const effective=DE.session(r);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin effort current no longer carries 2.1.268 symbols"
+assert_not_contains = '''function g9e(t,r,n){if(!Qn()){const effective=NA.session(r);'''
+
+[[patches]]
+name = "model-effort-current-linux-x64-2-1-273"
+lineage = "model-effort-current"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Read the same model resolver used by requests, including source and unsupported effort. Current bindings q7e, er, and Hv were verified in the effort-command scope. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "literal"
+locator_pattern = '''function q7e(t,r,n){'''
+replacement = '''function q7e(t,r,n){if(!er()){const effective=Hv.session(r);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`};}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux effort current is active"
+assert_contains = '''function q7e(t,r,n){if(!er()){const effective=Hv.session(r);'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux effort current no longer carries 2.1.268 symbols"
+assert_not_contains = '''function Z3e(t,r,n){if(!Jn()){const effective=LE.session(r);'''
+
+[[patches]]
+name = "model-effort-model-import-darwin-arm64-2-1-273"
+lineage = "model-effort-model-import"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Make the shared resolver available to model confirmation. The DE export and the model-command effort import group SO, oP, Ol, Xpe, Jpe, and t5 were verified in graph chunk-ftdwsdja.js (supplier chunk-qqvjsfs3.js). Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L1-L30"
+locator_kind = "literal"
+locator_pattern = '''import{SO,oP,Ol,Xpe,Jpe,t5}'''
+replacement = '''import{DE as patchedEffort,SO,oP,Ol,Xpe,Jpe,t5}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model-command resolver import is active"
+assert_contains = '''import{DE as patchedEffort,SO,oP,Ol,Xpe,Jpe,t5}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model-command resolver import no longer carries 2.1.268 symbols"
+assert_not_contains = '''import{NA as patchedEffort,fP,d0,ul,Zae,ele,aq}'''
+
+[[patches]]
+name = "model-effort-model-import-linux-x64-2-1-273"
+lineage = "model-effort-model-import"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Make the shared resolver available to model confirmation. The Hv export and the model-command effort import group lO, XP, Hl, zpe, Wpe, and K5 were verified in graph chunk-2xqa06fp.js (supplier chunk-nc4fc0sr.js). Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L1-L30"
+locator_kind = "literal"
+locator_pattern = '''import{lO,XP,Hl,zpe,Wpe,K5}'''
+replacement = '''import{Hv as patchedEffort,lO,XP,Hl,zpe,Wpe,K5}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model-command resolver import is active"
+assert_contains = '''import{Hv as patchedEffort,lO,XP,Hl,zpe,Wpe,K5}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model-command resolver import no longer carries 2.1.268 symbols"
+assert_not_contains = '''import{LE as patchedEffort,rH,oI,ul,qae,Vae,X4}'''
+
+[[patches]]
+name = "model-effort-model-no-persist-darwin-arm64-2-1-273"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Suppress effort persistence on model confirmation; model default persistence remains independent. Current effort payload E, ultracode persistence Xpe, ordinary persistence t5, save-default flag ie, and model mapper fG were verified in the model-confirmation scope of chunk-ftdwsdja.js. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''E?.fromUltracode)Xpe(ie,o);else if(E!==void 0)t5(E.level,fG(s),ie,o)'''
+replacement = '''false)void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model confirmation effort persistence is disabled"
+assert_contains = '''false)void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model confirmation no longer carries 2.1.268 persistence symbols"
+assert_not_contains = '''v?.fromUltracode)Zae(ie,o);else if(v!==void 0)aq(v.level,p6(s),ie,o)'''
+
+[[patches]]
+name = "model-effort-model-no-persist-linux-x64-2-1-273"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Suppress effort persistence on model confirmation; model default persistence remains independent. Current effort payload v, ultracode persistence zpe, ordinary persistence K5, save-default flag ie, and model mapper pq were verified in the model-confirmation scope of chunk-2xqa06fp.js. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''v?.fromUltracode)zpe(ie,o);else if(v!==void 0)K5(v.level,pq(s),ie,o)'''
+replacement = '''false)void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model confirmation effort persistence is disabled"
+assert_contains = '''false)void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model confirmation no longer carries 2.1.268 persistence symbols"
+assert_not_contains = '''w?.fromUltracode)qae(ie,o);else if(w!==void 0)X4(w.level,nz(s),ie,o)'''
+
+[[patches]]
+name = "model-effort-model-state-darwin-arm64-2-1-273"
+lineage = "model-effort-model-state"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Model switching refreshes subscribers without changing the session-global effort. Current selected model s, state snapshot lambda parameter Ee, effort payload E, session-effort wrapper oP, and imported resolver alias patchedEffort were verified in the model-confirmation scope of chunk-ftdwsdja.js. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''...E!==void 0&&{sessionEffort:oP(E.level),ultracode:E.ultracode}'''
+replacement = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model switch state is active"
+assert_contains = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model switch state no longer carries 2.1.268 symbols"
+assert_not_contains = '''...v!==void 0&&{sessionEffort:d0(v.level),ultracode:v.ultracode}'''
+
+[[patches]]
+name = "model-effort-model-state-linux-x64-2-1-273"
+lineage = "model-effort-model-state"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Model switching refreshes subscribers without changing the session-global effort. Current selected model s, state snapshot lambda parameter Ee, effort payload v, session-effort wrapper XP, and imported resolver alias patchedEffort were verified in the model-confirmation scope of chunk-2xqa06fp.js. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = '''...v!==void 0&&{sessionEffort:XP(v.level),ultracode:v.ultracode}'''
+replacement = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model switch state is active"
+assert_contains = '''effortByModel:patchedEffort.session(s).effortByModel,effortRevision:(Ee.effortRevision??0)+1,ultracode:!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model switch state no longer carries 2.1.268 symbols"
+assert_not_contains = '''...w!==void 0&&{sessionEffort:oI(w.level),ultracode:w.ultracode}'''
+
+[[patches]]
+name = "model-effort-model-echo-darwin-arm64-2-1-273"
+lineage = "model-effort-model-echo"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. Always report the effective selected model value and its source, including direct model selection without a picker effort payload. Current effort payload E, selected model s, message accumulator pe, and imported resolver alias patchedEffort were verified in the model-confirmation scope of chunk-ftdwsdja.js. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "regex"
+locator_pattern = '''if\(E!==void 0\)\{let Ee=E\.ultracode\?"ultracode":E\.level;[\s\S]*?takes over\`\}\}'''
+replacement = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model effort echo is active"
+assert_contains = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin model effort echo no longer carries 2.1.268 payload binding"
+assert_not_contains = '''if(v!==void 0){let Ee=v.ultracode?"ultracode":v.level;'''
+
+[[patches]]
+name = "model-effort-model-echo-linux-x64-2-1-273"
+lineage = "model-effort-model-echo"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. Always report the effective selected model value and its source, including direct model selection without a picker effort payload. Current effort payload v, selected model s, message accumulator pe, and imported resolver alias patchedEffort were verified in the model-confirmation scope of chunk-2xqa06fp.js. The 2.1.268 locator regex still rejoins these bytes unchanged. Retire when upstream supplies model-scoped session effort."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "regex"
+locator_pattern = '''if\(v!==void 0\)\{let Ee=v\.ultracode\?"ultracode":v\.level;[\s\S]*?takes over\`\}\}'''
+replacement = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model effort echo is active"
+assert_contains = '''{const effective=patchedEffort.session(s);pe+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux model effort echo no longer carries 2.1.267 accumulator symbols"
+assert_not_contains = '''{const effective=patchedEffort.session(s);me+=` with'''
+
+[[patches]]
+name = "model-effort-inline-echo-darwin-arm64-2-1-273"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.273. The inline /model name route has a separate success message; append its resolved effort after model mutation. Current selected model De, substitution marker _t, asynchronous message Do, and imported resolver alias patchedEffort were verified in the inline-model scope of chunk-ftdwsdja.js. Retire when upstream reports applied effort on direct model switches."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = '''if(_t!==void 0&&De!==null)'''
+replacement = '''{const effective=patchedEffort.session(De);Do=Do.then((message)=>message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`);}if(_t!==void 0&&De!==null)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin inline model effort echo is active"
+assert_contains = '''{const effective=patchedEffort.session(De);Do=Do.then((message)=>message+`\nCurrent model runs with'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin inline model effort echo no longer carries 2.1.268 symbols"
+assert_not_contains = '''{const effective=patchedEffort.session(je);Uo=Uo.then((message)=>message+`\nCurrent model runs with'''
+
+[[patches]]
+name = "model-effort-inline-echo-linux-x64-2-1-273"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.273. The inline /model name route has a separate success message; append its resolved effort after model mutation. Current selected model De, substitution marker _t, asynchronous message Do, and imported resolver alias patchedEffort were verified in the inline-model scope of chunk-2xqa06fp.js. The locator still hits the 2.1.273 bytes, but the promise local renamed Uo to Do. Retire when upstream reports applied effort on direct model switches."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = '''if(_t!==void 0&&De!==null)'''
+replacement = '''{const effective=patchedEffort.session(De);Do=Do.then((message)=>message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`);}if(_t!==void 0&&De!==null)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux inline model effort echo is active"
+assert_contains = '''{const effective=patchedEffort.session(De);Do=Do.then((message)=>message+`\nCurrent model runs with'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux inline model effort echo no longer carries 2.1.268 promise local"
+assert_not_contains = '''{const effective=patchedEffort.session(De);Uo=Uo.then((message)=>message+`\nCurrent model runs with'''

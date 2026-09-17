@@ -4,6 +4,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
+import { RUNTIME_PRELOAD_FILES } from "../lib/runtime-support"
 import { createCommand, runCli } from "../lib/cli"
 import { loadGraphBundle } from "../lib/graph-bundle"
 import { runWithHeavyLock } from "../lib/heavy-lock"
@@ -68,9 +69,13 @@ function defaultPatchFiles(): string[] {
     .map((file) => join(ROOT, "patches", file))
 }
 
+function runtimePreloadArgs(): string[] {
+  return RUNTIME_PRELOAD_FILES.flatMap((file) => ["--preload", join(ROOT, file)])
+}
+
 function runCliTest(bundle: string, test: CliPatchTest): { ok: boolean; message: string } {
   const result = Bun.spawnSync({
-    cmd: ["bun", bundle, ...(test.args ?? [])],
+    cmd: ["bun", ...runtimePreloadArgs(), bundle, ...(test.args ?? [])],
     cwd: ROOT,
     stdout: "pipe",
     stderr: "pipe",
@@ -95,6 +100,7 @@ function runPtyTest(bundle: string, test: PtyPatchTest): { ok: boolean; message:
   const command = [
     ...timeoutCommand(timeoutSeconds),
     "bun",
+    ...runtimePreloadArgs().map(shellQuote),
     shellQuote(bundle),
     ...(test.args ?? []).map(shellQuote),
   ].join(" ")

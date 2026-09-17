@@ -7,6 +7,7 @@ import { join } from "node:path"
 import { createCommand, runCli } from "../lib/cli"
 import { captureChecked } from "../lib/process"
 import { graphDirectoryNameForEntrypoint, releaseTag } from "../lib/release-payload"
+import { RUNTIME_SUPPORT_FILES } from "../lib/runtime-support"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -51,9 +52,7 @@ export function sourceTagFiles(root: string = ROOT): TagFile[] {
     { path: "manifest.json", mode: "100644", required: true },
     { path: "package.json", mode: "100644", required: true },
     { path: "bin/claude-patched", mode: "100755", required: true },
-    { path: "runtime/macos-keychain.ts", mode: "100644", required: true },
-    { path: "runtime/release-integrity.ts", mode: "100644", required: true },
-    { path: "runtime/system-prompt-overrides.ts", mode: "100644", required: true },
+    ...RUNTIME_SUPPORT_FILES.map((path) => ({ path, mode: "100644" as const, required: true })),
     { path: "flake.nix", mode: "100644", required: true },
     { path: "flake.lock", mode: "100644", required: false },
     ...payloadFiles(root, "patch-obligations"),

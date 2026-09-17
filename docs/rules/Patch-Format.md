@@ -158,7 +158,9 @@ Supported transform ops:
   identifier names from the locator's capture groups. Literal and regex
   patches are deterministic substitutions, not transforms.
 - Replacement code that directly names local minified identifiers MUST be version-scoped.
-  Identifier names supplied only through AST capture placeholders are exempt.
+  Copying an identifier from a literal/regex locator or substring `find` does not
+  make it safe; only identifiers supplied through AST capture placeholders are
+  exempt.
   Its rationale MUST state the authored target version and the symbols being
   carried, e.g. "This is the 2.1.186 minified-symbol variant; hook namespace
   `Cb`, selector helper `_t`."
@@ -166,9 +168,11 @@ Supported transform ops:
   carried in typed transform fields such as `value`, `arg`, `body`, or
   `template`.
 - `applies_to` uses standard semver ranges. When a patch needs different
-  text per range, split it into two files. Version-specific minified-symbol
-  variants MUST have an upper bound; do not leave them open-ended to `<2.2.0`
-  unless the replacement contains no directly named local minified symbols.
+  text per range, split it into two files. A variant that directly names local
+  minified symbols MUST exclude the patch release after the current verified
+  target; do not leave it open to a later target such as `<2.2.0`.
+  A wider historical lower bound is allowed when the exact bytes remained valid,
+  but the next target must re-anchor or explicitly extend the upper bound.
 - `enabled = false` disables a patch entry without deleting its audit record.
   Omitted `enabled` means true. Disabled entries are skipped by render, verify,
   and patch-test scripts.

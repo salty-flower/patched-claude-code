@@ -18,6 +18,7 @@ import {
 import { summarizePromptIdentityDraft } from "../lib/prompt-identity-audit"
 import { latestPreviousLedgerVersion, preparePromptIdentityBump } from "../lib/prompt-identity-bump"
 import { loadPatches, sha256, writeReleasePayload } from "../lib/release-payload"
+import { RUNTIME_PRELOAD_FILES } from "../lib/runtime-support"
 
 const ROOT = join(import.meta.dir, "..", "..")
 
@@ -361,7 +362,12 @@ test("release payload publishes and binds the static prompt catalog", () => {
       promptIdentityRoot: identityRoot,
     })
 
-    expect(payload.manifest.schema).toBe(2)
+    expect(payload.manifest.schema).toBe(3)
+    expect(payload.manifest.runtime.preloads).toEqual([...RUNTIME_PRELOAD_FILES])
+    const launcher = readFileSync(join(outDir, "bin", "claude-patched"), "utf8")
+    for (const preload of RUNTIME_PRELOAD_FILES) {
+      expect(launcher).toContain(`--preload "$dir/${preload}"`)
+    }
     expect(payload.manifest.promptCatalog).toMatchObject({
       path: "prompts/catalog",
       completeness: "partial",

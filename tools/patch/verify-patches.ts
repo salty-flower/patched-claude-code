@@ -146,8 +146,15 @@ function verifyLocator(p: Patch, views: TargetView[], astResults: Map<Patch, Loc
     }
     total += count
   }
+  // `total` sums every view. Say so: a cross-platform entry legitimately reports
+  // 1 match in each of two views, and printing that as "2 per view" reads as a
+  // doubled locator to anyone auditing the output.
   const matches = total
-  return { ok: true, msg: `locator matches ${matches} time(s) per view (expected ${expected})`, matches }
+  const scope =
+    views.length === 1
+      ? `locator matches ${expected} time(s)`
+      : `locator matches ${expected} time(s) in each of ${views.length} views`
+  return { ok: true, msg: `${scope} (${matches} total)`, matches }
 }
 
 function batchVerifyAstLocators(

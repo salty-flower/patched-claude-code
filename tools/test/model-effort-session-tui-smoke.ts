@@ -71,7 +71,7 @@ async function session(
     TERM: "xterm-256color",
   }
   const cli = cliEffort ? ` --effort ${shellQuote(cliEffort)}` : ""
-  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${timeout}s env ${shellEnvironment(environment)} bun ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
+  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${timeout}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
   const proc = Bun.spawn({
     // Own script directly: a `cat | script` shell keeps waiting for cat after
     // the TUI exits, masking the process-exit event needed by the watchdog.

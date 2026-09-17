@@ -229,34 +229,32 @@ async function main(): Promise<number> {
 
     if (hasToolResult) {
       writeFileSync(parentFollowupReadyFile, "ready\n")
-      return hangingSse(
+      return hangingSse([
         [
-          [
-            "message_start",
-            {
-              type: "message_start",
-              message: {
-                id: "msg_stub_followup",
-                type: "message",
-                role: "assistant",
-                model: modelName(body),
-                content: [],
-                stop_reason: null,
-                usage: { input_tokens: 1, output_tokens: 1 },
-              },
+          "message_start",
+          {
+            type: "message_start",
+            message: {
+              id: "msg_stub_followup",
+              type: "message",
+              role: "assistant",
+              model: modelName(body),
+              content: [],
+              stop_reason: null,
+              usage: { input_tokens: 1, output_tokens: 1 },
             },
-          ],
-          ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }],
-          [
-            "content_block_delta",
-            {
-              type: "content_block_delta",
-              index: 0,
-              delta: { type: "text_delta", text: "Background agent is running." },
-            },
-          ],
+          },
         ],
-      )
+        ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }],
+        [
+          "content_block_delta",
+          {
+            type: "content_block_delta",
+            index: 0,
+            delta: { type: "text_delta", text: "Background agent is running." },
+          },
+        ],
+      ])
     }
 
     return new Response(sse(body, [{ type: "text", text: "Stub follow-up complete." }], "end_turn"), {
@@ -298,6 +296,8 @@ async function main(): Promise<number> {
       "ANTHROPIC_AUTH_TOKEN",
       envPrefix,
       "bun",
+      "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(bundle),
       "--permission-mode",
       "acceptEdits",

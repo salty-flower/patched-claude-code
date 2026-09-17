@@ -220,6 +220,8 @@ async function main(): Promise<number> {
         TERM: "xterm-256color",
       }),
       "bun",
+      "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(resolve(args.bundle)),
       "--hide-builtin-footer",
       "--thinking-display",

@@ -238,6 +238,8 @@ async function main(): Promise<number> {
     const child = Bun.spawn(
       [
         process.execPath,
+        "--preload",
+        resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"),
         bundle,
         "--print",
         "--dangerously-skip-permissions",

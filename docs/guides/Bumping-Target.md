@@ -147,7 +147,10 @@ The *target* is the Claude Code version we patch and ship. The *reference*
 
    Every target bump must include this baseline before commit:
 
-   - Launch `staging/<ver>/cli.patched.js` in a PTY-backed interactive TUI.
+   - Launch `staging/<ver>/cli.patched.js` in a PTY-backed interactive TUI
+     with the ordered preloads declared by `manifest.runtime.preloads`.
+     Before a package manifest exists, use
+     `bun --preload runtime/system-prompt-overrides.ts --preload runtime/bun-ant-cell-segmenter.ts staging/<ver>/cli.patched.js`.
    - Include a PTY-backed launch with
      `--hide-builtin-footer --thinking-display summarized`; it may be the same
      session as the baseline TUI check.

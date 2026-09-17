@@ -58,8 +58,9 @@ function writeTerminal(terminal: Terminal, data: Uint8Array): Promise<void> {
 
 function visibleTerminalText(terminal: Terminal): string {
   const buffer = terminal.buffer.active
-  return Array.from({ length: terminal.rows }, (_, row) =>
-    buffer.getLine(buffer.viewportY + row)?.translateToString(true) ?? "",
+  return Array.from(
+    { length: terminal.rows },
+    (_, row) => buffer.getLine(buffer.viewportY + row)?.translateToString(true) ?? "",
   ).join("\n")
 }
 
@@ -271,6 +272,8 @@ async function main(): Promise<number> {
       "env",
       shellEnvironment(commandEnv),
       "bun",
+      "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(bundle),
       "--bare",
       "--hide-builtin-footer",
@@ -359,7 +362,11 @@ async function main(): Promise<number> {
       console.error(tuiOutput)
       return 1
     }
-    if (normalized.includes("React error #300") || normalized.includes("TypeError") || normalized.includes("ReferenceError")) {
+    if (
+      normalized.includes("React error #300") ||
+      normalized.includes("TypeError") ||
+      normalized.includes("ReferenceError")
+    ) {
       console.error("thinking PTY hit a render-boundary failure")
       console.error(tuiOutput)
       return 1

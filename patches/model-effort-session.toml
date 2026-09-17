@@ -761,3 +761,223 @@ assert_contains = '''function ort(e,n,o){const actual=LE.session(e);return actua
 kind = "static"
 name = "2.1.268 linux-x64 effective effort suffix no longer carries 2.1.267 symbols"
 assert_not_contains = '''function wtt(e,n,o){const actual=kE.session'''
+
+[[patches]]
+name = "effort-effective-suffix-2-1-273-darwin-arm64"
+lineage = "effort-effective-suffix"
+platforms = ["darwin-arm64"]
+rationale = "Report the effective model-scoped effort and source. The 2.1.273 suffix helper is Ept in chunk-qqvjsfs3.js and the request resolver is DE; the helper still delegates to DE.session so the source/slug fields remain available, and the native guard/body is left unreachable after the early return."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function Ept(e,o,n){'''
+replacement = '''function Ept(e,o,n){const actual=DE.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effective effort suffix is active"
+assert_contains = '''function Ept(e,o,n){const actual=DE.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effective effort suffix no longer carries 2.1.268 symbols"
+assert_not_contains = '''function Srt(e,n,o){const actual=NA.session(e);'''
+
+[[patches]]
+name = "effort-effective-suffix-2-1-273-linux-x64"
+lineage = "effort-effective-suffix"
+platforms = ["linux-x64"]
+rationale = "Report the effective model-scoped effort and source. The 2.1.273 suffix helper is cpt in chunk-nc4fc0sr.js and the request resolver is Hv; the helper still delegates to Hv.session so the source/slug fields remain available, and the native guard/body is left unreachable after the early return."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function cpt(e,o,n){'''
+replacement = '''function cpt(e,o,n){const actual=Hv.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effective effort suffix is active"
+assert_contains = '''function cpt(e,o,n){const actual=Hv.session(e);return actual.value===undefined?"":` with ${actual.value} effort (${actual.source} for ${actual.slug})`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effective effort suffix no longer carries 2.1.268 symbols"
+assert_not_contains = '''function ort(e,n,o){const actual=LE.session(e);'''
+
+[[patches]]
+name = "effort-launch-pin-2-1-273-darwin-arm64"
+lineage = "effort-launch-pin"
+platforms = ["darwin-arm64"]
+rationale = "Pin parsed CLI effort in the model-scoped session owner. The 2.1.273 initializer is Rqe in chunk-qqvjsfs3.js (renamed from 2.1.268 x6e), the parsed-CLI-effort local is now o rather than n, the parser is still A, and the owner is V_t (renamed from vct)."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function Rqe(e){let o=A(e);'''
+replacement = '''function Rqe(e){let o=A(e);V_t(Symbol.for("patched-cc.effort-session")).effortLaunchValue=o;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort launch pin is active on darwin-arm64"
+assert_contains = '''function Rqe(e){let o=A(e);V_t(Symbol.for("patched-cc.effort-session")).effortLaunchValue=o;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort launch pin no longer carries 2.1.268 symbols"
+assert_not_contains = '''function x6e(e){let n=A(e);vct(Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-launch-pin-2-1-273-linux-x64"
+lineage = "effort-launch-pin"
+platforms = ["linux-x64"]
+rationale = "Pin parsed CLI effort in the model-scoped session owner. The 2.1.273 initializer is g3e in chunk-nc4fc0sr.js (renamed from 2.1.268 yze), the parsed-CLI-effort local is now o rather than n, the parser is still A, and the owner is M_t (renamed from pct)."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function g3e(e){let o=A(e);'''
+replacement = '''function g3e(e){let o=A(e);M_t(Symbol.for("patched-cc.effort-session")).effortLaunchValue=o;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort launch pin is active on linux-x64"
+assert_contains = '''function g3e(e){let o=A(e);M_t(Symbol.for("patched-cc.effort-session")).effortLaunchValue=o;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort launch pin no longer carries 2.1.268 symbols"
+assert_not_contains = '''function yze(e){let n=A(e);pct(Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-model-state-selector-2-1-273-darwin-arm64"
+lineage = "effort-model-state-selector"
+platforms = ["darwin-arm64"]
+rationale = "Route the 2.1.273 application-state selector through the model-scoped request resolver. Selector Ol and default model vl were inspected in chunk-qqvjsfs3.js; the header-only locator leaves the native sessionEffort switch in place but unreachable."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "regex"
+locator_pattern = '''function Ol\(e,o\)\{(?=let n=e\.sessionEffort)'''
+replacement = '''function Ol(e,o){return DE.session(o??e.mainLoopModelForSession??e.mainLoopModel??vl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort model-state selector is active"
+assert_contains = '''function Ol(e,o){return DE.session(o??e.mainLoopModelForSession??e.mainLoopModel??vl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort model-state selector no longer carries 2.1.268 symbols"
+assert_not_contains = '''function ul(e,n){return NA.session'''
+
+[[patches]]
+name = "effort-model-state-selector-2-1-273-linux-x64"
+lineage = "effort-model-state-selector"
+platforms = ["linux-x64"]
+rationale = "Route the 2.1.273 application-state selector through the model-scoped request resolver. Selector Hl and default model vl were inspected in chunk-nc4fc0sr.js; the header-only locator leaves the native sessionEffort switch in place but unreachable."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "regex"
+locator_pattern = '''function Hl\(e,o\)\{(?=let n=e\.sessionEffort)'''
+replacement = '''function Hl(e,o){return Hv.session(o??e.mainLoopModelForSession??e.mainLoopModel??vl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort model-state selector is active"
+assert_contains = '''function Hl(e,o){return Hv.session(o??e.mainLoopModelForSession??e.mainLoopModel??vl()).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort model-state selector no longer carries 2.1.268 symbols"
+assert_not_contains = '''function ul(e,n){return LE.session'''
+
+[[patches]]
+name = "effort-session-owner-2-1-273-darwin-arm64"
+lineage = "effort-session-owner"
+platforms = ["darwin-arm64"]
+rationale = "Expose the 2.1.273 model-selection owner to the session resolver without changing saved settings. The native graph keeps the session selector and the default/byModel settings table; setter V_t (renamed from 2.1.268 vct) and singleton n were inspected in chunk-sgamszzq.js."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function V_t(e){n().modelSelection.replaceMainLoopEffortState(e)}'''
+replacement = '''function V_t(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort session owner is active on darwin-arm64"
+assert_contains = '''function V_t(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort session owner no longer carries 2.1.268 symbols"
+assert_not_contains = '''function vct(e){if(e===Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-session-owner-2-1-273-linux-x64"
+lineage = "effort-session-owner"
+platforms = ["linux-x64"]
+rationale = "Expose the 2.1.273 model-selection owner to the session resolver without changing saved settings. The native graph keeps the session selector and the default/byModel settings table; setter M_t (renamed from 2.1.268 pct) and singleton n were inspected in chunk-txfrkyzp.js."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function M_t(e){n().modelSelection.replaceMainLoopEffortState(e)}'''
+replacement = '''function M_t(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort session owner is active on linux-x64"
+assert_contains = '''function M_t(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort session owner no longer carries 2.1.268 symbols"
+assert_not_contains = '''function pct(e){if(e===Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-session-resolver-2-1-273-darwin-arm64"
+lineage = "effort-session-resolver"
+platforms = ["darwin-arm64"]
+rationale = "Resolve model-specific session defaults and overrides across the 2.1.273 default/byModel effort table. Bindings DE, V_t, Rve, vl, SO, sB, k, rGt, Yy, x, Z, ee, j, and Z1 were inspected in chunk-qqvjsfs3.js; the 2.1.268 normalizer P is now an unrelated feature-gate reader on this graph, so organization clamping goes through x. hookEffortValue is new in 2.1.273 and keeps native priority, and the native backend-rejection latch remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function DE(e,o,{honorLaunchPin:n=!0,turnEffort:r,hookEffortValue:f}={}){'''
+replacement = '''DE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride){const owner=V_t(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},slug=Rve(model??vl());owner.effortByModel??=new Map();const cli=owner.effortLaunchValue!==undefined;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}let chosen,source;const own=owner.effortByModel.get(slug);let slot;for(const key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const modelName=process.env[key]?.trim();if(modelName&&Rve(modelName)===slug){const level=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(level??"")){slot=level;break}}}if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==undefined){chosen=agentOverride;source="agent override"}else if(own!==undefined){chosen=own;source="this session"}else if(slot!==undefined){chosen=slot;source="configured default"}else{const configured=SO();if(configured!==undefined){chosen=configured===null?undefined:configured;source=configured===null?"effort omitted by environment":"environment default"}else if(honorLaunchPin&&sB(slug)){chosen=k(slug);source="model launch default"}else{const table=state.settingsEffortTable,tableValue=table===undefined?undefined:ee(table)?Z(table,slug):table.default;chosen=fallback??tableValue??k(slug);source=tableValue!==undefined?Object.hasOwn(table.byModel,slug)?"configured model default":"configured default":"model default"}}if(rGt(slug)){chosen=undefined;source="backend default (effort unsupported)"}else if(!Yy(slug)){chosen=undefined;source="backend default (effort not supported)"}else if(chosen!==undefined){const normalized=x(chosen,slug);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};function DE(e,o,{honorLaunchPin:n=!0,turnEffort:r,hookEffortValue:f,agentOverride:patchedAgentOverride}={}){if(f!==void 0){let v=typeof f==="number"&&j(e)!==null?Z1(f):f;return x(v,e)}return DE.session(e,undefined,undefined,o,n,patchedAgentOverride??r).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort session resolver is active on darwin-arm64"
+assert_contains = '''DE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort session resolver no longer carries 2.1.268 symbols"
+assert_not_contains = '''NA.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches]]
+name = "effort-session-resolver-2-1-273-linux-x64"
+lineage = "effort-session-resolver"
+platforms = ["linux-x64"]
+rationale = "Resolve model-specific session defaults and overrides across the 2.1.273 default/byModel effort table. Bindings Hv, M_t, bEe, vl, lO, XU, k, jGt, Ky, x, Z, ee, j, and j$ were inspected in chunk-nc4fc0sr.js; the 2.1.268 normalizer P is now an unrelated feature-gate reader on this graph, so organization clamping goes through x. hookEffortValue is new in 2.1.273 and keeps native priority, and the native backend-rejection latch remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function Hv(e,o,{honorLaunchPin:n=!0,turnEffort:r,hookEffortValue:f}={}){'''
+replacement = '''Hv.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride){const owner=M_t(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},slug=bEe(model??vl());owner.effortByModel??=new Map();const cli=owner.effortLaunchValue!==undefined;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}let chosen,source;const own=owner.effortByModel.get(slug);let slot;for(const key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const modelName=process.env[key]?.trim();if(modelName&&bEe(modelName)===slug){const level=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(level??"")){slot=level;break}}}if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==undefined){chosen=agentOverride;source="agent override"}else if(own!==undefined){chosen=own;source="this session"}else if(slot!==undefined){chosen=slot;source="configured default"}else{const configured=lO();if(configured!==undefined){chosen=configured===null?undefined:configured;source=configured===null?"effort omitted by environment":"environment default"}else if(honorLaunchPin&&XU(slug)){chosen=k(slug);source="model launch default"}else{const table=state.settingsEffortTable,tableValue=table===undefined?undefined:ee(table)?Z(table,slug):table.default;chosen=fallback??tableValue??k(slug);source=tableValue!==undefined?Object.hasOwn(table.byModel,slug)?"configured model default":"configured default":"model default"}}if(jGt(slug)){chosen=undefined;source="backend default (effort unsupported)"}else if(!Ky(slug)){chosen=undefined;source="backend default (effort not supported)"}else if(chosen!==undefined){const normalized=x(chosen,slug);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};function Hv(e,o,{honorLaunchPin:n=!0,turnEffort:r,hookEffortValue:f,agentOverride:patchedAgentOverride}={}){if(f!==void 0){let v=typeof f==="number"&&j(e)!==null?j$(f):f;return x(v,e)}return Hv.session(e,undefined,undefined,o,n,patchedAgentOverride??r).value;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort session resolver is active on linux-x64"
+assert_contains = '''Hv.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort session resolver no longer carries 2.1.268 symbols"
+assert_not_contains = '''LE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''

@@ -2,7 +2,7 @@ import { afterAll, afterEach, expect } from "bun:test"
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { targetVersion } from "../lib/target"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
 import { writeGraphCredentialHarness } from "./helpers/keychain-graph-harness"
@@ -1083,6 +1083,8 @@ keychainOracleTest(
         "CLAUDE_CODE_OAUTH_TOKEN",
         env,
         "bun",
+        "--preload",
+        shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
         "--preload",
         shellQuote(PRELOAD),
         shellQuote(BUNDLE),

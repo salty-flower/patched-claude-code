@@ -106,6 +106,8 @@ async function main(): Promise<number> {
       "env",
       envPrefix,
       "bun",
+      "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(bundle),
       "--bare",
       "--hide-builtin-footer",
@@ -180,13 +182,14 @@ async function main(): Promise<number> {
       normalizedTuiOutput.includes(text),
     )
     if (visibleBuiltinFooter.length > 0) {
-      console.error(`PTY rendered built-in footer text despite --hide-builtin-footer: ${visibleBuiltinFooter.join(", ")}`)
+      console.error(
+        `PTY rendered built-in footer text despite --hide-builtin-footer: ${visibleBuiltinFooter.join(", ")}`,
+      )
       console.error(tuiOutput)
       return 1
     }
     const renderedLaterCommands =
-      normalizedTuiOutput.includes("[Pasted text #1 +11 lines]") &&
-      normalizedTuiOutput.includes("/later list")
+      normalizedTuiOutput.includes("[Pasted text #1 +11 lines]") && normalizedTuiOutput.includes("/later list")
     if (!normalizedTuiOutput.includes("Scheduled later-") && !renderedLaterCommands) {
       console.error("PTY output did not confirm /later scheduling")
       console.error(tuiOutput)
@@ -219,7 +222,19 @@ async function main(): Promise<number> {
     if (process.env.TUI_SMOKE_SHOW_OUTPUT === "1") console.log(normalizedTuiOutput)
 
     const printProc = Bun.spawn({
-      cmd: [process.execPath, bundle, "--print", "--bare", "--model", "sonnet", "--max-turns", "1", args.prompt],
+      cmd: [
+        process.execPath,
+        "--preload",
+        resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"),
+        bundle,
+        "--print",
+        "--bare",
+        "--model",
+        "sonnet",
+        "--max-turns",
+        "1",
+        args.prompt,
+      ],
       cwd: home,
       env: { ...process.env, ...commandEnv },
       stdout: "pipe",

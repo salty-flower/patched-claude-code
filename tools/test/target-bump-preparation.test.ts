@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test"
-import { DEFAULT_TARGET_VERSION } from "../lib/target"
 import {
   buildTargetBumpSteps,
   executeTargetBumpSteps,
@@ -8,7 +7,7 @@ import {
 } from "../patch/prepare-target-bump"
 
 test("target bump preparation defines one ordered deterministic lane", () => {
-  const steps = buildTargetBumpSteps("/repo", "2.1.218", "direct")
+  const steps = buildTargetBumpSteps("/repo", "2.1.218", "direct", "2.1.217")
 
   expect(steps.map(({ id }) => id)).toEqual([
     "stage",
@@ -37,7 +36,7 @@ test("target bump preparation defines one ordered deterministic lane", () => {
     "run",
     "tools/patch/check-patch-carryover.ts",
     "--from",
-    DEFAULT_TARGET_VERSION,
+    "2.1.217",
     "--to",
     "2.1.218",
     "--result-file",
@@ -63,8 +62,14 @@ test("target bump preparation defines one ordered deterministic lane", () => {
   )
 })
 
+test("target bump preparation rejects a non-previous carryover source", () => {
+  expect(() => buildTargetBumpSteps("/repo", "2.1.273", "canonical", "2.1.273")).toThrow(
+    "previous target must be lower than target: 2.1.273 -> 2.1.273",
+  )
+})
+
 test("target bump preparation stops dependent work after the first failure", () => {
-  const steps = buildTargetBumpSteps("/repo", "2.1.218", "npm")
+  const steps = buildTargetBumpSteps("/repo", "2.1.218", "npm", "2.1.217")
   const started: string[] = []
   const results = executeTargetBumpSteps(
     steps,
@@ -89,13 +94,14 @@ test("target bump preparation stops dependent work after the first failure", () 
 })
 
 test("target bump summary renders a compact manual handoff", () => {
-  const steps = executeTargetBumpSteps(buildTargetBumpSteps("/repo", "2.1.218", "canonical").slice(0, 2), () => 0).map(
-    (step) => ({ ...step, durationMs: step.id === "stage" ? 1250 : 80 }),
-  )
+  const steps = executeTargetBumpSteps(
+    buildTargetBumpSteps("/repo", "2.1.218", "canonical", "2.1.217").slice(0, 2),
+    () => 0,
+  ).map((step) => ({ ...step, durationMs: step.id === "stage" ? 1250 : 80 }))
   const report: TargetBumpPreparationReport = {
     schema: 1,
     scope: "target-bump-preparation",
-    target: { version: "2.1.218", source: "canonical" },
+    target: { version: "2.1.218", previousVersion: "2.1.217", source: "canonical" },
     status: "manual-review-ready",
     steps,
     patchCarryover: null,

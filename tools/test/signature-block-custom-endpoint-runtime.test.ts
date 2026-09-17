@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test"
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
@@ -127,6 +127,8 @@ async function runClaudeUntilMessageRequest(
   const proc = Bun.spawn({
     cmd: [
       process.execPath,
+      "--preload",
+      resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"),
       bundle,
       "--print",
       "--bare",

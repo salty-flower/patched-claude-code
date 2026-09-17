@@ -147,6 +147,38 @@
       ]
     },
     {
+      "familyId": "anti-trace",
+      "invariantId": "require-local-opt-in-for-served-tool-text",
+      "introducedVersion": "2.1.273",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "anti-trace/require-local-opt-in-for-served-tool-text"
+      ]
+    },
+    {
+      "familyId": "anti-trace",
+      "invariantId": "require-local-opt-in-for-served-tool-text-list",
+      "introducedVersion": "2.1.273",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "anti-trace/require-local-opt-in-for-served-tool-text-list"
+      ]
+    },
+    {
       "familyId": "ask-user-question-unlimited",
       "invariantId": "ask-user-question-extended-description",
       "introducedVersion": "2.1.260",
@@ -2340,7 +2372,7 @@
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "salty-flower",
-    "approvedAt": "2026-09-11",
-    "catalogSha256": "45a4549df0f74132d055804e88a2267225308718328d9d0cd65e2e9c7054a130"
+    "approvedAt": "2026-09-17",
+    "catalogSha256": "a9713d96f449b0a8eb0412d396309069cf0e7761f209c5bc1ff5573ac295621c"
   }
 }

@@ -13,7 +13,7 @@ version.
 | Nix source | Tagged git tree containing the complete runtime payload, `prompts/catalog/`, and flake files |
 | Artifact | `patched-claude-code-<upstream-version>-patch.<n>.tar.gz`; optional non-Nix install path |
 | Bundle | `cli.js` plus every platform graph it dispatches to, at the release tag root and inside the artifact |
-| Runtime helpers | Prompt override, release integrity, and macOS Keychain helpers at the release tag root and inside the artifact |
+| Runtime helpers | CellSegmenter compatibility, prompt override, release integrity, and macOS Keychain helpers at the release tag root and inside the artifact |
 | Prompt catalog | Partial static audit catalog at `prompts/catalog/` on every release surface |
 | Release notes | Size-bounded `release-notes.md` plus complete bundle-bound `prompt-review.md` |
 | Runtime | Bun supplied by the consumer |

@@ -577,3 +577,179 @@ assert_contains = '''function*qre(){if(Bre.__acc_notice!==void 0){const __acc_no
 kind = "static"
 name = "2.1.268 linux-x64 effort retry notice drain no longer carries 2.1.267 symbols"
 assert_not_contains = '''function*Lne(){if(Ine.__acc_notice!==void 0){const __acc_notice=Ine.__acc_notice;delete Ine.__acc_notice;yield D5(__acc_notice,"warning")}'''
+
+[[patches]]
+name = "effort-reactive-capability-2-1-273-darwin-arm64"
+lineage = "effort-reactive-capability"
+platforms = ["darwin-arm64"]
+rationale = "Send the selected max/xhigh value rather than silently lowering it based on capability guesses, leaving the native rejection latch to disable later requests. The 2.1.273 normalizer is x in chunk-qqvjsfs3.js and now names its local n with the model argument o; the capability checks are nB (max_effort) and wV (xhigh_effort)."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''if(n==="max"&&!nB(o))n="high";if(n==="xhigh"&&!wV(o))n="high";'''
+replacement = '''/* effort capability is learned from backend rejection */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort capability is reactive on darwin-arm64"
+assert_contains = '''/* effort capability is learned from backend rejection */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort capability no longer carries 2.1.268 symbols"
+assert_not_contains = '''if(o==="max"&&!j1(n))o="high";if(o==="xhigh"&&!Ez(n))o="high";'''
+
+[[patches]]
+name = "effort-reactive-capability-2-1-273-linux-x64"
+lineage = "effort-reactive-capability"
+platforms = ["linux-x64"]
+rationale = "Send the selected max/xhigh value rather than silently lowering it based on capability guesses, leaving the native rejection latch to disable later requests. The 2.1.273 normalizer is x in chunk-nc4fc0sr.js and now names its local n with the model argument o; the capability checks are VU (max_effort) and fK (xhigh_effort)."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''if(n==="max"&&!VU(o))n="high";if(n==="xhigh"&&!fK(o))n="high";'''
+replacement = '''/* effort capability is learned from backend rejection */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort capability is reactive on linux-x64"
+assert_contains = '''/* effort capability is learned from backend rejection */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort capability no longer carries 2.1.268 symbols"
+assert_not_contains = '''if(o==="max"&&!OF(n))o="high";if(o==="xhigh"&&!fG(n))o="high";'''
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-273-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+platforms = ["darwin-arm64"]
+rationale = "Drain the queued effort rejection through the native warning consumer. The 2.1.273 recovery generator is O4e in chunk-nq62bgfy.js, the callback is E4e, and the native warning factory used by the same recovery block is aR; the native queue drain that follows the inserted prefix is preserved."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function*O4e(){'''
+replacement = '''function*O4e(){if(E4e.__acc_notice!==void 0){const __acc_notice=E4e.__acc_notice;delete E4e.__acc_notice;yield aR(__acc_notice,"warning")}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort retry notice drains on darwin-arm64"
+assert_contains = '''function*O4e(){if(E4e.__acc_notice!==void 0){const __acc_notice=E4e.__acc_notice;delete E4e.__acc_notice;yield aR(__acc_notice,"warning")}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort retry notice drain no longer carries 2.1.268 symbols"
+assert_not_contains = '''function*Wre(){if(Lre.__acc_notice!==void 0){const __acc_notice=Lre.__acc_notice;delete Lre.__acc_notice;yield w5(__acc_notice,"warning")}'''
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-273-linux-x64"
+lineage = "effort-retry-notice-drain"
+platforms = ["linux-x64"]
+rationale = "Drain the queued effort rejection through the native warning consumer. The 2.1.273 recovery generator is C6e in chunk-v4zgc4qd.js, the callback is i6e, and the native warning factory used by the same recovery block is oR; the native queue drain that follows the inserted prefix is preserved."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''function*C6e(){'''
+replacement = '''function*C6e(){if(i6e.__acc_notice!==void 0){const __acc_notice=i6e.__acc_notice;delete i6e.__acc_notice;yield oR(__acc_notice,"warning")}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort retry notice drains on linux-x64"
+assert_contains = '''function*C6e(){if(i6e.__acc_notice!==void 0){const __acc_notice=i6e.__acc_notice;delete i6e.__acc_notice;yield oR(__acc_notice,"warning")}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort retry notice drain no longer carries 2.1.268 symbols"
+assert_not_contains = '''function*qre(){if(Bre.__acc_notice!==void 0){const __acc_notice=Bre.__acc_notice;delete Bre.__acc_notice;yield f8(__acc_notice,"warning")}'''
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-273-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+platforms = ["darwin-arm64"]
+rationale = "Queue a visible notice when the existing unsupported-effort recovery latches the backend refusal. The 2.1.273 callback is E4e in chunk-nq62bgfy.js (renamed from 2.1.268 Lre), the classifier is dLe, the native latch is wSn, and the request options local is h rather than the 2.1.268 p."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''E4e=(Pr)=>{if(!dLe(Pr))return null;'''
+replacement = '''E4e=(Pr)=>{if(!dLe(Pr))return null;E4e.__acc_notice=`Model ${h.model} rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort retry notice is queued on darwin-arm64"
+assert_contains = '''E4e=(Pr)=>{if(!dLe(Pr))return null;E4e.__acc_notice=`Model ${h.model} rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 effort retry notice no longer carries 2.1.268 symbols"
+assert_not_contains = '''Lre=(jr)=>{if(!GLe(jr))return null;Lre.__acc_notice='''
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-273-linux-x64"
+lineage = "effort-retry-notice-queue"
+platforms = ["linux-x64"]
+rationale = "Queue a visible notice when the existing unsupported-effort recovery latches the backend refusal. The 2.1.273 callback is i6e in chunk-v4zgc4qd.js (renamed from 2.1.268 Bre), the classifier is iLe, the native latch is ebn, and the request options local is h rather than the 2.1.268 p."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''i6e=(Pr)=>{if(!iLe(Pr))return null;'''
+replacement = '''i6e=(Pr)=>{if(!iLe(Pr))return null;i6e.__acc_notice=`Model ${h.model} rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 effort retry notice is queued on linux-x64"
+assert_contains = '''i6e=(Pr)=>{if(!iLe(Pr))return null;i6e.__acc_notice=`Model ${h.model} rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.`;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 effort retry notice no longer carries 2.1.268 symbols"
+assert_not_contains = '''Bre=(jr)=>{if(!g$e(jr))return null;Bre.__acc_notice='''
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-273-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+platforms = ["darwin-arm64"]
+rationale = "Honor explicit capability declarations on every provider with normalized model identity. Authored against 2.1.273: resolver zre parameters e/n, first-party gate fl, and capability table Ure, all in chunk-g4c6ggz4.js. A configured slot effort default itself declares effort support and its corresponding max/xhigh capability; tier declarations apply after the two custom slots. Retire when upstream honors these declarations on firstParty."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''if(fl())return;for(let r of Ure)'''
+replacement = '''const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}for(const {modelEnvVar,capabilitiesEnvVar} of Ure){const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_norm(__acc_model)===__acc_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}for(let r of Ure)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 explicit capabilities are rendered on darwin-arm64"
+assert_contains = '''for(const {modelEnvVar,capabilitiesEnvVar} of Ure){const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_norm(__acc_model)===__acc_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}for(let r of Ure)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 darwin-arm64 explicit capabilities no longer carry 2.1.268 symbols"
+assert_not_contains = '''for(const {modelEnvVar,capabilitiesEnvVar} of jse)'''
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-273-linux-x64"
+lineage = "explicit-capabilities-first-party"
+platforms = ["linux-x64"]
+rationale = "Honor explicit capability declarations on every provider with normalized model identity. Authored against 2.1.273: resolver Nre parameters e/n, first-party gate pl, and capability table Dre, all in chunk-30p0nwys.js. A configured slot effort default itself declares effort support and its corresponding max/xhigh capability; tier declarations apply after the two custom slots. Retire when upstream honors these declarations on firstParty."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+locator_kind = "literal"
+locator_pattern = '''if(pl())return;for(let r of Dre)'''
+replacement = '''const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}for(const {modelEnvVar,capabilitiesEnvVar} of Dre){const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_norm(__acc_model)===__acc_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}for(let r of Dre)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 explicit capabilities are rendered on linux-x64"
+assert_contains = '''for(const {modelEnvVar,capabilitiesEnvVar} of Dre){const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_norm(__acc_model)===__acc_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}for(let r of Dre)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 linux-x64 explicit capabilities no longer carry 2.1.268 symbols"
+assert_not_contains = '''for(const {modelEnvVar,capabilitiesEnvVar} of Hse)'''

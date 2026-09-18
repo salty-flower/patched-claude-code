@@ -2,7 +2,8 @@ import { afterAll, afterEach, expect } from "bun:test"
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
-import { join, resolve } from "node:path"
+import { join } from "node:path"
+import { RUNTIME_PRELOAD_FILES } from "../lib/runtime-support"
 import { targetVersion } from "../lib/target"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
 import { writeGraphCredentialHarness } from "./helpers/keychain-graph-harness"
@@ -27,7 +28,7 @@ const RENDERED = existsSync(BUNDLE)
 if (process.env.PATCH_OBLIGATION_EVIDENCE_REQUIRED === "1" && (process.platform !== "darwin" || !RENDERED)) {
   throw new Error("macOS Keychain obligation evidence requires a rendered bundle on real macOS")
 }
-const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
+const RUNTIME_PRELOADS = RUNTIME_PRELOAD_FILES.map((file) => join(ROOT, file))
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
 // Keychain tests own their credential source. Explicit per-case overrides are
 // applied after this object when a test intentionally exercises env credentials.
@@ -344,15 +345,20 @@ function preparePluginEvalFixture(home: string): string {
   return pluginDir
 }
 
+function runtimePreloadArgs(): string[] {
+  return RUNTIME_PRELOADS.flatMap((path) => ["--preload", path])
+}
+
 async function runBundle(
   bundle: string,
   home: string,
   keychainPath: string | undefined,
   extraEnv: Record<string, string>,
   args: string[] = [],
+  timeoutMs = 90_000,
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   const subprocess = Bun.spawn({
-    cmd: [process.execPath, "--preload", PRELOAD, bundle, ...args],
+    cmd: [process.execPath, ...runtimePreloadArgs(), bundle, ...args],
     cwd: home,
     env: {
       ...process.env,
@@ -368,12 +374,17 @@ async function runBundle(
     stdout: "pipe",
     stderr: "pipe",
   })
-  const [exitCode, stdout, stderr] = await Promise.all([
-    subprocess.exited,
-    new Response(subprocess.stdout).text(),
-    new Response(subprocess.stderr).text(),
-  ])
-  return { exitCode, stdout, stderr }
+  const watchdog = setTimeout(() => subprocess.kill(), timeoutMs)
+  try {
+    const [exitCode, stdout, stderr] = await Promise.all([
+      subprocess.exited,
+      new Response(subprocess.stdout).text(),
+      new Response(subprocess.stderr).text(),
+    ])
+    return { exitCode, stdout, stderr }
+  } finally {
+    clearTimeout(watchdog)
+  }
 }
 
 function injectCredentialHarness(source: string): string {
@@ -446,24 +457,12 @@ keychainOracleTest(
     expect(`${stdout}\n${stderr}`).toContain("requires the packaged claude-patched launcher")
     expect(stdout).not.toContain('"loggedIn": true')
 
-    const preloaded = Bun.spawnSync({
-      cmd: [process.execPath, "--preload", PRELOAD, BUNDLE, "auth", "status", "--json"],
-      cwd: home,
-      env: {
-        ...process.env,
-        HOME: home,
-        CLAUDE_CONFIG_DIR: join(home, ".claude"),
-        CLAUDE_CODE_KEYCHAIN_PATH: missing,
-        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
-      },
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const preloaded = await runBundle(BUNDLE, home, missing, {}, ["auth", "status", "--json"], 20_000)
     expect(preloaded.exitCode).not.toBe(0)
-    expect(`${preloaded.stdout.toString()}\n${preloaded.stderr.toString()}`).toContain(
+    expect(`${preloaded.stdout}\n${preloaded.stderr}`).toContain(
       "Unable to access the Keychain requested by CLAUDE_CODE_KEYCHAIN_PATH",
     )
-    expect(preloaded.stdout.toString()).not.toContain('"loggedIn": true')
+    expect(preloaded.stdout).not.toContain('"loggedIn": true')
   },
   30_000,
 )
@@ -1041,20 +1040,7 @@ keychainOracleTest(
     )
 
     try {
-      const status = Bun.spawnSync({
-        cmd: [process.execPath, "--preload", PRELOAD, BUNDLE, "auth", "status", "--json"],
-        cwd: home,
-        env: {
-          ...process.env,
-          ...CLEARED_CALLER_AUTH_ENV,
-          HOME: home,
-          CLAUDE_CONFIG_DIR: configDir,
-          CLAUDE_CODE_KEYCHAIN_PATH: keychainPath,
-          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
-        },
-        stdout: "pipe",
-        stderr: "pipe",
-      })
+      const status = await runBundle(BUNDLE, home, keychainPath, {}, ["auth", "status", "--json"], 20_000)
       expect(status.exitCode).toBe(0)
       // 2.1.228 includes the first-party provider in the status shape while
       // retaining the public auth method label used by older targets.
@@ -1083,10 +1069,7 @@ keychainOracleTest(
         "CLAUDE_CODE_OAUTH_TOKEN",
         env,
         "bun",
-        "--preload",
-        shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
-        "--preload",
-        shellQuote(PRELOAD),
+        ...runtimePreloadArgs().map(shellQuote),
         shellQuote(BUNDLE),
         "--model",
         "sonnet",

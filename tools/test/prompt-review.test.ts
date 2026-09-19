@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
@@ -13,7 +13,7 @@ import {
   buildPromptIdentityDraft,
   finalizePromptIdentityDraft,
 } from "../lib/prompt-identity"
-import { renderPromptReviewMarkdown } from "../lib/prompt-review"
+import { materializePreviousPromptCatalog, renderPromptReviewMarkdown } from "../lib/prompt-review"
 import { sha256 } from "../lib/release-payload"
 
 const STATIC_PROMPT =
@@ -32,6 +32,24 @@ function writeManifest(root: string, manifest: PromptCatalogManifest): void {
       2,
     ),
   )
+}
+
+function runGit(root: string, ...args: string[]): void {
+  const result = Bun.spawnSync(["git", ...args], {
+    cwd: root,
+    env: {
+      ...process.env,
+      GIT_AUTHOR_NAME: "Prompt Review Test",
+      GIT_AUTHOR_EMAIL: "prompt-review@example.invalid",
+      GIT_COMMITTER_NAME: "Prompt Review Test",
+      GIT_COMMITTER_EMAIL: "prompt-review@example.invalid",
+    },
+    stdout: "pipe",
+    stderr: "pipe",
+  })
+  if (result.exitCode !== 0) {
+    throw new Error(`git ${args.join(" ")} failed: ${result.stderr.toString()}`)
+  }
 }
 
 test.each([false, true])("prompt review renders traced changes with historical ruleset=%s", (historicalRuleset) => {
@@ -59,11 +77,30 @@ test.each([false, true])("prompt review renders traced changes with historical r
       identityRoot,
     })
 
-    const draft = buildPromptIdentityDraft(
+    const intermediateDraft = buildPromptIdentityDraft(
       identityRoot,
       "2.1.218",
       "2.1.217",
-      inspectPromptIdentityObservations(currentSource, "2.1.218"),
+      inspectPromptIdentityObservations(previousSource, "2.1.218"),
+    )
+    const intermediateDecision = intermediateDraft.decisions[0]
+    if (!intermediateDecision) throw new Error("fixture intermediate draft did not contain a prompt")
+    intermediateDraft.decisions[0] = {
+      ...intermediateDecision,
+      relation: "carry",
+      lineageId: "prompt-000001",
+      predecessors: ["v2.1.217-0000"],
+      evidence: "unique-exact-observation",
+    }
+    const intermediateDraftPath = join(root, "intermediate.draft.json")
+    writeFileSync(intermediateDraftPath, `${JSON.stringify(intermediateDraft, null, 2)}\n`)
+    finalizePromptIdentityDraft(identityRoot, intermediateDraftPath)
+
+    const draft = buildPromptIdentityDraft(
+      identityRoot,
+      "2.1.219",
+      "2.1.218",
+      inspectPromptIdentityObservations(currentSource, "2.1.219"),
     )
     const firstDecision = draft.decisions[0]
     if (!firstDecision) throw new Error("fixture draft did not contain a prompt")
@@ -71,7 +108,7 @@ test.each([false, true])("prompt review renders traced changes with historical r
       ...firstDecision,
       relation: "carry",
       lineageId: "prompt-000001",
-      predecessors: ["v2.1.217-0000"],
+      predecessors: ["v2.1.218-0000"],
       evidence: "maintainer-rule",
       rationale: "The changed text remains the same documented prompt lineage.",
     }
@@ -81,7 +118,7 @@ test.each([false, true])("prompt review renders traced changes with historical r
 
     const currentCatalog = join(root, "current", "catalog")
     writePromptCatalog({
-      upstreamVersion: "2.1.218",
+      upstreamVersion: "2.1.219",
       releaseId: "patch.1",
       upstreamBundlePath: current,
       upstreamBundleSha256: sha256(readFileSync(current)).sri,
@@ -108,7 +145,7 @@ test.each([false, true])("prompt review renders traced changes with historical r
     const reviewOptions = {
       catalogDir: currentCatalog,
       identityRoot,
-      upstreamVersion: "2.1.218",
+      upstreamVersion: "2.1.219",
       previousCatalogDir: previousCatalog,
     }
     const result = renderPromptReviewMarkdown(reviewOptions)
@@ -135,7 +172,7 @@ test.each([false, true])("prompt review renders traced changes with historical r
 
       writeManifest(previousCatalog, {
         ...previousManifest,
-        target: { ...previousManifest.target, upstreamVersion: "2.1.216" },
+        target: { ...previousManifest.target, upstreamVersion: "2.1.219" },
       })
       expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("previous prompt catalog version mismatch")
 
@@ -145,6 +182,16 @@ test.each([false, true])("prompt review renders traced changes with historical r
       })
       expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("invalid prompt catalog manifest")
       writeManifest(previousCatalog, previousManifest)
+      expect(() =>
+        renderPromptReviewMarkdown({ ...reviewOptions, previousCatalogVersion: "2.1.216" }),
+      ).toThrow("expected 2.1.216 from its source tag")
+
+      writeManifest(previousCatalog, {
+        ...previousManifest,
+        identity: { ...previousManifest.identity, ledgerSha256: "sha256-mismatched-ledger" },
+      })
+      expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("previous prompt catalog identity mismatch")
+      writeManifest(previousCatalog, previousManifest)
 
       const contentPath = join(previousCatalog, previousManifest.entries[0]!.contentFile)
       writeFileSync(contentPath, "corrupted historical text")
@@ -152,6 +199,53 @@ test.each([false, true])("prompt review renders traced changes with historical r
       writeFileSync(contentPath, STATIC_PROMPT)
       writeFileSync(join(previousCatalog, "gaps.json"), "[]\n")
       expect(() => renderPromptReviewMarkdown(reviewOptions)).toThrow("prompt catalog gaps SHA-256 mismatch")
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test("previous prompt catalog materialization skips unpublished, catalog-less, and mistagged releases", () => {
+  const root = mkdtempSync(join(tmpdir(), "patched-cc-prompt-review-tags-"))
+  try {
+    const identityRoot = join(root, "prompt-identities")
+    const versionsRoot = join(identityRoot, "versions")
+    const catalogRoot = join(root, "prompts", "catalog")
+    mkdirSync(versionsRoot, { recursive: true })
+    mkdirSync(catalogRoot, { recursive: true })
+    runGit(root, "init", "--quiet")
+
+    writeFileSync(join(versionsRoot, "2.1.216.json"), "{}\n")
+    writeFileSync(join(catalogRoot, "manifest.json"), '{"target":{"upstreamVersion":"2.1.216"}}\n')
+    runGit(root, "add", ".")
+    runGit(root, "commit", "--quiet", "-m", "release 2.1.216 catalog")
+    runGit(root, "tag", "claude-code-2.1.216-patch.2")
+
+    rmSync(join(catalogRoot, "manifest.json"))
+    writeFileSync(join(versionsRoot, "2.1.217.json"), "{}\n")
+    runGit(root, "add", "--all")
+    runGit(root, "commit", "--quiet", "-m", "release 2.1.217 without catalog")
+    runGit(root, "tag", "claude-code-2.1.217-patch.1")
+
+    writeFileSync(join(catalogRoot, "manifest.json"), '{"target":{"upstreamVersion":"2.1.216"}}\n')
+    runGit(root, "add", ".")
+    runGit(root, "commit", "--quiet", "-m", "mistag 2.1.216 catalog as 2.1.217")
+    runGit(root, "tag", "claude-code-2.1.217-patch.2")
+
+    writeFileSync(join(versionsRoot, "2.1.218.json"), "{}\n")
+    runGit(root, "add", ".")
+    runGit(root, "commit", "--quiet", "-m", "finalize unreleased 2.1.218 ledger")
+
+    const materialized = materializePreviousPromptCatalog(root, identityRoot, "2.1.219")
+    expect(materialized).not.toBeNull()
+    if (!materialized) throw new Error("fixture did not materialize a previous catalog")
+    try {
+      expect(materialized.version).toBe("2.1.216")
+      expect(readFileSync(join(materialized.path, "manifest.json"), "utf8")).toBe(
+        '{"target":{"upstreamVersion":"2.1.216"}}\n',
+      )
+    } finally {
+      materialized.cleanup()
     }
   } finally {
     rmSync(root, { recursive: true, force: true })

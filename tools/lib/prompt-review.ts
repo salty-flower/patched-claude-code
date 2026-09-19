@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { compare, lt, valid } from "semver"
 import { captureChecked, runChecked } from "./process"
 import {
   type PromptCatalogEntry,
@@ -10,7 +11,11 @@ import {
   readPromptCatalogManifest,
   validateCatalogContents,
 } from "./prompt-catalog"
-import { type PromptOccurrenceDecision, readPromptIdentityLedger } from "./prompt-identity"
+import {
+  type PromptOccurrenceDecision,
+  type PromptOccurrenceLedger,
+  readPromptIdentityLedger,
+} from "./prompt-identity"
 import { latestPreviousLedgerVersion } from "./prompt-identity-bump"
 
 export type PromptReviewOptions = {
@@ -18,6 +23,7 @@ export type PromptReviewOptions = {
   identityRoot: string
   upstreamVersion: string
   previousCatalogDir?: string
+  previousCatalogVersion?: string
 }
 
 export type PromptReviewSummary = {
@@ -34,6 +40,12 @@ export type MaterializedPromptCatalog = {
   version: string
   path: string
   cleanup: () => void
+}
+
+type ReleaseTag = {
+  tag: string
+  version: string
+  patch: number
 }
 
 type CatalogItem = { kind: "entry"; value: PromptCatalogEntry; text: string } | { kind: "gap"; value: PromptCatalogGap }
@@ -75,28 +87,34 @@ export function renderPromptReviewMarkdown(options: PromptReviewOptions): {
   }
 
   const currentLedger = readPromptIdentityLedger(options.identityRoot, options.upstreamVersion)
-  const previousVersion = latestPreviousLedgerVersion(options.identityRoot, options.upstreamVersion)
-  const previousLedger = previousVersion ? readPromptIdentityLedger(options.identityRoot, previousVersion) : null
+  assertCatalogLedgerBinding("current", currentManifest, currentLedger)
   const currentItems = readCatalogItems(options.catalogDir, currentManifest)
   const previousCatalogPath = options.previousCatalogDir
-  const previousCatalog = previousCatalogPath ? readOptionalCatalog(previousCatalogPath, previousVersion) : null
+  const previousCatalog = previousCatalogPath
+    ? readOptionalCatalog(
+        previousCatalogPath,
+        options.upstreamVersion,
+        options.previousCatalogVersion,
+      )
+    : null
+  const previousVersion =
+    previousCatalog?.target.upstreamVersion ?? latestPreviousLedgerVersion(options.identityRoot, options.upstreamVersion)
+  const previousLedger = previousVersion ? readPromptIdentityLedger(options.identityRoot, previousVersion) : null
+  if (previousCatalog && previousLedger) {
+    assertCatalogLedgerBinding("previous", previousCatalog, previousLedger)
+  }
   const previousItems =
     previousCatalogPath && previousCatalog ? readCatalogItems(previousCatalogPath, previousCatalog) : new Map()
-  const previousByOccurrence = new Map(previousLedger?.occurrences.map((item) => [item.occurrenceId, item]) ?? [])
+  const previousByLineage = new Map(previousLedger?.occurrences.map((item) => [item.lineageId, item]) ?? [])
 
   const unchanged: string[] = []
   const changes: ReviewChange[] = []
   const additions: PromptOccurrenceDecision[] = []
   for (const decision of currentLedger.occurrences) {
-    if (decision.relation !== "carry" || previousLedger === null) {
+    const previousDecision = previousByLineage.get(decision.lineageId)
+    if (!previousDecision) {
       additions.push(decision)
       continue
-    }
-    const predecessorOccurrenceId = decision.predecessors[0]
-    if (!predecessorOccurrenceId) throw new Error(`carried prompt has no predecessor: ${decision.occurrenceId}`)
-    const previousDecision = previousByOccurrence.get(predecessorOccurrenceId)
-    if (!previousDecision) {
-      throw new Error(`prompt review predecessor missing: ${predecessorOccurrenceId}`)
     }
     if (reviewFingerprint(decision) === reviewFingerprint(previousDecision)) {
       unchanged.push(decision.lineageId)
@@ -108,7 +126,7 @@ export function renderPromptReviewMarkdown(options: PromptReviewOptions): {
       role: decision.roleHint,
       relation: decision.relation,
       currentOccurrenceId: decision.occurrenceId,
-      predecessorOccurrenceId,
+      predecessorOccurrenceId: previousDecision.occurrenceId,
       currentDecision: decision,
       previousDecision,
       currentItem: currentItems.get(decision.lineageId),
@@ -132,6 +150,22 @@ export function renderPromptReviewMarkdown(options: PromptReviewOptions): {
   }
 }
 
+function assertCatalogLedgerBinding(
+  label: "current" | "previous",
+  catalog: PromptCatalogManifest,
+  ledger: PromptOccurrenceLedger,
+): void {
+  if (
+    catalog.identity.ledgerSha256 !== ledger.ledgerSha256 ||
+    catalog.identity.lineageSetSha256 !== ledger.lineageSetSha256
+  ) {
+    throw new Error(
+      `${label} prompt catalog identity mismatch for ${ledger.upstreamVersion}: ` +
+        `catalog ledger ${catalog.identity.ledgerSha256}, checked-in ledger ${ledger.ledgerSha256}`,
+    )
+  }
+}
+
 function reviewFingerprint(decision: PromptOccurrenceDecision): string {
   return `${decision.classification}\0${decision.revisionSha256 ?? decision.detectorSha256}`
 }
@@ -141,13 +175,10 @@ export function materializePreviousPromptCatalog(
   identityRoot: string,
   upstreamVersion: string,
 ): MaterializedPromptCatalog | null {
-  const previousVersion = latestPreviousLedgerVersion(identityRoot, upstreamVersion)
-  if (!previousVersion) return null
-
   let tags: string[]
   try {
     tags = captureChecked(
-      ["git", "for-each-ref", "--format=%(refname:short)", `refs/tags/claude-code-${previousVersion}-patch.*`],
+      ["git", "for-each-ref", "--format=%(refname:short)", "refs/tags/claude-code-*-patch.*"],
       { cwd: root },
     )
       .split("\n")
@@ -156,15 +187,28 @@ export function materializePreviousPromptCatalog(
   } catch {
     return null
   }
-  const tag = tags.sort(comparePatchTags).at(-1)
-  if (!tag) return null
+
+  const candidates = tags
+    .map(parseReleaseTag)
+    .filter(
+      (candidate): candidate is ReleaseTag =>
+        candidate !== null &&
+        lt(candidate.version, upstreamVersion) &&
+        existsSync(join(identityRoot, "versions", `${candidate.version}.json`)),
+    )
+    .sort(compareReleaseTags)
+    .reverse()
+  const candidate = candidates.find(({ tag, version }) => taggedCatalogVersion(root, tag) === version)
+  if (!candidate) return null
 
   const tempRoot = mkdtempSync(join(tmpdir(), "patched-cc-prompt-review-"))
   const archive = join(tempRoot, "catalog.tar")
   const extractRoot = join(tempRoot, "extract")
   mkdirSync(extractRoot, { recursive: true })
   try {
-    runChecked(["git", "archive", "--format=tar", `--output=${archive}`, tag, "prompts/catalog"], { cwd: root })
+    runChecked(["git", "archive", "--format=tar", `--output=${archive}`, candidate.tag, "prompts/catalog"], {
+      cwd: root,
+    })
     runChecked(["tar", "-xf", archive, "-C", extractRoot], { cwd: root })
     const path = join(extractRoot, "prompts", "catalog")
     if (!existsSync(join(path, "manifest.json"))) {
@@ -172,7 +216,7 @@ export function materializePreviousPromptCatalog(
       return null
     }
     return {
-      version: previousVersion,
+      version: candidate.version,
       path,
       cleanup: () => rmSync(tempRoot, { recursive: true, force: true }),
     }
@@ -195,7 +239,7 @@ function renderMarkdown(
     "Generated from the patched bundle's version-bound prompt catalog and the checked-in identity ledger.",
     "",
     `- Candidates: **${summary.candidates}**`,
-    `- Previous ledger: **${summary.previousVersion ?? "baseline"}**`,
+    `- Previous released ledger: **${summary.previousVersion ?? "baseline"}**`,
     `- Unchanged: **${summary.unchanged}**`,
     `- Changed and traced: **${summary.changedAndTraced}**`,
     `- New or split: **${summary.newOrSplit}**`,
@@ -437,12 +481,22 @@ function readCatalogItems(root: string, manifest: PromptCatalogManifest): Map<st
   return items
 }
 
-function readOptionalCatalog(root: string, expectedVersion: string | null): PromptCatalogManifest | null {
-  if (!expectedVersion || !existsSync(join(root, "manifest.json"))) return null
+function readOptionalCatalog(
+  root: string,
+  currentVersion: string,
+  expectedVersion?: string,
+): PromptCatalogManifest | null {
+  if (!existsSync(join(root, "manifest.json"))) return null
   const manifest = readHistoricalPromptCatalogManifest(root)
-  if (manifest.target.upstreamVersion !== expectedVersion) {
+  const previousVersion = manifest.target.upstreamVersion
+  if (!valid(previousVersion) || !lt(previousVersion, currentVersion)) {
     throw new Error(
-      `previous prompt catalog version mismatch: expected ${expectedVersion}, got ${manifest.target.upstreamVersion}`,
+      `previous prompt catalog version mismatch: expected a release below ${currentVersion}, got ${previousVersion}`,
+    )
+  }
+  if (expectedVersion && previousVersion !== expectedVersion) {
+    throw new Error(
+      `previous prompt catalog version mismatch: expected ${expectedVersion} from its source tag, got ${previousVersion}`,
     )
   }
   validateCatalogContents(root, manifest)
@@ -477,10 +531,31 @@ function escapeHtmlLimited(value: string, limit: number): string {
   return escaped
 }
 
-function comparePatchTags(left: string, right: string): number {
-  const leftPatch = Number(left.match(/-patch\.(\d+)$/)?.[1] ?? 0)
-  const rightPatch = Number(right.match(/-patch\.(\d+)$/)?.[1] ?? 0)
-  return leftPatch - rightPatch || left.localeCompare(right)
+function taggedCatalogVersion(root: string, tag: string): string | null {
+  const result = Bun.spawnSync(["git", "show", `${tag}:prompts/catalog/manifest.json`], {
+    cwd: root,
+    stdout: "pipe",
+    stderr: "ignore",
+  })
+  if (!result.success) return null
+  try {
+    const parsed = JSON.parse(result.stdout.toString()) as { target?: { upstreamVersion?: unknown } }
+    return typeof parsed.target?.upstreamVersion === "string" ? parsed.target.upstreamVersion : null
+  } catch {
+    return null
+  }
+}
+
+function parseReleaseTag(tag: string): ReleaseTag | null {
+  const match = tag.match(/^claude-code-(\d+\.\d+\.\d+)-patch\.(\d+)$/)
+  if (!match?.[1] || !valid(match[1])) return null
+  const patch = Number.parseInt(match[2] ?? "", 10)
+  if (!Number.isSafeInteger(patch)) return null
+  return { tag, version: match[1], patch }
+}
+
+function compareReleaseTags(left: ReleaseTag, right: ReleaseTag): number {
+  return compare(left.version, right.version) || left.patch - right.patch || left.tag.localeCompare(right.tag)
 }
 
 function occurrenceVersion(occurrenceId: string): string {

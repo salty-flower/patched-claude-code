@@ -639,25 +639,53 @@ jobs:
         run: |
           set -euo pipefail
           version="$TARGET_VERSION"
-          previous_version="$(
+          version_is_lower() {
+            local candidate="$1"
+            local current="$2"
+            [[ "$candidate" != "$current" && "$(printf '%s\n%s\n' "$candidate" "$current" | sort -V | head -n1)" == "$candidate" ]]
+          }
+          previous_ledger="$(
             for path in prompt-identities/versions/*.json; do
-              basename "$path" .json
-            done | sort -V | awk -v current="$version" '$0 < current { previous=$0 } END { print previous }'
+              candidate_version="$(basename "$path" .json)"
+              if version_is_lower "$candidate_version" "$version"; then
+                printf '%s\n' "$candidate_version"
+              fi
+            done | sort -V | tail -n1
           )"
-          if [[ -z "$previous_version" ]]; then
-            echo "No lower prompt identity ledger for $version; prompt review will use baseline semantics."
-            exit 0
-          fi
-          tag="$(
-            git ls-remote --tags origin "refs/tags/claude-code-${previous_version}-patch.*" |
+          candidates="$(
+            git ls-remote --tags origin 'refs/tags/claude-code-*-patch.*' |
               awk 'index($2, "^{}") == 0 { sub("refs/tags/", "", $2); print $2 }' |
-              sort -V | tail -n1
+              while IFS= read -r candidate; do
+                candidate_version="${candidate#claude-code-}"
+                candidate_version="${candidate_version%-patch.*}"
+                [[ -f "prompt-identities/versions/${candidate_version}.json" ]] || continue
+                version_is_lower "$candidate_version" "$version" || continue
+                printf '%s\n' "$candidate"
+              done |
+              sort -Vr
           )"
+          tag=""
+          while IFS= read -r candidate; do
+            [[ -n "$candidate" ]] || continue
+            git fetch --no-tags origin "refs/tags/$candidate:refs/tags/$candidate"
+            candidate_version="${candidate#claude-code-}"
+            candidate_version="${candidate_version%-patch.*}"
+            if catalog_version="$(
+              git show "$candidate:prompts/catalog/manifest.json" 2>/dev/null |
+                jq -r '.target.upstreamVersion // empty'
+            )" && [[ "$catalog_version" == "$candidate_version" ]]; then
+              tag="$candidate"
+              break
+            fi
+          done <<< "$candidates"
           if [[ -z "$tag" ]]; then
-            echo "Previous prompt catalog source tag not found for $previous_version" >&2
+            if [[ -z "$previous_ledger" ]]; then
+              echo "No lower prompt identity ledger for $version; prompt review will use baseline semantics."
+              exit 0
+            fi
+            echo "No lower released prompt catalog source tag found below $version" >&2
             exit 1
           fi
-          git fetch --no-tags origin "refs/tags/$tag:refs/tags/$tag"
           echo "Fetched $tag for structured prompt review"
 
       - name: Run packaging audit

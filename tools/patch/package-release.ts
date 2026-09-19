@@ -96,6 +96,9 @@ function main(): number {
       identityRoot: join(ROOT, "prompt-identities"),
       upstreamVersion: version,
       ...(previousCatalog ? { previousCatalogDir: previousCatalog } : {}),
+      ...(materializedPreviousCatalog
+        ? { previousCatalogVersion: materializedPreviousCatalog.version }
+        : {}),
     })
     if (promptReviewResult.summary.previousVersion && !promptReviewResult.summary.previousCatalogAvailable) {
       throw new Error(

@@ -105,12 +105,15 @@ Outputs land in `dist/`:
 | `prompt-review.md` | Complete bundle-bound structured prompt review |
 
 Packaging derives the prompt-review section from the rendered bundle's catalog
-and the checked-in identity ledger. When a lower ledger exists, make its
-`claude-code-<version>-patch.<n>` source tag available locally so packaging can
-render traced side-by-side changes; packaging fails closed when that catalog
-is unavailable. The GitHub body keeps every changed lineage collapsible but
-clips very large diff rows; the complete unabridged review ships beside it as
-`prompt-review.md`.
+and the checked-in identity ledger. Make the newest lower published
+`claude-code-<version>-patch.<n>` source tag available locally when its upstream
+version has a committed identity ledger. Packaging compares stable lineages
+against that tag's catalog, even when a newer finalized ledger was never
+released; an unpublished intermediate ledger does not replace the released
+baseline. Packaging fails closed when lower ledgers exist but no lower published
+catalog is available. The GitHub body keeps every changed lineage collapsible
+but clips very large diff rows; the complete unabridged review ships beside it
+as `prompt-review.md`.
 
 `just release-source <version> patch.<n>` writes the Nix-native payload to the
 repo root and creates the matching minimal source tag. Manual release publish

@@ -69,12 +69,16 @@ MUST block release.
 
 Release notes MUST be generated from the patched bundle's prompt catalog and
 the checked-in identity ledger. They MUST include one inline unchanged list and
-collapsible side-by-side hunks for changed, traced lineages. When a lower
-identity ledger exists, CI and release workflows MUST fetch its newest source
-tag before packaging; a missing previous catalog MUST block the release.
-The GitHub release body MUST remain below the API's 125,000-character limit.
-Large diff rows MAY be clipped in that body only when the complete generated
-review is published as the `prompt-review.md` release asset.
+collapsible side-by-side hunks for changed, traced lineages. The comparison
+baseline MUST be the newest lower published source tag that contains a prompt
+catalog and whose upstream version has a committed identity ledger. A finalized
+but unpublished intermediate ledger MUST NOT supersede that released baseline.
+CI and release workflows MUST fetch the baseline source tag before packaging;
+when any lower identity ledger exists, failure to find a lower published catalog
+MUST block the release. The GitHub release body MUST remain below the API's
+125,000-character limit. Large diff rows MAY be clipped in that body only when
+the complete generated review is published as the `prompt-review.md` release
+asset.
 
 Every discovered prompt occurrence MUST have exactly one committed lineage
 decision in `prompt-identities/`. Missing, stale, ambiguous, duplicate, or

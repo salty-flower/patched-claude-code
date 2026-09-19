@@ -16,6 +16,24 @@ export function makeScriptCommand(command: string, inputCommand: string, outputP
   return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} ${output}`
 }
 
+export function withProcessGroupTimeout(command: string, seconds: number): string {
+  if (!Number.isSafeInteger(seconds) || seconds <= 0) {
+    throw new Error(`process-group timeout must be a positive integer, got ${seconds}`)
+  }
+  return [
+    "__pcc_timeout_group=$$",
+    `(sleep ${seconds}; kill -KILL -- -"$__pcc_timeout_group") &`,
+    "__pcc_timeout_watchdog=$!",
+    "trap 'kill \"$__pcc_timeout_watchdog\" 2>/dev/null || true' EXIT",
+    command,
+    "__pcc_timeout_status=$?",
+    'kill "$__pcc_timeout_watchdog" 2>/dev/null || true',
+    'wait "$__pcc_timeout_watchdog" 2>/dev/null || true',
+    "trap - EXIT",
+    'exit "$__pcc_timeout_status"',
+  ].join("\n")
+}
+
 export function timeoutCommand(seconds: number, killAfterSeconds = 5): string[] {
   return ["timeout", `--kill-after=${killAfterSeconds}s`, `${seconds}s`]
 }

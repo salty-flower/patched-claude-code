@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.273
+import{b}from"./chunk-mvpw0rjp.js";import{e}from"./chunk-437ab22y.js";import{Qt,Ne,T,d,kt,M}from"./chunk-ncc6kxz8.js";M();var c=Qt(null),i=Qt(null),u=Qt(null),k=()=>()=>{};function yqt(J){let a=b(12),{session:t,children:x}=J,q;if(a[0]!==t.project||a[1]!==t.subscribe)q=()=>({subscribe:t.subscribe,get:()=>t.project}),a[0]=t.project,a[1]=t.subscribe,a[2]=q;else q=a[2];let[H]=d(q),v;if(a[3]!==x||a[4]!==H)v=e(u.Provider,{value:H,children:x}),a[3]=x,a[4]=H,a[5]=v;else v=a[5];let j;if(a[6]!==t.host||a[7]!==v)j=e(i.Provider,{value:t.host,children:v}),a[6]=t.host,a[7]=v,a[8]=j;else j=a[8];let z;if(a[9]!==t||a[10]!==j)z=e(c.Provider,{value:t,children:j}),a[9]=t,a[10]=j,a[11]=z;else z=a[11];return z}function _qt(K){let E=b(8),{host:w,project:m,children:y}=K,A;if(E[0]!==m)A=()=>({subscribe:k,get:()=>m}),E[0]=m,E[1]=A;else A=E[1];let[N]=d(A),p;if(E[2]!==y||E[3]!==N)p=e(u.Provider,{value:N,children:y}),E[2]=y,E[3]=N,E[4]=p;else p=E[4];let B;if(E[5]!==w||E[6]!==p)B=e(i.Provider,{value:w,children:p}),E[5]=w,E[6]=p,E[7]=B;else B=E[7];return B}function ts(){let D=Ne(i);if(!D){throw ReferenceError("useHost cannot be called outside of a <SessionProvider /> or <HostProjectProvider />")}return D}function Ah(L){let R=Ne(u);if(!R){throw ReferenceError("useProject cannot be called outside of a <SessionProvider /> or <HostProjectProvider />")}return f(R,R.subscribe,R.get,L)}function I2(){return Ne(c)??void 0}function nr(O){let Q=b(2),l=Ne(c);if(!l){throw ReferenceError("useSession cannot be called outside of a <SessionProvider />")}let F;if(Q[0]!==l)F=()=>l,Q[0]=l,Q[1]=F;else F=Q[1];return f(l,l.subscribe,F,O)}function f(o,r,n,P){let s=T(null);if(s.current===null||s.current.owner!==o){let S={owner:o,read:n,selector:P,get:()=>{let g=S.read();return S.selector?S.selector(g):g}};s.current=S}s.current.read=n,s.current.selector=P;let h=s.current.get;return kt(r,h,h)}
+export{yqt,_qt,ts,Ah,I2,nr};

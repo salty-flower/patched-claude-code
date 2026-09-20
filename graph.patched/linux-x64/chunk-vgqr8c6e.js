@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.273
+import{S}from"./chunk-6qjhsn35.js";import{rl}from"./chunk-h7x15g9k.js";import{n}from"./chunk-g8n1e3fe.js";import{xt}from"./chunk-enjx468k.js";import{U,e,r}from"./chunk-437ab22y.js";import{jE,mc,nS,re,k,jr,dn,T,d,L}from"./chunk-cf8g1269.js";import{Yt}from"./chunk-bbmh8g33.js";L();function Ue(t,c,o={}){let{context:s="Global",isActive:a=!0}=o,u=rl(),[i]=d(()=>({handler:c}));dn(()=>{i.handler=c}),k(()=>{if(!u||!a)return;return u.registerHandler({action:t,context:s,handler:()=>i.handler(),singleKey:!0})},[t,s,u,a,i])}function st(t,c={}){let{context:o="Global",isActive:s=!0}=c,a=rl(),[u]=d(()=>({handlers:t})),i=Object.keys(t).sort().join("|");dn(()=>{u.handlers=t}),k(()=>{if(!a||!s)return;let f=Object.keys(u.handlers).map((l)=>a.registerHandler({action:l,context:o,handler:()=>u.handlers[l]?.(),singleKey:!0}));return()=>{for(let l of f)l()}},[o,i,a,s,u])}function MC(t,{isActive:c=!0}={}){let o=rl(),[s]=d(()=>({handler:t}));dn(()=>{s.handler=t}),k(()=>{if(!c||!o)return;return o.registerPreDispatch({handler:(a,u,i)=>s.handler(a,u,i)})},[c,o,s])}L();L();function P(w){return w!==""}function D(v,g){nS(v)?v.key??g:g;return r(U,{children:[g>0&&e(n,{dimColor:!0,children:" \xB7 "}),v]})}function ge(G){let x=S(5),{children:y}=G,p,b;if(x[0]!==y){b=Yt;bb0:{let R=jE.toArray(y).filter(P);if(R.length===0){b=null;break bb0}p=R.map(D)}x[0]=y,x[1]=p,x[2]=b}else p=x[1],b=x[2];if(b!==Yt)return b;let K;if(x[3]!==p)K=e(U,{children:p}),x[3]=p,x[4]=K;else K=x[4];return K}L();var E=800;function kM(t,c,o,s=E){let a=xt(),u=T(0),i=T(void 0),f=jr(()=>t(!1)),l=re(()=>{if(i.current)i.current(),i.current=void 0},[]);return k(()=>()=>{if(i.current)l(),f()},[l]),re(()=>{let m=Date.now();if(m-u.current<=s&&i.current!==void 0)l(),t(!1),c();else o?.(),t(!0),l(),i.current=a.setTimeout(()=>{t(!1),i.current=void 0},s);u.current=m},[t,c,o,l,a,s])}
+export{Ue,st,MC,ge,kM};

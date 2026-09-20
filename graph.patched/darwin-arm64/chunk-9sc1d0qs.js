@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.273
+import{b}from"./chunk-mvpw0rjp.js";import{ol}from"./chunk-kyz8fp2g.js";import{n}from"./chunk-cskdt2sa.js";import{xt}from"./chunk-x7b02cpq.js";import{U,e,r}from"./chunk-437ab22y.js";import{Gv,gc,ob,re,A,jr,dn,T,d,M}from"./chunk-ncc6kxz8.js";import{Yt}from"./chunk-y8wd7we8.js";M();function Be(t,c,o={}){let{context:s="Global",isActive:a=!0}=o,u=ol(),[i]=d(()=>({handler:c}));dn(()=>{i.handler=c}),A(()=>{if(!u||!a)return;return u.registerHandler({action:t,context:s,handler:()=>i.handler(),singleKey:!0})},[t,s,u,a,i])}function st(t,c={}){let{context:o="Global",isActive:s=!0}=c,a=ol(),[u]=d(()=>({handlers:t})),i=Object.keys(t).sort().join("|");dn(()=>{u.handlers=t}),A(()=>{if(!a||!s)return;let f=Object.keys(u.handlers).map((l)=>a.registerHandler({action:l,context:o,handler:()=>u.handlers[l]?.(),singleKey:!0}));return()=>{for(let l of f)l()}},[o,i,a,s,u])}function Nk(t,{isActive:c=!0}={}){let o=ol(),[s]=d(()=>({handler:t}));dn(()=>{s.handler=t}),A(()=>{if(!c||!o)return;return o.registerPreDispatch({handler:(a,u,i)=>s.handler(a,u,i)})},[c,o,s])}M();M();function P(G){return G!==""}function D(g,x){ob(g)?g.key??x:x;return r(U,{children:[x>0&&e(n,{dimColor:!0,children:" \xB7 "}),g]})}function ge(F){let R=b(5),{children:y}=F,p,v;if(R[0]!==y){v=Yt;bb0:{let k=Gv.toArray(y).filter(P);if(k.length===0){v=null;break bb0}p=k.map(D)}R[0]=y,R[1]=p,R[2]=v}else p=R[1],v=R[2];if(v!==Yt)return v;let K;if(R[3]!==p)K=e(U,{children:p}),R[3]=p,R[4]=K;else K=R[4];return K}M();var E=800;function ND(t,c,o,s=E){let a=xt(),u=T(0),i=T(void 0),f=jr(()=>t(!1)),l=re(()=>{if(i.current)i.current(),i.current=void 0},[]);return A(()=>()=>{if(i.current)l(),f()},[l]),re(()=>{let m=Date.now();if(m-u.current<=s&&i.current!==void 0)l(),t(!1),c();else o?.(),t(!0),l(),i.current=a.setTimeout(()=>{t(!1),i.current=void 0},s);u.current=m},[t,c,o,l,a,s])}
+export{Be,st,Nk,ge,ND};

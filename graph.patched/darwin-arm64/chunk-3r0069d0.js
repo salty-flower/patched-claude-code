@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.273
+import{ni}from"./chunk-qq9jq5dz.js";import{K}from"./chunk-057hcrqj.js";import{lp}from"./chunk-gyyhh83h.js";import{Tt}from"./chunk-g4c6ggz4.js";import{Gpe}from"./chunk-msanejrk.js";import{qre,jan,Wan,C9,a1t}from"./chunk-dcmsjx7t.js";import{writeFile as g}from"fs/promises";function a(t){return{skillId:t.id,name:t.name,description:t.description??"",source:t.source??"custom",updatedAt:t.updated_at??null,...typeof t.backing_plugin_id==="string"&&Gpe(t.backing_plugin_id)&&{backingPluginId:t.backing_plugin_id}}}function d(t){return t.enabled!==!1}var k=30000,m=300000,f=qre,S=16777216,c="/api/oauth/organizations/:orgUUID/skills/list-skills?include_wiggle_skills=true";async function znt(t={}){let n=await u(t);if(!n.success&&C9(n))return u(t);return n}async function u(t){let n=lp(),s=n?`${c}&entrypoint=${encodeURIComponent(n)}`:c;try{let e=await Tt.get(s,{auth:"teleport-org",isBackground:t.isBackground,timeout:k,maxContentLength:S,credentials:t.credentials});if(!e.ok||!Array.isArray(e.data?.skills))return jan("skills",e);return{success:!0,skills:e.data.skills.filter(d).map(a)}}catch(e){return Wan(e)}}async function Eyr(t,n,s,e={}){let l=lp(),o=[];if(l)o.push(`entrypoint=${encodeURIComponent(l)}`);if(s)o.push(`version=${encodeURIComponent(s)}`);let p=o.length>0?`?${o.join("&")}`:"";try{let r=await Tt.get(`/api/oauth/organizations/:orgUUID/skills/${encodeURIComponent(t)}/download${p}`,{auth:"teleport-org",isBackground:e.isBackground,timeout:m,responseType:"arraybuffer",maxContentLength:f,credentials:e.credentials});if(!r.ok||!r.data)return K("warn","skills_sync_download_not_ok",{reason:r.ok?"empty_body":r.reason}),!1;let i=Buffer.from(r.data);if(i.length<2||i[0]!==80||i[1]!==75)return K("warn","skills_sync_download_not_zip",{serverError:a1t(i),bodyLen:i.length}),!1;return await g(n,i),!0}catch(r){let{kind:i}=ni(r);return K("warn","skills_sync_download_exception",{kind:i}),!1}}
+export{znt,Eyr};

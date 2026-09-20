@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.273
+import{uQn,vA,dQn,dD,YB,X_,aie,T4,pD,f8e,fjr,BWt,pQn,mjr,gjr,fQn,W8r,mQn,gQn,hQn,yQn,KW,jWt,vyn,mFe,z8r,EVr,hjr}from"./chunk-w0wezkwh.js";import"./chunk-gyqjm99t.js";import"./chunk-057hcrqj.js";import"./chunk-rffpe63a.js";import"./chunk-aj022wxj.js";import"./chunk-jm8tf5gf.js";import"./chunk-83fmeatd.js";import"./chunk-06f6mv83.js";import"./chunk-686wm7s6.js";import"./chunk-033exrv9.js";import"./chunk-nemb0v5p.js";import"./chunk-n21rqdv9.js";import"./chunk-4akrhkry.js";import"./chunk-jxv3x25k.js";import"./chunk-1cx6bcw0.js";import"./chunk-wkhfcbsj.js";import"./chunk-tq3ft6e6.js";import"./chunk-vzm3bfp5.js";import"./chunk-qmm87fyw.js";import"./chunk-pfxvy4ay.js";import"./chunk-sgamszzq.js";import"./chunk-n93bke93.js";import"./chunk-k6smmjsm.js";import"./chunk-qq9jq5dz.js";import"./chunk-7greh2d8.js";import"./chunk-67jj8qay.js";import"./chunk-jxdnn2j1.js";import"./chunk-vx7e38ke.js";import"./chunk-q2h0fawe.js";export{f8e as CONVENTIONAL_DEFAULT_BRANCH_NAMES,fQn as addWatchedRepo,uQn as clearResolveGitDirCache,fjr as getCachedBranch,hQn as getCachedBranchForRepo,mjr as getCachedDefaultBranch,gjr as getCachedDefaultBranchIfKnown,BWt as getCachedHead,pQn as getCachedRemoteUrl,pD as getCommonDir,jWt as getHeadForDir,mFe as getRemoteUrlForDir,z8r as getRemoteUrlForDirSync,hjr as getWorktreeCountFromFs,EVr as isShallowClone,aie as isValidGitSha,mQn as onRepoBranchChange,gQn as onWatchedGitStateChange,dD as pointerFileIsSuspect,X_ as rawPointerPathIsUnsafe,dQn as readLinkTextSafe,YB as readPositionIsUnsafe,vyn as readWorktreeHeadSha,KW as reanchorGitFileWatcher,W8r as removeWatchedRepo,yQn as resetGitFileWatcher,vA as resolveGitDir,T4 as resolveRef};

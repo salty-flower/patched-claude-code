@@ -1,0 +1,866 @@
+{
+  "schema": 2,
+  "targetVersion": "2.1.273",
+  "sourceCommit": "46b704c23ffc355610140dc972296bf8556b4efe",
+  "platform": "darwin-arm64",
+  "upstreamEntrypointSha256": "82a9b7dbd7478337f288c50cbfbd45970a8e583865943df9aee5f227d7f4e264",
+  "patchedEntrypointSha256": "7f0d9a47ca3cf335603b92008a1260bb03fc7e476d8cae81143381c7221bd989",
+  "selectedPatchEntries": [
+    "agent-effective-effort-2-1-273-darwin-arm64",
+    "agent-effort-layer-marker",
+    "agent-effort-request-context",
+    "agent-effort-resolver-priority",
+    "agent-model-and-effort-schema-2-1-273-darwin-arm64",
+    "agent-model-description-custom-id",
+    "agent-ordinary-effort-2-1-273-darwin-arm64",
+    "agent-prompt-call-overrides",
+    "agent-prompt-fork-overrides",
+    "agent-teammate-effort",
+    "append-second-custom-model-option-2-1-273-darwin",
+    "ask-user-question-extended-description",
+    "ask-user-question-remove-extended-question-cap",
+    "ask-user-question-remove-standard-question-cap",
+    "ask-user-question-standard-host-description",
+    "ask-user-question-standard-sdk-description",
+    "ask-user-question-tool-description",
+    "ask-user-question-tool-prompt",
+    "channels-feature-gate",
+    "channels-provider-gate",
+    "coordinator-agent-effort-guidance",
+    "coordinator-agent-override-guidance",
+    "disable-default-base-url-guard",
+    "disable-raw-api-body-otel-2-1-273-darwin",
+    "effort-effective-suffix-2-1-273-darwin-arm64",
+    "effort-launch-pin-2-1-273-darwin-arm64",
+    "effort-model-state-selector-2-1-273-darwin-arm64",
+    "effort-reactive-capability-2-1-273-darwin-arm64",
+    "effort-retry-notice-drain-2-1-273-darwin-arm64",
+    "effort-retry-notice-queue-2-1-273-darwin-arm64",
+    "effort-session-owner-2-1-273-darwin-arm64",
+    "effort-session-resolver-2-1-273-darwin-arm64",
+    "explicit-capabilities-first-party-2-1-273-darwin-arm64",
+    "explicit-macos-keychain-disable-default-prefetch-2-1-273",
+    "explicit-macos-keychain-doctor-probe-2-1-273",
+    "explicit-macos-keychain-entrypoint-guard-2-1-273",
+    "explicit-macos-keychain-legacy-api-key-async-read-2-1-273",
+    "explicit-macos-keychain-legacy-api-key-delete-2-1-273",
+    "explicit-macos-keychain-legacy-api-key-sync-read-2-1-273",
+    "explicit-macos-keychain-legacy-api-key-write-2-1-273",
+    "explicit-macos-keychain-plugin-eval-2-1-273",
+    "explicit-macos-keychain-propagate-legacy-delete-failures-2-1-273",
+    "explicit-macos-keychain-propagate-write-failures-2-1-273",
+    "explicit-macos-keychain-session-store-resume-2-1-273",
+    "explicit-macos-keychain-storage-bridge-2-1-273",
+    "inject-per-model-into-beta-count-tokens-2-1-258",
+    "inject-per-model-into-beta-create-2-1-258",
+    "inject-per-model-into-nonbeta-count-tokens-2-1-258",
+    "inject-per-model-into-nonbeta-create-2-1-258",
+    "later-command-submit-hook-2-1-273-darwin",
+    "later-command-suggestion-metadata-2-1-273-darwin",
+    "model-effort-command-darwin-arm64-2-1-273",
+    "model-effort-current-darwin-arm64-2-1-273",
+    "model-effort-inline-echo-darwin-arm64-2-1-273",
+    "model-effort-model-echo-darwin-arm64-2-1-273",
+    "model-effort-model-import-darwin-arm64-2-1-273",
+    "model-effort-model-no-persist-darwin-arm64-2-1-273",
+    "model-effort-model-state-darwin-arm64-2-1-273",
+    "model-effort-picker-arrows-darwin-arm64-2-1-273",
+    "model-effort-picker-cli-hint-darwin-arm64-2-1-273",
+    "model-effort-picker-display-darwin-arm64-2-1-273",
+    "model-effort-picker-focus-darwin-arm64-2-1-273",
+    "model-effort-picker-import-darwin-arm64-2-1-273",
+    "model-effort-picker-select-darwin-arm64-2-1-273",
+    "model-effort-picker-source-darwin-arm64-2-1-273",
+    "model-effort-slider-guard-darwin-arm64-2-1-273",
+    "model-effort-slider-import-darwin-arm64-2-1-273",
+    "model-effort-slider-initial-darwin-arm64-2-1-273",
+    "model-effort-slider-scope-darwin-arm64-2-1-273",
+    "model-effort-slider-workflow-darwin-arm64-2-1-273",
+    "neutralize-project-thread-author-marker-2-1-273",
+    "oauth-primary-picker-shows-local-fable-2-1-273-darwin",
+    "oauth-standard-picker-shows-local-fable-2-1-273-darwin",
+    "read-result-path-context",
+    "recognize-second-custom-model-option-2-1-273",
+    "require-explicit-assistant-response-otel-2-1-273-darwin",
+    "require-local-opt-in-for-served-tool-text-2-1-273-darwin",
+    "require-local-opt-in-for-served-tool-text-list-2-1-273-darwin",
+    "resolve-model-specific-context-window-2-1-246",
+    "statusline-footer-control-cli-option-2-1-273",
+    "statusline-footer-control-clipboard-image-hint-2-1-273",
+    "statusline-footer-control-clipboard-image-hint-context-2-1-273",
+    "statusline-footer-control-command-length-mount-2-1-273",
+    "statusline-footer-control-command-length-update-2-1-233",
+    "statusline-footer-control-effort-level-2-1-273",
+    "statusline-footer-control-effort-notification-2-1-273",
+    "statusline-footer-control-effort-notification-settings-2-1-273",
+    "statusline-footer-control-mode-hint-2-1-273",
+    "statusline-footer-control-mode-hint-narrow-2-1-273",
+    "statusline-footer-control-rate-limit-warning-2-1-273",
+    "statusline-footer-control-rate-limit-warning-deps-2-1-273",
+    "statusline-footer-control-render-2-1-273",
+    "statusline-footer-control-render-state-2-1-273",
+    "statusline-footer-control-schema-2-1-273-darwin",
+    "statusline-json-effort-level-2-1-273",
+    "statusline-json-permission-mode-2-1-273",
+    "subagent-preserve-tool-results",
+    "system-prompt-section-override-bridge-2-1-220",
+    "teammate-in-process-effort-config",
+    "teammate-in-process-effort-definition-2-1-273",
+    "teammate-process-effort-flag",
+    "thinking-clear-live-on-interrupt-2-1-250",
+    "thinking-render-live-complete",
+    "thinking-render-live-delta-2-1-273-darwin",
+    "thinking-render-live-output-2-1-273-darwin",
+    "thinking-render-live-row-2-1-273-darwin",
+    "thinking-render-live-row-cache-allocation-2-1-273-darwin",
+    "transcript-preserve-repl-history",
+    "validate-second-custom-model-option-without-probe-2-1-273"
+  ],
+  "executedOracleIds": [
+    "anti-trace/disable-raw-api-body-otel",
+    "anti-trace/neutralize-project-thread-author-marker",
+    "anti-trace/require-explicit-assistant-response-otel",
+    "anti-trace/require-local-opt-in-for-served-tool-text",
+    "anti-trace/require-local-opt-in-for-served-tool-text-list",
+    "ask-user-question-unlimited/ask-user-question-extended-description",
+    "ask-user-question-unlimited/ask-user-question-remove-extended-question-cap",
+    "ask-user-question-unlimited/ask-user-question-remove-standard-question-cap",
+    "ask-user-question-unlimited/ask-user-question-standard-host-description",
+    "ask-user-question-unlimited/ask-user-question-standard-sdk-description",
+    "ask-user-question-unlimited/ask-user-question-tool-description",
+    "ask-user-question-unlimited/ask-user-question-tool-prompt",
+    "ask-user-question-unlimited/unbounded-coherent-question-batch",
+    "channel-access/channels-feature-gate",
+    "channel-access/channels-provider-gate",
+    "custom-model-slots/append-second-custom-model-option",
+    "custom-model-slots/custom-model-slot-applied-effort",
+    "custom-model-slots/custom-model-slot-default-effort",
+    "custom-model-slots/recognize-second-custom-model-option",
+    "custom-model-slots/validate-second-custom-model-option-without-probe",
+    "explicit-macos-keychain/explicit-macos-keychain-disable-default-prefetch",
+    "explicit-macos-keychain/explicit-macos-keychain-doctor-probe",
+    "explicit-macos-keychain/explicit-macos-keychain-entrypoint-guard",
+    "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-async-read",
+    "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-delete",
+    "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-sync-read",
+    "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-write",
+    "explicit-macos-keychain/explicit-macos-keychain-plugin-eval",
+    "explicit-macos-keychain/explicit-macos-keychain-plugin-eval-child",
+    "explicit-macos-keychain/explicit-macos-keychain-propagate-legacy-delete-failures",
+    "explicit-macos-keychain/explicit-macos-keychain-propagate-write-failures",
+    "explicit-macos-keychain/explicit-macos-keychain-session-store-resume",
+    "explicit-macos-keychain/explicit-macos-keychain-storage-bridge",
+    "fable-model-picker/oauth-primary-picker-shows-local-fable",
+    "fable-model-picker/oauth-standard-picker-shows-local-fable",
+    "file-read-path-context/read-result-path-context",
+    "later-command/later-command-submit-hook",
+    "later-command/later-command-suggestion-metadata",
+    "per-model-context-window/resolve-model-specific-context-window",
+    "per-model-endpoint/disable-default-base-url-guard",
+    "per-model-endpoint/inject-per-model-into-beta-count-tokens",
+    "per-model-endpoint/inject-per-model-into-beta-create",
+    "per-model-endpoint/inject-per-model-into-nonbeta-count-tokens",
+    "per-model-endpoint/inject-per-model-into-nonbeta-create",
+    "statusline-footer-control/statusline-footer-control-cli-option",
+    "statusline-footer-control/statusline-footer-control-clipboard-image-hint",
+    "statusline-footer-control/statusline-footer-control-clipboard-image-hint-context",
+    "statusline-footer-control/statusline-footer-control-command-length-mount",
+    "statusline-footer-control/statusline-footer-control-command-length-update",
+    "statusline-footer-control/statusline-footer-control-effort-level",
+    "statusline-footer-control/statusline-footer-control-effort-notification",
+    "statusline-footer-control/statusline-footer-control-mode-hint",
+    "statusline-footer-control/statusline-footer-control-mode-hint-narrow",
+    "statusline-footer-control/statusline-footer-control-rate-limit-warning",
+    "statusline-footer-control/statusline-footer-control-rate-limit-warning-deps",
+    "statusline-footer-control/statusline-footer-control-render",
+    "statusline-footer-control/statusline-footer-control-render-state",
+    "statusline-footer-control/statusline-footer-control-schema",
+    "statusline-footer-control/statusline-json-effort-level",
+    "statusline-footer-control/statusline-json-permission-mode",
+    "subagent-preserve-tool-results/subagent-preserve-tool-results",
+    "system-prompt-section-overrides/system-prompt-section-override-bridge",
+    "thinking-display/thinking-clear-live-on-interrupt",
+    "thinking-display/thinking-render-live-complete",
+    "thinking-display/thinking-render-live-delta",
+    "thinking-display/thinking-render-live-output",
+    "thinking-display/thinking-render-live-row",
+    "transcript-preserve-repl-history/transcript-preserve-repl-history"
+  ],
+  "oracleResults": [
+    {
+      "oracleId": "anti-trace/disable-raw-api-body-otel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: disable-raw-api-body-otel-2-1-273-darwin: static: 2.1.273 Darwin raw API body logging is disabled",
+        "run-patch-tests.ts: disable-raw-api-body-otel-2-1-273-darwin: static: 2.1.273 Darwin raw-body gate no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/neutralize-project-thread-author-marker",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: neutralize-project-thread-author-marker-2-1-273: static: 2.1.273 project thread marker no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: neutralize-project-thread-author-marker-2-1-273: static: 2.1.273 project thread marker omits the current author role and account id encoder",
+        "run-patch-tests.ts: neutralize-project-thread-author-marker-2-1-273: static: 2.1.273 project thread markers use a neutral author label"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-explicit-assistant-response-otel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-explicit-assistant-response-otel-2-1-273-darwin: static: 2.1.273 Darwin assistant response logging requires explicit opt-in",
+        "run-patch-tests.ts: require-explicit-assistant-response-otel-2-1-273-darwin: static: 2.1.273 Darwin assistant-response gate no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-local-opt-in-for-served-tool-text",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-2-1-273-darwin: static: 2.1.273 Darwin served tool text no longer reads the pinned key unguarded",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-2-1-273-darwin: static: 2.1.273 Darwin served tool text requires the local opt-in"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-local-opt-in-for-served-tool-text-list",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-list-2-1-273-darwin: static: 2.1.273 Darwin served tool text list no longer reads the pinned key unguarded",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-list-2-1-273-darwin: static: 2.1.273 Darwin served tool text list requires the local opt-in"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-extended-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-extended-description: static: extended description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-remove-extended-question-cap",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-remove-extended-question-cap: static: extended question array has no fixed maximum"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-remove-standard-question-cap",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-remove-standard-question-cap: static: standard question array has no fixed maximum"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-standard-host-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-standard-host-description: static: standard host description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-standard-sdk-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-standard-sdk-description: static: standard SDK description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-tool-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-tool-description: static: tool description states the unbounded contract"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-tool-prompt",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-tool-prompt: static: tool prompt encourages coherent unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/unbounded-coherent-question-batch",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "ask-user-question-tui-smoke.ts: rendered and submitted six questions"
+      ]
+    },
+    {
+      "oracleId": "channel-access/channels-feature-gate",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: channels-feature-gate: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "channel-access/channels-provider-gate",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: channels-provider-gate: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/append-second-custom-model-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: append-second-custom-model-option-2-1-273-darwin: static: 2.1.273 Darwin picker inserts second custom slot",
+        "run-patch-tests.ts: append-second-custom-model-option-2-1-273-darwin: static: 2.1.273 Darwin picker no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-applied-effort",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: agent-effective-effort-2-1-273-darwin-arm64: static: 2.1.273 Darwin Agent effort mirrors coordinator model suppression",
+        "run-patch-tests.ts: agent-effective-effort-2-1-273-darwin-arm64: static: 2.1.273 Darwin Agent effort no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: agent-effort-layer-marker: static: runAgent marks only its definition effort layer",
+        "run-patch-tests.ts: agent-effort-request-context: static: query options distinguish explicit agent effort",
+        "run-patch-tests.ts: agent-effort-resolver-priority: static: API effort resolution prioritizes the captured explicit agent effort",
+        "run-patch-tests.ts: agent-model-and-effort-schema-2-1-273-darwin-arm64: static: 2.1.273 Darwin Agent schema accepts custom models and effort",
+        "run-patch-tests.ts: agent-model-and-effort-schema-2-1-273-darwin-arm64: static: 2.1.273 Darwin Agent schema no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: agent-model-description-custom-id: static: Agent model description advertises full custom IDs",
+        "run-patch-tests.ts: agent-ordinary-effort-2-1-273-darwin-arm64: static: 2.1.273 Darwin ordinary agent effort no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: agent-ordinary-effort-2-1-273-darwin-arm64: static: 2.1.273 Darwin ordinary agents apply tool effort without changing forks",
+        "run-patch-tests.ts: agent-prompt-call-overrides: static: Agent usage prompt advertises per-call model and effort",
+        "run-patch-tests.ts: agent-prompt-fork-overrides: static: fork prompt rejects both per-call overrides",
+        "run-patch-tests.ts: agent-teammate-effort: static: named teammates receive tool or frontmatter effort",
+        "run-patch-tests.ts: coordinator-agent-effort-guidance: static: ordinary coordinator prompt advertises per-call effort",
+        "run-patch-tests.ts: coordinator-agent-override-guidance: static: coordinator prompt distinguishes model and effort force behavior",
+        "run-patch-tests.ts: effort-launch-pin-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort launch pin no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-launch-pin-2-1-273-darwin-arm64: static: 2.1.273 effort launch pin is active on darwin-arm64",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort model-state selector is active",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort model-state selector no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-reactive-capability-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort capability no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-reactive-capability-2-1-273-darwin-arm64: static: 2.1.273 effort capability is reactive on darwin-arm64",
+        "run-patch-tests.ts: effort-retry-notice-drain-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort retry notice drain no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-retry-notice-drain-2-1-273-darwin-arm64: static: 2.1.273 effort retry notice drains on darwin-arm64",
+        "run-patch-tests.ts: effort-retry-notice-queue-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort retry notice no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-retry-notice-queue-2-1-273-darwin-arm64: static: 2.1.273 effort retry notice is queued on darwin-arm64",
+        "run-patch-tests.ts: effort-session-owner-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort session owner no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-session-owner-2-1-273-darwin-arm64: static: 2.1.273 effort session owner is active on darwin-arm64",
+        "run-patch-tests.ts: effort-session-resolver-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort session resolver no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-session-resolver-2-1-273-darwin-arm64: static: 2.1.273 effort session resolver is active on darwin-arm64",
+        "run-patch-tests.ts: explicit-capabilities-first-party-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 explicit capabilities no longer carry 2.1.268 symbols",
+        "run-patch-tests.ts: explicit-capabilities-first-party-2-1-273-darwin-arm64: static: 2.1.273 explicit capabilities are rendered on darwin-arm64",
+        "run-patch-tests.ts: teammate-in-process-effort-config: static: in-process teammate runner receives effort",
+        "run-patch-tests.ts: teammate-in-process-effort-definition-2-1-273: static: 2.1.273 in-process teammate definition applies runner-config effort",
+        "run-patch-tests.ts: teammate-process-effort-flag: static: both teammate process launchers append explicit effort"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-default-effort",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: effort-effective-suffix-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effective effort suffix is active",
+        "run-patch-tests.ts: effort-effective-suffix-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effective effort suffix no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-launch-pin-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort launch pin no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-launch-pin-2-1-273-darwin-arm64: static: 2.1.273 effort launch pin is active on darwin-arm64",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort model-state selector is active",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort model-state selector no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-session-owner-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort session owner no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-session-owner-2-1-273-darwin-arm64: static: 2.1.273 effort session owner is active on darwin-arm64",
+        "run-patch-tests.ts: effort-session-resolver-2-1-273-darwin-arm64: static: 2.1.273 darwin-arm64 effort session resolver no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: effort-session-resolver-2-1-273-darwin-arm64: static: 2.1.273 effort session resolver is active on darwin-arm64",
+        "run-patch-tests.ts: model-effort-command-darwin-arm64-2-1-273: static: 2.1.273 darwin effort command is active",
+        "run-patch-tests.ts: model-effort-command-darwin-arm64-2-1-273: static: 2.1.273 darwin effort command no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-current-darwin-arm64-2-1-273: static: 2.1.273 darwin effort current is active",
+        "run-patch-tests.ts: model-effort-current-darwin-arm64-2-1-273: static: 2.1.273 darwin effort current no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-inline-echo-darwin-arm64-2-1-273: static: 2.1.273 darwin inline model effort echo is active",
+        "run-patch-tests.ts: model-effort-inline-echo-darwin-arm64-2-1-273: static: 2.1.273 darwin inline model effort echo no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-model-echo-darwin-arm64-2-1-273: static: 2.1.273 darwin model effort echo is active",
+        "run-patch-tests.ts: model-effort-model-echo-darwin-arm64-2-1-273: static: 2.1.273 darwin model effort echo no longer carries 2.1.268 payload binding",
+        "run-patch-tests.ts: model-effort-model-import-darwin-arm64-2-1-273: static: 2.1.273 darwin model-command resolver import is active",
+        "run-patch-tests.ts: model-effort-model-import-darwin-arm64-2-1-273: static: 2.1.273 darwin model-command resolver import no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-model-no-persist-darwin-arm64-2-1-273: static: 2.1.273 darwin model confirmation effort persistence is disabled",
+        "run-patch-tests.ts: model-effort-model-no-persist-darwin-arm64-2-1-273: static: 2.1.273 darwin model confirmation no longer carries 2.1.268 persistence symbols",
+        "run-patch-tests.ts: model-effort-model-state-darwin-arm64-2-1-273: static: 2.1.273 darwin model switch state is active",
+        "run-patch-tests.ts: model-effort-model-state-darwin-arm64-2-1-273: static: 2.1.273 darwin model switch state no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-arrows-darwin-arm64-2-1-273: static: 2.1.273 Darwin picker arrows no longer carry 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-arrows-darwin-arm64-2-1-273: static: model-effort-picker-arrows-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-picker-cli-hint-darwin-arm64-2-1-273: static: 2.1.273 Darwin picker CLI hint no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-cli-hint-darwin-arm64-2-1-273: static: model-effort-picker-cli-hint-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-picker-display-darwin-arm64-2-1-273: static: 2.1.273 Darwin picker display no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-display-darwin-arm64-2-1-273: static: model-effort-picker-display-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-picker-focus-darwin-arm64-2-1-273: static: 2.1.273 Darwin picker focus no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-focus-darwin-arm64-2-1-273: static: model-effort-picker-focus-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-picker-import-darwin-arm64-2-1-273: static: 2.1.273 Darwin picker resolver import no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-import-darwin-arm64-2-1-273: static: model-effort-picker-import-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-picker-select-darwin-arm64-2-1-273: static: 2.1.273 Darwin picker select no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-select-darwin-arm64-2-1-273: static: model-effort-picker-select-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-picker-source-darwin-arm64-2-1-273: static: 2.1.273 Darwin picker source no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-picker-source-darwin-arm64-2-1-273: static: model-effort-picker-source-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-slider-guard-darwin-arm64-2-1-273: static: 2.1.273 Darwin slider guard no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-slider-guard-darwin-arm64-2-1-273: static: model-effort-slider-guard-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-slider-import-darwin-arm64-2-1-273: static: 2.1.273 Darwin slider resolver import no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-slider-import-darwin-arm64-2-1-273: static: model-effort-slider-import-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-slider-initial-darwin-arm64-2-1-273: static: 2.1.273 Darwin slider initial index no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-slider-initial-darwin-arm64-2-1-273: static: model-effort-slider-initial-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-slider-scope-darwin-arm64-2-1-273: static: 2.1.273 Darwin slider scope no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-slider-scope-darwin-arm64-2-1-273: static: model-effort-slider-scope-darwin-arm64-2-1-273 renders",
+        "run-patch-tests.ts: model-effort-slider-workflow-darwin-arm64-2-1-273: static: 2.1.273 Darwin slider workflow no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: model-effort-slider-workflow-darwin-arm64-2-1-273: static: model-effort-slider-workflow-darwin-arm64-2-1-273 renders"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/recognize-second-custom-model-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: recognize-second-custom-model-option-2-1-273: static: 2.1.273 recognition no longer carries 2.1.268 Linux helper symbols",
+        "run-patch-tests.ts: recognize-second-custom-model-option-2-1-273: static: 2.1.273 second custom model is recognized"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/validate-second-custom-model-option-without-probe",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: validate-second-custom-model-option-without-probe-2-1-273: static: 2.1.273 prevalidation no longer carries 2.1.267 symbols",
+        "run-patch-tests.ts: validate-second-custom-model-option-without-probe-2-1-273: static: 2.1.273 second custom model is prevalidated"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-disable-default-prefetch",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: native default-Keychain prefetch runs only without explicit or materialized selection"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-doctor-probe",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: materialized mode rejects default-Keychain legacy mutations and doctor probes",
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 doctor probe never touches the default Keychain"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-entrypoint-guard",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: raw and preloaded bundles fail closed before credential lookup"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-async-read",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 legacy API-key save lookup and delete use only the selected Keychain"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-delete",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: materialized mode rejects default-Keychain legacy mutations and doctor probes",
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 legacy API-key save lookup and delete use only the selected Keychain"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-sync-read",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 legacy API-key save lookup and delete use only the selected Keychain"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-legacy-api-key-write",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: materialized mode rejects default-Keychain legacy mutations and doctor probes",
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 legacy API-key save lookup and delete use only the selected Keychain"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-plugin-eval",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: real plugin eval child uses materialized selected-Keychain credentials without preload"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-plugin-eval-child",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: real plugin eval child uses materialized selected-Keychain credentials without preload"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-propagate-legacy-delete-failures",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: native legacy-delete outer wrapper propagates explicit and materialized failures"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-propagate-write-failures",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: native OAuth saver propagates selected-Keychain access failures to its caller"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-session-store-resume",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 SessionStore materializes selected credentials and plugin eval selects them"
+      ]
+    },
+    {
+      "oracleId": "explicit-macos-keychain/explicit-macos-keychain-storage-bridge",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "macos-keychain-bundle-runtime.test.ts: public Keychain selection outranks materialized mode for OAuth lookup",
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 OAuth saver refresh and delete use only the selected Keychain",
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 auth lookup and TUI startup use the process-selected Keychain",
+        "macos-keychain-bundle-runtime.test.ts: rendered 2.1.273 serializes concurrent secure-storage mutations across processes"
+      ]
+    },
+    {
+      "oracleId": "fable-model-picker/oauth-primary-picker-shows-local-fable",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: oauth-primary-picker-shows-local-fable-2-1-273-darwin: static: 2.1.273 Darwin primary OAuth picker no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: oauth-primary-picker-shows-local-fable-2-1-273-darwin: static: 2.1.273 Darwin primary OAuth picker uses catalog-backed Fable availability"
+      ]
+    },
+    {
+      "oracleId": "fable-model-picker/oauth-standard-picker-shows-local-fable",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: oauth-standard-picker-shows-local-fable-2-1-273-darwin: static: 2.1.273 Darwin standard OAuth picker inserts catalog-backed Fable",
+        "run-patch-tests.ts: oauth-standard-picker-shows-local-fable-2-1-273-darwin: static: 2.1.273 Darwin standard OAuth picker no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-context",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-context: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "later-command/later-command-submit-hook",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "later-command-patch.test.ts: active /later schedules once, lists, and forwards pasted contents"
+      ]
+    },
+    {
+      "oracleId": "later-command/later-command-suggestion-metadata",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-273-darwin: static: 2.1.273 Darwin /later suggestion metadata is rendered",
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-273-darwin: static: 2.1.273 Darwin suggestion no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "per-model-context-window/resolve-model-specific-context-window",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: resolve-model-specific-context-window-2-1-246: static: model-specific context window is resolved first in 2.1.246",
+        "run-patch-tests.ts: resolve-model-specific-context-window-2-1-246: static: model-specific declaration is not a global override in 2.1.246"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/disable-default-base-url-guard",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: disable-default-base-url-guard: static: guard function always returns false",
+        "run-patch-tests.ts: disable-default-base-url-guard: static: old guard pattern is removed"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-beta-count-tokens",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-beta-count-tokens-2-1-258: static: 2.1.258 beta count tokens drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-beta-count-tokens-2-1-258: static: 2.1.258 beta count tokens routing"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-beta-create",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-beta-create-2-1-258: static: 2.1.258 beta create drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-beta-create-2-1-258: static: 2.1.258 beta create routing"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-nonbeta-count-tokens",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-count-tokens-2-1-258: static: 2.1.258 non-beta count tokens drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-count-tokens-2-1-258: static: 2.1.258 non-beta count tokens routing"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-nonbeta-create",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-create-2-1-258: static: 2.1.258 non-beta create drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-create-2-1-258: static: 2.1.258 non-beta create routing"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-cli-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-273: static: 2.1.273 darwin CLI option no longer carries the 2.1.268 constructor",
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-273: static: 2.1.273 darwin bare and valued CLI flags use the scope-local Option constructor"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-clipboard-image-hint",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-2-1-273: static: 2.1.273 Darwin clipboard registry locals",
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-2-1-273: static: 2.1.273 Darwin clipboard registry no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-clipboard-image-hint-context",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-context-2-1-273: static: 2.1.273 Darwin clipboard context locals",
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-context-2-1-273: static: 2.1.273 Darwin clipboard context no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-command-length-mount",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-command-length-mount-2-1-273: static: 2.1.273 Darwin command-length local",
+        "run-patch-tests.ts: statusline-footer-control-command-length-mount-2-1-273: static: 2.1.273 Darwin command-length mount still rejects the prior w binding"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-command-length-update",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-command-length-update-2-1-233: static: 2.1.233 result telemetry tolerates missing commands"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-effort-level",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-effort-level-2-1-273: static: 2.1.273 Darwin persistent effort effect no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: statusline-footer-control-effort-level-2-1-273: static: 2.1.273 Darwin persistent effort patched form"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-effort-notification",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-2-1-273: static: 2.1.273 Darwin effort notification locals",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-2-1-273: static: 2.1.273 Darwin effort notification no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-settings-2-1-273: static: 2.1.273 Darwin effort notification settings locals",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-settings-2-1-273: static: 2.1.273 Darwin effort notification settings no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-mode-hint",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-2-1-273: static: 2.1.273 Darwin mode selector and locals",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-2-1-273: static: 2.1.273 Darwin mode selector no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-mode-hint-narrow",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-2-1-273: static: 2.1.273 Darwin mode-hint call locals",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-2-1-273: static: 2.1.273 Darwin mode-hint call no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-rate-limit-warning",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-2-1-273: static: 2.1.273 Darwin rate-limit callback locals",
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-2-1-273: static: 2.1.273 Darwin rate-limit callback no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-rate-limit-warning-deps",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-deps-2-1-273: static: 2.1.273 Darwin rate-limit dependency local",
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-deps-2-1-273: static: 2.1.273 Darwin rate-limit dependency still rejects the prior w binding"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-render",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-render-2-1-273: static: 2.1.273 Darwin footer return locals",
+        "run-patch-tests.ts: statusline-footer-control-render-2-1-273: static: 2.1.273 Darwin footer return no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-render-state",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-render-state-2-1-273: static: 2.1.273 Darwin footer state locals",
+        "run-patch-tests.ts: statusline-footer-control-render-state-2-1-273: static: 2.1.273 Darwin footer state no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-schema",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-schema-2-1-273-darwin: static: 2.1.273 Darwin schema no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: statusline-footer-control-schema-2-1-273-darwin: static: 2.1.273 Darwin schema uses graph-local helpers"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-json-effort-level",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-json-effort-level-2-1-273: static: 2.1.273 Darwin effort JSON locals",
+        "run-patch-tests.ts: statusline-json-effort-level-2-1-273: static: 2.1.273 Darwin effort JSON locals no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-json-permission-mode",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-json-permission-mode-2-1-273: static: 2.1.273 Darwin permission JSON locals",
+        "run-patch-tests.ts: statusline-json-permission-mode-2-1-273: static: 2.1.273 Darwin permission JSON locals no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "subagent-preserve-tool-results/subagent-preserve-tool-results",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: subagent-preserve-tool-results: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "system-prompt-section-overrides/system-prompt-section-override-bridge",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: system-prompt-section-override-bridge-2-1-220: static: main prompt vector crosses the versioned override bridge in 2.1.220"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-clear-live-on-interrupt",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-clear-live-on-interrupt-2-1-250: static: 2.1.250 interrupt clears preserved live thinking"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-complete",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-complete: static: completed thinking clears live buffer",
+        "run-patch-tests.ts: thinking-render-live-complete: static: completed thinking no longer mirrors a timed live buffer"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-delta",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-273-darwin: static: 2.1.273 Darwin thinking deltas no longer carry 2.1.268 symbols",
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-273-darwin: static: 2.1.273 Darwin thinking deltas retain the current fallback estimator",
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-273-darwin: static: 2.1.273 Darwin thinking deltas update live state"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-output",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-output-2-1-273-darwin: static: 2.1.273 Darwin live output no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: thinking-render-live-output-2-1-273-darwin: static: 2.1.273 Darwin live output subscribes to thinking"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-row",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-row-2-1-273-darwin: static: 2.1.273 Darwin live thinking row is rendered",
+        "run-patch-tests.ts: thinking-render-live-row-2-1-273-darwin: static: 2.1.273 Darwin live thinking row no longer carries 2.1.268 symbols",
+        "run-patch-tests.ts: thinking-render-live-row-cache-allocation-2-1-273-darwin: static: 2.1.273 Darwin live row allocates the wrapper cache slot",
+        "run-patch-tests.ts: thinking-render-live-row-cache-allocation-2-1-273-darwin: static: 2.1.273 Darwin live row cache allocation no longer carries 2.1.268 symbols"
+      ]
+    },
+    {
+      "oracleId": "transcript-preserve-repl-history/transcript-preserve-repl-history",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: transcript-preserve-repl-history: static: replacement is rendered"
+      ]
+    }
+  ],
+  "evidenceClass": "real-os-runtime",
+  "outcome": "passed",
+  "skippedOracleIds": []
+}

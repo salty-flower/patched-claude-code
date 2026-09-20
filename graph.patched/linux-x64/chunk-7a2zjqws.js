@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.273
+import{l}from"./chunk-cnzbk8gg.js";import{Pe}from"./chunk-s3hsf7ap.js";var d=10,d7t=50,p7t=/^(?:session|cse)_[A-Za-z0-9_-]+$/;function O(e){let r=(e.title??"").trim();return r!==""&&!S(r)}function S(e){return e.includes("__CBU_POOLED__")||e==="__warming__"||e.startsWith("ditto:")}async function G3r(e){if(Pe()!=="firstParty")return[];try{let{axiosGetWithRetry:r,prepareApiRequest:o,getOAuthHeaders:_}=await import("./chunk-nmjj09dh.js"),{getOauthConfig:f}=await import("./chunk-y3kzt8e4.js"),{accessToken:C}=await o(e?.credentials),u=`${f().BASE_API_URL}/v1/code/sessions`,b=_(C),g=new Set,n=[],m=0,s=null,a=0;for(;a<d;a++){let w=s?`${u}?limit=100&cursor=${encodeURIComponent(s)}`:`${u}?limit=100`,i;try{i=await r(w,{headers:b,timeout:15000})}catch(t){if(e?.throwOnError)throw t;let{logForDebugging:y}=await import("./chunk-a51ycx3g.js");y(`[ccr:list] page ${a} failed (${n.length} rows so far): ${l(t)}`);break}m+=i.data.data.length;for(let t of i.data.data){if(g.has(t.id))continue;if(g.add(t.id),t.status!=="archived"&&(e?.includeBridgeKind||t.environment_kind!=="bridge")&&p7t.test(t.id)&&(e?.includeBridgeKind&&t.environment_kind==="bridge"?!S((t.title??"").trim()):O(t))&&(e?.accept?.(t)??!0))n.push(t)}s=i.data.next_cursor??null;let c=i.data.data.at(-1),p=c?Date.parse(c.last_event_at??c.created_at):Number.NaN;if(!s||!e?.exhaustive&&n.length>=d7t||e?.stopWhenOlderThan!==void 0&&!Number.isNaN(p)&&p<e.stopWhenOlderThan)break}let{logForDebugging:R}=await import("./chunk-a51ycx3g.js"),h=a>=d&&s!==null;if(e?.status)e.status.truncated=h;return R(`[ccr:list]: ${m} fetched, ${n.length} after archive/bridge/husk${e?.accept?"/accept":""} filter${h?` (TRUNCATED: ${d}-page budget exhausted with more remaining)`:""}`),n}catch(r){if(e?.throwOnError)throw r;let{logForDebugging:o}=await import("./chunk-a51ycx3g.js");o(`[ccr:list] failed: ${l(r)}`)}return[]}
+export{d7t,p7t,G3r};

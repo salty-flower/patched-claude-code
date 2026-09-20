@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.273
+import{a}from"./chunk-q2vrcqny.js";import{Bo,GH}from"./chunk-txfrkyzp.js";import{Kt}from"./chunk-40wq8hf6.js";import{l}from"./chunk-cnzbk8gg.js";import{t}from"./chunk-847hpqqs.js";import{e1r}from"./chunk-5mt43ge3.js";import{Z6e,qh,Ld,n5e}from"./chunk-30p0nwys.js";import{OJn,LJn,Gme,Nw,NJn}from"./chunk-h4q23q42.js";import{S9}from"./chunk-39xz88rg.js";import{Pe,Ko}from"./chunk-s3hsf7ap.js";function z$(){return a.CLAUDE_CODE_REMOTE&&a.CLAUDE_CODE_REMOTE_HERMETIC_MODE}function s(e){try{return new URL(e).host}catch{return}}function bun(e=a.ANTHROPIC_BASE_URL||e1r()){if(!e)return!0;let i=s(Kt().BASE_API_URL);return i!==void 0&&s(e)===i}function Nz(){OJn()}function KT(){let e=Gme();if(e!==void 0)return e;let{eligible:i,ineligibleReason:n}=f(),g=a.CLAUDE_CODE_EVAL_CONFINED===!0,r=!i&&g;NJn(r);let o=i||r;return LJn(o,o?void 0:n)}function u(){return vKn()||Ld()&&n5e()===null}function vKn(){if(!Ld())return!1;let e=n5e();return e==="enterprise"||e==="team"}function f(){if(Nw())return{eligible:!0};if(z$())return{eligible:!1,ineligibleReason:"hermetic_remote_session"};if(Pe()==="gateway"){let n=GH(Bo());return{eligible:n,ineligibleReason:n?void 0:"unpinned_gateway"}}if(Pe()!=="firstParty")return{eligible:!1,ineligibleReason:"third_party_provider"};if(!Ko())return{eligible:!1,ineligibleReason:"custom_base_url"};let e=a.CLAUDE_CODE_ENTRYPOINT;if(e==="local-agent"||S9()||e?.startsWith("claude-coworker"))return{eligible:!1,ineligibleReason:"sandboxed_entrypoint"};let i=!1;try{i=Z6e()}catch(n){t(`Remote settings: could not read the profile store (${l(n)}); not treating this session as profile-authenticated`,{level:"warn"})}if(i)return bun()?{eligible:!0}:{eligible:!1,ineligibleReason:"profile_base_url_mismatch"};if(u())return{eligible:!0};try{let{key:n}=qh({skipRetrievingKeyFromApiKeyHelper:!0});if(n)return{eligible:!0}}catch{}return{eligible:!1,ineligibleReason:Ld()?"unsupported_subscription":"no_auth"}}
+export{z$,bun,Nz,KT,vKn};

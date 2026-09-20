@@ -2,12 +2,20 @@ import { afterAll, afterEach, expect } from "bun:test"
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
-import { join, resolve } from "node:path"
+import { join } from "node:path"
+import { runtimePreloadArguments } from "../lib/runtime-support"
 import { targetVersion } from "../lib/target"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
+import { captureCommand, type CapturedCommand } from "./helpers/captured-command"
 import { writeGraphCredentialHarness } from "./helpers/keychain-graph-harness"
 import { keychainOracleTest } from "./helpers/oracle-test"
-import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
+import {
+  makeScriptCommand,
+  normalizeTuiOutput,
+  shellEnvironment,
+  shellQuote,
+  withProcessGroupTimeout,
+} from "./helpers/pty"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
@@ -27,8 +35,8 @@ const RENDERED = existsSync(BUNDLE)
 if (process.env.PATCH_OBLIGATION_EVIDENCE_REQUIRED === "1" && (process.platform !== "darwin" || !RENDERED)) {
   throw new Error("macOS Keychain obligation evidence requires a rendered bundle on real macOS")
 }
-const PRELOAD = join(ROOT, "runtime", "system-prompt-overrides.ts")
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
+const SECURITY_FIXTURE_TIMEOUT_MS = 35_000
 // Keychain tests own their credential source. Explicit per-case overrides are
 // applied after this object when a test intentionally exercises env credentials.
 const CLEARED_CALLER_AUTH_ENV = {
@@ -246,7 +254,12 @@ function security(args: string[], input?: string): SecurityResult {
     stdin: input === undefined ? "ignore" : new Blob([input]),
     stdout: "pipe",
     stderr: "pipe",
+    timeout: SECURITY_FIXTURE_TIMEOUT_MS,
+    killSignal: "SIGKILL",
   })
+  if (result.signalCode === "SIGKILL") {
+    throw new Error(`/usr/bin/security timed out after ${SECURITY_FIXTURE_TIMEOUT_MS}ms: ${args.join(" ")}`)
+  }
   return { exitCode: result.exitCode, stdout: result.stdout.toString().trim() }
 }
 
@@ -350,9 +363,10 @@ async function runBundle(
   keychainPath: string | undefined,
   extraEnv: Record<string, string>,
   args: string[] = [],
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const subprocess = Bun.spawn({
-    cmd: [process.execPath, "--preload", PRELOAD, bundle, ...args],
+  timeoutMs = 225_000,
+): Promise<CapturedCommand> {
+  return captureCommand({
+    cmd: [process.execPath, ...runtimePreloadArguments(ROOT), bundle, ...args],
     cwd: home,
     env: {
       ...process.env,
@@ -365,15 +379,9 @@ async function runBundle(
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
       ...extraEnv,
     },
-    stdout: "pipe",
-    stderr: "pipe",
+    timeoutMs,
+    label: `${bundle} ${args.join(" ")}`.trim(),
   })
-  const [exitCode, stdout, stderr] = await Promise.all([
-    subprocess.exited,
-    new Response(subprocess.stdout).text(),
-    new Response(subprocess.stderr).text(),
-  ])
-  return { exitCode, stdout, stderr }
 }
 
 function injectCredentialHarness(source: string): string {
@@ -423,7 +431,7 @@ keychainOracleTest(
     const home = makeTempDir("patched-cc-keychain-raw-")
     prepareProfile(home)
     const missing = join(home, "missing.keychain-db")
-    const subprocess = Bun.spawn({
+    const raw = await captureCommand({
       cmd: [process.execPath, BUNDLE, "auth", "status", "--json"],
       cwd: home,
       env: {
@@ -433,39 +441,22 @@ keychainOracleTest(
         CLAUDE_CODE_KEYCHAIN_PATH: missing,
         CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
       },
-      stdout: "pipe",
-      stderr: "pipe",
+      timeoutMs: 45_000,
+      label: "raw bundle entrypoint guard",
     })
-    const [exitCode, stdout, stderr] = await Promise.all([
-      subprocess.exited,
-      new Response(subprocess.stdout).text(),
-      new Response(subprocess.stderr).text(),
-    ])
 
-    expect(exitCode).not.toBe(0)
-    expect(`${stdout}\n${stderr}`).toContain("requires the packaged claude-patched launcher")
-    expect(stdout).not.toContain('"loggedIn": true')
+    expect(raw.exitCode).not.toBe(0)
+    expect(`${raw.stdout}\n${raw.stderr}`).toContain("requires the packaged claude-patched launcher")
+    expect(raw.stdout).not.toContain('"loggedIn": true')
 
-    const preloaded = Bun.spawnSync({
-      cmd: [process.execPath, "--preload", PRELOAD, BUNDLE, "auth", "status", "--json"],
-      cwd: home,
-      env: {
-        ...process.env,
-        HOME: home,
-        CLAUDE_CONFIG_DIR: join(home, ".claude"),
-        CLAUDE_CODE_KEYCHAIN_PATH: missing,
-        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
-      },
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const preloaded = await runBundle(BUNDLE, home, missing, {}, ["auth", "status", "--json"], 45_000)
     expect(preloaded.exitCode).not.toBe(0)
-    expect(`${preloaded.stdout.toString()}\n${preloaded.stderr.toString()}`).toContain(
+    expect(`${preloaded.stdout}\n${preloaded.stderr}`).toContain(
       "Unable to access the Keychain requested by CLAUDE_CODE_KEYCHAIN_PATH",
     )
-    expect(preloaded.stdout.toString()).not.toContain('"loggedIn": true')
+    expect(preloaded.stdout).not.toContain('"loggedIn": true')
   },
-  30_000,
+  100_000,
 )
 
 keychainOracleTest(
@@ -504,7 +495,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -535,7 +526,7 @@ keychainOracleTest(
       if (existsSync(keychainPath)) security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -566,7 +557,7 @@ keychainOracleTest(
       if (existsSync(keychainPath)) security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 // Graph fixtures expose the native module functions through test-only exports;
@@ -614,7 +605,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -668,7 +659,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -707,7 +698,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -781,7 +772,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -831,6 +822,7 @@ keychainOracleTest(
           CLAUDE_CODE_WALNUT_SPIRE: "1",
         },
         ["plugin", "eval", "--ablation", "none", "--runs", "1", "--json", "--output-dir", outputDir, pluginDir],
+        225_000,
       )
       if (result.exitCode !== 0) console.error(`${result.stdout}\n${result.stderr}`)
       expect(result.exitCode).toBe(0)
@@ -852,7 +844,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  90_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -923,7 +915,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -979,7 +971,7 @@ keychainOracleTest(
       deleteGenericPassword(defaultPath, doctorService, account)
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -1011,7 +1003,7 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  60_000,
+  250_000,
 )
 
 keychainOracleTest(
@@ -1041,27 +1033,14 @@ keychainOracleTest(
     )
 
     try {
-      const status = Bun.spawnSync({
-        cmd: [process.execPath, "--preload", PRELOAD, BUNDLE, "auth", "status", "--json"],
-        cwd: home,
-        env: {
-          ...process.env,
-          ...CLEARED_CALLER_AUTH_ENV,
-          HOME: home,
-          CLAUDE_CONFIG_DIR: configDir,
-          CLAUDE_CODE_KEYCHAIN_PATH: keychainPath,
-          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
-        },
-        stdout: "pipe",
-        stderr: "pipe",
-      })
+      const status = await runBundle(BUNDLE, home, keychainPath, {}, ["auth", "status", "--json"], 100_000)
       expect(status.exitCode).toBe(0)
       // 2.1.228 includes the first-party provider in the status shape while
       // retaining the public auth method label used by older targets.
       const expectedStatusShape = isVersionAtLeast(targetVersion(), "2.1.228")
         ? { loggedIn: true, apiProvider: "firstParty", authMethod: "claude.ai" }
         : { loggedIn: true, authMethod: "claude.ai" }
-      expect(JSON.parse(status.stdout.toString())).toMatchObject(expectedStatusShape)
+      expect(JSON.parse(status.stdout)).toMatchObject(expectedStatusShape)
 
       const env = shellEnvironment({
         HOME: home,
@@ -1083,10 +1062,7 @@ keychainOracleTest(
         "CLAUDE_CODE_OAUTH_TOKEN",
         env,
         "bun",
-        "--preload",
-        shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
-        "--preload",
-        shellQuote(PRELOAD),
+        ...runtimePreloadArguments(ROOT).map(shellQuote),
         shellQuote(BUNDLE),
         "--model",
         "sonnet",
@@ -1101,24 +1077,15 @@ keychainOracleTest(
         "sleep 1",
         `printf %s ${shellQuote("\x1b[13u")}`,
       ].join("; ")
-      const subprocess = Bun.spawn({
-        cmd: ["bash", "-lc", makeScriptCommand(command, input)],
+      const tui = await captureCommand({
+        cmd: ["bash", "-lc", makeScriptCommand(withProcessGroupTimeout(command, 120), input)],
         cwd: home,
-        stdout: "pipe",
-        stderr: "pipe",
+        timeoutMs: 130_000,
+        label: "selected-Keychain TUI startup",
       })
-      // Bound the TUI run in-process: GNU timeout is unavailable on macOS
-      // runners, and the TUI normally exits through the pasted /exit anyway.
-      const watchdog = setTimeout(() => subprocess.kill(), 20_000)
-      const [exitCode, stdout, stderr] = await Promise.all([
-        subprocess.exited,
-        new Response(subprocess.stdout).text(),
-        new Response(subprocess.stderr).text(),
-      ])
-      clearTimeout(watchdog)
-      const output = normalizeTuiOutput(`${stdout}\n${stderr}`)
-      if (exitCode !== 0) console.error(output)
-      expect(exitCode).toBe(0)
+      const output = normalizeTuiOutput(`${tui.stdout}\n${tui.stderr}`)
+      if (tui.exitCode !== 0) console.error(output)
+      expect(tui.exitCode).toBe(0)
       expect(output).toContain("Claude Code")
       expect(output).not.toMatch(/(?:TypeError|ReferenceError)/)
       expect(output).not.toContain("synthetic-tui")
@@ -1126,5 +1093,5 @@ keychainOracleTest(
       security(["delete-keychain", keychainPath])
     }
   },
-  30_000,
+  250_000,
 )

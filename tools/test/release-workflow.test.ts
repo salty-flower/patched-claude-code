@@ -47,6 +47,14 @@ test("release workflow renders once and reuses the rendered bundle", () => {
   expect(smokeStep).toContain('just smoke-rendered "${{ steps.coord.outputs.version }}"')
   expect(patchTestStep).toContain('just _patch-test-rendered "${{ steps.coord.outputs.version }}"')
   expect(previousCatalogStep).toContain("git ls-remote --tags origin")
+  expect(previousCatalogStep).toContain("'refs/tags/claude-code-*-patch.*'")
+  expect(previousCatalogStep).toContain('candidate_version="${candidate_version%-patch.*}"')
+  expect(previousCatalogStep).toContain('prompt-identities/versions/${candidate_version}.json')
+  expect(previousCatalogStep).toContain("sort -Vr")
+  expect(previousCatalogStep).toContain('git show "$candidate:prompts/catalog/manifest.json"')
+  expect(previousCatalogStep).toContain("'.target.upstreamVersion // empty'")
+  expect(previousCatalogStep).toContain('[[ "$catalog_version" == "$candidate_version" ]]')
+  expect(previousCatalogStep).toContain("No lower released prompt catalog source tag found below $version")
   expect(previousCatalogStep).toContain("git fetch --no-tags origin")
   expect(packageStep).toContain(
     'just _package-rendered "${{ steps.coord.outputs.version }}" "${{ steps.coord.outputs.release_id }}"',

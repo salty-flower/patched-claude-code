@@ -1,0 +1,186 @@
+name = "experimental-csharp-tool"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+
+rationale = """
+Expose the C# file-based app experiment as an opt-in `CSharp` tool instead of
+changing the meaning of Bash input. The tool accepts raw C# in the inherited
+`command` field, writes one temporary `.cs` file, and invokes `dotnet run`
+through Bun without depending on the configured shell provider.
+
+The tool is stateless and asks for permission because no C# safety classifier
+exists. When Claude Code's sandbox is enabled, execution uses its native
+wrapper; an unavailable requested sandbox is an error, not an unsandboxed run.
+It reuses Bash's existing schema and UI renderers;
+its model-visible name, prompt, permission message, execution path, and runtime
+gate are independent. The experimental tool inherits Bash's input schema;
+unsupported background execution is rejected by validation.
+Cleanup condition: upstream exposes a supported custom
+local tool API that can own the schema, lifecycle, and permission surface.
+"""
+
+[[patches]]
+name = "experimental-csharp-sandbox-adapter"
+rationale = """
+Capture the 2.1.273 sandbox adapter object through its audited method names,
+so the standalone CSharp tool can use the same configuration and wrapper as
+Bash without hard-coding the minified adapter identifier.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/sandbox/sandbox-adapter.ts#L529-L725"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["wrapWithSandboxArgv", "getSandboxUnavailableReason", "isSandboxEnabledInSettings"] }
+
+[patches.ast.captures.sandbox_adapter]
+kind = "identifier"
+path = "declarations.0.id"
+
+[patches.transform]
+op = "insert_after_node"
+code = '''let __pccCSharpSandbox=%%CAPTURE:sandbox_adapter%%;'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp captures the sandbox adapter"
+assert_contains = '''let __pccCSharpSandbox='''
+
+[[patches]]
+name = "experimental-csharp-tool-definition"
+rationale = """
+Define the opt-in tool immediately after the Bash tool object is initialized,
+capturing its minified symbol solely for the input schema and output renderer.
+Each call adds its private temporary directory and .NET's named-mutex IPC
+directory `/tmp/.dotnet/shm` to the native sandbox's writable paths; the
+wrapper's argv and environment are used for spawn. This intentionally permits
+C# to affect other same-user .NET named mutexes, not arbitrary `/tmp` files.
+The wrapper sets `TMPDIR=/tmp/claude` inside the sandbox, which is not mounted
+there; override it in the inner shell command with this call's private directory.
+Initialize the adapter before reading its lazily populated configuration.
+This 2.1.273 variant is capped before the next target so the registry shape and
+captured symbol are re-audited on every bump.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/BashTool/BashTool.tsx#L420-L624"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["execute shell commands", "Run shell command"] }
+
+[patches.ast.captures.bash_tool]
+kind = "identifier"
+path = "declarations.2.id"
+
+[patches.transform]
+op = "insert_after_node"
+code = '''let __pccCSharpTool={...%%CAPTURE:bash_tool%%,name:"CSharp",uiTableKey:%%CAPTURE:bash_tool%%.name,enablesCodeExecution:!0,ruleContentField:"command",searchHint:"execute C# file-based apps",remoteExecution:void 0,async description(){return"Run a C# file-based app"},async prompt(){return"Executes one complete C# 14 file-based app with .NET 10 and returns its output. The command field must contain raw C# source, never shell syntax or Markdown fences. Top-level statements, using directives, type declarations, async/await, and file-based directives such as #:package are supported. Print user-visible results with Console.WriteLine. Managed NuGet packages work; packages that bundle native libraries may be incompatible with NixOS, and their stderr and exit code will be reported. Each call starts a fresh process: variables and imports do not persist. The app starts in the current repository directory. This experimental tool always requires permission. When Claude Code sandbox is enabled, the app runs inside its native sandbox; if that sandbox is unavailable, the tool refuses to run. Do not use run_in_background."},isEnabled(){return process.env.CLAUDE_CODE_EXPERIMENTAL_CSHARP_TOOL==="1"},isConcurrencySafe(){return!1},isReadOnly(){return!1},toAutoClassifierInput(e){return e.command},userFacingName(){return"CSharp"},getActivityDescription(){return"Running C# file-based app"},async preparePermissionMatcher(){return()=>!0},async validateInput(e){return e.run_in_background?{result:!1,message:"CSharp does not support run_in_background"}:{result:!0}},async checkPermissions(){return{behavior:"ask",message:"Run this C# file-based app?"}},async call(e,n){let t=(process.env.CLAUDE_CODE_TMPDIR||process.env.TMPDIR||"/tmp").replace(/[\\\/]$/,"")+"/claude-csharp-"+process.pid+"-"+Date.now()+"-"+Math.random().toString(36).slice(2),r=t+"/main.cs";try{await(await import("node:fs/promises")).mkdir(t,{mode:448});await Bun.write(r,e.command);let a=[process.env.CLAUDE_CODE_EXPERIMENTAL_DOTNET||process.env.DOTNET_HOST_PATH||"dotnet","run",r],v={...process.env,DOTNET_NOLOGO:"1",DOTNET_CLI_TELEMETRY_OPTOUT:"1",DOTNET_SKIP_FIRST_TIME_EXPERIENCE:"1"};if(__pccCSharpSandbox.isSandboxEnabledInSettings()){if(!__pccCSharpSandbox.isSandboxingEnabled())throw new Error("CSharp sandbox is enabled but unavailable: "+(__pccCSharpSandbox.getSandboxUnavailableReason()||"check /sandbox or /doctor"));await __pccCSharpSandbox.initialize();let c=__pccCSharpSandbox.getConfig();if(!c?.filesystem?.allowWrite)throw new Error("CSharp sandbox is enabled but failed to initialize");let q=x=>"\'"+x.replaceAll("\'","\'\\\'\'")+"\'",w=await __pccCSharpSandbox.wrapWithSandboxArgv(("TMPDIR="+q(t)+" "+a.map(q).join(" ")),"/bin/sh",{filesystem:{...c.filesystem,allowWrite:[...c.filesystem.allowWrite,t,"/tmp/.dotnet/shm"]}},n.abortController.signal);a=w.argv;v={...v,...w.env,DOTNET_CLI_HOME:t,NUGET_PACKAGES:t+"/nuget-packages",NUGET_HTTP_CACHE_PATH:t+"/nuget-http-cache",XDG_DATA_HOME:t+"/xdg-data",TMPDIR:t,NuGetAudit:"false"};for(let k of w.unsetEnv)v[k]=undefined}let s=Bun.spawn(a,{cwd:process.cwd(),env:v,stdout:"pipe",stderr:"pipe",signal:n.abortController.signal}),[d,h,y]=await Promise.all([new Response(s.stdout).text(),new Response(s.stderr).text(),s.exited]);if(y!==0)throw new Error([h.trimEnd(),d.trimEnd(),"dotnet exited with code "+y].filter(Boolean).join("\n"));return{data:{stdout:d,stderr:h,interrupted:!1}}}finally{await(await import("node:fs/promises")).rm(t,{recursive:true,force:true}).catch(()=>{})}}};'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp has a distinct tool identity"
+assert_contains = '''name:"CSharp"'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp shares Bash's UI renderer table"
+assert_contains = '''uiTableKey:'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp is independently gated"
+assert_contains = '''CLAUDE_CODE_EXPERIMENTAL_CSHARP_TOOL==="1"'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp routes dotnet through native sandbox when enabled"
+assert_contains = '''__pccCSharpSandbox.wrapWithSandboxArgv(("TMPDIR="+q(t)+" "+a.map(q).join(" ")),"/bin/sh"'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp allows only its temp directory and .NET shared-memory IPC"
+assert_contains = '''allowWrite:[...c.filesystem.allowWrite,t,"/tmp/.dotnet/shm"]'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp fails closed when requested sandbox is unavailable"
+assert_contains = '''CSharp sandbox is enabled but unavailable:'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp initializes sandbox before reading its configuration"
+assert_contains = '''await __pccCSharpSandbox.initialize();let c=__pccCSharpSandbox.getConfig()'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp avoids implicit NuGet audit inside sandbox"
+assert_contains = '''NuGetAudit:"false"'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp failures preserve stderr and exit code"
+assert_contains = '''new Error([h.trimEnd(),d.trimEnd(),"dotnet exited with code "+y]'''
+
+[[patches]]
+name = "experimental-csharp-tool-registration"
+rationale = """
+Register `CSharp` beside Bash only on platforms where the Bash-compatible
+renderer exists. Runtime `isEnabled` keeps it model-invisible unless explicitly
+selected with `CLAUDE_CODE_EXPERIMENTAL_CSHARP_TOOL=1`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools.ts#L179-L256"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", body_statement_count = 2, source_regex = '''^function \w+\(\)\{let \w+=\w+\(\);return\[\w+,\w+,\.\.\.\w+\(\)\?\[\w+\]:\[\],\.\.\.\[\w+,\w+\]\.filter''' }
+
+[patches.ast.captures.bash_available]
+kind = "identifier"
+path = "body.body.1.argument.elements.2.argument.test.callee"
+
+[patches.ast.captures.first_tool]
+kind = "identifier"
+path = "body.body.1.argument.elements.0"
+
+[patches.ast.captures.second_tool]
+kind = "identifier"
+path = "body.body.1.argument.elements.1"
+
+[patches.ast.captures.bash_tool]
+kind = "identifier"
+path = "body.body.1.argument.elements.2.argument.consequent.elements.0"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = '''return\[(\w+),(\w+),\.\.\.\w+\(\)\?\[\w+\]:\[\]'''
+value = '''return[%%CAPTURE:first_tool%%,%%CAPTURE:second_tool%%,...%%CAPTURE:bash_available%%()?[%%CAPTURE:bash_tool%%,__pccCSharpTool]:[]'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp is registered beside Bash"
+assert_contains = '''__pccCSharpTool]:[]'''
+
+[[patches]]
+name = "experimental-csharp-tool-use-renderer"
+rationale = """
+The 2.1.273 tool-use UI moved Bash's renderer to a name-keyed table, while the
+tool-result UI already supports `uiTableKey`. Honor that same key when rendering
+tool input so the standalone CSharp tool can display its source using Bash's UI.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantToolUseMessage.tsx#L304-L325"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", source_regex = '''^function [A-Za-z_$][\w$]*\(o,t,l\)\{if\(o\.renderToolUseMessage\)return o\.renderToolUseMessage\(t,l\);return [A-Za-z_$][\w$]*\(o\.name,t,l\)\}$''' }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = '''return ([A-Za-z_$][\w$]*)\(o\.name,t,l\)'''
+value = '''return $1(o.uiTableKey??o.name,t,l)'''
+
+[[patches.tests]]
+kind = "static"
+name = "CSharp tool input honors the renderer table alias"
+assert_contains = '''o.uiTableKey??o.name'''

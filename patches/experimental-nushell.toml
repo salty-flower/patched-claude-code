@@ -1,0 +1,147 @@
+name = "experimental-nushell"
+target_version = "2.1.273"
+applies_to = ">=2.1.273 <2.1.274"
+
+rationale = """
+Allow an explicitly selected Nushell executable to back the Bash tool for
+local experiments without changing the default Bash/Zsh selection path.
+
+The experiment deliberately does not translate Bash syntax or emulate Bash
+startup files. It skips the POSIX shell snapshot, executes the model's command
+with `nu -c`, preserves environment-changing commands such as `cd`, renders
+structured pipeline output, and writes the resulting working directory through
+the existing cwd handoff.
+The caller must set both `CLAUDE_CODE_SHELL` and `SHELL` to the Nushell
+executable so execution and the model-visible shell description agree.
+
+The upstream Bash permission parser and sandbox remain Bash-family components,
+so this experiment is intended for unsandboxed local comparison only. Cleanup
+condition: upstream provides a shell-provider interface or native Nushell
+support with shell-aware validation and sandboxing.
+"""
+
+[[patches]]
+name = "experimental-nushell-explicit-override"
+rationale = """
+This is the 2.1.273 minified-symbol variant of the explicit override gate.
+Both platform graphs bind the requested shell path as local `e`; the patch is
+capped before the next target so that symbol is re-audited on every bump.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/Shell.ts#L70-L138"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["CLAUDE_CODE_SHELL", "No suitable shell found"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''(e.includes("bash")||e.includes("zsh"))'''
+value = '''(e.includes("bash")||e.includes("zsh")||/(?:^|[\\/])nu(?:shell)?(?:\.exe)?$/i.test(e))'''
+
+[[patches.tests]]
+kind = "static"
+name = "explicit Nushell override is accepted"
+assert_contains = '''e.includes("zsh")||/(?:^|[\\/])nu(?:shell)?(?:\.exe)?$/i.test(e)'''
+
+[[patches]]
+name = "experimental-nushell-override-diagnostic"
+rationale_ref = "reference/v2.1.88/sources/src/utils/Shell.ts#L70-L89"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["CLAUDE_CODE_SHELL", "No suitable shell found"] }
+
+[patches.transform]
+op = "replace_substring"
+find = "is not a valid bash/zsh path"
+value = "is not a valid bash/zsh/nu path"
+
+[[patches.tests]]
+kind = "static"
+name = "override diagnostic names Nushell"
+assert_contains = "is not a valid bash/zsh/nu path"
+
+[[patches]]
+name = "experimental-nushell-skip-posix-snapshot"
+rationale_ref = "reference/v2.1.88/sources/src/utils/shell/bashProvider.ts#L59-L69"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["Failed to create shell snapshot:", "Spawning shell without login (-l flag skipped)"] }
+
+[patches.ast.captures.shell_path]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.options]
+kind = "identifier"
+path = "params.1"
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(/(?:^|[\\/])nu(?:shell)?(?:\.exe)?$/i.test(%%CAPTURE:shell_path%%))%%CAPTURE:options%%={...%%CAPTURE:options%%,skipSnapshot:!0};'''
+
+[[patches.tests]]
+kind = "static"
+name = "Nushell skips the POSIX snapshot"
+assert_contains = '''skipSnapshot:!0'''
+
+[[patches]]
+name = "experimental-nushell-command-builder"
+rationale_ref = "reference/v2.1.88/sources/src/utils/shell/bashProvider.ts#L96-L198"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["`cwd-${", "`claude-${", "-cwd`"] }
+
+[patches.ast.captures.shell_cwd_path]
+kind = "identifier"
+path = "declarations.5.id"
+
+[patches.ast.captures.native_cwd_path]
+kind = "identifier"
+path = "declarations.6.id"
+
+[patches.ast.captures.normalized_command]
+kind = "identifier"
+path = "declarations.7.id"
+
+[patches.transform]
+op = "insert_after_node"
+code = '''if(/(?:^|[\\/])nu(?:shell)?(?:\.exe)?$/i.test(this.shellPath)){let __nuCommand=`do --env { ${%%CAPTURE:normalized_command%%}\n} | each {|__nuValue| print $__nuValue }; (pwd | path expand) | save --force ${JSON.stringify(%%CAPTURE:shell_cwd_path%%)}`;return{commandString:__nuCommand,cwdFilePath:%%CAPTURE:native_cwd_path%%}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "Nushell command builder is rendered"
+assert_contains = '''let __nuCommand=`do --env { ${'''
+
+[[patches.tests]]
+kind = "static"
+name = "Nushell command builder preserves cwd"
+assert_contains = '''(pwd | path expand) | save --force'''
+
+[[patches]]
+name = "experimental-nushell-spawn-arguments"
+rationale_ref = "reference/v2.1.88/sources/src/utils/shell/bashProvider.ts#L199-L205"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "getSpawnArgs", string_literal = "Spawning shell without login (-l flag skipped)" }
+
+[patches.ast.captures.command]
+kind = "identifier"
+path = "params.0"
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(/(?:^|[\\/])nu(?:shell)?(?:\.exe)?$/i.test(this.shellPath))return["-c",%%CAPTURE:command%%];'''
+
+[[patches.tests]]
+kind = "static"
+name = "Nushell does not receive POSIX login-shell flags"
+assert_contains = '''test(this.shellPath))return["-c",'''

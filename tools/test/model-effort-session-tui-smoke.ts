@@ -13,7 +13,6 @@ import { type ModelEffortRuntimeOracle, recordModelEffortRuntimeOracle } from ".
 const LUNA = "gpt-5.6-luna"
 const ASTRA = "gpt-6-astra"
 const watchdogKillAfterSeconds = 3
-const wrapperGraceSeconds = 3
 
 // Automatic title generation shares model and prompt text, but has a structured output schema.
 function conversationRequest(request: { path: string; rawBody: string; jsonBody: unknown }): boolean {
@@ -87,18 +86,10 @@ async function session(
     // needs a pipe. Bash process substitution gives `script` a real pipe while
     // letting the outer shell exit as soon as `script` exits; a regular
     // `cat | script` pipeline would make it wait for cat to see stdin EOF.
-    // The inner timeout can end Bun while Darwin script still waits for PTY
-    // input. Bound the complete wrapper and its process group as well.
-    cmd: [
-      "timeout",
-      `--kill-after=${watchdogKillAfterSeconds}s`,
-      `${timeout + watchdogKillAfterSeconds + wrapperGraceSeconds}s`,
-      "bash",
-      "-lc",
-      `${scriptCommand} < <(cat)`,
-    ],
+    cmd: ["bash", "-lc", `${scriptCommand} < <(cat)`],
     cwd: home,
     env: cleanEnv,
+    detached: true,
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
@@ -109,16 +100,27 @@ async function session(
     stdinEnded = true
     proc.stdin.end()
   }
+  function killGroup(): void {
+    try {
+      process.kill(-proc.pid, "SIGKILL")
+    } catch {
+      proc.kill("SIGKILL")
+    }
+  }
+  const events = new EventConditions()
   // If the inner timeout kills the CLI while `script` is waiting for stdin,
-  // close the input pipe after timeout's TERM/KILL window so the PTY wrapper
-  // can exit and report the watchdog failure.
-  const watchdog = setTimeout(endInput, (timeout + watchdogKillAfterSeconds + 1) * 1000)
+  // end the complete wrapper group and wake any event wait before the harness
+  // safety timeout. The inner PTY child gets its own TERM/KILL window first.
+  const watchdog = setTimeout(() => {
+    endInput()
+    events.fail(new Error("whole-session watchdog expired"))
+    killGroup()
+  }, (timeout + watchdogKillAfterSeconds + 1) * 1000)
   let screen = ""
   let lastInteractiveScreen = ""
   let transcript = ""
   let exited = false
   let outputError: unknown
-  const events = new EventConditions()
   const unsubscribe = stub.onRequest(() => events.notify())
   void proc.exited.then((code) => {
     clearTimeout(watchdog)
@@ -367,13 +369,13 @@ async function session(
   } finally {
     unsubscribe()
     events.fail(new Error("PTY session disposed"))
-    if (!exited) {
+    if (!exited && !stdinEnded) {
       await key("\x03")
       await key("\x03")
       await Promise.race([proc.exited, Bun.sleep(1000)])
     }
     endInput()
-    if (!exited) proc.kill()
+    if (!exited) killGroup()
     await Promise.race([Promise.all([proc.exited, output, errors]), Bun.sleep(2000)])
     terminal.dispose()
   }

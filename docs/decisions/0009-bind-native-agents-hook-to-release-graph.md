@@ -1,4 +1,4 @@
-# ADR-0009: Bind the Native AGENTS Hook to the Release Graph
+# ADR-0009: Run the Verified AGENTS Callback in the Trusted Runtime
 
 ## Status
 
@@ -6,54 +6,86 @@ Accepted
 
 ## Governing Split
 
-> Release packaging preserves and verifies the upstream hook and its executable closure.
-> Upstream owns the hook's internals; the maintainer owns release integration.
+> Only the pinned, verified upstream builtin AGENTS callback runs on the
+> trusted Claude runtime/graph side.
+> Other hooks continue in the restricted worker; it receives no AGENTS
+> executable closure or host-module require grant.
 
 ## Context
 
-The user requires “使用新版claudecode原生行为” (“use the newer Claude Code native behavior”).
-The 2.1.281 Bun module graph does not contain the native `agents-md` hook source.
-The current [native extraction contract](../rules/Native-Bundle-Extraction.md) preserves bundle assets, but does not establish that this hook and its executable dependencies are present or invoked by the patched runtime.
-An absent import or an empty standalone scan cannot demonstrate that AGENTS content reached the rendered TUI.
+The user requires Claude Code 2.1.281's native AGENTS behavior.
+[ADR-0008](0008-keep-native-agents-discovery-and-precedence-together.md) keeps
+native discovery and precedence together and requires ordered applicable files
+to reach prompt context.
+
+Boundary probes showed that a forced embedded scan omitted the AGENTS sentinel.
+Importing the native callback into the restricted hook worker failed on
+`child_process`; its 124-file closure also exceeds the worker's 80-file limit.
 
 ## Decision
 
-The release graph must preserve the native `agents-md` hook under its upstream specifier and export namespace, together with its complete executable dependency closure.
-Release integration must not reimplement the hook or substitute an empty scan.
-Release admission must prove actual hook invocation and the resulting AGENTS content in the rendered TUI.
-A missing module, unresolved import, or missing content is a failed gate.
+Run only the pinned, verified upstream builtin AGENTS callback in the trusted
+Claude runtime/graph side, together with its verified upstream closure.
+Keep other hooks in the restricted worker under its existing restrictions; do
+not pass it the AGENTS executable closure or grant it host-module `require`
+access.
 
-This decision defines the release integration boundary; it does not select an extraction, linking, or runtime mechanism.
-Packaging and admission remain deterministic; stochastic reconstruction is outside the release path.
-The 2.1.281 release remains blocked until this behavior is implemented and proven.
+Pass the callback's ordered applicable AGENTS documents and explicit loader
+status into prompt/session context as inert data. Preserve ADR-0008's native
+discovery and precedence semantics. Distinguish a successfully loaded empty
+result from a loader or callback failure; never convert a failure into empty.
+
+This decision fixes the trust boundary, not the runtime integration mechanism.
+The 2.1.281 release remains blocked until the runtime implements this boundary
+and a rendered interactive TUI sentinel proves applicable AGENTS content
+reaches context in native order.
 
 ## Consequences
 
 ### Invariant upheld
 
-- The released runtime invokes the upstream AGENTS hook with its executable dependency closure.
-- Rendered-TUI evidence proves that AGENTS content reached the user-visible runtime.
-- Missing modules, imports, or content cannot produce a green release gate.
+- Only the pinned, verified upstream builtin callback and its closure receive
+  trusted Claude runtime privileges.
+- Ordered applicable documents and loader status cross into prompt/session
+  context as inert data.
+- Native discovery and precedence remain one behavior, as defined by ADR-0008.
+- A loaded empty result remains distinct from a missing module, import failure,
+  or callback failure.
+- Other hooks remain in the restricted worker under existing restrictions;
+  the worker receives no AGENTS executable closure or host-module `require`
+  grant.
+- The rendered TUI sentinel is required release evidence for this runtime path.
 
 ### Invariant surrendered
 
-- Internal specifier and dependency-closure compatibility across target versions is not guaranteed.
-- Each target must re-prove the native module identity, closure, invocation, and rendered content.
-- A target whose bundle does not expose the required hook remains unreleasable until its integration is proven.
+- The builtin callback and its upstream closure do not receive the restricted
+  hook worker's containment; they execute with trusted Claude runtime
+  privileges.
+- The release boundary relies on pinning and verifying the upstream builtin
+  identity and its closure for each target version.
 
 ### Owner
 
-- **Solo maintainer**: extraction, patch and release integration, and CI evidence.
-- **Upstream**: native hook internals and their target-version behavior.
-- **Deterministic release tooling**: preservation checks and admission evidence.
+- **Solo maintainer**: pinning, verification, runtime integration, and TUI
+  release evidence.
+- **Upstream**: builtin callback internals and target-version behavior.
 
 ## Alternatives Considered
 
-- **Reimplement the hook in the patched runtime**: rejected because this boundary requires upstream-native behavior and leaves internal semantics duplicated locally.
-- **Treat a missing standalone import as an empty scan**: rejected because it cannot prove hook invocation or AGENTS content in the rendered TUI.
-- **Promise cross-version compatibility for internal specifiers and closures**: rejected because these are target-local implementation details; each target must be re-proven.
+- **Force an embedded scan**: rejected because the scratch probe omitted the
+  AGENTS sentinel.
+- **Load the native callback in the restricted hook worker**: rejected because
+  its closure imports `child_process` and contains 124 files, beyond the
+  worker's 80-file limit. Raising the limit or granting host-module require
+  would change the worker's trust boundary.
+- **Treat loader failure as an empty result**: rejected because it hides a
+  missing or failing runtime integration.
 
 ## Revisit Triggers
 
-- Upstream publishes a stable integration contract that replaces the internal specifier or dependency-closure requirement.
-- The repository changes its bundle-first release boundary or explicitly adopts local ownership of AGENTS hook semantics.
+- Upstream publishes a stable AGENTS callback integration contract that
+  changes the pinned identity or trusted-runtime boundary.
+- The repository changes its Bun disk-graph release boundary or its restricted
+  hook-worker trust model.
+- The rendered interactive TUI sentinel cannot reliably establish that ordered
+  applicable AGENTS content reaches prompt/session context.

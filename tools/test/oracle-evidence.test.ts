@@ -192,7 +192,7 @@ test("a passing sibling cannot hide a missing required callback", () => {
   expect(collectOracleEvidence(options).oracleResults[0]?.outcome).toBe("skipped")
 })
 
-test("equivalence needs its own observation; retirement needs no evidence", () => {
+test("unfiltered collector reports equivalence as unobserved; retirement emits none", () => {
   const options = fixture()
   first(options.ledger.decisions).disposition = "upstream_equivalent"
   expect(collectOracleEvidence(options).oracleResults[0]?.outcome).toBe("skipped")

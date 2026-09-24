@@ -13,6 +13,7 @@ import {
   loadPatchObligationLedger,
   loadPatchObligationRegistry,
   type ObligationPlatform,
+  obligationKey,
   type PatchEvidenceReceipt,
   verifyPatchObligations,
 } from "../lib/patch-obligations"
@@ -23,6 +24,52 @@ import { readOracleChecks } from "./helpers/oracle-evidence"
 import { MODEL_EFFORT_RUNTIME_CHECKS, runtimeOracleChecks } from "./helpers/runtime-oracle-checks"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+
+type OracleCollectionOptions = Parameters<typeof collectOracleEvidence>[0]
+
+/**
+ * Only ported obligations need a current bundle oracle in an evidence receipt.
+ * Coverage validation has already checked the digest-bound maintainer decisions
+ * for equivalent and retired obligations before the runner reaches this point.
+ */
+export function collectPortedOracleEvidence(options: OracleCollectionOptions) {
+  const portedKeys = new Set(
+    options.ledger.decisions
+      .filter((decision) => decision.disposition === "ported")
+      .map((decision) => obligationKey(decision)),
+  )
+  const nonPortedKeys = new Set(
+    options.ledger.decisions
+      .filter((decision) => decision.disposition === "upstream_equivalent" || decision.disposition === "retired")
+      .map((decision) => obligationKey(decision)),
+  )
+  const portedObligations = options.registry.obligations.filter((obligation) =>
+    portedKeys.has(obligationKey(obligation)),
+  )
+  const portedOracleIds = new Set(portedObligations.flatMap((obligation) => obligation.oracleIds))
+  const nonPortedOracleIds = new Set(
+    options.registry.obligations
+      .filter((obligation) => nonPortedKeys.has(obligationKey(obligation)))
+      .flatMap((obligation) => obligation.oracleIds),
+  )
+  const runtime = options.runtime
+    .map((check) =>
+      check.platform === options.platform
+        ? {
+            ...check,
+            // Keep unknown IDs intact so collectOracleEvidence rejects them.
+            oracleIds: check.oracleIds.filter((id) => portedOracleIds.has(id) || !nonPortedOracleIds.has(id)),
+          }
+        : check,
+    )
+    .filter((check) => check.oracleIds.length > 0)
+
+  return collectOracleEvidence({
+    ...options,
+    registry: { ...options.registry, obligations: portedObligations },
+    runtime,
+  })
+}
 
 type Args = {
   version: string
@@ -163,7 +210,7 @@ function main(): number {
         env: sharedEnv,
       })
     }
-    const { selectedPatchEntries, oracleResults } = collectOracleEvidence({
+    const { selectedPatchEntries, oracleResults } = collectPortedOracleEvidence({
       registry,
       ledger,
       patches,

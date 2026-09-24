@@ -6,6 +6,7 @@ import { join } from "node:path"
 import type { PatchEntry } from "../lib/patch-files"
 import {
   catalogSha256,
+  decisionSha256,
   loadPatchEvidenceReceipts,
   type OracleEvidenceResult,
   type PatchEvidenceReceipt,
@@ -196,6 +197,43 @@ test("patch.2-style complete disposition and bound real-OS receipt pass", () => 
     receipts: [receipt(upstreamHash, patchedHash)],
   })
   expect(report).toMatchObject({ status: "passed", errors: [] })
+})
+
+test("acknowledged upstream equivalence admits without patch evidence and rejects stray oracle results", () => {
+  const { root, upstreamHash, patchedHash } = fixtureRoot()
+  const equivalent = ledger()
+  const decision = equivalent.decisions[0]
+  decision.disposition = "upstream_equivalent"
+  delete decision.patchEntries
+  decision.maintainerAcknowledgement = {
+    decidedBy: "sole-maintainer",
+    decidedAt: "2026-09-24",
+    reason: "The upstream target supplies the required behavior.",
+    evidenceRefs: ["docs/records/upstream-equivalence.md"],
+    decisionSha256: decisionSha256(decision),
+  }
+  const options = {
+    root,
+    version: VERSION,
+    mode: "admission" as const,
+    sourceCommit: SOURCE_COMMIT,
+    registry: registry(),
+    ledger: equivalent,
+    patches: [],
+  }
+
+  expect(verifyPatchObligations({ ...options, receipts: [] })).toMatchObject({ status: "passed", errors: [] })
+
+  const stray = receipt(upstreamHash, patchedHash)
+  stray.selectedPatchEntries = []
+  expect(verifyPatchObligations({ ...options, receipts: [stray] }).errors).toContain(
+    "receipt darwin-arm64: upstream-equivalent oracle gate/gate-remains-open needs a decision acknowledgement, not a patch receipt",
+  )
+
+  delete decision.maintainerAcknowledgement
+  expect(verifyPatchObligations({ ...options, receipts: [] }).errors).toContain(
+    "gate/gate-remains-open: non-ported disposition requires maintainerAcknowledgement",
+  )
 })
 
 test("schema 1 receipts require regeneration by the current runner", () => {

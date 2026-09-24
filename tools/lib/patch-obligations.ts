@@ -410,6 +410,10 @@ function verifyEvidence(
             const decision = decisions.get(obligationKey(obligation))
             if (decision?.disposition === "retired") {
               receiptErrors.push(`${prefix}: retired oracle ${oracleId}`)
+            } else if (decision?.disposition === "upstream_equivalent") {
+              receiptErrors.push(
+                `${prefix}: upstream-equivalent oracle ${oracleId} needs a decision acknowledgement, not a patch receipt`,
+              )
             } else if (!obligation.requiredPlatforms.includes(receipt.platform)) {
               receiptErrors.push(`${prefix}: wrong-platform oracle ${oracleId} for ${receipt.platform}`)
             } else if (!decision) {
@@ -469,7 +473,7 @@ function verifyEvidence(
   for (const obligation of registry.obligations) {
     const key = obligationKey(obligation)
     const decision = decisions.get(key)
-    if (!decision || decision.disposition === "retired") continue
+    if (!decision || decision.disposition !== "ported") continue
     for (const platform of obligation.requiredPlatforms) {
       const candidates = validReceipts.filter((receipt) => receipt.platform === platform)
       const satisfied = candidates.some((receipt) => {

@@ -13,6 +13,7 @@ import { type ModelEffortRuntimeOracle, recordModelEffortRuntimeOracle } from ".
 const LUNA = "gpt-5.6-luna"
 const ASTRA = "gpt-6-astra"
 const watchdogKillAfterSeconds = 3
+const wrapperGraceSeconds = 3
 
 // Automatic title generation shares model and prompt text, but has a structured output schema.
 function conversationRequest(request: { path: string; rawBody: string; jsonBody: unknown }): boolean {
@@ -86,7 +87,16 @@ async function session(
     // needs a pipe. Bash process substitution gives `script` a real pipe while
     // letting the outer shell exit as soon as `script` exits; a regular
     // `cat | script` pipeline would make it wait for cat to see stdin EOF.
-    cmd: ["bash", "-lc", `${scriptCommand} < <(cat)`],
+    // The inner timeout can end Bun while Darwin script still waits for PTY
+    // input. Bound the complete wrapper and its process group as well.
+    cmd: [
+      "timeout",
+      `--kill-after=${watchdogKillAfterSeconds}s`,
+      `${timeout + watchdogKillAfterSeconds + wrapperGraceSeconds}s`,
+      "bash",
+      "-lc",
+      `${scriptCommand} < <(cat)`,
+    ],
     cwd: home,
     env: cleanEnv,
     stdin: "pipe",

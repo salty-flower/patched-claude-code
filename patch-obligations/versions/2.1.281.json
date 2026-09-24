@@ -4,6 +4,15 @@
   "decisions": [
     {
       "familyId": "agent-memory-discovery",
+      "invariantId": "agents-md-native-hook-load",
+      "disposition": "ported",
+      "patchEntries": [
+        "agents-md-native-hook-host-path-darwin",
+        "agents-md-native-hook-host-path-linux"
+      ]
+    },
+    {
+      "familyId": "agent-memory-discovery",
       "invariantId": "agents-memory-additional-directories",
       "disposition": "retired"
     },

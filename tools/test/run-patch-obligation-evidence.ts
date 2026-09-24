@@ -210,6 +210,19 @@ function main(): number {
         env: sharedEnv,
       })
     }
+    if (
+      ledger.decisions.some(
+        (decision) =>
+          decision.familyId === "agent-memory-discovery" &&
+          decision.invariantId === "agents-md-native-hook-load" &&
+          decision.disposition === "ported",
+      )
+    ) {
+      runChecked(["bun", "run", "tools/test/agents-md-tui-smoke.ts", "--bundle", dispatcher], {
+        cwd: ROOT,
+        env: sharedEnv,
+      })
+    }
     const { selectedPatchEntries, oracleResults } = collectPortedOracleEvidence({
       registry,
       ledger,

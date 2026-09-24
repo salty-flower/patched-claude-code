@@ -4,6 +4,23 @@
   "obligations": [
     {
       "familyId": "agent-memory-discovery",
+      "invariantId": "agents-md-native-hook-load",
+      "introducedVersion": "2.1.281",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/claudemd.ts#L616-L665",
+        "docs/records/2026-09-24-2.1.281-target-bump.md#Verification"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "agent-memory-discovery/agents-md-native-hook-load"
+      ]
+    },
+    {
+      "familyId": "agent-memory-discovery",
       "invariantId": "agents-memory-additional-directories",
       "introducedVersion": "2.1.133",
       "rationaleRefs": [
@@ -2515,10 +2532,5 @@
         "ultracode-opus46-max/xhigh-settings-opus-max-fallback"
       ]
     }
-  ],
-  "maintainerAcknowledgement": {
-    "approvedBy": "salty-flower",
-    "approvedAt": "2026-09-24",
-    "catalogSha256": "7955fa4d78a2f5b97641e0609b5fc6fd488625db43bb3db1c247b74377faaf18"
-  }
+  ]
 }

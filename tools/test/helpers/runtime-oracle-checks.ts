@@ -1,6 +1,8 @@
 import { recordOracleCheck } from "./oracle-evidence"
 
 const modelEffortCheck = (name: string) => `model-effort-session-tui-smoke.ts: ${name}`
+const agentsMdNativeHookCheck =
+  "agents-md-tui-smoke.ts: parent, project, and child AGENTS.md markers reach the main conversation in native parent-to-child order with no CLAUDE.md"
 
 export const MODEL_EFFORT_RUNTIME_CHECKS = {
   "model-effort-current": modelEffortCheck(
@@ -39,6 +41,7 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
   const materialized = keychain("materialized mode rejects default-Keychain legacy mutations and doctor probes")
   const plugin = keychain("real plugin eval child uses materialized selected-Keychain credentials without preload")
   const result: Record<string, string[]> = {
+    "agent-memory-discovery/agents-md-native-hook-load": [agentsMdNativeHookCheck],
     "later-command/later-command-submit-hook": [
       "later-command-patch.test.ts: active /later schedules once, lists, and forwards pasted contents",
     ],

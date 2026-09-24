@@ -415,12 +415,30 @@
     {
       "familyId": "fable-model-picker",
       "invariantId": "oauth-primary-picker-shows-local-fable",
-      "disposition": "upstream_equivalent"
+      "disposition": "upstream_equivalent",
+      "maintainerAcknowledgement": {
+        "decidedBy": "salty-flower",
+        "decidedAt": "2026-09-24",
+        "reason": "The 2.1.281 native OAuth picker includes the local Fable 5.1 row for oauth-primary-picker-shows-local-fable on Darwin and Linux.",
+        "evidenceRefs": [
+          "docs/records/2026-09-24-2.1.281-obligation-decisions.md"
+        ],
+        "decisionSha256": "d9775e569956de70e153564d4672c4710305e1133afa4087dc438e28de45f5d2"
+      }
     },
     {
       "familyId": "fable-model-picker",
       "invariantId": "oauth-standard-picker-shows-local-fable",
-      "disposition": "upstream_equivalent"
+      "disposition": "upstream_equivalent",
+      "maintainerAcknowledgement": {
+        "decidedBy": "salty-flower",
+        "decidedAt": "2026-09-24",
+        "reason": "The 2.1.281 native OAuth picker includes the local Fable 5.1 row for oauth-standard-picker-shows-local-fable on Darwin and Linux.",
+        "evidenceRefs": [
+          "docs/records/2026-09-24-2.1.281-obligation-decisions.md"
+        ],
+        "decisionSha256": "4cd55f361bd5c75c82e63bb819a39b4015323a69a91a2d2dea6d6c155c83ceaa"
+      }
     },
     {
       "familyId": "file-read-path-context",
@@ -1278,11 +1296,16 @@
     }
   ],
   "retirementProposal": {
-    "reason": "Carry forward the previously acknowledged retirement choices that remain in this 2.1.281 candidate. This changed batch excludes the 32 target-specific reversals recorded here. The sole maintainer accepts native path/content deduplication in place of memory-file-realpath-overlap-dedup; this does not establish upstream equivalence. The exact batch remains unacknowledged.",
+    "reason": "Carry forward the previously acknowledged retirement choices that remain in this 2.1.281 candidate. This changed batch excludes the 32 target-specific reversals recorded here. The sole maintainer accepts native path/content deduplication in place of memory-file-realpath-overlap-dedup; this does not establish upstream equivalence.",
     "evidenceRefs": [
       "docs/records/2026-09-24-2.1.281-obligation-decisions.md",
       "docs/records/2026-09-09-2.1.266-target-bump.md",
       "patch-obligations/versions/2.1.273.json"
     ]
+  },
+  "retirementAcknowledgement": {
+    "approvedBy": "salty-flower",
+    "approvedAt": "2026-09-24",
+    "proposalSha256": "d30270c320f5e71c41511070fd803fc951e4511df4da9ed5d14827164c4c2d66"
   }
 }

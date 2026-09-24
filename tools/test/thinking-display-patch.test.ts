@@ -153,10 +153,15 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
   if (targetUsesVersionLocalThinkingGraph) {
     for (const body of [patched, linuxPatched]) {
       const deltaCase = getLiveThinkingDeltaCase(body)
-      expect(deltaCase).toMatch(
-        /\.onStreamingThinking\?\.\(\([\w$]+\)=>\(\{thinking:\([\w$]+\?\.thinking\?\?""\)\+w,isStreaming:!0}\)\)/,
+      const thinkingDelta = deltaCase.match(
+        /,([A-Za-z_$][\w$]*)=typeof [A-Za-z_$][\w$]*\.thinking==="string"\?[A-Za-z_$][\w$]*\.thinking:""/,
+      )?.[1]
+      expect(thinkingDelta).toBeDefined()
+      const callbackUpdate = deltaCase.match(
+        /\.onStreamingThinking\?\.\(\(([\w$]+)\)=>\(\{thinking:\(\1\?\.thinking\?\?""\)\+([\w$]+),isStreaming:!0}\)\)/,
       )
-      expect(deltaCase).toMatch(/estimatedTokensDelta:[\w$]+\(w\)/)
+      expect(callbackUpdate?.[2]).toBe(thinkingDelta)
+      expect(deltaCase).toMatch(new RegExp(`estimatedTokensDelta:[\\w$]+\\(${escapeRegExp(thinkingDelta!)}\\)`))
     }
     return
   }

@@ -107,6 +107,8 @@ async function main(): Promise<number> {
       envPrefix,
       "bun",
       "--preload",
+      shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "system-prompt-overrides.ts")),
+      "--preload",
       shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(bundle),
       "--bare",

@@ -1,5 +1,5 @@
 name = "channel-access"
-target_version = "2.1.263"
+target_version = "2.1.281"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1010,7 +1010,7 @@ assert_not_contains = '''return W_t()'''
 
 [[patches]]
 name = "channels-feature-gate"
-target_version = "2.1.263"
+target_version = "2.1.281"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1045,7 +1045,7 @@ assert_contains = '''return!0}'''
 
 [[patches]]
 name = "channels-provider-gate"
-target_version = "2.1.263"
+target_version = "2.1.281"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1610,3 +1610,109 @@ assert_not_contains = '''return YAe()'''
 kind = "static"
 name = "2.1.241 ask-user gate no longer carries 2.1.238 symbols"
 assert_not_contains = '''return mUt()'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-281-darwin-arm64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = """
+Remove the first-party/provider/channel-list gate from AskUserQuestion.
+
+This is the 2.1.281 Darwin graph variant. AskUserQuestion's `isEnabled`
+delegates to `k5()`, which rejects sessions with populated allowed channels
+using `ph().length>0&&Ae()`. Force only this tool's availability check open;
+the helper remains intact for its other callers.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", string = "return k5()" }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin AskUserQuestion gate is open"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin channel predicate remains present"
+assert_contains = '''ph().length>0&&Ae()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin AskUserQuestion no longer delegates through k5"
+assert_not_contains = '''isEnabled(){return k5()}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin does not carry the stale 2.1.246 AskUserQuestion gate"
+assert_not_contains = '''isEnabled(){return YAe()}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin does not carry the stale 2.1.246 inline plan gate"
+assert_not_contains = '''isEnabled(){if(Z6().length>0&&It())return!1;if(It()&&!tT())return!1;return!0}'''
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-281-linux-x64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = """
+Remove the first-party/provider/channel-list gate from AskUserQuestion.
+
+This is the 2.1.281 Linux graph variant. AskUserQuestion's `isEnabled`
+delegates to `y6()`, which rejects sessions with populated allowed channels
+using `uh().length>0&&Te()`. Force only this tool's availability check open;
+the helper remains intact for its other callers.
+
+Cleanup condition: upstream allows opting out of the gate per-tool, or removes
+the gate.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectMethod", method_name = "isEnabled", string = "return y6()" }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!0}"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux AskUserQuestion gate is open"
+assert_contains = '''isEnabled(){return!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux channel predicate remains present"
+assert_contains = '''uh().length>0&&Te()'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux AskUserQuestion no longer delegates through y6"
+assert_not_contains = '''isEnabled(){return y6()}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux does not carry the stale 2.1.246 AskUserQuestion gate"
+assert_not_contains = '''isEnabled(){return YAe()}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux does not carry the stale 2.1.246 inline plan gate"
+assert_not_contains = '''isEnabled(){if(Z6().length>0&&It())return!1;if(It()&&!tT())return!1;return!0}'''

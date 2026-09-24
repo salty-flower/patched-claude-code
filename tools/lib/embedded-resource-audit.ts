@@ -236,6 +236,21 @@ export function writeEmbeddedResourceAudit(options: {
         }
         const resources: Array<{ logicalPath: string; value?: Node }> = []
         const flatten = (current: Node | undefined, prefix: string): void => {
+          if (current?.type === "CallExpression") {
+            const callee = node(current.callee)
+            const args = nodes(current.arguments)
+            if (
+              callee?.type === "MemberExpression" &&
+              !callee.computed &&
+              name(callee.object) === "Object" &&
+              name(callee.property) === "freeze" &&
+              args.length === 1 &&
+              node(args[0])?.type === "ObjectExpression"
+            ) {
+              flatten(node(args[0]), prefix)
+              return
+            }
+          }
           if (current?.type === "ObjectExpression") {
             for (const property of nodes(current.properties)) {
               const key = !property.computed && name(property.key)

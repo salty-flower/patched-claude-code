@@ -1,0 +1,242 @@
+Claude Code 2.1.281 anti-trace dossier
+======================================
+
+Scope and provenance
+--------------------
+This is a read-only review of the unpatched canonical 2.1.281 dual graph.
+`staging/2.1.281/cli.js` is a dispatcher; the source modules are in
+`staging/2.1.281/graph/{darwin-arm64,linux-x64}/`.
+`graph-manifest.json` reports 2,266 Darwin files and 2,249 Linux files;
+`stage-manifest.json` reports `channel=canonical` and
+`source=canonical-dual-graph`.
+Offsets below are byte offsets from the start of each materialized graph file.
+
+No prior unpatched source graph was available for a textual diff:
+`staging/2.1.273/` contains only a platform-merge Darwin binary, and
+`staging/2.1.276/` has a wrapper/manifest but no graph directory.
+Existing `patches/anti-trace.toml` 2.1.273 entries were used to identify the
+active assistant-response and raw-body OTel lineages.
+
+Review decisions
+----------------
+
+1. Prompt markers: no general hidden host/region marker found; no new prompt
+patch recommended. The default system prompt contains an explicit environment
+section and a local ISO date. The schedule-agent skill separately supplies the
+system IANA timezone plus UTC/local timestamps when that feature is invoked;
+this is purpose-bound time context, not an opaque region classifier. Accept
+this feature-scoped value for 2.1.281.
+
+2. Host and region fingerprinting: the old date/host classifier is absent from
+both graphs. No `Asia/Shanghai`, `Asia/Urumqi`, `labKw`, `cnTZ`, or `function
+ddp` marker appears in graph JavaScript. `ANTHROPIC_BASE_URL` participates in
+provider/endpoint and credential-origin checks, but is not placed in the
+system-prompt constructor or the built-in event logger's environment object.
+No date-classifier patch needed.
+
+3. Telemetry and network egress: carry forward the existing assistant-response
+and raw-API-body OTel protections for both platforms (sites below). A separate
+built-in event logger is default-on for emitted built-in events on eligible
+first-party sessions and sends environment facts without a per-event explicit
+setting. Its endpoint is first-party, it requires first-party authorization,
+and it has opt-out/provider/gateway/custom-OAuth gates. It does not include
+prompt content or a raw repository URL. Per the coordinator's explicit target
+decision for 2.1.281, accept this logger under the guide's disable-path
+criterion and do not add a separate patch for it; record this decision in the
+bump audit. Content-bearing OTel capture remains opt-in, with the existing
+patches below required.
+
+Evidence
+--------
+
+A. Prompt construction, environment, date, locale, proxy, and provider gates
+
+- `graph/darwin-arm64/chunk-ankw4q0f.js@736` (`T_t`) selects default prompt
+  sections and calls the system-prompt composer.
+- `graph/darwin-arm64/chunk-h3bc7dkc.js@1503417` (`C$`) delegates to
+  `U5n@1503508`. `U5n` accepts `customSystemPrompt`, `defaultSystemPrompt`,
+  `appendSystemPrompt`, `overrideSystemPrompt`, skills, and the current agent
+  definition. An explicit override short-circuits the standard composition.
+  This is prompt assembly; no hostname, base URL, timezone, or region classifier
+  is referenced in this constructor.
+- `graph/darwin-arm64/chunk-h3bc7dkc.js@55412` (`wGe`) builds the environment
+  snapshot: working directory, worktree/git-repo booleans, additional working
+  directories, platform, shell, OS version, and optional scratchpad directory.
+  `@56155` (`UZt`) renders these in `# Environment` / “You have been invoked
+  in the following environment:”. `@56683` (`TGe`) wraps that text as the
+  environment context. An optional `agentProxyNote` is inserted if session
+  context supplied one (`pGe@53431`, `FZt@55279`); the renderer does not derive a
+  proxy host or region itself.
+- `graph/darwin-arm64/chunk-h3bc7dkc.js@655609` supplies
+  `currentDate: Today's date is ${Oyr(e)}.` `chunk-3ph1vk6s.js@1928`
+  (`Hyr`) returns `YYYY-MM-DD` from `Date.getFullYear/getMonth/getDate` and
+  `Oyr@2215` memoizes it per session. No timezone-specific date formatting or
+  alternate quote/slash marker is used here.
+- Feature-scoped exception: `graph/darwin-arm64/chunk-v77j1rya.js@33209`
+  resolves `Intl.DateTimeFormat().resolvedOptions().timeZone`, then computes
+  `nowUtcIso` and `nowLocal` and supplies `{userTimezone, nowUtcIso, nowLocal}`
+  to the scheduled-agent skill prompt. This runs in the scheduling skill input,
+  not in the default system prompt. Its purpose is local-time scheduling.
+- A graph-wide byte scan found zero occurrences of the former region/date
+  marker strings `Asia/Shanghai`, `Asia/Urumqi`, `labKw`, `cnTZ`, and `function
+ddp` in either platform graph. Generic locale/timezone utilities elsewhere
+  format dates; the scheduled-agent input above is the identified path into
+  model-facing skill context.
+- `graph/darwin-arm64/chunk-twxt3h9y.js@183120-183278` uses the default API
+  host `api.anthropic.com`, reads `ANTHROPIC_BASE_URL` when set, and checks
+  whether telemetry credentials are being sent to their owning host. The
+  rejection reason is `credential withheld: this telemetry endpoint is not
+  the host it belongs to`. Other `ANTHROPIC_BASE_URL` references gate
+  first-party/provider and gateway model discovery; no raw base URL is included
+  in the event logger projection below.
+- Event-logger provider policy: `chunk-8mxvtdzr.js@7086` (`H`) suppresses the
+  logger for `NODE_ENV=test`, non-empty `DISABLE_TELEMETRY` or
+  `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, truthy `DO_NOT_TRACK`, third-party
+  providers unless `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` is true, gateway
+  use/forced gateway login, or a non-empty custom OAuth URL. Its provider set
+  includes Bedrock, Vertex, Foundry, Anthropic AWS/Google Cloud, and Mantle.
+  The prompt context has no host-name or locale field; the telemetry projection
+  below likewise does not serialize hostname, locale, timezone, proxy URL, or
+  `ANTHROPIC_BASE_URL`.
+
+B. Built-in first-party event logger and payload
+
+- `graph/darwin-arm64/chunk-8mxvtdzr.js@2399` declares hooks for
+  `telemetry.*`, `session.start`, `session.end`, and `engine.create`.
+  `@4916` describes the built-in `telemetry` plugin as logging/marking
+  first-party event rows in batches. `@4904` availability uses `!Hg()`;
+  `chunk-8jbeny5z.js@992` defines `Hg()` as a gate for non-first-party
+  providers (except host-managed provider mode), active gateway auth,
+  non-default telemetry/essential-traffic mode, or custom OAuth.
+- `chunk-8mxvtdzr.js@6667` decodes `Me=100` maximum queued rows and
+  `@6678` decodes `be=5000` ms batch window. `@15590` is
+  `$e="https://api.anthropic.com/api/event_logging/v2/batch"`.
+  `Ue@19386` owns the queue/flush logic; `Pe@20760` enqueues events and
+  flushes at 100 rows or after 5 seconds. `Yo@21018` connects the plugin hooks
+  and obtains session/env values. `P@20084` rechecks policy, calls
+  `session.authorize()`, and POSTs the JSON body with first-party auth; without
+  a first-party credential it sends nothing.
+- There is no separate enable variable for this event logger. Its effective
+  gate is opt-out as above. `CLAUDE_CODE_ENABLE_TELEMETRY` is a distinct
+  OpenTelemetry metrics switch, not the event-logger opt-in.
+- `chunk-8mxvtdzr.js@12672` (`ie`) assembles each event with event id/name/time,
+  device ID, optional email, account/organization UUIDs, session ID, model,
+  user type, interactive flag, session metadata, environment, and
+  `additionalMetadata`. `@12611` defines that metadata as base64 of JSON
+  containing repo hash (`rh`) and event props; base64 is encoding, not
+  encryption. The local identity is read from `.claude.json`; email is only
+  included in the Anthropic-user case.
+- `chunk-8mxvtdzr.js@10558` (`Z`) projects environment facts: normalized
+  platform/architecture/terminal/shell, package managers/runtimes, CI/GitHub
+  Action booleans and runner/event/ref/repository IDs, coarse deployment class
+  (for example Codespaces, AWS/GCP/Azure, Kubernetes/Docker), remote/container
+  identifiers, tags, WSL version, Linux distro/version/kernel, and VCS type.
+  Linux detection reads `/etc/os-release` and `/proc/version` and checks
+  hypervisor UUID / `/.dockerenv` to classify EC2 or Docker. This is host
+  fingerprinting, but it does not encode a region or custom endpoint.
+- `chunk-8mxvtdzr.js@17448` (`he`) normalizes a Git remote to lowercase
+  `host/path`, strips credentials and `.git`, computes SHA-256, then takes the
+  first 16 hex characters (64-bit stable hash). The raw remote is not placed in
+  the event body. Event props reject free text, allow booleans, finite numbers,
+  or finite enumerated choices; maximum is 16 properties (`D=16` at
+  `chunk-8mxvtdzr.js@14182`) and 32 values per choice list (`w=32` at
+  `@13453`). Thus this logger is metadata/environment telemetry,
+  not prompt or tool-body capture.
+- Environment gates are checked both at plugin availability and send time.
+  The telemetry disable paths are `DISABLE_TELEMETRY`, `DO_NOT_TRACK`, and
+  `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, plus provider/gateway/custom
+  OAuth restrictions. This is a first-party endpoint with a concrete disable
+  path; the coordinator accepts it for 2.1.281 without a new patch.
+
+C. OTel content logging, raw request/response bodies, and exporters
+
+- User prompts: `graph/darwin-arm64/chunk-hfxhzshr.js@7212` redacts prompt
+  attributes unless `OTEL_LOG_USER_PROMPTS` is set. The interaction event at
+  `chunk-5trbc6ae.js@15666` uses the prompt only under that flag (and an
+  additional suppression guard); otherwise value is `<REDACTED>`.
+- Assistant responses: Darwin `chunk-hfxhzshr.js@7300` is
+  `function Nso(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}`.
+  Linux `chunk-fwbva29m.js@7301` is the equivalent `joo()` gate. If assistant
+  logging is unset, it inherits the user-prompt flag. **Patch needed on both
+  platforms:** require `OTEL_LOG_ASSISTANT_RESPONSES===!0` explicitly, matching
+  the existing anti-trace lineage.
+- Tool content/details: Darwin `chunk-twxt3h9y.js@384675` gates tool content on
+  `OTEL_LOG_TOOL_CONTENT`; `@383527` gates details on `OTEL_LOG_TOOL_DETAILS`.
+  Managed-settings capture has its own `OTEL_LOG_MANAGED_SETTINGS` setting.
+  These are explicit OTel settings.
+- Raw API bodies: Darwin `chunk-h3bc7dkc.js@1929869` (`Lxe`) parses
+  `OTEL_LOG_RAW_API_BODIES`; `file:<dir>` selects file output, a truthy value
+  selects inline events, and unset/false selects disabled. `Quo@1930030`
+  opens the capture path when mode is not disabled. Linux equivalents are
+  `chunk-4n4g22z6.js@1930170` (`huo`) and the immediately preceding `Jxe`.
+  The path records full API request/response bodies, including conversation and
+  tool data. The built-in change note at Darwin `chunk-7b417h8r.js@56891`
+  documents the `file:<dir>` mode and `index.jsonl` request/response linkage.
+  **Patch needed on both platforms:** hard-disable the gate (`Quo(){return!1}` /
+  `huo(){return!1}`), matching existing anti-trace lineage.
+- Exporters: Darwin `chunk-409z7nsa.js@38355` (`Gt`) reads
+  `OTEL_LOGS_EXPORTER`; its logs/traces readers accept `console` or `otlp`.
+  `@36021` (`$t`) uses configured `BETA_TRACING_ENDPOINT` with `/v1/traces`
+  and `/v1/logs`. OTel OTLP endpoint/protocol/headers are user/managed-settings
+  inputs (`chunk-wdyb5myn.js@390203` resolves signal-specific
+  `OTEL_EXPORTER_OTLP_<SIGNAL>_ENDPOINT` then the generic endpoint).
+  Beta tracing additionally requires `ENABLE_BETA_TRACING_DETAILED` and the
+  beta/feature gate. There is no fixed third-party OTLP collector default.
+  `CLAUDE_CODE_ENABLE_TELEMETRY` gates the separate metrics reader
+  (`chunk-409z7nsa.js@~40143`).
+- Other endpoints: `chunk-twxt3h9y.js@110314` initializes GrowthBook remote
+  evaluation against `https://api.anthropic.com/` with account/org UUID and
+  Slack-connected attributes, behind auth/workspace trust gates. WebFetch's
+  domain check at `chunk-h3bc7dkc.js@1364524` calls
+  `https://api.anthropic.com/api/web/domain_info?domain=<encoded-domain>`.
+  Both are first-party. `chunk-5khn4tvf.js@184047` performs a 1-second HEAD
+  probe to `http://1.1.1.1` for sandbox internet reachability; it carries no
+  content/telemetry payload.
+- `chunk-tcpw3cda.js@508938` declares Sentry hosts (`*.sentry.io`,
+  `o1158394.ingest.us.sentry.io`); `@509341` lists Datadog intake hosts.
+  `@928845` places these in renderer network/allowlist configuration with an
+  `disableEssentialTelemetry` toggle. This is allowlist/configuration evidence,
+  not proof that the CLI event logger above sends to those third parties.
+  Provider-specific Google/AWS authentication endpoints are separate from
+  default telemetry.
+
+D. Patch carryover and target decisions
+
+- Carry the existing 2.1.273 lineages `require-explicit-assistant-response-otel-2-1-273-darwin` and
+  `require-explicit-assistant-response-otel-2-1-273-linux` forward for both platforms:
+  Darwin target site `chunk-hfxhzshr.js@7300` (`Nso`); Linux target site
+  `chunk-fwbva29m.js@7301` (`joo`). Replacement intent:
+  `function <gate>(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}`.
+- Carry the existing 2.1.273 lineages `disable-raw-api-body-otel-2-1-273-darwin` and
+  `disable-raw-api-body-otel-2-1-273-linux` forward for both platforms: Darwin
+  `chunk-h3bc7dkc.js@1930030` (`Quo`); Linux `chunk-4n4g22z6.js@1930170`
+  (`huo`). Replacement intent: `function <gate>(){return!1}`.
+- Do not add a 2.1.281 `disable-date-environment-fingerprint` variant: the old
+  timezone/host classifier and its marker constants are absent. Do not add a
+  separate event-logger patch under the explicit coordinator decision above;
+  include its environment fields, first-party destination, opt-out controls,
+  and acceptance in the bump audit record.
+
+Source commands
+---------------
+
+Commands used for graph inventory and byte-offset evidence (run from repo
+root):
+
+    rg --files staging/2.1.281/graph
+    rg --text --byte-offset --fixed-strings -o 'function U5n(' staging/2.1.281/graph/darwin-arm64/chunk-h3bc7dkc.js
+    rg --text --byte-offset --fixed-strings -o 'function wGe(' staging/2.1.281/graph/darwin-arm64/chunk-h3bc7dkc.js
+    rg --text --byte-offset --fixed-strings -o 'function UZt(' staging/2.1.281/graph/darwin-arm64/chunk-h3bc7dkc.js
+    rg --text --byte-offset --fixed-strings -o 'function Nso(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}' staging/2.1.281/graph/darwin-arm64/chunk-hfxhzshr.js
+    rg --text --byte-offset --fixed-strings -o 'function joo(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}' staging/2.1.281/graph/linux-x64/chunk-fwbva29m.js
+    rg --text --byte-offset --fixed-strings -o 'function Quo(){return Lxe().mode!=="disabled"}' staging/2.1.281/graph/darwin-arm64/chunk-h3bc7dkc.js
+    rg --text --byte-offset --fixed-strings -o 'function huo(){return Jxe().mode!=="disabled"}' staging/2.1.281/graph/linux-x64/chunk-4n4g22z6.js
+    rg --text --byte-offset --fixed-strings -o 'https://api.anthropic.com/api/event_logging/v2/batch' staging/2.1.281/graph/darwin-arm64/chunk-8mxvtdzr.js
+    rg --text --byte-offset -o 'Asia/Shanghai|Asia/Urumqi|labKw|cnTZ|function ddp' staging/2.1.281/graph/darwin-arm64 staging/2.1.281/graph/linux-x64 -g '*.js'
+
+A Python byte-window scan across each platform's graph JavaScript searched for
+prompt/date/timezone/hostname/base-URL/proxy, event-telemetry, OTel/raw-body,
+and endpoint strings. The region-marker query returned zero hits on both
+platforms. A separate byte-window read inspected the surrounding code for each
+reported offset; these offsets refer to source files, not generated wrapper
+positions.

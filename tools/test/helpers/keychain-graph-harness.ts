@@ -92,7 +92,7 @@ export function writeGraphCredentialHarness(options: {
     }
     bindings = {
       oauthSaver: fromPatch("propagate-write-failures"),
-      accessor: findFunction("secure storage accessor", ["r.secureStorage({defaultStorage:e"]),
+      accessor: fromPatch("storage-bridge"),
       legacyWrite: fromPatch("legacy-api-key-write"),
       legacyReadSync: fromPatch("legacy-api-key-sync-read"),
       legacyReadAsync: fromPatch("legacy-api-key-async-read"),

@@ -20,7 +20,7 @@ import { captureChecked, runChecked } from "../lib/process"
 import { loadStageManifest } from "../lib/stage-manifest"
 import { collectOracleEvidence, readEmbeddedReport } from "./helpers/collect-oracle-evidence"
 import { readOracleChecks } from "./helpers/oracle-evidence"
-import { runtimeOracleChecks } from "./helpers/runtime-oracle-checks"
+import { MODEL_EFFORT_RUNTIME_CHECKS, runtimeOracleChecks } from "./helpers/runtime-oracle-checks"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 
@@ -146,6 +146,22 @@ function main(): number {
         ["bun", "run", "tools/test/ask-user-question-tui-smoke.ts", "--version", args.version, "--bundle", dispatcher],
         { cwd: ROOT, env: sharedEnv },
       )
+    }
+    const modelEffortRuntimeIds = new Set(
+      Object.keys(MODEL_EFFORT_RUNTIME_CHECKS).map((invariantId) => `model-effort-ui/${invariantId}`),
+    )
+    if (
+      ledger.decisions.some(
+        (decision) =>
+          decision.disposition !== "retired" &&
+          decision.familyId === "model-effort-ui" &&
+          modelEffortRuntimeIds.has(`model-effort-ui/${decision.invariantId}`),
+      )
+    ) {
+      runChecked(["bun", "run", "tools/test/model-effort-session-tui-smoke.ts", "--bundle", dispatcher], {
+        cwd: ROOT,
+        env: sharedEnv,
+      })
     }
     const { selectedPatchEntries, oracleResults } = collectOracleEvidence({
       registry,

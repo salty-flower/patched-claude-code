@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
@@ -22,21 +23,36 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       .map((file) => readFileSync(join(graph, file), "utf8"))
       .filter((source) => source.includes(locator))
     if (sources.length !== 1) throw new Error(`${patch.name}: expected one current graph file, found ${sources.length}`)
-    return patchedFunction(sources[0], patch)
+    const sameSite = entries.filter(
+      (candidate) =>
+        candidate.locator_kind === patch.locator_kind &&
+        candidate.locator_pattern === patch.locator_pattern &&
+        patchApplies(candidate, version) &&
+        (candidate.platforms?.includes(platform) ?? true),
+    )
+    let source = sources[0]!
+    let original = source
+    for (const candidate of sameSite) {
+      const result = patchedFunction(source, candidate)
+      original = result.original
+      source = result.patched
+    }
+    return { original, patched: source }
   }
 
   test(`${platform}: active capability resolver accepts normalized firstParty declarations`, () => {
     const { patched } = contract("explicit-capabilities-first-party-")
     const name = captureIdentifier(patched, "capability resolver", /^function ([\w$]+)\(/)
+    const firstPartyGate = captureIdentifier(patched, "first-party guard", /if\(([\w$]+)\(\)\)return/)
     const table = captureIdentifier(
       patched,
       "capability declarations",
       /for\(const \{modelEnvVar,capabilitiesEnvVar\} of ([\w$]+)\)/,
     )
     const env: Record<string, string> = { MODEL: " GPT-5.6-Astra[1m] ", CAPS: "effort, MAX_EFFORT" }
-    const run = new Function("process", table, `${patched};return ${name};`)({ env }, [
+    const run = new Function("process", table, firstPartyGate, `${patched};return ${name};`)({ env }, [
       { modelEnvVar: "MODEL", capabilitiesEnvVar: "CAPS" },
-    ]) as (model: string, capability: string) => boolean | undefined
+    ], () => true) as (model: string, capability: string) => boolean | undefined
     expect(run("gpt-5.6-astra", "max_effort")).toBe(true)
     expect(run(" GPT-5.6-ASTRA[1m] ", "effort")).toBe(true)
     expect(run("gpt-5.6-astra", "xhigh_effort")).toBe(false)
@@ -88,14 +104,18 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       [options]: { model: "alias" },
       [resolved]: "resolved-model",
       [binding("unsupported error classifier", /if\(!([\w$]+)\(/)]: (error: string) => error === "unsupported",
-      [binding("unsupported model latch", /if\(([\w$]+)\([\w$]+\.model\)/)]: (model: string) => latched.push(model),
+      [binding("unsupported model latch", /([\w$]+)\([\w$]+\.model\),/)]: (model: string) => latched.push(model),
       [binding("model identity", /\{model:([\w$]+)\(/)]: (model: string) => model,
       [binding("debug logger", /return ([\w$]+)\(`/)]: () => {},
       [binding("retry telemetry", /,([\w$]+)\("tengu_effort_unsupported_retry"/)]: () => {},
-      [captureIdentifier(drain.patched, "warning factory", /yield ([\w$]+)\(__acc_notice,"warning"\)/)]: (
-        text: string,
-        level: string,
-      ) => ({ text, level }),
+      [captureIdentifier(
+        drain.patched,
+        "warning factory",
+        /yield ([\w$]+)\((?:__acc_notice,"warning"|\{content:__acc_notice,error:"warning"\})\)/,
+      )]: (content: string | { content?: string; error?: string }, level?: string) => ({
+        text: typeof content === "string" ? content : (content.content ?? ""),
+        level: typeof content === "string" ? level : content.error,
+      }),
       [captureIdentifier(drain.original, "pending upstream warning", /if\(([\w$]+)!==void 0\)/)]: undefined,
     }
     const drainName = captureIdentifier(drain.patched, "warning drain", /^function\*([\w$]+)\(/)

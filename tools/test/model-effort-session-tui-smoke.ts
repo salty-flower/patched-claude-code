@@ -12,6 +12,7 @@ import { type ModelEffortRuntimeOracle, recordModelEffortRuntimeOracle } from ".
 
 const LUNA = "gpt-5.6-luna"
 const ASTRA = "gpt-6-astra"
+const watchdogKillAfterSeconds = 3
 
 // Automatic title generation shares model and prompt text, but has a structured output schema.
 function conversationRequest(request: { path: string; rawBody: string; jsonBody: unknown }): boolean {
@@ -75,7 +76,7 @@ async function session(
     TERM: "xterm-256color",
   }
   const cli = cliEffort ? ` --effort ${shellQuote(cliEffort)}` : ""
-  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${timeout}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
+  const command = `stty cols 120 rows 40; exec timeout --kill-after=${watchdogKillAfterSeconds}s ${timeout}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
   const scriptCommand =
     process.platform === "darwin"
       ? `script -q -e /dev/null bash -lc ${shellQuote(command)}`
@@ -92,6 +93,16 @@ async function session(
     stdout: "pipe",
     stderr: "pipe",
   })
+  let stdinEnded = false
+  function endInput(): void {
+    if (stdinEnded) return
+    stdinEnded = true
+    proc.stdin.end()
+  }
+  // If the inner timeout kills the CLI while `script` is waiting for stdin,
+  // close the input pipe after timeout's TERM/KILL window so the PTY wrapper
+  // can exit and report the watchdog failure.
+  const watchdog = setTimeout(endInput, (timeout + watchdogKillAfterSeconds + 1) * 1000)
   let screen = ""
   let lastInteractiveScreen = ""
   let transcript = ""
@@ -100,6 +111,7 @@ async function session(
   const events = new EventConditions()
   const unsubscribe = stub.onRequest(() => events.notify())
   void proc.exited.then((code) => {
+    clearTimeout(watchdog)
     exited = true
     events.fail(new Error(`PTY exited ${code}${code === 124 ? " (whole-session watchdog expired)" : ""}`))
   })
@@ -324,7 +336,7 @@ async function session(
         ),
     })
     await submit("/exit")
-    proc.stdin.end()
+    endInput()
     const code = await proc.exited
     await output
     const stderr = await errors
@@ -350,7 +362,7 @@ async function session(
       await key("\x03")
       await Promise.race([proc.exited, Bun.sleep(1000)])
     }
-    proc.stdin.end()
+    endInput()
     if (!exited) proc.kill()
     await Promise.race([Promise.all([proc.exited, output, errors]), Bun.sleep(2000)])
     terminal.dispose()

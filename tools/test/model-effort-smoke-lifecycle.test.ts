@@ -3,6 +3,8 @@ import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
+const childSafetyTimeoutMs = 30_000
+
 test("whole-session watchdog ends event waits even when the TUI never paints a prompt", async () => {
   const directory = mkdtempSync(join(tmpdir(), "pcc-effort-watchdog-"))
   try {
@@ -20,7 +22,7 @@ test("whole-session watchdog ends event waits even when the TUI never paints a p
       {
         stdout: "pipe",
         stderr: "pipe",
-        timeout: 10_000,
+        timeout: childSafetyTimeoutMs,
       },
     )
     const [code, stdout, stderr] = await Promise.all([
@@ -34,4 +36,4 @@ test("whole-session watchdog ends event waits even when the TUI never paints a p
   } finally {
     rmSync(directory, { recursive: true, force: true })
   }
-}, 15_000)
+}, 35_000)

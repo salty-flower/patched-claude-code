@@ -89,7 +89,7 @@ async function session(
     cmd: ["bash", "-lc", `${scriptCommand} < <(cat)`],
     cwd: home,
     env: cleanEnv,
-    detached: true,
+    detached: process.platform === "darwin",
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
@@ -101,6 +101,10 @@ async function session(
     proc.stdin.end()
   }
   function killGroup(): void {
+    if (process.platform !== "darwin") {
+      proc.kill("SIGKILL")
+      return
+    }
     try {
       process.kill(-proc.pid, "SIGKILL")
     } catch {

@@ -160,16 +160,17 @@ async function main(): Promise<number> {
 
   async function waitForExit(): Promise<void> {
     if (exited) return
+    const confirmation = /exit anyway|are you sure.*exit|exit claude code/i
     await Promise.race([
       processExit,
-      events.waitFor(() => /exit anyway|are you sure.*exit|exit claude code/i.test(screen), "exit confirmation missing").then(
-        async () => {
-          await key(ENTER)
-          await processExit
-        },
-      ),
-      timeout,
+      events.waitFor(() => confirmation.test(screen), "exit confirmation missing"),
+      Bun.sleep(1000),
     ])
+    if (confirmation.test(screen)) await key(ENTER)
+    // `script` keeps reading from the process-substitution pipe after the TUI
+    // exits. Close that pipe so its wrapper can report the CLI exit status.
+    proc.stdin.end()
+    await Promise.race([processExit, timeout])
   }
 
   try {

@@ -30,7 +30,7 @@ test("whole-session watchdog ends event waits even when the TUI never paints a p
       new Response(child.stdout).text(),
       new Response(child.stderr).text(),
     ])
-    expect(code).toBe(1)
+    if (code !== 1) throw new Error(`watchdog smoke exited ${code}; stdout:\n${stdout}\nstderr:\n${stderr}`)
     expect(`${stdout}\n${stderr}`).toContain("whole-session watchdog expired")
     expect(stderr).toContain("startup prompt missing")
   } finally {

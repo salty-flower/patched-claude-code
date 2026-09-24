@@ -362,9 +362,11 @@ async function session(
     if (settings.effortLevel !== "medium" || settings.modelSettings !== undefined)
       throw new Error(`session adjustment persisted effort: ${JSON.stringify(settings)}`)
   } catch (error) {
+    endInput()
+    if (!exited) killGroup()
     console.error(error instanceof Error ? error.message : error)
     console.error(transcript)
-    console.error(await errors)
+    console.error(await Promise.race([errors, Bun.sleep(1000).then(() => "PTY stderr stream remained open")]))
     throw error
   } finally {
     unsubscribe()

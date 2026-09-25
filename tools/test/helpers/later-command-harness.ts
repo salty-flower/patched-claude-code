@@ -1,4 +1,7 @@
 import { join } from "node:path"
+import { existsSync, readFileSync } from "node:fs"
+import { prepareAstTransformPatches } from "../../lib/ast-transform-patches"
+import { stagedGraphRoot } from "../../lib/graph-bundle"
 import { loadPatchEntriesFromFile } from "../../lib/patch-files"
 import { targetVersion } from "../../lib/target"
 import { activePatch, captureIdentifier } from "./patch-contract"
@@ -22,12 +25,55 @@ export type LaterCommandHarness = {
 }
 
 const version = targetVersion()
-const entries = loadPatchEntriesFromFile(join(import.meta.dir, "../../../patches/later-command.toml"))
+const root = join(import.meta.dir, "../../..")
+const entries = loadPatchEntriesFromFile(join(root, "patches/later-command.toml"))
+const submitCodeByPlatform = new Map<LaterSubmitHookPlatform, string>()
 
 function submitHookCode(platform: LaterSubmitHookPlatform): string {
+  const cached = submitCodeByPlatform.get(platform)
+  if (cached !== undefined) return cached
   const entry = activePatch(entries, version, platform, "later-command-submit-hook-")
-  if (!entry.transform || !("code" in entry.transform)) throw new Error(`${entry.name}: missing submit transform`)
-  return entry.transform.code
+  if (!entry.transform) throw new Error(`${entry.name}: missing submit transform`)
+  if ("code" in entry.transform && !entry.transform.code.includes("%%CAPTURE:")) {
+    return entry.transform.code
+  }
+  if (!entry.ast) throw new Error(`${entry.name}: missing AST locator for captured submit transform`)
+
+  // Materialize the shipped transform against its real target before extracting
+  // the inserted scheduler, so the harness exercises the captured bindings too.
+  const platformRoot = join(stagedGraphRoot(root, version), platform)
+  const files = existsSync(platformRoot)
+    ? [...new Bun.Glob("**/*.js").scanSync({ cwd: platformRoot, absolute: true })]
+    : [join(root, "staging", version, "cli.js")]
+  const chunks: string[] = []
+  const needle = entry.ast.match.string_literal ?? entry.ast.match.string
+  for (const file of files) {
+    const source = readFileSync(file, "utf8")
+    if (needle && !source.includes(needle)) continue
+    const prepared = prepareAstTransformPatches(
+      source,
+      [{ name: entry.name, ast: entry.ast, transform: entry.transform, expectedMatches: entry.expected_matches }],
+      { collectMatches: true, validateIndividually: true },
+    )
+    const result = prepared.results[0]
+    if (!result?.ok) throw new Error(`${entry.name}: ${file}: ${result?.message ?? "missing transform result"}`)
+    if (result.matches === 0) continue
+    const report = prepared.reports[0]
+    if (!report || result.matches !== 1) throw new Error(`${entry.name}: ambiguous submit transform in ${file}`)
+    const original = source.slice(report.start, report.end)
+    const replacement = prepared.source.slice(report.start, report.end + prepared.source.length - source.length)
+    if (!replacement.startsWith(original)) {
+      throw new Error(`${entry.name}: submit transform must preserve its original guard before inserting the scheduler`)
+    }
+    chunks.push(replacement.slice(original.length))
+  }
+  if (chunks.length !== 1) throw new Error(`${entry.name}: expected one staged submit hook, found ${chunks.length}`)
+  const code = chunks[0]!
+  if (!code.includes("globalThis.__acc_later_jobs") || code.includes("%%CAPTURE:")) {
+    throw new Error(`${entry.name}: scheduler was not fully materialized`)
+  }
+  submitCodeByPlatform.set(platform, code)
+  return code
 }
 
 export function createLaterCommandHarness(

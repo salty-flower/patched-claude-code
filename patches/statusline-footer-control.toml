@@ -19434,6 +19434,40 @@ name = "2.1.281 Linux footer CLI excludes stale 2.1.273 constructor"
 assert_not_contains = '''new z("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")'''
 
 [[patches]]
+name = "statusline-footer-control-cli-option-2-1-282"
+lineage = "statusline-footer-control-cli-option"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Restore --hide-builtin-footer in 2.1.282's root Commander chain. Capture the current Option constructor from the adjacent inherit-permission-mode option so the insertion follows the target's local binding. Drop this variant when upstream provides the flag."
+rationale_ref = "reference/v2.1.88/sources/src/main.tsx#L971-L1006"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", callee_property = "option", direct_string_literal = "-c, --continue", strings = ["--inherit-permission-mode <mode>"] }
+
+[patches.ast.captures.option_ctor]
+kind = "identifier"
+path = "callee"
+select = { node = "NewExpression", string_literal = "--inherit-permission-mode <mode>" }
+
+[patches.transform]
+op = "replace_substring"
+find = '''.option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+value = '''.addOption(new %%CAPTURE:option_ctor%%("--hide-builtin-footer [items]","Hide built-in footer items").preset("all").argParser((e)=>{globalThis.__acc_disabled_footer=e==="all"?["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]:String(e).split(",").map((r)=>r.trim()).filter(Boolean);return e})).option("-c, --continue","Continue the most recent conversation in the current directory",()=>!0)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 footer CLI option is installed"
+assert_contains = '''"--hide-builtin-footer [items]","Hide built-in footer items"'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 footer CLI option records hidden items"
+assert_contains = '''globalThis.__acc_disabled_footer=e==="all"'''
+
+[[patches]]
 name = "statusline-footer-control-clipboard-image-hint-2-1-273"
 lineage = "statusline-footer-control-clipboard-image-hint"
 target_version = "2.1.273"
@@ -20562,6 +20596,78 @@ name = "2.1.281 Linux footer return rejects stale 2.1.273 locals"
 assert_not_contains = '''return __acc_hide_footer?DLe:eSo}'''
 
 [[patches]]
+name = "statusline-footer-control-render-state-2-1-282"
+lineage = "statusline-footer-control-render-state"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "2.1.282 PromptInputFooter keeps settings.statusLine in a local before building the built-in and custom footer rows. Capture that local by its AST shape and compute the hide decision without relying on its minified name."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"], body_statement_count = 36 }
+
+[patches.ast.captures.status_setting]
+kind = "identifier"
+path = "id"
+select = { node = "VariableDeclarator", source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\?\\.statusLine$", parent_node = "VariableDeclaration" }
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "([A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\?\\.statusLine)"
+value = '''$1,__acc_hide_footer=%%CAPTURE:status_setting%%?.hideBuiltinFooter||%%CAPTURE:status_setting%%?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("footer")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 footer render state follows settings and CLI overrides"
+assert_contains = '''__acc_hide_footer='''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 footer render state does not retain the 2.1.281 settings local"
+assert_not_contains = '''let On=Jr,__acc_hide_footer=On?.hideBuiltinFooter'''
+
+[[patches]]
+name = "statusline-footer-control-render-2-1-282"
+lineage = "statusline-footer-control-render"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "2.1.282 PromptInputFooter returns the built-in footer tree while keeping the optional custom statusline row in its memoized local. Capture both identifiers from AST structure and return only the custom row when the hide setting is active."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooter.tsx#L39-L161"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["hideVimModeIndicator", "showExpandPasteHint", "statusLine"], body_statement_count = 36 }
+
+[patches.ast.captures.footer_row]
+kind = "identifier"
+path = "consequent.expression.expressions.0.left"
+select = { node = "IfStatement", strings = ["transcript:", "vimMode:"] }
+
+[patches.ast.captures.rendered_output]
+kind = "identifier"
+path = "body.body.35.argument"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "return [A-Za-z_$][A-Za-z0-9_$]*}$"
+value = '''return __acc_hide_footer?%%CAPTURE:footer_row%%:%%CAPTURE:rendered_output%%}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 hidden footer preserves the custom statusline row"
+assert_contains = '''return __acc_hide_footer?yr:'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 footer return rejects the stale 2.1.281 locals"
+assert_not_contains = '''return __acc_hide_footer?nr:Nr}'''
+
+[[patches]]
 name = "statusline-footer-control-command-length-mount-2-1-281-darwin"
 lineage = "statusline-footer-control-command-length-mount"
 target_version = "2.1.281"
@@ -20896,3 +21002,720 @@ assert_contains = '''permission_mode:n,model:{id:Le,display_name:li(Le)}'''
 kind = "static"
 name = "2.1.281 Linux permission mode excludes the prior payload prefix"
 assert_not_contains = '''return{...nc(e,_e),...Xe&&{session_name:Xe},model:'''
+
+[[patches]]
+name = "statusline-footer-control-effort-level-settings-2-1-282"
+lineage = "statusline-footer-control-effort-level"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "The focused-model effort notification remains independent of the footer renderer in 2.1.282. Capture the AppState selector from PromptInput's first declaration and subscribe to the footer visibility setting before its notification effect. The adjacent memo port consumes this value so changes dismiss an existing notification."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    object_property = "ultraEffortTag"
+    strings = [ "model-switched" ]
+
+[patches.ast.captures.app_state]
+kind = "identifier"
+path = "declarations.19.init.callee"
+
+  [patches.ast.captures.app_state.select]
+  node = "VariableDeclaration"
+  strings = [ "submitEmpty:", "setPastedContents:" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_hide_effort_level=%%CAPTURE:app_state%%((state)=>state.settings.statusLine?.hideBuiltinFooter||state.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 focused effort selects current footer visibility"
+  assert_contains = "let __acc_hide_effort_level="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 focused effort observes settings"
+  assert_contains = '((state)=>state.settings.statusLine?.hideBuiltinFooter||state.settings.statusLine?.disabledFooter?.includes("effort_notification"))'
+
+[[patches]]
+name = "statusline-footer-control-effort-level-2-1-282"
+lineage = "statusline-footer-control-effort-level"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "The 2.1.282 focused-model notification caches its callback and dependency array in slots 369 and 370. Capture the current memo owner, invalidate the callback on footer-setting changes, append the same visibility value to the effect dependencies, and dismiss when hidden. Native notification symbols remain byte-preserved."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "priority:\"high\",timeoutMs:1e4" ]
+    source_regex = "^if\\([^)]*\\[366\\]"
+
+[patches.ast.captures.memo]
+kind = "identifier"
+path = "test.left.left.left.object"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^if\\(([^)]+)\\)([\\s\\S]*?if\\()([^)]*)(\\)[\\s\\S]*?\\},[A-Za-z_$][A-Za-z0-9_$]*=\\[)([^\\]]*)(\\][\\s\\S]*)$"
+  value = "if($1||%%CAPTURE:memo%%[370]?.[3]!==__acc_hide_effort_level)$2$3||__acc_hide_effort_level$4$5,__acc_hide_effort_level$6"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 focused effort memo tracks setting changes"
+  assert_contains = "[370]?.[3]!==__acc_hide_effort_level"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 focused effort effect tracks setting changes"
+  assert_contains = ",__acc_hide_effort_level]"
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-settings-2-1-282"
+lineage = "statusline-footer-control-effort-notification-settings"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "The 2.1.282 editor component reads AppState through the selector passed beside initialMcpClients. Capture that imported hook and subscribe to footer visibility in the ultrathink notification's scope, preserving the settings and launch-option behavior of 2.1.281."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "\"ultrathink-active\"",
+  "\"Deeper reasoning requested for this turn\""
+]
+
+[patches.ast.captures.app_state]
+kind = "identifier"
+path = "arguments.1.callee"
+
+  [patches.ast.captures.app_state.select]
+  node = "CallExpression"
+  strings = [ ".initialMcpClients," ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_hide_effort=%%CAPTURE:app_state%%((state)=>state.settings.statusLine?.hideBuiltinFooter||state.settings.statusLine?.disabledFooter?.includes("effort_notification"))||globalThis.__acc_disabled_footer?.includes("effort_notification")||globalThis.__acc_disabled_footer?.includes("footer");'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 ultrathink selects current footer visibility"
+  assert_contains = "let __acc_hide_effort="
+
+[[patches]]
+name = "statusline-footer-control-effort-notification-2-1-282"
+lineage = "statusline-footer-control-effort-notification"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "The 2.1.282 ultrathink effect still caches its callback and dependency array in slots 116 and 117. Capture the memo owner, include footer visibility in both cache invalidation and effect dependencies, and preserve the native remover branch when hidden."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [
+  "\"ultrathink-active\"",
+  "\"Deeper reasoning requested for this turn\""
+]
+    source_regex = "^if\\([^)]*\\[113\\]"
+
+[patches.ast.captures.memo]
+kind = "identifier"
+path = "test.left.left.left.object"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^if\\(([^)]+)\\)([\\s\\S]*?if\\()([^)]*)(\\)[\\s\\S]*?\\},[A-Za-z_$][A-Za-z0-9_$]*=\\[)([^\\]]*)(\\][\\s\\S]*)$"
+  value = "if($1||%%CAPTURE:memo%%[117]?.[3]!==__acc_hide_effort)$2!__acc_hide_effort&&$3$4$5,__acc_hide_effort$6"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 ultrathink memo tracks setting changes"
+  assert_contains = "[117]?.[3]!==__acc_hide_effort"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 ultrathink effect tracks setting changes"
+  assert_contains = ",__acc_hide_effort]"
+
+[[patches]]
+name = "statusline-footer-control-command-length-mount-2-1-282"
+lineage = "statusline-footer-control-command-length-mount"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Guard the mounted statusLine telemetry command length for footer-only settings. Capture the statusLine receiver from the native property, so identifier renaming does not require a new locator."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L262-L268"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "command_length"
+    strings = [ ".command.length", "padding:" ]
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object.object"
+
+  [patches.ast.captures.settings.select]
+  node = "MemberExpression"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\.command\\.length$"
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "command_length"
+  value = "%%CAPTURE:settings%%.command?.length??0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-command-length-mount preserves .command?.length??0"
+  assert_contains = ".command?.length??0"
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-context-2-1-282"
+lineage = "statusline-footer-control-clipboard-image-hint-context"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Extend the clipboard registry context with the launch footer selection while retaining its terminal, paste, notifier and clock values."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "canPasteImages"
+    source_regex = "^\\{isTerminalFocused:[A-Za-z_$][A-Za-z0-9_$]*,canPasteImages:[A-Za-z_$][A-Za-z0-9_$]*,addNotification:[A-Za-z_$][A-Za-z0-9_$]*,clock:[A-Za-z_$][A-Za-z0-9_$]*\\}$"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = "statusLine:{disabledFooter:globalThis.__acc_disabled_footer}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-clipboard-image-hint-context preserves statusLine:{disabledFooter:globalTh"
+  assert_contains = "statusLine:{disabledFooter:globalThis.__acc_disabled_footer}"
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-darwin-context-2-1-282"
+lineage = "statusline-footer-control-clipboard-image-hint-darwin-context"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Read the extended clipboard registry context into an original local binding. The callback retains its native focus transition and delayed clipboard probe."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Image in clipboard",
+  "isTerminalFocused:",
+  "canPasteImages:"
+]
+    source_regex = "^\\(\\{isTerminalFocused:"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "clock:([A-Za-z_$][A-Za-z0-9_$]*)\\}\\)=>\\{"
+  value = "clock:$1,statusLine:{disabledFooter:__acc_clipboard_disabled}={}})=>{"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-clipboard-image-hint-darwin-context preserves statusLine:{disabledFooter:__acc_cl"
+  assert_contains = "statusLine:{disabledFooter:__acc_clipboard_disabled}={}"
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-linux-context-2-1-282"
+lineage = "statusline-footer-control-clipboard-image-hint-linux-context"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Read the extended clipboard registry context into an original local binding. The callback retains its native focus transition and delayed clipboard probe."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Image in clipboard",
+  "isTerminalFocused:",
+  "canPasteImages:"
+]
+    source_regex = "^\\(\\{isTerminalFocused:"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "clock:([A-Za-z_$][A-Za-z0-9_$]*)\\}\\)=>\\{"
+  value = "clock:$1,statusLine:{disabledFooter:__acc_clipboard_disabled}={}})=>{"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-clipboard-image-hint-linux-context preserves statusLine:{disabledFooter:__acc_cl"
+  assert_contains = "statusLine:{disabledFooter:__acc_clipboard_disabled}={}"
+
+[[patches]]
+name = "statusline-footer-control-clipboard-image-hint-2-1-282"
+lineage = "statusline-footer-control-clipboard-image-hint"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Publish clipboard availability after a successful native probe, then gate only the built-in contextual hint on the clipboard/footer selection."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useClipboardImageHint.ts#L20-L67"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    string = "Image in clipboard"
+    source_regex = "^if\\(await [A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\)"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^if\\((await [A-Za-z_$][A-Za-z0-9_$]*\\(\\))\\)"
+  value = 'if($1&&(globalThis.__acc_clipboard_image_available=!0,!__acc_clipboard_disabled?.includes("clipboard_image_hint")&&!__acc_clipboard_disabled?.includes("footer")))'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-clipboard-image-hint preserves globalThis.__acc_clipboard_image_av"
+  assert_contains = 'globalThis.__acc_clipboard_image_available=!0,!__acc_clipboard_disabled?.includes("clipboard_image_hint")'
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-282"
+lineage = "statusline-footer-control-mode-hint"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Subscribe through the native FooterHintLine app-state selector before any conditional returns. Capture that selector from the component's existing one-argument state-hook call."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "hideVimModeIndicator",
+  "suppressHintExceptStatusline",
+  "vimIndicatorShown"
+]
+
+[patches.ast.captures.state]
+kind = "identifier"
+path = "declarations.2.init.callee"
+
+  [patches.ast.captures.state.select]
+  node = "VariableDeclaration"
+  string = ".needsAuth"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_hide_mode=%%CAPTURE:state%%((__acc_mode_state)=>__acc_mode_state.settings.statusLine?.hideBuiltinFooter||__acc_mode_state.settings.statusLine?.disabledFooter?.includes("permission_mode")||__acc_mode_state.settings.statusLine?.disabledFooter?.includes("mode")||__acc_mode_state.settings.statusLine?.disabledFooter?.includes("footer"))||globalThis.__acc_disabled_footer?.includes("permission_mode")||globalThis.__acc_disabled_footer?.includes("mode")||globalThis.__acc_disabled_footer?.includes("footer");'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-mode-hint preserves ((__acc_mode_state)=>__acc_mode_sta"
+  assert_contains = "((__acc_mode_state)=>__acc_mode_state.settings.statusLine?.hideBuiltinFooter"
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-2-1-282-memo"
+lineage = "statusline-footer-control-mode-hint"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "The native React compiler cache does not track the compatibility setting. Recompute the compact/expanded hint element on each FooterHintLine render so a live setting change cannot reuse stale hint props; other memoized elements retain their native caches."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "denseVimOnlySuppression:", "toolPermissionContext:" ]
+    source_regex = "^if\\([A-Za-z_$][A-Za-z0-9_$]*\\[38\\]"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^if\\("
+  value = "if(!0||"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-mode-hint-memo preserves if(!0||"
+  assert_contains = "if(!0||"
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-small-2-1-282"
+lineage = "statusline-footer-control-mode-hint-narrow-small"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Gate the compact hint permission context and visibility while preserving mode, width and task props."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "toolPermissionContext"
+    source_regex = "^\\{mode:[A-Za-z_$][A-Za-z0-9_$]*,toolPermissionContext:[A-Za-z_$][A-Za-z0-9_$]*,showHint:[^,]+,rowWidth:"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "toolPermissionContext:([A-Za-z_$][A-Za-z0-9_$]*),showHint:([^,]+),"
+  value = "toolPermissionContext:__acc_hide_mode?void 0:$1,showHint:!__acc_hide_mode&&($2),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-mode-hint-narrow-small preserves toolPermissionContext:__acc_hide_mo"
+  assert_contains = "toolPermissionContext:__acc_hide_mode?void 0:"
+
+[[patches]]
+name = "statusline-footer-control-mode-hint-narrow-expanded-2-1-282"
+lineage = "statusline-footer-control-mode-hint-narrow-expanded"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Gate the expanded hint permission context and regular/dense visibility, retaining native Vim suppression and other child inputs."
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInputFooterLeftSide.tsx#L127-L214"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "denseVimOnlySuppression"
+    source_regex = "^\\{mode:[A-Za-z_$][A-Za-z0-9_$]*,toolPermissionContext:"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "toolPermissionContext:([A-Za-z_$][A-Za-z0-9_$]*),showHint:([^,]+),denseShowHint:([^,]+),"
+  value = "toolPermissionContext:__acc_hide_mode?void 0:$1,showHint:!__acc_hide_mode&&($2),denseShowHint:!__acc_hide_mode&&($3),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-mode-hint-narrow-expanded preserves denseShowHint:!__acc_hide_mode&&("
+  assert_contains = "denseShowHint:!__acc_hide_mode&&("
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-deps-2-1-282"
+lineage = "statusline-footer-control-rate-limit-warning-deps"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Include notification removal and the app store in the existing warning registry dependencies, preserving its native limit/model/effort dependencies. Include the current statusLine object as well: store identity alone is stable across settings changes."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L149-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\([A-Za-z_$][A-Za-z0-9_$]*\\)=>\\[[A-Za-z_$][A-Za-z0-9_$]*\\.claudeAiLimits,[A-Za-z_$][A-Za-z0-9_$]*\\.mainLoopModel,[A-Za-z_$][A-Za-z0-9_$]*\\.effortValue,[A-Za-z_$][A-Za-z0-9_$]*\\.addNotification\\]$"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "(__acc_rate_context)=>[...(%%EXPR%%)(__acc_rate_context),__acc_rate_context.removeNotification,__acc_rate_context.store,__acc_rate_context.store.getState().settings?.statusLine]"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-footer-control-rate-limit-warning-deps preserves __acc_rate_context.removeNotificati"
+  assert_contains = "__acc_rate_context.removeNotification,__acc_rate_context.store"
+
+[[patches]]
+name = "statusline-footer-control-rate-limit-warning-2-1-282"
+lineage = "statusline-footer-control-rate-limit-warning"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Read current footer settings before native grace-period and five-hour guards. A hidden warning is removed and its native last-message memo reset so re-enabling can publish it again; native limit text and guards remain intact."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L149-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [ "rateLimitGraceActive", "rate-limit-warning", "effortValue:" ]
+    source_regex = "^\\(\\{addNotification:"
+
+[patches.ast.captures.memo]
+kind = "identifier"
+path = "test.right.right"
+
+  [patches.ast.captures.memo.select]
+  node = "IfStatement"
+  source_regex = "^if\\(![A-Za-z_$][A-Za-z0-9_$]*\\|\\|[A-Za-z_$][A-Za-z0-9_$]*===[A-Za-z_$][A-Za-z0-9_$]*\\)return;$"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "effortValue:([A-Za-z_$][A-Za-z0-9_$]*)\\}\\)=>\\{"
+  value = 'effortValue:$1,removeNotification:__acc_remove_rate,store:__acc_rate_store})=>{let __acc_rate_settings=__acc_rate_store.getState().settings?.statusLine;if(__acc_rate_settings?.hideBuiltinFooter||__acc_rate_settings?.disabledFooter?.includes("rate_limit_warning")||__acc_rate_settings?.disabledFooter?.includes("footer")||globalThis.__acc_disabled_footer?.includes("rate_limit_warning")||globalThis.__acc_disabled_footer?.includes("footer")){__acc_remove_rate("rate-limit-warning");%%CAPTURE:memo%%=null;return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = '2.1.282 statusline-footer-control-rate-limit-warning preserves __acc_remove_rate("rate-limit-warni'
+  assert_contains = '__acc_remove_rate("rate-limit-warning")'
+
+[[patches]]
+name = "statusline-footer-control-schema-2-1-282"
+lineage = "statusline-footer-control-schema"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Extend the native settings schema using its own boolean and enum factories captured from hideVimModeIndicator and autoUpdatesChannel. Enum.array preserves the allowed footer-item validation without platform-specific array helper names."
+rationale_ref = "reference/v2.1.88/sources/src/utils/settings/types.ts#L549-L557"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "statusLine"
+    strings = [ "hideVimModeIndicator:", "autoUpdatesChannel:" ]
+
+[patches.ast.captures.boolean]
+kind = "identifier"
+path = "callee.object.callee.object.callee"
+
+  [patches.ast.captures.boolean.select]
+  node = "CallExpression"
+  callee_property = "describe"
+  direct_string_literal = "Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself."
+
+[patches.ast.captures.enum]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.enum.select]
+  node = "CallExpression"
+  source_regex = '^[A-Za-z_$][A-Za-z0-9_$]*\(\["latest","stable","rc"\]\)$'
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(statusLine:[A-Za-z_$][A-Za-z0-9_$]*\\(\\{)"
+  value = '$1hideBuiltinFooter:%%CAPTURE:boolean%%().optional().describe("Compatibility alias for hiding all built-in footer items."),disabledFooter:%%CAPTURE:enum%%(["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]).array().optional().describe("Built-in footer items to hide when a custom status line is configured."),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = '2.1.282 statusline-footer-control-schema preserves ["footer","permission_mode","mode",'
+  assert_contains = '["footer","permission_mode","mode","effort_notification","rate_limit_warning","clipboard_image_hint","teammate_idle_spacer"]).array().optional()'
+
+[[patches]]
+name = "statusline-json-permission-mode-2-1-282"
+lineage = "statusline-json-permission-mode"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64", "linux-x64" ]
+rationale = "Expose the active permissionMode argument in custom statusLine JSON. Capture it directly from the builder parameter rather than carrying a minified local across versions."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "context_window:",
+  "session_name:",
+  "fast_mode:",
+  "permissionMode:"
+]
+
+[patches.ast.captures.permission]
+kind = "identifier"
+path = "params.0.properties.1.value"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "return{"
+  value = "return{permission_mode:%%CAPTURE:permission%%,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-json-permission-mode preserves return{permission_mode:"
+  assert_contains = "return{permission_mode:"
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-282-darwin-arm64"
+lineage = "statusline-json-effort-level"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "The JSON builder imports Jb from the same graph effort module as its native effort helper. Resolve the model-scoped session effort through Jb.session; capture capability, model and selected effort from the native effort payload."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "context_window:",
+  "session_name:",
+  "fast_mode:",
+  "permissionMode:"
+]
+
+[patches.ast.captures.supports]
+kind = "identifier"
+path = "argument.left.callee"
+
+  [patches.ast.captures.supports.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "argument.left.arguments.0"
+
+  [patches.ast.captures.model.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+[patches.ast.captures.native]
+kind = "identifier"
+path = "argument.right.properties.0.value.properties.0.value.callee"
+
+  [patches.ast.captures.native.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+[patches.ast.captures.effort]
+kind = "identifier"
+path = "argument.right.properties.0.value.properties.0.value.arguments.1"
+
+  [patches.ast.captures.effort.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "...%%CAPTURE:supports%%(%%CAPTURE:model%%)&&{effort:{level:%%CAPTURE:native%%(%%CAPTURE:model%%,%%CAPTURE:effort%%)}}"
+  value = 'effort_level:%%CAPTURE:supports%%(%%CAPTURE:model%%)?Jb.session(%%CAPTURE:model%%,"get",void 0,%%CAPTURE:effort%%).value??null:null,...%%CAPTURE:supports%%(%%CAPTURE:model%%)&&{effort:{level:Jb.session(%%CAPTURE:model%%,"get",void 0,%%CAPTURE:effort%%).value}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-json-effort-level-darwin-arm64 preserves Jb.session("
+  assert_contains = "Jb.session("
+
+[[patches]]
+name = "statusline-json-effort-level-2-1-282-linux-x64"
+lineage = "statusline-json-effort-level"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "The JSON builder imports JS from the same graph effort module as its native effort helper. Resolve the model-scoped session effort through JS.session; capture capability, model and selected effort from the native effort payload."
+rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "context_window:",
+  "session_name:",
+  "fast_mode:",
+  "permissionMode:"
+]
+
+[patches.ast.captures.supports]
+kind = "identifier"
+path = "argument.left.callee"
+
+  [patches.ast.captures.supports.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "argument.left.arguments.0"
+
+  [patches.ast.captures.model.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+[patches.ast.captures.native]
+kind = "identifier"
+path = "argument.right.properties.0.value.properties.0.value.callee"
+
+  [patches.ast.captures.native.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+[patches.ast.captures.effort]
+kind = "identifier"
+path = "argument.right.properties.0.value.properties.0.value.arguments.1"
+
+  [patches.ast.captures.effort.select]
+  node = "SpreadElement"
+  source_regex = "^\\.\\.\\.[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)&&\\{effort:\\{level:"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "...%%CAPTURE:supports%%(%%CAPTURE:model%%)&&{effort:{level:%%CAPTURE:native%%(%%CAPTURE:model%%,%%CAPTURE:effort%%)}}"
+  value = 'effort_level:%%CAPTURE:supports%%(%%CAPTURE:model%%)?JS.session(%%CAPTURE:model%%,"get",void 0,%%CAPTURE:effort%%).value??null:null,...%%CAPTURE:supports%%(%%CAPTURE:model%%)&&{effort:{level:JS.session(%%CAPTURE:model%%,"get",void 0,%%CAPTURE:effort%%).value}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 statusline-json-effort-level-linux-x64 preserves JS.session("
+  assert_contains = "JS.session("

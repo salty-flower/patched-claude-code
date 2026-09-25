@@ -63,11 +63,19 @@ async function assertInspectorPortUnused(port: number): Promise<void> {
   if (occupied) throw new Error(`inspector port ${port} is already in use; stop the stale process first`)
 }
 
-function launchInspectedBinary(binary: string, port: number): ReturnType<typeof Bun.spawn> {
+function launchInspectedBinary(binary: string, port: number) {
   const script = Bun.which("script")
   if (!script) throw new Error("capture requires the `script` PTY command")
+  const quote = (value: string): string => `'${value.replaceAll("'", `'\\''`)}'`
+  const command = `exec ${quote(binary)}`
+  const scriptArgs =
+    process.platform === "darwin"
+      ? [script, "-q", "-e", "/dev/null", "bash", "-c", command]
+      : [script, "-q", "-e", "-c", command, "/dev/null"]
   return Bun.spawn({
-    cmd: [script, "-qec", `'${binary.replaceAll("'", `'\\''`)}'`, "/dev/null"],
+    // Darwin script needs forwarded stdin to start the interactive native host.
+    // Exec retains script as the owned subprocess instead of a shell wrapper.
+    cmd: ["bash", "-c", `exec ${scriptArgs.map(quote).join(" ")} < <(cat)`],
     stdin: "pipe",
     stdout: "ignore",
     stderr: "ignore",
@@ -359,6 +367,7 @@ async function main(): Promise<number> {
       socket.close()
     }
   } finally {
+    inspected.stdin.end()
     inspected.kill()
     await inspected.exited
   }

@@ -206,3 +206,33 @@ assert_contains = '''function x_(e,n){let __acc_model_context_key="CLAUDE_CODE_M
 kind = "static"
 name = "2.1.281 Linux context window drops stale symbols"
 assert_not_contains = '''if(IE(e))return 1e6;let n=G.CLAUDE_CODE_MAX_CONTEXT_TOKENS'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-282"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Resolve a positive per-model context-window declaration before every upstream detection path in 2.1.282. The structural locator matches the context-window resolver and captures its first model parameter; the preamble names no minified helper. Audited Darwin Q_ and Linux Z_ both use the captured model for suffix and catalog checks."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+lineage = "resolve-model-specific-context-window"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "return 1e6", "CLAUDE_CODE_MAX_CONTEXT_TOKENS" ]
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 resolves the per-model declaration before upstream suffix detection"
+  assert_contains = "if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if($d(e))return 1e6;"
+  assert_not_contains = "process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS=parseInt(process.env[__acc_model_context_key]"

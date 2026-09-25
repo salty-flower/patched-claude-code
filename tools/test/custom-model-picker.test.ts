@@ -11,10 +11,17 @@ const entries = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches
 const pickerPatches = entries.filter((entry) => entry.name.startsWith("append-second-custom-model-option"))
 const TARGET_VERSION = targetVersion()
 
+function pickerSource(patch: PatchEntry): string {
+  if (typeof patch.ast?.match.source === "string") return patch.ast.match.source
+  // Structural locators must capture these fixture bindings and preserve the
+  // upstream first-slot statement before adding the second slot.
+  // Deliberately use names distinct from the staged bundle's minified bindings.
+  return "if(slot&&!rows.some((row)=>row.value===slot))rows.push({value:slot,label:settings.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??labelForModel(slot)??slot,description:settings.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${slot})`,sessionTail:!0});"
+}
+
 function picker(patch: PatchEntry): (rows: Row[], environment: Environment) => Row[] {
-  const source = patch.ast?.match.source
-  if (typeof source !== "string" || !patch.ast || !patch.transform)
-    throw new Error(`${patch.name}: expected source locator`)
+  const source = pickerSource(patch)
+  if (!patch.ast || !patch.transform) throw new Error(`${patch.name}: missing AST transform`)
   const rowsName = source.match(/([\w$]+)\.push\(/)?.[1]
   const slotName = source.match(/if\(([\w$]+)&&/)?.[1]
   if (!rowsName || !slotName) throw new Error(`${patch.name}: cannot derive upstream fixture bindings`)
@@ -72,7 +79,7 @@ for (const patch of pickerPatches) {
         label: "First slot",
         description: "Custom model (provider/one)",
       }
-      if (typeof patch.ast?.match.source === "string" && patch.ast.match.source.includes("sessionTail:!0")) {
+      if (pickerSource(patch).includes("sessionTail:!0")) {
         firstSlot.sessionTail = true
       }
       expect(result).toEqual([
@@ -161,11 +168,10 @@ for (const patch of entries.filter((entry) => /^(recognize|validate)-second-cust
     const source =
       typeof patch.ast.match.source === "string"
         ? patch.ast.match.source
-        : `if(firstModel(${candidateFromTransform ?? "n"}))return{recognized:!0};`
-    if (
-      typeof patch.ast.match.source_regex === "string" &&
-      !new RegExp(patch.ast.match.source_regex).test(source)
-    ) {
+        : patch.name.startsWith("validate")
+          ? `if(${candidateFromTransform ?? "candidate"}===settings.ANTHROPIC_CUSTOM_MODEL_OPTION)return{valid:!0};`
+          : `if(firstModel(${candidateFromTransform ?? "n"}))return{recognized:!0};`
+    if (typeof patch.ast.match.source_regex === "string" && !new RegExp(patch.ast.match.source_regex).test(source)) {
       throw new Error(`${patch.name}: synthetic source does not satisfy its AST source regex`)
     }
     const recognition = source.match(/if\(([\w$]+)\(([\w$]+)\)\)return/)

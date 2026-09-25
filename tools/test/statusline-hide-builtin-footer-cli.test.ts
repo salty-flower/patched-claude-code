@@ -3,6 +3,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
+import { applyAstTransformPatches } from "../lib/ast-transform-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
@@ -75,11 +76,21 @@ test("footer schema parses settings with the target graph's actual schema constr
       .map((file) => readFileSync(join(graphDir, file), "utf8"))
       .find((source) => /hideVimModeIndicator:[\w$]+\(\)/.test(source))
     if (!settingsSource) throw new Error(`No settings schema in ${platform}`)
-    const code = patch.transform?.op === "append_object_property" ? patch.transform.code : undefined
-    if (typeof code !== "string") throw new Error(`No footer schema transform in ${platform}`)
-    const helperMatch = /hideBuiltinFooter:([\w$]+)\(\).*disabledFooter:([\w$]+)\(([\w$]+)\(/.exec(code)
-    if (!helperMatch) throw new Error(`No footer schema constructors in ${platform}`)
-    const wantedHelpers = new Set(helperMatch.slice(1))
+    if (!patch.ast || !patch.transform) throw new Error(`No footer schema transform in ${platform}`)
+    // Resolve captures against the actual target before extracting the two added
+    // schemas. This supports both array(enum(...)) and enum(...).array().
+    const renderedSchema = applyAstTransformPatches(settingsSource, [
+      { name: patch.name, expectedMatches: patch.expected_matches, ast: patch.ast, transform: patch.transform },
+    ]).source
+    const schemaStart = renderedSchema.indexOf("hideBuiltinFooter:")
+    const schemaEndMarker = '.describe("Built-in footer items to hide when a custom status line is configured.")'
+    const schemaEnd = renderedSchema.indexOf(schemaEndMarker, schemaStart)
+    if (schemaStart < 0 || schemaEnd < 0) throw new Error(`No rendered footer schema in ${platform}`)
+    const code = renderedSchema.slice(schemaStart, schemaEnd + schemaEndMarker.length)
+    const booleanHelper = /hideBuiltinFooter:([\w$]+)\(\)/.exec(code)?.[1]
+    const itemHelpers = /disabledFooter:([\w$]+)\((?:([\w$]+)\()?/.exec(code)
+    if (!booleanHelper || !itemHelpers) throw new Error(`No footer schema constructors in ${platform}`)
+    const wantedHelpers = new Set([booleanHelper, ...itemHelpers.slice(1).filter((name) => name !== undefined)])
     const helpers: Record<string, unknown> = {}
     for (const match of settingsSource.matchAll(/import\{([^}]+)\}from"([^"]+)"/g)) {
       const bindings = match[1].split(",").filter((binding) => {
@@ -774,6 +785,51 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       }
       return
     }
+    if (TARGET_VERSION === "2.1.282") {
+      const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+      const linuxPatched = readdirSync(linuxGraphDir)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+        .join("\n")
+      for (const bundle of [patched, linuxPatched]) {
+        expect(bundle).toMatch(
+          /new [\w$]+\("--hide-builtin-footer \[items\]","Hide built-in footer items"\)\.preset\("all"\)/,
+        )
+        expect(bundle).toContain('globalThis.__acc_disabled_footer=e==="all"')
+        expect(bundle).toContain("statusLine:{disabledFooter:globalThis.__acc_disabled_footer}")
+        expect(bundle).toContain(
+          'globalThis.__acc_clipboard_image_available=!0,!__acc_clipboard_disabled?.includes("clipboard_image_hint")&&!__acc_clipboard_disabled?.includes("footer")',
+        )
+        expect(bundle).toMatch(/return __acc_hide_footer\?[\w$]+:[\w$]+}/)
+        expect(bundle).toMatch(/command_length:[\w$]+\.command\?\.length\?\?0,padding:/)
+        for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
+          expect(bundle).toMatch(
+            new RegExp(`${selector}=[\\w$]+\\(\\(state\\)=>state\\.settings\\.statusLine\\?\\.hideBuiltinFooter`),
+          )
+          expect(bundle).toContain(`,${selector}]`)
+        }
+        expect(bundle).toContain("[370]?.[3]!==__acc_hide_effort_level")
+        expect(bundle).toContain("[117]?.[3]!==__acc_hide_effort")
+        expect(bundle).toMatch(/if\(![\w$]+\|\|__acc_hide_effort_level\)\{[\w$]+\([\w$]+\);return}/)
+        expect(bundle).toContain("if(!__acc_hide_effort&&")
+        expect(bundle).toMatch(/else [\w$]+\("ultrathink-active"\)/)
+        expect(bundle).toMatch(
+          /__acc_hide_mode=[\w$]+\(\(__acc_mode_state\)=>__acc_mode_state\.settings\.statusLine\?\.hideBuiltinFooter/,
+        )
+        expect(bundle).toMatch(/toolPermissionContext:__acc_hide_mode\?void 0:[\w$]+,showHint:!__acc_hide_mode&&\(/)
+        expect(bundle).toContain("denseShowHint:!__acc_hide_mode&&(")
+        expect(bundle).toMatch(/if\(!0\|\|[\w$]+\[38\]/)
+        expect(bundle).toContain('__acc_rate_settings?.disabledFooter?.includes("rate_limit_warning")')
+        expect(bundle).toContain('__acc_rate_settings?.disabledFooter?.includes("footer")')
+        expect(bundle).toMatch(/__acc_remove_rate\("rate-limit-warning"\);[\w$]+=null;return}/)
+        expect(bundle).toContain("__acc_rate_context.store.getState().settings?.statusLine")
+        expect(bundle).toMatch(
+          /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\.session\(\2,"get",void 0,([\w$]+)\)\.value\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\.session\(\2,"get",void 0,\4\)\.value}}/,
+        )
+        expect(bundle).toMatch(/return\{permission_mode:[\w$]+,\.\.\./)
+      }
+      return
+    }
     if (TARGET_VERSION === "2.1.281") {
       const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
       const linuxPatched = readdirSync(linuxGraphDir)
@@ -784,18 +840,18 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         [
           patched,
           'effort_level:qS(Le)?$b.session(Le,"get",void 0,ve).value??null:null',
-          'return{...rc(e,_e),...ze&&{session_name:ze},permission_mode:n,model:',
+          "return{...rc(e,_e),...ze&&{session_name:ze},permission_mode:n,model:",
         ],
         [
           linuxPatched,
           'effort_level:Vb(Le)?$S.session(Le,"get",void 0,ve).value??null:null',
-          'return{...nc(e,_e),...Xe&&{session_name:Xe},permission_mode:n,model:',
+          "return{...nc(e,_e),...Xe&&{session_name:Xe},permission_mode:n,model:",
         ],
       ]) {
         expect(bundle).toContain('new Go("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
         expect(bundle).toContain('globalThis.__acc_disabled_footer=e==="all"')
         expect(bundle).toContain("statusLine:{disabledFooter:globalThis.__acc_disabled_footer}")
-        expect(bundle).toContain('globalThis.__acc_clipboard_image_available=!0')
+        expect(bundle).toContain("globalThis.__acc_clipboard_image_available=!0")
         expect(bundle).toContain("return __acc_hide_footer?nr:Nr}")
         expect(bundle).toContain(
           '__acc_hide_effort=U((state)=>state.settings.statusLine?.hideBuiltinFooter||state.settings.statusLine?.disabledFooter?.includes("effort_notification"))',
@@ -803,7 +859,9 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         expect(bundle).toContain(
           '__acc_hide_mode=U((__acc_mode_state)=>__acc_mode_state.settings.statusLine?.hideBuiltinFooter||__acc_mode_state.settings.statusLine?.disabledFooter?.includes("permission_mode")',
         )
-        expect(bundle).toContain('hidden=state?.hideBuiltinFooter||state?.disabledFooter?.includes("rate_limit_warning")')
+        expect(bundle).toContain(
+          'hidden=state?.hideBuiltinFooter||state?.disabledFooter?.includes("rate_limit_warning")',
+        )
         expect(bundle).toContain('remove("rate-limit-warning")')
         expect(bundle).toContain(effortPayload)
         expect(bundle).toContain(permissionPayload)

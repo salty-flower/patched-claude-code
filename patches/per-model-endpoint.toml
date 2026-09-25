@@ -2877,3 +2877,139 @@ assert_contains = '''body:s,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u([{...n
 kind = "static"
 name = "2.1.281 non-beta countTokens drops stale symbols"
 assert_not_contains = '''return this._client.post("/v1/messages/count_tokens",{body:n,...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers])})'''
+
+[[patches]]
+name = "inject-per-model-into-beta-create-2-1-282"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+rationale = "Route the 2.1.282 beta-create request using model-specific URL and credentials. Match the SDK endpoint call structurally and capture the normalized request body. Preserve target timeout, request options, header merger and streaming fields through source groups; append credential layers to the existing header merge array. No minified helper is introduced."
+locator_kind = "ast_transform"
+expected_matches = 1
+lineage = "inject-per-model-into-beta-create"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 beta-create routes the captured model"
+  assert_contains = 'this._client.post("/v1/messages?beta=true",{body:i,...((__acc_url)'
+  assert_not_contains = 'return this._client.post("/v1/messages?beta=true",{body:i,timeout:c??600000,...r,headers:u([{...s?.toString()!=null?{"anthropic-beta":s?.toString()}:void 0,...o!=null?{"anthropic-user-profile-id":o}:void 0},a,r?.headers]),stream:n.stream??!1})'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages?beta=true"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-create-2-1-282"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+rationale = "Route the 2.1.282 nonbeta-create request using model-specific URL and credentials. Match the SDK endpoint call structurally and capture the normalized request body. Preserve target timeout, request options, header merger and streaming fields through source groups; append credential layers to the existing header merge array. No minified helper is introduced."
+locator_kind = "ast_transform"
+expected_matches = 1
+lineage = "inject-per-model-into-nonbeta-create"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 nonbeta-create routes the captured model"
+  assert_contains = 'this._client.post("/v1/messages",{body:s,...((__acc_url)'
+  assert_not_contains = 'return this._client.post("/v1/messages",{body:s,timeout:o??600000,...r,headers:u([{...n!=null?{"anthropic-user-profile-id":n}:void 0},i,r?.headers]),stream:e.stream??!1})'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-beta-count-tokens-2-1-282"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
+rationale = "Route the 2.1.282 beta-count-tokens request using model-specific URL and credentials. Match the SDK endpoint call structurally and capture the normalized request body. Preserve target timeout, request options, header merger and streaming fields through source groups; append credential layers to the existing header merge array. No minified helper is introduced."
+locator_kind = "ast_transform"
+expected_matches = 1
+lineage = "inject-per-model-into-beta-count-tokens"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 beta-count-tokens routes the captured model"
+  assert_contains = 'this._client.post("/v1/messages/count_tokens?beta=true",{body:i,...((__acc_url)'
+  assert_not_contains = 'return this._client.post("/v1/messages/count_tokens?beta=true",{body:i,...r,headers:u([{"anthropic-beta":[...s??[],"token-counting-2024-11-01"].toString(),...o!=null?{"anthropic-user-profile-id":o}:void 0},r?.headers])})'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages/count_tokens?beta=true"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-count-tokens-2-1-282"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
+rationale = "Route the 2.1.282 nonbeta-count-tokens request using model-specific URL and credentials. Match the SDK endpoint call structurally and capture the normalized request body. Preserve target timeout, request options, header merger and streaming fields through source groups; append credential layers to the existing header merge array. No minified helper is introduced."
+locator_kind = "ast_transform"
+expected_matches = 1
+lineage = "inject-per-model-into-nonbeta-count-tokens"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 nonbeta-count-tokens routes the captured model"
+  assert_contains = 'this._client.post("/v1/messages/count_tokens",{body:s,...((__acc_url)'
+  assert_not_contains = 'return this._client.post("/v1/messages/count_tokens",{body:s,...r,headers:u([{...n!=null?{"anthropic-user-profile-id":n}:void 0},r?.headers])})'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages/count_tokens"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'

@@ -58,3 +58,37 @@ assert_contains = '''hooksModule:{module:S,scan:Le().scan,files:{}}'''
 kind = "static"
 name = "Linux agents-md no longer uses the disk graph folder descriptor"
 assert_not_contains = '''hooksModule:y4(import.meta.dir,S,()=>Le())'''
+
+[[patches]]
+name = "agents-md-native-hook-host-path-2-1-282"
+lineage = "agents-md-native-hook-host-path"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Expose the agents-md compiled hook scan to the native host when the 2.1.282 graph runs from disk. Capture the module namespace and scan factory from the existing descriptor in the plugin registration with userConfig; preserve the registration and instructionFiles settings. Remove when upstream uses the compiled native hook descriptor for disk graphs."
+rationale_ref = "reference/v2.1.88/sources/src/utils/plugins/loadPluginHooks.ts#L123-L148"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "ObjectExpression", object_property_direct = "hooksModule", strings = ["userConfig:", "import.meta.dir"] }
+
+[patches.ast.captures.module]
+kind = "identifier"
+select = { node = "CallExpression", source_regex = '^\w+\(import\.meta\.dir,' }
+path = "arguments.1"
+
+[patches.ast.captures.scan]
+kind = "identifier"
+select = { node = "CallExpression", source_regex = '^\w+\(import\.meta\.dir,' }
+path = "arguments.2.body.callee"
+
+[patches.transform]
+op = "set_object_property"
+property = "hooksModule"
+value = '''{module:%%CAPTURE:module%%,scan:%%CAPTURE:scan%%().scan,files:{}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 agents-md uses a compiled native hook descriptor"
+assert_contains = '''().scan,files:{}},userConfig:'''

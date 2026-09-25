@@ -790,3 +790,100 @@ assert_not_contains = '''if(!qo({gesture:"ctrl_c"}))return!1'''
 kind = "static"
 name = "2.1.281 global interrupt does not carry stale 2.1.246 symbols"
 assert_not_contains = '''if(!Ee({gesture:"ctrl_c"}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-282-darwin-arm64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Hand foreground local agents to the background before Escape aborts the shared parent request. This is the 2.1.282 darwin-arm64 variant: task registry Bt is returned by Lh(), helper W0e reads that registry with get/update and resolves agentBackgroundSignalResolvers, stop manager cR uses session Lt, and onCancel is v. Enumerate the registry with all() and pass it to the helper; an app store with getState() does not implement the helper's registry contract. Defer stopRunning and parent cancellation by one event-loop turn after a successful handoff."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = 'if(be!==void 0&&!be.aborted||we||Te&&Gr)return To.current=Date.now(),i("tengu_cancel",fr),cR.of(Lt).stopRunning(),v(),!0;'
+expected_matches = 1
+replacement = 'if(be!==void 0&&!be.aborted||we||Te&&Gr){let __hadForegroundAgent=!1;for(let __agent of Object.values(Bt.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=W0e(__agent.id,Bt)||__hadForegroundAgent;return To.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{cR.of(Lt).stopRunning(),v()},0):(cR.of(Lt).stopRunning(),v()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 foreground handoff uses the current task registry"
+  assert_contains = 'Object.values(Bt.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=W0e(__agent.id,Bt)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 foreground cancellation waits for background handoff"
+  assert_contains = "__hadForegroundAgent?setTimeout(()=>{cR.of(Lt).stopRunning(),v()},0)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 does not pass the previous app store to the handoff helper"
+  assert_not_contains = "lIe(__agent.id,ut)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 foreground cancellation no longer aborts immediately"
+  assert_not_contains = 'if(be!==void 0&&!be.aborted||we||Te&&Gr)return To.current=Date.now(),i("tengu_cancel",fr),cR.of(Lt).stopRunning(),v(),!0;'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-282-linux-x64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Hand foreground local agents to the background before Escape aborts the shared parent request. This is the 2.1.282 linux-x64 variant: task registry $t is returned by Mh(), helper LHe reads that registry with get/update and resolves agentBackgroundSignalResolvers, stop manager iR uses session Ot, and onCancel is M. Enumerate the registry with all() and pass it to the helper; an app store with getState() does not implement the helper's registry contract. Defer stopRunning and parent cancellation by one event-loop turn after a successful handoff."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = 'if(Se!==void 0&&!Se.aborted||ve||Ce&&Gr)return Co.current=Date.now(),i("tengu_cancel",fr),iR.of(Ot).stopRunning(),M(),!0;'
+expected_matches = 1
+replacement = 'if(Se!==void 0&&!Se.aborted||ve||Ce&&Gr){let __hadForegroundAgent=!1;for(let __agent of Object.values($t.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=LHe(__agent.id,$t)||__hadForegroundAgent;return Co.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{iR.of(Ot).stopRunning(),M()},0):(iR.of(Ot).stopRunning(),M()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 foreground handoff uses the current task registry"
+  assert_contains = 'Object.values($t.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=LHe(__agent.id,$t)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 foreground cancellation waits for background handoff"
+  assert_contains = "__hadForegroundAgent?setTimeout(()=>{iR.of(Ot).stopRunning(),M()},0)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 does not pass the previous app store to the handoff helper"
+  assert_not_contains = "tPe(__agent.id,ut)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 foreground cancellation no longer aborts immediately"
+  assert_not_contains = 'if(Se!==void 0&&!Se.aborted||ve||Ce&&Gr)return Co.current=Date.now(),i("tengu_cancel",fr),iR.of(Ot).stopRunning(),M(),!0;'
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-282"
+lineage = "global-interrupt-cancel-only"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Keep global Ctrl+C on cancel-only mode so it cannot kill unrelated background agents. Match the sole bare ctrl_c gesture options object and add suppressBackgroundAgentKill, retaining the graph-local callback automatically. Explicit chat:killAgents remains available."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = '{gesture:"ctrl_c"}'
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "suppressBackgroundAgentKill"
+  value = "!0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 global interrupt explicitly suppresses background agent kills"
+  assert_contains = '{gesture:"ctrl_c",suppressBackgroundAgentKill:!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 has no bare global ctrl_c call options"
+  assert_not_contains = '({gesture:"ctrl_c"})'

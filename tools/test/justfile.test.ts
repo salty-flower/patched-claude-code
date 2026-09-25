@@ -98,7 +98,7 @@ test("api stub smoke renders once and runs the complete local PTY matrix", () =>
   expect(renderedRecipe).toContain("_api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout:")
   expect(renderedRecipe).toContain('oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
   expect(renderedRecipe).toContain(
-    'if [ "{{version}}" = "2.1.281" ]; then bun run tools/test/agents-md-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"; fi',
+    'if bun tools/node_modules/semver/bin/semver.js "{{version}}" --range ">=2.1.281" >/dev/null; then bun run tools/test/agents-md-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"; fi',
   )
   expect(renderedRecipe).toContain('tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"')
   expect(renderedRecipe).toContain(

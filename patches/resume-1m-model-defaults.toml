@@ -1610,3 +1610,62 @@ assert_contains = '''n0=o??oh(),n=n0?kt(n0):void 0,s=n?Xn(n):void 0'''
 kind = "static"
 name = "2.1.281 Linux removes the raw-setting-only resume resolver"
 assert_not_contains = '''n=o?kt(o):void 0,s=n?Xn(n):void 0'''
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-282"
+rationale = "Resolve absent resume model settings through the current-model resolver before alias and 1M checks in 2.1.282. Capture the existing current-model call in the same function, the initial-model parameter, and the alias normalizer. The current-model helper may return undefined; keep the guard before normalization. Darwin At and Linux Tt normalize only a defined value, with bh imported from each platform model module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "ast_transform"
+expected_matches = 1
+lineage = "resume-detects-default-1m-after-alias-resolution"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 resume resolves the current model and guards an absent default"
+  assert_contains = ",__acc_resume_model=o??bh(),n=__acc_resume_model?"
+  assert_not_contains = "n0=o??sh()"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 resume normalizes the guarded default"
+  assert_contains = "(__acc_resume_model):void 0,s=n?Jn(n):void 0"
+  assert_not_contains = "n0=o??oh()"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "kind:\"mode_dependent_setting\"",
+  "\"unknown_family\"",
+  "modelId",
+  "[1m]"
+]
+
+[patches.ast.captures.initial]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.normalized]
+kind = "identifier"
+path = "body.body.0.declarations.1.id"
+
+[patches.ast.captures.normalize]
+kind = "identifier"
+path = "body.body.0.declarations.1.init.consequent.callee"
+
+[patches.ast.captures.current]
+kind = "identifier"
+path = "init.callee"
+
+  [patches.ast.captures.current.select]
+  node = "VariableDeclarator"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\(\\)$"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = ",[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\?[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\):void 0,"
+  value = ",__acc_resume_model=%%CAPTURE:initial%%??%%CAPTURE:current%%(),%%CAPTURE:normalized%%=__acc_resume_model?%%CAPTURE:normalize%%(__acc_resume_model):void 0,"

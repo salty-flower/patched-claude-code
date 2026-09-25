@@ -941,3 +941,73 @@ assert_not_contains = '''h=GMt(e,s,g),'''
 kind = "static"
 name = "2.1.246 Linux signature symbols are absent in 2.1.281"
 assert_not_contains = '''r=qWt()?QWr(e,Ri(n)):JWr(e)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-282-darwin"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "The 2.1.282 darwin-arm64 normalizer _Pt uses LPt to remove only foreign-model thinking signatures. Preserve this path for provider Le returning firstParty and the imported official URL predicate Cs; otherwise use local cleanup V7o for all assistant messages. V7o filters blocks through NXt, which recognizes redacted_thinking or nonempty thinking signatures. The imported Cs honors the explicit assume-first-party override and delegates via X_ to pw, which checks api.anthropic.com. These are audited 2.1.282 graph bindings, with replacement scope capped before 2.1.283."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "ast_transform"
+platforms = [ "darwin-arm64" ]
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "_Pt"
+    strings = [ "messagesPreNormalize:", "LPt(e,s,g)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "h=LPt(e,s,g),"
+  value = 'h=Le()==="firstParty"&&Cs()?LPt(e,s,g):V7o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 custom endpoints remove signed assistant thinking"
+  assert_contains = 'h=Le()==="firstParty"&&Cs()?LPt(e,s,g):V7o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+  assert_not_contains = "h=LPt(e,s,g),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 drops stale cleanup symbols"
+  assert_contains = "return V7o(e,(s)=>"
+  assert_not_contains = 'h=He()==="firstParty"&&bs()?JMt(e,s,g):d5o(e,'
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-282-linux"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "The 2.1.282 linux-x64 normalizer vPt uses FPt to remove only foreign-model thinking signatures. Preserve this path for provider De returning firstParty and the imported official URL predicate ks; otherwise use local cleanup H7o for all assistant messages. H7o filters blocks through yXt, which recognizes redacted_thinking or nonempty thinking signatures. The imported ks honors the explicit assume-first-party override and delegates via Y_ to uw, which checks api.anthropic.com. These are audited 2.1.282 graph bindings, with replacement scope capped before 2.1.283."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "ast_transform"
+platforms = [ "linux-x64" ]
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "vPt"
+    strings = [ "messagesPreNormalize:", "FPt(e,s,g)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "h=FPt(e,s,g),"
+  value = 'h=De()==="firstParty"&&ks()?FPt(e,s,g):H7o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 custom endpoints remove signed assistant thinking"
+  assert_contains = 'h=De()==="firstParty"&&ks()?FPt(e,s,g):H7o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+  assert_not_contains = "h=FPt(e,s,g),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 drops stale cleanup symbols"
+  assert_contains = "return H7o(e,(s)=>"
+  assert_not_contains = 'h=He()==="firstParty"&&Ss()?GMt(e,s,g):R6o(e,'

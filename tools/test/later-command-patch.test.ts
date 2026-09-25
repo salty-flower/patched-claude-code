@@ -9,9 +9,12 @@ import { recordOracleCheck } from "./helpers/oracle-evidence"
 const version = targetVersion()
 const entries = loadPatchEntriesFromFile(join(import.meta.dir, "../../patches/later-command.toml"))
 const current = entries.filter((entry) => patchApplies(entry, version))
-const usesDirectSubmit = current.some(
-  (entry) => entry.transform && "code" in entry.transform && entry.transform.code.includes("pastedContentsOverride:"),
-)
+const usesDirectSubmit = current.some((entry) => {
+  if (!entry.name.startsWith("later-command-submit-hook-") || !entry.transform) return false
+  const snippet =
+    "code" in entry.transform ? entry.transform.code : "value" in entry.transform ? entry.transform.value : ""
+  return snippet.includes("pastedContentsOverride:")
+})
 const timezoneFixture = join(import.meta.dir, "fixtures/later-timezone.ts")
 const timezoneFixtureTimeoutMs = 10_000
 

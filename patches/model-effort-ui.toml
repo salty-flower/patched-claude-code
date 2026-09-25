@@ -4602,3 +4602,1195 @@ assert_not_contains = '''previous=e??current.mainLoopModelForSession??current.ma
 kind = "static"
 name = "2.1.281 Linux inline model switch rejects the native-only setter"
 assert_not_contains = '''s((g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null}))'''
+
+[[patches]]
+name = "model-effort-slider-import-2-1-282-darwin"
+lineage = "model-effort-slider-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.282 darwin-arm64 port retains the existing per-model effort behavior. The current native capability import is preserved verbatim so the Ultracode import port can extend it independently."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = 'import{DZ,zq,OR,DR,rHt,fCe,iwo,Vq,FN,Don,qq,mCe,LR}from"./chunk-76kv9jbg.js"'
+replacement = 'import{DZ,zq,OR,DR,rHt,fCe,iwo,Vq,FN,Don,qq,mCe,LR}from"./chunk-76kv9jbg.js";import{Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-import preserves model-scoped effort"
+  assert_contains = 'import{Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-282-darwin"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.282 darwin-arm64 port retains the existing per-model effort behavior. The initial index resolver ye still receives the model as c; only the effort-value read changes, preserving native ultracode and fallback selection."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = 'function ye(c,a,l,i){if(DR(c,a,l)){let m=i.levels.findIndex((o)=>o.value==="ultracode");if(m!==-1)return m}let f=lr()?void 0:FN(),u=f===null?void 0:f??a;if(u!==void 0){let m=i.levels.findIndex((o)=>o.value===u);if(m!==-1)return m}let p=LR(c,u),d=i.levels.findIndex((m)=>m.value===p);return d===-1?bo:d}'
+replacement = 'function ye(c,a,l,i){if(DR(c,a,l)){let m=i.levels.findIndex((o)=>o.value==="ultracode");if(m!==-1)return m}let effective=patchedEffort.session(c),u=effective.value;if(u!==void 0){let m=i.levels.findIndex((o)=>o.value===u);if(m!==-1)return m}let p=LR(c,u),d=i.levels.findIndex((m)=>m.value===p);return d===-1?bo:d}'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-initial preserves model-scoped effort"
+  assert_contains = "let effective=patchedEffort.session(c),u=effective.value;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-initial removes the predecessor behavior"
+  assert_not_contains = "let f=lr()?void 0:FN(),u=f===null?void 0:f??a;"
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-282-darwin"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.282 darwin-arm64 port retains the existing per-model effort behavior. The current entry wrapper Gt selects the visual ot or accessible nt renderer. Guard it after its unconditional compiler-cache hook so both render paths use the status view _t for pinned or unsupported effort without changing the wrapper hook count."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = "function Gt(c){let l=w(4);if(Nt())"
+replacement = "function Gt(c){let l=w(4);const effective=patchedEffort.session(zc());if(effective.cli||effective.value===void 0)return e(_t,{onDone:c.onDone});if(Nt())"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-guard preserves model-scoped effort"
+  assert_contains = "const effective=patchedEffort.session(zc());if(effective.cli||effective.value===void 0)return e(_t,{onDone:c.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-guard removes the predecessor behavior"
+  assert_not_contains = "function Gt(c){let l=w(4);if(Nt())"
+
+[[patches]]
+name = "model-effort-slider-workflow-2-1-282-darwin"
+lineage = "model-effort-slider-workflow"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.282 darwin-arm64 port retains the existing per-model effort behavior. The model-scoped selector excludes the global ultracode workflow choice while preserving the native geometry branch for independent capability-label patches."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = "if(OR(c)){let D=l.width+3"
+replacement = "if(false){let D=l.width+3"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-workflow preserves model-scoped effort"
+  assert_contains = "if(false){let D=l.width+3"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-workflow removes the predecessor behavior"
+  assert_not_contains = "if(OR(c)){let D=l.width+3"
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-282-darwin"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.282 darwin-arm64 port retains the existing per-model effort behavior. The redesigned renderer has one footer occurrence instead of two; it still describes the selected model's session-local scope."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = "s for this session only"
+replacement = "this model, this session"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-scope preserves model-scoped effort"
+  assert_contains = "this model, this session"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 slider-scope removes the predecessor behavior"
+  assert_not_contains = "s for this session only"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-282-darwin"
+lineage = "model-effort-picker-state-setter"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.282 darwin-arm64 ModelPicker uye uses the module's cn AppState setter hook. Capture it once in component scope so per-model resolver writes notify request consumers through the existing revision callback."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "uye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "let __acc_set_state=cn();"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 darwin-arm64 picker captures its AppState setter"
+  assert_contains = "let __acc_set_state=cn();"
+
+[[patches]]
+name = "model-effort-slider-import-2-1-282-linux"
+lineage = "model-effort-slider-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.282 linux-x64 port retains the existing per-model effort behavior. The current native capability import is preserved verbatim so the Ultracode import port can extend it independently."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = 'import{RZ,$4,PR,HR,JHt,lke,$So,F4,RN,Ion,U4,cke,OR}from"./chunk-tenqvr1v.js"'
+replacement = 'import{RZ,$4,PR,HR,JHt,lke,$So,F4,RN,Ion,U4,cke,OR}from"./chunk-tenqvr1v.js";import{JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-import preserves model-scoped effort"
+  assert_contains = 'import{JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-282-linux"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.282 linux-x64 port retains the existing per-model effort behavior. The initial index resolver ye still receives the model as c; only the effort-value read changes, preserving native ultracode and fallback selection."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = 'function ye(c,a,l,i){if(HR(c,a,l)){let m=i.levels.findIndex((o)=>o.value==="ultracode");if(m!==-1)return m}let f=lr()?void 0:RN(),u=f===null?void 0:f??a;if(u!==void 0){let m=i.levels.findIndex((o)=>o.value===u);if(m!==-1)return m}let p=OR(c,u),d=i.levels.findIndex((m)=>m.value===p);return d===-1?bo:d}'
+replacement = 'function ye(c,a,l,i){if(HR(c,a,l)){let m=i.levels.findIndex((o)=>o.value==="ultracode");if(m!==-1)return m}let effective=patchedEffort.session(c),u=effective.value;if(u!==void 0){let m=i.levels.findIndex((o)=>o.value===u);if(m!==-1)return m}let p=OR(c,u),d=i.levels.findIndex((m)=>m.value===p);return d===-1?bo:d}'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-initial preserves model-scoped effort"
+  assert_contains = "let effective=patchedEffort.session(c),u=effective.value;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-initial removes the predecessor behavior"
+  assert_not_contains = "let f=lr()?void 0:RN(),u=f===null?void 0:f??a;"
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-282-linux"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.282 linux-x64 port retains the existing per-model effort behavior. The current entry wrapper Gt selects the visual ot or accessible nt renderer. Guard it after its unconditional compiler-cache hook so both render paths use the status view _t for pinned or unsupported effort without changing the wrapper hook count."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = "function Gt(c){let l=w(4);if(Nt())"
+replacement = "function Gt(c){let l=w(4);const effective=patchedEffort.session(zc());if(effective.cli||effective.value===void 0)return e(_t,{onDone:c.onDone});if(Nt())"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-guard preserves model-scoped effort"
+  assert_contains = "const effective=patchedEffort.session(zc());if(effective.cli||effective.value===void 0)return e(_t,{onDone:c.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-guard removes the predecessor behavior"
+  assert_not_contains = "function Gt(c){let l=w(4);if(Nt())"
+
+[[patches]]
+name = "model-effort-slider-workflow-2-1-282-linux"
+lineage = "model-effort-slider-workflow"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.282 linux-x64 port retains the existing per-model effort behavior. The model-scoped selector excludes the global ultracode workflow choice while preserving the native geometry branch for independent capability-label patches."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = "if(PR(c)){let E=l.width+3"
+replacement = "if(false){let E=l.width+3"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-workflow preserves model-scoped effort"
+  assert_contains = "if(false){let E=l.width+3"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-workflow removes the predecessor behavior"
+  assert_not_contains = "if(PR(c)){let E=l.width+3"
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-282-linux"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.282 linux-x64 port retains the existing per-model effort behavior. The redesigned renderer has one footer occurrence instead of two; it still describes the selected model's session-local scope."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "literal"
+locator_pattern = "s for this session only"
+replacement = "this model, this session"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-scope preserves model-scoped effort"
+  assert_contains = "this model, this session"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 slider-scope removes the predecessor behavior"
+  assert_not_contains = "s for this session only"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-282-linux"
+lineage = "model-effort-picker-state-setter"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.282 linux-x64 ModelPicker oye uses the module's cn AppState setter hook. Capture it once in component scope so per-model resolver writes notify request consumers through the existing revision callback."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "let __acc_set_state=cn();"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 linux-x64 picker captures its AppState setter"
+  assert_contains = "let __acc_set_state=cn();"
+
+[[patches]]
+name = "model-effort-command-2-1-282-darwin"
+lineage = "model-effort-command"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Route ordinary effort values and auto resets into the model-scoped resolver, mirroring its map and revision into app state. Preserve native remote-session and ultracode handling. Authored against 2.1.282 in chunk-6hkjpbg2.js. Scoped helper bindings used by the replacement: F, Z8, it, lr, pBe, rqe, t. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "literal"
+locator_pattern = "async function pBe(e,t,r=!0,n){let s=!1,o=null,l=await F(e,r,(f)=>{s=!0;let E=rqe(f.value),m=f.ultracode??!1;t((d)=>{if(o??={sessionEffort:d.sessionEffort,ultracode:d.ultracode??!1},Z8(d.sessionEffort,E)&&(d.ultracode??!1)===m)return d;return{...d,sessionEffort:E,ultracode:m}})},n);if(s&&!l.effortUpdate)t((f)=>{if(o===null)return f;if(Z8(f.sessionEffort,o.sessionEffort)&&(f.ultracode??!1)===o.ultracode)return f;return{...f,sessionEffort:o.sessionEffort,ultracode:o.ultracode}});return l}"
+replacement = 'async function pBe(e,t,r=!0,n){if(lr())return patchedNativeEffortDarwin(e,t,r,n);const model=it(),current=Jb.session(model);if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(e.trim().toLowerCase()==="ultracode"){const result=await patchedNativeEffortDarwin(e,t,!1,n);if(result.effortUpdate){const effective=Jb.session(model,"set",result.effortUpdate.value);t(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result}let update;const result=await F(e,!1,(value)=>{update=value},n);if(update&&result.effortUpdate){const effective=update.value===void 0?Jb.session(model,"clear"):Jb.session(model,"set",update.value);t(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message=`Effective effort for ${effective.slug}: ${effective.value??"backend default"} (${effective.source}).`}return result}async function patchedNativeEffortDarwin(e,t,r=!0,n){let s=!1,o=null,l=await F(e,r,(f)=>{s=!0;let E=rqe(f.value),m=f.ultracode??!1;t((d)=>{if(o??={sessionEffort:d.sessionEffort,ultracode:d.ultracode??!1},Z8(d.sessionEffort,E)&&(d.ultracode??!1)===m)return d;return{...d,sessionEffort:E,ultracode:m}})},n);if(s&&!l.effortUpdate)t((f)=>{if(o===null)return f;if(Z8(f.sessionEffort,o.sessionEffort)&&(f.ultracode??!1)===o.ultracode)return f;return{...f,sessionEffort:o.sessionEffort,ultracode:o.ultracode}});return l}'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin effort command writes model-scoped session state"
+  assert_contains = "async function pBe(e,t,r=!0,n){if(lr())return patchedNativeEffortDarwin(e,t,r,n);const model=it(),current=Jb.session(model);if(current.cli)return"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin effort command preserves the native structured handler only for ultracode or remote calls"
+  assert_contains = "async function patchedNativeEffortDarwin(e,t,r=!0,n){let s=!1,o=null,l=await F(e,r,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin effort command excludes the old 2.1.273 handler and setter symbols"
+  assert_not_contains = "async function nxe(t,r,n=!0,o){if(!er()){const current=DE.session(tt())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin auto reset reports post-clear model-specific effort"
+  assert_contains = 'if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message=`Effective effort for ${effective.slug}: ${effective.value??"backend default"} (${effective.source}).`'
+  assert_not_contains = 'if(update.value!==void 0&&result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))'
+
+[[patches]]
+name = "model-effort-command-2-1-282-linux"
+lineage = "model-effort-command"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Route ordinary effort values and auto resets into the model-scoped resolver, mirroring its map and revision into app state. Preserve native remote-session and ultracode handling. Authored against 2.1.282 in chunk-fb19vkzr.js. Scoped helper bindings used by the replacement: F, ZKe, h1e, it, lr, q8, t. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "literal"
+locator_pattern = "async function h1e(e,t,r=!0,n){let s=!1,o=null,l=await F(e,r,(f)=>{s=!0;let E=ZKe(f.value),m=f.ultracode??!1;t((d)=>{if(o??={sessionEffort:d.sessionEffort,ultracode:d.ultracode??!1},q8(d.sessionEffort,E)&&(d.ultracode??!1)===m)return d;return{...d,sessionEffort:E,ultracode:m}})},n);if(s&&!l.effortUpdate)t((f)=>{if(o===null)return f;if(q8(f.sessionEffort,o.sessionEffort)&&(f.ultracode??!1)===o.ultracode)return f;return{...f,sessionEffort:o.sessionEffort,ultracode:o.ultracode}});return l}"
+replacement = 'async function h1e(e,t,r=!0,n){if(lr())return patchedNativeEffortLinux(e,t,r,n);const model=it(),current=JS.session(model);if(current.cli)return{message:`Not applied: CLI --effort holds ${current.slug} at ${current.value??"backend default"} this session.`};if(e.trim().toLowerCase()==="ultracode"){const result=await patchedNativeEffortLinux(e,t,!1,n);if(result.effortUpdate){const effective=JS.session(model,"set",result.effortUpdate.value);t(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}))}return result}let update;const result=await F(e,!1,(value)=>{update=value},n);if(update&&result.effortUpdate){const effective=update.value===void 0?JS.session(model,"clear"):JS.session(model,"set",update.value);t(state=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1,ultracode:!1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message=`Effective effort for ${effective.slug}: ${effective.value??"backend default"} (${effective.source}).`}return result}async function patchedNativeEffortLinux(e,t,r=!0,n){let s=!1,o=null,l=await F(e,r,(f)=>{s=!0;let E=ZKe(f.value),m=f.ultracode??!1;t((d)=>{if(o??={sessionEffort:d.sessionEffort,ultracode:d.ultracode??!1},q8(d.sessionEffort,E)&&(d.ultracode??!1)===m)return d;return{...d,sessionEffort:E,ultracode:m}})},n);if(s&&!l.effortUpdate)t((f)=>{if(o===null)return f;if(q8(f.sessionEffort,o.sessionEffort)&&(f.ultracode??!1)===o.ultracode)return f;return{...f,sessionEffort:o.sessionEffort,ultracode:o.ultracode}});return l}'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux effort command writes model-scoped session state"
+  assert_contains = "async function h1e(e,t,r=!0,n){if(lr())return patchedNativeEffortLinux(e,t,r,n);const model=it(),current=JS.session(model);if(current.cli)return"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux effort command preserves the native structured handler only for ultracode or remote calls"
+  assert_contains = "async function patchedNativeEffortLinux(e,t,r=!0,n){let s=!1,o=null,l=await F(e,r,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux effort command excludes the old 2.1.273 handler and setter symbols"
+  assert_not_contains = "async function VRe(t,r,n=!0,o){if(!er()){const current=Hv.session(tt())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux auto reset reports post-clear model-specific effort"
+  assert_contains = 'if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message=`Effective effort for ${effective.slug}: ${effective.value??"backend default"} (${effective.source}).`'
+  assert_not_contains = 'if(update.value!==void 0&&result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))'
+
+[[patches]]
+name = "model-effort-picker-import-2-1-282-darwin"
+lineage = "model-effort-picker-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the shared per-model resolver in the ModelPicker graph scope for focused-row selection and effort adjustment. Authored against 2.1.282 in chunk-fbctzhpm.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "literal"
+locator_pattern = 'import{DZ,ib,zq,yme,OR,nHt,DR,xUn,xLe,$ie,GG,FN,$N,cTr,dTr,Sme,Ll,oqe,qq,zG,LR,fv,gL}from"./chunk-76kv9jbg.js"'
+replacement = 'import{DZ,ib,zq,yme,OR,nHt,DR,xUn,xLe,$ie,GG,FN,$N,cTr,dTr,Sme,Ll,oqe,qq,zG,LR,fv,gL,Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker imports resolver from its target graph"
+  assert_contains = 'gL,Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker import rejects the old 2.1.273 supplier chunk"
+  assert_not_contains = "KE as patchedEffort,E7,Gy,TB,wV,_E,rMe"
+
+[[patches]]
+name = "model-effort-picker-import-2-1-282-linux"
+lineage = "model-effort-picker-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Import the shared per-model resolver in the ModelPicker graph scope for focused-row selection and effort adjustment. Authored against 2.1.282 in chunk-g2y2cnt3.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "literal"
+locator_pattern = 'import{RZ,iS,$4,gme,PR,XHt,HR,kBn,CDe,Mie,$2,RN,xN,UAr,BAr,yme,Ml,e4e,U4,F2,OR,mE,aD}from"./chunk-tenqvr1v.js"'
+replacement = 'import{RZ,iS,$4,gme,PR,XHt,HR,kBn,CDe,Mie,$2,RN,xN,UAr,BAr,yme,Ml,e4e,U4,F2,OR,mE,aD,JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker imports resolver from its target graph"
+  assert_contains = 'aD,JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker import rejects the old 2.1.273 supplier chunk"
+  assert_not_contains = "Hv as patchedEffort,ZJ,Ky,VU,FK,Pv,KDe"
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-282-darwin"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Resolve the focused row through the shared model map before native settings fallback. Ignore a no-preference focus sentinel while the live selection getter still reports a concrete model. Authored against 2.1.282 in chunk-fbctzhpm.js. Scoped helper bindings used by the replacement: En, Ft, Ll, Sy, Uo, Yt, gL, lte, oe. Retire when native behavior provides the same model-scoped effort contract. Capture the no-preference marker from the native initial-row initializer to avoid binding it to an unrelated minified helper."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.no_preference]
+kind = "identifier"
+path = "init.consequent"
+
+  [patches.ast.captures.no_preference.select]
+  node = "VariableDeclarator"
+  source_regex = "^[A-Za-z_$][\\w$]*=[A-Za-z_$][\\w$]*===null\\?[A-Za-z_$][\\w$]*:"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "uye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "ls=oe((ns)=>{if(Ft(ns),Uo()||Dn)return;let As=Ll({sessionEffort:Zo,settingsEffortTable:wn},Sy(ns));En(As!==void 0?gL(As):lte(ns))},[Uo,Dn,Zo,wn,Ft,En])"
+  value = 'ls=oe((ns)=>{if(ns===%%CAPTURE:no_preference%%&&Yt()!==%%CAPTURE:no_preference%%)return;if(Ft(ns),Uo()||Dn)return;let model=Sy(ns),As=Ll({sessionEffort:Zo,settingsEffortTable:wn},model),effective=patchedEffort.session(model,"get",void 0,As);En(effective.value!==void 0?gL(effective.value):lte(ns))},[Uo,Dn,Zo,wn,Ft,En,Yt])'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin focused row uses model resolver before native fallback"
+  assert_contains = 'if(ns===zg&&Yt()!==zg)return;if(Ft(ns),Uo()||Dn)return;let model=Sy(ns),As=Ll({sessionEffort:Zo,settingsEffortTable:wn},model),effective=patchedEffort.session(model,"get",void 0,As);En(effective.value!==void 0?gL(effective.value):lte(ns))},[Uo,Dn,Zo,wn,Ft,En,Yt]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker ignores no-preference focus while a model row remains selected"
+  assert_not_contains = "if(Ft(ns),Uo()||Dn)return;if(ns===zg&&Yt()!==zg)return;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker sentinel guard rejects the stale selected value"
+  assert_not_contains = "if(ns===zg&&Lt!==zg)return;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker still resolves a genuinely selected no-preference row"
+  assert_contains = 'if(ns===zg&&Yt()!==zg)return;if(Ft(ns),Uo()||Dn)return;let model=Sy(ns),As=Ll({sessionEffort:Zo,settingsEffortTable:wn},model),effective=patchedEffort.session(model,"get",void 0,As);'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker focus rejects old 2.1.273 setter path"
+  assert_not_contains = "if(vo(ls),!Bo()&&Dn===void 0)vn(QAe(ls))"
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-282-linux"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Resolve the focused row through the shared model map before native settings fallback. Ignore a no-preference focus sentinel while the live selection getter still reports a concrete model. Authored against 2.1.282 in chunk-g2y2cnt3.js. Scoped helper bindings used by the replacement: Bt, Ml, Pn, Sy, Uo, Yt, aD, cte, oe. Retire when native behavior provides the same model-scoped effort contract. The no-preference sentinel is zg, as used by the native initial row and selection callback. Capture the no-preference marker from the native initial-row initializer to avoid binding it to an unrelated minified helper."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.no_preference]
+kind = "identifier"
+path = "init.consequent"
+
+  [patches.ast.captures.no_preference.select]
+  node = "VariableDeclarator"
+  source_regex = "^[A-Za-z_$][\\w$]*=[A-Za-z_$][\\w$]*===null\\?[A-Za-z_$][\\w$]*:"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "ls=oe((rs)=>{if(Bt(rs),Uo()||Mn)return;let Rs=Ml({sessionEffort:Zo,settingsEffortTable:vn},Sy(rs));Pn(Rs!==void 0?aD(Rs):cte(rs))},[Uo,Mn,Zo,vn,Bt,Pn])"
+  value = 'ls=oe((rs)=>{if(rs===%%CAPTURE:no_preference%%&&Yt()!==%%CAPTURE:no_preference%%)return;if(Bt(rs),Uo()||Mn)return;let model=Sy(rs),Rs=Ml({sessionEffort:Zo,settingsEffortTable:vn},model),effective=patchedEffort.session(model,"get",void 0,Rs);Pn(effective.value!==void 0?aD(effective.value):cte(rs))},[Uo,Mn,Zo,vn,Bt,Pn,Yt])'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux focused row uses model resolver before native fallback"
+  assert_contains = 'if(rs===zg&&Yt()!==zg)return;if(Bt(rs),Uo()||Mn)return;let model=Sy(rs),Rs=Ml({sessionEffort:Zo,settingsEffortTable:vn},model),effective=patchedEffort.session(model,"get",void 0,Rs);Pn(effective.value!==void 0?aD(effective.value):cte(rs))},[Uo,Mn,Zo,vn,Bt,Pn,Yt]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker ignores no-preference focus while a model row remains selected"
+  assert_not_contains = "if(Bt(rs),Uo()||Mn)return;if(rs===zg&&Yt()!==zg)return;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker sentinel guard rejects the stale selected value"
+  assert_not_contains = "if(rs===zg&&Pt!==zg)return;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker still resolves a genuinely selected no-preference row"
+  assert_contains = 'if(rs===zg&&Yt()!==zg)return;if(Bt(rs),Uo()||Mn)return;let model=Sy(rs),Rs=Ml({sessionEffort:Zo,settingsEffortTable:vn},model),effective=patchedEffort.session(model,"get",void 0,Rs);'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker focus rejects old 2.1.273 setter path"
+  assert_not_contains = "if(Eo(ds),!Qo()&&Mn===void 0)En(VCe(ds))"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-282-darwin"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Persist arrow-key effort adjustments only for the focused canonical model, honor CLI pinning, retain settings fallback, and update app-state effort revision. Authored against 2.1.282 in chunk-fbctzhpm.js. Scoped helper bindings used by the replacement: En, Ll, Sy, co, gL, lte, vIe. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "uye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "En((Gn)=>vIe(Gn??mi.defaultEffort,ns,mi.capLevels,mi.supportsMax,mi.supportsXHigh,mi.supportsUltra)),co(!0)"
+  value = '(()=>{let model=Sy(As),selected=patchedEffort.session(model,"get",void 0,Ll({sessionEffort:Zo,settingsEffortTable:wn},model));if(selected.cli)return;let next=vIe(selected.value??mi.defaultEffort,ns,mi.capLevels,mi.supportsMax,mi.supportsXHigh,!1),effective=patchedEffort.session(model,"set",next);En(effective.value!==void 0?gL(effective.value):lte(As));__acc_set_state((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));co(!0)})()'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin arrow adjustment writes a model-scoped level and state revision"
+  assert_contains = 'let next=vIe(selected.value??mi.defaultEffort,ns,mi.capLevels,mi.supportsMax,mi.supportsXHigh,!1),effective=patchedEffort.session(model,"set",next);'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin arrow adjustment rejects the previous global effort update"
+  assert_not_contains = "En((Gn)=>vIe(Gn??mi.defaultEffort,ns,mi.capLevels,mi.supportsMax,mi.supportsXHigh,mi.supportsUltra))"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-282-linux"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Persist arrow-key effort adjustments only for the focused canonical model, honor CLI pinning, retain settings fallback, and update app-state effort revision. Authored against 2.1.282 in chunk-g2y2cnt3.js. Scoped helper bindings used by the replacement: Ml, Pn, Sy, _Ie, aD, co, cte. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "Pn((zn)=>_Ie(zn??mi.defaultEffort,rs,mi.capLevels,mi.supportsMax,mi.supportsXHigh,mi.supportsUltra)),co(!0)"
+  value = '(()=>{let model=Sy(Rs),selected=patchedEffort.session(model,"get",void 0,Ml({sessionEffort:Zo,settingsEffortTable:vn},model));if(selected.cli)return;let next=_Ie(selected.value??mi.defaultEffort,rs,mi.capLevels,mi.supportsMax,mi.supportsXHigh,!1),effective=patchedEffort.session(model,"set",next);Pn(effective.value!==void 0?aD(effective.value):cte(Rs));__acc_set_state((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));co(!0)})()'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux arrow adjustment writes a model-scoped level and state revision"
+  assert_contains = 'let next=_Ie(selected.value??mi.defaultEffort,rs,mi.capLevels,mi.supportsMax,mi.supportsXHigh,!1),effective=patchedEffort.session(model,"set",next);'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux arrow adjustment rejects the previous global effort update"
+  assert_not_contains = "Pn((zn)=>_Ie(zn??mi.defaultEffort,rs,mi.capLevels,mi.supportsMax,mi.supportsXHigh,mi.supportsUltra))"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-282-darwin"
+lineage = "model-effort-picker-select"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Commit the live selected model when focus temporarily reports the no-preference sentinel, preserve a genuine sentinel selection, and avoid forwarding slider effort into global session state. Authored against 2.1.282 in chunk-fbctzhpm.js. Scoped helper bindings used by the replacement: D, Yt. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "uye"
+    strings = [ "tengu_model_command_menu_effort", "onSelect" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(ns===zg){D(null,Ds);return}D(ns,Ds)"
+  value = "if(ns===zg&&Yt()!==zg)ns=Yt();if(ns===zg){D(null,void 0);return}D(ns,void 0)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model selection does not overwrite structured sessionEffort"
+  assert_contains = "if(ns===zg&&Yt()!==zg)ns=Yt();if(ns===zg){D(null,void 0);return}D(ns,void 0)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model selection rejects the old picker callback symbols"
+  assert_not_contains = "if(ns===zg){D(null,Ds);return}D(ns,Ds)"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-282-linux"
+lineage = "model-effort-picker-select"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Commit the live selected model when focus temporarily reports the no-preference sentinel, preserve a genuine sentinel selection, and avoid forwarding slider effort into global session state. Authored against 2.1.282 in chunk-g2y2cnt3.js. Scoped helper bindings used by the replacement: E, Yt. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oye"
+    strings = [ "tengu_model_command_menu_effort", "onSelect" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(rs===zg){E(null,Es);return}E(rs,Es)"
+  value = "if(rs===zg&&Yt()!==zg)rs=Yt();if(rs===zg){E(null,void 0);return}E(rs,void 0)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model selection does not overwrite structured sessionEffort"
+  assert_contains = "if(rs===zg&&Yt()!==zg)rs=Yt();if(rs===zg){E(null,void 0);return}E(rs,void 0)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model selection rejects the old picker callback symbols"
+  assert_not_contains = "if(rs===zg){E(null,Es);return}E(rs,Es)"
+
+[[patches]]
+name = "model-effort-picker-source-2-1-282-darwin"
+lineage = "model-effort-picker-source"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Label the focused model effort with the shared resolver source so per-model, CLI, and configured defaults remain distinguishable. Authored against 2.1.282 in chunk-fbctzhpm.js. Scoped helper bindings used by the replacement: Ll, Sy. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "uye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'or===Gr?" (default)":""'
+  value = '` (${patchedEffort.session(Sy(gr),"get",void 0,Ll({sessionEffort:Zo,settingsEffortTable:wn},Sy(gr))).source})`'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker shows effective effort source"
+  assert_contains = 'patchedEffort.session(Sy(gr),"get",void 0,Ll({sessionEffort:Zo,settingsEffortTable:wn},Sy(gr))).source'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker source rejects the previous model binding"
+  assert_not_contains = 'Pr===Wr?" (default)":""'
+
+[[patches]]
+name = "model-effort-picker-source-2-1-282-linux"
+lineage = "model-effort-picker-source"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Label the focused model effort with the shared resolver source so per-model, CLI, and configured defaults remain distinguishable. Authored against 2.1.282 in chunk-g2y2cnt3.js. Scoped helper bindings used by the replacement: Ml, Sy. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'tr===Gr?" (default)":""'
+  value = '` (${patchedEffort.session(Sy(gr),"get",void 0,Ml({sessionEffort:Zo,settingsEffortTable:vn},Sy(gr))).source})`'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker shows effective effort source"
+  assert_contains = 'patchedEffort.session(Sy(gr),"get",void 0,Ml({sessionEffort:Zo,settingsEffortTable:vn},Sy(gr))).source'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker source rejects the previous model binding"
+  assert_not_contains = 'vr===Wr?" (default)":""'
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-282-darwin"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Explain that launch CLI effort pins the current selection instead of advertising an editable per-model value. Authored against 2.1.282 in chunk-fbctzhpm.js. Scoped helper bindings used by the replacement: Ll, Sy, e, r. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "uye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = '(!To||bo==="")&&r(n,{color:"subtle",children:[" ",e(F,{chord:["left","right"],action:"adjust"})]})'
+  value = '!patchedEffort.session(Sy(gr),"get",void 0,Ll({sessionEffort:Zo,settingsEffortTable:wn},Sy(gr))).cli&&(!To||bo==="")&&r(n,{color:"subtle",children:[" ",e(F,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker hides adjustment hint for CLI-pinned effort"
+  assert_contains = '!patchedEffort.session(Sy(gr),"get",void 0,Ll({sessionEffort:Zo,settingsEffortTable:wn},Sy(gr))).cli&&(!To||bo==="")'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker CLI hint rejects prior source-label locals"
+  assert_not_contains = '!patchedEffort.session(Nr??xl()).cli&&(!Vo||rn==="")'
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-282-linux"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Explain that launch CLI effort pins the current selection instead of advertising an editable per-model value. Authored against 2.1.282 in chunk-g2y2cnt3.js. Scoped helper bindings used by the replacement: Ml, Sy, e, r. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = '(!Co||So==="")&&r(n,{color:"subtle",children:[" ",e(F,{chord:["left","right"],action:"adjust"})]})'
+  value = '!patchedEffort.session(Sy(gr),"get",void 0,Ml({sessionEffort:Zo,settingsEffortTable:vn},Sy(gr))).cli&&(!Co||So==="")&&r(n,{color:"subtle",children:[" ",e(F,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker hides adjustment hint for CLI-pinned effort"
+  assert_contains = '!patchedEffort.session(Sy(gr),"get",void 0,Ml({sessionEffort:Zo,settingsEffortTable:vn},Sy(gr))).cli&&(!Co||So==="")'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker CLI hint rejects prior source-label locals"
+  assert_not_contains = '!patchedEffort.session(Or??Rl()).cli&&(!Ho||nn==="")'
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-282-darwin"
+lineage = "model-effort-picker-initial"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Initialize the picker effort from the selected row model resolver so opening an already focused row reflects its model-local effort. Authored against 2.1.282 in chunk-fbctzhpm.js. Scoped helper bindings used by the replacement: Di, Sy, gL. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "uye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = '[Go,En,_n]=Di(Dn?"ultracode":un!==void 0?gL(un):void 0)'
+  value = '[Go,En,_n]=Di(Dn?"ultracode":(()=>{let initial=patchedEffort.session(Sy(Lt)).value;return initial!==void 0?gL(initial):un!==void 0?gL(un):void 0})())'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin picker initializes the current row from its model resolver"
+  assert_contains = '[Go,En,_n]=Di(Dn?"ultracode":(()=>{let initial=patchedEffort.session(Sy(Lt)).value;return initial!==void 0?gL(initial):un!==void 0?gL(un):void 0})())'
+  assert_not_contains = '[Go,En,_n]=Di(Dn?"ultracode":un!==void 0?gL(un):void 0)'
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-282-linux"
+lineage = "model-effort-picker-initial"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Initialize the picker effort from the selected row model resolver so opening an already focused row reflects its model-local effort. Authored against 2.1.282 in chunk-g2y2cnt3.js. Scoped helper bindings used by the replacement: Mi, Sy, aD. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oye"
+    strings = [ "sessionEffort", "supportsEffort" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = '[Qo,Pn,wn]=Mi(Mn?"ultracode":un!==void 0?aD(un):void 0)'
+  value = '[Qo,Pn,wn]=Mi(Mn?"ultracode":(()=>{let initial=patchedEffort.session(Sy(Ot)).value;return initial!==void 0?aD(initial):un!==void 0?aD(un):void 0})())'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux picker initializes the current row from its model resolver"
+  assert_contains = '[Qo,Pn,wn]=Mi(Mn?"ultracode":(()=>{let initial=patchedEffort.session(Sy(Ot)).value;return initial!==void 0?aD(initial):un!==void 0?aD(un):void 0})())'
+  assert_not_contains = '[Qo,Pn,wn]=Mi(Mn?"ultracode":un!==void 0?aD(un):void 0)'
+
+[[patches]]
+name = "model-effort-current-2-1-282-darwin"
+lineage = "model-effort-current"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Report the active model resolver value and source for current-effort queries, preserving native remote-session and ultracode output. Authored against 2.1.282 in chunk-6hkjpbg2.js. Scoped helper bindings used by the replacement: DR, FN, Jb, LR, Vq, fCe, lr, uTr, wyt. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "literal"
+locator_pattern = 'function wyt(e,t,r){if(DR(t,e,r))return{message:"Current effort level: ultracode (xhigh + dynamic workflow orchestration; this session only)"};let n=lr()?void 0:FN(),s=n===null?void 0:n??e;if(s===void 0){let l=LR(t,e),f=fCe(t)!==null&&Jb(t,e)!==void 0?", set by your organization":"";return{message:`Effort level: auto (currently ${Vq(l)}${f})`}}let o=uTr(s);return{message:`Current effort level: ${Vq(s)} (${o})`}}'
+replacement = 'function wyt(e,t,r){if(DR(t,e,r))return{message:"Current effort level: ultracode (xhigh + dynamic workflow orchestration; this session only)"};if(!lr()){const effective=Jb.session(t);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`}}let n=lr()?void 0:FN(),s=n===null?void 0:n??e;if(s===void 0){let l=LR(t,e),f=fCe(t)!==null&&Jb(t,e)!==void 0?", set by your organization":"";return{message:`Effort level: auto (currently ${Vq(l)}${f})`}}let o=uTr(s);return{message:`Current effort level: ${Vq(s)} (${o})`}}'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin current effort reads the resolver for its active-model argument"
+  assert_contains = 'if(!lr()){const effective=Jb.session(t);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin current caller supplies the active session model"
+  assert_contains = "wyt(Pf(t),r,o.ultracode)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin current no longer reports the native configured value after a rejected effort"
+  assert_not_contains = 'if(DR(t,e,r))return{message:"Current effort level: ultracode (xhigh + dynamic workflow orchestration; this session only)"};let n=lr()?void 0:FN()'
+
+[[patches]]
+name = "model-effort-current-2-1-282-linux"
+lineage = "model-effort-current"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Report the active model resolver value and source for current-effort queries, preserving native remote-session and ultracode output. Authored against 2.1.282 in chunk-fb19vkzr.js. Scoped helper bindings used by the replacement: F4, HR, JS, OR, RN, jAr, kyt, lke, lr. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "literal"
+locator_pattern = 'function kyt(e,t,r){if(HR(t,e,r))return{message:"Current effort level: ultracode (xhigh + dynamic workflow orchestration; this session only)"};let n=lr()?void 0:RN(),s=n===null?void 0:n??e;if(s===void 0){let l=OR(t,e),f=lke(t)!==null&&JS(t,e)!==void 0?", set by your organization":"";return{message:`Effort level: auto (currently ${F4(l)}${f})`}}let o=jAr(s);return{message:`Current effort level: ${F4(s)} (${o})`}}'
+replacement = 'function kyt(e,t,r){if(HR(t,e,r))return{message:"Current effort level: ultracode (xhigh + dynamic workflow orchestration; this session only)"};if(!lr()){const effective=JS.session(t);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`}}let n=lr()?void 0:RN(),s=n===null?void 0:n??e;if(s===void 0){let l=OR(t,e),f=lke(t)!==null&&JS(t,e)!==void 0?", set by your organization":"";return{message:`Effort level: auto (currently ${F4(l)}${f})`}}let o=jAr(s);return{message:`Current effort level: ${F4(s)} (${o})`}}'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux current effort reads the resolver for its active-model argument"
+  assert_contains = 'if(!lr()){const effective=JS.session(t);return{message:`Current effort level: ${effective.value??"backend default"} for ${effective.slug} (${effective.source}).`}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux current caller supplies the active session model"
+  assert_contains = "kyt(If(t),r,o.ultracode)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux current no longer reports the native configured value after a rejected effort"
+  assert_not_contains = 'if(HR(t,e,r))return{message:"Current effort level: ultracode (xhigh + dynamic workflow orchestration; this session only)"};let n=lr()?void 0:RN()'
+
+[[patches]]
+name = "model-effort-model-import-2-1-282-darwin"
+lineage = "model-effort-model-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the shared resolver in the model-command graph scope for model-switch state and success output. Authored against 2.1.282 in chunk-mv1e46am.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L1-L30"
+locator_kind = "literal"
+locator_pattern = 'import{FN,$N,Ll,mCe,zG}from"./chunk-76kv9jbg.js"'
+replacement = 'import{FN,$N,Ll,mCe,zG,Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model command imports resolver from its target graph"
+  assert_contains = 'zG,Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model command rejects the old 2.1.273 resolver supplier"
+  assert_not_contains = "DE as patchedEffort,SO,oP,Ol,Xpe,Jpe,t5"
+
+[[patches]]
+name = "model-effort-model-import-2-1-282-linux"
+lineage = "model-effort-model-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Import the shared resolver in the model-command graph scope for model-switch state and success output. Authored against 2.1.282 in chunk-vfdfhnve.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L1-L30"
+locator_kind = "literal"
+locator_pattern = 'import{RN,xN,Ml,cke,F2}from"./chunk-tenqvr1v.js"'
+replacement = 'import{RN,xN,Ml,cke,F2,JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model command imports resolver from its target graph"
+  assert_contains = 'F2,JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model command rejects the old 2.1.273 resolver supplier"
+  assert_not_contains = "Hv as patchedEffort,lO,XP,Hl,zpe,Wpe,K5"
+
+[[patches]]
+name = "model-effort-model-echo-2-1-282-darwin"
+lineage = "model-effort-model-echo"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Append effective effort and its source to model-menu success output after the picker stops returning a global effort payload. Authored against 2.1.282 in chunk-mv1e46am.js. Scoped helper bindings used by the replacement: Jrr, Ode, Qrr, fJe. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = "if(H+=Ode(F,R,n,{announceKeptOn:!0}),H+=fJe(I),N)H+=Jrr(n)||Qrr(n);"
+replacement = '{const effective=patchedEffort.session(n);H+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}if(H+=Ode(F,R,n,{announceKeptOn:!0}),H+=fJe(I),N)H+=Jrr(n)||Qrr(n);'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model menu reports effective model-local effort"
+  assert_contains = 'const effective=patchedEffort.session(n);H+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model menu rejects the old effort-payload binding"
+  assert_not_contains = 'if(E!==void 0){let Ee=E.ultracode?"ultracode":E.level;'
+
+[[patches]]
+name = "model-effort-model-echo-2-1-282-linux"
+lineage = "model-effort-model-echo"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Append effective effort and its source to model-menu success output after the picker stops returning a global effort payload. Authored against 2.1.282 in chunk-vfdfhnve.js. Scoped helper bindings used by the replacement: Cde, Rrr, s7e, xrr. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = "if(H+=Cde(F,S,n,{announceKeptOn:!0}),H+=s7e(I),E)H+=Rrr(n)||xrr(n);"
+replacement = '{const effective=patchedEffort.session(n);H+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;}if(H+=Cde(F,S,n,{announceKeptOn:!0}),H+=s7e(I),E)H+=Rrr(n)||xrr(n);'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model menu reports effective model-local effort"
+  assert_contains = 'const effective=patchedEffort.session(n);H+=` with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model menu rejects the old effort-payload binding"
+  assert_not_contains = 'if(v!==void 0){let Ee=v.ultracode?"ultracode":v.level;'
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-282-darwin"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Append effective effort and its source to inline model-switch success output. Authored against 2.1.282 in chunk-mv1e46am.js. Scoped helper bindings used by the replacement: dbt. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = 'let co=dbt(h,ne,()=>d.getState(),B,De,"command",ie,v);'
+replacement = 'let co=dbt(h,ne,()=>d.getState(),B,De,"command",ie,v).then((message)=>{if(ne==null)return message;const effective=patchedEffort.session(ne);return message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`});'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model route reports effective model-local effort"
+  assert_contains = 'const effective=patchedEffort.session(ne);return message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model route rejects old 2.1.273 model and promise locals"
+  assert_not_contains = "if(Rt!==void 0&&De!==null)"
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-282-linux"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Append effective effort and its source to inline model-switch success output. Authored against 2.1.282 in chunk-vfdfhnve.js. Scoped helper bindings used by the replacement: Zbt. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = 'let co=Zbt(h,ne,()=>d.getState(),Y,De,"command",ie,k);'
+replacement = 'let co=Zbt(h,ne,()=>d.getState(),Y,De,"command",ie,k).then((message)=>{if(ne==null)return message;const effective=patchedEffort.session(ne);return message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`});'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model route reports effective model-local effort"
+  assert_contains = 'const effective=patchedEffort.session(ne);return message+`\nCurrent model runs with ${effective.value??"backend default"} effort (${effective.source} for ${effective.slug})`'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model route rejects old 2.1.273 model and promise locals"
+  assert_not_contains = "if(Rt!==void 0&&De!==null)"
+
+[[patches]]
+name = "model-effort-model-state-2-1-282-darwin"
+lineage = "model-effort-model-state"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "On an actual model slug change, migrate an explicit native session level to the previous model map and reset the global structured level to inherit while retaining settings. Authored against 2.1.282 in chunk-mv1e46am.js. Scoped helper bindings used by the replacement: $A, $N, V, oo. Retire when native behavior provides the same model-scoped effort contract. The app-state owner is v, established by the native picker model-change callback calling v.getState()."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = "V((Q)=>(F=!!Q.fastMode,R=oo()?$A(n,Q.fastMode):F,{...Q,mainLoopModel:n,mainLoopModelForSession:null,...M!==void 0&&{sessionEffort:$N(M.level),ultracode:M.ultracode},...R!==F&&{fastMode:R}}))"
+replacement = '(()=>{const prior=v.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel,changed=previous!=null&&patchedEffort.session(previous).slug!==patchedEffort.session(n).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);V((Q)=>(F=!!Q.fastMode,R=oo()?$A(n,Q.fastMode):F,{...Q,mainLoopModel:n,mainLoopModelForSession:null,sessionEffort:changed&&M===void 0?{kind:"inherit"}:Q.sessionEffort,ultracode:changed&&M===void 0?!1:Q.ultracode??!1,...M!==void 0&&{sessionEffort:$N(M.level),ultracode:M.ultracode},effortByModel:patchedEffort.session(n).effortByModel,effortRevision:(Q.effortRevision??0)+1,...R!==F&&{fastMode:R}}))})()'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model switch scopes native session effort to previous model"
+  assert_contains = 'if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);V((Q)=>'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model switch retains settings while clearing stale global level"
+  assert_contains = 'sessionEffort:changed&&M===void 0?{kind:"inherit"}:Q.sessionEffort'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model switch rejects the stale native-only state update"
+  assert_not_contains = "mainLoopModelForSession:null,...M!==void 0&&{sessionEffort:$N(M.level),ultracode:M.ultracode},...R!==F&&{fastMode:R}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin model-menu migration reads the live app-state owner"
+  assert_contains = "const prior=v.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel"
+  assert_not_contains = "const prior=b.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel"
+
+[[patches]]
+name = "model-effort-model-state-2-1-282-linux"
+lineage = "model-effort-model-state"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "On an actual model slug change, migrate an explicit native session level to the previous model map and reset the global structured level to inherit while retaining settings. Authored against 2.1.282 in chunk-vfdfhnve.js. Scoped helper bindings used by the replacement: LT, P, oo, xN. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "literal"
+locator_pattern = "P((Q)=>(F=!!Q.fastMode,S=oo()?LT(n,Q.fastMode):F,{...Q,mainLoopModel:n,mainLoopModelForSession:null,...M!==void 0&&{sessionEffort:xN(M.level),ultracode:M.ultracode},...S!==F&&{fastMode:S}}))"
+replacement = '(()=>{const prior=k.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel,changed=previous!=null&&patchedEffort.session(previous).slug!==patchedEffort.session(n).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);P((Q)=>(F=!!Q.fastMode,S=oo()?LT(n,Q.fastMode):F,{...Q,mainLoopModel:n,mainLoopModelForSession:null,sessionEffort:changed&&M===void 0?{kind:"inherit"}:Q.sessionEffort,ultracode:changed&&M===void 0?!1:Q.ultracode??!1,...M!==void 0&&{sessionEffort:xN(M.level),ultracode:M.ultracode},effortByModel:patchedEffort.session(n).effortByModel,effortRevision:(Q.effortRevision??0)+1,...S!==F&&{fastMode:S}}))})()'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model switch scopes native session effort to previous model"
+  assert_contains = 'if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);P((Q)=>'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model switch retains settings while clearing stale global level"
+  assert_contains = 'sessionEffort:changed&&M===void 0?{kind:"inherit"}:Q.sessionEffort'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux model switch rejects the stale native-only state update"
+  assert_not_contains = "mainLoopModelForSession:null,...M!==void 0&&{sessionEffort:xN(M.level),ultracode:M.ultracode},...S!==F&&{fastMode:S}"
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-282-darwin"
+lineage = "model-effort-inline-model-state-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the shared per-model resolver in the direct model-switch helper scope. Authored against 2.1.282 in chunk-j8hkskzd.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = 'import{OR,nHt,Ll}from"./chunk-76kv9jbg.js"'
+replacement = 'import{OR,nHt,Ll,Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model-state helper imports its graph resolver"
+  assert_contains = 'import{OR,nHt,Ll,Jb as patchedEffort}from"./chunk-76kv9jbg.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model-state import rejects the old resolver-free supplier"
+  assert_not_contains = 'import{OR,nHt,Ll}from"./chunk-76kv9jbg.js"'
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-282-darwin"
+lineage = "model-effort-inline-model-state"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "On a direct model switch, retain the previous model effort in its own map and reset the native global level to inherit, preventing effort from leaking to the new model. Authored against 2.1.282 in chunk-j8hkskzd.js. Scoped helper bindings used by the replacement: Lte, dbt, r, s, vy. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = "async function dbt(e,o,r,s,n,d,i,c){let u=r().fastMode;if(Lte(),vy(e,r(),o,d),s((g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null})),i!==void 0)"
+replacement = 'async function dbt(e,o,r,s,n,d,i,c){let current=r(),u=current.fastMode,previous=current.mainLoopModelForSession??current.mainLoopModel,changed=patchedEffort.session(previous).slug!==patchedEffort.session(o).slug;if(changed&&current.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",current.sessionEffort.value);if(Lte(),vy(e,current,o,d),s((g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:g.sessionEffort,ultracode:changed?!1:g.ultracode??!1,effortByModel:patchedEffort.session(o).effortByModel,effortRevision:(g.effortRevision??0)+(changed?1:0)})),i!==void 0)'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model switch migrates an explicit old-model level"
+  assert_contains = 'if(changed&&current.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",current.sessionEffort.value);'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model switch clears stale global state only on slug change"
+  assert_contains = 'sessionEffort:changed?{kind:"inherit"}:g.sessionEffort,ultracode:changed?!1:g.ultracode??!1'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model switch reads the model from app state, not alias object"
+  assert_contains = "previous=current.mainLoopModelForSession??current.mainLoopModel,changed=patchedEffort.session(previous).slug!==patchedEffort.session(o).slug"
+  assert_not_contains = "previous=e??current.mainLoopModelForSession??current.mainLoopModel"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin inline model switch rejects the native-only setter"
+  assert_not_contains = "s((g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null}))"
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-282-linux"
+lineage = "model-effort-inline-model-state-import"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Import the shared per-model resolver in the direct model-switch helper scope. Authored against 2.1.282 in chunk-83zd2nkd.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = 'import{PR,XHt,Ml}from"./chunk-tenqvr1v.js"'
+replacement = 'import{PR,XHt,Ml,JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model-state helper imports its graph resolver"
+  assert_contains = 'import{PR,XHt,Ml,JS as patchedEffort}from"./chunk-tenqvr1v.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model-state import rejects the old resolver-free supplier"
+  assert_not_contains = 'import{PR,XHt,Ml}from"./chunk-tenqvr1v.js"'
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-282-linux"
+lineage = "model-effort-inline-model-state"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "On a direct model switch, retain the previous model effort in its own map and reset the native global level to inherit, preventing effort from leaking to the new model. Authored against 2.1.282 in chunk-83zd2nkd.js. Scoped helper bindings used by the replacement: Cte, Zbt, r, s, vy. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "literal"
+locator_pattern = "async function Zbt(e,o,r,s,n,d,i,c){let u=r().fastMode;if(Cte(),vy(e,r(),o,d),s((g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null})),i!==void 0)"
+replacement = 'async function Zbt(e,o,r,s,n,d,i,c){let current=r(),u=current.fastMode,previous=current.mainLoopModelForSession??current.mainLoopModel,changed=patchedEffort.session(previous).slug!==patchedEffort.session(o).slug;if(changed&&current.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",current.sessionEffort.value);if(Cte(),vy(e,current,o,d),s((g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:g.sessionEffort,ultracode:changed?!1:g.ultracode??!1,effortByModel:patchedEffort.session(o).effortByModel,effortRevision:(g.effortRevision??0)+(changed?1:0)})),i!==void 0)'
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model switch migrates an explicit old-model level"
+  assert_contains = 'if(changed&&current.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",current.sessionEffort.value);'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model switch clears stale global state only on slug change"
+  assert_contains = 'sessionEffort:changed?{kind:"inherit"}:g.sessionEffort,ultracode:changed?!1:g.ultracode??!1'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model switch reads the model from app state, not alias object"
+  assert_contains = "previous=current.mainLoopModelForSession??current.mainLoopModel,changed=patchedEffort.session(previous).slug!==patchedEffort.session(o).slug"
+  assert_not_contains = "previous=e??current.mainLoopModelForSession??current.mainLoopModel"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux inline model switch rejects the native-only setter"
+  assert_not_contains = "s((g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null}))"

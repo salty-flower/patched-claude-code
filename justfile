@@ -1,6 +1,6 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-target := env_var_or_default("TARGET_VERSION", "2.1.281")
+target := env_var_or_default("TARGET_VERSION", "2.1.282")
 source := env_var_or_default("TARGET_SOURCE", "canonical")
 platform := env_var_or_default("TARGET_PLATFORM", "darwin-arm64")
 release_id := env_var_or_default("RELEASE_ID", "patch.local")
@@ -50,7 +50,7 @@ _api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout
   bun run tools/test/oauth-fable-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/custom-model-slots-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/model-effort-session-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
-  if [ "{{version}}" = "2.1.281" ]; then bun run tools/test/agents-md-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"; fi
+  if bun tools/node_modules/semver/bin/semver.js "{{version}}" --range ">=2.1.281" >/dev/null; then bun run tools/test/agents-md-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"; fi
   bun run tools/test/subagent-model-effort-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/ask-user-question-tui-smoke.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"

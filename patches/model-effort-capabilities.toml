@@ -933,3 +933,183 @@ kind = "static"
 name = "2.1.281 Linux effort retry notice drains through Lo"
 assert_contains = '''function*Jce(){if(Gce.__acc_notice!==void 0){const __acc_notice=Gce.__acc_notice;delete Gce.__acc_notice;yield Lo({content:__acc_notice,error:"warning"})'''
 assert_not_contains = '''function*C6e(){if(i6e.__acc_notice!==void 0){const __acc_notice=i6e.__acc_notice;delete i6e.__acc_notice;yield oR(__acc_notice,"warning")}'''
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-282-darwin-arm64"
+lineage = "custom-model-slot-capabilities"
+platforms = [ "darwin-arm64" ]
+rationale = "Restore normalized capability lookup for both configured custom model slots before the first-party early return; a configured effort level also declares the associated effort capability. Authored against 2.1.282 in chunk-3kj78r2m.js. Scoped helper bindings used by the replacement: Sc. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "if(Sc())return;for(let r of ux)"
+replacement = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Sc())return;for(let r of ux)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin custom slot capabilities normalize both model IDs"
+  assert_contains = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}'
+  assert_not_contains = "if(nl())return;for(let r of zoe)"
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-282-linux-x64"
+lineage = "custom-model-slot-capabilities"
+platforms = [ "linux-x64" ]
+rationale = "Restore normalized capability lookup for both configured custom model slots before the first-party early return; a configured effort level also declares the associated effort capability. Authored against 2.1.282 in chunk-wbbthbh9.js. Scoped helper bindings used by the replacement: bc. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "if(bc())return;for(let r of VO)"
+replacement = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(bc())return;for(let r of VO)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux custom slot capabilities normalize both model IDs"
+  assert_contains = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}'
+  assert_not_contains = "if(tl())return;for(let r of $oe)"
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-282-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+platforms = [ "darwin-arm64" ]
+rationale = "Honor explicit environment capability declarations for default model slots before the first-party early return; custom option slots retain their separate precedence. Authored against 2.1.282 in chunk-3kj78r2m.js. Scoped helper bindings used by the replacement: Sc. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "if(Sc())return;for(let r of ux)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of ux){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Sc())return;for(let r of ux)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin first-party capabilities use current MO table"
+  assert_contains = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of ux){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Sc())return;for(let r of ux)'
+  assert_not_contains = "for(const {modelEnvVar,capabilitiesEnvVar} of zoe)"
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-282-linux-x64"
+lineage = "explicit-capabilities-first-party"
+platforms = [ "linux-x64" ]
+rationale = "Honor explicit environment capability declarations for default model slots before the first-party early return; custom option slots retain their separate precedence. Authored against 2.1.282 in chunk-wbbthbh9.js. Scoped helper bindings used by the replacement: bc. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "if(bc())return;for(let r of VO)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of VO){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(bc())return;for(let r of VO)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux first-party capabilities use current CO table"
+  assert_contains = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of VO){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(bc())return;for(let r of VO)'
+  assert_not_contains = "for(const {modelEnvVar,capabilitiesEnvVar} of $oe)"
+
+[[patches]]
+name = "effort-reactive-capability-2-1-282-darwin-arm64"
+lineage = "effort-reactive-capability"
+platforms = [ "darwin-arm64" ]
+rationale = "Keep selected max and xhigh effort values intact so backend rejection, rather than a local capability guess, disables later requests. Authored against 2.1.282 in chunk-76kv9jbg.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!zq(n))r="high";if(r==="xhigh"&&!yme(n))r="high";'
+replacement = "/* effort capability is learned from backend rejection */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin reactive capability replaces current clamp"
+  assert_contains = "/* effort capability is learned from backend rejection */"
+  assert_not_contains = 'if(r==="max"&&!zq(n))r="high";if(r==="xhigh"&&!yme(n))r="high";'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-282-linux-x64"
+lineage = "effort-reactive-capability"
+platforms = [ "linux-x64" ]
+rationale = "Keep selected max and xhigh effort values intact so backend rejection, rather than a local capability guess, disables later requests. Authored against 2.1.282 in chunk-tenqvr1v.js. Scoped helper bindings used by the replacement: none; this replacement adds no helper call. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!$4(n))r="high";if(r==="xhigh"&&!gme(n))r="high";'
+replacement = "/* effort capability is learned from backend rejection */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux reactive capability replaces current clamp"
+  assert_contains = "/* effort capability is learned from backend rejection */"
+  assert_not_contains = 'if(r==="max"&&!$4(n))r="high";if(r==="xhigh"&&!gme(n))r="high";'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-282-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+platforms = [ "darwin-arm64" ]
+rationale = "Queue a visible notice only after the unsupported-effort classifier accepts a backend refusal, retaining the native rejection latch and retry behavior. Authored against 2.1.282 in chunk-x9fwahqm.js. Scoped helper bindings used by the replacement: ID. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "tce=(zn)=>{if(!ID(zn))return null;"
+replacement = 'tce=(zn)=>{if(!ID(zn))return null;tce.__acc_notice="Model "+h.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin effort retry queues notice at Hce"
+  assert_contains = 'tce=(zn)=>{if(!ID(zn))return null;tce.__acc_notice="Model "+h.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+  assert_not_contains = "XYe=(Ir)=>{if(!FMe(Ir))return null;XYe.__acc_notice="
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-282-linux-x64"
+lineage = "effort-retry-notice-queue"
+platforms = [ "linux-x64" ]
+rationale = "Queue a visible notice only after the unsupported-effort classifier accepts a backend refusal, retaining the native rejection latch and retry behavior. Authored against 2.1.282 in chunk-c9jscxk0.js. Scoped helper bindings used by the replacement: rL. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "ece=(zn)=>{if(!rL(zn))return null;"
+replacement = 'ece=(zn)=>{if(!rL(zn))return null;ece.__acc_notice="Model "+h.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux effort retry queues notice at Gce"
+  assert_contains = 'ece=(zn)=>{if(!rL(zn))return null;ece.__acc_notice="Model "+h.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+  assert_not_contains = "i6e=(Pr)=>{if(!qOe(Pr))return null;i6e.__acc_notice="
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-282-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+platforms = [ "darwin-arm64" ]
+rationale = "Drain the queued unsupported-effort notice through the native API-message factory while preserving the existing pending-message generator. Authored against 2.1.282 in chunk-x9fwahqm.js. Scoped helper bindings used by the replacement: $o, lce. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "function*lce(){"
+replacement = 'function*lce(){if(tce.__acc_notice!==void 0){const __acc_notice=tce.__acc_notice;delete tce.__acc_notice;yield $o({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin effort retry notice drains through Mo"
+  assert_contains = 'function*lce(){if(tce.__acc_notice!==void 0){const __acc_notice=tce.__acc_notice;delete tce.__acc_notice;yield $o({content:__acc_notice,error:"warning"})'
+  assert_not_contains = 'function*o4e(){if(XYe.__acc_notice!==void 0){const __acc_notice=XYe.__acc_notice;delete XYe.__acc_notice;yield tw(__acc_notice,"warning")}'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-282-linux-x64"
+lineage = "effort-retry-notice-drain"
+platforms = [ "linux-x64" ]
+rationale = "Drain the queued unsupported-effort notice through the native API-message factory while preserving the existing pending-message generator. Authored against 2.1.282 in chunk-c9jscxk0.js. Scoped helper bindings used by the replacement: Fo, ace. Retire when native behavior provides the same model-scoped effort contract."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "literal"
+locator_pattern = "function*ace(){"
+replacement = 'function*ace(){if(ece.__acc_notice!==void 0){const __acc_notice=ece.__acc_notice;delete ece.__acc_notice;yield Fo({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux effort retry notice drains through Lo"
+  assert_contains = 'function*ace(){if(ece.__acc_notice!==void 0){const __acc_notice=ece.__acc_notice;delete ece.__acc_notice;yield Fo({content:__acc_notice,error:"warning"})'
+  assert_not_contains = 'function*T5e(){if(i6e.__acc_notice!==void 0){const __acc_notice=i6e.__acc_notice;delete i6e.__acc_notice;yield bw(__acc_notice,"warning")}'

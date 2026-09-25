@@ -10,7 +10,7 @@ import "../../runtime/bun-ant-cell-segmenter"
 /**
  * Differential test against a fixture captured from the upstream bun fork.
  *
- * The fixture was sampled by attaching a debugger to the 2.1.281 standalone
+ * The fixture was sampled by attaching a debugger to the 2.1.282 standalone
  * binary and evaluating the real `Bun.ant.CellSegmenter` over a corpus. The
  * original 2.1.273 contract investigation is recorded in
  * docs/records/2026-09-17-bun-ant-cell-segmenter-contract.md. It is the

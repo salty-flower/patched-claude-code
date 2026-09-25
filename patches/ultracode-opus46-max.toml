@@ -8964,3 +8964,911 @@ kind = "static"
 name = "2.1.281 Linux ultracode notification displays applied effort"
 assert_contains = '''ultracode \xB7 ${h==="max"?"max":"xhigh"} effort + dynamic workflows'''
 assert_not_contains = '''ultracode \xB7 xhigh effort + dynamic workflows for maximum thoroughness'''
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Allow ultracode when the model supports xhigh or max within its effort cap. This is the 2.1.282 darwin-arm64 variant; inserted bindings: $p, e, xLe, yme, zq. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-capability-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "OR"
+    source = 'function OR(e){return $p()&&(e===void 0||yme(e)&&xLe("xhigh",e))}'
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{return $p()&&(e===void 0||yme(e)&&xLe("xhigh",e)||zq(e)&&xLe("max",e))}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin ultracode accepts capped max"
+  assert_contains = '{return $p()&&(e===void 0||yme(e)&&xLe("xhigh",e)||zq(e)&&xLe("max",e))}'
+  assert_not_contains = 'function OR(e){return $p()&&(e===void 0||yme(e)&&xLe("xhigh",e))}'
+
+[[patches]]
+name = "ultracode-settings-report-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Report active ultracode when the applied effort is max and the model supports max. This is the 2.1.282 darwin-arm64 variant; inserted bindings: $p, Jb, d, e, n, r, s, zq. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-settings-report-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "DR"
+    source = 'function DR(e,n,r,s){return r===!0&&$p()&&Jb(e,n,{turnEffort:s})==="xhigh"}'
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{let d=Jb(e,n,{turnEffort:s});return r===!0&&$p()&&(d==="xhigh"||d==="max"&&zq(e))}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin settings report recognizes max ultracode"
+  assert_contains = '{let d=Jb(e,n,{turnEffort:s});return r===!0&&$p()&&(d==="xhigh"||d==="max"&&zq(e))}'
+  assert_not_contains = 'Jb(e,n,{turnEffort:s})==="xhigh"'
+
+[[patches]]
+name = "ultracode-startup-settings-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Resolve persisted ultracode settings to the strongest effort supported within the model cap. This is the 2.1.282 darwin-arm64 variant; inserted bindings: I, OR, r, xLe, yme, zq. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-startup-settings-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "z"
+    string = "settings.ultracode===!0"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'return{...I,default:"xhigh"}'
+  value = 'return{...I,default:OR(r)&&(r===void 0||yme(r)&&xLe("xhigh",r))?"xhigh":OR(r)&&zq(r)&&xLe("max",r)?"max":"high"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin startup chooses capped model effort"
+  assert_contains = 'return{...I,default:OR(r)&&(r===void 0||yme(r)&&xLe("xhigh",r))?"xhigh":OR(r)&&zq(r)&&xLe("max",r)?"max":"high"}'
+  assert_not_contains = 'return{...I,default:"xhigh"}'
+
+[[patches]]
+name = "ultracode-effort-command-import-max-helper-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the max-effort capability helper for the effort command and typed-argument fallback. This is the 2.1.282 darwin-arm64 variant; inserted bindings: zq. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "literal"
+locator_pattern = 'import{kUn,swo,yme,OR,DR,fCe,xLe,$ie,GG,Vq,_me,ILe,FN,rqe,Z8,Don,Jb,zG,LR,uTr}from"./chunk-76kv9jbg.js"'
+expected_matches = 1
+replacement = 'import{zq as __acc_has_max_effort,kUn,swo,yme,OR,DR,fCe,xLe,$ie,GG,Vq,_me,ILe,FN,rqe,Z8,Don,Jb,zG,LR,uTr}from"./chunk-76kv9jbg.js"'
+lineage = "ultracode-effort-command-import-max-helper"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 imported capability aliases resolve"
+  assert_contains = 'import{zq as __acc_has_max_effort,kUn,swo,yme,OR,DR,fCe,xLe,$ie,GG,Vq,_me,ILe,FN,rqe,Z8,Don,Jb,zG,LR,uTr}from"./chunk-76kv9jbg.js"'
+  assert_not_contains = 'import{kUn,swo,yme,OR,DR,fCe,xLe,$ie,GG,Vq,_me,ILe,FN,rqe,Z8,Don,Jb,zG,LR,uTr}from"./chunk-76kv9jbg.js"'
+
+[[patches]]
+name = "ultracode-typed-arg-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Map the ultracode typed argument to xhigh or capped max for the selected model. This is the 2.1.282 darwin-arm64 variant; inserted bindings: OR, __acc_effort, __acc_has_max_effort, r, t, xLe, yme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+locator_kind = "ast_transform"
+lineage = "ultracode-typed-arg-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "$Qn"
+    string = 'if(r==="ultracode"&&OR(t))return{value:"xhigh"}'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(r==="ultracode"&&OR(t))return{value:"xhigh"}'
+  value = 'if(r==="ultracode"&&OR(t)){let __acc_effort=yme(t)&&xLe("xhigh",t)?"xhigh":__acc_has_max_effort(t)&&xLe("max",t)?"max":void 0;if(__acc_effort)return{value:__acc_effort}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin typed ultracode accepts capped max"
+  assert_contains = 'if(r==="ultracode"&&OR(t)){let __acc_effort=yme(t)&&xLe("xhigh",t)?"xhigh":__acc_has_max_effort(t)&&xLe("max",t)?"max":void 0;if(__acc_effort)return{value:__acc_effort}}'
+  assert_not_contains = 'if(r==="ultracode"&&OR(t))return{value:"xhigh"}'
+
+[[patches]]
+name = "ultracode-effort-command-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Apply the strongest model-supported capped effort and report that same effort in the session update and command response. This is the 2.1.282 darwin-arm64 variant; inserted bindings: FN, OR, _, __acc_has_max_effort, a, d, e, g, i, it, kUn, lr, n, p, r, t, xLe, yme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L51-L65"
+locator_kind = "ast_transform"
+lineage = "ultracode-effort-command-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "R"
+    strings = [
+  "Ultracode needs dynamic workflows enabled",
+  "Set effort level to ultracode"
+]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let t=it();if(!OR())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${g(t)}`};if(yme(t)&&!xLe(\"xhigh\",t)&&!(__acc_has_max_effort(t)&&xLe(\"max\",t)))return{message:`Ultracode runs at xhigh effort, which is above the effort cap for ${t} set by your settings or organization. Valid options are: ${g(t)}`};if(!OR(t))return{message:`Ultracode runs at xhigh or max effort, which ${t} doesn't support — switch to a model supporting xhigh or max effort (${kUn}). Valid options are: ${g(t)}`};let d=t==null||yme(t)&&xLe(\"xhigh\",t)?\"xhigh\":__acc_has_max_effort(t)&&xLe(\"max\",t)?\"max\":\"high\";e?.({value:d,ultracode:!0});let r=p(d,!0);i(\"tengu_effort_command\",{effort:_(\"ultracode\"),is_remote:lr()!==null});let n=lr()?void 0:FN();if(n!==void 0&&n!==d)return{message:`CLAUDE_CODE_EFFORT_LEVEL=${a.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session — clear it and ultracode takes over`,effortUpdate:{value:d,ultracode:!0}};return{message:`Set effort level to ultracode (this session only): ${d} + dynamic workflow orchestration${r??\"\"}`,effortUpdate:{value:d,ultracode:!0}}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin ultracode command applies capped model effort"
+  assert_contains = "{let t=it();if(!OR())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${g(t)}`};if(yme(t)&&!xLe(\"xhigh\",t)&&!(__acc_has_max_effort(t)&&xLe(\"max\",t)))return{message:`Ultracode runs at xhigh effort, which is above the effort cap for ${t} set by your settings or organization. Valid options are: ${g(t)}`};if(!OR(t))return{message:`Ultracode runs at xhigh or max effort, which ${t} doesn't support — switch to a model supporting xhigh or max effort (${kUn}). Valid options are: ${g(t)}`};let d=t==null||yme(t)&&xLe(\"xhigh\",t)?\"xhigh\":__acc_has_max_effort(t)&&xLe(\"max\",t)?\"max\":\"high\";e?.({value:d,ultracode:!0});let r=p(d,!0);i(\"tengu_effort_command\",{effort:_(\"ultracode\"),is_remote:lr()!==null});let n=lr()?void 0:FN();if(n!==void 0&&n!==d)return{message:`CLAUDE_CODE_EFFORT_LEVEL=${a.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session — clear it and ultracode takes over`,effortUpdate:{value:d,ultracode:!0}};return{message:`Set effort level to ultracode (this session only): ${d} + dynamic workflow orchestration${r??\"\"}`,effortUpdate:{value:d,ultracode:!0}}}"
+  assert_not_contains = 'e?.({value:"xhigh",ultracode:!0});let r=p("xhigh",!0)'
+
+[[patches]]
+name = "ultracode-help-label-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Describe ultracode using the strongest effort permitted for the selected model. This is the 2.1.282 darwin-arm64 variant; inserted bindings: e, xLe, yme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+lineage = "ultracode-help-label-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "M6t"
+    string = "- ultracode: xhigh + dynamic workflow orchestration (this session only)"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "- ultracode: xhigh + dynamic workflow orchestration (this session only)"
+  value = '- ultracode: ${e==null||yme(e)&&xLe("xhigh",e)?"xhigh":"max"} + dynamic workflow orchestration (this session only)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin help labels ultracode effort by model capability"
+  assert_contains = '- ultracode: ${e==null||yme(e)&&xLe("xhigh",e)?"xhigh":"max"} + dynamic workflow orchestration (this session only)'
+  assert_not_contains = "- ultracode: xhigh + dynamic workflow orchestration (this session only)"
+
+[[patches]]
+name = "ultracode-flag-settings-max-fallback-import-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Import model capability and effort-cap helpers used to seed bridge ultracode state. This is the 2.1.282 darwin-arm64 variant; inserted bindings: xLe, yme, zq. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "literal"
+locator_pattern = 'import{AUn,OR,pv,GG,PLe,Nit,nqe,mL,FN,$N,rqe,Z8,Ll,Jb,Lon}from"./chunk-76kv9jbg.js"'
+expected_matches = 1
+replacement = 'import{yme as __acc_supports_xhigh,zq as __acc_has_max_effort,xLe as __acc_allows_effort,AUn,OR,pv,GG,PLe,Nit,nqe,mL,FN,$N,rqe,Z8,Ll,Jb,Lon}from"./chunk-76kv9jbg.js"'
+lineage = "ultracode-flag-settings-max-fallback-import"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 imported capability aliases resolve"
+  assert_contains = 'import{yme as __acc_supports_xhigh,zq as __acc_has_max_effort,xLe as __acc_allows_effort,AUn,OR,pv,GG,PLe,Nit,nqe,mL,FN,$N,rqe,Z8,Ll,Jb,Lon}from"./chunk-76kv9jbg.js"'
+  assert_not_contains = 'import{AUn,OR,pv,GG,PLe,Nit,nqe,mL,FN,$N,rqe,Z8,Ll,Jb,Lon}from"./chunk-76kv9jbg.js"'
+
+[[patches]]
+name = "ultracode-flag-settings-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Seed bridge state with the model-specific capped effort while preserving the ultracode marker. This is the 2.1.282 darwin-arm64 variant; inserted bindings: $N, Ll, __acc_allows_effort, __acc_effort, __acc_has_max_effort, __acc_supports_xhigh, a, o, r. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-flag-settings-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "P6t"
+    string = 'sessionEffort:$N("xhigh")'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(a){if(!r.ultracode||Ll(r)!=="xhigh")r={...r,ultracode:!0,sessionEffort:$N("xhigh")}}'
+  value = 'if(a){let __acc_effort=o==null||__acc_supports_xhigh(o)&&__acc_allows_effort("xhigh",o)?"xhigh":__acc_has_max_effort(o)&&__acc_allows_effort("max",o)?"max":"high";if(!r.ultracode||Ll(r)!==__acc_effort)r={...r,ultracode:!0,sessionEffort:$N(__acc_effort)}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin bridge state follows model effort"
+  assert_contains = 'if(a){let __acc_effort=o==null||__acc_supports_xhigh(o)&&__acc_allows_effort("xhigh",o)?"xhigh":__acc_has_max_effort(o)&&__acc_allows_effort("max",o)?"max":"high";if(!r.ultracode||Ll(r)!==__acc_effort)r={...r,ultracode:!0,sessionEffort:$N(__acc_effort)}}'
+  assert_not_contains = 'if(a){if(!r.ultracode||Ll(r)!=="xhigh")r={...r,ultracode:!0,sessionEffort:$N("xhigh")}}'
+
+[[patches]]
+name = "ultracode-slider-import-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Import xhigh capability and effort-cap helpers for the effort slider. This is the 2.1.282 darwin-arm64 variant; inserted bindings: xLe, yme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "literal"
+locator_pattern = 'import{DZ,zq,OR,DR,rHt,fCe,iwo,Vq,FN,Don,qq,mCe,LR}from"./chunk-76kv9jbg.js"'
+expected_matches = 1
+replacement = 'import{yme as __acc_supports_xhigh,xLe as __acc_allows_effort,DZ,zq,OR,DR,rHt,fCe,iwo,Vq,FN,Don,qq,mCe,LR}from"./chunk-76kv9jbg.js"'
+lineage = "ultracode-slider-import-max-fallback"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 imported capability aliases resolve"
+  assert_contains = 'import{yme as __acc_supports_xhigh,xLe as __acc_allows_effort,DZ,zq,OR,DR,rHt,fCe,iwo,Vq,FN,Don,qq,mCe,LR}from"./chunk-76kv9jbg.js"'
+  assert_not_contains = 'import{DZ,zq,OR,DR,rHt,fCe,iwo,Vq,FN,Don,qq,mCe,LR}from"./chunk-76kv9jbg.js"'
+
+[[patches]]
+name = "ultracode-effort-dialog-preview-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Preview the selected ultracode effort using the current model capability and cap. This is the 2.1.282 darwin-arm64 variant; inserted bindings: R, __acc_allows_effort, __acc_supports_xhigh, d. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+lineage = "ultracode-effort-dialog-preview-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "nt"
+    string = 'R==="ultracode"?"xhigh":R'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'R==="ultracode"?"xhigh":R'
+  value = 'R==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):R'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin effort dialog previews model-specific ultracode effort"
+  assert_contains = 'R==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):R'
+  assert_not_contains = 'R==="ultracode"?"xhigh":R'
+
+[[patches]]
+name = "ultracode-slider-dialog-validation-max-fallback-2-1-282-darwin"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+rationale = "Validate the dialog ultracode choice using the current model capability and cap. This is the 2.1.282 darwin-arm64 variant; inserted bindings: __acc_allows_effort, __acc_supports_xhigh, d, re. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+lineage = "ultracode-slider-dialog-validation-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "nt"
+    string = 're==="ultracode"?"xhigh":re'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 're==="ultracode"?"xhigh":re'
+  value = 're==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):re'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Darwin effort dialog validates model-specific ultracode effort"
+  assert_contains = 're==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):re'
+  assert_not_contains = 're==="ultracode"?"xhigh":re'
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Allow ultracode when the model supports xhigh or max within its effort cap. This is the 2.1.282 linux-x64 variant; inserted bindings: $4, CDe, Fp, e, gme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-capability-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "PR"
+    source = 'function PR(e){return Fp()&&(e===void 0||gme(e)&&CDe("xhigh",e))}'
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{return Fp()&&(e===void 0||gme(e)&&CDe("xhigh",e)||$4(e)&&CDe("max",e))}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux ultracode accepts capped max"
+  assert_contains = '{return Fp()&&(e===void 0||gme(e)&&CDe("xhigh",e)||$4(e)&&CDe("max",e))}'
+  assert_not_contains = 'function PR(e){return Fp()&&(e===void 0||gme(e)&&CDe("xhigh",e))}'
+
+[[patches]]
+name = "ultracode-settings-report-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Report active ultracode when the applied effort is max and the model supports max. This is the 2.1.282 linux-x64 variant; inserted bindings: $4, Fp, JS, d, e, n, r, s. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-settings-report-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "HR"
+    source = 'function HR(e,n,r,s){return r===!0&&Fp()&&JS(e,n,{turnEffort:s})==="xhigh"}'
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{let d=JS(e,n,{turnEffort:s});return r===!0&&Fp()&&(d==="xhigh"||d==="max"&&$4(e))}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux settings report recognizes max ultracode"
+  assert_contains = '{let d=JS(e,n,{turnEffort:s});return r===!0&&Fp()&&(d==="xhigh"||d==="max"&&$4(e))}'
+  assert_not_contains = 'JS(e,n,{turnEffort:s})==="xhigh"'
+
+[[patches]]
+name = "ultracode-effort-command-import-max-helper-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Import the max-effort capability helper for the effort command and typed-argument fallback. This is the 2.1.282 linux-x64 variant; inserted bindings: $4. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "literal"
+locator_pattern = 'import{wBn,NSo,gme,PR,HR,lke,CDe,Mie,$2,F4,hme,xDe,RN,ZKe,q8,Ion,JS,F2,OR,jAr}from"./chunk-tenqvr1v.js"'
+expected_matches = 1
+replacement = 'import{$4 as __acc_has_max_effort,wBn,NSo,gme,PR,HR,lke,CDe,Mie,$2,F4,hme,xDe,RN,ZKe,q8,Ion,JS,F2,OR,jAr}from"./chunk-tenqvr1v.js"'
+lineage = "ultracode-effort-command-import-max-helper"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 imported capability aliases resolve"
+  assert_contains = 'import{$4 as __acc_has_max_effort,wBn,NSo,gme,PR,HR,lke,CDe,Mie,$2,F4,hme,xDe,RN,ZKe,q8,Ion,JS,F2,OR,jAr}from"./chunk-tenqvr1v.js"'
+  assert_not_contains = 'import{wBn,NSo,gme,PR,HR,lke,CDe,Mie,$2,F4,hme,xDe,RN,ZKe,q8,Ion,JS,F2,OR,jAr}from"./chunk-tenqvr1v.js"'
+
+[[patches]]
+name = "ultracode-typed-arg-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Map the ultracode typed argument to xhigh or capped max for the selected model. This is the 2.1.282 linux-x64 variant; inserted bindings: CDe, PR, __acc_effort, __acc_has_max_effort, gme, r, t. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L107-L117"
+locator_kind = "ast_transform"
+lineage = "ultracode-typed-arg-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "WQn"
+    string = 'if(r==="ultracode"&&PR(t))return{value:"xhigh"}'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(r==="ultracode"&&PR(t))return{value:"xhigh"}'
+  value = 'if(r==="ultracode"&&PR(t)){let __acc_effort=gme(t)&&CDe("xhigh",t)?"xhigh":__acc_has_max_effort(t)&&CDe("max",t)?"max":void 0;if(__acc_effort)return{value:__acc_effort}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux typed ultracode accepts capped max"
+  assert_contains = 'if(r==="ultracode"&&PR(t)){let __acc_effort=gme(t)&&CDe("xhigh",t)?"xhigh":__acc_has_max_effort(t)&&CDe("max",t)?"max":void 0;if(__acc_effort)return{value:__acc_effort}}'
+  assert_not_contains = 'if(r==="ultracode"&&PR(t))return{value:"xhigh"}'
+
+[[patches]]
+name = "ultracode-startup-settings-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Resolve persisted ultracode settings to the strongest effort supported within the model cap. This is the 2.1.282 linux-x64 variant; inserted bindings: $4, CDe, I, PR, gme, r. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-startup-settings-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "z"
+    string = "settings.ultracode===!0"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'return{...I,default:"xhigh"}'
+  value = 'return{...I,default:PR(r)&&(r===void 0||gme(r)&&CDe("xhigh",r))?"xhigh":PR(r)&&$4(r)&&CDe("max",r)?"max":"high"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux startup chooses capped model effort"
+  assert_contains = 'return{...I,default:PR(r)&&(r===void 0||gme(r)&&CDe("xhigh",r))?"xhigh":PR(r)&&$4(r)&&CDe("max",r)?"max":"high"}'
+  assert_not_contains = 'return{...I,default:"xhigh"}'
+
+[[patches]]
+name = "ultracode-effort-command-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Apply the strongest model-supported capped effort and report that same effort in the session update and command response. This is the 2.1.282 linux-x64 variant; inserted bindings: CDe, PR, RN, _, __acc_has_max_effort, a, d, e, g, gme, i, it, lr, n, p, r, t, wBn. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L51-L65"
+locator_kind = "ast_transform"
+lineage = "ultracode-effort-command-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "R"
+    strings = [
+  "Ultracode needs dynamic workflows enabled",
+  "Set effort level to ultracode"
+]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let t=it();if(!PR())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${g(t)}`};if(gme(t)&&!CDe(\"xhigh\",t)&&!(__acc_has_max_effort(t)&&CDe(\"max\",t)))return{message:`Ultracode runs at xhigh effort, which is above the effort cap for ${t} set by your settings or organization. Valid options are: ${g(t)}`};if(!PR(t))return{message:`Ultracode runs at xhigh or max effort, which ${t} doesn't support — switch to a model supporting xhigh or max effort (${wBn}). Valid options are: ${g(t)}`};let d=t==null||gme(t)&&CDe(\"xhigh\",t)?\"xhigh\":__acc_has_max_effort(t)&&CDe(\"max\",t)?\"max\":\"high\";e?.({value:d,ultracode:!0});let r=p(d,!0);i(\"tengu_effort_command\",{effort:_(\"ultracode\"),is_remote:lr()!==null});let n=lr()?void 0:RN();if(n!==void 0&&n!==d)return{message:`CLAUDE_CODE_EFFORT_LEVEL=${a.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session — clear it and ultracode takes over`,effortUpdate:{value:d,ultracode:!0}};return{message:`Set effort level to ultracode (this session only): ${d} + dynamic workflow orchestration${r??\"\"}`,effortUpdate:{value:d,ultracode:!0}}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux ultracode command applies capped model effort"
+  assert_contains = "{let t=it();if(!PR())return{message:`Ultracode needs dynamic workflows enabled (see /config). Valid options are: ${g(t)}`};if(gme(t)&&!CDe(\"xhigh\",t)&&!(__acc_has_max_effort(t)&&CDe(\"max\",t)))return{message:`Ultracode runs at xhigh effort, which is above the effort cap for ${t} set by your settings or organization. Valid options are: ${g(t)}`};if(!PR(t))return{message:`Ultracode runs at xhigh or max effort, which ${t} doesn't support — switch to a model supporting xhigh or max effort (${wBn}). Valid options are: ${g(t)}`};let d=t==null||gme(t)&&CDe(\"xhigh\",t)?\"xhigh\":__acc_has_max_effort(t)&&CDe(\"max\",t)?\"max\":\"high\";e?.({value:d,ultracode:!0});let r=p(d,!0);i(\"tengu_effort_command\",{effort:_(\"ultracode\"),is_remote:lr()!==null});let n=lr()?void 0:RN();if(n!==void 0&&n!==d)return{message:`CLAUDE_CODE_EFFORT_LEVEL=${a.CLAUDE_CODE_EFFORT_LEVEL} overrides effort this session — clear it and ultracode takes over`,effortUpdate:{value:d,ultracode:!0}};return{message:`Set effort level to ultracode (this session only): ${d} + dynamic workflow orchestration${r??\"\"}`,effortUpdate:{value:d,ultracode:!0}}}"
+  assert_not_contains = 'e?.({value:"xhigh",ultracode:!0});let r=p("xhigh",!0)'
+
+[[patches]]
+name = "ultracode-help-label-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Describe ultracode using the strongest effort permitted for the selected model. This is the 2.1.282 linux-x64 variant; inserted bindings: CDe, e, gme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+locator_kind = "ast_transform"
+lineage = "ultracode-help-label-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "BGt"
+    string = "- ultracode: xhigh + dynamic workflow orchestration (this session only)"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "- ultracode: xhigh + dynamic workflow orchestration (this session only)"
+  value = '- ultracode: ${e==null||gme(e)&&CDe("xhigh",e)?"xhigh":"max"} + dynamic workflow orchestration (this session only)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux help labels ultracode effort by model capability"
+  assert_contains = '- ultracode: ${e==null||gme(e)&&CDe("xhigh",e)?"xhigh":"max"} + dynamic workflow orchestration (this session only)'
+  assert_not_contains = "- ultracode: xhigh + dynamic workflow orchestration (this session only)"
+
+[[patches]]
+name = "ultracode-flag-settings-max-fallback-import-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Import model capability and effort-cap helpers used to seed bridge ultracode state. This is the 2.1.282 linux-x64 variant; inserted bindings: $4, CDe, gme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "literal"
+locator_pattern = 'import{SBn,PR,fE,$2,RDe,Pit,QKe,iD,RN,xN,ZKe,q8,Ml,JS,Pon}from"./chunk-tenqvr1v.js"'
+expected_matches = 1
+replacement = 'import{gme as __acc_supports_xhigh,$4 as __acc_has_max_effort,CDe as __acc_allows_effort,SBn,PR,fE,$2,RDe,Pit,QKe,iD,RN,xN,ZKe,q8,Ml,JS,Pon}from"./chunk-tenqvr1v.js"'
+lineage = "ultracode-flag-settings-max-fallback-import"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 imported capability aliases resolve"
+  assert_contains = 'import{gme as __acc_supports_xhigh,$4 as __acc_has_max_effort,CDe as __acc_allows_effort,SBn,PR,fE,$2,RDe,Pit,QKe,iD,RN,xN,ZKe,q8,Ml,JS,Pon}from"./chunk-tenqvr1v.js"'
+  assert_not_contains = 'import{SBn,PR,fE,$2,RDe,Pit,QKe,iD,RN,xN,ZKe,q8,Ml,JS,Pon}from"./chunk-tenqvr1v.js"'
+
+[[patches]]
+name = "ultracode-flag-settings-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Seed bridge state with the model-specific capped effort while preserving the ultracode marker. This is the 2.1.282 linux-x64 variant; inserted bindings: Ml, __acc_allows_effort, __acc_effort, __acc_has_max_effort, __acc_supports_xhigh, a, o, r, xN. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+lineage = "ultracode-flag-settings-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "gGt"
+    string = 'sessionEffort:xN("xhigh")'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(a){if(!r.ultracode||Ml(r)!=="xhigh")r={...r,ultracode:!0,sessionEffort:xN("xhigh")}}'
+  value = 'if(a){let __acc_effort=o==null||__acc_supports_xhigh(o)&&__acc_allows_effort("xhigh",o)?"xhigh":__acc_has_max_effort(o)&&__acc_allows_effort("max",o)?"max":"high";if(!r.ultracode||Ml(r)!==__acc_effort)r={...r,ultracode:!0,sessionEffort:xN(__acc_effort)}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux bridge state follows model effort"
+  assert_contains = 'if(a){let __acc_effort=o==null||__acc_supports_xhigh(o)&&__acc_allows_effort("xhigh",o)?"xhigh":__acc_has_max_effort(o)&&__acc_allows_effort("max",o)?"max":"high";if(!r.ultracode||Ml(r)!==__acc_effort)r={...r,ultracode:!0,sessionEffort:xN(__acc_effort)}}'
+  assert_not_contains = 'if(a){if(!r.ultracode||Ml(r)!=="xhigh")r={...r,ultracode:!0,sessionEffort:xN("xhigh")}}'
+
+[[patches]]
+name = "ultracode-slider-import-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Import xhigh capability and effort-cap helpers for the effort slider. This is the 2.1.282 linux-x64 variant; inserted bindings: CDe, gme. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "literal"
+locator_pattern = 'import{RZ,$4,PR,HR,JHt,lke,$So,F4,RN,Ion,U4,cke,OR}from"./chunk-tenqvr1v.js"'
+expected_matches = 1
+replacement = 'import{gme as __acc_supports_xhigh,CDe as __acc_allows_effort,RZ,$4,PR,HR,JHt,lke,$So,F4,RN,Ion,U4,cke,OR}from"./chunk-tenqvr1v.js"'
+lineage = "ultracode-slider-import-max-fallback"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 imported capability aliases resolve"
+  assert_contains = 'import{gme as __acc_supports_xhigh,CDe as __acc_allows_effort,RZ,$4,PR,HR,JHt,lke,$So,F4,RN,Ion,U4,cke,OR}from"./chunk-tenqvr1v.js"'
+  assert_not_contains = 'import{RZ,$4,PR,HR,JHt,lke,$So,F4,RN,Ion,U4,cke,OR}from"./chunk-tenqvr1v.js"'
+
+[[patches]]
+name = "ultracode-effort-dialog-preview-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Preview the selected ultracode effort using the current model capability and cap. This is the 2.1.282 linux-x64 variant; inserted bindings: R, __acc_allows_effort, __acc_supports_xhigh, d. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+lineage = "ultracode-effort-dialog-preview-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "nt"
+    string = 'R==="ultracode"?"xhigh":R'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'R==="ultracode"?"xhigh":R'
+  value = 'R==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):R'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux effort dialog previews model-specific ultracode effort"
+  assert_contains = 'R==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):R'
+  assert_not_contains = 'R==="ultracode"?"xhigh":R'
+
+[[patches]]
+name = "ultracode-slider-dialog-validation-max-fallback-2-1-282-linux"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+rationale = "Validate the dialog ultracode choice using the current model capability and cap. This is the 2.1.282 linux-x64 variant; inserted bindings: __acc_allows_effort, __acc_supports_xhigh, d, re. Identifier mappings were checked against structurally equivalent predecessor functions and current module exports."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+locator_kind = "ast_transform"
+lineage = "ultracode-slider-dialog-validation-max-fallback"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "nt"
+    string = 're==="ultracode"?"xhigh":re'
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 're==="ultracode"?"xhigh":re'
+  value = 're==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):re'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 Linux effort dialog validates model-specific ultracode effort"
+  assert_contains = 're==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):re'
+  assert_not_contains = 're==="ultracode"?"xhigh":re'
+
+[[patches]]
+name = "ultracode-slider-menu-max-fallback-2-1-282-darwin"
+lineage = "ultracode-slider-menu-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+locator_kind = "ast_transform"
+rationale = "Label the 2.1.282 ultracode slider using the strongest model-supported capped effort. Capture the active model parameter; capability aliases are supplied by the corresponding slider import patch."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    string = 'sublabel:{text:"xhigh + workflows"'
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = '"xhigh + workflows"'
+  value = '(%%CAPTURE:model%%==null||__acc_supports_xhigh(%%CAPTURE:model%%)&&__acc_allows_effort("xhigh",%%CAPTURE:model%%)?"xhigh":"max")+" + workflows"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = '(c==null||__acc_supports_xhigh(c)&&__acc_allows_effort("xhigh",c)?"xhigh":"max")+" + workflows"'
+  assert_not_contains = '"xhigh + workflows"'
+
+[[patches]]
+name = "ultracode-slider-confirm-validation-max-fallback-2-1-282-darwin"
+lineage = "ultracode-slider-confirm-validation-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+locator_kind = "ast_transform"
+rationale = "Preserve model-specific ultracode effort in the 2.1.282 slider validation. Capture the model from the five-argument cache-miss validator; preserve the selected option binding through the regex backreference. The slider import patch supplies capability aliases."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "context:\"EffortSlider\"", "persistAsDefault" ]
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "arguments.2"
+
+  [patches.ast.captures.model.select]
+  node = "CallExpression"
+  source_regex = "^[\\w$]+\\([\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+\\([\\w$]+\\(\\)\\)\\)$"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '([\w$]+)\.value==="ultracode"\?"xhigh":\1\.value'
+  value = '$1.value==="ultracode"?(%%CAPTURE:model%%==null||__acc_supports_xhigh(%%CAPTURE:model%%)&&__acc_allows_effort("xhigh",%%CAPTURE:model%%)?"xhigh":"max"):$1.value'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = 'B.value==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):B.value'
+  assert_not_contains = 'B.value==="ultracode"?"xhigh":B.value'
+
+[[patches]]
+name = "ultracode-slider-dialog-preview-max-fallback-2-1-282-darwin"
+lineage = "ultracode-slider-dialog-preview-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+locator_kind = "ast_transform"
+rationale = "Preserve model-specific ultracode effort in the 2.1.282 confirmation preview. Capture the model from the five-argument cache-miss validator; preserve the selected option binding through the regex backreference. The slider import patch supplies capability aliases."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "context:\"EffortSlider\"", "persistAsDefault" ]
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "arguments.2"
+
+  [patches.ast.captures.model.select]
+  node = "CallExpression"
+  source_regex = "^[\\w$]+\\([\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+\\([\\w$]+\\(\\)\\)\\)$"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '([\w$]+)\.level==="ultracode"\?"xhigh":\1\.level'
+  value = '$1.level==="ultracode"?(%%CAPTURE:model%%==null||__acc_supports_xhigh(%%CAPTURE:model%%)&&__acc_allows_effort("xhigh",%%CAPTURE:model%%)?"xhigh":"max"):$1.level'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = 'v.level==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):v.level'
+  assert_not_contains = 'v.level==="ultracode"?"xhigh":v.level'
+
+[[patches]]
+name = "ultracode-effort-notification-max-fallback-2-1-282-darwin"
+lineage = "ultracode-effort-notification-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1977"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "darwin-arm64" ]
+locator_kind = "ast_transform"
+rationale = "Display the actual ultracode effort in the 2.1.282 compact notification. The upstream copy now says xhigh + workflows and links /effort; capture the function effort argument to preserve the existing max-effort label behavior."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    string = "ultracode \\xB7 xhigh + workflows \\xB7 /effort"
+
+[patches.ast.captures.effort]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "ultracode \\xB7 xhigh + workflows \\xB7 /effort"
+  value = 'ultracode \xB7 ${%%CAPTURE:effort%%==="max"?"max":"xhigh"} + workflows \xB7 /effort'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = 'ultracode \xB7 ${h==="max"?"max":"xhigh"} + workflows \xB7 /effort'
+  assert_not_contains = "ultracode \\xB7 xhigh + workflows \\xB7 /effort"
+
+[[patches]]
+name = "ultracode-slider-menu-max-fallback-2-1-282-linux"
+lineage = "ultracode-slider-menu-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L171-L181"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+locator_kind = "ast_transform"
+rationale = "Label the 2.1.282 ultracode slider using the strongest model-supported capped effort. Capture the active model parameter; capability aliases are supplied by the corresponding slider import patch."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    string = 'sublabel:{text:"xhigh + workflows"'
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = '"xhigh + workflows"'
+  value = '(%%CAPTURE:model%%==null||__acc_supports_xhigh(%%CAPTURE:model%%)&&__acc_allows_effort("xhigh",%%CAPTURE:model%%)?"xhigh":"max")+" + workflows"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = '(c==null||__acc_supports_xhigh(c)&&__acc_allows_effort("xhigh",c)?"xhigh":"max")+" + workflows"'
+  assert_not_contains = '"xhigh + workflows"'
+
+[[patches]]
+name = "ultracode-slider-confirm-validation-max-fallback-2-1-282-linux"
+lineage = "ultracode-slider-confirm-validation-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+locator_kind = "ast_transform"
+rationale = "Preserve model-specific ultracode effort in the 2.1.282 slider validation. Capture the model from the five-argument cache-miss validator; preserve the selected option binding through the regex backreference. The slider import patch supplies capability aliases."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "context:\"EffortSlider\"", "persistAsDefault" ]
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "arguments.2"
+
+  [patches.ast.captures.model.select]
+  node = "CallExpression"
+  source_regex = "^[\\w$]+\\([\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+\\([\\w$]+\\(\\)\\)\\)$"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '([\w$]+)\.value==="ultracode"\?"xhigh":\1\.value'
+  value = '$1.value==="ultracode"?(%%CAPTURE:model%%==null||__acc_supports_xhigh(%%CAPTURE:model%%)&&__acc_allows_effort("xhigh",%%CAPTURE:model%%)?"xhigh":"max"):$1.value'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = 'G.value==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):G.value'
+  assert_not_contains = 'G.value==="ultracode"?"xhigh":G.value'
+
+[[patches]]
+name = "ultracode-slider-dialog-preview-max-fallback-2-1-282-linux"
+lineage = "ultracode-slider-dialog-preview-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L134-L169"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+locator_kind = "ast_transform"
+rationale = "Preserve model-specific ultracode effort in the 2.1.282 confirmation preview. Capture the model from the five-argument cache-miss validator; preserve the selected option binding through the regex backreference. The slider import patch supplies capability aliases."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "context:\"EffortSlider\"", "persistAsDefault" ]
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "arguments.2"
+
+  [patches.ast.captures.model.select]
+  node = "CallExpression"
+  source_regex = "^[\\w$]+\\([\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+,[\\w$]+\\([\\w$]+\\(\\)\\)\\)$"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '([\w$]+)\.level==="ultracode"\?"xhigh":\1\.level'
+  value = '$1.level==="ultracode"?(%%CAPTURE:model%%==null||__acc_supports_xhigh(%%CAPTURE:model%%)&&__acc_allows_effort("xhigh",%%CAPTURE:model%%)?"xhigh":"max"):$1.level'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = 'v.level==="ultracode"?(d==null||__acc_supports_xhigh(d)&&__acc_allows_effort("xhigh",d)?"xhigh":"max"):v.level'
+  assert_not_contains = 'v.level==="ultracode"?"xhigh":v.level'
+
+[[patches]]
+name = "ultracode-effort-notification-max-fallback-2-1-282-linux"
+lineage = "ultracode-effort-notification-max-fallback"
+rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1967-L1977"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+platforms = [ "linux-x64" ]
+locator_kind = "ast_transform"
+rationale = "Display the actual ultracode effort in the 2.1.282 compact notification. The upstream copy now says xhigh + workflows and links /effort; capture the function effort argument to preserve the existing max-effort label behavior."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    string = "ultracode \\xB7 xhigh + workflows \\xB7 /effort"
+
+[patches.ast.captures.effort]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "ultracode \\xB7 xhigh + workflows \\xB7 /effort"
+  value = 'ultracode \xB7 ${%%CAPTURE:effort%%==="max"?"max":"xhigh"} + workflows \xB7 /effort'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 model-specific ultracode effort is rendered"
+  assert_contains = 'ultracode \xB7 ${h==="max"?"max":"xhigh"} + workflows \xB7 /effort'
+  assert_not_contains = "ultracode \\xB7 xhigh + workflows \\xB7 /effort"

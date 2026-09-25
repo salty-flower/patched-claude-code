@@ -1,6 +1,7 @@
 import { mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
 import { join, relative } from "node:path"
 import { parseSync } from "oxc-parser"
+import { type AstMatch, prepareAstTransformPatches } from "../../lib/ast-transform-patches"
 import { loadPatchEntriesFromFile } from "../../lib/patch-files"
 import { activePatch, captureIdentifier } from "./patch-contract"
 
@@ -49,31 +50,63 @@ export function writeGraphCredentialHarness(options: {
       }
       return result
     }
-    const findFunction = (role: string, markers: string[], name?: string, owner?: string): Binding => {
+    const findFunction = (
+      role: string,
+      markers: string[],
+      name?: string,
+      owner?: string,
+      match?: AstMatch,
+    ): Binding => {
       const found: Binding[] = []
+      let matchCount = 0
       for (const [file, text] of texts) {
         if ((owner && file !== owner) || !markers.every((marker) => text.includes(marker))) continue
+        // Resolve patch-owned functions with the production matcher. Structural
+        // locators can omit a minified name and still distinguish async/sync
+        // readers using source_regex or any other semantic match constraint.
+        const result = match
+          ? prepareAstTransformPatches(
+              text,
+              [{ name: role, ast: { schema: 1, match }, transform: { op: "prepend_function_body", code: "" } }],
+              { collectMatches: true },
+            ).results[0]
+          : undefined
+        if (match && (!result || !result.ok)) {
+          throw new Error(`Cannot resolve native ${role} in ${file}: ${result?.message ?? "missing AST result"}`)
+        }
+        if (result) {
+          matchCount += result.matches
+          if (result.matches !== 1) continue
+        }
         for (const node of nodes(file)) {
           if (node.type !== "FunctionDeclaration") continue
+          if (result && (node.start !== result.start || node.end !== result.end)) continue
           const id = node.id as { name?: string } | undefined
           const source = text.slice(node.start, node.end)
           if (id?.name && (!name || id.name === name) && markers.every((marker) => source.includes(marker))) {
             found.push({ file, name: id.name, source })
+            if (!result) matchCount++
           }
         }
       }
       const binding = found[0]
-      if (found.length !== 1 || !binding) throw new Error(`Expected one native ${role}, found ${found.length}`)
+      if (matchCount !== 1 || !binding) throw new Error(`Expected one native ${role}, found ${matchCount}`)
       return binding
     }
     const entries = loadPatchEntriesFromFile(join(options.root, "patches", "explicit-macos-keychain.toml"))
     const fromPatch = (role: string): Binding => {
       const patch = activePatch(entries, options.version, "darwin-arm64", `explicit-macos-keychain-${role}-`)
       const match = patch.ast?.match
-      if (!match || match.node !== "FunctionDeclaration" || !match.function_name) {
+      if (!match || match.node !== "FunctionDeclaration") {
         throw new Error(`${patch.name}: expected native function locator`)
       }
-      return findFunction(role, match.strings ?? (match.string ? [match.string] : []), match.function_name)
+      return findFunction(
+        role,
+        [...(match.strings ?? []), ...(match.string ? [match.string] : [])],
+        match.function_name,
+        undefined,
+        match,
+      )
     }
     const namedExport = (name: string): Binding => {
       const found: Binding[] = []

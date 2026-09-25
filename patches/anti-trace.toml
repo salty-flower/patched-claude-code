@@ -2810,3 +2810,194 @@ assert_contains = '''let l=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?na
 kind = "static"
 name = "2.1.281 Linux served tool text list no longer carries 2.1.273 symbols"
 assert_not_contains = '''let s=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?rm("tengu_lucky_cerf",null):null;return Array.isArray(s)&&s.some((d)=>typeof d==="string"&&hH(n,d))}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-282"
+lineage = "require-explicit-assistant-response-otel"
+rationale = "Require explicit assistant-response OTel opt-in in 2.1.282. The upstream fallback to OTEL_LOG_USER_PROMPTS broadens response logging; preserve the live environment binding and remove that fallback. Drop the patch when upstream requires this opt-in."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", body_statement_count = 1, strings = ["OTEL_LOG_ASSISTANT_RESPONSES", "OTEL_LOG_USER_PROMPTS"] }
+
+[patches.ast.captures.env]
+kind = "identifier"
+path = "body.body.0.argument.left.object"
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return %%CAPTURE:env%%.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 assistant-response telemetry requires explicit opt-in"
+assert_contains = '''OTEL_LOG_ASSISTANT_RESPONSES===!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 assistant-response gate retains the return keyword"
+assert_not_contains = '''returna.OTEL_LOG_ASSISTANT_RESPONSES'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 assistant-response telemetry does not inherit prompt logging"
+assert_not_contains = '''OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-282"
+lineage = "disable-raw-api-body-otel"
+rationale = "Disable raw API body OTel capture in 2.1.282. This gate enables inline or file capture from OTEL_LOG_RAW_API_BODIES; short-circuit it so request bodies are not emitted. Drop the patch when upstream no longer exposes raw bodies through this gate."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", body_statement_count = 1, strings = ['.mode!=="disabled"'] }
+
+[patches.transform]
+op = "replace_function_body"
+body = "{return!1}"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 raw API body telemetry gate is disabled"
+assert_contains = '''return!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 raw API body gate drops the Darwin capture-mode condition"
+assert_not_contains = '''function eyo(){return fxe().mode!=="disabled"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 raw API body gate drops the Linux capture-mode condition"
+assert_not_contains = '''function ryo(){return ixe().mode!=="disabled"}'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-2-1-282"
+lineage = "require-local-opt-in-for-served-tool-text"
+rationale = "Keep served Agent tool text behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.282. Preserve the upstream suppress guard and add the local opt-in before reading the free-form server value. Drop the patch when upstream removes served tool text or makes its availability explicitly local."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", body_statement_count = 3, strings = ["tengu_lucky_cerf_text", "trim()"] }
+
+[patches.ast.captures.suppress]
+kind = "identifier"
+path = "body.body.0.test.callee"
+
+[patches.ast.captures.fallback]
+kind = "identifier"
+path = "body.body.0.consequent.argument"
+
+[patches.transform]
+op = "replace_substring"
+find = '''if(%%CAPTURE:suppress%%())return %%CAPTURE:fallback%%;'''
+value = '''if(%%CAPTURE:suppress%%()||!Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return %%CAPTURE:fallback%%;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 served tool text requires the local opt-in"
+assert_contains = '''CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 served tool text keeps its feature lookup"
+assert_contains = '''tengu_lucky_cerf_text'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-list-2-1-282"
+lineage = "require-local-opt-in-for-served-tool-text-list"
+rationale = "Keep the served tengu_lucky_cerf model list behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.282. Gate the unique list lookup before it can enable remote tool text; the AST transform retains the current lookup helper. Drop the patch if upstream removes the served model list or supplies a local opt-in."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", direct_string_literal = "tengu_lucky_cerf", parent_node = "VariableDeclarator" }
+
+[patches.transform]
+op = "wrap_expression"
+template = '''Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?%%EXPR%%:null'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 served tool list lookup requires the local opt-in"
+assert_contains = '''Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?oi("tengu_lucky_cerf",null):null'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 served tool list remains gated after helper renames"
+assert_not_contains = '''let l=oi("tengu_lucky_cerf",null);return Array.isArray(l)'''
+
+[[patches]]
+name = "neutralize-project-thread-author-marker-2-1-282"
+lineage = "neutralize-project-thread-author-marker"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Keep the project-thread author marker neutral in both 2.1.282 graphs. Locate the author-kind and author-id formatter semantically, so minified helper renames do not require another variant. Preserve the fixed user label rather than exposing server account identifiers."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L1615-L1636"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", body_statement_count = 2, strings = ["author_kind", "author_id", "the project owner", "a member of the project"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 project-thread author marker is neutral"
+assert_contains = '''function O(e){return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.282 project-thread author marker drops account identification"
+assert_not_contains = '''let t=e.author_kind==="owner"?"the project owner":"a member of the project";return ke.test(e.author_id)'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-web-search-2-1-282"
+lineage = "require-local-opt-in-for-served-tool-text"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Keep WebSearch served mode_description, system_hint, and web_search_addendum behind the existing CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT opt-in in 2.1.282. The new system-prompt constructor appends the served system_hint when WebSearch is available. Gate only the remote tengu_sleepy_shore lookup; preserve the explicit local CLAUDE_CODE_WEB_SEARCH_FAST_ARG branch and baked descriptions. The predicate is self-contained and the AST wrapper preserves the target lookup helper."
+rationale_ref = "reference/v2.1.88/sources/src/tools/WebSearchTool/prompt.ts#L5-L33"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    direct_string_literal = "tengu_sleepy_shore"
+    parent_node = "ConditionalExpression"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?%%EXPR%%:null'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 WebSearch served text requires local opt-in"
+  assert_contains = '["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?oi("tengu_sleepy_shore",null):null'
+  assert_not_contains = '{enabled:a.CLAUDE_CODE_WEB_SEARCH_FAST_ARG}:oi("tengu_sleepy_shore",null)'

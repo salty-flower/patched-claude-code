@@ -2,6 +2,7 @@ import { afterEach, expect, test } from "bun:test"
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
+import { gte } from "semver"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
@@ -171,7 +172,7 @@ function hasLongContextBeta(request: ClaudeApiRequest): boolean {
     : typeof beta === "string" && beta.includes("context-1m-2025-08-07")
 }
 
-test.skipIf(TARGET_VERSION !== "2.1.281")(
+test.skipIf(!gte(TARGET_VERSION, "2.1.281"))(
   "resume preserves the configured Opus 1m environment default",
   async () => {
     const dir = makeTempDir("patched-cc-resume-1m-runtime-")

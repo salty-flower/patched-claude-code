@@ -5003,3 +5003,167 @@ assert_contains = '''Ee=jBo($J([...G,...ve]));if(!Ee.some((v)=>v.name==="later")
 kind = "static"
 name = "2.1.273 Linux suggestion loader symbols are absent in 2.1.281"
 assert_not_contains = '''Ee=b4s(YX([...U,...ve]));'''
+
+[[patches]]
+name = "later-command-submit-hook-2-1-282"
+lineage = "later-command-submit-hook"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Preserve the session-only /later scheduler, strict calendar validation, independent job UUIDs, and saved pasted contents. In 2.1.282, capture normalized input from the empty-submit guard, composer state and effective pastes from the pastedContents default, notification and setters from the invisible-input recovery branch, and delayed submit callbacks from the existing awaited final submission. This removes dependence on platform minified names."
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    string_literal = "prompt_submit_empty"
+
+[patches.ast.captures.mode]
+kind = "identifier"
+path = "init.right.object"
+
+  [patches.ast.captures.mode.select]
+  node = "VariableDeclarator"
+  source_regex = "^[\\w$]+=[\\w$]+\\?\\?[\\w$]+\\.pastedContents$"
+
+[patches.ast.captures.pasted]
+kind = "identifier"
+path = "id"
+
+  [patches.ast.captures.pasted.select]
+  node = "VariableDeclarator"
+  source_regex = "^[\\w$]+=[\\w$]+\\?\\?[\\w$]+\\.pastedContents$"
+
+[patches.ast.captures.input]
+kind = "identifier"
+path = "test.left.left.callee.object"
+
+  [patches.ast.captures.input.select]
+  node = "IfStatement"
+  string_literal = "prompt_submit_empty"
+  source_regex = "^if\\([\\w$]+\\.trim"
+
+[patches.ast.captures.notify]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.notify.select]
+  node = "CallExpression"
+  string_literal = "prompt-invisible-removed"
+
+[patches.ast.captures.setInput]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.setInput.select]
+  node = "CallExpression"
+  source_regex = "^[\\w$]+\\([\\w$]+\\.input\\)$"
+
+[patches.ast.captures.setPasted]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.setPasted.select]
+  node = "CallExpression"
+  source_regex = "^[\\w$]+\\([\\w$]+\\.pastedContents\\)$"
+
+[patches.ast.captures.cursor]
+kind = "identifier"
+path = "argument.arguments.1.properties.0.value"
+
+  [patches.ast.captures.cursor.select]
+  node = "AwaitExpression"
+  source_regex = "^await [\\w$]+\\([\\w$]+,\\{setCursorOffset:"
+  strings = [ "setCursorOffset:", "clearBuffer:", "resetHistory:" ]
+
+[patches.ast.captures.clear]
+kind = "identifier"
+path = "argument.arguments.1.properties.1.value"
+
+  [patches.ast.captures.clear.select]
+  node = "AwaitExpression"
+  source_regex = "^await [\\w$]+\\([\\w$]+,\\{setCursorOffset:"
+  strings = [ "setCursorOffset:", "clearBuffer:", "resetHistory:" ]
+
+[patches.ast.captures.history]
+kind = "identifier"
+path = "argument.arguments.1.properties.2.value"
+
+  [patches.ast.captures.history.select]
+  node = "AwaitExpression"
+  source_regex = "^await [\\w$]+\\([\\w$]+,\\{setCursorOffset:"
+  strings = [ "setCursorOffset:", "clearBuffer:", "resetHistory:" ]
+
+[patches.ast.captures.submit]
+kind = "identifier"
+path = "argument.callee"
+
+  [patches.ast.captures.submit.select]
+  node = "AwaitExpression"
+  source_regex = "^await [\\w$]+\\([\\w$]+,\\{setCursorOffset:"
+  strings = [ "setCursorOffset:", "clearBuffer:", "resetHistory:" ]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '(if\([\w$]+\.trim\(\)===""&&![\w$]+\)\{if\(!\([\w$]+&&[\w$]+&&![\w$]+&&[\w$]+\(\)\)\)[\w$]+\("prompt_submit_empty"\);return\})'
+  value = '$1if(%%CAPTURE:mode%%.mode==="prompt"){let __trim=%%CAPTURE:input%%.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list",__jobs=globalThis.__acc_later_jobs??=(new Map);if(__trim==="/later list"){let __lines=[...__jobs.values()].slice(0,10).map((__t,__i)=>String(__i+1)+". "+(__t.prompt.length>20?__t.prompt.slice(0,17)+"...":__t.prompt)+" @ "+new Date(__t.at).toLocaleString());%%CAPTURE:notify%%({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});%%CAPTURE:setInput%%("");%%CAPTURE:setPasted%%({});%%CAPTURE:cursor%%(0);%%CAPTURE:clear%%();return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __now=Date.now(),__prompt,__at;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();__at=__now+__delay}else{__prompt=__absolute[7].trim();let __base=new Date(__now),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__base.getFullYear(),__month=__hasDate?Number(__absolute[2]):__base.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__base.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()===__month-1&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second;if(!__hasDate&&__candidate.getTime()<=__now)__candidate.setDate(__candidate.getDate()+1);__at=__valid&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second?__candidate.getTime():NaN}if(!__prompt||!Number.isFinite(new Date(__at).getTime())||__at<=__now){%%CAPTURE:notify%%({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __id="later-"+crypto.randomUUID(),__job={prompt:__prompt,at:__at};__jobs.set(__id,__job);setTimeout(()=>{if(!__jobs.delete(__id))return;%%CAPTURE:submit%%(__prompt,{setCursorOffset:%%CAPTURE:cursor%%,clearBuffer:%%CAPTURE:clear%%,resetHistory:%%CAPTURE:history%%},{pastedContentsOverride:%%CAPTURE:pasted%%})},Math.max(0,__at-Date.now()));%%CAPTURE:notify%%({key:__id,kind:"feedback",text:"Scheduled "+__id+" for "+new Date(__at).toLocaleString(),priority:"immediate"});%%CAPTURE:setInput%%("");%%CAPTURE:setPasted%%({});%%CAPTURE:cursor%%(0);%%CAPTURE:clear%%();return}if(__trim.startsWith("/later")){%%CAPTURE:notify%%({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 later scheduler retains session jobs and independent IDs"
+  assert_contains = 'let __id="later-"+crypto.randomUUID(),__job={prompt:__prompt,at:__at}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 later scheduler captures current pasted contents"
+  assert_contains = "{pastedContentsOverride:bg}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 later scheduler excludes old cleanup callback"
+  assert_not_contains = "clearBuffer:YR,resetHistory:eHt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 later scheduler clears the current composer"
+  assert_contains = 'Qt("");po({});ro(0);'
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-282"
+lineage = "later-command-suggestion-metadata"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Expose /later in command suggestions. The 2.1.282 loader now partitions reserved skill names before filtering its command list; capture the actual final list from trusted-name bookkeeping and append the session-local command immediately before that bookkeeping. The capture accommodates Darwin Pe and Linux Ie without rebuilding upstream filtering or carrying renamed symbols."
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    string = "markLoadedResultMissingTrustedNames"
+
+[patches.ast.captures.commands]
+kind = "identifier"
+path = "arguments.0"
+
+  [patches.ast.captures.commands.select]
+  node = "CallExpression"
+  callee_property = "markLoadedResultMissingTrustedNames"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = 'if(!%%CAPTURE:commands%%.some((v)=>v.name==="later"))%%CAPTURE:commands%%.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 /later suggestion metadata is present"
+  assert_contains = 'name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 /later metadata does not retain the previous list symbol"
+  assert_not_contains = 'if(!Ee.some((v)=>v.name==="later"))Ee.push('

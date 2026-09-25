@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { parse } from "@babel/parser"
 import traverse from "@babel/traverse"
 import { inc, satisfies, subset, valid } from "semver"
+import { applyPatchEntries } from "../lib/apply-patches"
 import { loadPatchEntriesFromDirectory, type PatchEntry } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 
@@ -149,11 +150,18 @@ function isActiveAt(patch: PatchEntry, version: string): boolean {
 type Fragment = {
   code: string
   shape: "statements" | "expression" | "objectMember"
+  regexSourceGroups?: string[]
+  literalImportBindings?: string[]
 }
 
 export function injectedFragment(patch: PatchEntry): Fragment | undefined {
   if (patch.locator_kind !== "ast_transform") {
     if (patch.replacement === undefined || patch.locator_pattern === undefined) return undefined
+    if (patch.locator_kind === "literal") {
+      const imports = literalImportIdentifiers(patch.replacement)
+      rejectBackreferences(imports.masked)
+      return { code: patch.replacement, shape: "statements", literalImportBindings: imports.bindings }
+    }
     rejectBackreferences(patch.replacement)
     return { code: patch.replacement, shape: "statements" }
   }
@@ -181,20 +189,66 @@ export function injectedFragment(patch: PatchEntry): Fragment | undefined {
     }
     case "replace_substring":
       return transform.value === undefined ? undefined : { code: transform.value, shape: "statements" }
-    case "replace_substring_regex":
+    case "replace_substring_regex": {
       if (transform.value === undefined) return undefined
-      rejectBackreferences(transform.value)
-      return { code: transform.value, shape: "statements" }
+      const references = replacementBackreferences(transform.value)
+      const unsupported = references.filter((reference) => !/^\$[1-9]\d?$/.test(reference))
+      if (unsupported.length > 0) {
+        throw new Error(`replacement contains forbidden backreference(s): ${unsupported.join(",")}`)
+      }
+      // These groups retain upstream source, including any minified bindings.
+      // They require the same target bounds as directly named upstream locals;
+      // they never gain the identifier-capture exemption.
+      return { code: transform.value, shape: "statements", regexSourceGroups: references }
+    }
     default:
       return undefined
   }
 }
 
 function rejectBackreferences(code: string): void {
-  const backreferences = [...code.matchAll(/\$(?:&|`|'|\d{1,2})/g)].map((match) => match[0])
+  const backreferences = replacementBackreferences(code)
   if (backreferences.length > 0) {
     throw new Error(`replacement contains forbidden backreference(s): ${[...new Set(backreferences)].join(",")}`)
   }
+}
+
+function replacementBackreferences(code: string): string[] {
+  return [...new Set([...code.matchAll(/\$(?:&|`|'|\d{1,2})/g)].map((match) => match[0]))]
+}
+
+function literalImportIdentifiers(code: string): { masked: string; bindings: string[] } {
+  let ast: ReturnType<typeof parse>
+  try {
+    ast = parse(code, { sourceType: "module", errorRecovery: false })
+  } catch {
+    return { masked: code, bindings: [] }
+  }
+  const masked = code.split("")
+  const bindings = new Set<string>()
+  for (const statement of ast.program.body) {
+    if (statement.type !== "ImportDeclaration") continue
+    for (const specifier of statement.specifiers) {
+      if (specifier.type !== "ImportSpecifier") continue
+      for (const identifier of [specifier.imported, specifier.local]) {
+        if (identifier.type !== "Identifier" || replacementBackreferences(identifier.name).length === 0) continue
+        if (identifier.start == null || identifier.end == null) continue
+        bindings.add(identifier.name)
+        masked.fill(" ", identifier.start, identifier.end)
+      }
+    }
+  }
+  // Literal application uses split/join and cannot expand $n. Only parsed named
+  // import identifier spans qualify; matching bytes elsewhere still fail.
+  return { masked: masked.join(""), bindings: [...bindings] }
+}
+
+function requiresTargetBounds(fragment: Fragment, external: string[]): boolean {
+  return (
+    external.length > 0 ||
+    (fragment.regexSourceGroups?.length ?? 0) > 0 ||
+    (fragment.literalImportBindings?.length ?? 0) > 0
+  )
 }
 
 /**
@@ -336,13 +390,89 @@ test("malformed fragments fail closed through the conservative fallback", () => 
 })
 
 test("replacement backreferences are rejected rather than treated as captures", () => {
+  for (const locator_kind of ["literal", "regex"] as const) {
+    expect(() =>
+      injectedFragment({
+        locator_kind,
+        locator_pattern: "return ([A-Za-z_$][A-Za-z0-9_$]*)",
+        replacement: "return $1",
+      } as PatchEntry),
+    ).toThrow("forbidden backreference")
+  }
+})
+
+test("AST regex source groups require target bounds even without detected bare names", () => {
+  const fragment = injectedFragment({
+    locator_kind: "ast_transform",
+    transform: { op: "replace_substring_regex", find: "(.*)", value: "/*$1*/return %%CAPTURE:current%%" },
+  } as PatchEntry)!
+  const external = analysableIdentifiers(fragment.code, fragment.shape)
+  expect(external).toEqual([])
+  expect(fragment.regexSourceGroups).toEqual(["$1"])
+  expect(requiresTargetBounds(fragment, external)).toBeTrue()
+  expect(boundedBeforeNextRelease("2.1.282", ">=2.1.282 <2.1.283")).toBeTrue()
+  expect(boundedBeforeNextRelease("2.1.282", ">=2.1.282")).toBeFalse()
+})
+
+test("literal named import dollar identifiers remain exact bytes and require target bounds", () => {
+  const patch = {
+    name: "literal-import",
+    enabled: true,
+    target_version: "2.1.282",
+    applies_to: ">=2.1.282 <2.1.283",
+    locator_kind: "literal",
+    locator_pattern: "IMPORT_HERE",
+    replacement: 'import{$4 as helper,other as $2}from"./chunk.js";',
+  } as PatchEntry
+  const fragment = injectedFragment(patch)!
+  expect(applyPatchEntries("IMPORT_HERE", [patch], "2.1.282").source).toBe(patch.replacement!)
+  expect(fragment.literalImportBindings).toEqual(["$4", "$2"])
+  const external = analysableIdentifiers(fragment.code, fragment.shape)
+  expect(external).toEqual([])
+  expect(requiresTargetBounds(fragment, external)).toBeTrue()
+  expect(boundedBeforeNextRelease("2.1.282", ">=2.1.282 <2.1.283")).toBeTrue()
+  expect(boundedBeforeNextRelease("2.1.282", ">=2.1.282")).toBeFalse()
+})
+
+test("named imports cannot hide genuine replacement backreferences elsewhere", () => {
+  for (const replacement of [
+    'import{$4 as helper}from"./chunk.js";const value=$1;',
+    'import{$4 as helper}from"./chunk.js";const value=$4;',
+    'import{$4 as helper}from"./$1.js";',
+    'import{$4 as helper}from"./chunk.js";/*$&*/',
+    'import $4 from"./chunk.js";',
+    'import*as $4 from"./chunk.js";',
+  ]) {
+    expect(() =>
+      injectedFragment({ locator_kind: "literal", locator_pattern: "old", replacement } as PatchEntry),
+    ).toThrow("forbidden backreference")
+  }
   expect(() =>
     injectedFragment({
       locator_kind: "regex",
-      locator_pattern: "return ([A-Za-z_$][A-Za-z0-9_$]*)",
-      replacement: "return $1",
+      locator_pattern: "(old)",
+      replacement: 'import{$1 as helper}from"./chunk.js";',
     } as PatchEntry),
   ).toThrow("forbidden backreference")
+})
+
+test("AST regex source groups do not hide directly named or malformed references", () => {
+  const fragment = injectedFragment({
+    locator_kind: "ast_transform",
+    transform: { op: "replace_substring_regex", find: "(.*)", value: "return $1+s.effort" },
+  } as PatchEntry)!
+  expect(analysableIdentifiers(fragment.code, fragment.shape)).toEqual(["$1", "s"])
+  const malformed = { ...fragment, code: "$1;if(x){" }
+  expect(analysableIdentifiers(malformed.code, malformed.shape)).toContain("x")
+  expect(requiresTargetBounds(malformed, [])).toBeTrue()
+  for (const value of ["return $&", "return $`", "return $'", "return $0"]) {
+    expect(() =>
+      injectedFragment({
+        locator_kind: "ast_transform",
+        transform: { op: "replace_substring_regex", find: "(.*)", value },
+      } as PatchEntry),
+    ).toThrow("forbidden backreference")
+  }
 })
 
 test("target-release bounds exclude the next patch release", () => {
@@ -382,12 +512,12 @@ test("no patch active at the current target injects an unanchored bare name", ()
       violations.push(`${patch.name}: injected code could not be analysed (${(error as Error).message})`)
       continue
     }
-    if (external.length === 0) continue
+    if (!requiresTargetBounds(fragment, external)) continue
     // Directly named upstream locals are acceptable only when this range ends
     // before the next patch release. The next target must re-anchor them.
     if (!boundedBeforeNextRelease(version, patch.applies_to ?? patch.target_version)) {
       violations.push(
-        `${patch.name}: injects bare [${external.join(",")}] with range ${patch.applies_to ?? "(file default)"}`,
+        `${patch.name}: injects bare [${external.join(",")}] or retains regex source groups [${fragment.regexSourceGroups?.join(",") ?? ""}] or literal import bindings [${fragment.literalImportBindings?.join(",") ?? ""}] with range ${patch.applies_to ?? "(file default)"}`,
       )
     }
   }

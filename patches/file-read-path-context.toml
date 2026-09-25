@@ -3802,3 +3802,155 @@ assert_contains = '''children:o.source==="seeded"?[`Already in context (${Rs(La(
 kind = "static"
 name = "2.1.281 Linux unchanged result drops the stale 2.1.246 symbol"
 assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${Wr(at(C5(e.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches]]
+name = "read-result-path-image-2-1-282"
+lineage = "read-result-path-image"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Append the compact path suffix to the image Read result. The 2.1.282 AST locator preserves the existing summary expression and captures all upstream minified references through that expression. Z is the original local suffix introduced by read-result-path-context."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read image ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 image result retains its source summary with path suffix"
+  assert_contains = '([...["Read image ("'
+
+[[patches]]
+name = "read-result-path-pdf-2-1-282"
+lineage = "read-result-path-pdf"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Append the compact path suffix to the pdf Read result. The 2.1.282 AST locator preserves the existing summary expression and captures all upstream minified references through that expression. Z is the original local suffix introduced by read-result-path-context."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read PDF ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 pdf result retains its source summary with path suffix"
+  assert_contains = '([...["Read PDF ("'
+
+[[patches]]
+name = "read-result-path-notebook-2-1-282"
+lineage = "read-result-path-notebook"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Append the compact path suffix to the notebook Read result. The 2.1.282 AST locator preserves the existing summary expression and captures all upstream minified references through that expression. Z is the original local suffix introduced by read-result-path-context."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = " cells"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 notebook result retains its source summary with path suffix"
+  assert_contains = '" cells"],Z])'
+
+[[patches]]
+name = "read-result-path-parts-2-1-282"
+lineage = "read-result-path-parts"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Append the compact path suffix to the parts Read result. The 2.1.282 AST locator preserves the existing summary expression and captures all upstream minified references through that expression. Z is the original local suffix introduced by read-result-path-context."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "pages"
+    strings = [ "\"Read \"", ".file.originalSize", ".file.count" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 parts result retains its source summary with path suffix"
+  assert_contains = 'o.file.originalSize),")"],Z])'
+
+[[patches]]
+name = "read-result-path-text-2-1-282"
+lineage = "read-result-path-text"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Append the compact path suffix to the text Read result. The 2.1.282 AST locator preserves the existing summary expression and captures all upstream minified references through that expression. Z is the original local suffix introduced by read-result-path-context."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "lines"
+    strings = [ "\"Read \"", "bold:!0", "\"line\"" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 text result retains its source summary with path suffix"
+  assert_contains = '"lines"],Z])'
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-282"
+lineage = "read-result-path-unchanged"
+target_version = "2.1.282"
+applies_to = ">=2.1.282 <2.1.283"
+rationale = "Append the compact path suffix to the unchanged Read result. The 2.1.282 AST locator preserves the existing summary expression and captures all upstream minified references through that expression. Z is the original local suffix introduced by read-result-path-context."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    string_literal = "Unchanged since last read"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.282 unchanged result retains its source summary with path suffix"
+  assert_contains = '"Unchanged since last read",Z])'

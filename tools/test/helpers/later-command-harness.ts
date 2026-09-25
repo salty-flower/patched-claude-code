@@ -36,6 +36,10 @@ export function createLaterCommandHarness(
 ): LaterCommandHarness {
   const code = submitHookCode(platform)
   const binding = (role: string, pattern: RegExp) => captureIdentifier(code, role, pattern)
+  const historyIsDirectCallback = /resetHistory:[\w$]+/.test(code)
+  const history = historyIsDirectCallback
+    ? binding("history", /resetHistory:([\w$]+)/)
+    : binding("history", /resetHistory:\(\)=>([\w$]+)\.current/)
   const names = {
     mode: binding("composer mode", /if\(([\w$]+)\.mode==="prompt"\)/),
     input: binding("normalized input", /let __trim=([\w$]+)\.trim\(\)/),
@@ -44,7 +48,7 @@ export function createLaterCommandHarness(
     setPastes: binding("paste cleanup", /([\w$]+)\(\{\}\);/),
     cursor: binding("cursor", /setCursorOffset:([\w$]+)/),
     clear: binding("buffer", /clearBuffer:([\w$]+)/),
-    history: binding("history", /resetHistory:\(\)=>([\w$]+)\.current/),
+    history,
     pastes: binding("pasted contents", /pastedContentsOverride:([\w$]+)/),
     submit: binding("delayed submit", /([\w$]+)\(__prompt,\{setCursorOffset:/),
   }
@@ -54,6 +58,7 @@ export function createLaterCommandHarness(
   const submitted: unknown[][] = []
   const cleanup: string[] = []
   const pastes = { 1: { id: 1, type: "image" as const, content: "local-fixture" } }
+  const resetHistory = () => cleanup.push("history")
   class Clock extends Date {
     static now() {
       return now
@@ -72,7 +77,7 @@ export function createLaterCommandHarness(
     [names.setPastes]: (value: object) => cleanup.push(`pastes:${JSON.stringify(value)}`),
     [names.cursor]: (value: number) => cleanup.push(`cursor:${value}`),
     [names.clear]: () => cleanup.push("clear"),
-    [names.history]: { current: { resetHistory: () => cleanup.push("history") } },
+    [names.history]: historyIsDirectCallback ? resetHistory : { current: { resetHistory } },
     [names.pastes]: pastes,
     [names.submit]: (...args: unknown[]) => submitted.push(args),
   }

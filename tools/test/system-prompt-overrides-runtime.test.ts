@@ -197,7 +197,7 @@ test("rendered bridge preserves no-op requests, applies one override, and reject
   expect(staleOutput).toContain(manifestPath)
   expect(staleOutput).toContain("bundle SHA-256 mismatch")
   expect(staleStub.requests).toHaveLength(0)
-})
+}, 180_000)
 
 test("packaged launcher rejects a bundle that no longer matches its release manifest", async () => {
   const work = makeTempDir("patched-cc-prompt-bundle-hash-")

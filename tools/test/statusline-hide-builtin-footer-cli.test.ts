@@ -774,6 +774,44 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       }
       return
     }
+    if (TARGET_VERSION === "2.1.281") {
+      const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+      const linuxPatched = readdirSync(linuxGraphDir)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+        .join("\n")
+      for (const [bundle, effortPayload, permissionPayload] of [
+        [
+          patched,
+          'effort_level:qS(Le)?$b.session(Le,"get",void 0,ve).value??null:null',
+          'return{...rc(e,_e),...ze&&{session_name:ze},permission_mode:n,model:',
+        ],
+        [
+          linuxPatched,
+          'effort_level:Vb(Le)?$S.session(Le,"get",void 0,ve).value??null:null',
+          'return{...nc(e,_e),...Xe&&{session_name:Xe},permission_mode:n,model:',
+        ],
+      ]) {
+        expect(bundle).toContain('new Go("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
+        expect(bundle).toContain('globalThis.__acc_disabled_footer=e==="all"')
+        expect(bundle).toContain("statusLine:{disabledFooter:globalThis.__acc_disabled_footer}")
+        expect(bundle).toContain('globalThis.__acc_clipboard_image_available=!0')
+        expect(bundle).toContain("return __acc_hide_footer?nr:Nr}")
+        expect(bundle).toContain(
+          '__acc_hide_effort=U((state)=>state.settings.statusLine?.hideBuiltinFooter||state.settings.statusLine?.disabledFooter?.includes("effort_notification"))',
+        )
+        expect(bundle).toContain(
+          '__acc_hide_mode=U((__acc_mode_state)=>__acc_mode_state.settings.statusLine?.hideBuiltinFooter||__acc_mode_state.settings.statusLine?.disabledFooter?.includes("permission_mode")',
+        )
+        expect(bundle).toContain('hidden=state?.hideBuiltinFooter||state?.disabledFooter?.includes("rate_limit_warning")')
+        expect(bundle).toContain('remove("rate-limit-warning")')
+        expect(bundle).toContain(effortPayload)
+        expect(bundle).toContain(permissionPayload)
+      }
+      expect(patched).not.toContain('new q("--hide-builtin-footer [items]"')
+      expect(linuxPatched).not.toContain('new z("--hide-builtin-footer [items]"')
+      return
+    }
     if (isVersionAtLeast(TARGET_VERSION, "2.1.221")) {
       expect(patched).toContain(
         "globalThis.__acc_disabled_footer=H})():void 0,Ct={settings:lo(),tasks:{},transcripts:{},taskDecorations:{}",

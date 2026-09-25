@@ -107,6 +107,21 @@ test("resume restores 1m defaults after alias resolution", async () => {
     return
   }
 
+  if (TARGET_VERSION === "2.1.281") {
+    expect(applied).toBe(2)
+    expect(patched).toContain("n0=o??sh(),n=n0?Ct(n0):void 0,s=n?Jn(n):void 0;")
+    expect(patched).not.toContain("n=o?Ct(o):void 0,s=n?Jn(n):void 0;")
+
+    const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
+    const linuxPatched = readdirSync(linuxGraphDir)
+      .filter((file) => file.endsWith(".js"))
+      .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
+      .join("\n")
+    expect(linuxPatched).toContain("n0=o??oh(),n=n0?kt(n0):void 0,s=n?Xn(n):void 0;")
+    expect(linuxPatched).not.toContain("n=o?kt(o):void 0,s=n?Xn(n):void 0;")
+    return
+  }
+
   if (isVersionAtLeast(TARGET_VERSION, "2.1.273")) {
     expect(applied).toBe(0)
     // 2.1.273 lifts the one-million acceptance into a named local and adds a second

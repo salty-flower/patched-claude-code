@@ -92,7 +92,7 @@ export function writeGraphCredentialHarness(options: {
     }
     bindings = {
       oauthSaver: fromPatch("propagate-write-failures"),
-      accessor: findFunction("secure storage accessor", ["r.secureStorage({defaultStorage:e"]),
+      accessor: fromPatch("storage-bridge"),
       legacyWrite: fromPatch("legacy-api-key-write"),
       legacyReadSync: fromPatch("legacy-api-key-sync-read"),
       legacyReadAsync: fromPatch("legacy-api-key-async-read"),
@@ -195,7 +195,7 @@ try {
     finish({selected:value?.kind==="oauth"&&value.accessToken===env.CLAUDE_KEYCHAIN_SELECTED_ACCESS,plaintext:value?.accessToken===env.CLAUDE_KEYCHAIN_PLAINTEXT_ACCESS});
   }
   throw Error("unknown harness action");
-}catch(error){console.error(error?.stack??String(error));process.exit(1)}
+}catch(error){console.error(error?.message??String(error));console.error(error?.stack??String(error));process.exit(1)}
 `
   mkdirSync(options.outDir, { recursive: true })
   const path = join(options.outDir, "cli.keychain-harness.js")

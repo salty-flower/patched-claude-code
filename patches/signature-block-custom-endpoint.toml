@@ -1,5 +1,5 @@
 name = "signature-block-custom-endpoint"
-target_version = "2.1.150"
+target_version = "2.1.281"
 applies_to = ">=2.1.150 <2.2.0"
 
 rationale = """
@@ -829,3 +829,115 @@ assert_contains = '''let n=t.bodyModel??t.model,r=HWt()?JWr(e,Ri(n)):QWr(e);if(t
 kind = "static"
 name = "old signature cleanup locator absent on darwin"
 assert_not_contains = '''let r=t.bodyModel??t.model,n=hch(e,fd(r));if(t.traceSources)n=tch(n);else n=rch(n);'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-281-darwin"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = """
+The 2.1.281 Darwin normalizer now uses IMt/JMt to remove signed thinking only
+when its model provenance is foreign. That leaves same-model signed blocks in
+requests sent to a custom endpoint. Preserve JMt for a first-party provider
+with the actual Anthropic base URL; otherwise use d5o to remove redacted and
+signature-bearing thinking blocks from assistant messages before request
+normalization. bs() is the graph's first-party URL predicate, which checks
+api.anthropic.com through rw() and honors the explicit assume-first-party
+override.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "IMt", strings = ["JMt(e,s,g)"] }
+[patches.transform]
+op = "replace_substring"
+find = '''h=JMt(e,s,g),'''
+value = '''h=He()==="firstParty"&&bs()?JMt(e,s,g):d5o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin custom endpoint removes signed thinking before normalization"
+assert_contains = '''h=He()==="firstParty"&&bs()?JMt(e,s,g):d5o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin official URL predicate checks the Anthropic API host"
+assert_contains = '''function rw(e){try{let t=new URL(e).host;return["api.anthropic.com"].includes(t)}catch{return!1}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin first-party gate delegates to the official URL predicate"
+assert_contains = '''function bs(){if(a._CLAUDE_CODE_ASSUME_FIRST_PARTY_BASE_URL)return!0;return F_()}function F_(){let e=process.env.ANTHROPIC_BASE_URL;if(!e)return!0;return rw(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin cleanup removes only redacted or signed thinking blocks"
+assert_contains = '''let _=h.filter((w)=>!K5t(w));'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin normalizer no longer keeps same-model signatures on custom endpoints"
+assert_not_contains = '''h=JMt(e,s,g),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Darwin signature symbols are absent in 2.1.281"
+assert_not_contains = '''r=HWt()?JWr(e,Ri(n)):QWr(e)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-281-linux"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = """
+The 2.1.281 Linux normalizer now uses MMt/GMt to remove signed thinking only
+when its model provenance is foreign. That leaves same-model signed blocks in
+requests sent to a custom endpoint. Preserve GMt for a first-party provider
+with the actual Anthropic base URL; otherwise use R6o to remove redacted and
+signature-bearing thinking blocks from assistant messages before request
+normalization. Ss() is the graph's first-party URL predicate, which checks
+api.anthropic.com through nw() and honors the explicit assume-first-party
+override.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "MMt", strings = ["GMt(e,s,g)"] }
+[patches.transform]
+op = "replace_substring"
+find = '''h=GMt(e,s,g),'''
+value = '''h=He()==="firstParty"&&Ss()?GMt(e,s,g):R6o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux custom endpoint removes signed thinking before normalization"
+assert_contains = '''h=He()==="firstParty"&&Ss()?GMt(e,s,g):R6o(e,(__pccMessage)=>__pccMessage.type==="assistant"),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux official URL predicate checks the Anthropic API host"
+assert_contains = '''function nw(e){try{let t=new URL(e).host;return["api.anthropic.com"].includes(t)}catch{return!1}}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux first-party gate delegates to the official URL predicate"
+assert_contains = '''function Ss(){if(a._CLAUDE_CODE_ASSUME_FIRST_PARTY_BASE_URL)return!0;return N_()}function N_(){let e=process.env.ANTHROPIC_BASE_URL;if(!e)return!0;return nw(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux cleanup removes only redacted or signed thinking blocks"
+assert_contains = '''let _=h.filter((w)=>!O6t(w));'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux normalizer no longer keeps same-model signatures on custom endpoints"
+assert_not_contains = '''h=GMt(e,s,g),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.246 Linux signature symbols are absent in 2.1.281"
+assert_not_contains = '''r=qWt()?QWr(e,Ri(n)):JWr(e)'''

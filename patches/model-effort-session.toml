@@ -981,3 +981,183 @@ assert_contains = '''Hv.session=function(model,operation,value,fallback,honorLau
 kind = "static"
 name = "2.1.273 linux-x64 effort session resolver no longer carries 2.1.268 symbols"
 assert_not_contains = '''LE.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+
+[[patches]]
+name = "effort-session-owner-2-1-281-darwin-arm64"
+lineage = "effort-session-owner"
+platforms = ["darwin-arm64"]
+rationale = "Expose the 2.1.281 model-selection owner to the effort-session resolver. The setter jMt and modelSelection.mainLoopEffortState are in chunk-s8xs8s76.js; jMt(n) still stores native structured sessionEffort while the symbol-keyed lookup provides resolver-owned model-local state."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function jMt(e){n().modelSelection.replaceMainLoopEffortState(e)}'''
+replacement = '''function jMt(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin effort session owner uses current jMt setter"
+assert_contains = '''function jMt(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+assert_not_contains = '''function V_t(e){if(e===Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-session-owner-2-1-281-linux-x64"
+lineage = "effort-session-owner"
+platforms = ["linux-x64"]
+rationale = "Expose the 2.1.281 model-selection owner to the effort-session resolver. The setter CLt and modelSelection.mainLoopEffortState are in chunk-cqc88nqm.js; CLt(n) still stores native structured sessionEffort while the symbol-keyed lookup provides resolver-owned model-local state."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function CLt(e){n().modelSelection.replaceMainLoopEffortState(e)}'''
+replacement = '''function CLt(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux effort session owner uses current CLt setter"
+assert_contains = '''function CLt(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;n().modelSelection.replaceMainLoopEffortState(e)}'''
+assert_not_contains = '''function M_t(e){if(e===Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-session-resolver-2-1-281-darwin-arm64"
+lineage = "effort-session-resolver"
+platforms = ["darwin-arm64"]
+rationale = "Resolve model-specific effort while preserving native CLI, agent, capability-latch, and structured sessionEffort behavior. Bindings $b, jMt, yfe, vc, vN, re, Wtn, K, ie, qS, rdn, Y, UD, and A are in chunk-vtnrdghy.js; native Il semantics are read directly to avoid resolver recursion."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function $b(e,n,{turnEffort:r,hookEffortValue:s}={}){if(!qS(e))return;let d=Y(e)!==null;if(s!==void 0){let E=typeof s==="number"&&d?UD(s):s;return A(E,e)}let u=vN();if(u===null&&!d)return;let l=Wtn(e),m=u??(u===null?l:void 0)??r??n??l;if(typeof m==="number"&&d)m=UD(m);return A(m,e)}'''
+replacement = '''$b.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride){const owner=jMt(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},slug=yfe(model??vc());owner.effortByModel??=new Map();const cli=owner.effortLaunchValue!==void 0;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}const own=owner.effortByModel.get(slug);let slot;for(const key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const modelName=process.env[key]?.trim();if(modelName&&yfe(modelName)===slug){const level=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(level??"")){slot=level;break}}}const session=state.sessionEffort??W;let nativeLevel,nativeTable;if(session.kind==="level")nativeLevel=session.value;else if(session.kind==="inherit"&&state.settingsEffortTable!==void 0)nativeTable=ie(state.settingsEffortTable)?state.settingsEffortTable.default:K(state.settingsEffortTable,slug);let chosen,source;if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==void 0){chosen=agentOverride;source="agent override"}else if(own!==void 0){chosen=own;source="this session"}else if(session.kind==="level"&&nativeLevel!==void 0){chosen=nativeLevel;source="session effort"}else if(slot!==void 0){chosen=slot;source="configured default"}else{const configured=vN();if(configured!==void 0){if(configured===null){chosen=Y(slug)!==null?Wtn(slug):void 0;source=chosen===void 0?"effort omitted by environment":"model default"}else{chosen=configured;source="environment default"}}else if(honorLaunchPin&&re().includes(slug)){chosen=Wtn(slug);source="model launch default"}else{chosen=fallback??(session.kind==="inherit"?nativeTable:void 0)??Wtn(slug);source=fallback!==void 0?"session fallback":nativeTable!==void 0?Object.hasOwn(state.settingsEffortTable.byModel,slug)?"configured model default":"configured default":"model default"}}if(rdn(slug)){chosen=void 0;source="backend default (effort unsupported)"}else if(!qS(slug)){chosen=void 0;source="backend default (effort not supported)"}else if(chosen!==void 0){if(typeof chosen==="number"&&Y(slug)!==null)chosen=UD(chosen);const normalized=A(chosen,slug);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};function $b(e,n,{turnEffort:r,hookEffortValue:s,agentOverride:patchedAgentOverride}={}){if(!qS(e))return;let d=Y(e)!==null;if(s!==void 0){let E=typeof s==="number"&&d?UD(s):s;return A(E,e)}return $b.session(e,void 0,void 0,n,!0,patchedAgentOverride??r).value;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin resolver keeps native hook priority and adds model-local state"
+assert_contains = '''$b.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+assert_not_contains = '''let u=vN();if(u===null&&!d)return;let l=Wtn(e),m=u??(u===null?l:void 0)??r??n??l'''
+
+[[patches]]
+name = "effort-session-resolver-2-1-281-linux-x64"
+lineage = "effort-session-resolver"
+platforms = ["linux-x64"]
+rationale = "Resolve model-specific effort while preserving native CLI, agent, capability-latch, and structured sessionEffort behavior. Bindings $S, CLt, ufe, vc, uN, re, Itn, K, ie, Vb, Bcn, Y, HM, and A are in chunk-620cda50.js; native Il semantics are read directly to avoid resolver recursion."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function $S(e,n,{turnEffort:r,hookEffortValue:s}={}){if(!Vb(e))return;let d=Y(e)!==null;if(s!==void 0){let E=typeof s==="number"&&d?HM(s):s;return A(E,e)}let u=uN();if(u===null&&!d)return;let l=Itn(e),m=u??(u===null?l:void 0)??r??n??l;if(typeof m==="number"&&d)m=HM(m);return A(m,e)}'''
+replacement = '''$S.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride){const owner=CLt(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},slug=ufe(model??vc());owner.effortByModel??=new Map();const cli=owner.effortLaunchValue!==void 0;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}const own=owner.effortByModel.get(slug);let slot;for(const key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const modelName=process.env[key]?.trim();if(modelName&&ufe(modelName)===slug){const level=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(level??"")){slot=level;break}}}const session=state.sessionEffort??W;let nativeLevel,nativeTable;if(session.kind==="level")nativeLevel=session.value;else if(session.kind==="inherit"&&state.settingsEffortTable!==void 0)nativeTable=ie(state.settingsEffortTable)?state.settingsEffortTable.default:K(state.settingsEffortTable,slug);let chosen,source;if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==void 0){chosen=agentOverride;source="agent override"}else if(own!==void 0){chosen=own;source="this session"}else if(session.kind==="level"&&nativeLevel!==void 0){chosen=nativeLevel;source="session effort"}else if(slot!==void 0){chosen=slot;source="configured default"}else{const configured=uN();if(configured!==void 0){if(configured===null){chosen=Y(slug)!==null?Itn(slug):void 0;source=chosen===void 0?"effort omitted by environment":"model default"}else{chosen=configured;source="environment default"}}else if(honorLaunchPin&&re().includes(slug)){chosen=Itn(slug);source="model launch default"}else{chosen=fallback??(session.kind==="inherit"?nativeTable:void 0)??Itn(slug);source=fallback!==void 0?"session fallback":nativeTable!==void 0?Object.hasOwn(state.settingsEffortTable.byModel,slug)?"configured model default":"configured default":"model default"}}if(Bcn(slug)){chosen=void 0;source="backend default (effort unsupported)"}else if(!Vb(slug)){chosen=void 0;source="backend default (effort not supported)"}else if(chosen!==void 0){if(typeof chosen==="number"&&Y(slug)!==null)chosen=HM(chosen);const normalized=A(chosen,slug);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};function $S(e,n,{turnEffort:r,hookEffortValue:s,agentOverride:patchedAgentOverride}={}){if(!Vb(e))return;let d=Y(e)!==null;if(s!==void 0){let E=typeof s==="number"&&d?HM(s):s;return A(E,e)}return $S.session(e,void 0,void 0,n,!0,patchedAgentOverride??r).value;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux resolver keeps native hook priority and adds model-local state"
+assert_contains = '''$S.session=function(model,operation,value,fallback,honorLaunchPin=true,agentOverride)'''
+assert_not_contains = '''let u=uN();if(u===null&&!d)return;let l=Itn(e),m=u??(u===null?l:void 0)??r??n??l'''
+
+[[patches]]
+name = "effort-launch-pin-2-1-281-darwin-arm64"
+lineage = "effort-launch-pin"
+platforms = ["darwin-arm64"]
+rationale = "Preserve parsed CLI effort as the highest-priority resolver input. The 2.1.281 initializer ist builds structured sessionEffort from uFn(e) in chunk-vtnrdghy.js; this variant records that parsed launch value while retaining the native structured state."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function ist(e){let n={sessionEffort:ne(uFn(e)),settingsEffortTable:z()};return jMt(n),n}'''
+replacement = '''function ist(e){const launchEffort=uFn(e);let n={sessionEffort:ne(launchEffort),settingsEffortTable:z()};if(launchEffort!==void 0)jMt(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return jMt(n),n}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin CLI effort pin uses current ist initializer"
+assert_contains = '''function ist(e){const launchEffort=uFn(e);let n={sessionEffort:ne(launchEffort),settingsEffortTable:z()};if(launchEffort!==void 0)jMt(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return jMt(n),n}'''
+assert_not_contains = '''function Rqe(e){let o=A(e);V_t(Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-launch-pin-2-1-281-linux-x64"
+lineage = "effort-launch-pin"
+platforms = ["linux-x64"]
+rationale = "Preserve parsed CLI effort as the highest-priority resolver input. The 2.1.281 initializer Jot builds structured sessionEffort from KNn(e) in chunk-620cda50.js; this variant records that parsed launch value while retaining the native structured state."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function Jot(e){let n={sessionEffort:ne(KNn(e)),settingsEffortTable:z()};return CLt(n),n}'''
+replacement = '''function Jot(e){const launchEffort=KNn(e);let n={sessionEffort:ne(launchEffort),settingsEffortTable:z()};if(launchEffort!==void 0)CLt(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return CLt(n),n}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux CLI effort pin uses current Jot initializer"
+assert_contains = '''function Jot(e){const launchEffort=KNn(e);let n={sessionEffort:ne(launchEffort),settingsEffortTable:z()};if(launchEffort!==void 0)CLt(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return CLt(n),n}'''
+assert_not_contains = '''function g3e(e){let o=A(e);M_t(Symbol.for("patched-cc.effort-session"))'''
+
+[[patches]]
+name = "effort-model-state-selector-2-1-281-darwin-arm64"
+lineage = "effort-model-state-selector"
+platforms = ["darwin-arm64"]
+rationale = "Route structured session-effort reads through the model-scoped resolver. Native selector Il and default model vc are in chunk-vtnrdghy.js; the resolver duplicates Il's level/default/inherit lookup so this adapter does not recurse."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function Il(e,n){let r=e.sessionEffort??W;switch(r.kind){case"level":return r.value;case"default":return;case"inherit":if(e.settingsEffortTable===void 0)return;if(ie(e.settingsEffortTable))return e.settingsEffortTable.default;return K(e.settingsEffortTable,n??e.mainLoopModelForSession??e.mainLoopModel??vc())}}'''
+replacement = '''function Il(e,n){return $b.session(n??e.mainLoopModelForSession??e.mainLoopModel??vc()).value;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin session state selector routes through $b"
+assert_contains = '''function Il(e,n){return $b.session(n??e.mainLoopModelForSession??e.mainLoopModel??vc()).value;}'''
+assert_not_contains = '''function Ol(e,o){return DE.session'''
+
+[[patches]]
+name = "effort-model-state-selector-2-1-281-linux-x64"
+lineage = "effort-model-state-selector"
+platforms = ["linux-x64"]
+rationale = "Route structured session-effort reads through the model-scoped resolver. Native selector Il and default model vc are in chunk-620cda50.js; the resolver duplicates Il's level/default/inherit lookup so this adapter does not recurse."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function Il(e,n){let r=e.sessionEffort??W;switch(r.kind){case"level":return r.value;case"default":return;case"inherit":if(e.settingsEffortTable===void 0)return;if(ie(e.settingsEffortTable))return e.settingsEffortTable.default;return K(e.settingsEffortTable,n??e.mainLoopModelForSession??e.mainLoopModel??vc())}}'''
+replacement = '''function Il(e,n){return $S.session(n??e.mainLoopModelForSession??e.mainLoopModel??vc()).value;}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux session state selector routes through $S"
+assert_contains = '''function Il(e,n){return $S.session(n??e.mainLoopModelForSession??e.mainLoopModel??vc()).value;}'''
+assert_not_contains = '''function Hl(e,o){return Hv.session'''
+
+[[patches]]
+name = "effort-effective-suffix-2-1-281-darwin-arm64"
+lineage = "effort-effective-suffix"
+platforms = ["darwin-arm64"]
+rationale = "Report the model-scoped effective effort and its source from the 2.1.281 resolver. UPt(e,n,r) in chunk-vtnrdghy.js currently formats the native resolver value without a source label."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function UPt(e,n,r){'''
+replacement = '''function UPt(e,n,r){const actual=$b.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+mq(UD(actual.value))+" effort ("+actual.source+" for "+actual.slug+")";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin effective suffix reports current resolver source"
+assert_contains = '''function UPt(e,n,r){const actual=$b.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+mq(UD(actual.value))+" effort ("+actual.source+" for "+actual.slug+")";'''
+assert_not_contains = '''function Ept(e,o,n){const actual=DE.session'''
+
+[[patches]]
+name = "effort-effective-suffix-2-1-281-linux-x64"
+lineage = "effort-effective-suffix"
+platforms = ["linux-x64"]
+rationale = "Report the model-scoped effective effort and its source from the 2.1.281 resolver. HIt(e,n,r) in chunk-620cda50.js currently formats the native resolver value without a source label."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function HIt(e,n,r){'''
+replacement = '''function HIt(e,n,r){const actual=$S.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+r4(HM(actual.value))+" effort ("+actual.source+" for "+actual.slug+")";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux effective suffix reports current resolver source"
+assert_contains = '''function HIt(e,n,r){const actual=$S.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+r4(HM(actual.value))+" effort ("+actual.source+" for "+actual.slug+")";'''
+assert_not_contains = '''function cpt(e,o,n){const actual=Hv.session'''

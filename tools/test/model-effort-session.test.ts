@@ -39,7 +39,10 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       ANTHROPIC_CUSTOM_MODEL_OPTION: " gpt-5.6-luna[1m] ",
       ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL: "max",
     }
-    const state: { settingsEffortTable?: EffortTable } = {}
+    const state: {
+      sessionEffort?: { kind: "default" | "inherit" | "level"; value?: string }
+      settingsEffortTable?: EffortTable
+    } = {}
     let owner: Owner = { mainLoopEffortState: () => state }
     const rejected = new Set<string>()
     const unsupported = new Set<string>()
@@ -56,23 +59,28 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       [binding("model normalization", /slug=([\w$]+)\(model/)]: normalize,
       [binding("default model", /model\?\?([\w$]+)\(\)/)]: () => "gpt-5.6-luna",
       [binding("environment effort", /const configured=([\w$]+)\(\)/)]: () => environmentEffort,
-      [binding("launch default predicate", /honorLaunchPin&&([\w$]+)\(slug\)/)]: () => false,
+      W: { kind: "default" },
+      [binding("launch default predicate", /if\(honorLaunchPin&&([\w$]+)\((?:slug)?\)(?:\.includes\(slug\))?\)/)]: () => [],
       [binding("model effort default", /chosen=([\w$]+)\(slug\);source="model launch default"/)]: () => "medium",
+      Y: () => null,
       [binding(
         "backend rejection",
-        /if\(([\w$]+)\(slug\)\)\{chosen=undefined;source="backend default \(effort unsupported\)"/,
+        /if\(([\w$]+)\(slug\)\)\{chosen=(?:undefined|void 0);source="backend default \(effort unsupported\)"/,
       )]: (model: string) => rejected.has(model),
       [binding("capability", /else if\(!([\w$]+)\(slug\)\)/)]: (model: string) => !unsupported.has(model),
       [binding("organization normalization", /const normalized=([\w$]+)\(chosen,slug\)/)]: (value: string) => value,
-      [binding("per-model table predicate", /undefined:([\w$]+)\(table\)\?/)]: () => true,
-      [binding("table lookup", /\(table\)\?([\w$]+)\(table,slug\)/)]: (table: EffortTable, slug: string) =>
+      [binding(
+        "per-model table predicate",
+        /if\(session\.kind==="inherit"&&state\.settingsEffortTable!==void 0\)nativeTable=([\w$]+)\(/,
+      )]: (table: EffortTable) => Object.keys(table.byModel).length === 0,
+      [binding("table lookup", /([\w$]+)\(state\.settingsEffortTable,slug\)/)]: (table: EffortTable, slug: string) =>
         table.byModel[slug] ?? table.default,
       process: { env: environment },
     }
     // Execute both the active replacement and its public wrapper, not a reimplementation.
     const { read, turn } = new Function(
       ...Object.keys(bindings),
-      `${source}}return {read:${resolverName}.session,turn:${resolverName}};`,
+      `${source}return {read:${resolverName}.session,turn:${resolverName}};`,
     )(...Object.values(bindings)) as {
       read: Resolver
       turn: (
@@ -112,6 +120,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     rejected.clear()
     expect(turn("sonnet", "low", { turnEffort: "xhigh" })).toBe("xhigh")
     expect(turn("sonnet", "low", { turnEffort: "high", agentOverride: "max" })).toBe("max")
+    state.sessionEffort = { kind: "inherit" }
     state.settingsEffortTable = { default: "high", byModel: { "other-model": "low" } }
     expect(read("other-model")).toMatchObject({ value: "low", source: "configured model default" })
     expect(read("unconfigured")).toMatchObject({ value: "high", source: "configured default" })

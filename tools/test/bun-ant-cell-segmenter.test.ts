@@ -10,9 +10,10 @@ import "../../runtime/bun-ant-cell-segmenter"
 /**
  * Differential test against a fixture captured from the upstream bun fork.
  *
- * The fixture was sampled by attaching a debugger to the 2.1.273 standalone
- * binary and evaluating the real `Bun.ant.CellSegmenter` over a corpus
- * (see docs/records/2026-09-17-bun-ant-cell-segmenter-contract.md). It is the
+ * The fixture was sampled by attaching a debugger to the 2.1.281 standalone
+ * binary and evaluating the real `Bun.ant.CellSegmenter` over a corpus. The
+ * original 2.1.273 contract investigation is recorded in
+ * docs/records/2026-09-17-bun-ant-cell-segmenter-contract.md. It is the
  * only source of truth for behaviour the host runtime does not document, so the
  * comparison is denormalized: raw cell indices are mapped back to grapheme
  * strings before comparing, because the fork's index space is an internal
@@ -148,7 +149,7 @@ test.skipIf(lt(activeTarget, fixture.source.upstreamVersion))(
   () => {
     expect(fixture.schema).toBe(1)
     expect(fixture.source.upstreamVersion).toBe(targetVersion())
-    expect(fixture.source.platform).toBe("linux-x64")
+    expect(fixture.source.platform).toBe("darwin-arm64")
     expect(fixture.source.bunVersion).toBe("1.4.3")
     expect(fixture.source.nativeBinarySha256).toMatch(/^[0-9a-f]{64}$/)
     expect(fixture.source.captureTool).toBe("tools/debug/capture-bun-ant-cell-segmenter.ts")

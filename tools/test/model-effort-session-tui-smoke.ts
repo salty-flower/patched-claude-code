@@ -8,9 +8,11 @@ import { type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stu
 import { EventConditions } from "./helpers/event-conditions"
 import { shellEnvironment, shellQuote } from "./helpers/pty"
 import { effortCommandResult, emptyPrompt, submitPtyText } from "./helpers/pty-input"
+import { type ModelEffortRuntimeOracle, recordModelEffortRuntimeOracle } from "./helpers/runtime-oracle-checks"
 
 const LUNA = "gpt-5.6-luna"
 const ASTRA = "gpt-6-astra"
+const watchdogKillAfterSeconds = 3
 
 // Automatic title generation shares model and prompt text, but has a structured output schema.
 function conversationRequest(request: { path: string; rawBody: string; jsonBody: unknown }): boolean {
@@ -41,6 +43,9 @@ async function session(
     request: (model: string, effort: string | undefined) => Promise<void>
     picker: () => Promise<void>
     slider: () => Promise<void>
+    sliderGuard: () => Promise<void>
+    recordOracle: (invariantId: ModelEffortRuntimeOracle) => void
+    snapshot: (label: string) => void
     rendered: (expected: RegExp) => Promise<void>
     footerCleared: () => Promise<void>
   }) => Promise<void>,
@@ -71,28 +76,58 @@ async function session(
     TERM: "xterm-256color",
   }
   const cli = cliEffort ? ` --effort ${shellQuote(cliEffort)}` : ""
-  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${timeout}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
+  const command = `stty cols 120 rows 40; exec timeout --kill-after=${watchdogKillAfterSeconds}s ${timeout}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(LUNA)}${cli}`
+  const scriptCommand =
+    process.platform === "darwin"
+      ? `script -q -e /dev/null bash -lc ${shellQuote(command)}`
+      : `script -q -e -c ${shellQuote(command)} /dev/null`
   const proc = Bun.spawn({
-    // Own script directly: a `cat | script` shell keeps waiting for cat after
-    // the TUI exits, masking the process-exit event needed by the watchdog.
-    cmd:
-      process.platform === "darwin"
-        ? ["script", "-q", "-e", "/dev/null", "bash", "-lc", command]
-        : ["script", "-q", "-e", "-c", command, "/dev/null"],
+    // Bun implements stdin:"pipe" with a socket on macOS, but Darwin `script`
+    // needs a pipe. Bash process substitution gives `script` a real pipe while
+    // letting the outer shell exit as soon as `script` exits; a regular
+    // `cat | script` pipeline would make it wait for cat to see stdin EOF.
+    cmd: ["bash", "-lc", `${scriptCommand} < <(cat)`],
     cwd: home,
     env: cleanEnv,
+    detached: process.platform === "darwin",
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
   })
+  let stdinEnded = false
+  function endInput(): void {
+    if (stdinEnded) return
+    stdinEnded = true
+    proc.stdin.end()
+  }
+  function killGroup(): void {
+    if (process.platform !== "darwin") {
+      proc.kill("SIGKILL")
+      return
+    }
+    try {
+      process.kill(-proc.pid, "SIGKILL")
+    } catch {
+      proc.kill("SIGKILL")
+    }
+  }
+  const events = new EventConditions()
+  // If the inner timeout kills the CLI while `script` is waiting for stdin,
+  // end the complete wrapper group and wake any event wait before the harness
+  // safety timeout. The inner PTY child gets its own TERM/KILL window first.
+  const watchdog = setTimeout(() => {
+    endInput()
+    events.fail(new Error("whole-session watchdog expired"))
+    killGroup()
+  }, (timeout + watchdogKillAfterSeconds + 1) * 1000)
   let screen = ""
   let lastInteractiveScreen = ""
   let transcript = ""
   let exited = false
   let outputError: unknown
-  const events = new EventConditions()
   const unsubscribe = stub.onRequest(() => events.notify())
   void proc.exited.then((code) => {
+    clearTimeout(watchdog)
     exited = true
     events.fail(new Error(`PTY exited ${code}${code === 124 ? " (whole-session watchdog expired)" : ""}`))
   })
@@ -120,8 +155,11 @@ async function session(
     }
   }
   async function key(value: string): Promise<void> {
+    const trace = process.env.TUI_SMOKE_TRACE_KEYS === "1"
+    if (trace) console.log(`pty key send: ${JSON.stringify(value)}`)
     proc.stdin.write(value)
     await proc.stdin.flush()
+    if (trace) console.log(`pty key flushed: ${JSON.stringify(value)}`)
   }
   function inputLine(): string {
     const buffer = terminal.buffer.active
@@ -145,9 +183,33 @@ async function session(
   }
   async function commandText(text: string, expected: RegExp): Promise<void> {
     await submit(text)
+    function commandResult(): string | undefined {
+      if (!text.startsWith("/effort ") || text === "/effort current") return effortCommandResult(screen, text)
+      const position = screen.lastIndexOf(`❯ ${text}`)
+      if (position === -1) return undefined
+      const result = screen
+        .slice(position + `❯ ${text}`.length)
+        .split("\n")
+        .map((line) => line.match(/^\s*⎿\s+(.*)$/)?.[1])
+        .find((line) => line !== undefined)
+      if (
+        result &&
+        /^Effective effort for \S+: (?:low|medium|high|xhigh|max|backend default) \([^\n)]+\)\.$/.test(result)
+      ) {
+        return result
+      }
+      if (
+        text === "/effort high" &&
+        result &&
+        /^Not applied: CLI --effort holds \S+ at (?:low|medium|high|xhigh|max) this session\.$/.test(result)
+      ) {
+        return result
+      }
+      return undefined
+    }
     const completed = () => {
       if (text === "/model") return expected.test(screen)
-      const result = effortCommandResult(screen, text)
+      const result = commandResult()
       return result !== undefined && expected.test(result) && inputReady()
     }
     if (text.startsWith("/model ")) {
@@ -180,6 +242,12 @@ async function session(
     await waitFor(inputReady, "input prompt not idle after fresh answer")
     console.log(`ok: rendered interaction sent ${model}/${effort}`)
   }
+  function recordOracle(invariantId: ModelEffortRuntimeOracle): void {
+    const platform = process.env.PCC_VERIFY_PLATFORM
+    if (platform === "darwin-arm64" || platform === "linux-x64") {
+      recordModelEffortRuntimeOracle(invariantId, platform)
+    }
+  }
   async function picker(): Promise<void> {
     await commandText("/model", /Select model/)
     const selected = () => screen.match(/❯\s+\d+\.\s+([^\n]+)/)?.[1] ?? ""
@@ -190,10 +258,38 @@ async function session(
     }
     await waitFor(() => selected().includes("Luna effort test"), "Luna picker row missing")
     const pickerText = () => screen.slice(screen.lastIndexOf("Select model"))
-    await waitFor(() => /Max effort/.test(pickerText()), "picker does not display Luna max")
+    const pickerEffort = () => pickerText().match(/(?:low|medium|high|xhigh|max) effort \([^\n)]+\)/i)?.[0]
+    await waitFor(() => pickerEffort() !== undefined, "picker effort level did not render for the selected Luna row")
+    const initialEffort = pickerEffort()
+    await Bun.sleep(500)
+    const settledEffort = pickerEffort()
+    if (initialEffort !== settledEffort || settledEffort?.toLowerCase() !== "max effort (configured default)") {
+      throw new Error(
+        `picker Luna effort did not settle at Max/configured-default (initial=${initialEffort ?? "missing"}, settled=${settledEffort ?? "missing"})\n${pickerText()}`,
+      )
+    }
+    snapshot("picker effort settled at Max/configured-default")
     await key("\x1b[D")
-    await waitFor(() => /Xhigh effort/i.test(pickerText()), "left arrow did not adjust Luna max to xhigh")
+    await waitFor(
+      () => pickerEffort()?.toLowerCase() === "xhigh effort (this session)",
+      "left arrow did not adjust Luna max to xhigh for this session",
+    )
+    const initialAdjustedEffort = pickerEffort()
+    await Bun.sleep(500)
+    const settledAdjustedEffort = pickerEffort()
+    if (
+      initialAdjustedEffort !== settledAdjustedEffort ||
+      settledAdjustedEffort?.toLowerCase() !== "xhigh effort (this session)"
+    ) {
+      throw new Error(
+        `picker Luna effort did not settle at Xhigh/this-session after Left (initial=${initialAdjustedEffort ?? "missing"}, settled=${settledAdjustedEffort ?? "missing"})\n${pickerText()}`,
+      )
+    }
+    snapshot("picker effort settled at Xhigh/this-session")
+    recordOracle("model-echo")
+    await Bun.sleep(250)
     await key("\r")
+    snapshot("picker after confirming the selected model")
     await waitFor(
       () => !screen.includes("Select model") && screen.includes("with xhigh effort") && inputReady(),
       "picker did not commit xhigh and restore the input prompt",
@@ -213,13 +309,30 @@ async function session(
       })
     }
     await waitFor(() => sliderLevel() === "max", "effort slider did not initialize from applied max")
+    recordOracle("slider-initial")
     snapshot("bare /effort initialized at max")
-    if (screen.includes("s for this session only"))
-      throw new Error(`slider still implies effort persistence\n${screen}`)
+    await waitFor(
+      () => screen.includes("this model, this session"),
+      "effort slider does not explain that the change is model-local",
+    )
+    recordOracle("slider-scope")
+    await waitFor(() => !screen.includes("ultracode"), "model effort slider still offers the global ultracode workflow")
+    recordOracle("slider-workflow")
     await key("\x1b[D")
     await waitFor(() => sliderLevel() === "xhigh", "effort slider did not adjust max to xhigh")
     await key("\r")
     await waitFor(() => !screen.includes("▲") && inputReady(), "effort slider did not restore input")
+  }
+  async function sliderGuard(): Promise<void> {
+    await submit("/effort")
+    await waitFor(
+      () => screen.includes("Current effort level:") && !screen.includes("←/→ to adjust") && !screen.includes("▲"),
+      "CLI-pinned effort selector opened an editable slider instead of the current-status view",
+    )
+    recordOracle("slider-guard")
+    snapshot("CLI-pinned /effort showed current status")
+    await key("\x1b")
+    await waitFor(inputReady, "current-status view did not close back to the input prompt")
   }
   try {
     await waitFor(() => screen.includes("Claude Code") && screen.includes("❯"), "startup prompt missing")
@@ -228,6 +341,9 @@ async function session(
       request,
       picker,
       slider,
+      sliderGuard,
+      recordOracle,
+      snapshot,
       rendered: (expected) => waitFor(() => expected.test(screen), `rendered output missing ${expected}`),
       footerCleared: () =>
         waitFor(
@@ -236,10 +352,11 @@ async function session(
         ),
     })
     await submit("/exit")
-    proc.stdin.end()
+    endInput()
     const code = await proc.exited
     await output
     const stderr = await errors
+    if (process.env.TUI_SMOKE_SHOW_STDERR === "1" && stderr) console.log(`pty stderr:\n${stderr}`)
     if (outputError || code !== 0 || /TypeError|ReferenceError|React error #\d+/.test(transcript + stderr))
       throw new Error(`PTY exited ${code}\n${transcript}\n${stderr}`)
     const settings = (await Bun.file(join(configDir, "settings.json")).json()) as {
@@ -249,18 +366,22 @@ async function session(
     if (settings.effortLevel !== "medium" || settings.modelSettings !== undefined)
       throw new Error(`session adjustment persisted effort: ${JSON.stringify(settings)}`)
   } catch (error) {
+    endInput()
+    if (!exited) killGroup()
     console.error(error instanceof Error ? error.message : error)
+    console.error(transcript)
+    console.error(await Promise.race([errors, Bun.sleep(1000).then(() => "PTY stderr stream remained open")]))
     throw error
   } finally {
     unsubscribe()
     events.fail(new Error("PTY session disposed"))
-    if (!exited) {
+    if (!exited && !stdinEnded) {
       await key("\x03")
       await key("\x03")
       await Promise.race([proc.exited, Bun.sleep(1000)])
     }
-    proc.stdin.end()
-    if (!exited) proc.kill()
+    endInput()
+    if (!exited) killGroup()
     await Promise.race([Promise.all([proc.exited, output, errors]), Bun.sleep(2000)])
     terminal.dispose()
   }
@@ -270,9 +391,17 @@ async function main(): Promise<number> {
   const options = createCommand("model-effort-session-tui-smoke")
     .requiredOption("--bundle <cli.patched.js>", "rendered patched Claude Code bundle")
     .option("--recovery-only", "run only the backend rejection PTY scenario")
+    .option("--model-switch-only", "run only the inline model-switch PTY scenario")
+    .option("--picker-debug-only", "run the model-switch and effort-picker regression scenario")
     .option("--timeout-seconds <seconds>", "whole-session safety watchdog (not an interaction delay)", Number, 180)
     .parse(process.argv.slice(2), { from: "user" })
-    .opts<{ bundle: string; timeoutSeconds: number; recoveryOnly?: boolean }>()
+    .opts<{
+      bundle: string
+      timeoutSeconds: number
+      recoveryOnly?: boolean
+      modelSwitchOnly?: boolean
+      pickerDebugOnly?: boolean
+    }>()
   const bundle = resolve(options.bundle)
   if (!Number.isSafeInteger(options.timeoutSeconds) || options.timeoutSeconds <= 0) {
     throw new Error("--timeout-seconds must be a positive integer")
@@ -292,17 +421,53 @@ async function main(): Promise<number> {
   await Bun.write(join(configDir, "settings.json"), JSON.stringify({ effortLevel: "medium" }))
   const stub = await startClaudeApiStub({ text: "effort stub done" })
   try {
+    if (options.modelSwitchOnly) {
+      await session(bundle, stub, home, options.timeoutSeconds, undefined, async (ui) => {
+        await ui.request(LUNA, "max")
+        await ui.command("/effort auto", /Effective effort for gpt-5\.6-luna: max \(.+\)\./)
+        await ui.request(LUNA, "max")
+        await ui.command(
+          "/model fable",
+          /Current model runs with medium effort \(environment default for gpt-6-astra\)/,
+        )
+        await ui.request(ASTRA, "medium")
+      })
+      console.log("ok: inline /model fable switch reports the resolver source and sends the resolved model effort")
+      return 0
+    }
+    if (options.pickerDebugOnly) {
+      await session(bundle, stub, home, options.timeoutSeconds, undefined, async (ui) => {
+        await ui.command("/model fable", /Set model/)
+        await ui.rendered(/Current model runs with medium effort \(environment default for gpt-6-astra\)/)
+        ui.snapshot("after switching to Fable")
+        await ui.request(ASTRA, "medium")
+        await ui.command("/effort low", /Effective effort for gpt-6-astra: low \(this session\)\./)
+        await ui.request(ASTRA, "low")
+        await ui.command(`/model ${LUNA}`, /Set model/)
+        ui.snapshot("after switching back to Luna")
+        await ui.picker()
+        await ui.request(LUNA, "xhigh")
+      })
+      console.log("ok: model switch preserves Luna's picker effort and the picker applies the selected effort")
+      return 0
+    }
     if (!options.recoveryOnly) {
       await session(bundle, stub, home, options.timeoutSeconds, undefined, async (ui) => {
         await ui.request(LUNA, "max")
-        await ui.command("/effort current", /max/)
+        await ui.command("/effort current", /Current effort level: max for gpt-5\.6-luna \(.+\)\./i)
+        ui.recordOracle("model-effort-current")
         await ui.slider()
         await ui.request(LUNA, "xhigh")
-        await ui.command("/effort auto", /max.*gpt-5\.6-luna/)
+        await ui.command("/effort auto", /Effective effort for gpt-5\.6-luna: max \(.+\)\./)
+        await ui.request(LUNA, "max")
         await ui.command("/model fable", /Set model/)
         await ui.command("/effort low", /low.*gpt-6-astra|gpt-6-astra.*low/)
         await ui.request(ASTRA, "low")
-        await ui.command(`/model ${LUNA}`, /with max effort/)
+        await ui.command(
+          `/model ${LUNA}`,
+          /Current model runs with max effort \(configured default for gpt-5\.6-luna\)/,
+        )
+        ui.recordOracle("inline-echo")
         await ui.request(LUNA, "max")
         await ui.command("/effort high", /high.*gpt-5\.6-luna|gpt-5\.6-luna.*high/)
         await ui.request(LUNA, "high")
@@ -316,7 +481,10 @@ async function main(): Promise<number> {
         await ui.command("/model fable", /with low effort/)
         await ui.command("/effort max", /max.*gpt-6-astra|gpt-6-astra.*max/)
         await ui.request(ASTRA, "max")
-        await ui.command(`/model ${LUNA}`, /with max effort/)
+        await ui.command(
+          `/model ${LUNA}`,
+          /Current model runs with max effort \(configured default for gpt-5\.6-luna\)/,
+        )
         await ui.picker()
         await ui.request(LUNA, "xhigh")
         await ui.command("/model fable", /with max effort/)
@@ -329,6 +497,7 @@ async function main(): Promise<number> {
       await session(bundle, stub, home, options.timeoutSeconds, "low", async (ui) => {
         await ui.request(LUNA, "low")
         await ui.command("/effort high", /Not applied|--effort/i)
+        await ui.sliderGuard()
         await ui.request(LUNA, "low")
         await ui.command("/model fable", /with low effort/)
         await ui.request(ASTRA, "low")

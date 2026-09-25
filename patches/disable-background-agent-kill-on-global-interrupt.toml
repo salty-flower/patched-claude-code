@@ -1,5 +1,5 @@
 name = "disable-background-agent-kill-on-global-interrupt"
-target_version = "2.1.221"
+target_version = "2.1.281"
 applies_to = ">=2.1.218 <2.2.0"
 
 [[patches]]
@@ -687,3 +687,106 @@ assert_not_contains = '''if(!Ee({gesture:"ctrl_c"}))return!1},[de,y,C,v,b,_,Le,K
 kind = "static"
 name = "2.1.241 variant does not carry 2.1.238 interrupt symbols"
 assert_not_contains = '''if(!q({gesture:"ctrl_c"}))return!1},[re,m,y,_,h,S,W,te,M,B,q]'''
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-281-darwin-arm64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = """
+Hand 2.1.281 foreground local agents to the background before Escape aborts
+their shared parent request. The target still creates foreground local agents
+with a parent abort controller and `isBackgrounded:false`; its cancel path
+stops the main request without first handing those agents off. The current
+`lIe` helper marks an agent backgrounded and resolves its background signal.
+Defer both `stopRunning()` and the parent cancel by one event-loop turn when
+an agent was handed off, so the background signal can be processed first.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''if(be!==void 0&&!be.aborted||we||Re&&qr)return Eo.current=Date.now(),i("tengu_cancel",fr),KT.of(Dt).stopRunning(),v(),!0;'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''if(be!==void 0&&!be.aborted||we||Re&&qr){let __hadForegroundAgent=!1;for(let __agent of Object.values(ut.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=lIe(__agent.id,ut)||__hadForegroundAgent;return Eo.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{KT.of(Dt).stopRunning(),v()},0):(KT.of(Dt).stopRunning(),v()),!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin hands foreground agents off before parent cancellation"
+assert_contains = '''__hadForegroundAgent=lIe(__agent.id,ut)||__hadForegroundAgent;return Eo.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{KT.of(Dt).stopRunning(),v()},0):(KT.of(Dt).stopRunning(),v()),!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin no longer aborts foreground agents immediately"
+assert_not_contains = '''if(be!==void 0&&!be.aborted||we||Re&&qr)return Eo.current=Date.now(),i("tengu_cancel",fr),KT.of(Dt).stopRunning(),v(),!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin does not carry the stale 2.1.246 handoff helper"
+assert_not_contains = '''Ki(ee,y,{session:v,source:"user",storageV5:_})'''
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-281-linux-x64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = """
+Hand 2.1.281 foreground local agents to the background before Escape aborts
+their shared parent request. The target still creates foreground local agents
+with a parent abort controller and `isBackgrounded:false`; its cancel path
+stops the main request without first handing those agents off. The current
+`tPe` helper marks an agent backgrounded and resolves its background signal.
+Defer both `stopRunning()` and the parent cancel by one event-loop turn when
+an agent was handed off, so the background signal can be processed first.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''if(Se!==void 0&&!Se.aborted||we||Ce&&qr)return Ao.current=Date.now(),i("tengu_cancel",fr),zC.of(Mt).stopRunning(),M(),!0;'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''if(Se!==void 0&&!Se.aborted||we||Ce&&qr){let __hadForegroundAgent=!1;for(let __agent of Object.values(ut.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=tPe(__agent.id,ut)||__hadForegroundAgent;return Ao.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{zC.of(Mt).stopRunning(),M()},0):(zC.of(Mt).stopRunning(),M()),!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux hands foreground agents off before parent cancellation"
+assert_contains = '''__hadForegroundAgent=tPe(__agent.id,ut)||__hadForegroundAgent;return Ao.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{zC.of(Mt).stopRunning(),M()},0):(zC.of(Mt).stopRunning(),M()),!0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux no longer aborts foreground agents immediately"
+assert_not_contains = '''if(Se!==void 0&&!Se.aborted||we||Ce&&qr)return Ao.current=Date.now(),i("tengu_cancel",fr),zC.of(Mt).stopRunning(),M(),!0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux does not carry the stale 2.1.246 handoff helper"
+assert_not_contains = '''Ki(ee,y,{session:v,source:"user",storageV5:_})'''
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale = """
+Keep global Ctrl+C on the cancel-only path so it does not stop unrelated
+background agents. The 2.1.281 callback already accepts
+`suppressBackgroundAgentKill`, and chat cancellation and teammate-view
+interrupts set it. The global app:interrupt path omits the flag; set it on that
+call only. The explicit chat:killAgents binding remains the deliberate
+background-agent stop control.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_pattern = '''if(!qo({gesture:"ctrl_c"}))return!1'''
+locator_kind = "literal"
+expected_matches = 1
+replacement = '''if(!qo({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 global interrupt uses cancel-only mode"
+assert_contains = '''if(!qo({gesture:"ctrl_c",suppressBackgroundAgentKill:!0}))return!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 global interrupt no longer uses the default kill-enabled mode"
+assert_not_contains = '''if(!qo({gesture:"ctrl_c"}))return!1'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 global interrupt does not carry stale 2.1.246 symbols"
+assert_not_contains = '''if(!Ee({gesture:"ctrl_c"}))return!1},[de,y,C,v,b,_,Le,K,G,X,Ee]'''

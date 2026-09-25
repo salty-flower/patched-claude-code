@@ -8,7 +8,7 @@ Group the FileRead result render patches that preserve path context across every
 [[patches]]
 name = "read-result-path-context"
 target_version = "2.1.263"
-applies_to = ">=2.1.133 <2.2.0"
+applies_to = ">=2.1.133 <2.1.281"
 
 rationale = """
 Make the Read tool result renderer aware of the input path.
@@ -35,6 +35,37 @@ code = '''let P=arguments[2]?.input?.file_path,Z=P?` \xB7 ${String(P).split(/[\\
 kind = "static"
 name = "replacement is rendered"
 assert_contains = '''arguments[2]?.input?.file_path'''
+
+[[patches]]
+name = "read-result-path-context-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.2.0"
+
+rationale = """
+This is the 2.1.281 Read result renderer variant. Its single argument is the
+result object, whose file path is available at `file.filePath`.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L77-L143"
+
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", string_literal = "Read image (" }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''let P=arguments[0]?.file?.filePath,Z=P?` \xB7 ${String(P).split(/[\\/]/).pop()||String(P)}`:"";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 result path comes from the current renderer argument"
+assert_contains = '''arguments[0]?.file?.filePath'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 context injection drops the stale input argument"
+assert_not_contains = '''arguments[2]?.input?.file_path'''
 
 [[patches]]
 name = "read-result-path-image"
@@ -3607,3 +3638,167 @@ assert_contains = '''children:e.source==="seeded"?[`Already in context (${Wr(at(
 kind = "static"
 name = "2.1.246 unchanged result no longer has the unpatched row"
 assert_not_contains = '''children:e.source==="seeded"?`Already in context (${Wr(at(C5(e.file.filePath)))})`:"Unchanged since last read"'''
+
+[[patches]]
+name = "read-result-path-image-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+locator_kind = "literal"
+locator_pattern = '''children:["Read image (",s,")"]'''
+expected_matches = 1
+replacement = '''children:["Read image (",s,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 image result includes its path"
+assert_contains = '''children:["Read image (",s,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 image result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:["Read image (",n,")",Z]'''
+
+[[patches]]
+name = "read-result-path-pdf-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
+locator_kind = "literal"
+locator_pattern = '''children:["Read PDF (",s,")"]'''
+expected_matches = 1
+replacement = '''children:["Read PDF (",s,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 PDF result includes its path"
+assert_contains = '''children:["Read PDF (",s,")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 PDF result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:["Read PDF (",n,")",Z]'''
+
+[[patches]]
+name = "read-result-path-notebook-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+locator_kind = "literal"
+locator_pattern = '''children:["Read ",e(n,{bold:!0,children:t.length})," cells"]'''
+expected_matches = 1
+replacement = '''children:["Read ",e(n,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 notebook result includes its path"
+assert_contains = '''children:["Read ",e(n,{bold:!0,children:t.length})," cells",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 notebook result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:["Read ",o(t,{bold:!0,children:r.length})," cells",Z]'''
+
+[[patches]]
+name = "read-result-path-parts-2-1-281-darwin"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "literal"
+locator_pattern = '''children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Mt(o.file.originalSize),")"]'''
+expected_matches = 1
+replacement = '''children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Mt(o.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin parts result includes its path"
+assert_contains = '''children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Mt(o.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin parts result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:["Read ",o(t,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",co(e.file.originalSize),")",Z]'''
+
+[[patches]]
+name = "read-result-path-parts-2-1-281-linux"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "literal"
+locator_pattern = '''children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Lt(o.file.originalSize),")"]'''
+expected_matches = 1
+replacement = '''children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Lt(o.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux parts result includes its path"
+assert_contains = '''children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Lt(o.file.originalSize),")",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux parts result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:["Read ",o(t,{bold:!0,children:e.file.count})," ",e.file.count===1?"page":"pages"," (",co(e.file.originalSize),")",Z]'''
+
+[[patches]]
+name = "read-result-path-text-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+locator_kind = "literal"
+locator_pattern = '''children:["Read ",e(n,{bold:!0,children:t})," ",t===1?"line":"lines"]'''
+expected_matches = 1
+replacement = '''children:["Read ",e(n,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 text result includes its path"
+assert_contains = '''children:["Read ",e(n,{bold:!0,children:t})," ",t===1?"line":"lines",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 text result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:["Read ",o(t,{bold:!0,children:r})," ",r===1?"line":"lines",Z]'''
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-281-darwin"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "literal"
+locator_pattern = '''children:o.source==="seeded"?`Already in context (${Rs(Na(g(o.file.filePath)))})`:"Unchanged since last read"'''
+expected_matches = 1
+replacement = '''children:o.source==="seeded"?[`Already in context (${Rs(Na(g(o.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin unchanged result includes its path"
+assert_contains = '''children:o.source==="seeded"?[`Already in context (${Rs(Na(g(o.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin unchanged result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${Wr(at(C5(e.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-281-linux"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "literal"
+locator_pattern = '''children:o.source==="seeded"?`Already in context (${Rs(La(g(o.file.filePath)))})`:"Unchanged since last read"'''
+expected_matches = 1
+replacement = '''children:o.source==="seeded"?[`Already in context (${Rs(La(g(o.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux unchanged result includes its path"
+assert_contains = '''children:o.source==="seeded"?[`Already in context (${Rs(La(g(o.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux unchanged result drops the stale 2.1.246 symbol"
+assert_not_contains = '''children:e.source==="seeded"?[`Already in context (${Wr(at(C5(e.file.filePath)))})`,Z]:["Unchanged since last read",Z]'''

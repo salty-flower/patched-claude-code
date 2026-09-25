@@ -1,5 +1,5 @@
 name = "per-model-endpoint"
-target_version = "2.1.263"
+target_version = "2.1.281"
 applies_to = ">=2.1.168 <2.2.0"
 
 rationale = """
@@ -2676,7 +2676,7 @@ assert_not_contains = '''timeout:c??600000,...(Vb?{defaultBaseURL:Vb}:{})'''
 [[patches]]
 name = "inject-per-model-into-beta-create-2-1-258"
 target_version = "2.1.263"
-applies_to = ">=2.1.258 <2.1.274"
+applies_to = ">=2.1.258 <2.1.281"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
 rationale = "Re-anchored to the 2.1.258 `Te.create` request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `o` is the normalized request body, `a` the timeout, `n` and `s` the beta and user-profile locals, `i` the helper-header object, `t` the request options, and `r` the stream options."
 locator_kind = "literal"
@@ -2710,7 +2710,7 @@ assert_contains = '''ANTHROPIC_MODEL_API_KEY_'''
 [[patches]]
 name = "inject-per-model-into-nonbeta-create-2-1-258"
 target_version = "2.1.263"
-applies_to = ">=2.1.258 <2.1.274"
+applies_to = ">=2.1.258 <2.1.281"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
 rationale = "Re-anchored to the 2.1.258 `Te.create` request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `n` is the normalized request body, `s` the timeout, `r` the user-profile local, `o` the helper-header object, `t` the request options, and `e` the stream options."
 locator_kind = "literal"
@@ -2744,7 +2744,7 @@ assert_contains = '''ANTHROPIC_MODEL_AUTH_TOKEN_'''
 [[patches]]
 name = "inject-per-model-into-beta-count-tokens-2-1-258"
 target_version = "2.1.263"
-applies_to = ">=2.1.258 <2.1.274"
+applies_to = ">=2.1.258 <2.1.281"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
 rationale = "Re-anchored to the 2.1.258 `Te.countTokens` beta request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `r` is the normalized input, `n` the betas local, `s` the user-profile local, `o` the request body, and `t` the request options."
 locator_kind = "literal"
@@ -2778,7 +2778,7 @@ assert_contains = '''ANTHROPIC_MODEL_BASE_URL_'''
 [[patches]]
 name = "inject-per-model-into-nonbeta-count-tokens-2-1-258"
 target_version = "2.1.263"
-applies_to = ">=2.1.258 <2.1.274"
+applies_to = ">=2.1.258 <2.1.281"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
 rationale = "Re-anchored to the 2.1.258 `Te.countTokens` non-beta request builder, identical in the Darwin and Linux graphs. Its enclosing scope proves `r` is the user-profile local, `n` the normalized request body, and `t` the request options."
 locator_kind = "literal"
@@ -2793,3 +2793,87 @@ assert_contains = '''body:n,...(Vb?{defaultBaseURL:Vb}:{})'''
 kind = "static"
 name = "2.1.258 non-beta count tokens drops stale symbols"
 assert_not_contains = '''body:s,...(Vb?{defaultBaseURL:Vb}:{})'''
+
+[[patches]]
+name = "inject-per-model-into-beta-create-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+rationale = "Re-anchor per-model routing to the 2.1.281 SDK beta create request. The Darwin and Linux graph methods both use `i` for the normalized request body, `c` for timeout, `r` for request options, `a` for helper headers, and `u` for header merging; `i.model` supplies the model ID."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages?beta=true",{body:i,timeout:c??600000,...r,headers:u([{...s?.toString()!=null?{"anthropic-beta":s?.toString()}:void 0,...o!=null?{"anthropic-user-profile-id":o}:void 0},a,r?.headers]),stream:n.stream??!1})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages?beta=true",{body:i,timeout:c??600000,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u([{...s?.toString()!=null?{"anthropic-beta":s?.toString()}:void 0,...o!=null?{"anthropic-user-profile-id":o}:void 0},a,r?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])]),stream:n.stream??!1})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 beta create uses current body and header symbols"
+assert_contains = '''body:i,timeout:c??600000,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u('''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 beta create drops stale symbols"
+assert_not_contains = '''return this._client.post("/v1/messages?beta=true",{body:o,timeout:a??600000,...t,headers:c([{...n?.toString()!=null?{"anthropic-beta":n?.toString()}:void 0,...s!=null?{"anthropic-user-profile-id":s}:void 0},i,t?.headers]),stream:r.stream??!1})'''
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-create-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+rationale = "Re-anchor per-model routing to the 2.1.281 SDK non-beta create request. The Darwin and Linux graph methods both use `s` for the normalized request body, `o` for timeout, `r` for request options, `i` for helper headers, and `u` for header merging; `s.model` supplies the model ID."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages",{body:s,timeout:o??600000,...r,headers:u([{...n!=null?{"anthropic-user-profile-id":n}:void 0},i,r?.headers]),stream:e.stream??!1})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+s.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+s.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+s.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages",{body:s,timeout:o??600000,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u([{...n!=null?{"anthropic-user-profile-id":n}:void 0},i,r?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 non-beta create uses current body and header symbols"
+assert_contains = '''body:s,timeout:o??600000,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u('''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 non-beta create drops stale symbols"
+assert_not_contains = '''return this._client.post("/v1/messages",{body:n,timeout:s??600000,...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},o,t?.headers]),stream:e.stream??!1})'''
+
+[[patches]]
+name = "inject-per-model-into-beta-count-tokens-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
+rationale = "Re-anchor per-model routing to the 2.1.281 SDK beta countTokens request. The Darwin and Linux graph methods use `i` for the normalized request body, `s` for betas, `o` for user profile, `r` for request options, and `u` for header merging; `i.model` supplies the model ID."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens?beta=true",{body:i,...r,headers:u([{"anthropic-beta":[...s??[],"token-counting-2024-11-01"].toString(),...o!=null?{"anthropic-user-profile-id":o}:void 0},r?.headers])})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+i.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens?beta=true",{body:i,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u([{"anthropic-beta":[...s??[],"token-counting-2024-11-01"].toString(),...o!=null?{"anthropic-user-profile-id":o}:void 0},r?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 beta countTokens uses current body and header symbols"
+assert_contains = '''body:i,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u([{"anthropic-beta":[...s??[]'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 beta countTokens drops stale symbols"
+assert_not_contains = '''return this._client.post("/v1/messages/count_tokens?beta=true",{body:o,...t,headers:c([{"anthropic-beta":[...n??[],"token-counting-2024-11-01"].toString(),...s!=null?{"anthropic-user-profile-id":s}:void 0},t?.headers])})'''
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-count-tokens-2-1-281"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
+rationale = "Re-anchor per-model routing to the 2.1.281 SDK non-beta countTokens request. The Darwin and Linux graph methods use `s` for the normalized request body, `n` for user profile, `r` for request options, and `u` for header merging; `s.model` supplies the model ID."
+locator_kind = "literal"
+locator_pattern = '''return this._client.post("/v1/messages/count_tokens",{body:s,...r,headers:u([{...n!=null?{"anthropic-user-profile-id":n}:void 0},r?.headers])})'''
+expected_matches = 1
+replacement = '''let Vb=process.env["ANTHROPIC_MODEL_BASE_URL_"+s.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vk=process.env["ANTHROPIC_MODEL_API_KEY_"+s.model?.replace(/[^a-zA-Z0-9]/g,"_")],Vt=process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+s.model?.replace(/[^a-zA-Z0-9]/g,"_")];return this._client.post("/v1/messages/count_tokens",{body:s,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u([{...n!=null?{"anthropic-user-profile-id":n}:void 0},r?.headers,...(Vk?[{"x-api-key":Vk}]:[]),...(Vt?[{Authorization:"Bearer "+Vt}]:[])])})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 non-beta countTokens uses current body and header symbols"
+assert_contains = '''body:s,...(Vb?{defaultBaseURL:Vb}:{}),...r,headers:u([{...n!=null?{"anthropic-user-profile-id":n}:void 0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 non-beta countTokens drops stale symbols"
+assert_not_contains = '''return this._client.post("/v1/messages/count_tokens",{body:n,...t,headers:c([{...r!=null?{"anthropic-user-profile-id":r}:void 0},t?.headers])})'''

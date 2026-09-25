@@ -157,6 +157,22 @@ test("nested skill maps, imported bindings, and Bun CommonJS text wrappers resol
   })
 })
 
+test("frozen skill export maps are traversed without evaluating them", () => {
+  fixture((root, manifest) => {
+    const source = 'export const SKILL_MD=Object.freeze({draft:load("./SKILL.md.embedded.txt")})'
+    writeFileSync(join(root, "graph/darwin-arm64/skill.js"), source)
+    required(required(manifest.platforms[0]).files[0]).materialized = {
+      encoding: "identity",
+      bytes: Buffer.byteLength(source),
+      sha256: sha256(source).hex,
+    }
+    writeFileSync(join(root, "graph-manifest.json"), JSON.stringify(manifest))
+    const audit = extract(root)
+    expect(audit.gaps).toEqual([])
+    expect(audit.entries.map((entry) => entry.logicalPath)).toEqual(["draft/SKILL_MD.md"])
+  })
+})
+
 test("direct named exports are audited and manifest mappings are hash-bound", () => {
   fixture((root, manifest) => {
     const source = 'export const SKILL_FILES={"scripts/run.mjs":load("./runner.mjs.embedded.txt")}'

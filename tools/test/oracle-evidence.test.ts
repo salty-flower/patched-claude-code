@@ -36,6 +36,12 @@ test("every active Keychain oracle has an explicit runtime callback roster", () 
   }
 })
 
+test("native AGENTS.md loading requires the rendered TUI oracle", () => {
+  const check =
+    "agents-md-tui-smoke.ts: parent, project, and child AGENTS.md markers reach the main conversation in native parent-to-child order with no CLAUDE.md"
+  expect(runtimeOracleChecks(targetVersion())["agent-memory-discovery/agents-md-native-hook-load"]).toEqual([check])
+})
+
 function first<T>(values: T[]): T {
   const value = values[0]
   if (value === undefined) throw new Error("missing fixture value")
@@ -192,7 +198,7 @@ test("a passing sibling cannot hide a missing required callback", () => {
   expect(collectOracleEvidence(options).oracleResults[0]?.outcome).toBe("skipped")
 })
 
-test("equivalence needs its own observation; retirement needs no evidence", () => {
+test("unfiltered collector reports equivalence as unobserved; retirement emits none", () => {
   const options = fixture()
   first(options.ledger.decisions).disposition = "upstream_equivalent"
   expect(collectOracleEvidence(options).oracleResults[0]?.outcome).toBe("skipped")

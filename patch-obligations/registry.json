@@ -4,6 +4,23 @@
   "obligations": [
     {
       "familyId": "agent-memory-discovery",
+      "invariantId": "agents-md-native-hook-load",
+      "introducedVersion": "2.1.281",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/claudemd.ts#L616-L665",
+        "docs/records/2026-09-24-2.1.281-target-bump.md#Verification"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "real-os-runtime",
+      "oracleIds": [
+        "agent-memory-discovery/agents-md-native-hook-load"
+      ]
+    },
+    {
+      "familyId": "agent-memory-discovery",
       "invariantId": "agents-memory-additional-directories",
       "introducedVersion": "2.1.133",
       "rationaleRefs": [
@@ -1112,6 +1129,152 @@
       "evidenceClass": "static",
       "oracleIds": [
         "mcp-result-rendering/mcp-result-render-text-block-full"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "inline-echo",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "model-effort-ui/inline-echo"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "model-echo",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68",
+        "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "model-effort-ui/model-echo"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "model-effort-current",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "model-effort-ui/model-effort-current"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "model-import",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/model/model.tsx#L1-L30",
+        "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "model-effort-ui/model-import"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "slider-guard",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "model-effort-ui/slider-guard"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "slider-import",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "static",
+      "oracleIds": [
+        "model-effort-ui/slider-import"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "slider-initial",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "model-effort-ui/slider-initial"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "slider-scope",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "model-effort-ui/slider-scope"
+      ]
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "slider-workflow",
+      "introducedVersion": "2.1.266",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "model-effort-ui/slider-workflow"
       ]
     },
     {
@@ -2372,7 +2535,7 @@
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "salty-flower",
-    "approvedAt": "2026-09-17",
-    "catalogSha256": "a9713d96f449b0a8eb0412d396309069cf0e7761f209c5bc1ff5573ac295621c"
+    "approvedAt": "2026-09-25",
+    "catalogSha256": "315a0b12184a715a6b1d0115fe4f716815db0ac7601cf361f7d9739fb3fce093"
   }
 }

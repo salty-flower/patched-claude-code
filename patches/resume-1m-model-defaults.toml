@@ -1566,3 +1566,47 @@ assert_not_contains = '''o&&S(ee(y(o)))===S(a)'''
 kind = "static"
 name = "2.1.246 resume does not normalize a nullable current override"
 assert_not_contains = '''ee(o??ct())'''
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-281-darwin"
+rationale = "Resolve the absent resume model through the 2.1.281 current-model resolver before checking aliases and the 1M suffix. The resume module already imports sh; it resolves the explicit, environment, or persisted model default, and may return undefined, so the replacement guards before passing it to Ct."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+locator_kind = "literal"
+locator_pattern = '''let r=new Set(vCo.map((d)=>je(d))),n=o?Ct(o):void 0,s=n?Jn(n):void 0;'''
+expected_matches = 1
+replacement = '''let r=new Set(vCo.map((d)=>je(d))),n0=o??sh(),n=n0?Ct(n0):void 0,s=n?Jn(n):void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin resume resolves an absent initial model"
+assert_contains = '''n0=o??sh(),n=n0?Ct(n0):void 0,s=n?Jn(n):void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin removes the raw-setting-only resume resolver"
+assert_not_contains = '''n=o?Ct(o):void 0,s=n?Jn(n):void 0'''
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-281-linux"
+rationale = "Resolve the absent resume model through the 2.1.281 current-model resolver before checking aliases and the 1M suffix. The resume module already imports oh; it resolves the explicit, environment, or persisted model default, and may return undefined, so the replacement guards before passing it to kt."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+locator_kind = "literal"
+locator_pattern = '''let r=new Set($Eo.map((d)=>je(d))),n=o?kt(o):void 0,s=n?Xn(n):void 0;'''
+expected_matches = 1
+replacement = '''let r=new Set($Eo.map((d)=>je(d))),n0=o??oh(),n=n0?kt(n0):void 0,s=n?Xn(n):void 0;'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux resume resolves an absent initial model"
+assert_contains = '''n0=o??oh(),n=n0?kt(n0):void 0,s=n?Xn(n):void 0'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux removes the raw-setting-only resume resolver"
+assert_not_contains = '''n=o?kt(o):void 0,s=n?Xn(n):void 0'''

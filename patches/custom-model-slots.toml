@@ -2275,3 +2275,119 @@ assert_contains = '''if(r===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())
 kind = "static"
 name = "2.1.273 prevalidation no longer carries 2.1.267 symbols"
 assert_not_contains = '''if(o===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+
+[[patches]]
+name = "recognize-second-custom-model-option-2-1-281-darwin"
+lineage = "recognize-second-custom-model-option"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = "Read the repo-defined second slot directly from process.env. In 2.1.281 the Darwin recognition predicate is xt(e), trims to n, and recognizes slot one through yUn(n); retire when upstream registers the second slot."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(yUn(n))return{recognized:!0};''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin second custom model is recognized"
+assert_contains = '''if(yUn(n))return{recognized:!0};if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+assert_not_contains = '''if(Bpn(n))return{recognized:!0};'''
+
+[[patches]]
+name = "recognize-second-custom-model-option-2-1-281-linux"
+lineage = "recognize-second-custom-model-option"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = "Read the repo-defined second slot directly from process.env. In 2.1.281 the Linux recognition predicate is xt(e), trims to n, and recognizes slot one through JUn(n); retire when upstream registers the second slot."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(JUn(n))return{recognized:!0};''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux second custom model is recognized"
+assert_contains = '''if(JUn(n))return{recognized:!0};if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};'''
+assert_not_contains = '''if(vpn(n))return{recognized:!0};'''
+
+[[patches]]
+name = "validate-second-custom-model-option-without-probe-2-1-281"
+lineage = "validate-second-custom-model-option-without-probe"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+rationale = "Read the repo-defined second slot directly from process.env. In 2.1.281 the first-party prevalidation gate still receives the model as n and returns valid before the server probe; retire when upstream registers the second slot."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(n===a.ANTHROPIC_CUSTOM_MODEL_OPTION)return{valid:!0};''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 second custom model is prevalidated"
+assert_contains = '''if(n===a.ANTHROPIC_CUSTOM_MODEL_OPTION)return{valid:!0};if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+assert_not_contains = '''if(r===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-281-darwin"
+lineage = "append-second-custom-model-option"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = "Wrap the 2.1.281 Darwin slot-one row, preserving alias-aware duplicate suppression and adding the unregistered second slot. The row bindings are s and g, callback D, and label helper Tit."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(g&&!s.some((D)=>D.value===g))s.push({value:g,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??Tit(g)??g,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${g})`,sessionTail:!0});''' }
+[patches.ast.captures.rows]
+kind = "identifier"
+path = "consequent.expression.callee.object"
+[patches.ast.captures.slot]
+kind = "identifier"
+path = "test.left"
+[patches.transform]
+op = "wrap_expression"
+template = '''{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!__acc_dup(%%CAPTURE:rows%%,__acc_custom_model_2))%%CAPTURE:rows%%.push({value:__acc_custom_model_2,label:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin picker inserts second custom slot"
+assert_contains = '''if(!__acc_dup(s,g)){if(g&&!s.some((D)=>D.value===g))s.push({value:g,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??Tit(g)??g'''
+assert_not_contains = '''ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??HKe(d)??d'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-281-linux"
+lineage = "append-second-custom-model-option"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = "Wrap the 2.1.281 Linux slot-one row, preserving alias-aware duplicate suppression and adding the unregistered second slot. The row bindings are s and g, callback D, and label helper git."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(g&&!s.some((D)=>D.value===g))s.push({value:g,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??git(g)??g,description:a.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${g})`,sessionTail:!0});''' }
+[patches.ast.captures.rows]
+kind = "identifier"
+path = "consequent.expression.callee.object"
+[patches.ast.captures.slot]
+kind = "identifier"
+path = "test.left"
+[patches.transform]
+op = "wrap_expression"
+template = '''{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!__acc_dup(%%CAPTURE:rows%%,__acc_custom_model_2))%%CAPTURE:rows%%.push({value:__acc_custom_model_2,label:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux picker inserts second custom slot"
+assert_contains = '''if(!__acc_dup(s,g)){if(g&&!s.some((D)=>D.value===g))s.push({value:g,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??git(g)??g'''
+assert_not_contains = '''ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??_6e(d)??d'''

@@ -5,7 +5,7 @@ import { applyAstTransformPatches } from "../lib/ast-transform-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 
-type Row = { value: string; label?: string; description?: string }
+type Row = { value: string; label?: string; description?: string; sessionTail?: boolean }
 type Environment = Record<string, string | undefined>
 const entries = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches/custom-model-slots.toml"))
 const pickerPatches = entries.filter((entry) => entry.name.startsWith("append-second-custom-model-option"))
@@ -67,9 +67,17 @@ for (const patch of pickerPatches) {
         ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME: "Second slot",
         ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION: "Second description",
       })
+      const firstSlot: Row = {
+        value: "provider/one",
+        label: "First slot",
+        description: "Custom model (provider/one)",
+      }
+      if (typeof patch.ast?.match.source === "string" && patch.ast.match.source.includes("sessionTail:!0")) {
+        firstSlot.sessionTail = true
+      }
       expect(result).toEqual([
         { value: "default" },
-        { value: "provider/one", label: "First slot", description: "Custom model (provider/one)" },
+        firstSlot,
         { value: "provider/two", label: "Second slot", description: "Second description" },
       ])
     })
@@ -148,16 +156,25 @@ for (const patch of pickerPatches) {
 for (const patch of entries.filter((entry) => /^(recognize|validate)-second-custom-model-option/.test(entry.name))) {
   test(`${patch.name}: slot 2 is preconfigured without a namespace getter`, () => {
     if (!patch.ast || !patch.transform) throw new Error(`${patch.name}: missing AST transform`)
+    const candidateFromTransform =
+      "code" in patch.transform ? patch.transform.code.match(/if\(([\w$]+)===process\.env\./)?.[1] : undefined
     const source =
       typeof patch.ast.match.source === "string"
         ? patch.ast.match.source
-        : `if(firstModel(${patch.name.endsWith("2-1-263") ? "t" : "n"}))return{recognized:!0};`
-    const candidate = source.match(/if\(([\w$]+)===/)?.[1] ?? source.match(/firstModel\(([\w$]+)\)/)?.[1]
+        : `if(firstModel(${candidateFromTransform ?? "n"}))return{recognized:!0};`
+    if (
+      typeof patch.ast.match.source_regex === "string" &&
+      !new RegExp(patch.ast.match.source_regex).test(source)
+    ) {
+      throw new Error(`${patch.name}: synthetic source does not satisfy its AST source regex`)
+    }
+    const recognition = source.match(/if\(([\w$]+)\(([\w$]+)\)\)return/)
+    const candidate = source.match(/if\(([\w$]+)===/)?.[1] ?? recognition?.[2]
     const namespace = source.match(/===([\w$]+)\.ANTHROPIC_CUSTOM_MODEL_OPTION/)?.[1]
     if (!candidate) throw new Error(`${patch.name}: unsupported fixture binding`)
     const declarations = namespace
       ? `const ${namespace}=Object.freeze({ANTHROPIC_CUSTOM_MODEL_OPTION:"provider/first"});`
-      : 'const firstModel=(model)=>model==="provider/first";'
+      : "const " + (recognition?.[1] ?? "firstModel") + '=(model)=>model==="provider/first";'
     const fixture = `function fixture(${candidate}){${declarations}${source}return false}`
     const transformed = applyAstTransformPatches(fixture, [
       {

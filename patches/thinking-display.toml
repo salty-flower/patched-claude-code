@@ -6596,7 +6596,7 @@ assert_not_contains = '''estimatedTokensDelta:$vn(w)'''
 name = "thinking-render-live-output-2-1-273-darwin"
 lineage = "thinking-render-live-output"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.273 Darwin live-output wrapper is iY. Its focused main turn is lQ, and Me already selects F9t from that turn's stream for streaming tool uses. Select streamingThinking through the same graph-local subscription seam."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -6623,7 +6623,7 @@ assert_not_contains = '''__acc_streamingThinking=Le((_nt?zz:null)?.stream,(T)=>T
 name = "thinking-render-live-output-2-1-273-linux"
 lineage = "thinking-render-live-output"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["linux-x64"]
 rationale = "The 2.1.273 Linux live-output wrapper is Q9. Its focused main turn is iQ, and Le already selects O9t from that turn's stream for streaming tool uses. Select streamingThinking through the same graph-local subscription seam."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -6650,7 +6650,7 @@ assert_not_contains = '''__acc_streamingThinking=De((Tnt?R2:null)?.stream,(T)=>T
 name = "thinking-render-live-row-cache-allocation-2-1-273-darwin"
 lineage = "thinking-render-live-row-cache-allocation"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.273 Darwin live-output wrapper iY allocates 38 compiler-memo slots in graph-local array ZH. Allocate slot 38 for the added live-thinking wrapper output."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -6673,7 +6673,7 @@ assert_not_contains = '''function oK(wnt){let Pj=_(39),'''
 name = "thinking-render-live-row-cache-allocation-2-1-273-linux"
 lineage = "thinking-render-live-row-cache-allocation"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["linux-x64"]
 rationale = "The 2.1.273 Linux live-output wrapper Q9 allocates 38 compiler-memo slots in graph-local array lj. Allocate slot 38 for the added live-thinking wrapper output."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -6696,7 +6696,7 @@ assert_not_contains = '''function Y6(wnt){let sj=_(39),'''
 name = "thinking-render-live-row-2-1-273-darwin"
 lineage = "thinking-render-live-row"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.273 Darwin wrapper iY memoizes its final fragment in ZH[37]. The same graph scope renders that fragment with r(U, ...), elements with e(...), and Ink text with n; extend the fragment with streamed thinking and move the result to the newly allocated ZH[38]."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -6723,7 +6723,7 @@ assert_not_contains = '''let o8t;if(Pj[34]!==Fke||Pj[35]!==Uke||Pj[36]!==Hke||Pj
 name = "thinking-render-live-row-2-1-273-linux"
 lineage = "thinking-render-live-row"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["linux-x64"]
 rationale = "The 2.1.273 Linux wrapper Q9 memoizes its final fragment in lj[37]. The same graph scope renders that fragment with r(U, ...), elements with e(...), and Ink text with n; extend the fragment with streamed thinking and move the result to the newly allocated lj[38]."
 rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
@@ -6750,7 +6750,7 @@ assert_not_contains = '''let o8t;if(sj[34]!==Lke||sj[35]!==Fke||sj[36]!==Bke||sj
 name = "thinking-render-live-delta-2-1-273-darwin"
 lineage = "thinking-render-live-delta"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["darwin-arm64"]
 rationale = "The 2.1.273 Darwin stream handler iwt retains its options object as n and the current delta as fe. Update n.onStreamingThinking before preserving both the estimated-token path and the graph-local FBn fallback estimator."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -6782,7 +6782,7 @@ assert_not_contains = '''estimatedTokensDelta:vTn(w)'''
 name = "thinking-render-live-delta-2-1-273-linux"
 lineage = "thinking-render-live-delta"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["linux-x64"]
 rationale = "The 2.1.273 Linux stream handler awt retains its options object as n and the current delta as fe. Update n.onStreamingThinking before preserving both the estimated-token path and the graph-local pBn fallback estimator."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
@@ -6808,3 +6808,241 @@ assert_contains = '''else if(w.length>0)d?.({type:"thinking_progress",estimatedT
 kind = "static"
 name = "2.1.273 Linux thinking deltas no longer carry 2.1.268 symbols"
 assert_not_contains = '''estimatedTokensDelta:QAn(w)'''
+
+
+[[patches]]
+name = "thinking-render-live-output-2-1-281-darwin"
+lineage = "thinking-render-live-output"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.281 Darwin live message wrapper mX reads streaming tool uses from the active turn stream. Subscribe to its streamingThinking snapshot so the streamed thinking row can render alongside the live transcript."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "mX", strings = ["streamingToolUses", "hidePlaceholder"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''C=xe((b?h:null)?.stream,ek)??ra,E=v?h:null,'''
+value = '''C=xe((b?h:null)?.stream,ek)??ra,__acc_streamingThinking=xe((b?h:null)?.stream,(T)=>T.streamingThinking),E=v?h:null,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin live output subscribes to the stream thinking snapshot"
+assert_contains = '''__acc_streamingThinking=xe((b?h:null)?.stream,(T)=>T.streamingThinking)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin live output does not retain the 2.1.273 selector symbols"
+assert_not_contains = '''__acc_streamingThinking=Me((Nrt?lQ:null)?.stream,(T)=>T.streamingThinking)'''
+
+
+[[patches]]
+name = "thinking-render-live-output-2-1-281-linux"
+lineage = "thinking-render-live-output"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = "The 2.1.281 Linux live message wrapper oX reads streaming tool uses from the active turn stream. Subscribe to its streamingThinking snapshot so the streamed thinking row can render alongside the live transcript."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oX", strings = ["streamingToolUses", "hidePlaceholder"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''C=xe((S?h:null)?.stream,ZM)??ra,L=v?h:null,'''
+value = '''C=xe((S?h:null)?.stream,ZM)??ra,__acc_streamingThinking=xe((S?h:null)?.stream,(T)=>T.streamingThinking),L=v?h:null,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux live output subscribes to the stream thinking snapshot"
+assert_contains = '''__acc_streamingThinking=xe((S?h:null)?.stream,(T)=>T.streamingThinking)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux live output does not retain the 2.1.273 selector symbols"
+assert_not_contains = '''__acc_streamingThinking=Le((Irt?iQ:null)?.stream,(T)=>T.streamingThinking)'''
+
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-281-darwin"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.281 Darwin live message wrapper mX uses memo slots through index 42. Allocate one additional slot for the rendered row after repurposing index 42 for the streamed thinking snapshot."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = '''function mX(o){let l=w(43),'''
+replacement = '''function mX(o){let l=w(44),'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin live row allocates its thinking cache slots"
+assert_contains = '''function mX(o){let l=w(44),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin live row no longer uses the 2.1.273 cache slots"
+assert_not_contains = '''function iY(Irt){let ZH=b(39),'''
+
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-281-linux"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = "The 2.1.281 Linux live message wrapper oX uses memo slots through index 42. Allocate one additional slot for the rendered row after repurposing index 42 for the streamed thinking snapshot."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = '''function oX(o){let l=w(43),'''
+replacement = '''function oX(o){let l=w(44),'''
+expected_matches = 1
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux live row allocates its thinking cache slots"
+assert_contains = '''function oX(o){let l=w(44),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux live row no longer uses the 2.1.273 cache slots"
+assert_not_contains = '''function Q9(Mrt){let lj=S(39),'''
+
+
+[[patches]]
+name = "thinking-render-live-row-2-1-281-darwin"
+lineage = "thinking-render-live-row"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.281 Darwin live message wrapper mX memoizes the provider children at slot 42. Include streamed thinking in that row and cache both its snapshot and rendered element in the newly allocated slots."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "mX", strings = ["streamingToolUses", "hidePlaceholder"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let qe;if(l[38]!==ae||l[39]!==et||l[40]!==Fe||l[41]!==ge)qe=r(Vpt.Provider,{value:ge,children:[ae,et,Fe]}),l[38]=ae,l[39]=et,l[40]=Fe,l[41]=ge,l[42]=qe;else qe=l[42];return qe'''
+value = '''let qe;if(l[38]!==ae||l[39]!==et||l[40]!==Fe||l[41]!==ge||l[43]!==__acc_streamingThinking)qe=r(Vpt.Provider,{value:ge,children:[ae,et,Fe,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),l[38]=ae,l[39]=et,l[40]=Fe,l[41]=ge,l[42]=__acc_streamingThinking,l[43]=qe;else qe=l[43];return qe'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin live row renders streamed thinking"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin live row no longer carries 2.1.273 memo symbols"
+assert_not_contains = '''ZH[34]!==ive||ZH[35]!==sve||ZH[36]!==ave'''
+
+
+[[patches]]
+name = "thinking-render-live-row-2-1-281-linux"
+lineage = "thinking-render-live-row"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = "The 2.1.281 Linux live message wrapper oX memoizes the provider children at slot 42. Include streamed thinking in that row and cache both its snapshot and rendered element in the newly allocated slots."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "oX", strings = ["streamingToolUses", "hidePlaceholder"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''let Ye;if(l[38]!==ae||l[39]!==et||l[40]!==Fe||l[41]!==ge)Ye=r(Opt.Provider,{value:ge,children:[ae,et,Fe]}),l[38]=ae,l[39]=et,l[40]=Fe,l[41]=ge,l[42]=Ye;else Ye=l[42];return Ye'''
+value = '''let Ye;if(l[38]!==ae||l[39]!==et||l[40]!==Fe||l[41]!==ge||l[43]!==__acc_streamingThinking)Ye=r(Opt.Provider,{value:ge,children:[ae,et,Fe,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),l[38]=ae,l[39]=et,l[40]=Fe,l[41]=ge,l[42]=__acc_streamingThinking,l[43]=Ye;else Ye=l[43];return Ye'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux live row renders streamed thinking"
+assert_contains = '''__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux live row no longer carries 2.1.273 memo symbols"
+assert_not_contains = '''lj[34]!==Vwe||lj[35]!==Gwe||lj[36]!==Kwe'''
+
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-281-darwin"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = "The 2.1.281 Darwin stream handler Gcr reports thinking deltas as token progress but does not update the existing streamingThinking store. Append each thinking delta while preserving the target's Wcr fallback estimator."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Gcr", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:ge}=e.event;if("estimated_tokens"in ge&&typeof ge.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:ge.estimated_tokens});else if("thinking"in ge&&typeof ge.thinking==="string"&&ge.thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:Wcr(ge.thinking)});return}'''
+value = '''case"thinking_delta":{let{delta:ge}=e.event,thinking=typeof ge.thinking==="string"?ge.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in ge&&typeof ge.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:ge.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:Wcr(thinking)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin thinking deltas update live state"
+assert_contains = '''if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin thinking deltas preserve the current fallback estimator"
+assert_contains = '''else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:Wcr(thinking)})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin thinking deltas no longer carry 2.1.273 fallback symbols"
+assert_not_contains = '''estimatedTokensDelta:FBn(fe.thinking)'''
+
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-281-linux"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = "The 2.1.281 Linux stream handler bcr reports thinking deltas as token progress but does not update the existing streamingThinking store. Append each thinking delta while preserving the target's _cr fallback estimator."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "bcr", strings = ["authoringProgressSurface", "thinking_delta", "onStreamingText"] }
+
+[patches.transform]
+op = "replace_substring"
+find = '''case"thinking_delta":{let{delta:ge}=e.event;if("estimated_tokens"in ge&&typeof ge.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:ge.estimated_tokens});else if("thinking"in ge&&typeof ge.thinking==="string"&&ge.thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:_cr(ge.thinking)});return}'''
+value = '''case"thinking_delta":{let{delta:ge}=e.event,thinking=typeof ge.thinking==="string"?ge.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in ge&&typeof ge.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:ge.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:_cr(thinking)});return}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux thinking deltas update live state"
+assert_contains = '''if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}))'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux thinking deltas preserve the current fallback estimator"
+assert_contains = '''else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:_cr(thinking)})'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux thinking deltas no longer carry 2.1.273 fallback symbols"
+assert_not_contains = '''estimatedTokensDelta:pBn(fe.thinking)'''

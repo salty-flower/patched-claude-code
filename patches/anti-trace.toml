@@ -2613,3 +2613,200 @@ assert_contains = '''let s=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?rm
 kind = "static"
 name = "2.1.273 Linux served tool text list no longer reads the pinned key unguarded"
 assert_not_contains = '''let s=rm("tengu_lucky_cerf",null);return Array.isArray(s)'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-281-darwin"
+lineage = "require-explicit-assistant-response-otel"
+platforms = ["darwin-arm64"]
+rationale = "Require explicit assistant-response OTel opt-in in the 2.1.281 Darwin module graph. Gate Nso still inherits OTEL_LOG_USER_PROMPTS when OTEL_LOG_ASSISTANT_RESPONSES is unset, so response content remains exposed by an existing prompt-logging opt-in."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function Nso(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function Nso(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin assistant response logging requires explicit opt-in"
+assert_contains = '''function Nso(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin assistant response gate no longer carries 2.1.273 symbols"
+assert_not_contains = '''function V0r(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-281-linux"
+lineage = "require-explicit-assistant-response-otel"
+platforms = ["linux-x64"]
+rationale = "Require explicit assistant-response OTel opt-in in the 2.1.281 Linux module graph. Gate joo still inherits OTEL_LOG_USER_PROMPTS when OTEL_LOG_ASSISTANT_RESPONSES is unset, so response content remains exposed by an existing prompt-logging opt-in."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function joo(){return a.OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS}'''
+replacement = '''function joo(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux assistant response logging requires explicit opt-in"
+assert_contains = '''function joo(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux assistant response gate no longer carries 2.1.273 symbols"
+assert_not_contains = '''function nIr(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-281-darwin"
+lineage = "disable-raw-api-body-otel"
+platforms = ["darwin-arm64"]
+rationale = "Disable raw API body OTel capture in the 2.1.281 Darwin graph. Gate Quo still enables the configured disabled, inline-event, or local-file capture mode, and the release notes describe additional raw-body trace output."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function Quo(){return Lxe().mode!=="disabled"}'''
+replacement = '''function Quo(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin raw API body logging is disabled"
+assert_contains = '''function Quo(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin raw-body gate no longer carries 2.1.273 symbols"
+assert_not_contains = '''function C8n(){return!1}'''
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-281-linux"
+lineage = "disable-raw-api-body-otel"
+platforms = ["linux-x64"]
+rationale = "Disable raw API body OTel capture in the 2.1.281 Linux graph. Gate huo still enables the configured disabled, inline-event, or local-file capture mode, and the release notes describe additional raw-body trace output."
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function huo(){return Jxe().mode!=="disabled"}'''
+replacement = '''function huo(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux raw API body logging is disabled"
+assert_contains = '''function huo(){return!1}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux raw-body gate no longer carries 2.1.273 symbols"
+assert_not_contains = '''function F8n(){return!1}'''
+
+[[patches]]
+name = "neutralize-project-thread-author-marker-2-1-281"
+lineage = "neutralize-project-thread-author-marker"
+rationale = "Keep project-thread author markers neutral in the 2.1.281 Darwin and Linux graphs. Shared helper O still encodes the server's author role and account id into model-visible text, so return the fixed label the user as in the prior port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L1615-L1636"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function O(e){let t=e.author_kind==="owner"?"the project owner":"a member of the project";return ke.test(e.author_id)?`${t} (${e.author_id})`:t}'''
+replacement = '''function O(e){return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 project thread markers use a neutral author label"
+assert_contains = '''function O(e){return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 project thread marker no longer carries 2.1.273 symbols"
+assert_not_contains = '''function x(e){return"the user"}'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-2-1-281-darwin"
+lineage = "require-local-opt-in-for-served-tool-text"
+platforms = ["darwin-arm64"]
+rationale = "Keep served Agent tool text behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in the 2.1.281 Darwin graph. Function x8 reads the free-form tengu_lucky_cerf_text value into the tool description; retain the upstream suppress guard Dq and use imported truthy helper Oe before reading the served value."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function x8(){if(Dq())return dtt;let e=na("tengu_lucky_cerf_text",null);return typeof e==="string"&&e.trim()!==""?e.trim():dtt}'''
+replacement = '''function x8(){if(Dq()||!Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return dtt;let e=na("tengu_lucky_cerf_text",null);return typeof e==="string"&&e.trim()!==""?e.trim():dtt}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin served tool text requires the local opt-in"
+assert_contains = '''function x8(){if(Dq()||!Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return dtt'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin served tool text no longer carries 2.1.273 symbols"
+assert_not_contains = '''function U1e(){if(Z6()||!Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return iJn'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-list-2-1-281-darwin"
+lineage = "require-local-opt-in-for-served-tool-text-list"
+platforms = ["darwin-arm64"]
+rationale = "Keep the served tengu_lucky_cerf model list behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in the 2.1.281 Darwin graph. The list read in F enables the served delegation text; without the local opt-in return null so it cannot enable the remote text."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''let l=na("tengu_lucky_cerf",null);return Array.isArray(l)&&l.some((s)=>typeof s==="string"&&BP(n,s))}'''
+replacement = '''let l=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?na("tengu_lucky_cerf",null):null;return Array.isArray(l)&&l.some((s)=>typeof s==="string"&&BP(n,s))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin served tool text list requires the local opt-in"
+assert_contains = '''let l=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?na("tengu_lucky_cerf",null):null;return Array.isArray(l)&&l.some((s)=>typeof s==="string"&&BP(n,s))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin served tool text list no longer carries 2.1.273 symbols"
+assert_not_contains = '''let s=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?rm("tengu_lucky_cerf",null):null;return Array.isArray(s)&&s.some((d)=>typeof d==="string"&&AP(n,d))}'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-2-1-281-linux"
+lineage = "require-local-opt-in-for-served-tool-text"
+platforms = ["linux-x64"]
+rationale = "Keep served Agent tool text behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in the 2.1.281 Linux graph. Function w8 reads the free-form tengu_lucky_cerf_text value into the tool description; retain the upstream suppress guard E4 and use imported truthy helper Oe before reading the served value."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''function w8(){if(E4())return ftt;let e=na("tengu_lucky_cerf_text",null);return typeof e==="string"&&e.trim()!==""?e.trim():ftt}'''
+replacement = '''function w8(){if(E4()||!Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return ftt;let e=na("tengu_lucky_cerf_text",null);return typeof e==="string"&&e.trim()!==""?e.trim():ftt}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux served tool text requires the local opt-in"
+assert_contains = '''function w8(){if(E4()||!Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return ftt'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux served tool text no longer carries 2.1.273 symbols"
+assert_not_contains = '''function q1e(){if(Gz()||!Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT))return RJn'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-list-2-1-281-linux"
+lineage = "require-local-opt-in-for-served-tool-text-list"
+platforms = ["linux-x64"]
+rationale = "Keep the served tengu_lucky_cerf model list behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in the 2.1.281 Linux graph. The list read in A enables the served delegation text; without the local opt-in return null so it cannot enable the remote text."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+locator_kind = "literal"
+locator_pattern = '''let l=na("tengu_lucky_cerf",null);return Array.isArray(l)&&l.some((s)=>typeof s==="string"&&NI(n,s))}'''
+replacement = '''let l=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?na("tengu_lucky_cerf",null):null;return Array.isArray(l)&&l.some((s)=>typeof s==="string"&&NI(n,s))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux served tool text list requires the local opt-in"
+assert_contains = '''let l=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?na("tengu_lucky_cerf",null):null;return Array.isArray(l)&&l.some((s)=>typeof s==="string"&&NI(n,s))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux served tool text list no longer carries 2.1.273 symbols"
+assert_not_contains = '''let s=Oe(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT)?rm("tengu_lucky_cerf",null):null;return Array.isArray(s)&&s.some((d)=>typeof d==="string"&&hH(n,d))}'''

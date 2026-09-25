@@ -1,5 +1,5 @@
 name = "later-command"
-target_version = "2.1.263"
+target_version = "2.1.281"
 applies_to = ">=2.1.172 <2.2.0"
 
 rationale = """
@@ -4741,7 +4741,7 @@ assert_not_contains = '''let re=eMs(M5([...D,...G]));if(!re.some((v)=>v.name==="
 name = "later-command-submit-hook-2-1-273-darwin"
 lineage = "later-command-submit-hook"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["darwin-arm64"]
 rationale = """
 Re-anchor the Darwin /later submit hook to the 2.1.273 composer callback.
@@ -4777,7 +4777,7 @@ assert_not_contains = '''if(XJ.trim()===""&&!k_t){if(!(wwo&&TCr&&!S_t&&oCt()))S(
 name = "later-command-submit-hook-2-1-273-linux"
 lineage = "later-command-submit-hook"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["linux-x64"]
 rationale = """
 Re-anchor the Linux /later submit hook to the 2.1.273 composer callback.
@@ -4813,7 +4813,7 @@ assert_not_contains = '''if(BJ.trim()===""&&!L_t){if(!(xwo&&BCr&&!O_t&&ECt()))b(
 name = "later-command-suggestion-metadata-2-1-273-darwin"
 lineage = "later-command-suggestion-metadata"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["darwin-arm64"]
 rationale = """
 Re-anchor Darwin /later suggestion metadata to the 2.1.273 command-loader graph.
@@ -4844,7 +4844,7 @@ assert_not_contains = '''let oe=P$s(b8([...L,...V]));if(!oe.some((v)=>v.name==="
 name = "later-command-suggestion-metadata-2-1-273-linux"
 lineage = "later-command-suggestion-metadata"
 target_version = "2.1.273"
-applies_to = ">=2.1.273 <2.1.274"
+applies_to = ">=2.1.273 <2.1.281"
 platforms = ["linux-x64"]
 rationale = """
 Re-anchor Linux /later suggestion metadata to the 2.1.273 command-loader graph.
@@ -4869,3 +4869,137 @@ assert_contains = '''Ee=b4s(YX([...U,...ve]));if(!Ee.some((v)=>v.name==="later")
 kind = "static"
 name = "2.1.273 Linux suggestion no longer carries 2.1.268 symbols"
 assert_not_contains = '''let oe=tBs(f9([...D,...q]));if(!oe.some((v)=>v.name==="later")'''
+
+
+[[patches]]
+name = "later-command-submit-hook-2-1-281-darwin"
+lineage = "later-command-submit-hook"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = """
+Re-anchor the Darwin /later submit hook to the 2.1.281 composer callback.
+The normalized input is FS, effective pasted contents are wD, composer
+mode is ee.mode, notifications use Ya, input cleanup uses Yt/co/eo/YR,
+and delayed submission uses Me with history reset eHt.
+Keep the 2.1.273 runtime contract: reject impossible or past calendar times
+without date normalization, use independent UUIDs, and retain each scheduled
+job in the session-only map until it fires or is listed.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(FS.trim()===""&&!IS){if(!(FC&&vD&&!NC&&De()))y("prompt_submit_empty");return}''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(ee.mode==="prompt"){let __trim=FS.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list",__jobs=globalThis.__acc_later_jobs??=(new Map);if(__trim==="/later list"){let __lines=[...__jobs.values()].slice(0,10).map((__t,__i)=>String(__i+1)+". "+(__t.prompt.length>20?__t.prompt.slice(0,17)+"...":__t.prompt)+" @ "+new Date(__t.at).toLocaleString());Ya({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});Yt("");co({});eo(0);YR();return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __now=Date.now(),__prompt,__at;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();__at=__now+__delay}else{__prompt=__absolute[7].trim();let __base=new Date(__now),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__base.getFullYear(),__month=__hasDate?Number(__absolute[2]):__base.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__base.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()===__month-1&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second;if(!__hasDate&&__candidate.getTime()<=__now)__candidate.setDate(__candidate.getDate()+1);__at=__valid&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second?__candidate.getTime():NaN}if(!__prompt||!Number.isFinite(new Date(__at).getTime())||__at<=__now){Ya({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __id="later-"+crypto.randomUUID(),__job={prompt:__prompt,at:__at};__jobs.set(__id,__job);setTimeout(()=>{if(!__jobs.delete(__id))return;Me(__prompt,{setCursorOffset:eo,clearBuffer:YR,resetHistory:eHt},{pastedContentsOverride:wD})},Math.max(0,__at-Date.now()));Ya({key:__id,kind:"feedback",text:"Scheduled "+__id+" for "+new Date(__at).toLocaleString(),priority:"immediate"});Yt("");co({});eo(0);YR();return}if(__trim.startsWith("/later")){Ya({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin later submit anchor and current symbols are rendered"
+assert_contains = '''if(FS.trim()===""&&!IS){if(!(FC&&vD&&!NC&&De()))y("prompt_submit_empty");return}if(ee.mode==="prompt")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin later delayed callback retains current submit and pasted-content symbols"
+assert_contains = '''Me(__prompt,{setCursorOffset:eo,clearBuffer:YR,resetHistory:eHt},{pastedContentsOverride:wD})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin later submit symbols are absent in 2.1.281"
+assert_not_contains = '''if(ZX.trim()===""&&!RTt){if(!(G_o&&lPr&&!xTt&&R_t()))_("prompt_submit_empty");return}if(Aa.mode==="prompt")'''
+
+
+[[patches]]
+name = "later-command-submit-hook-2-1-281-linux"
+lineage = "later-command-submit-hook"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = """
+Re-anchor the Linux /later submit hook to the 2.1.281 composer callback.
+The normalized input is MS, effective pasted contents are dD, composer
+mode is ee.mode, notifications use Xa, input cleanup uses Yt/no/Zt/FR,
+and delayed submission uses Ie with history reset IUt.
+Keep the 2.1.273 runtime contract: reject impossible or past calendar times
+without date normalization, use independent UUIDs, and retain each scheduled
+job in the session-only map until it fires or is listed.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/handlePromptSubmit.ts#L174-L225"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source = '''if(MS.trim()===""&&!PS){if(!(MC&&lD&&!PC&&Le()))y("prompt_submit_empty");return}''' }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(ee.mode==="prompt"){let __trim=MS.trim(),__usage="Usage: /later 10m <prompt> | /later [YYYY-MM-dd] HH:mm[:ss] <prompt> | /later list",__jobs=globalThis.__acc_later_jobs??=(new Map);if(__trim==="/later list"){let __lines=[...__jobs.values()].slice(0,10).map((__t,__i)=>String(__i+1)+". "+(__t.prompt.length>20?__t.prompt.slice(0,17)+"...":__t.prompt)+" @ "+new Date(__t.at).toLocaleString());Xa({key:"later-list",kind:"feedback",text:__lines.length?"Pending /later prompts:\n"+__lines.join("\n"):"No pending /later prompts",priority:"immediate"});Yt("");no({});Zt(0);FR();return}let __relative=__trim.match(/^\/later\s+(\d+)\s*([smhd])\s+([\s\S]+)$/i),__absolute=__trim.match(/^\/later\s+(?:(\d{4})-(\d{2})-(\d{2})\s+)?(\d{2}):(\d{2})(?::(\d{2}))?\s+([\s\S]+)$/);if(__relative||__absolute){let __now=Date.now(),__prompt,__at;if(__relative){let __unit=__relative[2].toLowerCase(),__delay=Number(__relative[1])*{s:1e3,m:6e4,h:36e5,d:864e5}[__unit];__prompt=__relative[3].trim();__at=__now+__delay}else{__prompt=__absolute[7].trim();let __base=new Date(__now),__hasDate=__absolute[1]!==void 0,__year=__hasDate?Number(__absolute[1]):__base.getFullYear(),__month=__hasDate?Number(__absolute[2]):__base.getMonth()+1,__day=__hasDate?Number(__absolute[3]):__base.getDate(),__hour=Number(__absolute[4]),__minute=Number(__absolute[5]),__second=Number(__absolute[6]??"0"),__candidate=new Date(__year,__month-1,__day,__hour,__minute,__second,0);let __valid=__candidate.getFullYear()===__year&&__candidate.getMonth()===__month-1&&__candidate.getDate()===__day&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second;if(!__hasDate&&__candidate.getTime()<=__now)__candidate.setDate(__candidate.getDate()+1);__at=__valid&&__candidate.getHours()===__hour&&__candidate.getMinutes()===__minute&&__candidate.getSeconds()===__second?__candidate.getTime():NaN}if(!__prompt||!Number.isFinite(new Date(__at).getTime())||__at<=__now){Xa({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}let __id="later-"+crypto.randomUUID(),__job={prompt:__prompt,at:__at};__jobs.set(__id,__job);setTimeout(()=>{if(!__jobs.delete(__id))return;Ie(__prompt,{setCursorOffset:Zt,clearBuffer:FR,resetHistory:IUt},{pastedContentsOverride:dD})},Math.max(0,__at-Date.now()));Xa({key:__id,kind:"feedback",text:"Scheduled "+__id+" for "+new Date(__at).toLocaleString(),priority:"immediate"});Yt("");no({});Zt(0);FR();return}if(__trim.startsWith("/later")){Xa({key:"later-usage",kind:"error",text:__usage,priority:"immediate"});return}}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux later submit anchor and current symbols are rendered"
+assert_contains = '''if(MS.trim()===""&&!PS){if(!(MC&&lD&&!PC&&Le()))y("prompt_submit_empty");return}if(ee.mode==="prompt")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux later delayed callback retains current submit and pasted-content symbols"
+assert_contains = '''Ie(__prompt,{setCursorOffset:Zt,clearBuffer:FR,resetHistory:IUt},{pastedContentsOverride:dD})'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux later submit symbols are absent in 2.1.281"
+assert_not_contains = '''if(r3.trim()===""&&!KTt){if(!(eTo&&xPr&&!GTt&&K_t()))_("prompt_submit_empty");return}if(Pa.mode==="prompt")'''
+
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-281-darwin"
+lineage = "later-command-suggestion-metadata"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["darwin-arm64"]
+rationale = """
+Re-anchor Darwin /later suggestion metadata to the 2.1.281 command-loader graph.
+The final filtered command list is the trailing declarator Ee=NUo(V7([...G,...ve]));
+Ee is returned after trusted-name bookkeeping, and NUo, V7, G, and ve are the
+current local symbols.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["NUo(V7([...G,...ve]))"] }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!Ee.some((v)=>v.name==="later"))Ee.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Darwin /later suggestion metadata is rendered"
+assert_contains = '''Ee=NUo(V7([...G,...ve]));if(!Ee.some((v)=>v.name==="later")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Darwin suggestion loader symbols are absent in 2.1.281"
+assert_not_contains = '''Ee=h4s(nX([...U,...ve]));'''
+
+
+[[patches]]
+name = "later-command-suggestion-metadata-2-1-281-linux"
+lineage = "later-command-suggestion-metadata"
+target_version = "2.1.281"
+applies_to = ">=2.1.281 <2.1.282"
+platforms = ["linux-x64"]
+rationale = """
+Re-anchor Linux /later suggestion metadata to the 2.1.281 command-loader graph.
+The final filtered command list is the trailing declarator Ee=jBo($J([...G,...ve]));
+Ee is returned after trusted-name bookkeeping, and jBo, $J, G, and ve are the
+current local symbols.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/commands.ts#L476-L489"
+locator_kind = "ast_transform"
+[patches.ast]
+schema = 1
+match = { node = "VariableDeclaration", strings = ["jBo($J([...G,...ve]))"] }
+[patches.transform]
+op = "insert_after_node"
+code = '''if(!Ee.some((v)=>v.name==="later"))Ee.push({type:"local",name:"later",description:"Schedule a prompt; use 10m or [YYYY-MM-dd] HH:mm[:ss]",supportsNonInteractive:!1,load:async()=>({call:async()=>({type:"skip"})})});'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.281 Linux /later suggestion metadata is rendered"
+assert_contains = '''Ee=jBo($J([...G,...ve]));if(!Ee.some((v)=>v.name==="later")'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.273 Linux suggestion loader symbols are absent in 2.1.281"
+assert_not_contains = '''Ee=b4s(YX([...U,...ve]));'''

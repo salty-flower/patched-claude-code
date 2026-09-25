@@ -1,0 +1,97 @@
+// Sign-in skill: run script (template).
+//
+// `ct-auth.mjs sign-in` runs this file with Node before a run, when there is no usable
+// saved session. It must sign the dedicated test account in and leave the browser session
+// for ct-auth.mjs to save. Contract:
+//
+//   reads   CLAUDE_TEST_TARGET_ORIGIN        the site under test, e.g. http://localhost:3000
+//           CLAUDE_TEST_OUTPUT               an empty directory; write storageState.json here
+//           CLAUDE_TEST_BROWSER_EXECUTABLE   the browser to use, when set
+//           HTTPS_PROXY / NO_PROXY           a proxy, when one is set (pass it to the browser)
+//           CT_TEST_MEMBER_EMAIL, CT_TEST_MEMBER_PASSWORD   the variables YOU set (in the environment, or in the project's private secrets.env)
+//   writes  $CLAUDE_TEST_OUTPUT/storageState.json          (Playwright storage state)
+//   prints  optionally, as its LAST stdout line, a JSON object of strings; they are saved in the private
+//           secrets.env so a spec can type a value by its name — never printed anywhere else
+//   exits   0 on success; anything else is "sign-in unavailable" for the specs that needed it,
+//           and the last lines of stderr become the reason shown with the result
+//
+// Everything between the EDIT markers is yours to change; the rest can stay as it is.
+
+import { chromium } from 'playwright' // provided by the browser tooling that "ct.mjs install" puts in place; your own copy when you run it by hand
+import { join } from 'node:path'
+
+// ── EDIT: your site's login page and form ───────────────────────────────────────────
+const LOGIN_PATH = '/login'
+const EMAIL_FIELD = 'input[name="email"]'
+const PASSWORD_FIELD = 'input[name="password"]'
+const SUBMIT_BUTTON = 'button[type="submit"]'
+// Something only a signed-in member sees. The script waits for it after submitting.
+const SIGNED_IN_MARKER = '[data-test="account-menu"]'
+// The variables you set (names only here; the values live outside the
+// repository).
+const EMAIL = process.env.CT_TEST_MEMBER_EMAIL
+const PASSWORD = process.env.CT_TEST_MEMBER_PASSWORD
+// ── end EDIT ────────────────────────────────────────────────────────────────────────
+
+const origin = process.env.CLAUDE_TEST_TARGET_ORIGIN
+const outDir = process.env.CLAUDE_TEST_OUTPUT
+if (!origin || !outDir) fail('CLAUDE_TEST_TARGET_ORIGIN / CLAUDE_TEST_OUTPUT are not set (run this through "ct-auth.mjs sign-in", not by hand)')
+if (!EMAIL || !PASSWORD) fail('CT_TEST_MEMBER_EMAIL / CT_TEST_MEMBER_PASSWORD are not set')
+
+let browser
+try {
+  browser = await chromium.launch({
+    headless: true,
+    ...(process.env.CLAUDE_TEST_BROWSER_EXECUTABLE ? { executablePath: process.env.CLAUDE_TEST_BROWSER_EXECUTABLE } : {}),
+    // Running as root (containers, CI) needs the sandbox off; recent Playwright adds this itself, keeping it explicit is harmless.
+    args: (typeof process.getuid === 'function' && process.getuid() === 0) ? ['--no-sandbox'] : [],
+    ...proxyOption(),
+  })
+  const context = await browser.newContext()
+  const page = await context.newPage()
+  await page.goto(new URL(LOGIN_PATH, origin).toString(), { waitUntil: 'domcontentloaded', timeout: 45_000 })
+  // Refuse to type the password anywhere but the site under test.
+  if (new URL(page.url()).origin !== origin) fail(`the login page redirected to ${new URL(page.url()).host}; not typing credentials there`)
+  await page.fill(EMAIL_FIELD, EMAIL, { timeout: 15_000 })
+  await page.fill(PASSWORD_FIELD, PASSWORD, { timeout: 15_000 })
+  await page.click(SUBMIT_BUTTON, { timeout: 15_000 })
+  try {
+    await page.waitForSelector(SIGNED_IN_MARKER, { timeout: 30_000 })
+  } catch {
+    fail(`after submitting the form, ${SIGNED_IN_MARKER} did not appear within 30s (wrong password, a changed form, or a CAPTCHA) — page is ${new URL(page.url()).pathname}`)
+  }
+  await context.storageState({ path: join(outDir, 'storageState.json') })
+  // Optional: let a spec type the member's email by the name member_email (for example to
+  // check it is shown on the account page). Do not print the password unless a spec must type it.
+  console.log(JSON.stringify({ member_email: EMAIL }))
+} catch (e) {
+  fail(oneLine(e))
+} finally {
+  await browser?.close().catch(() => {})
+}
+
+function fail(why) {
+  // stderr is the reason shown with the result; keep it to one plain line and never include a secret.
+  console.error(PASSWORD ? String(why).split(PASSWORD).join('***') : String(why))
+  process.exit(1)
+}
+
+function oneLine(e) {
+  const msg = e instanceof Error ? e.message : String(e)
+  // Playwright appends a multi-line call log; the first line is the reason.
+  return msg.split('\n')[0].slice(0, 300)
+}
+
+function proxyOption() {
+  const raw = process.env.HTTPS_PROXY || process.env.https_proxy
+  if (!raw) return {}
+  const u = new URL(raw.includes('://') ? raw : `http://${raw}`)
+  return {
+    proxy: {
+      server: `${u.protocol}//${u.host}`,
+      ...(u.username ? { username: decodeURIComponent(u.username) } : {}),
+      ...(u.password ? { password: decodeURIComponent(u.password) } : {}),
+      ...(process.env.NO_PROXY || process.env.no_proxy ? { bypass: (process.env.NO_PROXY || process.env.no_proxy) } : {}),
+    },
+  }
+}

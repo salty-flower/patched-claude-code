@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.281
+import"./chunk-kp7gknaw.js";import"./chunk-4a5nddj6.js";import"./chunk-cqc88nqm.js";import"./chunk-7yckkh1m.js";import"./chunk-rnxz8hs2.js";import{l}from"./chunk-2bj5eqbj.js";import"./chunk-7r0w3nmp.js";import"./chunk-35k7s716.js";import"./chunk-8bp13hnn.js";import"./chunk-dqhw8yqd.js";import{yme}from"./chunk-dzhe9h05.js";import{yt,t}from"./chunk-wfscmafr.js";import"./chunk-kcjajdc8.js";import"./chunk-nqsdwfmt.js";import"./chunk-0n80jtth.js";import"./chunk-1y7zyxh8.js";import"./chunk-65nweewy.js";import{a}from"./chunk-ay603yys.js";import"./chunk-vzqvvnm0.js";import"./chunk-bh8vsyek.js";import"./chunk-2pwc1ycq.js";import"./chunk-8cvm4kna.js";import"./chunk-bzbw9xhh.js";import"./chunk-ahgv64tk.js";import"./chunk-q5xfazs5.js";import"./chunk-cqpd6xa9.js";import"./chunk-bg3bhqbb.js";import{AZ,wme}from"./chunk-hcxjkx3f.js";import{LNt}from"./chunk-1fj9rb1z.js";import{dl}from"./chunk-jcesa5j7.js";import"./chunk-1z6682h0.js";import"./chunk-7891bvze.js";import"./chunk-hsr4yk27.js";async function d({sessionId:i,sdkUrl:e}){try{let r=a.CLAUDE_SESSION_INGRESS_TOKEN_FILE??AZ;if(!(await dl(r,wme))?.trim()){t("[vitals] no session token file on this worker; guest vitals disabled");return}let o=await LNt({sessionId:i,apiBaseUrl:yme(new URL(e)).origin,tokenFilePath:r,binaryResolution:"search",log:t});if(o)yt(()=>o.stop())}catch(r){t(`[vitals] not started: ${l(r)}`)}}export{d as startHostedWorkerVitalsEmitter};

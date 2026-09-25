@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.281
+import{t}from"./chunk-wvb0gwjm.js";import{pQ,C2,gze,KLn,sOe}from"./chunk-rfyck8wc.js";import{qa}from"./chunk-n875m8bj.js";import{CCe}from"./chunk-hg1f9dgc.js";import{ee}from"./chunk-ddbj4628.js";import{vze}from"./chunk-a8x1493c.js";var g="/_warmup",f=3000,u=600000,E=262144;function VSr(r){let e=ee();return e.contentHostEgressDenied.has(r.env)||e.contentHostEgressUnanswered.has(CCe(r))}function h(r){let e=ee().contentHostEgressProbed.get(r);return e!==void 0&&Date.now()-e<u}async function QHe(r,e){let o=ee(),s=CCe(r);if(o.contentHostEgressDenied.has(r.env)){o.contentHostEgressProbed.delete(s),o.contentHostEgressUnanswered.add(s);return}if(h(s))return;let c=o.contentHostEgressInFlight.get(s);if(c!==void 0)return c.catch((d)=>{if(e.aborted)throw d;return QHe(r,e)});let i=p(r,s,e).finally(()=>{o.contentHostEgressInFlight.delete(s)});return o.contentHostEgressInFlight.set(s,i),i}async function p(r,e,o){let s=ee(),c=()=>{s.contentHostEgressUnanswered.delete(e),s.contentHostEgressProbed.set(e,Date.now())},i=(a)=>{t(`[artifact] egress probe of ${e}: ${a}; reading the host as unreachable for this check`),s.contentHostEgressProbed.delete(e),s.contentHostEgressUnanswered.add(e)},d=()=>{s.contentHostEgressProbed.delete(e),s.contentHostEgressUnanswered.add(e),s.contentHostEgressDenied.add(r.env)},n;try{n=await qa.get(`${e}${g}`,{signal:AbortSignal.any([o,AbortSignal.timeout(f)]),timeout:f,maxRedirects:0,maxContentLength:E,responseType:"text",validateStatus:()=>!0})}catch(a){if(o.aborted)throw a;if(gze(a))return d();return i(vze(a)?"an answer larger than the cap":"no answer")}if(C2(n.status,n.headers))return d();let l=()=>pQ(n.headers,n.data,(a)=>a);if(!(n.status>=200&&n.status<300||n.status===403&&sOe(n.headers,l())||n.status===404&&KLn(n.headers,l())))return i(`unrecognised HTTP ${n.status}`);return c()}
+export{VSr,QHe};

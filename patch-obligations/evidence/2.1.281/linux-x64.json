@@ -1,0 +1,1129 @@
+{
+  "schema": 2,
+  "targetVersion": "2.1.281",
+  "sourceCommit": "69eb4dab9f8c8aacd62479f43c055e920bb72145",
+  "platform": "linux-x64",
+  "upstreamEntrypointSha256": "0e577e3dda06e60406085283a641de294905e3ee011f1f0fb29ad9e212a9ed0f",
+  "patchedEntrypointSha256": "113d78320163c601c0af4c9cd002475040d5007083dbf85b22a7e04365d494d0",
+  "selectedPatchEntries": [
+    "agent-effective-effort-2-1-281-linux-x64",
+    "agent-effort-layer-marker",
+    "agent-effort-request-context",
+    "agent-effort-resolver-priority-2-1-281",
+    "agent-model-and-effort-schema-2-1-281-linux-x64",
+    "agent-model-description-custom-id",
+    "agent-ordinary-effort-2-1-281-linux-x64",
+    "agent-prompt-call-overrides",
+    "agent-prompt-fork-overrides",
+    "agent-teammate-effort",
+    "agents-md-native-hook-host-path-linux",
+    "append-second-custom-model-option-2-1-281-linux",
+    "ask-user-question-channels-gate-2-1-281-linux-x64",
+    "ask-user-question-extended-description",
+    "ask-user-question-remove-extended-question-cap",
+    "ask-user-question-remove-standard-question-cap",
+    "ask-user-question-standard-host-description",
+    "ask-user-question-standard-sdk-description",
+    "ask-user-question-tool-description",
+    "ask-user-question-tool-prompt",
+    "channels-feature-gate",
+    "channels-provider-gate",
+    "coordinator-agent-effort-guidance",
+    "coordinator-agent-override-guidance",
+    "custom-model-slot-capabilities-2-1-281-linux-x64",
+    "disable-default-base-url-guard",
+    "disable-raw-api-body-otel-2-1-281-linux",
+    "effort-effective-suffix-2-1-281-linux-x64",
+    "effort-launch-pin-2-1-281-linux-x64",
+    "effort-model-state-selector-2-1-281-linux-x64",
+    "effort-reactive-capability-2-1-281-linux-x64",
+    "effort-retry-notice-drain-2-1-281-linux-x64",
+    "effort-retry-notice-queue-2-1-281-linux-x64",
+    "effort-session-owner-2-1-281-linux-x64",
+    "effort-session-resolver-2-1-281-linux-x64",
+    "explicit-capabilities-first-party-2-1-281-linux-x64",
+    "foreground-agent-handoff-before-cancel-2-1-281-linux-x64",
+    "global-interrupt-cancel-only-2-1-281",
+    "inject-per-model-into-beta-count-tokens-2-1-281",
+    "inject-per-model-into-beta-create-2-1-281",
+    "inject-per-model-into-nonbeta-count-tokens-2-1-281",
+    "inject-per-model-into-nonbeta-create-2-1-281",
+    "later-command-submit-hook-2-1-281-linux",
+    "later-command-suggestion-metadata-2-1-281-linux",
+    "model-effort-command-2-1-281-linux",
+    "model-effort-current-2-1-281-linux",
+    "model-effort-inline-echo-2-1-281-linux",
+    "model-effort-inline-model-state-2-1-281-linux",
+    "model-effort-inline-model-state-import-2-1-281-linux",
+    "model-effort-model-echo-2-1-281-linux",
+    "model-effort-model-import-2-1-281-linux",
+    "model-effort-model-state-2-1-281-linux",
+    "model-effort-picker-arrows-2-1-281-linux",
+    "model-effort-picker-cli-hint-2-1-281-linux",
+    "model-effort-picker-focus-2-1-281-linux",
+    "model-effort-picker-import-2-1-281-linux",
+    "model-effort-picker-initial-2-1-281-linux",
+    "model-effort-picker-select-2-1-281-linux",
+    "model-effort-picker-source-2-1-281-linux",
+    "model-effort-picker-state-setter-2-1-281-linux",
+    "model-effort-slider-guard-2-1-281-linux",
+    "model-effort-slider-import-2-1-281-linux",
+    "model-effort-slider-initial-2-1-281-linux",
+    "model-effort-slider-scope-2-1-281-linux",
+    "model-effort-slider-workflow-2-1-281-linux",
+    "neutralize-project-thread-author-marker-2-1-281",
+    "read-result-path-context-2-1-281",
+    "read-result-path-image-2-1-281",
+    "read-result-path-notebook-2-1-281",
+    "read-result-path-parts-2-1-281-linux",
+    "read-result-path-pdf-2-1-281",
+    "read-result-path-text-2-1-281",
+    "read-result-path-unchanged-2-1-281-linux",
+    "recognize-second-custom-model-option-2-1-281-linux",
+    "require-explicit-assistant-response-otel-2-1-281-linux",
+    "require-local-opt-in-for-served-tool-text-2-1-281-linux",
+    "require-local-opt-in-for-served-tool-text-list-2-1-281-linux",
+    "resolve-model-specific-context-window-2-1-281-linux",
+    "resume-detects-default-1m-after-alias-resolution-2-1-281-linux",
+    "statusline-footer-control-cli-option-2-1-281-linux",
+    "statusline-footer-control-clipboard-image-hint-2-1-281-linux",
+    "statusline-footer-control-clipboard-image-hint-2-1-281-linux-context",
+    "statusline-footer-control-clipboard-image-hint-context-2-1-281-linux",
+    "statusline-footer-control-command-length-mount-2-1-281-linux",
+    "statusline-footer-control-command-length-update-2-1-233",
+    "statusline-footer-control-effort-level-2-1-281-linux",
+    "statusline-footer-control-effort-notification-2-1-281-linux",
+    "statusline-footer-control-effort-notification-settings-2-1-281-linux",
+    "statusline-footer-control-mode-hint-2-1-281-linux",
+    "statusline-footer-control-mode-hint-narrow-2-1-281-expanded-linux",
+    "statusline-footer-control-mode-hint-narrow-2-1-281-small-linux",
+    "statusline-footer-control-rate-limit-warning-2-1-281-linux",
+    "statusline-footer-control-rate-limit-warning-deps-2-1-281-linux",
+    "statusline-footer-control-render-2-1-281-linux",
+    "statusline-footer-control-render-state-2-1-281-linux",
+    "statusline-footer-control-schema-2-1-281-linux",
+    "statusline-json-effort-level-2-1-281-linux",
+    "statusline-json-permission-mode-2-1-281-linux",
+    "strip-signatures-for-custom-base-url-2-1-281-linux",
+    "subagent-preserve-tool-results",
+    "system-prompt-section-override-bridge-2-1-220",
+    "teammate-in-process-effort-config",
+    "teammate-process-effort-flag",
+    "thinking-clear-live-on-interrupt-2-1-250",
+    "thinking-render-live-complete",
+    "thinking-render-live-delta-2-1-281-linux",
+    "thinking-render-live-output-2-1-281-linux",
+    "thinking-render-live-row-2-1-281-linux",
+    "thinking-render-live-row-cache-allocation-2-1-281-linux",
+    "transcript-preserve-repl-history",
+    "ultracode-capability-max-fallback-2-1-281-linux",
+    "ultracode-effort-command-import-max-helper-2-1-281-linux",
+    "ultracode-effort-command-max-fallback-2-1-281-linux",
+    "ultracode-effort-dialog-preview-max-fallback-2-1-281-linux",
+    "ultracode-effort-notification-max-fallback-2-1-281-linux",
+    "ultracode-flag-settings-max-fallback-2-1-281-linux",
+    "ultracode-flag-settings-max-fallback-import-2-1-281-linux",
+    "ultracode-help-label-max-fallback-2-1-281-linux",
+    "ultracode-settings-report-max-fallback-2-1-281-linux",
+    "ultracode-slider-confirm-validation-max-fallback-2-1-281-linux",
+    "ultracode-slider-dialog-preview-max-fallback-2-1-281-linux",
+    "ultracode-slider-dialog-validation-max-fallback-2-1-281-linux",
+    "ultracode-slider-import-max-fallback-2-1-281-linux",
+    "ultracode-slider-menu-max-fallback-2-1-281-linux",
+    "ultracode-startup-settings-max-fallback-2-1-281-linux",
+    "ultracode-typed-arg-max-fallback-2-1-281-linux",
+    "validate-second-custom-model-option-without-probe-2-1-281"
+  ],
+  "executedOracleIds": [
+    "agent-memory-discovery/agents-md-native-hook-load",
+    "anti-trace/disable-raw-api-body-otel",
+    "anti-trace/neutralize-project-thread-author-marker",
+    "anti-trace/require-explicit-assistant-response-otel",
+    "anti-trace/require-local-opt-in-for-served-tool-text",
+    "anti-trace/require-local-opt-in-for-served-tool-text-list",
+    "ask-user-question-unlimited/ask-user-question-extended-description",
+    "ask-user-question-unlimited/ask-user-question-remove-extended-question-cap",
+    "ask-user-question-unlimited/ask-user-question-remove-standard-question-cap",
+    "ask-user-question-unlimited/ask-user-question-standard-host-description",
+    "ask-user-question-unlimited/ask-user-question-standard-sdk-description",
+    "ask-user-question-unlimited/ask-user-question-tool-description",
+    "ask-user-question-unlimited/ask-user-question-tool-prompt",
+    "ask-user-question-unlimited/unbounded-coherent-question-batch",
+    "channel-access/ask-user-question-channels-gate-askuser",
+    "channel-access/channels-feature-gate",
+    "channel-access/channels-provider-gate",
+    "custom-model-slots/append-second-custom-model-option",
+    "custom-model-slots/custom-model-slot-applied-effort",
+    "custom-model-slots/custom-model-slot-capabilities",
+    "custom-model-slots/custom-model-slot-default-effort",
+    "custom-model-slots/recognize-second-custom-model-option",
+    "custom-model-slots/validate-second-custom-model-option-without-probe",
+    "disable-background-agent-kill-on-global-interrupt/foreground-agent-handoff-before-cancel",
+    "disable-background-agent-kill-on-global-interrupt/global-interrupt-cancel-only",
+    "file-read-path-context/read-result-path-context",
+    "file-read-path-context/read-result-path-image",
+    "file-read-path-context/read-result-path-notebook",
+    "file-read-path-context/read-result-path-parts",
+    "file-read-path-context/read-result-path-pdf",
+    "file-read-path-context/read-result-path-text",
+    "file-read-path-context/read-result-path-unchanged",
+    "later-command/later-command-submit-hook",
+    "later-command/later-command-suggestion-metadata",
+    "model-effort-ui/inline-echo",
+    "model-effort-ui/model-echo",
+    "model-effort-ui/model-effort-current",
+    "model-effort-ui/model-import",
+    "model-effort-ui/slider-guard",
+    "model-effort-ui/slider-import",
+    "model-effort-ui/slider-initial",
+    "model-effort-ui/slider-scope",
+    "model-effort-ui/slider-workflow",
+    "per-model-context-window/resolve-model-specific-context-window",
+    "per-model-endpoint/disable-default-base-url-guard",
+    "per-model-endpoint/inject-per-model-into-beta-count-tokens",
+    "per-model-endpoint/inject-per-model-into-beta-create",
+    "per-model-endpoint/inject-per-model-into-nonbeta-count-tokens",
+    "per-model-endpoint/inject-per-model-into-nonbeta-create",
+    "resume-1m-model-defaults/resume-detects-default-1m-after-alias-resolution",
+    "signature-block-custom-endpoint/strip-signatures-for-custom-base-url",
+    "statusline-footer-control/statusline-footer-control-cli-option",
+    "statusline-footer-control/statusline-footer-control-clipboard-image-hint",
+    "statusline-footer-control/statusline-footer-control-clipboard-image-hint-context",
+    "statusline-footer-control/statusline-footer-control-command-length-mount",
+    "statusline-footer-control/statusline-footer-control-command-length-update",
+    "statusline-footer-control/statusline-footer-control-effort-level",
+    "statusline-footer-control/statusline-footer-control-effort-notification",
+    "statusline-footer-control/statusline-footer-control-mode-hint",
+    "statusline-footer-control/statusline-footer-control-mode-hint-narrow",
+    "statusline-footer-control/statusline-footer-control-rate-limit-warning",
+    "statusline-footer-control/statusline-footer-control-rate-limit-warning-deps",
+    "statusline-footer-control/statusline-footer-control-render",
+    "statusline-footer-control/statusline-footer-control-render-state",
+    "statusline-footer-control/statusline-footer-control-schema",
+    "statusline-footer-control/statusline-json-effort-level",
+    "statusline-footer-control/statusline-json-permission-mode",
+    "subagent-preserve-tool-results/subagent-preserve-tool-results",
+    "system-prompt-section-overrides/system-prompt-section-override-bridge",
+    "thinking-display/thinking-clear-live-on-interrupt",
+    "thinking-display/thinking-render-live-complete",
+    "thinking-display/thinking-render-live-delta",
+    "thinking-display/thinking-render-live-output",
+    "thinking-display/thinking-render-live-row",
+    "transcript-preserve-repl-history/transcript-preserve-repl-history",
+    "ultracode-opus46-max/ultracode-capability-max-fallback",
+    "ultracode-opus46-max/ultracode-effort-command-max-fallback",
+    "ultracode-opus46-max/ultracode-effort-notification-max-fallback",
+    "ultracode-opus46-max/ultracode-flag-settings-max-fallback",
+    "ultracode-opus46-max/ultracode-help-label-max-fallback",
+    "ultracode-opus46-max/ultracode-help-menu-max-fallback",
+    "ultracode-opus46-max/ultracode-help-text-max-fallback",
+    "ultracode-opus46-max/ultracode-model-picker-max-fallback",
+    "ultracode-opus46-max/ultracode-model-picker-persist-max-fallback",
+    "ultracode-opus46-max/ultracode-settings-report-max-fallback",
+    "ultracode-opus46-max/ultracode-slider-confirm-max-fallback",
+    "ultracode-opus46-max/ultracode-slider-dialog-max-fallback",
+    "ultracode-opus46-max/ultracode-slider-dialog-secondary-max-fallback",
+    "ultracode-opus46-max/ultracode-slider-dialog-tertiary-max-fallback",
+    "ultracode-opus46-max/ultracode-slider-menu-max-fallback",
+    "ultracode-opus46-max/ultracode-startup-settings-max-fallback",
+    "ultracode-opus46-max/ultracode-thin-client-usage-max-fallback",
+    "ultracode-opus46-max/ultracode-typed-arg-max-fallback",
+    "ultracode-opus46-max/ultracode-usage-hint-max-fallback",
+    "ultracode-opus46-max/ultracode-valid-options-max-fallback"
+  ],
+  "oracleResults": [
+    {
+      "oracleId": "agent-memory-discovery/agents-md-native-hook-load",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "agents-md-tui-smoke.ts: parent, project, and child AGENTS.md markers reach the main conversation in native parent-to-child order with no CLAUDE.md"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/disable-raw-api-body-otel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: disable-raw-api-body-otel-2-1-281-linux: static: 2.1.281 Linux raw API body logging is disabled",
+        "run-patch-tests.ts: disable-raw-api-body-otel-2-1-281-linux: static: 2.1.281 Linux raw-body gate no longer carries 2.1.273 symbols"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/neutralize-project-thread-author-marker",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: neutralize-project-thread-author-marker-2-1-281: static: 2.1.281 project thread marker no longer carries 2.1.273 symbols",
+        "run-patch-tests.ts: neutralize-project-thread-author-marker-2-1-281: static: 2.1.281 project thread markers use a neutral author label"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-explicit-assistant-response-otel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-explicit-assistant-response-otel-2-1-281-linux: static: 2.1.281 Linux assistant response gate no longer carries 2.1.273 symbols",
+        "run-patch-tests.ts: require-explicit-assistant-response-otel-2-1-281-linux: static: 2.1.281 Linux assistant response logging requires explicit opt-in"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-local-opt-in-for-served-tool-text",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-2-1-281-linux: static: 2.1.281 Linux served tool text no longer carries 2.1.273 symbols",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-2-1-281-linux: static: 2.1.281 Linux served tool text requires the local opt-in"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-local-opt-in-for-served-tool-text-list",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-list-2-1-281-linux: static: 2.1.281 Linux served tool text list no longer carries 2.1.273 symbols",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-list-2-1-281-linux: static: 2.1.281 Linux served tool text list requires the local opt-in"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-extended-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-extended-description: static: extended description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-remove-extended-question-cap",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-remove-extended-question-cap: static: extended question array has no fixed maximum"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-remove-standard-question-cap",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-remove-standard-question-cap: static: standard question array has no fixed maximum"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-standard-host-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-standard-host-description: static: standard host description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-standard-sdk-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-standard-sdk-description: static: standard SDK description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-tool-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-tool-description: static: tool description states the unbounded contract"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-tool-prompt",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-tool-prompt: static: tool prompt encourages coherent unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/unbounded-coherent-question-batch",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "ask-user-question-tui-smoke.ts: rendered and submitted six questions"
+      ]
+    },
+    {
+      "oracleId": "channel-access/ask-user-question-channels-gate-askuser",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-281-linux-x64: static: 2.1.281 Linux AskUserQuestion gate is open",
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-281-linux-x64: static: 2.1.281 Linux AskUserQuestion no longer delegates through y6",
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-281-linux-x64: static: 2.1.281 Linux channel predicate remains present",
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-281-linux-x64: static: 2.1.281 Linux does not carry the stale 2.1.246 AskUserQuestion gate",
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-281-linux-x64: static: 2.1.281 Linux does not carry the stale 2.1.246 inline plan gate"
+      ]
+    },
+    {
+      "oracleId": "channel-access/channels-feature-gate",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: channels-feature-gate: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "channel-access/channels-provider-gate",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: channels-provider-gate: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/append-second-custom-model-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: append-second-custom-model-option-2-1-281-linux: static: 2.1.281 Linux picker inserts second custom slot"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-applied-effort",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: agent-effective-effort-2-1-281-linux-x64: static: 2.1.281 Linux subagent effort mirrors coordinator model suppression",
+        "run-patch-tests.ts: agent-effort-layer-marker: static: runAgent marks only its definition effort layer",
+        "run-patch-tests.ts: agent-effort-request-context: static: query options distinguish explicit agent effort",
+        "run-patch-tests.ts: agent-effort-resolver-priority-2-1-281: static: 2.1.281 request resolver receives the explicit agent effort",
+        "run-patch-tests.ts: agent-model-and-effort-schema-2-1-281-linux-x64: static: 2.1.281 Linux subagent schema accepts custom models and effort",
+        "run-patch-tests.ts: agent-model-description-custom-id: static: Agent model description advertises full custom IDs",
+        "run-patch-tests.ts: agent-ordinary-effort-2-1-281-linux-x64: static: 2.1.281 Linux ordinary subagents apply tool effort without changing forks",
+        "run-patch-tests.ts: agent-prompt-call-overrides: static: Agent usage prompt advertises per-call model and effort",
+        "run-patch-tests.ts: agent-prompt-fork-overrides: static: fork prompt rejects both per-call overrides",
+        "run-patch-tests.ts: agent-teammate-effort: static: named teammates receive tool or frontmatter effort",
+        "run-patch-tests.ts: coordinator-agent-effort-guidance: static: ordinary coordinator prompt advertises per-call effort",
+        "run-patch-tests.ts: coordinator-agent-override-guidance: static: coordinator prompt distinguishes model and effort force behavior",
+        "run-patch-tests.ts: effort-launch-pin-2-1-281-linux-x64: static: 2.1.281 Linux CLI effort pin uses current Jot initializer",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-281-linux-x64: static: 2.1.281 Linux session state selector routes through $S",
+        "run-patch-tests.ts: effort-reactive-capability-2-1-281-linux-x64: static: 2.1.281 Linux reactive capability replaces current clamp",
+        "run-patch-tests.ts: effort-retry-notice-drain-2-1-281-linux-x64: static: 2.1.281 Linux effort retry notice drains through Lo",
+        "run-patch-tests.ts: effort-retry-notice-queue-2-1-281-linux-x64: static: 2.1.281 Linux effort retry queues notice at Gce",
+        "run-patch-tests.ts: effort-session-owner-2-1-281-linux-x64: static: 2.1.281 Linux effort session owner uses current CLt setter",
+        "run-patch-tests.ts: effort-session-resolver-2-1-281-linux-x64: static: 2.1.281 Linux resolver keeps native hook priority and adds model-local state",
+        "run-patch-tests.ts: explicit-capabilities-first-party-2-1-281-linux-x64: static: 2.1.281 Linux first-party capabilities use current CO table",
+        "run-patch-tests.ts: teammate-in-process-effort-config: static: in-process teammate runner receives effort",
+        "run-patch-tests.ts: teammate-process-effort-flag: static: both teammate process launchers append explicit effort"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-capabilities",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: custom-model-slot-capabilities-2-1-281-linux-x64: static: 2.1.281 Linux custom slot capabilities normalize both model IDs"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-default-effort",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: effort-effective-suffix-2-1-281-linux-x64: static: 2.1.281 Linux effective suffix reports current resolver source",
+        "run-patch-tests.ts: effort-launch-pin-2-1-281-linux-x64: static: 2.1.281 Linux CLI effort pin uses current Jot initializer",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-281-linux-x64: static: 2.1.281 Linux session state selector routes through $S",
+        "run-patch-tests.ts: effort-session-owner-2-1-281-linux-x64: static: 2.1.281 Linux effort session owner uses current CLt setter",
+        "run-patch-tests.ts: effort-session-resolver-2-1-281-linux-x64: static: 2.1.281 Linux resolver keeps native hook priority and adds model-local state",
+        "run-patch-tests.ts: model-effort-command-2-1-281-linux: static: 2.1.281 Linux auto reset reports post-clear model-specific effort",
+        "run-patch-tests.ts: model-effort-command-2-1-281-linux: static: 2.1.281 Linux effort command excludes the old 2.1.273 handler and setter symbols",
+        "run-patch-tests.ts: model-effort-command-2-1-281-linux: static: 2.1.281 Linux effort command preserves the native structured handler only for ultracode or remote calls",
+        "run-patch-tests.ts: model-effort-command-2-1-281-linux: static: 2.1.281 Linux effort command writes model-scoped session state",
+        "run-patch-tests.ts: model-effort-picker-arrows-2-1-281-linux: static: 2.1.281 Linux arrow adjustment rejects the previous global effort update",
+        "run-patch-tests.ts: model-effort-picker-arrows-2-1-281-linux: static: 2.1.281 Linux arrow adjustment writes a model-scoped level and state revision",
+        "run-patch-tests.ts: model-effort-picker-cli-hint-2-1-281-linux: static: 2.1.281 Linux picker CLI hint rejects prior source-label locals",
+        "run-patch-tests.ts: model-effort-picker-cli-hint-2-1-281-linux: static: 2.1.281 Linux picker hides adjustment hint for CLI-pinned effort",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux focused row uses model resolver before native fallback",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker focus rejects old 2.1.273 setter path",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker ignores no-preference focus while a model row remains selected",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker sentinel guard rejects the stale selected value",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker still resolves a genuinely selected no-preference row",
+        "run-patch-tests.ts: model-effort-picker-import-2-1-281-linux: static: 2.1.281 Linux picker import rejects the old 2.1.273 supplier chunk",
+        "run-patch-tests.ts: model-effort-picker-import-2-1-281-linux: static: 2.1.281 Linux picker imports resolver from its target graph",
+        "run-patch-tests.ts: model-effort-picker-select-2-1-281-linux: static: 2.1.281 Linux model selection does not overwrite structured sessionEffort",
+        "run-patch-tests.ts: model-effort-picker-select-2-1-281-linux: static: 2.1.281 Linux model selection rejects the old picker callback symbols",
+        "run-patch-tests.ts: model-effort-picker-source-2-1-281-linux: static: 2.1.281 Linux picker shows effective effort source",
+        "run-patch-tests.ts: model-effort-picker-source-2-1-281-linux: static: 2.1.281 Linux picker source rejects the previous model binding",
+        "run-patch-tests.ts: model-effort-picker-state-setter-2-1-281-linux: static: 2.1.281 Linux picker captures app-state setter in component scope",
+        "run-patch-tests.ts: model-effort-picker-state-setter-2-1-281-linux: static: 2.1.281 Linux picker state setter rejects the old 2.1.273 model scope"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/recognize-second-custom-model-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: recognize-second-custom-model-option-2-1-281-linux: static: 2.1.281 Linux second custom model is recognized"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/validate-second-custom-model-option-without-probe",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: validate-second-custom-model-option-without-probe-2-1-281: static: 2.1.281 second custom model is prevalidated"
+      ]
+    },
+    {
+      "oracleId": "disable-background-agent-kill-on-global-interrupt/foreground-agent-handoff-before-cancel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: foreground-agent-handoff-before-cancel-2-1-281-linux-x64: static: 2.1.281 Linux does not carry the stale 2.1.246 handoff helper",
+        "run-patch-tests.ts: foreground-agent-handoff-before-cancel-2-1-281-linux-x64: static: 2.1.281 Linux hands foreground agents off before parent cancellation",
+        "run-patch-tests.ts: foreground-agent-handoff-before-cancel-2-1-281-linux-x64: static: 2.1.281 Linux no longer aborts foreground agents immediately"
+      ]
+    },
+    {
+      "oracleId": "disable-background-agent-kill-on-global-interrupt/global-interrupt-cancel-only",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: global-interrupt-cancel-only-2-1-281: static: 2.1.281 global interrupt does not carry stale 2.1.246 symbols",
+        "run-patch-tests.ts: global-interrupt-cancel-only-2-1-281: static: 2.1.281 global interrupt no longer uses the default kill-enabled mode",
+        "run-patch-tests.ts: global-interrupt-cancel-only-2-1-281: static: 2.1.281 global interrupt uses cancel-only mode"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-context",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-context-2-1-281: static: 2.1.281 context injection drops the stale input argument",
+        "run-patch-tests.ts: read-result-path-context-2-1-281: static: 2.1.281 result path comes from the current renderer argument"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-image",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-image-2-1-281: static: 2.1.281 image result drops the stale 2.1.246 symbol",
+        "run-patch-tests.ts: read-result-path-image-2-1-281: static: 2.1.281 image result includes its path"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-notebook",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-notebook-2-1-281: static: 2.1.281 notebook result drops the stale 2.1.246 symbol",
+        "run-patch-tests.ts: read-result-path-notebook-2-1-281: static: 2.1.281 notebook result includes its path"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-parts",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-parts-2-1-281-linux: static: 2.1.281 Linux parts result drops the stale 2.1.246 symbol",
+        "run-patch-tests.ts: read-result-path-parts-2-1-281-linux: static: 2.1.281 Linux parts result includes its path"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-pdf",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-pdf-2-1-281: static: 2.1.281 PDF result drops the stale 2.1.246 symbol",
+        "run-patch-tests.ts: read-result-path-pdf-2-1-281: static: 2.1.281 PDF result includes its path"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-text",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-text-2-1-281: static: 2.1.281 text result drops the stale 2.1.246 symbol",
+        "run-patch-tests.ts: read-result-path-text-2-1-281: static: 2.1.281 text result includes its path"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-unchanged",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-unchanged-2-1-281-linux: static: 2.1.281 Linux unchanged result drops the stale 2.1.246 symbol",
+        "run-patch-tests.ts: read-result-path-unchanged-2-1-281-linux: static: 2.1.281 Linux unchanged result includes its path"
+      ]
+    },
+    {
+      "oracleId": "later-command/later-command-submit-hook",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "later-command-patch.test.ts: active /later schedules once, lists, and forwards pasted contents"
+      ]
+    },
+    {
+      "oracleId": "later-command/later-command-suggestion-metadata",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-281-linux: static: 2.1.273 Linux suggestion loader symbols are absent in 2.1.281",
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-281-linux: static: 2.1.281 Linux /later suggestion metadata is rendered"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/inline-echo",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered inline /model route reports the selected model's effective effort and source"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/model-echo",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered model picker reports the selected model's effective effort and source"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/model-effort-current",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered /effort current reports the active model's effective effort and source"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/model-import",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: model-effort-inline-model-state-import-2-1-281-linux: static: 2.1.281 Linux inline model-state helper imports its graph resolver",
+        "run-patch-tests.ts: model-effort-inline-model-state-import-2-1-281-linux: static: 2.1.281 Linux inline model-state import rejects the old resolver-free supplier",
+        "run-patch-tests.ts: model-effort-model-import-2-1-281-linux: static: 2.1.281 Linux model command imports resolver from its target graph",
+        "run-patch-tests.ts: model-effort-model-import-2-1-281-linux: static: 2.1.281 Linux model command rejects the old 2.1.273 resolver supplier"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-guard",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered CLI-pinned effort selector shows status instead of an editable slider"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-import",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: model-effort-slider-import-2-1-281-linux: static: 2.1.281 Linux effort slider imports its graph resolver",
+        "run-patch-tests.ts: model-effort-slider-import-2-1-281-linux: static: 2.1.281 Linux effort slider rejects the old resolver supplier"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-initial",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered effort slider initializes from the active model's effort"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-scope",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered effort slider explains that changes apply to this model for this session"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-workflow",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered model effort slider omits the global ultracode workflow choice"
+      ]
+    },
+    {
+      "oracleId": "per-model-context-window/resolve-model-specific-context-window",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: resolve-model-specific-context-window-2-1-281-linux: static: 2.1.281 Linux context window drops stale symbols",
+        "run-patch-tests.ts: resolve-model-specific-context-window-2-1-281-linux: static: 2.1.281 Linux context window resolves through current model symbol"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/disable-default-base-url-guard",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: disable-default-base-url-guard: static: guard function always returns false",
+        "run-patch-tests.ts: disable-default-base-url-guard: static: old guard pattern is removed"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-beta-count-tokens",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-beta-count-tokens-2-1-281: static: 2.1.281 beta countTokens drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-beta-count-tokens-2-1-281: static: 2.1.281 beta countTokens uses current body and header symbols"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-beta-create",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-beta-create-2-1-281: static: 2.1.281 beta create drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-beta-create-2-1-281: static: 2.1.281 beta create uses current body and header symbols"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-nonbeta-count-tokens",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-count-tokens-2-1-281: static: 2.1.281 non-beta countTokens drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-count-tokens-2-1-281: static: 2.1.281 non-beta countTokens uses current body and header symbols"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-nonbeta-create",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-create-2-1-281: static: 2.1.281 non-beta create drops stale symbols",
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-create-2-1-281: static: 2.1.281 non-beta create uses current body and header symbols"
+      ]
+    },
+    {
+      "oracleId": "resume-1m-model-defaults/resume-detects-default-1m-after-alias-resolution",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: resume-detects-default-1m-after-alias-resolution-2-1-281-linux: static: 2.1.281 Linux removes the raw-setting-only resume resolver",
+        "run-patch-tests.ts: resume-detects-default-1m-after-alias-resolution-2-1-281-linux: static: 2.1.281 Linux resume resolves an absent initial model"
+      ]
+    },
+    {
+      "oracleId": "signature-block-custom-endpoint/strip-signatures-for-custom-base-url",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-281-linux: static: 2.1.246 Linux signature symbols are absent in 2.1.281",
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-281-linux: static: 2.1.281 Linux cleanup removes only redacted or signed thinking blocks",
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-281-linux: static: 2.1.281 Linux custom endpoint removes signed thinking before normalization",
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-281-linux: static: 2.1.281 Linux first-party gate delegates to the official URL predicate",
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-281-linux: static: 2.1.281 Linux normalizer no longer keeps same-model signatures on custom endpoints",
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-281-linux: static: 2.1.281 Linux official URL predicate checks the Anthropic API host"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-cli-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-281-linux: static: 2.1.281 Linux footer CLI excludes stale 2.1.273 constructor",
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-281-linux: static: 2.1.281 Linux footer CLI uses the root-scope Option constructor"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-clipboard-image-hint",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-2-1-281-linux-context: static: 2.1.281 Linux clipboard callback excludes previous-target context",
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-2-1-281-linux-context: static: 2.1.281 Linux clipboard callback reads footer selection",
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-2-1-281-linux: static: 2.1.281 Linux clipboard hint excludes previous-target symbols",
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-2-1-281-linux: static: 2.1.281 Linux clipboard hint exports state and honors disabledFooter"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-clipboard-image-hint-context",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-context-2-1-281-linux: static: 2.1.281 Linux clipboard context excludes previous-target call",
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-context-2-1-281-linux: static: 2.1.281 Linux clipboard context includes footer selection"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-command-length-mount",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-command-length-mount-2-1-281-linux: static: 2.1.281 Linux command-length mount excludes the stale unsafe read",
+        "run-patch-tests.ts: statusline-footer-control-command-length-mount-2-1-281-linux: static: 2.1.281 Linux command-length mount is guarded"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-command-length-update",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-command-length-update-2-1-233: static: 2.1.233 result telemetry tolerates missing commands"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-effort-level",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-effort-level-2-1-281-linux: static: 2.1.281 Linux effort-level memo rejects the unguarded callback",
+        "run-patch-tests.ts: statusline-footer-control-effort-level-2-1-281-linux: static: 2.1.281 Linux effort-level notification follows footer settings"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-effort-notification",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-2-1-281-linux: static: 2.1.281 Linux ultrathink notification rejects the unguarded memo",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-2-1-281-linux: static: 2.1.281 Linux ultrathink notification tracks effort footer settings",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-settings-2-1-281-linux: static: 2.1.281 Linux effort notification settings are selected",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-settings-2-1-281-linux: static: 2.1.281 Linux settings entry rejects the previous memo binding"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-mode-hint",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-2-1-281-linux: static: 2.1.281 Linux mode selector rejects stale 2.1.273 hook and locals",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-2-1-281-linux: static: 2.1.281 Linux mode selector uses current FooterHintLine scope"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-mode-hint-narrow",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-2-1-281-expanded-linux: static: 2.1.281 Linux expanded mode hints are controlled by disabledFooter",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-2-1-281-expanded-linux: static: 2.1.281 Linux expanded mode hints reject stale 2.1.273 child locals",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-2-1-281-small-linux: static: 2.1.281 Linux compact mode hint is controlled by disabledFooter",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-2-1-281-small-linux: static: 2.1.281 Linux compact mode hint rejects stale 2.1.273 child locals"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-rate-limit-warning",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-2-1-281-linux: static: 2.1.281 Linux rate-limit callback excludes global-only state",
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-2-1-281-linux: static: 2.1.281 Linux rate-limit callback removes hidden warning"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-rate-limit-warning-deps",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-deps-2-1-281-linux: static: 2.1.281 Linux rate-limit dependencies observe footer settings",
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-deps-2-1-281-linux: static: 2.1.281 Linux rate-limit dependencies reject the old context"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-render",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-render-2-1-281-linux: static: 2.1.281 Linux footer preserves only custom statusline when hidden",
+        "run-patch-tests.ts: statusline-footer-control-render-2-1-281-linux: static: 2.1.281 Linux footer return rejects stale 2.1.273 locals"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-render-state",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-render-state-2-1-281-linux: static: 2.1.281 Linux footer hide state rejects stale 2.1.273 bindings",
+        "run-patch-tests.ts: statusline-footer-control-render-state-2-1-281-linux: static: 2.1.281 Linux footer hide state uses current normalized settings"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-schema",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-schema-2-1-281-linux: static: 2.1.281 Linux schema excludes stale 2.1.273 helpers",
+        "run-patch-tests.ts: statusline-footer-control-schema-2-1-281-linux: static: 2.1.281 Linux schema uses statusLine-scope helpers"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-json-effort-level",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-json-effort-level-2-1-281-linux: static: 2.1.281 Linux statusline effort excludes previous native-only resolver",
+        "run-patch-tests.ts: statusline-json-effort-level-2-1-281-linux: static: 2.1.281 Linux statusline reports model-scoped effort"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-json-permission-mode",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-json-permission-mode-2-1-281-linux: static: 2.1.281 Linux permission mode excludes the prior payload prefix",
+        "run-patch-tests.ts: statusline-json-permission-mode-2-1-281-linux: static: 2.1.281 Linux statusline exposes permission mode"
+      ]
+    },
+    {
+      "oracleId": "subagent-preserve-tool-results/subagent-preserve-tool-results",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: subagent-preserve-tool-results: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "system-prompt-section-overrides/system-prompt-section-override-bridge",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: system-prompt-section-override-bridge-2-1-220: static: main prompt vector crosses the versioned override bridge in 2.1.220"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-clear-live-on-interrupt",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-clear-live-on-interrupt-2-1-250: static: 2.1.250 interrupt clears preserved live thinking"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-complete",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-complete: static: completed thinking clears live buffer",
+        "run-patch-tests.ts: thinking-render-live-complete: static: completed thinking no longer mirrors a timed live buffer"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-delta",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-281-linux: static: 2.1.281 Linux thinking deltas no longer carry 2.1.273 fallback symbols",
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-281-linux: static: 2.1.281 Linux thinking deltas preserve the current fallback estimator",
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-281-linux: static: 2.1.281 Linux thinking deltas update live state"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-output",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-output-2-1-281-linux: static: 2.1.281 Linux live output does not retain the 2.1.273 selector symbols",
+        "run-patch-tests.ts: thinking-render-live-output-2-1-281-linux: static: 2.1.281 Linux live output subscribes to the stream thinking snapshot"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-row",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-row-2-1-281-linux: static: 2.1.281 Linux live row no longer carries 2.1.273 memo symbols",
+        "run-patch-tests.ts: thinking-render-live-row-2-1-281-linux: static: 2.1.281 Linux live row renders streamed thinking",
+        "run-patch-tests.ts: thinking-render-live-row-cache-allocation-2-1-281-linux: static: 2.1.281 Linux live row allocates its thinking cache slots",
+        "run-patch-tests.ts: thinking-render-live-row-cache-allocation-2-1-281-linux: static: 2.1.281 Linux live row no longer uses the 2.1.273 cache slots"
+      ]
+    },
+    {
+      "oracleId": "transcript-preserve-repl-history/transcript-preserve-repl-history",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: transcript-preserve-repl-history: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-capability-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode accepts capped max"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-effort-command-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-effort-command-import-max-helper-2-1-281-linux: static: 2.1.281 Linux effort command imports max capability",
+        "run-patch-tests.ts: ultracode-effort-command-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode command applies capped model effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-effort-notification-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-effort-notification-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode notification displays applied effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-flag-settings-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-flag-settings-max-fallback-2-1-281-linux: static: 2.1.281 Linux bridge state follows model effort",
+        "run-patch-tests.ts: ultracode-flag-settings-max-fallback-import-2-1-281-linux: static: 2.1.281 Linux bridge imports model-local effort helpers"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-help-label-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-help-label-max-fallback-2-1-281-linux: static: 2.1.281 Linux help labels ultracode effort by model capability"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-help-menu-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode accepts capped max",
+        "run-patch-tests.ts: ultracode-help-label-max-fallback-2-1-281-linux: static: 2.1.281 Linux help labels ultracode effort by model capability"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-help-text-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-help-label-max-fallback-2-1-281-linux: static: 2.1.281 Linux help labels ultracode effort by model capability"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-model-picker-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: effort-session-resolver-2-1-281-linux-x64: static: 2.1.281 Linux resolver keeps native hook priority and adds model-local state",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux focused row uses model resolver before native fallback",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker focus rejects old 2.1.273 setter path",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker ignores no-preference focus while a model row remains selected",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker sentinel guard rejects the stale selected value",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-281-linux: static: 2.1.281 Linux picker still resolves a genuinely selected no-preference row",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode accepts capped max"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-model-picker-persist-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: effort-session-owner-2-1-281-linux-x64: static: 2.1.281 Linux effort session owner uses current CLt setter",
+        "run-patch-tests.ts: effort-session-resolver-2-1-281-linux-x64: static: 2.1.281 Linux resolver keeps native hook priority and adds model-local state",
+        "run-patch-tests.ts: model-effort-picker-arrows-2-1-281-linux: static: 2.1.281 Linux arrow adjustment rejects the previous global effort update",
+        "run-patch-tests.ts: model-effort-picker-arrows-2-1-281-linux: static: 2.1.281 Linux arrow adjustment writes a model-scoped level and state revision",
+        "run-patch-tests.ts: model-effort-picker-select-2-1-281-linux: static: 2.1.281 Linux model selection does not overwrite structured sessionEffort",
+        "run-patch-tests.ts: model-effort-picker-select-2-1-281-linux: static: 2.1.281 Linux model selection rejects the old picker callback symbols",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode accepts capped max"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-settings-report-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-settings-report-max-fallback-2-1-281-linux: static: 2.1.281 Linux settings report recognizes max ultracode"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-slider-confirm-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-slider-confirm-validation-max-fallback-2-1-281-linux: static: 2.1.281 Linux slider validates the model-specific effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-slider-dialog-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-slider-dialog-preview-max-fallback-2-1-281-linux: static: 2.1.281 Linux slider preview uses the model-specific effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-slider-dialog-secondary-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-effort-dialog-preview-max-fallback-2-1-281-linux: static: 2.1.281 Linux effort dialog previews model-specific ultracode effort",
+        "run-patch-tests.ts: ultracode-slider-dialog-validation-max-fallback-2-1-281-linux: static: 2.1.281 Linux effort dialog validates model-specific ultracode effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-slider-dialog-tertiary-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-effort-dialog-preview-max-fallback-2-1-281-linux: static: 2.1.281 Linux effort dialog previews model-specific ultracode effort",
+        "run-patch-tests.ts: ultracode-slider-dialog-validation-max-fallback-2-1-281-linux: static: 2.1.281 Linux effort dialog validates model-specific ultracode effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-slider-menu-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-slider-import-max-fallback-2-1-281-linux: static: 2.1.281 Linux slider imports xhigh support and cap helpers",
+        "run-patch-tests.ts: ultracode-slider-menu-max-fallback-2-1-281-linux: static: 2.1.281 Linux slider labels the applied ultracode effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-startup-settings-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-startup-settings-max-fallback-2-1-281-linux: static: 2.1.281 Linux startup chooses capped model effort"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-thin-client-usage-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode accepts capped max"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-typed-arg-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-effort-command-import-max-helper-2-1-281-linux: static: 2.1.281 Linux effort command imports max capability",
+        "run-patch-tests.ts: ultracode-typed-arg-max-fallback-2-1-281-linux: static: 2.1.281 Linux typed ultracode accepts capped max"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-usage-hint-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode accepts capped max"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-valid-options-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-281-linux: static: 2.1.281 Linux ultracode accepts capped max"
+      ]
+    }
+  ],
+  "evidenceClass": "runtime",
+  "outcome": "passed",
+  "skippedOracleIds": []
+}

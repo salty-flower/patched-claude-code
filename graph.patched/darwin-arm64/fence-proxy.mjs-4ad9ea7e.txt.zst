@@ -1,0 +1,180 @@
+// The test browser's filtering proxy.
+//
+// The browser is started with this listener as its only proxy and a bypass list of exactly the app's own host:port pairs, so every
+// other connection it makes — scripts, images, fonts, XHR, WebSockets, workers, beacons — arrives here first. Each one is judged by
+// allow(host, port), which the launcher backs with the LOAD-ONLY tier of .claude-testrc (reachableHosts, lib/hosts.mjs):
+//   allowed  → tunnelled (CONNECT) or forwarded (plain http) — a load-only host, or a trusted public origin of allowedOrigins — to a PUBLIC address
+//              only, directly or through the machine's own proxy (one request per plain-http connection);
+//   anything else → 403, and the host is counted, so a run can say what the app tried to reach.
+// Nothing is decrypted: https stays a blind tunnel. The listener is bound to 127.0.0.1 on a random port and lives as long as the launcher.
+
+import net from 'node:net';
+import os from 'node:os';
+import dns from 'node:dns';
+
+const HEADER_CAP = 16 * 1024;
+const IDLE_MS = 60_000;
+const CONNECT_MS = 5_000; // one address gets this long to answer before the next is tried
+
+/** Address ranges a public CDN or API never answers from: "this host", private and shared space, link-local, loopback, documentation and
+ *  benchmarking ranges, NAT64/6to4/Teredo relays, IPv4-compatible and IPv4-translated (SIIT) forms, multicast and reserved space — net.BlockList
+ *  compares addresses, not spellings, so every textual form of one address is judged alike; an IPv4-mapped address is judged as the IPv4 address inside it. */
+const NON_PUBLIC = new net.BlockList();
+for (const [a, p] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24], ['192.88.99.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15], ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 3]]) NON_PUBLIC.addSubnet(a, p, 'ipv4');
+for (const [a, p] of [['::', 96], ['::1', 128], ['::ffff:0:0:0', 96], ['64:ff9b::', 96], ['64:ff9b:1::', 48], ['100::', 64], ['2001::', 32], ['2001:db8::', 32], ['2002::', 16], ['fc00::', 7], ['fe80::', 10], ['fec0::', 10], ['ff00::', 8]]) NON_PUBLIC.addSubnet(a, p, 'ipv6');
+let ownList = null; let ownAt = 0;
+/** This machine's own interface addresses (any class — a laptop's global IPv6 address is public-looking and still "here"), re-read every 10 s. */
+function ownAddresses() {
+  if (ownList && Date.now() - ownAt < 10000) return ownList;
+  const b = new net.BlockList();
+  try { for (const list of Object.values(os.networkInterfaces())) for (const i of list || []) { const a = String(i.address || '').replace(/%.*$/, ''); if (net.isIPv4(a)) b.addAddress(a, 'ipv4'); else if (net.isIPv6(a)) b.addAddress(a, 'ipv6'); } } catch { /* no interface list: the fixed ranges still apply */ }
+  ownList = b; ownAt = Date.now(); return b;
+}
+/** An address in its plainest spelling, { address, family } — an IPv4-mapped IPv6 address ("::ffff:10.0.0.5", "::ffff:a00:5") as the IPv4 address it carries — or null when it is not an address. */
+export function plainAddress(ip) {
+  let fam = net.isIPv4(ip) ? 'ipv4' : net.isIPv6(ip) ? 'ipv6' : null; if (!fam) return null;
+  let a; try { a = new net.SocketAddress({ address: String(ip).replace(/%.*$/, ''), family: fam }).address; } catch { return null; }
+  if (fam === 'ipv6') { const m4 = a.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i); if (m4) { a = m4[1]; fam = 'ipv4'; } }
+  return { address: a, family: fam === 'ipv4' ? 4 : 6 };
+}
+/** True for an address a public CDN or API never has — the ranges above, or one of this machine's own addresses. A name the person allowed is meant
+ *  to be on the internet; one that resolves here instead is refused, so an allowed name can never become a way for a page to reach another port of
+ *  this machine or the local network. Anything that does not parse as an address counts as non-public (fail closed). */
+export function isNonPublicAddress(ip) {
+  let fam = net.isIPv4(ip) ? 'ipv4' : net.isIPv6(ip) ? 'ipv6' : null; if (!fam) return true;
+  let a; try { a = new net.SocketAddress({ address: ip, family: fam }).address; } catch { return true; } // canonical spelling ("::ffff:7f00:1" → "::ffff:127.0.0.1")
+  if (fam === 'ipv6') { const m4 = a.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i); if (m4) { a = m4[1]; fam = 'ipv4'; } } // an IPv4-mapped address is judged as the IPv4 address it carries
+  return NON_PUBLIC.check(a, fam) || ownAddresses().check(a, fam);
+}
+
+function parseTarget(line) {
+  // "CONNECT host:port HTTP/1.1"  |  "GET http://host[:port]/path HTTP/1.1"
+  const m = line.match(/^([A-Z]{3,10}) (\S{1,4096}) HTTP\/1\.[01]$/); if (!m) return null;
+  const [, method, target] = m;
+  if (method === 'CONNECT') {
+    const t = target.match(/^(\[[0-9a-fA-F:.]+\]|[A-Za-z0-9.-]{1,253}):(\d{1,5})$/); if (!t) return null;
+    return { method, host: t[1].replace(/^\[|\]$/g, '').toLowerCase(), port: Number(t[2]), path: null };
+  }
+  let u; try { u = new URL(target); } catch { return null; }
+  if (u.protocol !== 'http:' || u.username || u.password) return null;
+  return { method, host: u.hostname.replace(/^\[|\]$/g, '').toLowerCase(), port: Number(u.port || 80), path: (u.pathname || '/') + (u.search || '') };
+}
+
+const PROXY_VARS = ['HTTPS_PROXY', 'https_proxy', 'ALL_PROXY', 'all_proxy'];
+/** Read the machine's own outbound proxy from the environment (a corporate network sets HTTPS_PROXY). Returns
+ *  { proxy: { host, port, auth } } for a plain http:// CONNECT proxy, { proxy: null } when none is set, or
+ *  { proxy: null, problem } when one is set but cannot be used (a socks or https scheme, an unreadable value): the caller logs the
+ *  problem and connects directly. Never throws — a stray "%" in a proxy password must not take the browser server down. */
+export function upstreamProxySetting(env) {
+  const name = PROXY_VARS.find((k) => env[k]); if (!name) return { proxy: null };
+  const raw = String(env[name]);
+  let u; try { u = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : 'http://' + raw); } catch { return { proxy: null, problem: name + ' is not a readable proxy address' }; }
+  if (u.protocol !== 'http:') return { proxy: null, problem: name + ' names a ' + u.protocol.replace(/:$/, '') + ' proxy, and this fence speaks only to a plain http proxy (CONNECT)' };
+  if (!u.hostname) return { proxy: null, problem: name + ' has no host' };
+  let auth = null;
+  if (u.username) return { proxy: null, problem: name + ' carries a user and a password; the fence does not pass credentials on (its listener cannot tell the test browser from another program on this machine), so it connects to allowed hosts directly instead' };
+  if (u.username) { try { auth = 'Basic ' + Buffer.from(decodeURIComponent(u.username) + ':' + decodeURIComponent(u.password || '')).toString('base64'); } catch { return { proxy: null, problem: name + ' has a user or password that is not valid percent-encoding (write a literal % as %25)' }; } }
+  return { proxy: { host: u.hostname.replace(/^\[|\]$/g, ''), port: Number(u.port || 80), auth } };
+}
+/** NO_PROXY / no_proxy as a function (host, port) → true when that host is to be dialled directly although the machine has a proxy: "*", a name
+ *  ("example.com" also covers its subdomains, as does ".example.com"), optionally ":port". Address ranges (CIDR) name addresses, not hosts, and are skipped. */
+export function noProxyMatcher(env) {
+  const raw = String(env.NO_PROXY || env.no_proxy || ''); const rules = [];
+  for (const part of raw.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).slice(0, 200)) {
+    if (part === '*') { rules.push({ all: true }); continue; }
+    if (part.includes('/')) continue;
+    const m = part.match(/^\*?\.?([a-z0-9.-]{1,253}?)(?::(\d{1,5}))?$/); if (!m || !m[1]) continue;
+    rules.push({ name: m[1].replace(/\.$/, ''), port: m[2] ? Number(m[2]) : null });
+  }
+  return (host, port) => { const h = String(host || '').toLowerCase().replace(/\.$/, ''); return rules.some((r) => r.all || ((h === r.name || h.endsWith('.' + r.name)) && (r.port === null || r.port === port))); };
+}
+/** The machine's own outbound proxy, { host, port, auth } or null (see upstreamProxySetting for the reason when a set variable is unusable). */
+export function upstreamProxyFrom(env) { return upstreamProxySetting(env).proxy; }
+
+/**
+ * Start the proxy. allow(host, port) → boolean is asked for every request; onRefused(host, port) and onAllowed(host, port) are told the outcome, and
+ * onFailed(host, port, why) when an ALLOWED host could not be reached at any of its addresses (so the run can say so instead of failing silently).
+ * direct(host, port) → true sends that host past the machine's proxy (NO_PROXY).
+ * Returns { port, close() }. `lookup` and `connect` are injectable for tests.
+ */
+export async function startFenceProxy({ allow, onRefused = () => {}, onAllowed = () => {}, onFailed = () => {}, direct = () => false, upstream = null, lookup = dns.promises.lookup, connect = net.connect, refuseText = 'Claude Test: this address is outside what the test browser may reach for this run.' }) {
+  const refuse = (sock, host, port, why) => { try { if (host) onRefused(host, port, why); sock.end('HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n' + refuseText + '\r\n'); } catch { /* gone */ } };
+  const server = net.createServer((sock) => {
+    sock.on('error', () => {}); sock.setTimeout(IDLE_MS, () => sock.destroy());
+    let buf = Buffer.alloc(0);
+    const onData = async (chunk) => {
+      buf = Buffer.concat([buf, chunk]);
+      const end = buf.indexOf('\r\n\r\n');
+      if (end < 0) { if (buf.length > HEADER_CAP) { sock.removeListener('data', onData); refuse(sock, null, 0, 'header too large'); } return; }
+      sock.removeListener('data', onData); sock.pause();
+      const head = buf.subarray(0, end).toString('latin1'); const rest = buf.subarray(end + 4);
+      if (/\r(?!\n)|(?<!\r)\n|\0/.test(head)) { try { sock.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n'); } catch { /* gone */ } return; } /* a bare LF, a bare CR or a NUL inside the head: lines are split on CRLF here and re-sent as they came, and a proxy further up that also ends a line at a bare LF would read a second request nobody judged */
+      const lines = head.split('\r\n'); const t = parseTarget(lines[0]);
+      if (!t || !t.port || t.port > 65535) return refuse(sock, null, 0, 'unreadable request');
+      let ok = false; try { ok = !!allow(t.host, t.port); } catch { ok = false; }
+      if (!ok || net.isIP(t.host)) return refuse(sock, t.host, t.port, 'not allowed'); // names only: an address literal is never on the list
+      let bodyLength = 0; // plain http: the one request's body, by its Content-Length (a chunked body is refused: its end cannot be told without parsing it)
+      if (t.method !== 'CONNECT') {
+        if (lines.slice(1).some((l) => /^transfer-encoding:/i.test(l))) { try { sock.end('HTTP/1.1 411 Length Required\r\nConnection: close\r\n\r\n'); } catch { /* gone */ } return; }
+        const cls = lines.slice(1).filter((l) => /^content-length:/i.test(l)); const cl = cls.length ? cls[0].match(/^content-length:\s*(\d{1,15})\s*$/i) : null;
+        if (cls.length > 1 || (cls.length && !cl)) { try { sock.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n'); } catch { /* gone */ } return; } // one unambiguous length or none
+        bodyLength = cl ? Number(cl[1]) : 0;
+      }
+      // Where to: the machine's own proxy when there is one (it resolves the name), else the name's own PUBLIC address.
+      let targets; let viaUpstream = false; // the addresses to try, in order
+      if (upstream && !direct(t.host, t.port)) { // the machine's proxy resolves the name; but a name THIS machine can resolve, and only to local or private space, is refused here first (split DNS, /etc/hosts)
+        targets = [{ host: upstream.host, port: upstream.port }]; viaUpstream = true;
+        let addrs = null; try { addrs = await lookup(t.host, { all: true, verbatim: true }); } catch { addrs = null; } // no answer from here is normal behind a proxy: the proxy decides
+        if (addrs && addrs.length && addrs.some((a) => !a || !a.address || isNonPublicAddress(a.address))) return refuse(sock, t.host, t.port, 'resolves to a local or private address'); // ANY such answer: the proxy resolves the name again and may pick that one
+      } else {
+        let addrs; try { addrs = await lookup(t.host, { all: true, verbatim: true }); } catch { return refuse(sock, t.host, t.port, 'name did not resolve'); }
+        const pub = (addrs || []).filter((a) => a && a.address && !isNonPublicAddress(a.address));
+        if (!pub.length) return refuse(sock, t.host, t.port, 'resolves to a local or private address');
+        // Every public address, IPv4 first: the resolver's own order puts IPv6 first on a machine that has a global IPv6 address, and where that
+        // address has no way out (some VPNs, containers) a browser would quietly fall back to IPv4 — so does this.
+        // … alternating with IPv6 after that, so a long list of one family never crowds the other out of the six tries (the mirror case: IPv4 with no way out).
+        const v4 = pub.filter((a) => a.family === 4 || net.isIPv4(a.address)); const v6 = pub.filter((a) => !(a.family === 4 || net.isIPv4(a.address))); const order = [];
+        for (let i = 0; i < Math.max(v4.length, v6.length) && order.length < 6; i++) { if (v4[i]) order.push(v4[i]); if (v6[i] && order.length < 6) order.push(v6[i]); }
+        targets = order.map((a) => ({ host: a.address, port: t.port }));
+      }
+      let failed = false; const fail = () => { if (failed) return; failed = true; try { sock.end('HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n'); } catch { /* gone */ } };
+      const dial = (i) => {
+        const up = connect({ host: targets[i].host, port: targets[i].port }); let settled = false;
+        const giveUp = (why) => { if (settled) return; settled = true; clearTimeout(timer); try { up.destroy(); } catch { /* gone */ } if (sock.destroyed) return; if (i + 1 < targets.length) return dial(i + 1); try { onFailed(t.host, t.port, why); } catch { /* telling is never worth a request */ } fail(); };
+        const timer = setTimeout(() => giveUp('no answer in ' + CONNECT_MS / 1000 + ' s'), CONNECT_MS); if (timer.unref) timer.unref();
+        up.once('error', (e) => giveUp(String((e && e.code) || 'could not connect')));
+        up.once('connect', () => { if (settled) { try { up.destroy(); } catch { /* gone */ } return; } settled = true; clearTimeout(timer); up.on('error', () => {}); up.setTimeout(IDLE_MS, () => up.destroy()); connected(up); });
+      };
+      const connected = (up) => {
+        onAllowed(t.host, t.port);
+        const pipeBoth = (seed) => { if (seed && seed.length) up.write(seed); sock.pipe(up); up.pipe(sock); sock.resume(); sock.on('close', () => up.destroy()); up.on('close', () => sock.destroy()); };
+        // Plain http: exactly ONE request goes up this connection — its head and the body its Content-Length declares — and the answer comes
+        // back; anything the client sends after that is dropped. Through an upstream proxy requests travel in absolute form, so a second,
+        // pipelined request could otherwise name a host nobody judged.
+        const pipeOneRequest = (seed, bodyBytes) => { let left = bodyBytes; const give = (b) => { if (left <= 0 || !b.length) return; const part = b.length > left ? b.subarray(0, left) : b; left -= part.length; up.write(part); };
+          give(seed); up.pipe(sock); sock.on('data', give); sock.resume(); sock.on('close', () => up.destroy()); up.on('close', () => sock.destroy()); };
+        if (t.method === 'CONNECT') {
+          if (!viaUpstream) { sock.write('HTTP/1.1 200 Connection Established\r\n\r\n'); return pipeBoth(rest); }
+          // ask the machine's proxy for the tunnel, then hand its answer through
+          up.write('CONNECT ' + t.host + ':' + t.port + ' HTTP/1.1\r\nHost: ' + t.host + ':' + t.port + '\r\n' + (upstream.auth ? 'Proxy-Authorization: ' + upstream.auth + '\r\n' : '') + '\r\n');
+          let ub = Buffer.alloc(0);
+          const early = () => fail(); up.once('close', early); // the machine's proxy took the connection and dropped it before answering: say 502 now, not after the idle timeout
+          const onUp = (c) => { ub = Buffer.concat([ub, c]); const e = ub.indexOf('\r\n\r\n'); if (e < 0) { if (ub.length > HEADER_CAP) { up.destroy(); fail(); } return; } up.removeListener('data', onUp);
+            if (!/^HTTP\/1\.[01] 2\d\d/.test(ub.subarray(0, e).toString('latin1'))) { up.destroy(); return fail(); }
+            up.removeListener('close', early); sock.write('HTTP/1.1 200 Connection Established\r\n\r\n'); const extra = ub.subarray(e + 4); if (extra.length) sock.write(extra); pipeBoth(rest); };
+          up.on('data', onUp); return;
+        }
+        // plain http: one request per connection, in origin form (absolute form when it goes on to the machine's proxy)
+        const headers = lines.slice(1).filter((l) => !/^(proxy-connection|connection|keep-alive|proxy-authorization):/i.test(l));
+        const first = t.method + ' ' + (viaUpstream ? 'http://' + t.host + (t.port === 80 ? '' : ':' + t.port) + t.path : t.path) + ' HTTP/1.1';
+        up.write([first, ...headers, 'Connection: close', ...(viaUpstream && upstream.auth ? ['Proxy-Authorization: ' + upstream.auth] : []), '', ''].join('\r\n'));
+        pipeOneRequest(rest, bodyLength);
+      };
+      dial(0);
+    };
+    sock.on('data', onData);
+  });
+  await new Promise((res, rej) => { server.once('error', rej); server.listen(0, '127.0.0.1', res); });
+  server.unref();
+  return { port: server.address().port, close: () => { try { server.close(); } catch { /* closed */ } } };
+}

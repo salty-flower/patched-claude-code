@@ -1,0 +1,919 @@
+// Shared config loader for the claude-test plugin (no dependencies).
+// Reads <project>/.claude-testrc (a small YAML mapping)
+// and derives the dev-server address and the browser's allowed
+// origins. Only the subset of YAML this file needs is parsed: top-level
+// "key: value" scalars, inline lists [a, b], block lists ("  - item"), and one
+// level of nested mappings. Anything else is ignored, never executed.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { discoverDevServer, candidateList } from './discover.mjs';
+
+export const RC_FILE = '.claude-testrc';
+export const SPECS_DIR = path.join('.claude-test', 'specs');
+export const RUNS_DIR = path.join('.claude-test', 'runs');
+export const DEFAULT_BASE_URL = 'http://localhost:3000';
+// Pinned so tool names and flags stay stable; bump deliberately. Note: each @playwright/mcp
+// release hard-pins a matching playwright *alpha* build; that is how Microsoft ships it.
+export const PLAYWRIGHT_MCP_PACKAGE = '@playwright/mcp@0.0.79';
+export const PLAYWRIGHT_MCP_VERSION = '0.0.79';
+// @playwright/mcp pins an alpha playwright that curated corporate registry mirrors do not carry; the MCP
+// code lives in playwright-core's coreBundle, and the released 1.62.1 serves 0.0.79 correctly (the combination this plugin is tested with).
+// Bump the two together and re-run the end-to-end tests.
+export const PLAYWRIGHT_PIN = '1.62.1';
+/** The largest saved session this tool reads or writes; a larger file is never parsed, so never handed to a browser. */
+export const MAX_OWN_STATE_BYTES = 16 * 1024 * 1024;
+
+function stripComment(line) {
+  // Remove " # comment" outside of quotes (good enough for rc files).
+  let inS = false, inD = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === "'" && !inD) inS = !inS;
+    else if (c === '"' && !inS) inD = !inD;
+    else if (c === '#' && !inS && !inD && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i);
+  }
+  return line;
+}
+
+const BAD_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const dict = () => Object.create(null); // no prototype: a key can never reach Object.prototype
+
+function parseScalar(raw) {
+  const v = raw.trim();
+  if (v === '') return '';
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) return v.slice(1, -1);
+  if (v === 'true' || v === 'yes' || v === 'on') return true;
+  if (v === 'false' || v === 'no' || v === 'off') return false;
+  if (v === 'null' || v === '~') return null;
+  if (/^-?\d+(\.\d+)?$/.test(v)) return Number(v);
+  if (v.startsWith('[') && v.endsWith(']')) {
+    const inner = v.slice(1, -1).trim();
+    return inner === '' ? [] : inner.split(',').map((s) => parseScalar(s));
+  }
+  if (v.startsWith('{') && v.endsWith('}')) {
+    const obj = dict();
+    const inner = v.slice(1, -1).trim();
+    if (inner) for (const part of inner.split(',')) {
+      const k = part.indexOf(':');
+      const key = k > 0 ? part.slice(0, k).trim() : '';
+      if (key && !BAD_KEYS.has(key)) obj[key] = parseScalar(part.slice(k + 1));
+    }
+    return obj;
+  }
+  return v;
+}
+
+/** Parse the small YAML subset described above. Returns {data, warnings}. */
+export function parseRc(text) {
+  const data = dict();
+  const warnings = [];
+  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/);
+  let currentKey = null; // key awaiting a block (list or map)
+  for (let n = 0; n < lines.length; n++) {
+    const rawLine = stripComment(lines[n]);
+    if (rawLine.trim() === '' || rawLine.trim() === '---') continue;
+    if (/^\t/.test(rawLine)) { warnings.push('line ' + (n + 1) + ': starts with a tab (YAML indents with spaces), ignored'); continue; }
+    const indent = rawLine.match(/^ */)[0].length;
+    const line = rawLine.trim();
+    if (indent === 0) {
+      const m = line.match(/^([A-Za-z_][\w.-]*)\s*:\s*(.*)$/);
+      if (!m) { warnings.push('line ' + (n + 1) + ': not understood, ignored'); currentKey = null; continue; }
+      const [, key, rest] = m;
+      if (BAD_KEYS.has(key)) { warnings.push('line ' + (n + 1) + ': key "' + key + '" refused'); currentKey = null; continue; }
+      if (rest === '' ) { data[key] = undefined; currentKey = key; }
+      else { data[key] = parseScalar(rest); currentKey = null; }
+    } else if (currentKey) {
+      if (line.startsWith('- ')) {
+        if (!Array.isArray(data[currentKey])) data[currentKey] = [];
+        data[currentKey].push(parseScalar(line.slice(2)));
+      } else {
+        const m = line.match(/^([A-Za-z_][\w.-]*)\s*:\s*(.*)$/);
+        if (!m) { warnings.push('line ' + (n + 1) + ': not understood, ignored'); continue; }
+        if (BAD_KEYS.has(m[1])) { warnings.push('line ' + (n + 1) + ': key "' + m[1] + '" refused'); continue; }
+        if (data[currentKey] === undefined) data[currentKey] = dict();
+        if (typeof data[currentKey] === 'object' && data[currentKey] !== null && !Array.isArray(data[currentKey])) data[currentKey][m[1]] = parseScalar(m[2]);
+        else warnings.push('line ' + (n + 1) + ': mapping entry under a non-mapping key, ignored');
+      }
+    } else {
+      warnings.push('line ' + (n + 1) + ': unexpected indentation, ignored');
+    }
+  }
+  for (const k of Object.keys(data)) if (data[k] === undefined) delete data[k];
+  return { data, warnings };
+}
+
+/** Normalise an allowed-origins entry to the forms Playwright MCP accepts:
+ *  "https://host", "http://host:port", or a bare host name. "host:*" (any port) is refused.
+ *  Returns null for anything else (paths, queries, globs, whitespace). */
+// A host is a DNS name (no "*", not all digits), a dotted IPv4 address, or a bracketed IPv6 literal.
+// Used for allowedOrigins entries and for baseUrl, whose host later travels in a command line
+// (the MCP server's --allowed-origins) and so must not carry shell metacharacters.
+const HOST = /^(?=.{1,253}$)(?!\d+$)[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/;
+const V6 = /^\[[0-9a-f:]+\]$/;
+const hostOk = (h) => HOST.test(h) || V6.test(h) || /^\d{1,3}(\.\d{1,3}){3}$/.test(h);
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
+/** A host that reaches THIS machine: the three usual spellings plus the rest of 127/8, 0.0.0.0, [::], ::ffff:127.x and "localhost." —
+ *  for rules that must not be talked around with an unusual spelling (no wildcard ports on local hosts; the local-only network fence). */
+import { reachableEntryProblem } from './hosts.mjs';
+
+export function isLocalHost(h) {
+  let x = String(h).trim().toLowerCase(); if (!x) return false;
+  if (!x.startsWith('[') && x.includes(':')) x = '[' + x + ']'; // bare IPv6
+  let canon; try { canon = new URL('http://' + x + '/').hostname; } catch { return false; } // WHATWG canonicalisation: 127.1 → 127.0.0.1, 0x7f000001 → 127.0.0.1, IPv6 compressed/expanded forms → one spelling
+  if (/^localhost\.?$/.test(canon) || /\.localhost\.?$/.test(canon)) return true; // the only NAMES that are local by definition; any other name is judged remote, whatever it resolves to
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(canon)) return /^127\./.test(canon) || canon === '0.0.0.0';
+  if (canon.startsWith('[')) { const v6 = canon.slice(1, -1); if (v6 === '::1' || v6 === '::') return true; const m4 = v6.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/); if (m4) { const a = parseInt(m4[1], 16) >> 8; return a === 127 || (parseInt(m4[1], 16) === 0 && parseInt(m4[2], 16) === 0); } const d4 = v6.match(/^::ffff:(\d+)\.\d+\.\d+\.\d+$/); if (d4) return d4[1] === '127' || /^::ffff:0\.0\.0\.0$/.test(v6); }
+  return false;
+}
+
+export function normaliseOrigin(entry) {
+  if (typeof entry !== 'string') return null;
+  const s = entry.trim().toLowerCase();
+  if (s === '' || /[\s/?#]/.test(s.replace(/^https?:\/\//, ''))) return null;
+  const wildcardPort = s.match(/^(https?:\/\/)([^/:]+|\[[0-9a-f:]+\]):\*$/);
+  if (wildcardPort) return null; // no "any port" entries at all: on this machine that is every local service, and a remote-looking NAME can resolve to this machine (127.0.0.1.nip.io) — name the port
+  if (/^https?:\/\//.test(s)) {
+    try { const u = new URL(s); if (u.origin !== 'null' && hostOk(u.hostname) && (u.pathname === '/' || u.pathname === '')) return u.origin; } catch { /* fall through */ }
+    return null;
+  }
+  // bare host[:port] — canonicalised the way the browser will spell it (127.1 → 127.0.0.1), or it could never match
+  const m = s.match(/^([^:\[\]]+|\[[0-9a-f:]+\])(:\d{1,5})?$/);
+  if (m && hostOk(m[1])) { if (m[2] && (Number(m[2].slice(1)) < 1 || Number(m[2].slice(1)) > 65535)) return null; try { const u = new URL('http://' + s); return u.hostname + (u.port ? ':' + u.port : (m[2] ? ':' + Number(m[2].slice(1)) : '')); } catch { return null; } }
+  return null;
+}
+
+export function parseBaseUrl(value) {
+  if (typeof value !== 'string' || value.trim() === '') return null;
+  try {
+    const u = new URL(value.trim());
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    if (u.username || u.password) return null; // never carry credentials
+    if (!hostOk(u.hostname.toLowerCase())) return null; // same host rule as allowedOrigins entries
+    u.hash = '';
+    return u;
+  } catch { return null; }
+}
+
+/** The one path that stands for a project: its folders outside the repository are named after it, and the files that grant something (the allowed
+ *  addresses, the saved session) carry it as "project". It is the path as given, made absolute, with no link resolved here: Claude Code hands over
+ *  the folder it opened with links already resolved, and the links below that folder are the repository's own, so following one could turn this
+ *  project into another whenever the repository re-points it. */
+export function projectIdentityPath(projectDir) { return path.resolve(projectDir); }
+/** The name this project's folders outside the repository go by (the private folder, the folder of its record of allowed addresses, the
+ *  Bash driver's state folder): the start of the folder's own name, for a person reading a listing, then the whole SHA-256 of projectIdentityPath, which no
+ *  other path shares. The readable part is cut so the name stays well inside a file system's limit for one name. */
+export function projectSlug(projectDir) { const identity = projectIdentityPath(projectDir); return path.basename(identity).replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 48) + '-' + crypto.createHash('sha256').update(identity).digest('hex'); }
+/** Why a parsed file kept for this project (in the private folder, or its record of allowed addresses) is not this project's, or null: it must
+ *  carry projectIdentityPath as "project". The folder's name already depends on that path; the field is what a file copied in from another project's folder does not have. */
+export function wrongProject(parsed, projectDir) {
+  const got = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed.project : undefined;
+  if (got === projectIdentityPath(projectDir)) return null;
+  return typeof got === 'string' && got !== '' ? 'was saved for another project folder (' + shown(got, 200) + ')' : 'does not say which project folder it was saved for';
+}
+
+/** Per-project private directory OUTSIDE the repo for sign-in material (never committed). */
+export function privateDir(projectDir) {
+  const fallback = process.platform === 'darwin' ? path.join(os.homedir(), 'Library', 'Application Support') : path.join(os.homedir(), '.config');
+  const fromEnv = [process.env.XDG_CONFIG_HOME, process.platform === 'win32' ? process.env.APPDATA : null].find((v) => v && path.isAbsolute(v)); // a relative value is ignored (as the XDG spec says), so an environment value never depends on the current directory
+  let base = path.resolve(fromEnv || fallback); // absolute from here on
+  if (insideDir(base, projectDir) || reallyInsideDir(base, projectDir) || insideProjectReally(base)) base = process.platform === 'darwin' ? path.join(trustedHome(), 'Library', 'Application Support') : path.join(trustedHome(), '.config'); // never inside the project: fall back to the ACCOUNT's home (user database), which no session variable sets
+  if (homeTampered() && (reallyInsideDir(base, projectDir) || insideProjectReally(base))) { process.stderr.write('[claude-test] refusing to run: HOME points into the project\n'); process.exit(2); } // project == your real home directory is fine; a HOME variable pointed at the project is not
+  return path.join(base, 'claude-test', projectSlug(projectDir));
+}
+
+/** The session root: what Claude Code opened (CLAUDE_PROJECT_DIR; CLAUDE_TEST_PROJECT_DIR — which the plugin manifest sets to the
+ *  same value and tests set alone — second; else the current directory). A "${…}" placeholder an older Claude Code left unsubstituted counts as unset. */
+let pinNote = null; let openedNote = null; // why CLAUDE_TEST_PROJECT_DIR / CLAUDE_PROJECT_DIR were ignored, for loadConfig's warnings (one line each)
+/** CLAUDE_TEST_PROJECT_DIR, when it may pin the project: our own processes (the plugin manifest, the Bash-driver daemon, tests) set it to the folder
+ *  the session is already in. A value somewhere ELSE — unrelated to the current directory, above this checkout's top folder, or outside what Claude
+ *  Code opened — would swap the project identity and with it the private folder whose session and secrets get attached; it is ignored with a note. */
+export function pinnedProjectDir() {
+  const v = process.env.CLAUDE_TEST_PROJECT_DIR; if (!v || /^\$\{.*\}$/.test(v)) return null;
+  const pinned = path.resolve(v); const cwd = path.resolve(process.cwd());
+  const opened = openedProjectDir();
+  const same = reallyInsideDir(pinned, cwd) && reallyInsideDir(cwd, pinned);
+  let why = null;
+  if (!reallyInsideDir(pinned, cwd) && !reallyInsideDir(cwd, pinned)) why = 'it names a folder this session is not in';
+  else if (opened && !(pinned === opened || reallyInsideDir(pinned, opened))) { const raw = path.resolve(process.env.CLAUDE_PROJECT_DIR); why = raw === opened ? 'it lies outside the folder Claude Code opened (' + opened + ')' : 'it lies outside this checkout\'s top folder (' + opened + '), which is as far up as the folder Claude Code opened (' + raw + ') counts here'; }
+  else if (!same && reallyInsideDir(cwd, pinned) && !ancestorMayAnchor(pinned, cwd, opened)) why = checkoutRootOf(cwd) ? 'it names a folder above this checkout (' + checkoutRootOf(cwd) + ')' : 'it names a folder above the current directory, and no .git folder marks a checkout that would make it part of this project';
+  if (why) { pinNote = 'CLAUDE_TEST_PROJECT_DIR=' + pinned + ' is ignored: ' + why + ' — a session setting must not move the project, and with it the private sign-in folder, somewhere else'; return null; }
+  return pinned;
+}
+/** A folder above the current directory may pin the session only if it is this checkout's top folder or below it, or exactly the folder
+ *  Claude Code opened (a variable could otherwise name ~/dev or / as the project). With no checkout found, only the opened
+ *  folder qualifies. */
+function ancestorMayAnchor(dir, cwd, opened) { if (opened && reallyInsideDir(dir, opened) && reallyInsideDir(opened, dir)) return true; const top = checkoutRootOf(cwd); return !!top && reallyInsideDir(dir, top); }
+/** CLAUDE_PROJECT_DIR as Claude Code sets it for the processes it starts (their cwd is inside it). A value unrelated to the current directory did not
+ *  come from Claude Code and is ignored the same way; a value
+ *  above this checkout's top folder yields the top folder instead. */
+export function openedProjectDir() {
+  const v = process.env.CLAUDE_PROJECT_DIR; if (!v || /^\$\{.*\}$/.test(v)) return null;
+  const opened = path.resolve(v); const cwd = path.resolve(process.cwd());
+  if (!(opened === cwd || reallyInsideDir(cwd, opened) || reallyInsideDir(opened, cwd))) { openedNote = 'CLAUDE_PROJECT_DIR=' + opened + ' is ignored: this process is not running inside it'; return null; }
+  // Opened ABOVE the current directory (Claude Code opened a folder holding several checkouts): the session reaches no higher than this
+  // checkout's top folder, so sibling checkouts are not part of it. No checkout found: taken as given (launcherConfig's adoption rule bounds the rest).
+  const top = reallyInsideDir(cwd, opened) && !reallyInsideDir(opened, cwd) ? checkoutRootOf(cwd) : null;
+  return top && !reallyInsideDir(opened, top) ? top : opened;
+}
+export function sessionRoot() {
+  return path.resolve(openedProjectDir() || pinnedProjectDir() || process.cwd()); // what Claude Code opened; a (vetted) CLAUDE_TEST_PROJECT_DIR second; else the current directory
+}
+const PROJECT_MARKERS = ['.claude-testrc', '.claude-test'];
+/** Marked = has a .claude-testrc, or a .claude-test folder holding more than run output (a stray .claude-test/runs left by an
+ *  older run started in the wrong folder does not make that folder the app). */
+export function isMarked(d) {
+  try { fs.lstatSync(path.join(d, '.claude-testrc')); return true; } catch { /* */ }
+  try { return fs.readdirSync(path.join(d, '.claude-test')).some((e) => e !== 'runs' && e !== '.gitignore'); } catch { return false; }
+}
+/** The project every script acts on — ONE rule for the shell helper, the Bash driver and the MCP launcher: the nearest
+ *  directory, walking up from the current directory, that holds a .claude-testrc or a .claude-test/ folder, bounded by
+ *  the session root (never above it); when the current directory is outside the session root, or nothing is marked,
+ *  the session root itself (CLAUDE_TEST_PROJECT_DIR set explicitly always wins — tests and the Bash-driver daemon use
+ *  it). Never a command-line argument: the agent's pre-approved command lines must not choose whose settings and saved
+ *  sign-in are used. This is what makes an app in a subdirectory of a monorepo work: "cd apps/web" and the helper, the
+ *  run folder and the launcher's file pinning all agree on apps/web. */
+/** "app: <relative dir>" in the session root's .claude-testrc names the app folder of a multi-app repo (the answer to the
+ *  skill's "which app?" question, asked once). Only a plain relative path to an existing directory inside the root counts. */
+/** The configuration the BROWSER SERVER runs with when started at the session root: the resolved project (app: pointer honoured), or —
+ *  when that is an unconfigured root that runs no dev server of its own — the single marked app folder below it; with several, the root
+ *  config fenced to the union of the origins of the apps that configure an address. ONE rule, used by the launcher and by the tools gate. */
+export function launcherConfig() {
+  let cfg = loadConfig(resolveProjectDir());
+  const root = sessionRoot();
+  let note = null; let served = null; // served: the project configs whose own records of allowed addresses feed this fence, when that is not just cfg
+  const runsOwnApp = (() => { try { const pkg = JSON.parse(fs.readFileSync(path.join(cfg.projectDir, 'package.json'), 'utf8')); return !!(pkg && pkg.scripts && ['dev', 'start'].some((s) => pkg.scripts[s] || Object.keys(pkg.scripts).some((k) => k.startsWith(s + ':')))); } catch { return false; } })();
+  if (cfg.projectDir === root && !rootConfiguresItself(cfg.projectDir) && !runsOwnApp) {
+    const below = projectsBelow(cfg.projectDir);
+    const cwd = process.cwd(); const onlyApp = below.length === 1 ? path.join(cfg.projectDir, below[0]) : null;
+    const here = onlyApp && ((reallyInsideDir(cwd, root) && reallyInsideDir(root, cwd)) || reallyInsideDir(cwd, onlyApp)); // adopted only from the root itself or from inside that app — never from a DIFFERENT folder under the root, whose settings may have named the root
+    if (onlyApp && here) { note = 'no .claude-testrc at ' + cfg.projectDir + '; using the app folder ' + below[0]; cfg = loadConfig(onlyApp); }
+    else if (onlyApp) { note = 'no .claude-testrc at ' + cfg.projectDir + ' and this process runs in ' + cwd + ', not in the app folder ' + below[0] + ' — that app\'s settings and sign-in files are not applied from here; start Claude Code in ' + onlyApp + ' or put a .claude-testrc at the root'; }
+    else if (below.length > 1) { const apps = below.map((b) => { try { return loadConfig(path.join(cfg.projectDir, b)); } catch { return null; } }).filter(Boolean); if (apps.length) { cfg.allowedOrigins = [...new Set(apps.flatMap((a) => a.allowedOrigins))]; served = apps; } note = 'several app folders with Claude Test files (' + below.join(', ') + '): the browser fence is the union of their allowed origins (a configured app gives its base URL; an unconfigured one its candidate ports); sign-in material is per app and is not applied from the root — put a .claude-testrc at ' + cfg.projectDir + ' to choose one'; } // every app's list is bounded (base URL or candidate ports — never a loopback wildcard), so the union is too
+  }
+  return { cfg, note, served: served || [cfg] };
+}
+export function appPointer(root) { const r = appPointerInfo(root); return r && r.dir ? r.dir : null; }
+/** {dir} when the root rc's app: line names a usable folder; {problem, value} when the line exists but does not resolve (typo,
+ *  missing folder, "../x", absolute path); null when there is no app: line. Also says whether the rc configures anything ELSE. */
+export function appPointerInfo(root) {
+  let txt; try { const p = path.join(root, RC_FILE); if (!fs.lstatSync(p).isFile()) return null; txt = fs.readFileSync(p, 'utf8'); } catch { return null; }
+  const m = txt.match(/^\s*app\s*:\s*["']?([^"'\n#]+?)["']?\s*(#.*)?$/m);
+  if (!m) return null;
+  const rel = m[1].trim();
+  const bad = (problem) => ({ dir: null, value: rel, problem: 'the "app: ' + rel.replace(/[^\x20-\x7e]/g, '?').slice(0, 80) + '" line in ' + path.join(root, RC_FILE) + ' ' + problem });
+  if (!rel || path.isAbsolute(rel) || rel.split(/[\\/]/).includes('..')) return bad('must be a plain relative path inside the repo');
+  const abs = path.resolve(root, rel); // "frontend/", "./frontend" and "frontend" are the same folder
+  try { if (!fs.statSync(abs).isDirectory()) return bad('is not a directory'); } catch { return bad('names a folder that does not exist'); }
+  return reallyInsideDir(abs, root) ? { dir: abs, value: rel } : bad('resolves outside the repo');
+}
+/** True when the root's .claude-testrc configures the ROOT ITSELF (any key other than app:) — an rc holding only "app: …" answers
+ *  "which app" and does not make the root an app. */
+export function rootConfiguresItself(root) {
+  try { const txt = fs.readFileSync(path.join(root, RC_FILE), 'utf8'); return txt.split(/\r?\n/).some((l) => /^\s*[A-Za-z][\w-]*\s*:/.test(l) && !/^\s*app\s*:/.test(l)); } catch { return false; }
+}
+export function resolveProjectDir() {
+  // CLAUDE_TEST_PROJECT_DIR pins the folder (the plugin manifest passes the session root that way; the Bash-driver daemon and tests pass
+  // an exact project) — but an app: pointer in THAT folder's .claude-testrc is still honoured, so the browser server
+  // follows "which app" exactly like the helper does.
+  { const pinned = pinnedProjectDir(); if (pinned) return appPointer(pinned) || pinned; } // vetted: only a folder this session is in
+  const root = sessionRoot();
+  const cwd = path.resolve(process.cwd());
+  const pointed = appPointer(root); // the root's .claude-testrc says which app
+  if (!insideDir(cwd, root)) return pointed || root;
+  for (let d = cwd; ; d = path.dirname(d)) {
+    if (d === root) break;          // the root itself is decided below (its rc may just point at the app)
+    if (isMarked(d)) return d;      // an explicitly marked folder the shell is in (or below) wins
+    if (path.dirname(d) === d) break;
+  }
+  if (cwd !== root && fs.existsSync(path.join(cwd, 'package.json'))) return cwd;  // the app folder the shell is IN beats the pointer and the root (the user went there on purpose)
+  if (pointed) return pointed;                                                      // the root's .claude-testrc names the app
+  if (rootConfiguresItself(root)) return root;                                      // the user configured the root itself: their word
+  return root;
+}
+/** Why the resolved project directory was chosen — status prints it. */
+export function projectDirReason(dir) {
+  if (pinnedProjectDir() === dir) return 'CLAUDE_TEST_PROJECT_DIR';
+  if (appPointer(sessionRoot()) === dir) return 'the "app:" line in the session root\'s ' + RC_FILE;
+  const marked = PROJECT_MARKERS.filter((m) => { try { fs.lstatSync(path.join(dir, m)); return true; } catch { return false; } });
+  if (marked.length && isMarked(dir)) return 'nearest folder with ' + marked.join(' + ') + (dir === sessionRoot() ? ' (the session root)' : ' (walking up from the current directory, inside the session root ' + sessionRoot() + ')');
+  if (dir !== sessionRoot()) return 'the current directory (it has a package.json; nothing above it up to the session root is marked with .claude-testrc / .claude-test)';
+  return 'the session root (no .claude-testrc or .claude-test found from the current directory up)';
+}
+/** App folders BELOW a directory that carry Claude Test files (depth ≤ 3, skipping node_modules and dot folders) —
+ *  so status at a monorepo root can say "cd apps/web first" instead of reporting zero specs. */
+export function projectsBelow(dir, depth = 3) {
+  const found = [];
+  const walk = (d, left) => {
+    if (found.length >= 8) return;
+    let ents; try { ents = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+    if (d !== dir && isMarked(d)) { found.push(path.relative(dir, d)); return; }
+    if (left === 0) return;
+    for (const e of ents) if (e.isDirectory() && !e.name.startsWith('.') && e.name !== 'node_modules' && e.name !== 'dist' && e.name !== 'build') walk(path.join(d, e.name), left - 1);
+  };
+  walk(dir, depth);
+  return found;
+}
+
+/** True when `p` is `dir` itself or somewhere below it (both taken as given, no realpath). */
+export function insideDir(p, dir) { return p === dir || p.startsWith(dir + path.sep); }
+
+// The same question asked strictly, for "is this path really inside that tree": each side is realpath'd
+// as far as it exists (a not-yet-existing tail is kept), and compared case-folded on the platforms
+// whose default filesystems are case-insensitive (macOS, Windows).
+function realish(p) {
+  let head = path.resolve(p); const tail = [];
+  while (!fs.existsSync(head)) { const up = path.dirname(head); if (up === head) break; tail.unshift(path.basename(head)); head = up; }
+  try { head = fs.realpathSync(head); } catch { /* keep as resolved */ }
+  const full = path.join(head, ...tail);
+  return process.platform === 'darwin' || process.platform === 'win32' ? full.toLowerCase() : full;
+}
+export function reallyInsideDir(p, dir) { return insideDir(realish(p), realish(dir)); }
+
+/** True when `p` is inside the project as the scripts see it (resolveProjectDir) OR inside the real
+ *  current directory — so moving the project anchor with CLAUDE_TEST_PROJECT_DIR does not turn a
+ *  path in the checkout into an "outside the project" path. */
+const checkoutRootMemo = new Map();
+/** The checkout the session is in: the TOPMOST folder above `dir` (inclusive) that holds a .git entry, never at or above the account's home
+ *  (a dotfiles repository at ~/.git must not turn the whole home into "the project"; the home comes from the user database, not $HOME). Found by
+ *  walking the filesystem — no git command, no GIT_* variables. A .git FILE (a submodule's or worktree's gitlink) counts like a
+ *  directory, and the walk continues past it, so a submodule's siblings in the superproject are still the same checkout. null when there is none. */
+function checkoutRootOf(dir) { if (checkoutRootMemo.has(dir)) return checkoutRootMemo.get(dir); const r = checkoutRootWalk(dir); checkoutRootMemo.set(dir, r); return r; }
+function checkoutRootWalk(dir) { let d; try { d = fs.realpathSync(dir); } catch { d = path.resolve(dir); } const home = path.resolve(trustedHome()); let top = null; for (;;) { if (d === home || reallyInsideDir(home, d)) break; /* at the home or above it: stop */ let has = false; try { fs.lstatSync(path.join(d, '.git')); has = true; } catch { /* none here */ } if (has) top = d; const up = path.dirname(d); if (up === d) break; d = up; } return top; }
+let checkoutRootsMemo = null;
+function checkoutRoots() { if (checkoutRootsMemo) return checkoutRootsMemo; const roots = new Set(); for (const d of [process.cwd(), resolveProjectDir(), sessionRoot()]) { const r = checkoutRootOf(d); if (r) roots.add(r); } checkoutRootsMemo = [...roots]; return checkoutRootsMemo; }
+/** Inside "the project" in the widest sense a repository controls: the resolved project folder, the current directory, the session root, or
+ *  anywhere in the CHECKOUT those sit in (a monorepo's sibling folders are the same repository's files). */
+export function insideProjectReally(p) { return reallyInsideDir(p, resolveProjectDir()) || reallyInsideDir(p, process.cwd()) || reallyInsideDir(p, sessionRoot()) || checkoutRoots().some((r) => reallyInsideDir(p, r)); }
+
+/** An environment variable naming a file or folder this plugin will READ CODE FROM or EXECUTE
+ *  (tools dir, browser binary), ignored when it points into the project: the project must not
+ *  supply that code. Returns the resolved path or null. */
+export function envPathOutsideProject(name) {
+  const v = process.env[name];
+  if (!v || !v.trim()) return null;
+  const p = path.resolve(v.trim());
+  if (!insideProjectReally(p)) return p;
+  process.stderr.write('[claude-test] ' + name + ' points inside the project and is ignored\n');
+  return null;
+}
+
+/** Why a directory we execute code from, or read credentials from, is not private enough — or null. Rule (same as
+ *  the skill scratch root): owned by the current user or root, and not writable by group or others. Windows is not
+ *  covered by this check. */
+export function dirNotPrivateProblem(dir) {
+  if (process.platform === 'win32') return null;
+  let st; try { st = fs.statSync(dir); } catch { return null; } // absent: nothing to judge yet
+  if (!st.isDirectory()) return dir + ' is not a directory';
+  const uid = typeof process.getuid === 'function' ? process.getuid() : null;
+  if (uid !== null && st.uid !== uid && st.uid !== 0) return dir + ' is owned by another user (uid ' + st.uid + ')';
+  if ((st.mode & 0o022) !== 0) return dir + ' is writable by group or other users (mode ' + (st.mode & 0o777).toString(8) + ')';
+  return null;
+}
+
+/** The account's home directory from the user database, not the HOME variable. Used to tell "the project IS the home directory" (normal: claude started in ~) from
+ *  "HOME was pointed into the project" (tampering). */
+export function trustedHome() { try { return os.userInfo().homedir || os.homedir(); } catch { return os.homedir(); } }
+export function homeTampered() { const envHome = process.platform === 'win32' ? (process.env.USERPROFILE || '') : (process.env.HOME || ''); return !!envHome && path.resolve(envHome) !== path.resolve(trustedHome()); }
+
+/** Playwright's browser registry. playwright-core reads PLAYWRIGHT_BROWSERS_PATH (falling back to the npm_config_ /
+ *  npm_package_config_ spellings only when it is UNDEFINED): "0" = hermetic install beside the package; "" or unset =
+ *  the per-platform cache default; anything else = a path, resolved against INIT_CWD || cwd when relative. */
+const PW_NPM_SPELLINGS = ['npm_config_playwright_browsers_path', 'npm_package_config_playwright_browsers_path'];
+function platformCacheBrowsers() {
+  if (process.platform === 'linux') return path.join(process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache'), 'ms-playwright');
+  if (process.platform === 'darwin') return path.join(os.homedir(), 'Library', 'Caches', 'ms-playwright');
+  if (process.platform === 'win32') return path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'ms-playwright');
+  return path.join(os.homedir(), '.cache', 'ms-playwright');
+}
+function trustedHomeBrowsers() {
+  const h = trustedHome();
+  if (process.platform === 'darwin') return path.join(h, 'Library', 'Caches', 'ms-playwright');
+  if (process.platform === 'win32') return path.join(h, 'AppData', 'Local', 'ms-playwright');
+  return path.join(h, '.cache', 'ms-playwright');
+}
+/** Run FIRST in every entry point (ct.mjs, ct-auth.mjs, ctbrowser.mjs, playwright-mcp.mjs), before anything imports
+ *  Playwright — the registry directory decides which browser BINARY runs. Shape: (1) normalise the spellings into
+ *  PLAYWRIGHT_BROWSERS_PATH and delete the npm ones, so from here on only one variable exists; (2) unless hermetic, ALWAYS
+ *  pin PLAYWRIGHT_BROWSERS_PATH to an absolute directory that is not inside the project: the first acceptable of [the
+ *  value given, the platform cache default, the account-home default]. Every child (the sign-in skill) then inherits
+ *  exactly that value, whatever its cwd or INIT_CWD; the browser server's launcher then sets its own, <tools>/browsers. A message is printed only when the preferred
+ *  location had to be skipped. */
+let browserEnvChecked = false;
+/** A shared browser registry is refused only when someone ELSE could plant a binary in it: owned by another user, or world-writable
+ *  (group-writable is normal on umask-002 desktops and is the user's own business). */
+function sharedRegistryProblem(dir) { if (process.platform === 'win32') return null; try { const st = fs.statSync(dir); if (!st.isDirectory()) return dir + ' is not a directory'; if (typeof process.getuid === 'function' && st.uid !== process.getuid() && st.uid !== 0) return dir + ' is owned by another user (uid ' + st.uid + ')'; if (st.mode & 0o002) return dir + ' is writable by every user (mode ' + (st.mode & 0o777).toString(8) + ')'; return null; } catch { return null; } }
+/** The environment the BROWSER SERVER child gets: an allow-list, not the session's whole environment. What a browser and the
+ *  Node server around it need (PATH, HOME, locale, temp, display, proxies and CA bundles, XDG folders, the Windows system
+ *  variables), this plugin's own CLAUDE_TEST_* knobs, and PLAYWRIGHT_BROWSERS_PATH as this process holds it — no other
+ *  PLAYWRIGHT_* / PW* variable (they change what the server executes, where it connects or what it records), no NODE_OPTIONS,
+ *  no unrelated credentials that happen to be exported in the shell. */
+const SERVER_ENV_KEEP = new Set(['PATH', 'HOME', 'USER', 'LOGNAME', 'SHELL', 'LANG', 'LANGUAGE', 'TZ', 'TMPDIR', 'TEMP', 'TMP', 'DISPLAY', 'WAYLAND_DISPLAY', 'XAUTHORITY', 'DBUS_SESSION_BUS_ADDRESS', 'LD_LIBRARY_PATH', 'CHROME_DEVEL_SANDBOX', 'FONTCONFIG_FILE', 'FONTCONFIG_PATH', 'SSL_CERT_FILE', 'SSL_CERT_DIR', 'NODE_EXTRA_CA_CERTS', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY', 'ALL_PROXY', 'PLAYWRIGHT_BROWSERS_PATH',
+  'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'USERPROFILE', 'USERNAME', 'APPDATA', 'LOCALAPPDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)', 'PROGRAMDATA', 'PROGRAMW6432', 'COMMONPROGRAMFILES', 'HOMEDRIVE', 'HOMEPATH', 'OS', 'PROCESSOR_ARCHITECTURE', 'NUMBER_OF_PROCESSORS', 'SYSTEMDRIVE']);
+const SERVER_ENV_KEEP_PREFIX = ['LC_', 'XDG_', 'CLAUDE_TEST_'];
+export function browserServerEnv(env = process.env) {
+  const out = {};
+  for (const [k, v] of Object.entries(env)) { const K = k.toUpperCase(); if (v !== undefined && (SERVER_ENV_KEEP.has(K) || SERVER_ENV_KEEP.has(k) || SERVER_ENV_KEEP_PREFIX.some((p) => K.startsWith(p)) || /^(http|https|no|all)_proxy$/.test(k))) out[k] = v; }
+  return out;
+}
+/** Drop every Playwright tuning variable from THIS process except the browsers path (pinned below): PWDEBUG, PW_TEST_*, PLAYWRIGHT_SKIP_*, PWTEST_* and the rest change what an in-process Playwright
+ *  (the Bash driver, a sign-in skill's browser) launches or records, and none of them is a knob of this plugin. */
+function scrubPlaywrightEnv() {
+  for (const k of Object.keys(process.env)) if ((/^(PLAYWRIGHT_|PWTEST_|PW_|PWDEBUG$)/i.test(k) && !/^PLAYWRIGHT_BROWSERS_PATH$/i.test(k)) || /^npm_(package_)?config_.*(playwright|pwdebug|pwtest)/i.test(k) && !/browsers_path$/i.test(k)) delete process.env[k]; // Playwright also reads its knobs from npm_config_* / npm_package_config_* spellings // PLAYWRIGHT_DOWNLOAD_HOST included: "ct.mjs install" ignores it and says so — a mirror is named with install --download-host=https://…
+}
+export function sanitizeBrowserEnv() {
+  if (browserEnvChecked) return; browserEnvChecked = true;
+  scrubPlaywrightEnv();
+  if (process.env.PLAYWRIGHT_BROWSERS_PATH === undefined) { for (const k of PW_NPM_SPELLINGS) if (process.env[k] !== undefined) { process.env.PLAYWRIGHT_BROWSERS_PATH = process.env[k]; break; } }
+  for (const k of PW_NPM_SPELLINGS) delete process.env[k];
+  const v = process.env.PLAYWRIGHT_BROWSERS_PATH;
+  if (v === '0') return; // hermetic: browsers live beside the package in the tools dir (already vetted)
+  const given = v !== undefined && v !== '' ? path.resolve(process.env.INIT_CWD || process.cwd(), v) : null;
+  const candidates = [given, platformCacheBrowsers(), trustedHomeBrowsers()].filter(Boolean);
+  // The account-home default is always acceptable (it comes from the user database, not the environment); the others
+  // must not resolve inside the project.
+  // …and an EXISTING registry must be private (owner = this user, no group/other write): browsers are executed from it without a prompt,
+  // so a registry in a shared or foreign-owned folder is skipped like one inside the project.
+  const why = (c) => insideProjectReally(c) ? 'is inside the project' : (fs.existsSync(c) && sharedRegistryProblem(c)) ? 'is not safe to run browsers from (' + sharedRegistryProblem(c) + ')' : null;
+  let pick = [...new Set(candidates)].find((c) => !why(c));
+  if (!pick) { // every candidate — even the account-home default — is unsafe: pin the home default anyway (something must be set for Playwright), and SAY so; the run-time gate refuses to launch from it unless an installed Chrome / own copy is used
+    pick = candidates[candidates.length - 1];
+    process.stderr.write('[claude-test] no safe Playwright browsers path: ' + [...new Set(candidates)].map((c) => c + ' ' + why(c)).join('; ') + ' — an installed Chrome, or "ct.mjs install chromium" (own copy under the tools folder), avoids it\n');
+  } else if (pick !== candidates[0]) process.stderr.write('[claude-test] the Playwright browsers path ' + candidates[0] + ' ' + why(candidates[0]) + ' and is ignored; using ' + pick + '\n');
+  process.env.PLAYWRIGHT_BROWSERS_PATH = pick;
+}
+export function playwrightRegistryDir() { // after sanitizeBrowserEnv(): the pinned value (or hermetic)
+  const v = process.env.PLAYWRIGHT_BROWSERS_PATH;
+  if (v === '0') return { hermetic: true };
+  return { dir: v && v !== '' ? path.resolve(process.env.INIT_CWD || process.cwd(), v) : platformCacheBrowsers() };
+}
+
+/** Leading arguments for the git calls made inside the project: no fsmonitor hook, no configured hooks
+ *  path. */
+export const GIT_SAFE_ARGS = ['-c', 'core.fsmonitor=', '-c', 'core.hooksPath=/dev/null']; // empty fsmonitor = off on old and new git alike
+
+function gitIgnored(projectDir, file) {
+  try { execFileSync('git', [...GIT_SAFE_ARGS, 'check-ignore', '-q', file], { cwd: projectDir, stdio: 'ignore' }); return true; }
+  catch (e) { return e && e.status === 1 ? false : null; } // 1 = not ignored; null = not a git repo / git missing
+}
+
+/** Where one sign-in file (auth.json / secrets.env) is read from: {path, inUse, source, defaultPath, refused?}. Only a regular file at
+ *  <private folder>/<defaultName> counts. An rc key or session variable naming another file only adds a note to `warnings`; a folder that
+ *  is not private, a symbolic link (at the file, the folder or its parent) or a path inside the repository sets `refused` and inUse:false.
+ *  With carriesProject (the saved session), a file that parses and is not this project's (wrongProject) is refused too, and hasContent says whether it holds a cookie or an origin's storage. */
+function resolvePrivateFile(projectDir, rcValue, defaultName, warnings, key, envName, { carriesProject = false } = {}) {
+  const defaultPath = path.join(privateDir(projectDir), defaultName);
+  if (rcValue !== undefined) warnings.push(RC_FILE + ': "' + key + '" is ignored — sign-in material is per developer; put the file at ' + defaultPath);
+  const envVal = process.env[envName];
+  if (envVal && envVal.trim()) warnings.push(envName + ' is set (' + shown(envVal.trim(), 120) + ') and is ignored — sign-in material comes only from ' + defaultPath + '; a session variable cannot choose it');
+  // `refused` carries the reason to every consumer — ct-auth exits with it, the launcher attaches nothing, status prints the note — and none of
+  // them falls back to another path. A linked folder yields one note, not one per file.
+  const refused = (why, note = key + ': ' + why) => { if (!warnings.includes(note)) warnings.push(note); return { path: null, inUse: false, source: null, defaultPath, refused: why }; };
+  const dp = fs.existsSync(path.dirname(defaultPath)) ? dirNotPrivateProblem(path.dirname(defaultPath)) : null;
+  if (dp) return refused(dp + ' — sign-in material is neither read from nor written to that folder until it is private again (chmod 700)');
+  const isLink = (p) => { try { return fs.lstatSync(p).isSymbolicLink(); } catch { return false; } };
+  if (isLink(defaultPath)) return refused(defaultPath + ' is a symbolic link and is ignored — replace the link with a copy of the file (sign-in material comes only from a regular file in the private folder)');
+  const linkedDir = [path.dirname(defaultPath), path.dirname(path.dirname(defaultPath))].find(isLink);
+  if (linkedDir) { const why = linkedDir + ' is a symbolic link, so the sign-in files under it are ignored — make it a real folder and copy auth.json / secrets.env to ' + path.dirname(defaultPath); return refused(why, why); }
+  let st = null; try { st = fs.lstatSync(defaultPath); } catch { st = null; }
+  const exists = st !== null && st.isFile();
+  if (exists && insideProjectReally(defaultPath)) return refused(defaultPath + ' resolves inside the repository, so it is ignored — sign-in material must live outside it; check where HOME / XDG_CONFIG_HOME (or a link under them) point');
+  const found = { path: exists ? defaultPath : null, inUse: exists, source: exists ? 'private folder' : null, defaultPath };
+  if (!exists || !carriesProject) return found;
+  let parsed; if (st.size <= MAX_OWN_STATE_BYTES) { try { parsed = JSON.parse(fs.readFileSync(defaultPath, 'utf8')); } catch { parsed = undefined; } } // not parsed (not JSON, or too large): left to lib/signin.mjs ensureAuthFile, which hands on nothing it has not parsed
+  const why = parsed === undefined ? null : wrongProject(parsed, projectDir);
+  if (why) return refused(defaultPath + ' ' + why + ', so it is not used — delete it and sign in again' + (typeof (parsed && parsed.project) === 'string' && parsed.project !== '' ? '' : ' (a session file you saved yourself needs "project": ' + JSON.stringify(shown(projectIdentityPath(projectDir), 4096)) + ' beside its cookies and origins)'));
+  return { ...found, hasContent: parsed !== undefined && ((Array.isArray(parsed.cookies) && parsed.cookies.length > 0) || (Array.isArray(parsed.origins) && parsed.origins.length > 0)) };
+}
+
+/** The person's own yes for each address, for THIS project on THIS machine: allowed-origins.json in the project's folder under consentDir(), outside the repository and read under
+ *  the sign-in files' rules (a plain file; neither it, its folder nor that folder's parent is a link; a private folder). The repository's files ASK for an address; only this file
+ *  grants one, and only the browser helper adds to it, when the person ticks the box and accepts in Claude Code's own dialog (lib/allow-tool.mjs). */
+export const CONSENT_FILE = 'allowed-origins.json';
+/** The plugin's data folder, which holds one folder per installed version of these scripts (this file is <data>/<version>/skills/run/scripts/lib/).
+ *  It is under Claude Code's plugins folder. Found from this file's own place, never from an environment variable: what lives here must
+ *  not move with one. */
+export function dataRoot() { return path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..'); }
+/** Where a project's record lives: beside the version folders of the plugin's data folder, under the project's private-folder name. It is worked out from where this file is
+ *  installed, not from HOME or XDG_CONFIG_HOME. That is under Claude Code's plugins folder. */
+export function consentDir(projectDir) { return path.join(dataRoot(), 'consent', path.basename(privateDir(projectDir))); }
+/** Where a run's live page is kept (lib/live-page.mjs): under the plugin's data folder like consentDir, so that the page a person opens is not a file of the run folder. The project is named by its real path here: ct.mjs and the browser helper may spell the folder differently (a link), and must arrive at one page; nothing kept under live/ grants anything, so a link that is re-pointed can only move a page. */
+export function liveDir(projectDir, runId) { if (!RUN_ID.test(runId)) throw new Error('not a run id'); let real = projectDir; try { real = fs.realpathSync(projectDir); } catch { /* named as given */ } return path.join(dataRoot(), 'live', projectSlug(real), runId); }
+/** One spelling per address in the record: lower case, and the three loopback spellings of a port are one entry (they are one app here). */
+export function consentKey(o) { const s = String(o).trim().toLowerCase(); const m = s.match(/^(https?:\/\/)?(\[[0-9a-f:]+\]|[^:/\[\]]+)(:\d+)?$/); return m ? (m[1] || '') + (LOOPBACK_HOSTS.includes(m[2]) ? 'localhost' : m[2]) + (m[3] || '') : s; }
+export function readConsent(projectDir, warnings = []) {
+  const file = path.join(consentDir(projectDir), CONSENT_FILE); const dir = path.dirname(file);
+  const none = (why) => { if (why && !warnings.includes(why)) warnings.push(why); return { file, origins: new Set(), hosts: new Set(), ...(why ? { refused: why } : {}) }; };
+  if (!fs.existsSync(dir)) return none(null);
+  const dp = dirNotPrivateProblem(dir); if (dp) return none(CONSENT_FILE + ': ' + dp + ' — allowed addresses are not read from that folder until it is private again (chmod 700)');
+  const isLink = (p) => { try { return fs.lstatSync(p).isSymbolicLink(); } catch { return false; } };
+  if ([file, dir, path.dirname(dir)].some(isLink)) return none(file + ' (or its folder, or that folder\'s parent) is a symbolic link, so the record of allowed addresses is ignored — replace the link with a real folder or file');
+  let st; try { st = fs.lstatSync(file); } catch { return none(null); }
+  if (!st.isFile() || st.nlink > 1 || st.size > 65536) return none(file + ' is not a plain file of sane size (a hard link to another file counts) and is ignored — delete it and allow the address again');
+  if (insideProjectReally(file)) return none(file + ' resolves inside the folder Claude Code opened, so it is ignored — allowed addresses are recorded outside the project (if Claude Code was opened in your home folder, open it in the project\'s folder instead)');
+  let j; try { j = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return none(file + ' is not valid JSON and is ignored — delete it and allow the address again'); }
+  const foreign = wrongProject(j, projectDir); if (foreign) return none(file + ' ' + foreign + ', so it is ignored — delete it and allow the address again');
+  const keys = (o) => (o && typeof o === 'object' && !Array.isArray(o) ? Object.keys(o).filter((k) => k.length <= 300) : []);
+  return { file, origins: new Set(keys(j.origins).map(consentKey)), hosts: new Set(keys(j.hosts).map((h) => h.trim().toLowerCase())) };
+}
+/** Add entries to the record (or, with remove, drop them): the folder is created 0700, the file written 0600 by temp file and rename. Returns why it could not, or null. */
+export function writeConsent(projectDir, { origins = [], hosts = [], remove = false }) {
+  const cur = readConsent(projectDir); if (cur.refused) return cur.refused;
+  try {
+    fs.mkdirSync(path.dirname(cur.file), { recursive: true, mode: 0o700 });
+    const j = { project: projectIdentityPath(projectDir), origins: {}, hosts: {} }; try { const old = JSON.parse(fs.readFileSync(cur.file, 'utf8')); for (const k of ['origins', 'hosts']) if (old && old[k] && typeof old[k] === 'object' && !Array.isArray(old[k])) Object.assign(j[k], old[k]); } catch { /* no record yet */ }
+    const now = new Date().toISOString(); const existed = fs.existsSync(cur.file);
+    for (const o of origins) { for (const k of Object.keys(j.origins)) if (consentKey(k) === consentKey(o)) delete j.origins[k]; if (!remove) j.origins[consentKey(o)] = now; }
+    for (const h of hosts) { const k = String(h).trim().toLowerCase(); delete j.hosts[k]; if (!remove) j.hosts[k] = now; }
+    const tmp = cur.file + '.' + process.pid + '.tmp'; try { fs.unlinkSync(tmp); } catch { /* none */ }
+    fs.writeFileSync(tmp, JSON.stringify(j, null, 1) + '\n', { mode: 0o600, flag: 'wx' }); fs.renameSync(tmp, cur.file);
+    const back = readConsent(projectDir); // read it the way every later call will: a record that would be ignored must not answer "ok"
+    if (back.refused && !existed) { try { fs.unlinkSync(cur.file); } catch { /* gone */ } }
+    return back.refused ? back.refused + ' — nothing was allowed' : null;
+  } catch (e) { return 'could not write ' + cur.file + ': ' + e.message + (['EPERM', 'EACCES', 'EROFS'].includes(e.code) ? ' — a sandboxed shell (Claude Code\'s, typically) may not write there' : ''); }
+}
+
+/**
+ * Load the project's Claude Test config.
+ * @returns {{projectDir, rcPath, rcFound, rc, warnings, baseUrl, baseUrlSource, baseOrigin, allowedOrigins, rejectedOrigins, startCommand, browser, signInApplies, signInNote, specsDir, runsDir}}
+ */
+/** The server's own reading of the secrets file (the dotenv rules it ships: KEY=value or KEY: value, optional quotes, # comments),
+ *  so the guard and the server agree on which KEYS exist. */
+export function parseDotenv(src) {
+  const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
+  const obj = {}; let m; const lines = String(src).replace(/\r\n?/mg, '\n');
+  while ((m = LINE.exec(lines)) != null) { let v = (m[2] || '').trim(); const q = v[0]; v = v.replace(/^(['"`])([\s\S]*)\1$/mg, '$2'); if (q === '"') v = v.replace(/\\n/g, '\n').replace(/\\r/g, '\r'); obj[m[1]] = v; }
+  return obj;
+}
+/** Text taken from the repository, a page, a tool or the environment that is about to be SHOWN — in the status JSON the agent
+ *  reads or on a terminal line: control characters (so no terminal escape sequence survives), invisible and bidi formatting
+ *  characters (so nothing is hidden from or reordered for a human) and line breaks all become single spaces, and the length is
+ *  capped. Printable Unicode is kept: a folder or spec may legitimately be named in any script. */
+// ONE definition of "not fit to show": every control character (Unicode Cc), every invisible formatting character (Cf — bidi controls, zero-width, soft hyphen,
+// the TAG block…) except the two joiners ordinary emoji and Indic text need (U+200C / U+200D), the line and paragraph separators, and the variation selectors that
+// do not belong to emoji (VS1–14, and the ideographic ones), plus the Hangul fillers and the unassigned code points Unicode reserves as default-ignorable (invisible, and never text). By category, so an assigned code point nobody listed is still covered. VS15/VS16 stay: "❤️" is ordinary text.
+const UNSAFE_ANY = String.raw`\u2028\u2029\uFE00-\uFE0D\u{E0100}-\u{E01EF}]|(?![\u200C\u200D])\p{Cf}|[\u115F\u1160\u3164\uFFA0\u2065\uFFF0-\uFFF8\u{E0000}\u{E0002}-\u{E001F}\u{E0080}-\u{E00FF}\u{E01F0}-\u{E0FFF}]`; // + the invisible fillers and the UNASSIGNED default-ignorable code points (U+2065, the unused TAG and selector ranges) — not the whole Default_Ignorable property, which would also take Mongolian variation selectors and the grapheme joiner that real text uses
+const RE_SHOWN = new RegExp('(?:[\\p{Cc}' + UNSAFE_ANY + ')+', 'gu');                                  // every control character
+const RE_SHOWN_TEXT = new RegExp('(?:[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F' + UNSAFE_ANY + ')+', 'gu'); // keeps \n \t \r
+const RE_HAS_CONTROL = new RegExp('[\\u0000-\\u0008\\u000A-\\u001F\\u007F-\\u009F' + UNSAFE_ANY, 'u');       // keeps \t only
+export function shown(s, max = 400) {
+  let t = String(s).replace(RE_SHOWN, ' ').replace(/ {2,}/g, ' ');
+  if (t !== String(s)) t = t.trim();
+  return t.length > max ? t.slice(0, max - 1) + '…' : t;
+}
+/** shown() for multi-line output (the Bash driver's page text, a filed spec): keeps line breaks, carriage returns and tabs, drops the rest of the set, caps at 1 MB. */
+export function shownText(s) { const t = String(s).slice(0, 1 << 20); return t.replace(RE_SHOWN_TEXT, ' '); }
+/** True when the text carries a control character (tab excepted) or any character of the set above — not fit to be run or echoed as a command line. */
+export function hasControl(s) { return RE_HAS_CONTROL.test(String(s)); }
+/** shown() over every string inside a JSON-able value (keys are ours and left alone). */
+export function shownDeep(v, max = 2000) {
+  if (typeof v === 'string') return shown(v, max);
+  if (Array.isArray(v)) return v.map((x) => shownDeep(x, max));
+  if (v && typeof v === 'object') { const o = {}; for (const [k, x] of Object.entries(v)) o[k] = shownDeep(x, max); return o; }
+  return v;
+}
+/** A command line from the rc must read exactly as it will run: hasControl's set plus the two joiners the scrubber otherwise keeps for text (a ZWJ inside
+ *  "npm run de\u200dv" would show as "dev" and execute something else). */
+function commandLineClean(s) { return !hasControl(s) && !/[\u200c\u200d]|\p{Default_Ignorable_Code_Point}/u.test(String(s)); } // nothing invisible at all in a command line (fillers, selectors, joiners included)
+function startCommandEarly(rc) { return typeof rc.startCommand === 'string' && rc.startCommand.trim() && rc.startCommand.trim().length <= 400 && commandLineClean(rc.startCommand) ? rc.startCommand.trim() : null; } // one printable line of sane length, or nothing (status says so)
+export function loadConfig(projectDir) {
+  const dir = path.resolve(projectDir || process.cwd());
+  const rcPath = path.join(dir, RC_FILE);
+  let rc = {}; let warnings = []; let rcFound = false;
+  pinnedProjectDir(); // evaluates the pin (and its note) even when the caller passed a directory
+  // Repo-committed files are read only when they are regular files: a symlink could point the read
+  // (and whatever of it is echoed to the agent) at a file elsewhere on the developer's machine.
+  const isRegularFile = (p) => { try { return fs.lstatSync(p).isFile(); } catch { return false; } };
+  if (isRegularFile(rcPath)) {
+    rcFound = true;
+    try { ({ data: rc, warnings } = parseRc(fs.readFileSync(rcPath, 'utf8'))); }
+    catch (e) { warnings.push('could not read ' + RC_FILE + ': ' + e.message); }
+  } else if (fs.existsSync(rcPath)) warnings.push(RC_FILE + ' is not a regular file (a symlink?) and is ignored');
+  let baseUrl = parseBaseUrl(rc.baseUrl);
+  let baseUrlSource = baseUrl ? RC_FILE : null;
+  if (rc.baseUrl !== undefined && !baseUrl) warnings.push(RC_FILE + ': baseUrl ignored — it must be an http(s) URL whose host is a plain name (letters, digits, hyphens, dots), an IPv4 address or [IPv6], with no credentials');
+
+  // .claude/launch.json (Claude Desktop's dev-server config) as a second source.
+  let launch = null;
+  const launchPath = path.join(dir, '.claude', 'launch.json');
+  if (isRegularFile(launchPath)) {
+    try {
+      const txt = fs.readFileSync(launchPath, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+      const j = JSON.parse(txt);
+      const c = Array.isArray(j.configurations) ? j.configurations[0] : null;
+      if (c) {
+        const cmd = c.program ? ['node', c.program, ...(c.args || [])] : c.runtimeExecutable ? [c.runtimeExecutable, ...(c.runtimeArgs || [])] : null;
+        // A HINT only (ct.mjs discoverDevServer treats the command as one candidate and the port as one port hint): a
+        // desktop tool's launch.json is often stale or written for another machine, so it never becomes baseUrl or
+        // startCommand by itself.
+        launch = { name: typeof c.name === 'string' ? c.name.slice(0, 60) : null, command: cmd ? cmd.join(' ') : null, port: Number(c.port) || null, url: typeof c.url === 'string' ? c.url : null, cwd: typeof c.cwd === 'string' ? c.cwd : null };
+      }
+    } catch { warnings.push('.claude/launch.json: not valid JSON, ignored'); } // the parser's message would echo file content into the status the agent reads
+  }
+
+  const rejectedOrigins = [];
+  const extra = [];
+  const rawExtra = rc.allowedOrigins === undefined ? [] : Array.isArray(rc.allowedOrigins) ? rc.allowedOrigins : [rc.allowedOrigins];
+  // A rejected entry is echoed only as a short token of URL-ish characters: this list lands in the status
+  // output the agent reads, and the rc is repository-controlled text.
+  const printable = (e) => { const s = String(e); return /^[A-Za-z0-9.:/\[\]*@_-]{1,80}$/.test(s) ? s : '(an entry that is not a plain host or origin)'; };
+  for (const e of rawExtra) { const n = typeof e === 'string' ? normaliseOrigin(e) : null; if (n) extra.push(n); else rejectedOrigins.push(typeof e === 'string' || typeof e === 'number' || typeof e === 'boolean' ? printable(e) : '(non-text entry)'); }
+  if (rejectedOrigins.length) warnings.push(RC_FILE + ': ignored allowedOrigins entries that are not plain origins or hosts ("host:*" wildcard ports are not accepted — name the port): ' + rejectedOrigins.join(', '));
+
+  // reachableHosts — the LOAD-ONLY tier (lib/hosts.mjs): hosts the app's pages may fetch from (map tiles, a payment script, fonts). The runner cannot
+  // navigate to them and nothing is typed there. Exact names, or the one narrow wildcard form the public-suffix check accepts; anything else is ignored
+  // with its reason (echoed as a short token only, like a rejected origin: the rc is repository-controlled text).
+  const reachableHosts = []; const rejectedReachable = [];
+  const rawReach = rc.reachableHosts === undefined ? [] : Array.isArray(rc.reachableHosts) ? rc.reachableHosts : [rc.reachableHosts];
+  for (const e of rawReach.slice(0, 64)) {
+    if (typeof e !== 'string') { rejectedReachable.push({ entry: '(non-text entry)', why: 'not text' }); continue; }
+    let why; try { why = reachableEntryProblem(e); } catch (err) { why = 'could not be checked (' + String(err && err.message || err).slice(0, 80) + ')'; }
+    if (why === null) { const t = e.trim(); if (!reachableHosts.includes(t)) reachableHosts.push(t); } else rejectedReachable.push({ entry: printable(e.trim()), why });
+  }
+  if (rawReach.length > 64) warnings.push(RC_FILE + ': reachableHosts takes at most 64 entries; the rest were ignored');
+  if (rejectedReachable.length) warnings.push(RC_FILE + ': ignored reachableHosts entries: ' + rejectedReachable.map((r) => r.entry + ' (' + r.why + ')').join('; '));
+
+  // With a known base URL the WANTED list is exactly that origin (plus its localhost/127.0.0.1 twin)
+  // and the rc extras; the browser gets the entries of it the person has allowed (readConsent, below).
+  // "localhost" may resolve to either loopback literal (Vite on macOS binds ::1), so for a localhost
+  // base URL the twins on the same port are allowed too; ct.mjs probe falls back to exactly these.
+  const twins = [];
+  if (baseUrl && LOOPBACK_HOSTS.includes(baseUrl.hostname)) {
+    for (const h of baseUrl.hostname === 'localhost' ? LOOPBACK_HOSTS : ['localhost', baseUrl.hostname]) twins.push(baseUrl.protocol + '//' + h + (baseUrl.port ? ':' + baseUrl.port : ''));
+  }
+  // No base URL yet (a first run): the fence is the candidate addresses the skill's preflight may try (lib/discover.mjs —
+  // the ports this project's own files name plus at most four common dev-server defaults, each with its 127.0.0.1/[::1]
+  // twins), never "any port on localhost": other programs on this machine listen on loopback too. Answering the first
+  // run's question with a baseUrl pins the fence to that one origin from then on.
+  let devDiscovery = null; let candidates = null;
+  if (!baseUrl) {
+    devDiscovery = discoverDevServer({ projectDir: dir, startCommand: startCommandEarly(rc), startCommandSource: startCommandEarly(rc) ? RC_FILE : null, launch });
+    candidates = candidateList({ baseUrl: null }, devDiscovery);
+  }
+  const candidateOrigins = candidates ? candidates.flatMap((cand) => LOOPBACK_HOSTS.map((h) => 'http://' + h + ':' + cand.port)) : [];
+  const wantedOrigins = [...new Set([...(baseUrl ? [baseUrl.origin, ...twins] : candidateOrigins), ...extra])];
+  // What the project's files name is only WANTED. The browser gets the entries this person has allowed (readConsent); the rest wait for the person's yes (lib/allow-tool.mjs).
+  const consent = readConsent(dir, warnings);
+  const allowedOrigins = wantedOrigins.filter((o) => consent.origins.has(consentKey(o)));
+  const pendingOrigins = [...new Set(wantedOrigins.filter((o) => !consent.origins.has(consentKey(o))).map(consentKey))]; // one entry per address: the loopback spellings of a port fold into "localhost"
+  const pendingHosts = reachableHosts.filter((h) => !consent.hosts.has(h.toLowerCase()));
+  for (const h of pendingHosts) reachableHosts.splice(reachableHosts.indexOf(h), 1);
+  const startCommand = startCommandEarly(rc); // .claude/launch.json is only a candidate (lib/discover.mjs discoverDevServer), never the answer by itself
+  // One shell command that prepares app data for the suite (a seed script). Run by the agent once per
+  // run, after the server answers and before the first spec, through a normal (prompted) Bash call.
+  const setupCommand = typeof rc.setupCommand === 'string' && rc.setupCommand.trim() && rc.setupCommand.trim().length <= 400 && commandLineClean(rc.setupCommand) ? rc.setupCommand.trim() : null;
+  if (rc.setupCommand !== undefined && !setupCommand) warnings.push(RC_FILE + ': setupCommand must be a one-line command string of printable characters, at most 400 long (ignored)');
+  if (rc.startCommand !== undefined && !startCommandEarly(rc)) warnings.push(RC_FILE + ': startCommand must be a one-line command string of printable characters, at most 400 long (ignored)');
+  const storageState = resolvePrivateFile(dir, rc.storageState, 'auth.json', warnings, 'storageState', 'CLAUDE_TEST_STORAGE_STATE', { carriesProject: true });
+  const secretsFile = resolvePrivateFile(dir, rc.secretsFile, 'secrets.env', warnings, 'secretsFile', 'CLAUDE_TEST_SECRETS_FILE');
+  // Sign-in material (saved session, secrets file) is handed to the browser only when the rc pins a
+  // base URL on this machine. With no base URL the fence is a list of candidate ports, none of them known
+  // to be this app, so no session is attached; a remote base URL is out of scope for now.
+  const baseIsLoopback = !!baseUrl && LOOPBACK_HOSTS.includes(baseUrl.hostname);
+  for (const n of [openedNote, pinNote]) if (n && !warnings.includes(n)) warnings.push(n);
+  const signInApplies = baseIsLoopback;
+  const signInNote = !baseUrl ? 'sign-in withheld: set baseUrl in ' + RC_FILE + ' (a saved session / secrets file is only given to the browser when a local base URL is configured, in ' + RC_FILE + ')'
+    : baseIsLoopback ? 'base URL is on this machine, so a saved session / secrets file (if present) is given to the browser'
+    : 'base URL is NOT on this machine: a saved session / secrets file is withheld from the browser — sign-in works for local dev servers only (by design, for now)';
+  const isLoopbackOrigin = (o) => { const h = o.replace(/^https?:\/\//, '').replace(/:(\d+|\*)$/, ''); return LOOPBACK_HOSTS.includes(h); };
+  const remoteOrigins = allowedOrigins.filter((o) => !isLoopbackOrigin(o));
+  const sessionHasContent = storageState.inUse && storageState.hasContent; // an empty auto-created auth.json is not "material"
+  if (signInApplies && (sessionHasContent || secretsFile.inUse) && extra.length) warnings.push('sign-in material is attached and the browser may also load ' + extra.join(', ') + ' (allowedOrigins): the browser server types secret values only into the page\'s own fields on ' + baseUrl.origin + ' and checks afterwards that the value landed there, but a document from one of those hosts embedded IN such a page is inside the browser with it (it is reported, not prevented, if it grabs the keystrokes), and the saved session\'s cookies go wherever the browser sends them — list only hosts you trust as much as the app itself');
+  // browser, driver: the rc is repository text, so neither line can move a run out of the fenced browser. Only a Chromium-family browser takes the filtering proxy
+  // (playwright-mcp.mjs), so "browser" picks among those; and the specs run through the plugin's own browser server and nothing else, so "driver" is read only
+  // to say that any other value was ignored. The run goes on in the fenced browser either way.
+  const browser = typeof rc.browser === 'string' && /^(chrome|msedge|chromium)$/.test(rc.browser.trim()) ? rc.browser.trim() : null;
+  if (rc.driver !== undefined && !(typeof rc.driver === 'string' && rc.driver.trim() === 'bundled')) warnings.push(RC_FILE + ': driver can only be "bundled", so delete the line: specs still run in the Claude Test browser, which is held to the allowed addresses (ignored)');
+  if (rc.browser !== undefined && !browser) warnings.push(RC_FILE + ': browser must be one of chrome, msedge, chromium: only these can be held to the allowed addresses, so the default test browser is used (ignored)');
+
+  return {
+    projectDir: dir, rcPath, rcFound, rc, warnings,
+    baseUrl: baseUrl ? baseUrl.href : null, baseUrlSource, baseOrigin: baseUrl ? baseUrl.origin : null, secretOrigins: baseUrl ? [baseUrl.origin] : [], // where a secret KEY may be typed: the base URL's own origin, literally (not its loopback twins: 127.0.0.1:<port> and [::1]:<port> are separate sockets another local program could hold) — enforced by the launcher
+    allowedOrigins, wantedOrigins, pendingOrigins, pendingHosts, consentFile: consent.file, rejectedOrigins, reachableHosts, rejectedReachable, candidates, devDiscovery, startCommand, startCommandSource: startCommand ? RC_FILE : null,
+    browser, launch, storageState, secretsFile, setupCommand, signInApplies, signInNote,
+    specsDir: path.join(dir, SPECS_DIR), runsDir: path.join(dir, RUNS_DIR),
+  };
+}
+
+/** Create .claude-test/runs/ with a .gitignore so run artifacts and driver state never get committed. */
+/** Throw unless .claude-test/ and .claude-test/runs/ (as far as they exist) are real directories
+ *  that resolve inside the project. A repository can commit either one as a symlink; every writer of
+ *  run artifacts goes through here (or ensureRunsDir) first, so none of them follows such a link. */
+export function assertRunsDirInsideProject(cfg) {
+  const realProject = fs.realpathSync(cfg.projectDir);
+  for (const p of [path.dirname(cfg.runsDir), cfg.runsDir]) {
+    let st; try { st = fs.lstatSync(p); } catch (e) { if (e.code === 'ENOENT') continue; throw e; }
+    const rel = path.relative(cfg.projectDir, p);
+    if (st.isSymbolicLink()) throw new Error(rel + ' is a symlink — refusing to write run artifacts through it');
+    if (!st.isDirectory()) throw new Error(rel + ' is not a directory');
+    if (!insideDir(fs.realpathSync(p), realProject)) throw new Error(rel + ' resolves outside the project — refusing to write run artifacts there');
+  }
+}
+
+/** Throw if git tracks a SYMLINK anywhere under .claude-test/runs/: a repository could commit one for a
+ *  run to write through. (A tracked regular file there — a .gitkeep, an old screenshot — is harmless.)
+ *  Runs a git subprocess, so it is called where runs/ is set up, not on every artifact write; the
+ *  per-write check (runsPathProblem) catches links by lstat/realpath. */
+/** Committed SYMLINKS anywhere under a .claude-test/ folder — this project's and every marked app folder's under the session root —
+ *  as "rel/path → target" strings, for status to REPORT. (Claude Code itself refuses to write through a symlink unless every hop is
+ *  allowed; this only makes such a repository visible to the person.) One git call per folder; silent without git. */
+export function trackedClaudeTestSymlinks(projectDir, root) {
+  const dirs = [...new Set([projectDir, ...projectsBelow(root).map((b) => path.join(root, b))])];
+  const out = [];
+  for (const d of dirs) {
+    let listing = '';
+    try { listing = execFileSync('git', [...GIT_SAFE_ARGS, 'ls-files', '-s', '-z', '--', '.claude-test'], { cwd: d, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { continue; }
+    for (const rec of listing.split('\0')) { if (!rec.startsWith('120000 ')) continue; const rel = rec.slice(rec.indexOf('\t') + 1); let target = '?'; try { target = fs.readlinkSync(path.join(d, rel)); } catch { /* gone */ } out.push((path.relative(root, path.join(d, rel)) || rel).replace(/[^\x20-\x7e]/g, '?') + ' → ' + String(target).replace(/[^\x20-\x7e]/g, '?').slice(0, 120)); if (out.length >= 10) return out; }
+  }
+  // …plus symlinks that are merely PRESENT (untracked) under those .claude-test folders: bounded lstat walk (depth ≤ 3, ≤ 400 entries).
+  const seen = new Set(out.map((s) => s.split(' → ')[0]));
+  let budget = 400;
+  const walk = (base, d, depth) => { if (budget <= 0 || depth > 3 || out.length >= 10) return; let ents = []; try { ents = fs.readdirSync(d, { withFileTypes: true }); } catch { return; } for (const e of ents) { if (--budget <= 0 || out.length >= 10) return; const p = path.join(d, e.name); if (e.isSymbolicLink()) { const rel = (path.relative(root, p) || p).replace(/[^\x20-\x7e]/g, '?'); if (!seen.has(rel)) { let t = '?'; try { t = fs.readlinkSync(p); } catch { /* */ } out.push(rel + ' → ' + String(t).replace(/[^\x20-\x7e]/g, '?').slice(0, 120) + ' (untracked)'); seen.add(rel); } } else if (e.isDirectory()) walk(base, p, depth + 1); } };
+  for (const d of dirs) { const ct = path.join(d, '.claude-test'); try { if (fs.lstatSync(ct).isSymbolicLink()) { const rel = (path.relative(root, ct) || ct).replace(/[^\x20-\x7e]/g, '?'); if (!seen.has(rel)) { let t = '?'; try { t = fs.readlinkSync(ct); } catch { /* */ } out.push(rel + ' → ' + String(t).replace(/[^\x20-\x7e]/g, '?').slice(0, 120) + ' (the folder itself)'); seen.add(rel); } continue; } } catch { continue; } walk(d, ct, 0); } // a .claude-test that is itself a link is reported and not walked into
+  return out;
+}
+function assertNoTrackedSymlinkUnderRuns(cfg) {
+  let listing = '';
+  try { listing = execFileSync('git', [...GIT_SAFE_ARGS, 'ls-files', '-s', '--', path.relative(cfg.projectDir, cfg.runsDir)], { cwd: cfg.projectDir, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { return; /* not a repo, or no git */ }
+  const links = listing.split('\n').filter((l) => l.startsWith('120000 ')).map((l) => l.split('\t')[1]);
+  if (links.length) throw new Error(path.relative(cfg.projectDir, cfg.runsDir) + ' contains symlinks committed to git (' + links.slice(0, 3).join(', ') + (links.length > 3 ? ', …' : '') + ') — remove them from the repository first');
+}
+
+/** Why `abs` (an absolute, normalised path) may not be written as a run artifact, or null when it may: it must be <name>.png or
+ *  <name>.snapshot.md directly inside an existing run folder under .claude-test/runs/, that folder must be the real one after resolving
+ *  symlinks (nothing reaches a run's proposed/ drafts or anywhere else), and the file must not itself be a symlink. */
+// A file-name stem as people name specs (spaces, accents, brackets are fine): no path separator, no shell metacharacter or ':', no leading dot or
+// space, at most 120 characters — and nothing the scrubber would remove (every control / invisible / bidi character shownText() and hasControl()
+// know about), so the accepted set can never drift from what the rest of the plugin treats as unsafe.
+const STEM_SHAPE = /^(?![.\s])[^/\\$`"':;&|<>*?\n\t]{1,120}$/u;
+// A zero-width (non-)joiner is ordinary text only BETWEEN two letters/marks of a non-Latin script or two pictographs (Indic conjuncts, emoji sequences); at an edge, next to a
+// space, punctuation, digit or Latin letter it is invisible spoofing ("café\u200d" would display exactly like "café").
+// A zero-width (non-)joiner renders only inside a word of a JOINING script (Arabic, Syriac, the Indic scripts, Myanmar, Khmer, Tibetan, Mongolian…) or inside an
+// emoji sequence; anywhere else — at an edge, next to a space, digit, Latin/Cyrillic/Greek/Han letter or a text symbol — it is invisible and refused in a stem.
+const JOINING_LETTER = /[\p{Script=Arabic}\p{Script=Syriac}\p{Script=Mandaic}\p{Script=Mongolian}\p{Script=Devanagari}\p{Script=Bengali}\p{Script=Gurmukhi}\p{Script=Gujarati}\p{Script=Oriya}\p{Script=Tamil}\p{Script=Telugu}\p{Script=Kannada}\p{Script=Malayalam}\p{Script=Sinhala}\p{Script=Myanmar}\p{Script=Khmer}\p{Script=Tibetan}\p{Script=Javanese}\p{Script=Balinese}]/u;
+const EMOJI_CHAR = /\p{Emoji_Presentation}|\p{Emoji_Modifier}|[\u{1F000}-\u{1FAFF}]/u;
+function joinerNeighbourOk(cps, i, dir) { const c = cps[i + dir]; if (c === undefined) return false; if (EMOJI_CHAR.test(c)) return true; if (dir > 0 && /\p{Extended_Pictographic}/u.test(c) && cps[i + 2] === '\uFE0F') return true; /* a text-default pictograph made emoji by VS16 after the joiner: 🏃‍♀️, 👩‍⚕️, 👨‍❤️‍👨 */ if (c === '\uFE0F') { const base = cps[i + 2 * dir]; return dir < 0 && base !== undefined && (EMOJI_CHAR.test(base) || /\p{Extended_Pictographic}/u.test(base)); } if (JOINING_LETTER.test(c)) return true; if (/\p{M}/u.test(c)) { const base = cps[i + 2 * dir]; return base !== undefined && JOINING_LETTER.test(base); } return false; }
+function joinersWellPlaced(s) { const cps = [...s]; return cps.every((c, i) => (c !== '\u200c' && c !== '\u200d') || (joinerNeighbourOk(cps, i, -1) && joinerNeighbourOk(cps, i, +1))); }
+export function safeStem(s) { return typeof s === 'string' && STEM_SHAPE.test(s) && shownText(s) === s && !hasControl(s) && joinersWellPlaced(s); }
+/** A stem a run's progress file may name: safeStem, no leading hyphen (on ct.mjs's command line it would read as an option), and no half of a surrogate pair (the live page could not spell it in an address). */
+export function stemOk(s) { if (!safeStem(s) || s.startsWith('-')) return false; try { encodeURIComponent(s); return true; } catch { return false; } }
+const ARTIFACT_NAME = /^(.+)\.(png|snapshot\.md)$/; const WIN_DEVICE = /^(con|prn|aux|nul|com\d|lpt\d)(\.|$)/i;
+/** The shape of a run folder's name, as "ct.mjs new-run" makes it: a date and time, and a counter when two start in one second. */
+export const RUN_ID = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}(-\d+)?$/;
+export function runsPathProblem(cfg, abs) {
+  const rel = path.relative(cfg.projectDir, cfg.runsDir) + '/';
+  if (!insideDir(abs, cfg.runsDir) || abs === cfg.runsDir) return 'must be a file under ' + rel;
+  // A browser artifact is one of three file shapes DIRECTLY inside a run folder — never in a subfolder (the spec drafts waiting to be filed live in
+  // <run>/proposed/, and no spelling, case folding or link may reach them): <stem>.png, <stem>.snapshot.md, look-<n>.png.
+  const parts = path.relative(cfg.runsDir, abs).split(path.sep);
+  const am = parts.length === 2 ? parts[1].match(ARTIFACT_NAME) : null;
+  if (!am || !safeStem(am[1]) || WIN_DEVICE.test(parts[1])) return 'must be <run folder>/<name>.png or <name>.snapshot.md, directly inside the run folder (no subfolders)';
+  if (!RUN_ID.test(parts[0])) return 'must be inside a run folder that "ct.mjs new-run" made (its name is a date and time)'; // never a folder of any other name, whatever made it
+  try { assertRunsDirInsideProject(cfg); } catch (e) { return 'cannot be written: ' + e.message; } // on every call: runs/ may have become a symlink since the process started
+  if (!fs.existsSync(cfg.runsDir)) return 'cannot be written yet: ' + rel + ' does not exist (run "ct.mjs new-run" first)';
+  let realRuns; try { realRuns = fs.realpathSync(cfg.runsDir); } catch { realRuns = cfg.runsDir; }
+  let existing = abs; while (!fs.existsSync(existing)) existing = path.dirname(existing);
+  let realExisting; try { realExisting = fs.realpathSync(existing); } catch { return 'cannot be resolved'; }
+  if (!insideDir(realExisting, realRuns)) return 'must stay under ' + rel + ' (a symlink points elsewhere)';
+  try { const realParent = fs.realpathSync(path.dirname(abs)); if (realParent !== path.join(realRuns, parts[0])) return 'must stay directly inside its run folder (a link points elsewhere)'; } catch { return 'cannot be written yet: the run folder does not exist'; }
+  try { const st = fs.lstatSync(abs); if (st.isSymbolicLink()) return 'is a symlink'; if (st.nlink > 1) return 'is a hard link to another file — not writing through it'; } catch { /* does not exist yet */ }
+  return null;
+}
+
+export function ensureRunsDir(cfg) {
+  assertRunsDirInsideProject(cfg);
+  assertNoTrackedSymlinkUnderRuns(cfg);
+  fs.mkdirSync(cfg.runsDir, { recursive: true });
+  // One committed ignore file next to specs/ (".claude-test/.gitignore" listing runs/), rather than a
+  // self-un-ignoring file inside runs/: run artifacts never show up in git status, and the ignore file
+  // is committed once together with the specs. An existing file that no longer ignores runs/ (edited,
+  // or committed that way) gets the line back, so screenshots and driver state stay out of commits.
+  const gi = path.join(path.dirname(cfg.runsDir), '.gitignore');
+  try { if (fs.lstatSync(gi).isSymbolicLink()) throw new Error(path.relative(cfg.projectDir, gi) + ' is a symlink — refusing to write through it'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  if (!fs.existsSync(gi)) fs.writeFileSync(gi, '# Claude Test run artifacts (logs, screenshots, driver state) are local evidence, not source.\nruns/\nfiled.*.tmp\n');
+  else if (gitIgnored(cfg.projectDir, path.join(cfg.runsDir, 'canary-' + crypto.randomBytes(6).toString('hex'), 'log.md')) === false) fs.appendFileSync(gi, '\nruns/\n'); // a random name: a committed ".gitignore" must ignore ALL of runs/, not one probe path
+}
+
+/** True when url's origin is one the config allows the browser to load. */
+export function originAllowed(cfg, url) {
+  let u; try { u = new URL(url); } catch { return false; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+  for (const o of cfg.allowedOrigins) {
+    if (/^https?:\/\//.test(o)) { if (u.origin === o) return true; continue; }
+    // bare host[:port] (or [v6][:port]): http or https; the written port, or with none written the
+    // scheme's default port only (as Playwright MCP itself reads a bare host) — never "any port"
+    const mm = o.match(/^(\[[^\]]+\]|[^:]+)(?::(\d+))?$/);
+    if (mm && u.hostname === mm[1] && (mm[2] ? u.port === mm[2] : u.port === '')) return true;
+  }
+  return false;
+}
+
+/** A new spec's id: "ct_" + 8 base32 characters, minted once when the helper creates the file and never rewritten —
+ *  it lets a spec keep its identity across renames. */
+export function mintSpecId() { const A = 'abcdefghijklmnopqrstuvwxyz234567'; const b = crypto.randomBytes(8); let s = ''; for (let i = 0; i < 8; i++) s += A[b[i] & 31]; return 'ct_' + s; }
+/** The spec text with "id: <id>" as the first front-matter line (front matter added when the draft has none; an id the
+ *  draft already carries is replaced — ids are the helper's to mint, not the author's). */
+export function withSpecId(text, id) {
+  let body = String(text).replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+  if (body.startsWith('---\n')) {
+    const end = body.indexOf('\n---', 3);
+    if (end > 0) { const fm = body.slice(4, end).split('\n').filter((l) => !/^\s*id\s*:/.test(l)); return '---\n' + ['id: ' + id, ...fm].join('\n') + body.slice(end); }
+  }
+  return '---\nid: ' + id + '\n---\n' + body;
+}
+
+/** Parse a spec file: optional front matter, "# name", body, "## Passes when". */
+/** The "<!-- from: … -->" source comment(s) of a spec: { last: { text, start, end }, files, count } or null when there is none. `last` is the final
+ *  such comment (its body, and where it sits in the text — it may span lines and may contain ">" inside quoted app copy); `files` are the
+ *  "path/to/file.ext" tokens of EVERY from-comment, an optional ":lines" suffix dropped; a parenthetical note after a space and a double-quoted string are ignored (a "(group)" segment inside a path stays).
+ *  One parser for write-spec / drafts (what the draft cites) and for changes (which changed files a spec cites). */
+export function fromComment(text) {
+  const all = [...String(text).matchAll(/<!--\s*from:\s*([\s\S]*?)\s*-->/g)];
+  if (!all.length) return null;
+  const files = [];
+  for (const m of all) for (const tok of m[1].replace(/(^|\s)\([^)]*\)/g, ' ').replace(/"[^"]*"/g, ' ').split(/,\s*|\s+/)) { const clean = tok.replace(/[—–].*$/, '').replace(/:[\d,-]+$/, '').trim(); if (clean && /^[\w/.@()[\]$+-]+\.\w+$/.test(clean) && !files.includes(clean)) files.push(clean); }
+  const lastM = all[all.length - 1];
+  return { last: { text: lastM[1].trim(), start: lastM.index, end: lastM.index + lastM[0].length }, files, count: all.length };
+}
+/** Inside "## Passes when", an INDENTED non-blank line that is not a bullet and directly follows a "- Must:" / "- Must not:" line (or that
+ *  line's earlier continuation) is the same criterion wrapped onto another line: it is joined to it with one space, so the drafts view, the draft
+ *  gate and the filed spec all see ONE line — shown, judged (link syntax, the 400-character and 12-line caps) and filed whole. A line that
+ *  is markdown structure of its own (a bullet, numbered item, heading, rule, fence, quote, table row), opens with "[" or "<", or is a
+ *  dash-less "Must:" is left as a line of its own, so the gate still flags it. Nothing outside that section is touched. */
+export function joinWrappedCriteria(text) {
+  const lines = String(text).split('\n'); const out = []; let inSection = false; let afterMust = false;
+  const BLOCK = /^\s*(#{1,6}\s|[-*+]\s|\d+[.)]\s|[-*_]{3,}\s*$|```|~~~|>|\||[[<]|(must not|must)\s*:)/i; // a line that is markdown structure of its own (heading, bullet, numbered item, rule, fence, quote, table, link/HTML opener) or a dash-less "Must:" is never a continuation
+  for (const line of lines) {
+    if (/^##\s+passes when\s*$/i.test(line)) { inSection = true; afterMust = false; out.push(line); continue; }
+    if (/^##\s+/.test(line)) { inSection = false; afterMust = false; out.push(line); continue; } // the section ends where parseSpec ends it: at the next "## " heading
+    if (inSection && /^\s*[-*]\s*(must not|must)\s*:/i.test(line)) { afterMust = true; out.push(line); continue; }
+    if (inSection && afterMust && /^[ \t]+\S/.test(line) && !BLOCK.test(line)) { out[out.length - 1] = out[out.length - 1].replace(/\s+$/, '') + ' ' + line.trim(); continue; } // INDENTED under the bullet, as a wrapped list item is; flush-left prose under the last Must line stays a line of its own (and is flagged)
+    afterMust = false; out.push(line);
+  }
+  return out.join('\n');
+}
+export function parseSpec(text, file) {
+  const out = { file, name: null, frontMatter: {}, description: '', passesWhen: '', must: [], mustNot: [], warnings: [] };
+  let body = joinWrappedCriteria(text.replace(/^\uFEFF/, '')); // a criterion wrapped onto a second line is read as one line, here and everywhere a spec or draft is parsed
+  if (body.startsWith('---')) {
+    const end = body.indexOf('\n---', 3);
+    if (end < 0) out.warnings.push('front matter opened with --- but never closed; it is being read as body text');
+    if (end > 0) {
+      const { data, warnings } = parseRc(body.slice(3, end));
+      out.frontMatter = data; out.warnings.push(...warnings.map((w) => 'front matter ' + w));
+      body = body.slice(end + 4).replace(/^\r?\n/, '');
+    }
+  }
+  const h1 = body.match(/^#\s+(.+)$/m);
+  if (h1) out.name = shown(h1[1].trim(), 160);
+  else if (typeof out.frontMatter.name === 'string') out.name = shown(out.frontMatter.name, 160);
+  else out.warnings.push('no "# name" heading');
+  const pw = body.search(/^##\s+passes when\s*$/im);
+  const afterH1 = h1 ? body.indexOf(h1[0]) + h1[0].length : 0;
+  if (pw < 0) { out.warnings.push('no "## Passes when" section'); out.description = body.slice(afterH1).trim(); }
+  else {
+    out.description = body.slice(afterH1, pw).replace(/^##\s+steps\s*$/im, '').trim();
+    const rest = body.slice(pw).replace(/^##.*$/m, '');
+    const next = rest.search(/^##\s+/m);
+    out.passesWhen = (next >= 0 ? rest.slice(0, next) : rest).trim();
+    for (const line of out.passesWhen.split(/\r?\n/)) {
+      const m = line.match(/^\s*[-*]\s*(must not|must)\s*:\s*(.+)$/i);
+      if (m) (m[1].toLowerCase() === 'must' ? out.must : out.mustNot).push(m[2].trim());
+    }
+    if (out.must.length + out.mustNot.length === 0) out.warnings.push('"## Passes when" has no "- Must:" / "- Must not:" lines');
+    else if (out.must.length === 0) out.warnings.push('no "- Must:" line — a spec needs at least one positive criterion to pass');
+  }
+  if (!out.description) out.warnings.push('no steps text between the heading and "## Passes when"');
+  return out;
+}
+
+/** Why the specs folder cannot be used, or null: like runs/, .claude-test/specs must be a real directory
+ *  inside the project — write-spec would otherwise create files through a committed symlink somewhere else.
+ *  (Absent is fine: the first run creates it.) */
+export function specsDirProblem(cfg) {
+  let st; try { st = fs.lstatSync(cfg.specsDir); } catch { return null; }
+  const rel = path.relative(cfg.projectDir, cfg.specsDir);
+  if (st.isSymbolicLink()) return rel + ' is a symlink — refusing to use it';
+  if (!st.isDirectory()) return rel + ' is not a directory';
+  if (!reallyInsideDir(cfg.specsDir, cfg.projectDir)) return rel + ' resolves outside the project';
+  return null;
+}
+
+export function listSpecs(cfg) {
+  if (!fs.existsSync(cfg.specsDir) || specsDirProblem(cfg)) return [];
+  let names; try { names = fs.readdirSync(cfg.specsDir); } catch { return []; }
+  return names
+    .filter((f) => f.endsWith('.md') && !f.startsWith('_') && f.toLowerCase() !== 'readme.md')
+    .sort()
+    .map((f) => {
+      const p = path.join(cfg.specsDir, f);
+      // Regular files only: a symlinked "spec" could pull any local file into the run. It stays in the
+      // list, unread, with a warning, so the user sees why it was not run.
+      try { if (!fs.lstatSync(p).isFile()) return { file: path.relative(cfg.projectDir, p), name: null, skipped: true, warnings: ['not a regular file (a symlink?) — skipped; copy the spec here instead'] }; } catch { /* fall through to the read error */ }
+      try { const s = parseSpec(fs.readFileSync(p, 'utf8'), path.relative(cfg.projectDir, p)); return { file: s.file, id: typeof s.frontMatter.id === 'string' && /^ct_[a-z2-7]{8}$/.test(s.frontMatter.id) ? s.frontMatter.id : null, name: s.name, allow_navigation: s.frontMatter.allow_navigation, timeout_ms: s.frontMatter.timeout_ms, tags: Array.isArray(s.frontMatter.tags) ? s.frontMatter.tags : undefined, must: s.must.length, mustNot: s.mustNot.length, warnings: s.warnings }; }
+      catch (e) { return { file: path.relative(cfg.projectDir, p), name: null, warnings: ['unreadable: ' + e.message] }; }
+    });
+}

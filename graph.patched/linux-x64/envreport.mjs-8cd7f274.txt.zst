@@ -1,0 +1,292 @@
+// lib/envreport.mjs — the environment report: what else on this machine would stop the app before a spec can run, gathered in one pass so a
+// person fixes it in one go. Files only — nothing is run, fetched or written — and no env-file VALUE is ever returned: a name read from an env file
+// is echoed only when the source or a template names it. Covers dependencies declared but not installed, env files (present / empty / sets nothing /
+// missing), every variable the source reads (set or not, fallback or required, browser-side, moot under the fence), and the Node version expectation.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { readJson, packageManagerSignals } from './discover.mjs';
+import { parseDotenv } from './config.mjs';
+
+const SKIP_DIRS = new Set(['node_modules', '.git', '.next', '.nuxt', '.svelte-kit', '.astro', '.output', 'dist', 'build', 'out', 'coverage', '.turbo', '.vercel', '.netlify', '.cache', '.parcel-cache', 'tmp', 'temp', 'vendor', '__pycache__', '.venv', 'venv', 'site-packages', 'dist-packages', '.tox', '.claude-test', '.claude', 'public', 'static', 'storybook-static', '.storybook', 'cypress', 'playwright-report', 'test-results', '__tests__', '__mocks__', 'e2e', '.yarn', '.pnpm-store', 'target', 'obj', 'log', 'logs', 'scripts', 'script', 'tools', 'bin', 'deploy', 'infra', 'terraform']); // build output, third-party code, tests, and CI/deploy tooling: not what the dev server reads
+const SOURCE_EXT = /\.(m?[jt]sx?|c[jt]s|vue|svelte|astro|py|rb|erb|haml)$/;
+const TEST_FILE = /(\.|-|_)(test|spec|stories|e2e)\.[a-z]+$|(^|\/)test_[^/]+\.py$|_test\.rb$/;
+const NAME = '[A-Z][A-Z0-9_]{1,80}';
+const Q = '[\'"\x60]'; // a quote of any kind
+// Each pattern captures the variable name in group 1. Upper-case names only: the convention for app settings, and it keeps
+// npm's own lower-case variables (npm_package_...) and minified noise out of the list.
+const READS = [
+  new RegExp('\\bprocess\\.env\\??\\.(' + NAME + ')\\b(?!\\s*=[^=])', 'g'),           // process.env.X, process.env?.X (not an assignment to it)
+  new RegExp('\\bprocess\\.env\\??\\.?\\[\\s*' + Q + '(' + NAME + ')' + Q + '\\s*\\]', 'g'), // process.env["X"]
+  new RegExp('\\bimport\\.meta\\.env\\??\\.(' + NAME + ')\\b', 'g'),                   // import.meta.env.X (Vite, Astro, SvelteKit)
+  new RegExp('\\b(?:os\\.)?environ(?:\\.get)?\\s*[\\[(]\\s*' + Q + '(' + NAME + ')' + Q + '\\s*(?:[\\])](?!\\s*=[^=])|,)', 'g'), // os.environ["X"], os.environ.get("X"[, d]) (not an assignment to it)
+  new RegExp('\\bos\\.getenv\\(\\s*' + Q + '(' + NAME + ')' + Q, 'g'),             // os.getenv("X")
+  new RegExp('\\bENV(?:\\.fetch)?\\s*[\\[(]\\s*' + Q + '(' + NAME + ')' + Q, 'g'),  // ENV["X"], ENV.fetch("X")
+];
+const DESTRUCTURE = /\{([^{}]{1,600})\}\s*=\s*process\.env\b/g; // const { A, B = "x", C: alias } = process.env
+const SCHEMA_FIELD = new RegExp('(?:^|[{,])\\s*(' + NAME + ')\\s*:\\s*z\\s*\\.', 'gm'); // a zod field in an env schema (t3 createEnv and the like): NAME: z.string()…
+const NEXT_FIELD = new RegExp(',\\s*(' + NAME + '|[a-z]\\w*)\\s*:|\\n\\s*[})]'); // where one field's text ends: the next field, or the object's close (a chain wrapped over several lines stays one field)
+// Set by the runtime, the framework, the platform or the test runner — never something the person has to provide.
+const PROVIDED = /^(NODE_ENV|PORT|HOST|HOSTNAME|CI|TZ|PWD|HOME|PATH|SHELL|USER|LOGNAME|TMPDIR|TEMP|TMP|LANG|LC_ALL|TERM|DEBUG|FORCE_COLOR|NO_COLOR|EDITOR|HTTP_PROXY|HTTPS_PROXY|NO_PROXY|ALL_PROXY|DISPLAY|XDG_\w+|APPDATA|LOCALAPPDATA|PROGRAMFILES|USERPROFILE|SYSTEMROOT|COMSPEC|VERCEL|VERCEL_\w+|NEXT_RUNTIME|NEXT_PHASE|NEXT_DEPLOYMENT_ID|__NEXT\w*|NETLIFY|RENDER|RAILWAY_\w+|HEROKU_\w+|FLY_\w+|AWS_LAMBDA_\w+|AWS_EXECUTION_ENV|K_SERVICE|FUNCTION_\w+|GITHUB_\w+|GITLAB_\w+|BUILDKITE\w*|JEST_WORKER_ID|VITEST\w*|PLAYWRIGHT_\w+|CYPRESS\w*|STORYBOOK|npm_\w+|INIT_CWD|NVM_\w+|ANALYZE|BUNDLE_ANALYZE|DJANGO_SETTINGS_MODULE|RAILS_ENV|RACK_ENV|FLASK_ENV|FLASK_DEBUG|PYTHONPATH|WERKZEUG_\w+)$/;
+const VITE_BUILTIN = /^(MODE|DEV|PROD|SSR|BASE_URL)$/; // import.meta.env's own fields, not settings
+// Read in the browser bundle (the framework inlines these by prefix).
+const CLIENT_PREFIX = /^(NEXT_PUBLIC_|VITE_|REACT_APP_|PUBLIC_|NUXT_PUBLIC_|EXPO_PUBLIC_|GATSBY_|STORYBOOK_|NG_APP_)/;
+// A browser-side key or id for an OUTSIDE service: under the test browser's network fence that service is unreachable whatever the
+// value, so a placeholder does as well as a real key (unless its host is added to allowedOrigins on purpose).
+const OUTSIDE_SERVICE = /(MAPS|MAPBOX|GOOGLE|GTM|GTAG|GA_|GA4|ANALYTICS|SEGMENT|SENTRY|DATADOG|POSTHOG|MIXPANEL|AMPLITUDE|HEAP_|HOTJAR|FULLSTORY|LOGROCKET|INTERCOM|CRISP|ZENDESK|HUBSPOT|DRIFT|RECAPTCHA|HCAPTCHA|TURNSTILE|STRIPE|PAYPAL|BRAINTREE|ADYEN|ALGOLIA|TYPESENSE|CLOUDINARY|IMGIX|YOUTUBE|VIMEO|TWITTER|FACEBOOK|PIXEL|TIKTOK|LINKEDIN|PUSHER|ABLY|ONESIGNAL|LAUNCHDARKLY|OPTIMIZELY|STATSIG|BUGSNAG|ROLLBAR|NEW_RELIC|NEWRELIC|APPCUES|PENDO|CALENDLY|TYPEFORM|DISQUS|GIPHY|_DSN$|TRACKING|TELEMETRY)/;
+// Words that say the app stops without the variable: on the read's own line, or on one of the next two lines when that line names the variable
+// or is a bare throw / invariant / assert that reads no other variable.
+const REQUIRED_HINT = /\bthrow\b|\binvariant\(|\bassert\w*\(|process\.exit\(|console\.error\(|log(ger)?\.(error|fatal)\(|must be (set|defined|provided)|is (required|not set|missing|undefined)|not (defined|configured)/i;
+const SOFT_WORDS = /\b(default\w*|fallback|fall(ing)? back|warn\w*)\b/i; // a line that announces a fallback is not a hard stop
+const OTHER_READ = /process\.env|import\.meta\.env|environ|getenv|\bENV[.\[]|\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b/;
+// A read with a fallback: X ?? ..., X || ..., X !== undefined ? ..., environ.get("X", ...), ENV.fetch("X", ...), a schema field marked .optional()/.default() on the same line.
+const defaultHint = (name) => new RegExp('\\b' + name + '\\b' + Q + '?\\]?\\s*(\\?\\?|\\|\\|(?!\\s*!)|[!=]==?\\s*(undefined|null)\\s*\\?)|\\b' + name + '\\b[^,;\\n]{0,80}\\.(default|optional|nullish|catch)\\(|\\bget\\(\\s*' + Q + name + Q + '\\s*,|getenv\\(\\s*' + Q + name + Q + '\\s*,|fetch\\(\\s*' + Q + name + Q + '\\s*,|\\w\\(\\s*(process\\.env|import\\.meta\\.env)\\??\\.' + name + '\\b[^()\\n]{0,24}\\)\\s*(\\|\\||\\?\\?)|\\.' + name + '\\?\\.|\\.' + name + '\\s*&&(?!\\s*!)|[^!&]&&\\s*(process\\.env|import\\.meta\\.env)\\??\\.' + name + '\\b|environ\\.get\\(\\s*' + Q + name + Q + '\\s*\\)|getenv\\(\\s*' + Q + name + Q + '\\s*\\)|\\bENV\\[\\s*' + Q + name + Q + '\\s*\\]'); // … Number(X) || 5, X?.trim(), X && …, environ.get("X") / getenv("X") / ENV["X"] (nil when absent: optional by idiom)
+// A read used only as a switch — compared with a literal, coerced to a boolean, or the bare condition of an if / ternary: optional by nature (LOGIN_MODE = X === '1').
+const requiredRead = (name) => new RegExp('environ\\[\\s*' + Q + name + Q + '\\s*\\]|\\bENV\\.fetch\\(\\s*' + Q + name + Q + '\\s*\\)'); // raises when absent: os.environ["X"], ENV.fetch("X")
+const switchUse = (name) => new RegExp('\\b' + name + '\\b' + Q + '?\\]?\\)?\\s*(===?|!==?)\\s*' + Q + '|(===?|!==?)\\s*(process\\.env|import\\.meta\\.env)\\??\\.' + name + '\\b|(!!\\s*|Boolean\\(\\s*)(process\\.env|import\\.meta\\.env)\\??\\.' + name + '\\b|\\bif\\s*\\(\\s*(process\\.env|import\\.meta\\.env)\\??\\.' + name + '\\s*\\)|\\.' + name + '\\s*\\?\\s*[^?.\\s]');
+const ENV_FILES = ['.env.development.local', '.env.local', '.env.development', '.env.dev', '.env']; // most specific first (Next's order; Vite ranks .env.development above .env.local): the first file that names a key decides it, a blank value included
+const ENV_TEMPLATES = ['.env.example', '.env.sample', '.env.template', '.env.dist', '.env.local.example', '.env.development.example', 'example.env', 'sample.env', '.env.defaults'];
+const MAX_VARS_LISTED = 80;
+const MAX_UP = 12; // how many folders any upward walk may climb
+
+/** name -> has a non-empty value, by the same dotenv rules the browser server applies to its secrets file (lib/config.mjs parseDotenv: multi-line
+ *  quoted values are one value, an unquoted value stops at '#'). Values are dropped here; only conventional names are kept. */
+function parseEnvNames(text) { const names = new Map(); for (const [k, v] of Object.entries(parseDotenv(text))) if (/^[A-Za-z_][A-Za-z0-9_]{0,80}$/.test(k)) names.set(k, v !== ''); return names; }
+
+/** package.json and friends are read only as regular files (never through a link a repository planted), and capped. */
+function readJsonFile(p) { try { const st = fs.lstatSync(p); return st.isFile() && st.size <= 1024 * 1024 ? readJson(p) : null; } catch { return null; } }
+const isRegularFile = (p) => { try { return fs.lstatSync(p).isFile(); } catch { return false; } };
+/** An ancestor that ends the upward walk: world-writable and not the running user's own (a planted /tmp/.git; a user's own folder on a mount that
+ *  reports everything 0777 — WSL drvfs, vboxsf, exFAT — still counts), or owned by another ordinary user. Root-owned and group-shared folders pass. */
+function unsafeDir(d) { if (process.platform === 'win32') return false; try { const st = fs.statSync(d); const me = typeof process.getuid === 'function' ? process.getuid() : null; const mine = me !== null && me !== 0 && st.uid === me; return ((st.mode & 0o002) !== 0 && !mine) || (me !== null && me !== 0 && st.uid !== me && st.uid !== 0); } catch { return true; } }
+/** The folder dependency lookups may climb to: the nearest ancestor holding .git (directory or gitlink file); without one, the highest ancestor that is
+ *  a workspace root by its files (package.json "workspaces", pnpm-workspace.yaml, lerna/nx/turbo/rush); else dir. Never the home directory or above
+ *  it, and never past an ancestor unsafeDir() refuses. */
+function checkoutTop(dir) {
+  const home = os.homedir(); let d = dir; let workspaceTop = null;
+  for (let i = 0; i < MAX_UP; i++) {
+    if (i > 0 && (d === home || unsafeDir(d))) break;
+    if (fs.existsSync(path.join(d, '.git'))) return d;
+    const pkg = readJsonFile(path.join(d, 'package.json'));
+    if ((pkg && pkg.workspaces != null) || ['pnpm-workspace.yaml', 'lerna.json', 'nx.json', 'turbo.json', 'rush.json'].some((f) => fs.existsSync(path.join(d, f)))) workspaceTop = d;
+    const p = path.dirname(d); if (p === d) break; d = p;
+  }
+  return workspaceTop || dir;
+}
+/** dir and its ancestors up to (and including) top, nearest first. */
+function upTo(dir, top) { const out = []; let d = dir; for (let i = 0; i < MAX_UP; i++) { out.push(d); if (d === top) break; const p = path.dirname(d); if (p === d) break; d = p; } return out; }
+/** Where an installed package would be found from dir: node_modules here and in every ancestor up to the top (hoisting, npm/yarn/pnpm workspaces).
+ *  Returns the package folder, 'outside' when the entry resolves outside the checkout top (an npm link, a planted symlink: not counted, not followed
+ *  further), or null. pnpm's .pnpm store and workspace links resolve inside the top and count. */
+function findInstalled(name, dirs, top) {
+  for (const d of dirs) {
+    const p = path.join(d, 'node_modules', ...name.split('/'));
+    const where = pathTextWithin(d, ['node_modules', ...name.split('/')], top); if (where === undefined) continue; // no entry here
+    if (where === 'outside') return 'outside'; // judged component by component by link TEXT: nothing outside the checkout is resolved or probed (existence oracle, Windows UNC reach-out)
+    let real; try { real = fs.realpathSync(p); } catch { continue; } if (real !== top && !real.startsWith(top + path.sep)) return 'outside';
+    if (isRegularFile(path.join(real, 'package.json'))) return real; // the leaf too: a linked package.json would be an existence probe on whatever it names
+  }
+  return null;
+}
+/** Where a path points by its own text: the path itself for a regular entry, the resolved link TEXT for a symlink (one hop, not followed), undefined when absent. */
+function linkTextTarget(p) { let st; try { st = fs.lstatSync(p); } catch { return undefined; } if (!st.isSymbolicLink()) return p; try { return path.resolve(path.dirname(p), fs.readlinkSync(p)); } catch { return undefined; } }
+/** Walk base/seg1/seg2/… one component at a time: a component that is a symlink is judged by its text, and a text that stays inside is itself walked from the top
+ *  the same way (so a link to a/b where a is a link elsewhere is caught) — outside top → 'outside' with nothing below or beyond it touched; absent → undefined;
+ *  else the path reached. Sixteen links in all is the budget. */
+function pathTextWithin(base, segments, top, budget = { hops: 16 }) {
+  const inTop = (p) => p === top || p.startsWith(top + path.sep);
+  let cur = base;
+  for (const s of segments) {
+    cur = path.join(cur, s);
+    const t = linkTextTarget(cur); if (t === undefined) return undefined;
+    if (t === cur) continue; // a plain component
+    if (!inTop(t) || --budget.hops < 0) return 'outside'; // the link's text leaves the checkout (or too many links): nothing beyond it is touched
+    // The text stays inside: but ITS components may be links too (x → ./a/b with a → elsewhere), so the target is walked afresh from the top, text first, before anything stats it.
+    const w = pathTextWithin(top, path.relative(top, t).split(path.sep).filter(Boolean), top, budget);
+    if (w === undefined || w === 'outside') return w; cur = w;
+  }
+  return cur;
+}
+function mtime(p) { try { const st = fs.lstatSync(p); return st.isSymbolicLink() ? null : st.mtimeMs; } catch { return null; } } // marker and lockfile times: a link is ignored, not followed
+
+/** Declared-versus-present dependencies for a package.json project (null when there is no package.json). */
+const realDir = (d) => { try { return fs.realpathSync(d); } catch { return path.resolve(d); } };
+
+export function dependencyReport(dir) {
+  dir = realDir(dir); // one path space for every "inside the checkout" comparison below (macOS tmp folders and linked checkouts resolve elsewhere)
+  const pkg = readJsonFile(path.join(dir, 'package.json'));
+  if (!pkg || typeof pkg !== 'object') return null;
+  const top = checkoutTop(dir); const dirs = upTo(dir, top);
+  const pms = packageManagerSignals(dir, pkg); const manager = pms.pm || pms.pms[0] || 'npm';
+  const installCommand = manager + ' install';
+  // Yarn Plug'n'Play keeps no node_modules: presence cannot be judged from the file system, so say that instead of "missing".
+  if (dirs.some((d) => fs.existsSync(path.join(d, '.pnp.cjs')) || fs.existsSync(path.join(d, '.pnp.js')))) return { manager, installCommand, checked: false, note: 'Yarn Plug\'n\'Play install (.pnp.cjs): dependency presence is not checked from the file system' };
+  const declared = { ...(pkg.devDependencies && typeof pkg.devDependencies === 'object' ? pkg.devDependencies : {}), ...(pkg.dependencies && typeof pkg.dependencies === 'object' ? pkg.dependencies : {}) };
+  const names = Object.keys(declared).filter((n) => /^(@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*$/i.test(n)).slice(0, 400);
+  if (!names.length) return { manager, installCommand, checked: true, installed: true, declared: 0, missing: [], missingCount: 0, problem: null };
+  if (!dirs.some((d) => fs.existsSync(path.join(d, 'node_modules')))) return { manager, installCommand, checked: true, installed: false, declared: names.length, missing: names.slice(0, 12), missingCount: names.length, problem: 'dependencies are not installed (no node_modules folder in this app folder' + (dirs.length > 1 ? ' or the ' + (dirs.length - 1) + ' folder' + (dirs.length > 2 ? 's' : '') + ' above it' : '') + '; ' + names.length + ' package' + (names.length === 1 ? '' : 's') + ' declared in package.json) — run "' + installCommand + '"' };
+  const missing = []; const outside = []; const workspaceDirs = [];
+  const inTop = (p) => p === top || p.startsWith(top + path.sep);
+  for (const n of names) {
+    const spec = String(declared[n]);
+    const where = findInstalled(n, dirs, top);
+    if (where === 'outside') { outside.push(n); continue; }
+    if (!where) {
+      // A path-shaped local dependency ("file:../shared", "workspace:./x") counts when that folder is part of THIS checkout: a relative path only (never "/…",
+      // "//host/…" or "file://host/share", which on Windows would reach out to a network share), contained under the top by its text BEFORE anything touches it.
+      const local = spec.match(/^(?:workspace:|link:|file:|portal:)((?:\.{1,2}\/)?[^\s:/][^\s:]{0,199})$/);
+      const abs = local && !local[1].includes('//') ? path.resolve(dir, local[1]) : null;
+      const walked = abs && inTop(abs) ? pathTextWithin(dir, path.relative(dir, abs).split(path.sep).filter(Boolean), top) : null; // each segment judged by its link text before the next is read
+      const localDir = walked && walked !== 'outside' && inTop(walked) ? realDir(walked) : null;
+      if (localDir && inTop(localDir) && isRegularFile(path.join(localDir, 'package.json'))) { workspaceDirs.push(localDir); continue; }
+      missing.push(/^workspace:/.test(spec) ? n + ' (a workspace package: not linked)' : n); continue;
+    }
+    if (!where.split(path.sep).includes('node_modules') && inTop(where)) workspaceDirs.push(where); // a workspace package of this checkout, linked in: its source reads env variables too
+  }
+  // Install freshness: the manager's own marker file inside a node_modules (here or above) against the manifest and lockfile; only when no
+  // manager marker exists anywhere does a node_modules folder's own time stand in. Newer manifest/lockfile = dependencies changed since the install.
+  let marker = null; let markerWhere = null;
+  for (const m of ['node_modules/.modules.yaml', 'node_modules/.package-lock.json', 'node_modules/.yarn-integrity', 'node_modules/.yarn-state.yml', 'node_modules']) { for (const d of dirs) { const t = mtime(path.join(d, m)); if (t !== null) { marker = t; markerWhere = path.relative(dir, path.join(d, m)) || m; break; } } if (marker !== null) break; }
+  const newer = [];
+  if (marker !== null) { const m = mtime(path.join(dir, 'package.json')); if (m !== null && m > marker + 2000) newer.push('package.json'); for (const d of dirs) for (const lock of ['pnpm-lock.yaml', 'package-lock.json', 'yarn.lock', 'bun.lock', 'bun.lockb', 'npm-shrinkwrap.json']) { const t = mtime(path.join(d, lock)); if (t !== null && t > marker + 2000) newer.push(path.relative(dir, path.join(d, lock)) || lock); } }
+  const stale = newer.length ? [...new Set(newer)].join(', ') + ' ' + (new Set(newer).size === 1 ? 'is' : 'are') + ' newer than the last install here (' + markerWhere + ')' : null;
+  const problem = missing.length ? missing.length + ' of ' + names.length + ' packages declared in package.json ' + (missing.length === 1 ? 'is' : 'are') + ' not installed: ' + missing.slice(0, 8).join(', ') + (missing.length > 8 ? ' and ' + (missing.length - 8) + ' more' : '') + ' — they ARE declared, so this is the install on this machine lagging behind package.json; run "' + installCommand + '"' + (stale ? ' (' + stale + ')' : '') : null;
+  const outsideNote = outside.length ? outside.length + ' package' + (outside.length === 1 ? ' is' : 's are') + ' linked from outside this checkout and not counted (' + outside.slice(0, 6).join(', ') + ')' : null;
+  return { manager, installCommand, checked: true, installed: true, declared: names.length, missing: missing.slice(0, 12), missingCount: missing.length, ...(stale ? { stale } : {}), ...(outsideNote ? { outside: outsideNote } : {}), problem, ...(!problem && stale ? { note: stale + ' — if the app misbehaves, run "' + installCommand + '" first' } : {}), workspaceDirs: [...new Set(workspaceDirs)].slice(0, 12) };
+}
+
+/** The dotenv files a dev server here would read — present (n keys), present but setting nothing, empty (0 bytes), or absent — and the templates that list what is expected. */
+export function envFileReport(dir) {
+  const files = []; const present = new Map(); // name -> the file that sets it, or false when a file names it with no value
+  for (const f of ENV_FILES) {
+    let st; try { st = fs.lstatSync(path.join(dir, f)); } catch { continue; }
+    if (st.isSymbolicLink()) { files.push({ file: f, state: 'a symlink — not read', keys: 0, unchecked: true }); continue; } // nothing is read through a link: its target is whatever the repository pointed it at
+    if (!st.isFile()) { files.push({ file: f, state: 'not a regular file', keys: 0, unchecked: true }); continue; }
+    if (st.size === 0) { files.push({ file: f, state: 'empty (0 bytes)', keys: 0, empty: true }); continue; }
+    if (st.size > 256 * 1024) { files.push({ file: f, state: 'too large to check (' + Math.round(st.size / 1024) + ' KiB)', keys: 0, unchecked: true }); continue; }
+    let names = new Map(); try { names = parseEnvNames(fs.readFileSync(path.join(dir, f), 'utf8')); } catch { files.push({ file: f, state: 'unreadable', keys: 0, unchecked: true }); continue; }
+    const blank = [...names].filter(([, has]) => !has).length;
+    files.push({ file: f, state: names.size ? names.size + ' key' + (names.size === 1 ? '' : 's') + (blank ? ', ' + blank + ' with no value' : '') : 'sets no variable (comments or blank lines only)', keys: names.size, ...(blank ? { blank } : {}) }); // counts only: names from an env file are echoed nowhere by themselves
+    for (const [n, has] of names) if (!present.has(n)) present.set(n, has ? f : false);
+  }
+  const templates = [];
+  for (const f of ENV_TEMPLATES) { let st; try { st = fs.lstatSync(path.join(dir, f)); } catch { continue; } if (!st.isFile() || st.size > 256 * 1024) continue; let names = new Map(); try { names = parseEnvNames(fs.readFileSync(path.join(dir, f), 'utf8')); } catch { /* */ } templates.push({ file: f, keys: [...names.keys()].filter((n) => /^[A-Z][A-Z0-9_]{1,63}$/.test(n)).slice(0, 80) }); }
+  return { files, templates, present };
+}
+
+/** Every environment variable the app's own source reads, by name, with where it is read and whether that read has a fallback or looks required. */
+export function scanEnvReads(dirs, { maxFiles = 2500, maxMs = 2500, root = dirs[0] } = {}) {
+  const started = Date.now(); const vars = new Map(); const schema = new Map(); let files = 0; let capped = false;
+  const entry = (name) => { let v = vars.get(name); if (!v) { v = { name, readAt: [], requiredAt: null, hasDefault: false, client: CLIENT_PREFIX.test(name) }; vars.set(name, v); } return v; }; // browser-side by prefix only: import.meta.env also carries server-only names (Vite SSR, Astro)
+  const note = (name, rel, lineNo, lines, viaImportMeta) => {
+    if (viaImportMeta && VITE_BUILTIN.test(name)) return;
+    const line = (lines[lineNo - 1] || '').replace(/\s\/\/.*$|\s#\s.*$/, ''); // the code on the line, without a trailing comment
+    if (/^\s*(\/\/|#|\*|\/\*)/.test(lines[lineNo - 1] || '')) return; // a commented-out read is not a read
+    const v = entry(name);
+    if (v.readAt.length < 3 && !v.readAt.includes(rel + ':' + lineNo)) v.readAt.push(rel + ':' + lineNo);
+    let required = (REQUIRED_HINT.test(line) && !SOFT_WORDS.test(line)) || requiredRead(name).test(line); // a throw / exit on the read's own line decides, whatever else the line holds
+    const fallback = !required && defaultHint(name).test(line);
+    const guarded = new RegExp('(if\\s*\\(|&&|\\|\\|)\\s*!\\s*(process\\.env|import\\.meta\\.env)\\??\\.' + name + '\\b').test(line); // the read itself is the condition: if (!process.env.X) …
+    for (let k = 1; !required && !fallback && k <= 2; k++) { // the next two lines: a hint that names this variable, or a bare throw right under its own guard
+      const next = (lines[lineNo - 1 + k] || '').replace(/\s\/\/.*$/, ''); if (/^\s*(\/\/|#|\*)/.test(next)) continue;
+      const others = OTHER_READ.test(next.replace(new RegExp('\\b' + name + '\\b', 'g'), ''));
+      if (REQUIRED_HINT.test(next) && !SOFT_WORDS.test(next) && (next.includes(name) || (guarded && !others))) required = true; else if (others) break; // the code moved on to another variable
+    }
+    if (required && !v.requiredAt) v.requiredAt = rel + ':' + lineNo;
+    if (!required && !v.hasDefault && (fallback || switchUse(name).test(line))) v.hasDefault = true; // a fallback value, or only an on/off switch
+  };
+  const visit = (dir) => {
+    let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    if (ents.some((e) => e.name === 'pyvenv.cfg')) return; // a Python virtualenv: third-party code, not the app
+    for (const e of ents) {
+      if (capped) return;
+      if (files >= maxFiles || Date.now() - started > maxMs) { capped = true; return; }
+      if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name) && !e.name.startsWith('.')) visit(path.join(dir, e.name)); continue; }
+      if (!e.isFile() || !SOURCE_EXT.test(e.name) || TEST_FILE.test(e.name) || /\.min\.|\.d\.ts$/.test(e.name)) continue;
+      const p = path.join(dir, e.name); let st; try { st = fs.statSync(p); } catch { continue; } if (st.size > 512 * 1024) continue;
+      let text; try { text = fs.readFileSync(p, 'utf8'); } catch { continue; }
+      if (!/process\.env|import\.meta\.env|environ|getenv|\bENV\b/.test(text)) continue;
+      files++;
+      const rel = path.relative(root, p); const lines = text.split('\n');
+      const starts = []; { let at = 0; for (const l of lines) { starts.push(at); at += l.length + 1; } }
+      const lineNoAt = (idx) => { let lo = 0, hi = starts.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (starts[mid] <= idx) lo = mid; else hi = mid - 1; } return lo + 1; };
+      for (const re of READS) { re.lastIndex = 0; let m; while ((m = re.exec(text)) !== null) note(m[1], rel, lineNoAt(m.index), lines, /import\.meta/.test(m[0])); }
+      DESTRUCTURE.lastIndex = 0; let d; while ((d = DESTRUCTURE.exec(text)) !== null) { const ln = lineNoAt(d.index); for (const part of d[1].split(',')) { const mm = part.trim().match(/^([A-Z][A-Z0-9_]{1,80})\b\s*(?::\s*\w+)?\s*(=)?/); if (!mm) continue; note(mm[1], rel, ln, lines, false); if (mm[2] && vars.get(mm[1])) vars.get(mm[1]).hasDefault = true; } }
+      // An env schema's field lines (t3 createEnv and the like) usually sit apart from the runtimeEnv reads: remember each field's verdict for the end.
+      if (/\bz\s*\.\s*(object|string|enum|url|coerce|number|boolean)\b|createEnv\(/.test(text)) { SCHEMA_FIELD.lastIndex = 0; let s; while ((s = SCHEMA_FIELD.exec(text)) !== null) { const at = s.index + s[0].indexOf(s[1]); const rest = text.slice(at, at + 400); const end = rest.slice(s[1].length).search(NEXT_FIELD); const seg = end < 0 ? rest : rest.slice(0, s[1].length + end); schema.set(s[1], { optional: /\.(optional|default|nullish|catch)\(/.test(seg), at: rel + ':' + lineNoAt(at) }); } }
+    }
+  };
+  for (const d of dirs) { if (capped) break; visit(d); }
+  for (const [name, sdef] of schema) { const v = vars.get(name); if (!v) continue; if (sdef.optional) { v.hasDefault = true; v.requiredAt = null; } else { v.requiredAt = v.requiredAt || sdef.at; v.hasDefault = false; } } // the schema is the app's own statement: it decides
+  return { vars: [...vars.values()], files, capped, ms: Date.now() - started };
+}
+
+/** The whole environment report for status: one list of problems (worst first, one line each) the skill copies into any report,
+ *  softer notes, and the structured detail behind them. "tools" is status's own view of the browser tooling ({installed, remedy, problem}). */
+export function environmentReport(cfg, { tools } = {}) {
+  const dir = realDir(cfg.projectDir);
+  const problems = []; const notes = [];
+  if (tools && tools.installed === false) problems.push('the browser tooling is not ' + (tools.problem ? 'usable' : 'installed') + ' on this machine — ' + (tools.problem || tools.remedy));
+  let deps = null; try { deps = dependencyReport(dir); } catch (e) { deps = { checked: false, note: 'dependency check failed: ' + (e.code || e.message) }; }
+  if (deps && deps.problem) problems.push(deps.problem);
+  if (deps && deps.note) notes.push(deps.note);
+  let envFiles; try { envFiles = envFileReport(dir); } catch { envFiles = { files: [], templates: [], present: new Map() }; }
+  const scanDirs = [dir, ...((deps && deps.workspaceDirs) || []).filter((d) => d !== dir && !d.startsWith(dir + path.sep) && !dir.startsWith(d + path.sep))];
+  let scan; try { scan = scanEnvReads(scanDirs, { root: dir }); } catch (e) { scan = { vars: [], files: 0, capped: false, error: e.code || e.message }; }
+  const expected = new Set(envFiles.templates.flatMap((t) => t.keys));
+  for (const n of expected) if (!scan.vars.find((v) => v.name === n)) scan.vars.push({ name: n, readAt: [], requiredAt: null, hasDefault: false, client: CLIENT_PREFIX.test(n), templateOnly: true });
+  const vars = scan.vars.filter((v) => !PROVIDED.test(v.name)).map((v) => {
+    const inFile = envFiles.present.get(v.name); // file name, false (named with no value), or undefined
+    const set = inFile ? inFile : null; // env files only: the person's shell is never consulted (the repository chooses which names are read, and whether the person has one exported is not its business)
+    const fenceMoot = !!v.client && !v.requiredAt && OUTSIDE_SERVICE.test(v.name); // a read that looks required is never waved through as moot
+    return { name: v.name, set, ...(inFile === false ? { blank: true } : {}), ...(v.client ? { client: true } : {}), ...(fenceMoot ? { fenceMoot: true } : {}), ...(v.requiredAt ? { requiredAt: v.requiredAt } : {}), ...(v.hasDefault ? { hasDefault: true } : {}), ...(expected.has(v.name) ? { inTemplate: true } : {}), ...(v.templateOnly ? { readAt: 'not found in source; listed in a template' } : { readAt: v.readAt }) };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+  const unset = vars.filter((v) => !v.set);
+  const likelyNeeded = unset.filter((v) => !v.fenceMoot && (v.requiredAt || (!v.hasDefault && (v.inTemplate || !v.client)))); // required-looking reads always; otherwise server-side or template-listed names without a fallback
+  const withKeys = envFiles.files.filter((f) => f.keys > 0).map((f) => f.file);
+  const unchecked = envFiles.files.filter((f) => f.unchecked); // a symlink, too large, unreadable: what it sets is unknown, so "not set" below is "not found in what could be read"
+  if (unchecked.length) problems.push(unchecked.map((f) => f.file + ' is ' + f.state).join('; ') + ' — what ' + (unchecked.length === 1 ? 'it sets' : 'they set') + ' is not counted below');
+  // Env files: a template with keys but no usable env file is the classic first-clone blocker; empty, "sets nothing" and missing are said apart.
+  const tmpl = envFiles.templates.find((t) => t.keys.length);
+  const empties = envFiles.files.filter((f) => f.empty); const silent = envFiles.files.filter((f) => !f.empty && f.keys === 0 && /^sets no variable/.test(f.state));
+  if (empties.length) problems.push(empties.map((f) => f.file).join(', ') + ' ' + (empties.length === 1 ? 'exists but is EMPTY (0 bytes) — the file was created and nothing was written into it' : 'exist but are EMPTY (0 bytes)') + (tmpl ? '; ' + tmpl.file + ' lists the ' + tmpl.keys.length + ' expected keys' : ''));
+  if (silent.length) problems.push(silent.map((f) => f.file).join(', ') + ' ' + (silent.length === 1 ? 'exists but sets no variable' : 'exist but set no variable') + ' (every line is a comment or blank — values still to be filled in)' + (tmpl ? '; ' + tmpl.file + ' lists the ' + tmpl.keys.length + ' expected keys' : ''));
+  if (tmpl && !envFiles.files.length) problems.push('there is no env file here (.env / .env.local are MISSING — absent, not empty) while ' + tmpl.file + ' lists ' + tmpl.keys.length + ' expected keys: copy it to the name this framework reads (usually .env.local) and fill in what the first pages need');
+  if (likelyNeeded.length) {
+    const listed = likelyNeeded.slice(0, 16).map((v) => v.name + (v.requiredAt ? ' (looks required at ' + v.requiredAt + ')' : v.blank ? ' (named in an env file with no value)' : ''));
+    const fromTemplate = likelyNeeded.filter((v) => v.readAt === 'not found in source; listed in a template').length;
+    const who = fromTemplate === likelyNeeded.length ? tmpl.file + ' lists' : fromTemplate ? 'the code reads or ' + tmpl.file + ' lists' : 'the code reads';
+    problems.push(likelyNeeded.length + ' variable' + (likelyNeeded.length === 1 ? ' ' + who.replace(/reads$/, 'reads').replace(/lists$/, 'lists') + ' is' : 's ' + who + ' are') + (unchecked.length ? ' not found in the env files that could be read' : ' not set in ' + (withKeys.length ? withKeys.join(', ') : 'any env file here')) + ' (the shell is not checked): ' + listed.join(', ') + (likelyNeeded.length > 16 ? ' and ' + (likelyNeeded.length - 16) + ' more (status environment.env.vars)' : '') + ' — one the app needs at start-up fails every page the same way (the "looks required" ones first; the rest are read with no visible fallback); for a local run a placeholder in .env.local is usually enough');
+  }
+  const moot = vars.filter((v) => v.fenceMoot);
+  if (moot.length) notes.push('moot under the network fence: ' + moot.slice(0, 10).map((v) => v.name).join(', ') + (moot.length > 10 ? ', ...' : '') + ' — browser-side key' + (moot.length === 1 ? '' : 's') + ' for an outside service the test browser cannot reach anyway (only the app\'s origin and allowedOrigins load), so any placeholder is enough');
+  const clientUrls = vars.filter((v) => v.client && !v.fenceMoot && /(_URL|_URI|_HOST|_ORIGIN|_ENDPOINT|_DOMAIN|_API)$/.test(v.name));
+  if (clientUrls.length) notes.push('browser-side addresses (' + clientUrls.slice(0, 8).map((v) => v.name).join(', ') + '): the host they name must be the app\'s own origin or be listed under allowedOrigins in .claude-testrc, or the test browser blocks those requests (expected, not a failure)');
+  const optional = unset.filter((v) => !likelyNeeded.includes(v) && !v.fenceMoot);
+  if (optional.length) notes.push(optional.length + ' unset variable' + (optional.length === 1 ? '' : 's') + ' read with a fallback value, as an on/off switch, or only in the browser bundle (fine unset unless a spec needs that feature): ' + optional.slice(0, 12).map((v) => v.name).join(', ') + (optional.length > 12 ? ', ...' : ''));
+  if (scan.capped) notes.push('the source scan stopped at its limit (' + scan.files + ' files with env reads, ' + scan.ms + ' ms): the variable list may be incomplete');
+  const node = nodeExpectation(dir);
+  if (node && node.mismatch) notes.push(node.mismatch);
+  const summary = problems.length ? problems.length + ' thing' + (problems.length === 1 ? '' : 's') + ' to fix before a run can get far — see problems' : 'nothing found that would stop a run (dependencies present, env files and variables look set)';
+  const depsOut = deps ? (({ workspaceDirs, ...rest }) => ({ ...rest, ...(workspaceDirs && workspaceDirs.length ? { workspacePackagesScanned: workspaceDirs.map((d) => path.relative(dir, d) || '.') } : {}) }))(deps) : null;
+  const listed = vars.length > MAX_VARS_LISTED ? [...vars].sort((a, b) => (a.set ? 1 : 0) - (b.set ? 1 : 0) || a.name.localeCompare(b.name)).slice(0, MAX_VARS_LISTED) : vars; // unset first when the list is cut
+  return { summary, problems, notes, dependencies: depsOut, env: { files: envFiles.files.map(({ empty, ...f }) => f), templates: envFiles.templates.map((t) => ({ file: t.file, keys: t.keys.length })), scannedFiles: scan.files, ...(scan.capped ? { capped: true } : {}), vars: listed, ...(vars.length > MAX_VARS_LISTED ? { varsNotListed: vars.length - MAX_VARS_LISTED } : {}) }, ...(node ? { node } : {}) };
+}
+
+/** engines.node (package.json here or at the top) and .nvmrc / .node-version against process.version. No semver library:
+ *  only major versions are compared, which is what breaks dev servers in practice. */
+// What .nvmrc / engines.node may hold for its text to be shown: "20", "v18.17.1", "20.x", ">=18 <21", "^20.0.0", "18 || 20", "lts/*", "lts/iron", "node", "stable".
+const VERSION_SPEC = /^(v?\d+(\.(\d+|x|\*)){0,2}|lts\/[a-z*-]+|node|stable|latest|current|system|[<>=^~ 0-9.x*|-]{1,20})$/i;
+export function nodeExpectation(dir) {
+  const top = checkoutTop(dir); const running = process.versions.node; const major = Number(running.split('.')[0]);
+  let want = null; let from = null;
+  for (const d of [dir, top]) { const pkg = readJsonFile(path.join(d, 'package.json')); if (pkg && pkg.engines && typeof pkg.engines.node === 'string' && pkg.engines.node.length <= 60) { want = pkg.engines.node.trim(); from = (path.relative(dir, path.join(d, 'package.json')) || 'package.json') + ' engines.node'; break; } }
+  if (!want) for (const d of [dir, top]) { for (const f of ['.nvmrc', '.node-version']) { try { const p = path.join(d, f); const st = fs.lstatSync(p); if (!st.isFile() || st.size > 256) continue; const t = fs.readFileSync(p, 'utf8').trim().split('\n')[0].slice(0, 40); if (/\d/.test(t)) { want = t; from = path.relative(dir, p) || f; break; } } catch { /* */ } } if (want) break; } // a regular, small file only — never through a link
+  if (!want) return null;
+  if (!VERSION_SPEC.test(want)) return { running, from, note: from + ' is present but not a plain version (not shown)' }; // anything but a version or range is never echoed
+  let mismatch = null;
+  const minOnly = want.match(/^>=?\s*v?(\d{1,3})(?:[.\dx*]*)$/);
+  if (minOnly) { if (major < Number(minOnly[1])) mismatch = 'Node ' + running + ' is older than ' + from + ' requires (' + want + ')'; }
+  else { const majors = [...want.matchAll(/(?:^|[\s^~=<>|v])(\d{1,3})(?=[.x*\s|]|$)/g)].map((m) => Number(m[1])).filter((n) => n >= 4 && n < 200); if (majors.length && !majors.includes(major) && !/[<>]/.test(want)) mismatch = 'Node ' + running + ' is running here while ' + from + ' asks for ' + want.replace(/\s+/g, ' ') + ' — if the dev server refuses to start or behaves oddly, switch Node versions first'; }
+  return { running, wanted: want, from, ...(mismatch ? { mismatch } : {}) };
+}

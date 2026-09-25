@@ -1,0 +1,67 @@
+// How the live page is handed to the person's browser: ONE program, started directly with the file as its only argument — never through a shell.
+//
+// The path embeds the name of the person's home folder, which this plugin did not choose. On Windows "cmd /c start" re-reads its whole command line and splits it
+// on & ^ | and expands %NAME% even inside quotes, so a path with such a character in it could make it run a command from a call the person had
+// pre-approved. So: explorer.exe, by its fixed location, with the path as one argument (CreateProcess does no such re-reading); /usr/bin/open on macOS; xdg-open
+// by its usual locations on Linux. Not by PATH: nothing of the session's environment chooses the program.
+// The same goes for the environment the opener RUNS in: xdg-open is a shell script that executes $BROWSER and finds its helpers (gio, kde-open, exo-open)
+// through PATH and its handlers through XDG_CONFIG_HOME / XDG_DATA_DIRS — so it is started with a small environment of our own: a fixed PATH, the person's
+// real home, the variables that say which display and session bus to talk to, and nothing else. explorer.exe reads "," and "=" in its argument as its own
+// switch syntax (/select,<path>), so a path holding either is left for the person to open, like one holding a quote or a percent sign.
+
+import fs from 'node:fs';
+import { spawn } from 'node:child_process';
+
+const firstThatExists = (list) => list.find((f) => { try { return fs.statSync(f).isFile(); } catch { return false; } }) || null;
+
+/** → { cmd, args } or null when there is no safe way to open it here. `front`: bring the browser to the front (macOS can open behind the person's work). */
+export function openerCommand(platform, file, { front = false, exists = firstThatExists } = {}) {
+  if (typeof file !== 'string' || !file || /[\0\r\n]/.test(file)) return null;
+  if (platform === 'darwin') { const cmd = exists(['/usr/bin/open']); return cmd ? { cmd, args: [...(front ? [] : ['-g']), file] } : null; }
+  if (platform === 'win32') { if (/["%,=]/.test(file)) return null; const cmd = exists(['C:\\Windows\\explorer.exe']); return cmd ? { cmd, args: [file] } : null; } // a quote, a percent sign, a comma or an equals sign in the path: leave the page for the person to open
+  const cmd = exists(['/usr/bin/xdg-open', '/bin/xdg-open', '/usr/local/bin/xdg-open']); return cmd ? { cmd, args: [file] } : null;
+}
+
+/** The environment the opener runs in (not the session's). Nothing is passed on as it came: each value
+ *  must have the shape a desktop session gives it, because each is an instruction to something — DISPLAY names the X server the person's browser would draw on
+ *  and take input from (a local ":N" only, never "host:0"); DBUS_SESSION_BUS_ADDRESS names how to reach the session bus, and its "unixexec:" form RUNS a program
+ *  (a unix socket path only); XDG_RUNTIME_DIR is the person's own /run/user/<uid>; XAUTHORITY is a cookie file outside the project.
+ *  `home`: the account's real home directory, from the password database — the caller does not open anything when that cannot be had. */
+export function openerEnv(platform, env, home, { uid = null, projectDir = null } = {}) {
+  const v = (k) => (typeof env[k] === 'string' && env[k].length > 0 && env[k].length < 300 && !/[\0-\x1f\x7f]/.test(env[k]) ? env[k] : null);
+  if (platform === 'win32') { // built from the real home, not taken from the session: the profile, its application data and its temp folder
+    const j = (...p) => [home, ...p].join('\\');
+    return { SystemRoot: 'C:\\Windows', windir: 'C:\\Windows', SystemDrive: 'C:', PATH: 'C:\\Windows\\System32;C:\\Windows', PATHEXT: '.COM;.EXE;.BAT;.CMD', USERPROFILE: home, APPDATA: j('AppData', 'Roaming'), LOCALAPPDATA: j('AppData', 'Local'), TEMP: j('AppData', 'Local', 'Temp'), TMP: j('AppData', 'Local', 'Temp'), ProgramData: 'C:\\ProgramData', ProgramFiles: 'C:\\Program Files', 'ProgramFiles(x86)': 'C:\\Program Files (x86)' };
+  }
+  const keep = { PATH: platform === 'darwin' ? '/usr/bin:/bin:/usr/sbin:/sbin' : '/usr/local/bin:/usr/bin:/bin', HOME: home };
+  const inside = (p, dir) => !!dir && (p === dir || p.startsWith(dir.replace(/\/+$/, '') + '/'));
+  const rules = {
+    DISPLAY: (x) => /^(?:unix)?:\d{1,4}(?:\.\d{1,2})?$/.test(x),                                   // this machine's own display
+    WAYLAND_DISPLAY: (x) => /^[A-Za-z0-9._-]{1,64}$/.test(x),                                           // a socket NAME under the runtime dir, never a path
+    XDG_RUNTIME_DIR: (x) => (uid === null ? /^\/run\/user\/\d{1,10}$/.test(x) : x === '/run/user/' + uid),
+    DBUS_SESSION_BUS_ADDRESS: (x) => /^unix:(?:path|abstract)=\/[A-Za-z0-9._\/@-]{1,200}(?:,guid=[0-9a-f]{32})?$/.test(x), // a unix socket: not unixexec:, tcp:, nonce-tcp:, launchd:, autolaunch:
+    XAUTHORITY: (x) => x.startsWith('/') && !x.split('/').includes('..') && !inside(x, projectDir),
+    XDG_SESSION_TYPE: (x) => /^(x11|wayland|mir|tty)$/.test(x),
+    XDG_CURRENT_DESKTOP: (x) => /^[A-Za-z0-9:_-]{1,64}$/.test(x),
+    DESKTOP_SESSION: (x) => /^[A-Za-z0-9._-]{1,64}$/.test(x),
+    LANG: (x) => /^[A-Za-z0-9_.@-]{1,40}$/.test(x), LC_ALL: (x) => /^[A-Za-z0-9_.@-]{1,40}$/.test(x),
+  };
+  for (const [k, ok] of Object.entries(rules)) { const x = v(k); if (x !== null && ok(x)) keep[k] = x; }
+  return keep; // no BROWSER, no PATH of the session's, no XDG_CONFIG_HOME / XDG_DATA_DIRS / XDG_DATA_HOME, no DE, no USER
+}
+
+/** Start the opener and learn what became of it: → { opened: true } when it ended with 0; { opened: false, why } when it could not be started or ended
+ *  with another code (on macOS that is how /usr/bin/open says the browser could not be reached, as inside Claude Code's sandbox); { opened: null,
+ *  why } when it was still going after `capMs` (some Linux desktops keep xdg-open alive until the browser ends). It is started on its own (detached),
+ *  so it outlives a short command either way; nothing of its output is read. */
+export function runOpener(how, { env, cwd, capMs = 2500 } = {}) {
+  return new Promise((resolve) => {
+    let child;
+    try { child = spawn(how.cmd, how.args, { stdio: 'ignore', detached: true, shell: false, windowsVerbatimArguments: false, env, cwd }); }
+    catch (e) { resolve({ opened: false, why: 'it could not be started (' + ((e && e.code) || 'error') + ')' }); return; }
+    let done = false; const end = (r) => { if (done) return; done = true; clearTimeout(cap); try { child.unref(); } catch { /* gone */ } resolve(r); };
+    const cap = setTimeout(() => end({ opened: null, why: 'it had not finished after ' + (capMs / 1000) + ' s' }), capMs);
+    child.on('error', (e) => end({ opened: false, why: 'it could not be started (' + ((e && e.code) || 'error') + ')' }));
+    child.on('exit', (code, signal) => end(code === 0 ? { opened: true } : { opened: false, why: 'it ended with ' + (signal ? 'signal ' + signal : 'code ' + code) }));
+  });
+}

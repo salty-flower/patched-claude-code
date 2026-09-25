@@ -1,0 +1,289 @@
+// Locates (and on request installs) the Node packages the plugin drives the browser with:
+// @playwright/mcp (which brings playwright-core). One install serves the MCP launcher, the
+// sign-in scripts and "install-browser", so there is one browser download, not three.
+// Location of these packages: <data>/tools, where <data> is the plugin's data folder (lib/config.mjs dataRoot), found from
+// the scripts' own place. (Which BROWSER is launched is decided by browserSelection below.)
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { PLAYWRIGHT_MCP_VERSION, PLAYWRIGHT_PIN, envPathOutsideProject, insideProjectReally, reallyInsideDir, trustedHome, homeTampered, dirNotPrivateProblem, playwrightRegistryDir, launcherConfig, browserServerEnv, dataRoot } from './config.mjs';
+
+/** The per-user cache folder for this plugin: <cache>/claude-test (<cache> = $XDG_CACHE_HOME | ~/.cache | %LOCALAPPDATA%). The browser
+ *  launcher runs nothing from it and hands the browser server nothing from it. */
+export function cacheDir() {
+  let cache = process.env.XDG_CACHE_HOME || (process.platform === 'win32' && process.env.LOCALAPPDATA) || path.join(os.homedir(), '.cache');
+  if (insideProjectReally(path.resolve(cache))) cache = path.join(trustedHome(), '.cache'); // never inside the project: fall back to the ACCOUNT's home (user database)
+  const dir = path.join(cache, 'claude-test');
+  if (homeTampered() && insideProjectReally(path.resolve(dir))) { process.stderr.write('[claude-test] refusing to run: HOME points into the project, and this plugin runs sign-in scripts from its cache there\n'); process.exit(2); } // project == your real home is fine
+  return dir;
+}
+
+/** The tools folder holds code this plugin executes (the MCP server, playwright-core, a downloaded browser): <data>/tools, beside the version
+ *  folders, so an update of the plugin keeps it. No variable moves it, and a tools folder anywhere else is never looked at. */
+export function toolsDir() { return path.join(dataRoot(), 'tools'); }
+
+/** A folder of this process's own, <data>/launch/<pid>-<random>/ with out/ inside it, for what the browser server is handed at start (its
+ *  guard script, its launch options) and for every file it writes (out/ is its --output-dir). Made now with mode 0700, removed when this process
+ *  ends; folders that launchers no longer running left behind are removed first. Throws when it cannot be made. */
+export function makeLaunchDir() {
+  const root = path.join(dataRoot(), 'launch');
+  fs.mkdirSync(root, { recursive: true, mode: 0o700 });
+  // A live launcher touches its folder every five minutes (below). One left untouched for fifteen is removed when its process is gone; the process
+  // number alone does not decide, because a launcher in a container that shares this folder has numbers of its own. After a week it goes regardless.
+  let old = []; try { old = fs.readdirSync(root); } catch { /* nothing to sweep */ }
+  for (const e of old) {
+    const m = e.match(/^(\d+)-[0-9a-f]{16}$/); if (!m) continue;
+    let idleMs = 0; try { idleMs = Date.now() - fs.lstatSync(path.join(root, e)).mtimeMs; } catch { continue; }
+    if (idleMs < 15 * 60 * 1000) continue;
+    let alive = true; try { process.kill(Number(m[1]), 0); } catch (err) { alive = !!err && err.code === 'EPERM'; } // EPERM: a process of that number exists and belongs to someone else
+    if (!alive || idleMs > 7 * 24 * 3600 * 1000) { try { fs.rmSync(path.join(root, e), { recursive: true, force: true }); } catch { /* not ours to remove */ } }
+  }
+  const dir = path.join(root, process.pid + '-' + crypto.randomBytes(8).toString('hex'));
+  fs.mkdirSync(dir, { mode: 0o700 }); // not recursive: a name that is already there is refused, never reused
+  fs.mkdirSync(path.join(dir, 'out'), { mode: 0o700 });
+  const touch = setInterval(() => { try { const now = new Date(); fs.utimesSync(dir, now, now); } catch { /* gone: nothing to keep */ } }, 5 * 60 * 1000); touch.unref();
+  process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* a later launcher sweeps it */ } });
+  return dir;
+}
+
+/** The plugin's OWN Playwright browser registry (<tools>/browsers). "ct.mjs install" downloads here — never into the
+ *  user's shared registry, where Playwright's installer garbage-collects entries it considers unused. The launcher always
+ *  points Playwright at it; the sign-in scripts do when it has content. An installed Chrome/Edge is still
+ *  preferred; this only matters on machines without one. */
+export function browsersDir() { return path.join(toolsDir(), 'browsers'); }
+export function useOwnBrowsersIfPresent() {
+  try { if (fs.readdirSync(browsersDir()).some((d) => /^(chromium|chromium_headless_shell|firefox|webkit|ffmpeg|msedge|chrome)[-_]/.test(d))) process.env.PLAYWRIGHT_BROWSERS_PATH = browsersDir(); } catch { /* no private registry yet */ }
+}
+
+/** Code is EXECUTED from the tools folder (the MCP server, playwright-core, the browser a skill launches): it and its
+ *  node_modules must be the user's own (or root's) and not writable by anyone else, or we refuse to run from it.
+ *  ("ct.mjs install" itself tightens the modes it creates, whatever the umask.) */
+/** Strip group/other write bits from everything under the tools dir (what npm or the browser download left with the umask) —
+ *  a plain node walk, no shell; symlinks are not followed. Code is executed from here without a prompt, so nobody else may write it. */
+export function tightenToolsDir(root = toolsDir()) {
+  let n = 0;
+  try { root = fs.realpathSync(root); } catch { return 0; } // the tools dir itself may be reached through a symlink (a linked home or .claude folder): walk its target; links BELOW are still not followed
+  // Only OUR tree: the root must carry the claude-test-tools package.json this plugin writes, and the walk covers the root itself plus the
+  // subtrees install creates (node_modules, browsers, package*.json): a folder that is not ours is never chmod-walked.
+  try { if (JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).name !== 'claude-test-tools') return 0; } catch { return 0; }
+  const walk = (p) => { let st; try { st = fs.lstatSync(p); } catch { return; } if (st.isSymbolicLink()) return; if (st.mode & 0o022) { try { fs.chmodSync(p, st.mode & 0o7755 & ~0o022); n++; } catch { /* not ours */ } } if (st.isDirectory()) { let ents = []; try { ents = fs.readdirSync(p); } catch { return; } for (const e of ents) walk(path.join(p, e)); } };
+  try { const st = fs.lstatSync(root); if (st.mode & 0o022) { fs.chmodSync(root, st.mode & 0o7755 & ~0o022); n++; } } catch { /* */ }
+  for (const sub of ['node_modules', 'browsers', 'package.json', 'package-lock.json']) walk(path.join(root, sub));
+  return n;
+}
+/** The places code or a browser is executed from, for the privacy gate: the tools dir, the executed packages, cli.js itself, the own
+ *  browsers dir and each downloaded browser folder in it. A file counts as "not private" when group/other may write it. */
+/** How the browser is chosen — ONE rule for the launcher's arguments and for the privacy gate: an explicit executable outside the project wins;
+ *  else a NAMED browser (CLAUDE_TEST_BROWSER / rc "browser:"); else an installed Chrome by path; else Playwright's downloaded chromium. The shared
+ *  Playwright REGISTRY is touched only for a named non-channel browser (chromium) or that last fallback — 'chrome' / 'msedge'
+ *  (and their -beta/-dev variants) are channel launches of the system browser and never read the registry. The browser server's launcher pins
+ *  the registry to <tools>/browsers before it asks (playwright-mcp.mjs), so for it "the registry" is never the shared one; it also drops the
+ *  executable's variable first, so for it the rule starts at the NAMED browser. */
+export function browserSelection(cfg) {
+  const exe = envPathOutsideProject('CLAUDE_TEST_BROWSER_EXECUTABLE');
+  const named = process.env.CLAUDE_TEST_BROWSER || (cfg && cfg.browser) || null;
+  const chromePath = exe ? null : named ? null : findChrome();
+  const browser = named || (exe || chromePath ? null : 'chromium');
+  const usesRegistry = !exe && !!browser && !/^(chrome|msedge)(-|$)/.test(browser);
+  return { exe, chromePath, browser, usesRegistry };
+}
+/** Why the browser NAMED for a run is refused, or null. Only a Chromium-family browser takes the filtering proxy and the launch switches that hold a run to the
+ *  allowed addresses (playwright-mcp.mjs), so any other name is refused, never run behind a weaker fence. A name comes from the rc, which accepts no other
+ *  (lib/config.mjs), or from CLAUDE_TEST_BROWSER, which is trusted no more than the rc is. Only the name is judged. (A binary given by CLAUDE_TEST_BROWSER_EXECUTABLE is not looked at here: the sign-in scripts may use one; the browser server's launcher drops that variable.) */
+export function browserProblem(cfg) {
+  const { browser } = browserSelection(cfg);
+  if (!browser || /^(chromium|chrome|msedge)(-|$)/.test(browser)) return null;
+  const asked = browser === 'firefox' || browser === 'webkit' ? '"' + browser + '"' : 'a value Claude Test does not support'; // the model reads this line: nothing of the variable's value is repeated but these two names
+  return 'the test browser can only be chrome, msedge or chromium: no other browser can be held to the allowed addresses. CLAUDE_TEST_BROWSER asks for ' + asked + ': unset it (in the shell, or under "env" in a Claude Code settings file), then restart Claude Code once';
+}
+const useOwn = () => { const v = process.env.PLAYWRIGHT_BROWSERS_PATH; return !!v && path.resolve(v) === path.join(toolsDir(), 'browsers'); };
+/** The user's shared Playwright registry is theirs, not ours: a group-writable mode (umask 002 desktops) is normal there. Refuse only what
+ *  lets SOMEONE ELSE plant a browser: owned by another user, or world-writable. */
+export function sharedPlaceProblem(p) { if (process.platform === 'win32') return null; try { const st = fs.statSync(p); if (typeof process.getuid === 'function' && st.uid !== process.getuid() && st.uid !== 0) return p + ' is owned by another user (uid ' + st.uid + ')'; if (st.mode & 0o002) return p + ' is writable by every user (mode ' + (st.mode & 0o777).toString(8) + ')'; return null; } catch { return null; } }
+const sharedPlaces = new Set();
+function executedPlaces() {
+  const dir = toolsDir(); const b = path.join(dir, 'browsers');
+  const places = [dir, path.join(dir, 'node_modules'), path.join(dir, 'node_modules', '@playwright', 'mcp'), path.join(dir, 'node_modules', '@playwright', 'mcp', 'cli.js'), path.join(dir, 'node_modules', 'playwright-core'), path.join(dir, 'node_modules', 'playwright-core', 'lib'), path.join(dir, 'node_modules', 'playwright'), path.join(dir, 'node_modules', 'playwright', 'lib'), path.join(dir, 'package.json'), path.join(dir, 'package-lock.json'), b, ...ABSENT_OPTIONAL_PACKAGES.map((n) => path.join(dir, 'node_modules', n))]; // 'playwright' too: the sign-in skill sandbox links it in and importPlaywright falls back to it
+  try { for (const e of fs.readdirSync(b)) places.push(path.join(b, e)); } catch { /* no own browsers */ }
+  const reg = playwrightRegistryDir(); // the pinned shared registry (after sanitizeBrowserEnv): browsers run from there ONLY when Playwright's own chromium is used —
+  // — i.e. exactly when the launcher would pass "--browser <name>": no usable CLAUDE_TEST_BROWSER_EXECUTABLE (outside the project), and either a browser NAME was
+  // requested (CLAUDE_TEST_BROWSER / rc "browser:") or no Chrome is installed. Same rule as playwright-mcp.mjs, so the gate never judges a place nothing runs from.
+  let usesRegistry = true; try { usesRegistry = browserSelection(launcherConfig().cfg).usesRegistry; } catch { /* no config: assume the registry may be used */ }
+  if (reg && reg.dir && reg.dir !== b && !useOwn() && usesRegistry) { for (const p of [reg.dir, ...(() => { try { return fs.readdirSync(reg.dir).filter((e) => /^(chromium|chrome|ffmpeg|firefox|webkit|msedge|winldd)/.test(e)).map((e) => path.join(reg.dir, e)); } catch { return []; } })()]) { places.push(p); sharedPlaces.add(p); } }
+  return places.filter((p) => fs.existsSync(p));
+}
+function placeProblem(p) { if (sharedPlaces.has(p)) return sharedPlaceProblem(p); try { const st = fs.statSync(p); /* stat, not lstat: a tools dir reached through a link (a linked home) is judged by its target, like dirNotPrivateProblem does */ if (st.isDirectory()) return dirNotPrivateProblem(p); if (st.mode & 0o022) return p + ' is writable by group or other users (mode ' + (st.mode & 0o777).toString(8) + ')'; if (typeof process.getuid === 'function' && st.uid !== process.getuid() && st.uid !== 0) return p + ' is owned by another user (uid ' + st.uid + ')'; return null; } catch { return null; } }
+function assertToolsDirPrivate() {
+  for (const d of executedPlaces()) { const why = placeProblem(d); if (why) { process.stderr.write('[claude-test] refusing to run a browser/tooling from a place others can write: ' + why + (sharedPlaces.has(d) ? ' (the shared Playwright registry: fix its owner/mode, point PLAYWRIGHT_BROWSERS_PATH at a private folder, or run "ct.mjs install chromium" for an own copy)' : ' (chmod go-w it, or re-run "ct.mjs install")') + '\n'); process.exit(2); } }
+}
+
+/** Why code from the tools folder would be refused (group/world-writable dir), or null — for status to REPORT without exiting. */
+export function toolsProblem() { for (const d of executedPlaces()) { const why = placeProblem(d); if (why) return why + (sharedPlaces.has(d) ? ' — that is the shared Playwright browser registry: fix its owner/mode, point PLAYWRIGHT_BROWSERS_PATH at a private folder, or run "ct.mjs install chromium" to give Claude Test its own copy' : ' — chmod go-w it, or re-run "ct.mjs install"'); } return null; }
+
+export function mcpCliPath({ forInstall = false, report = false } = {}) {
+  const p = path.join(toolsDir(), 'node_modules', '@playwright', 'mcp', 'cli.js');
+  if (!fs.existsSync(p)) return null;
+  if (report) return p; // status only reports; everything that EXECUTES from here still asserts below
+  if (!forInstall) assertToolsDirPrivate(); // "ct.mjs install" repairs the modes itself; everything that EXECUTES from here checks first
+  return p;
+}
+
+/** Install the pinned browser tooling into the tools dir: a package.json with the pins (dependencies + overrides —
+ *  the override replaces @playwright/mcp's alpha playwright pin with the released build) is (re)written every time, then a
+ *  plain `npm install --no-audit --no-fund --ignore-scripts` runs FROM the tools dir with the user's own npm configuration
+ *  (registry, proxy, credentials — corporate mirrors included). Returns {ok, log, dir, registry, remedy}. */
+/** Is `dir` ours to (re)write: empty/absent, or carrying the claude-test-tools package.json marker. Anything else is never deleted from or
+ *  written to. */
+function toolsDirIsOursOrEmpty(dir) {
+  let ents; try { ents = fs.readdirSync(dir); } catch (e) { return e.code === 'ENOENT'; }
+  if (ents.length === 0) return true;
+  try { return JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).name === 'claude-test-tools'; } catch { return false; }
+}
+/** The lockfile shipped with the plugin (exact versions + sha512 checksums of @playwright/mcp, playwright, playwright-core; no registry
+ *  URLs, so "npm ci" fetches from the user's own registry and verifies each package against the published checksum). */
+export function toolsLockPath() { return path.join(path.dirname(fileURLToPath(import.meta.url)), 'tools-lock.json'); }
+/** The packages the browser server may ask for that may not be in the tree: fsevents (its lock carries it for a Mac only), the WebSocket library's
+ *  two optional native helpers, and kerberos (asked for when a proxy answers a request of the server's own with Negotiate). The tree names three
+ *  more that are absent (chromium-bidi, electron, vite); nothing this launcher starts reaches them. */
+export const ABSENT_OPTIONAL_PACKAGES = ['fsevents', 'bufferutil', 'utf-8-validate', 'kerberos'];
+/** Put a stand-in package into `nodeModules` for each of those that is not there. Node looks for a package it cannot find in every node_modules
+ *  folder above the one that asked, the home's and ~/.claude's included, and would run what it finds there, outside any sandbox. A stand-in that is
+ *  found first ends the search; requiring it throws, which the caller takes as "not installed", as before. A real package is never touched. */
+export function writeStandInPackages(nodeModules) {
+  for (const name of ABSENT_OPTIONAL_PACKAGES) {
+    const dir = path.join(nodeModules, name);
+    if (fs.existsSync(path.join(dir, 'package.json'))) continue;
+    fs.mkdirSync(dir, { recursive: true, mode: 0o755 });
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name, version: '0.0.0', private: true, main: 'index.js', description: 'Stand-in written by the claude-test plugin: this optional package is not installed here.' }, null, 2) + '\n', { mode: 0o644 });
+    fs.writeFileSync(path.join(dir, 'index.js'), "throw Object.assign(new Error(\"Cannot find module '" + name + "' (not installed: a stand-in written by the claude-test plugin)\"), { code: 'MODULE_NOT_FOUND' });\n", { mode: 0o644 }); // the code a missing package gives, for a caller that looks at it
+  }
+}
+
+export function installTools({ noLock = false, allowFallback = false } = {}) {
+  const dir = toolsDir();
+  if (!toolsDirIsOursOrEmpty(dir)) return { ok: false, log: '', dir, registry: null, remedy: dir + ' already holds something that is not a Claude Test tools folder (no claude-test-tools package.json) — move it away, then run the install again' };
+  // The only lockfile ever used is the one shipped with this plugin, copied in fresh each time; a lockfile found in the folder is never
+  // trusted (it could pin attacker "resolved" URLs with matching integrity).
+  for (const f of ['package-lock.json', 'npm-shrinkwrap.json']) { try { fs.rmSync(path.join(dir, f), { force: true }); } catch { /* */ } }
+  // A pre-existing node_modules that fails the gate (foreign owner, group/other-writable, a planted cli.js npm would call "up to date") is
+  // removed first so npm rewrites the content instead of trusting it; a folder we cannot remove stays refused by the gate afterwards.
+  const nm = path.join(dir, 'node_modules');
+  if (fs.existsSync(nm) && executedPlaces().filter((p) => p === nm || p.startsWith(nm + path.sep)).some((p) => placeProblem(p))) { try { fs.rmSync(nm, { recursive: true, force: true }); } catch { /* the gate will still refuse it */ } } // only a problem INSIDE node_modules triggers the rewrite (a browsers/ or registry issue must not re-download packages)
+  const cannotWrite = (e) => ({ ok: false, log: String((e && e.message) || e), dir, registry: null, remedy: 'the install cannot write ' + dir + ' (' + ((e && e.code) || 'error') + '), where the browser tooling lives. Check that this folder and the ones above it are yours and writable (owner, mode, a read-only home), then install again.' + ((e && e.code === 'EROFS') || process.env.SANDBOX_RUNTIME === '1' ? ' If Claude Code ran this command, its sandbox may be what refused: run it in your own terminal' : '') });
+  try { fs.mkdirSync(dir, { recursive: true, mode: 0o755 }); } catch (e) { return cannotWrite(e); }
+  try { fs.chmodSync(dir, 0o755); } catch { /* */ } // whatever the umask: code runs from here, so no group/other write
+  const manifest = { name: 'claude-test-tools', private: true, description: 'Browser tooling for the claude-test plugin. Safe to delete.', dependencies: { '@playwright/mcp': PLAYWRIGHT_MCP_VERSION }, overrides: { playwright: PLAYWRIGHT_PIN, 'playwright-core': PLAYWRIGHT_PIN } };
+  const writeManifest = (extra) => fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ ...manifest, ...(extra ? { claudeTest: extra } : {}) }, null, 2) + '\n');
+  try { writeManifest(null); } catch (e) { return cannotWrite(e); }
+  if (process.platform === 'win32' && /[&|<>^%!"`\r\n]/.test(dir)) return { ok: false, log: 'refusing to install into ' + dir + ': the path contains characters cmd.exe would interpret', dir };
+  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const opts = { cwd: dir, encoding: 'utf8', shell: process.platform === 'win32' };
+  const reg = spawnSync(npm, ['config', 'get', 'registry'], opts);
+  const registry = reg.status === 0 ? String(reg.stdout || '').trim() : null;
+  let r; let log = ''; let pin = PLAYWRIGHT_PIN; let mode;
+  const run = (args) => { r = spawnSync(npm, args, opts); log += (log ? '\n--- npm ' + args[0] + ' ---\n' : '') + (r.stdout || '') + (r.stderr || '') + (r.error ? String(r.error.message) : ''); return r.status === 0; };
+  if (noLock) { // asked for on the command line: resolve from the pins against what the registry serves
+    mode = 'unpinned (--no-lock)';
+    process.stderr.write('[claude-test] --no-lock: installing from the version pins WITHOUT the shipped checksums — what your registry serves is what runs\n');
+    run(['install', '--no-audit', '--no-fund', '--ignore-scripts']);
+  } else {
+    mode = 'pinned';
+    try { fs.copyFileSync(toolsLockPath(), path.join(dir, 'package-lock.json')); } catch (e) { return { ok: false, log: 'the plugin\'s tools-lock.json is missing or unreadable (' + e.message + ')', dir, registry, remedy: 'reinstall the plugin; or run the install with --no-lock to proceed without checksums' }; }
+    run(['ci', '--no-audit', '--no-fund', '--ignore-scripts']); // exact versions, every tarball verified against the shipped sha512 — from YOUR registry (no URLs in the lock)
+    // The registry does not carry the pinned playwright build (curated mirrors lag or skip versions): the user may opt in (--allow-fallback)
+    // to the newest stable playwright-core of the SAME MAJOR that registry does have, not older than the pin — never another registry, never
+    // silently. Without the flag the install stops and says so.
+    if (r.status !== 0 && /(ETARGET|notarget|No matching version)[\s\S]{0,200}\bplaywright(-core)?@(?!0\.0\.)/i.test(log)) { // the playwright / playwright-core pin is missing (not @playwright/mcp itself, whose versions are 0.0.x)
+      const v = spawnSync(npm, ['view', 'playwright-core', 'versions', '--json'], opts);
+      const cmp = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); return 0; };
+      let newest = null;
+      try { const all = JSON.parse(String(v.stdout || '[]')); const major = PLAYWRIGHT_PIN.split('.')[0]; const ok = (Array.isArray(all) ? all : [all]).filter((x) => /^\d+\.\d+\.\d+$/.test(x) && x.split('.')[0] === major && cmp(x, PLAYWRIGHT_PIN) >= 0).sort(cmp); newest = ok[ok.length - 1] || null; } catch { newest = null; }
+      if (!newest) log += '\n[claude-test] this registry carries neither playwright-core ' + PLAYWRIGHT_PIN + ' nor any newer stable ' + PLAYWRIGHT_PIN.split('.')[0] + '.x — nothing to fall back to';
+      if (newest && newest !== PLAYWRIGHT_PIN && !allowFallback) { // opt-in only: without the flag, say what would happen and stop — a registry answer never silently trades the lockfile for an unverified install
+        log += '\n[claude-test] ' + (registry || 'your registry') + ' does not carry playwright ' + PLAYWRIGHT_PIN + '. It does have ' + newest + ' (newest stable ' + PLAYWRIGHT_PIN.split('.')[0] + '.x): run the install again with --allow-fallback to use that version WITHOUT the shipped checksums, or point npm at a registry that carries ' + PLAYWRIGHT_PIN + '.';
+        return { ok: false, log, dir, registry, playwright: PLAYWRIGHT_PIN, pinned: false, mode: 'not installed', remedy: 'your registry lacks playwright ' + PLAYWRIGHT_PIN + '; "install --allow-fallback" accepts its newest ' + PLAYWRIGHT_PIN.split('.')[0] + '.x (' + newest + ') without checksums, or use a registry that has the pinned version', fallbackAvailable: newest };
+      }
+      if (newest && newest !== PLAYWRIGHT_PIN) {
+        process.stderr.write('[claude-test] --allow-fallback: ' + (registry || 'your registry') + ' does not carry playwright ' + PLAYWRIGHT_PIN + '; installing the newest stable ' + PLAYWRIGHT_PIN.split('.')[0] + '.x it has: ' + newest + ' — version-pinned, NOT checksum-pinned (no shipped lockfile covers it)\n');
+        manifest.overrides = { playwright: newest, 'playwright-core': newest };
+        writeManifest(null);
+        try { fs.rmSync(path.join(dir, 'package-lock.json'), { force: true }); } catch { /* */ }
+        mode = 'fallback: playwright ' + newest + ' from the registry, no checksums';
+        run(['install', '--no-audit', '--no-fund', '--ignore-scripts']);
+        pin = newest;
+      }
+    }
+  }
+  if (r.status === 0) { try { writeStandInPackages(path.join(dir, 'node_modules')); } catch (e) { log += '\n[claude-test] could not write the stand-in packages (' + ((e && e.message) || e) + ')'; r = { status: 1 }; } } // after npm, every time: "npm ci" empties node_modules first
+  try { fs.chmodSync(path.join(dir, 'node_modules'), 0o755); } catch { /* */ } // npm honours the umask (002 on many desktops); tighten what we execute from
+  tightenToolsDir(dir); // …recursively: cli.js, playwright-core/**, nested packages
+  const ok = r.status === 0 && !!mcpCliPath({ forInstall: true });
+  if (ok) { try { writeManifest({ mode, pinned: mode === 'pinned', playwright: pin, mcp: PLAYWRIGHT_MCP_VERSION }); } catch { /* */ } } // status reads this back ("tools.pinned")
+  return { ok, log, dir, registry, playwright: pin, pinned: mode === 'pinned', mode, remedy: ok ? null : installRemedy(log, registry) };
+}
+/** Folder names the INSTALLED playwright-core expects for its Chromium builds (e.g. chromium-1234, chromium_headless_shell-1234), from its own
+ *  "install --dry-run" listing; null when that cannot be read. Runs code from the tools folder: call only after toolsProblem() said null. */
+let browserDirsMemo = null; let dryRunFailures = 0; let dryRunRetryAt = 0;
+export function expectedChromiumDirs() {
+  const info = toolsInstallInfo(); const key = info ? String(info.playwright) : '';
+  if (browserDirsMemo && browserDirsMemo.key === key) return browserDirsMemo.names;
+  if (dryRunFailures >= 5 || Date.now() < dryRunRetryAt) return null; // recent listings failed (the tooling mid-install?): do not spend seconds on every watcher tick; after five, stop asking
+  const cli = path.join(toolsDir(), 'node_modules', 'playwright-core', 'cli.js');
+  let names = null;
+  try { const r = spawnSync(process.execPath, [cli, 'install', '--dry-run', 'chromium'], { cwd: toolsDir(), encoding: 'utf8', timeout: 5000, env: { ...browserServerEnv(), WS_NO_BUFFER_UTIL: '1', WS_NO_UTF_8_VALIDATE: '1', PLAYWRIGHT_BROWSERS_PATH: browsersDir() } }); /* the two WS_ switches: as for the server itself (playwright-mcp.mjs) */ const found = [...String(r.stdout || '').matchAll(/Install location:\s+(.+)$/gm)].map((m) => path.basename(m[1].trim())).filter((n) => /^chromium/.test(n)); if (r.status === 0 && found.length) names = found; } catch { names = null; }
+  if (names) { browserDirsMemo = { key, names }; dryRunFailures = 0; } else { dryRunFailures++; dryRunRetryAt = Date.now() + 60000; if (dryRunFailures === 5) process.stderr.write('[claude-test] could not list the expected browser folders five times; judging by folder names from now on\n'); } // a failed listing is never remembered as an answer: wait a minute, and after five give up asking
+  return names;
+}
+
+/** What the last successful install recorded about itself (pinned or not), or null. */
+export function toolsInstallInfo() { try { const j = JSON.parse(fs.readFileSync(path.join(toolsDir(), 'package.json'), 'utf8')); return j && j.name === 'claude-test-tools' && j.claudeTest ? j.claudeTest : null; } catch { return null; } }
+
+/** One line of advice keyed on npm's error, so "install failed" says what to do. */
+function installRemedy(log, registry) {
+  const reg = registry || '(npm config get registry)';
+  if (/EINTEGRITY|Integrity checksum failed|integrity verification failed/i.test(log)) return reg + ' served a package whose checksum differs from the published one (EINTEGRITY) — nothing from it is used. If your registry re-packs packages on purpose, run the same install command with --no-lock to accept what it serves (version-pinned, not checksum-pinned); otherwise ask whoever runs the registry';
+  if (/EUSAGE[\s\S]{0,300}(lock file|package-lock)/i.test(log)) return 'npm refused the shipped lockfile (your npm may be too old for lockfile version 3 — Node 18+ brings a new enough npm); update npm, or run the install with --no-lock';
+  if (/ETARGET|notarget|No matching version|E404|404 Not Found/i.test(log)) return 'your npm registry ' + reg + ' does not carry the pinned packages (@playwright/mcp ' + PLAYWRIGHT_MCP_VERSION + ' with playwright-core ' + PLAYWRIGHT_PIN + ', or any stable playwright-core to fall back to); ask the registry\'s owners to mirror them, then run install again';
+  if (/\b(EACCES|EPERM|EROFS)\b/.test(log) && log.includes(toolsDir())) return 'npm could not write into ' + toolsDir() + ' (a permission error). Check that this folder and what is in it are yours and writable, or delete it, then install again.' + (/\bEROFS\b/.test(log) || process.env.SANDBOX_RUNTIME === '1' ? ' If Claude Code ran this command, its sandbox may be what refused: run it in your own terminal' : '');
+  // Network first: a sandbox or proxy between npm and the registry shows up as refused/reset/unresolvable hosts or a 403 from the proxy —
+  // that is not a credentials problem, and saying "fix your npm login" then sends people the wrong way.
+  const sandboxed = process.env.SANDBOX_RUNTIME === '1' || /^(https?:\/\/)?(srt[^/@]*@)?(localhost|127\.0\.0\.1):\d+/i.test(process.env.HTTPS_PROXY || process.env.HTTP_PROXY || process.env.https_proxy || process.env.http_proxy || '');
+  if (/ENOTFOUND|ECONNREFUSED|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|tunneling socket could not be established|UNABLE_TO_GET_ISSUER_CERT|UNABLE_TO_VERIFY_LEAF_SIGNATURE|SELF_SIGNED_CERT|CERT_HAS_EXPIRED|DEPTH_ZERO_SELF_SIGNED/i.test(log) || (sandboxed && /E403|403 Forbidden/i.test(log))) return 'npm could not reach ' + reg + ' from here — the network is blocked or filtered (Claude Code\'s sandbox, a proxy, or a certificate in between)' + (sandboxed ? '; this shell looks sandboxed: run the same install command in your own terminal' : '; fix the network path and run install again');
+  if (/E401|ENEEDAUTH|Unable to authenticate|authentication token/i.test(log)) return 'your npm registry ' + reg + ' rejected the credentials npm has for it (401) — npm login / your token setup, then run install again';
+  if (/E403|403 Forbidden/i.test(log)) return reg + ' answered 403: either the registry refuses this package/your account, or something between you and it (a sandbox or proxy) blocks the request — if you are inside Claude Code, run the same install command in your own terminal first; otherwise check your registry access';
+  if (/spawnSync npm(\.cmd)? ENOENT|ENOENT.*npm|npm: (command )?not found/i.test(log)) return 'npm itself was not found on PATH; install Node.js (which brings npm) and run install again';
+  return 'see the npm output above; registry used: ' + reg;
+}
+
+/** Import playwright-core from the tools dir ("ct.mjs install") only. The project's own
+ *  node_modules is deliberately not a source: a checked-out branch could ship its own
+ *  "playwright-core" there. */
+export async function importPlaywright() {
+  assertToolsDirPrivate();
+  try {
+    const req = createRequire(path.join(toolsDir(), 'package.json'));
+    for (const name of ['playwright-core', 'playwright']) {
+      // req.resolve() returns a real path; the tools dir may be spelled through a symlink (a linked home, /tmp → /private/tmp on
+      // macOS): compare real paths on both sides, or a correctly installed package looks "outside" and is skipped forever.
+      try { const resolved = req.resolve(name); if (!reallyInsideDir(resolved, toolsDir())) continue; const mod = await import(pathToFileURL(resolved).href); return { pw: mod.default || mod, from: resolved }; } catch { /* next */ }
+    }
+  } catch { /* not installed */ }
+  return null;
+}
+
+export function findChrome() {
+  const candidates = [];
+  if (process.platform === 'darwin') {
+    candidates.push('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', path.join(os.homedir(), 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'));
+  } else if (process.platform === 'win32') {
+    for (const base of [process.env.PROGRAMFILES, process.env['PROGRAMFILES(X86)'], process.env.LOCALAPPDATA]) if (base) candidates.push(path.join(base, 'Google', 'Chrome', 'Application', 'chrome.exe'));
+  } else {
+    for (const dir of (process.env.PATH || '').split(path.delimiter)) for (const name of ['google-chrome', 'google-chrome-stable']) if (dir && path.isAbsolute(dir)) candidates.push(path.join(dir, name)); // relative PATH entries ('.', 'node_modules/.bin') would resolve against the project — never a place to pick a browser from
+    candidates.push('/opt/google/chrome/chrome');
+  }
+  return candidates.find((c) => { try { return fs.statSync(c).isFile() && !insideProjectReally(c); } catch { return false; } }) || null; // and nothing inside the project, however it got onto the list
+}

@@ -1,0 +1,224 @@
+#!/usr/bin/env node
+// ctbrowser.mjs — NOT IN USE: it starts nothing and exits at its first statement, below the imports. Specs run only through the plugin's browser
+// server (playwright-mcp.mjs), behind its filtering proxy. Everything under
+// that first statement is unreachable and is kept only until the file is removed. What it was: a tiny persistent headless browser driven from Bash.
+// First command starts a background daemon that owns one browser page; later commands talk to
+// it over a localhost socket guarded by a random token; "close" (or 15 idle minutes) ends it.
+// The page may only load the origins .claude-testrc allows (same list as the MCP server).
+//
+//   node ct.mjs browser open [path]          start (if needed) and go to baseUrl + path
+//   node ct.mjs browser goto <path>           same-origin path or allowed absolute URL
+//   node ct.mjs browser snapshot [selector]   accessibility tree (YAML) of the page or an element
+//   node ct.mjs browser click <selector>      Playwright selector: text=…, role=button[name="…"], css
+//   node ct.mjs browser fill <selector> <text>
+//   node ct.mjs browser press <key> [selector]
+//   node ct.mjs browser select <selector> <value>
+//   node ct.mjs browser wait-text <text> [seconds]     / wait-gone <text> [seconds]
+//   node ct.mjs browser text <selector>       innerText of the first match
+//   node ct.mjs browser eval <js expression>  evaluated in the page; JSON result (refused while a saved session is attached)
+//   node ct.mjs browser url | title | console [--errors]
+//   node ct.mjs browser screenshot <file under .claude-test/runs/> [--full]
+//   node ct.mjs browser close
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { loadConfig, originAllowed, ensureRunsDir, resolveProjectDir, projectSlug, runsPathProblem, envPathOutsideProject, sanitizeBrowserEnv, shownText } from './lib/config.mjs';
+import { importPlaywright, findChrome, toolsDir, cacheDir, useOwnBrowsersIfPresent, toolsProblem } from './lib/tools.mjs';
+import { stateHasContent, ensureAuthFile } from './lib/signin.mjs';
+import { UDP_FENCE_ARGS } from './lib/guard.mjs';
+
+process.stderr.write('ctbrowser.mjs is not available: specs run only through the Claude Test browser tools, which are held to the allowed addresses. Nothing was started.\n');
+process.exit(2);
+
+const argv = process.argv.slice(2);
+// The project comes from the environment or the current directory, never from argv: an argument
+// here would let text the agent read choose whose settings and saved sign-in the browser uses.
+const selfPath = fileURLToPath(import.meta.url); // decoded: a folder name with a space or "#" must still spawn
+const ctPath = path.join(path.dirname(selfPath), 'ct.mjs');
+const cfg = loadConfig(resolveProjectDir());
+sanitizeBrowserEnv(); // before Playwright is imported by the daemon
+// The daemon's address and token live in the developer's private per-project folder, not in the
+// project tree: a repository cannot plant one (pointing the client at a port of its choosing), and
+// the dev server under test, which usually serves the project root, cannot read the token.
+// The daemon's address/token file lives in a per-project folder under the user-private CACHE, not
+// the config folder: the file is runtime state, not configuration. Still outside the project, still 0700/0600.
+const stateDir = path.join(cacheDir(), 'run', projectSlug(cfg.projectDir));
+useOwnBrowsersIfPresent();
+const stateFile = path.join(stateDir, 'ctbrowser.json');
+const IDLE_MS = 15 * 60 * 1000;
+
+function usage() {
+  process.stdout.write(fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').filter((l) => l.startsWith('//   node')).map((l) => l.slice(5)).join('\n') + '\n');
+}
+
+// ---------------- daemon ----------------
+async function daemon() {
+  const found = await importPlaywright();
+  if (!found) { fs.writeFileSync(stateFile + '.err', 'playwright-core not found. Run: node ' + ctPath + ' install\n'); process.exit(1); }
+  const { chromium } = found.pw;
+  const exe = envPathOutsideProject('CLAUDE_TEST_BROWSER_EXECUTABLE'); // a binary inside the project is never used
+  const launchOpts = { headless: process.env.CLAUDE_TEST_HEADED !== '1', args: [...((typeof process.getuid === 'function' && process.getuid() === 0) ? ['--no-sandbox'] : []), ...UDP_FENCE_ARGS] }; // WebRTC over proxied routes only (none here: off) and no QUIC, as under the MCP launcher's fence
+  const chromePath = exe || process.env.CLAUDE_TEST_BROWSER || cfg.browser ? null : findChrome(); // an installed Chrome by path (the 'chrome' channel only knows the vendor default location)
+  if (exe) launchOpts.executablePath = exe; else if (chromePath) launchOpts.executablePath = chromePath; else if ((process.env.CLAUDE_TEST_BROWSER || cfg.browser) === 'chrome') launchOpts.channel = 'chrome'; else if ((process.env.CLAUDE_TEST_BROWSER || cfg.browser) === 'msedge') launchOpts.channel = 'msedge';
+  let browser;
+  try { browser = await chromium.launch(launchOpts); }
+  catch (e) { fs.writeFileSync(stateFile + '.err', 'could not launch a browser: ' + e.message.split('\n')[0] + '\nRun: node ' + ctPath + ' install chromium\n'); process.exit(1); }
+  // A saved session is attached only for a configured local base URL (cfg.signInApplies, lib/config.mjs).
+  // Same rule as the MCP launcher: a missing or zero-byte session file is initialised to a valid EMPTY session, lenient
+  // cookie shapes in our own file are normalised, a user-supplied file that does not parse is left alone and skipped —
+  // and if the context still refuses the state, start without it and say so rather than die.
+  const ctxOpts = { viewport: { width: 1280, height: 800 }, serviceWorkers: 'block' };
+  let context; let sessionAttached = false;
+  if (cfg.storageState.inUse && cfg.signInApplies) {
+    try {
+      const r = ensureAuthFile(cfg.storageState.path, { privateFolder: true, baseUrl: cfg.baseUrl || null, projectDir: cfg.projectDir }); // loaded through the loopback filter, like the MCP launcher
+      if (!r.usable) process.stderr.write('[claude-test] saved session not used: ' + r.reason + '\n');
+      else { context = await browser.newContext({ ...ctxOpts, storageState: cfg.storageState.path }); sessionAttached = stateHasContent(cfg.storageState.path); } // an EMPTY pre-created auth.json is no session: eval stays available
+    } catch (e) { process.stderr.write('[claude-test] saved session not loaded (' + String(e.message).split('\n')[0] + ')\n'); }
+  }
+  if (!context) context = await browser.newContext(ctxOpts);
+  await context.route('**', (route) => originAllowed(cfg, route.request().url()) ? route.continue() : route.abort('blockedbyclient'));
+  // WebSockets are held to the same rule (ws/wss to an allowed host:port only).
+  if (typeof context.routeWebSocket === 'function') await context.routeWebSocket(/.*/, (ws) => { const u = ws.url().replace(/^ws(s?):/, 'http$1:'); if (originAllowed(cfg, u)) ws.connectToServer(); else ws.close({ code: 1008, reason: 'origin not allowed' }); });
+  const page = await context.newPage();
+  const consoleLog = [];
+  page.on('console', (m) => { consoleLog.push({ type: m.type(), text: m.text().slice(0, 500) }); if (consoleLog.length > 200) consoleLog.shift(); });
+  page.on('pageerror', (e) => consoleLog.push({ type: 'pageerror', text: String(e.message).slice(0, 500) }));
+  const token = crypto.randomBytes(24).toString('hex');
+  let idleTimer;
+  const shutdown = async () => { try { fs.unlinkSync(stateFile); } catch {} try { await browser.close(); } catch {} process.exit(0); };
+  const bump = () => { clearTimeout(idleTimer); idleTimer = setTimeout(shutdown, IDLE_MS); };
+
+  const resolveUrl = (target) => {
+    if (!cfg.baseUrl && !/^https?:\/\//.test(target || '')) throw new Error('no baseUrl in .claude-testrc; pass a full allowed URL or configure baseUrl');
+    const u = new URL(target || '', cfg.baseUrl || undefined);
+    if (!originAllowed(cfg, u.href)) throw new Error('refusing to open ' + u.origin + ': not in the allowed origins (' + cfg.allowedOrigins.join(' ') + ')');
+    return u.href;
+  };
+  const within = (file) => { // only write under .claude-test/runs/, also after resolving symlinks (lib/config.mjs runsPathProblem)
+    const abs = path.resolve(cfg.projectDir, file);
+    const problem = runsPathProblem(cfg, abs) || (fs.mkdirSync(path.dirname(abs), { recursive: true }), runsPathProblem(cfg, abs)); // re-checked once the folders exist
+    if (problem) throw new Error('screenshot ' + file + ' ' + problem);
+    return abs;
+  };
+
+  // Verify where we actually landed.
+  const checkLanded = async () => {
+    const u = page.url();
+    if (/^(about:blank|chrome-error:)/.test(u) || originAllowed(cfg, u)) return;
+    await page.goto('about:blank').catch(() => {});
+    throw new Error('landed on ' + u + ' which is outside the allowed origins (a redirect?) — went back to a blank page');
+  };
+  // Commands that read or act on the current page first confirm it is still on an allowed origin
+  // (a redirect or a select's onchange may have moved it since the last check).
+  const onAllowedPage = async () => { const u = page.url(); if (/^(about:blank|chrome-error:)/.test(u) || originAllowed(cfg, u)) return; await page.goto('about:blank').catch(() => {}); throw new Error('the page was on ' + u + ', outside the allowed origins — went back to a blank page; open an allowed page first'); };
+  const need = (a, n, usage) => { if (a.length < n || a.slice(0, n).some((x) => !x)) throw new Error('usage: ' + usage); };
+  const commands = {
+    async open(a) { await page.goto(resolveUrl(a[0] || ''), { waitUntil: 'domcontentloaded' }); await checkLanded(); return page.url() + ' — ' + (await page.title()); },
+    async goto(a) { need(a, 1, 'goto <path>'); return commands.open(a); },
+    async snapshot(a) { await onAllowedPage(); return await page.locator(a[0] || 'body').first().ariaSnapshot(); },
+    async click(a) { need(a, 1, 'click <selector>'); await page.locator(a[0]).first().click({ timeout: 8000 }); await page.waitForTimeout(300); await checkLanded(); return 'clicked ' + a[0] + ' → ' + page.url(); },
+    async fill(a) { need(a, 1, 'fill <selector> <text>'); await onAllowedPage(); await page.locator(a[0]).first().fill(a.slice(1).join(' '), { timeout: 8000 }); return 'filled ' + a[0]; },
+    async press(a) { need(a, 1, 'press <key> [selector]'); if (a[1]) await page.locator(a[1]).first().press(a[0], { timeout: 8000 }); else await page.keyboard.press(a[0]); await page.waitForTimeout(300); await checkLanded(); return 'pressed ' + a[0]; },
+    async select(a) { need(a, 2, 'select <selector> <value>'); await onAllowedPage(); await page.locator(a[0]).first().selectOption(a.slice(1).join(' '), { timeout: 8000 }); await page.waitForTimeout(300); await checkLanded(); return 'selected'; },
+    async 'wait-text'(a) { need(a, 1, 'wait-text <text> [seconds]'); await onAllowedPage(); const s = Math.min(Number(a[1]) || 10, 120); await page.getByText(a[0]).first().waitFor({ state: 'visible', timeout: s * 1000 }); return 'visible: ' + a[0]; },
+    async 'wait-gone'(a) { need(a, 1, 'wait-gone <text> [seconds]'); await onAllowedPage(); const s = Math.min(Number(a[1]) || 10, 120); await page.getByText(a[0]).first().waitFor({ state: 'hidden', timeout: s * 1000 }); return 'gone: ' + a[0]; },
+    async text(a) { need(a, 1, 'text <selector>'); await onAllowedPage(); return await page.locator(a[0]).first().innerText({ timeout: 8000 }); },
+    async eval(a) { need(a, 1, 'eval <js expression>'); if (sessionAttached) throw new Error('eval is off while a saved sign-in session is attached to this browser (page script could read the session back); check text with snapshot/find instead'); await onAllowedPage(); const r = await page.evaluate('(' + a.join(' ') + ')'); return JSON.stringify(r, null, 2) ?? 'undefined'; },
+    async url() { return page.url(); },
+    async title() { return await page.title(); },
+    async console(a) { const rows = a.includes('--errors') ? consoleLog.filter((m) => m.type === 'error' || m.type === 'pageerror') : consoleLog; return rows.length ? rows.map((m) => m.type + ': ' + m.text).join('\n') : '(none)'; },
+    async screenshot(a) { const file = a.find((x) => !x.startsWith('--')); if (!file) throw new Error('screenshot <file>'); await onAllowedPage(); const abs = within(file); const buf = await page.screenshot({ fullPage: a.includes('--full') }); const tmp = abs + '.' + process.pid + '.tmp'; fs.writeFileSync(tmp, buf, { flag: 'wx' }); fs.renameSync(tmp, abs); return 'saved ' + path.relative(cfg.projectDir, abs); }, // written beside and renamed into place: a link planted at the name meanwhile is replaced, never written through
+    async close() { setTimeout(shutdown, 50); return 'closed'; },
+  };
+
+  const server = http.createServer((req, res) => {
+    // Only the ct.mjs client talks to this socket: it sends application/json and no Origin header. A
+    // web page (the app under test, say) cannot send that content type cross-origin without a
+    // preflight, which is refused here along with any request that carries an Origin.
+    if (req.method !== 'POST' || req.headers.origin !== undefined || !/^application\/json\b/i.test(req.headers['content-type'] || '')) { res.writeHead(403).end(); return; }
+    let body = '';
+    req.on('data', (c) => { body += c; if (body.length > 1e6) req.destroy(); });
+    req.on('end', async () => {
+      let msg; try { msg = JSON.parse(body); } catch { res.writeHead(400).end(); return; }
+      // The client proves it holds the token without sending it (a keyed hash of a fresh nonce), and every reply proves the same back: a program that
+      // merely took over this port after the daemon died never learns the token (it sees that one request's command and arguments) and cannot answer.
+      const nonce = String(msg.nonce ?? ''); if (!/^[0-9a-f]{32}$/.test(nonce)) { res.writeHead(403).end(); return; }
+      const given = Buffer.from(String(msg.mac ?? ''));
+      const want = Buffer.from(crypto.createHmac('sha256', token).update('request:' + nonce + '\n' + String(msg.cmd) + '\n' + JSON.stringify(msg.args || [])).digest('hex'));
+      if (given.length !== want.length || !crypto.timingSafeEqual(given, want)) { res.writeHead(403).end(); return; }
+      const proof = crypto.createHmac('sha256', token).update('reply:' + nonce).digest('hex');
+      bump();
+      const fn = commands[msg.cmd];
+      if (!fn) { res.end(JSON.stringify({ ok: false, proof, out: 'unknown command ' + msg.cmd + '. Try: help' })); return; }
+      try { res.end(JSON.stringify({ ok: true, proof, out: await fn(msg.args || []) })); }
+      catch (e) { res.end(JSON.stringify({ ok: false, proof, out: String(e.message).split('\n').slice(0, 6).join('\n') })); }
+    });
+  });
+  server.listen(0, '127.0.0.1', () => {
+    try { ensureRunsDir(cfg); } catch (e) { fs.mkdirSync(stateDir, { recursive: true, mode: 0o700 }); fs.writeFileSync(stateFile + '.err', e.message + '\n'); process.exit(1); }
+    fs.mkdirSync(stateDir, { recursive: true, mode: 0o700 });
+    fs.writeFileSync(stateFile, JSON.stringify({ port: server.address().port, token, pid: process.pid, playwright: found.from }), { mode: 0o600 });
+    bump();
+  });
+}
+
+// ---------------- client ----------------
+function readState() { try { const s = JSON.parse(fs.readFileSync(stateFile, 'utf8')); process.kill(s.pid, 0); return s; } catch { return null; } }
+
+async function ensureDaemon() {
+  let s = readState();
+  if (s) return s;
+  try { ensureRunsDir(cfg); } catch (e) { process.stderr.write(e.message + '\n'); process.exit(1); }
+  fs.mkdirSync(stateDir, { recursive: true, mode: 0o700 });
+  // One starter at a time: whoever creates the lock spawns; others just wait for the state file.
+  { const why = toolsProblem(); if (why) { process.stderr.write('browser daemon not started: the tools folder is not private — ' + why + '\n'); process.exit(2); } } // before any lock is taken: say why up front instead of timing out after 30 s
+  const lock = stateFile + '.lock';
+  let mine = false;
+  try { fs.closeSync(fs.openSync(lock, 'wx')); mine = true; } catch { try { if (Date.now() - fs.statSync(lock).mtimeMs > 60000) { fs.unlinkSync(lock); fs.closeSync(fs.openSync(lock, 'wx')); mine = true; } } catch { /* someone else is starting it */ } }
+  if (mine) {
+    try { fs.unlinkSync(stateFile + '.err'); } catch {}
+    const child = spawn(process.execPath, [selfPath, '--daemon'], { cwd: cfg.projectDir, detached: true, stdio: 'ignore', env: { ...process.env, CLAUDE_TEST_PROJECT_DIR: cfg.projectDir } }); // cwd = the project, so the pin is trivially valid for the child
+    child.unref();
+  }
+  const cleanup = () => { if (mine) { try { fs.unlinkSync(lock); } catch {} } }; // process.exit() skips finally: clean up first, or the next call re-reads a stale lock/.err for a minute
+  for (let i = 0; i < 150; i++) {
+    await new Promise((r) => setTimeout(r, 200));
+    if ((s = readState())) { cleanup(); return s; }
+    if (fs.existsSync(stateFile + '.err')) { const msg = fs.readFileSync(stateFile + '.err', 'utf8'); cleanup(); try { fs.unlinkSync(stateFile + '.err'); } catch {} process.stderr.write(msg); process.exit(1); }
+  }
+  cleanup();
+  process.stderr.write('browser daemon did not start within 30 s\n'); process.exit(1);
+}
+
+function send(s, cmd, args) {
+  return new Promise((resolve, reject) => {
+    const nonce = crypto.randomBytes(16).toString('hex'); const hm = (label, rest = '') => crypto.createHmac('sha256', String(s.token)).update(label + nonce + rest).digest('hex');
+    const req = http.request({ host: '127.0.0.1', port: s.port, method: 'POST', timeout: 130000, headers: { 'content-type': 'application/json' } }, (res) => { let b = ''; res.on('data', (c) => (b += c)); res.on('end', () => { if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode)); let r; try { r = JSON.parse(b); } catch { return reject(new Error('bad reply')); } const got = Buffer.from(String(r && r.proof || '')); const exp = Buffer.from(hm('reply:')); if (got.length !== exp.length || !crypto.timingSafeEqual(got, exp)) return reject(new Error('the program on that port is not this project\'s browser daemon')); resolve(r); }); });
+    req.on('error', reject); req.on('timeout', () => { req.destroy(new Error('timed out')); });
+    req.end(JSON.stringify({ nonce, mac: hm('request:', '\n' + String(cmd) + '\n' + JSON.stringify(args || [])), cmd, args }));
+  });
+}
+
+if (argv[0] === '--daemon') { daemon(); }
+else {
+  const cmd = argv[0];
+  if (!cmd || cmd === 'help' || cmd === '--help') { usage(); process.exit(0); }
+  if (cmd === 'close' && !readState()) { console.log('not running'); process.exit(0); }
+  let s = await ensureDaemon();
+  let r;
+  try { r = await send(s, cmd, argv.slice(1)); }
+  catch (e) {
+    // Stale state (daemon died, pid reused or zombie): forget it and start a fresh one, once.
+    process.stderr.write('browser daemon unreachable (' + e.message + '); starting a new one — the page starts blank again\n');
+    try { fs.unlinkSync(stateFile); } catch {} // don't signal the recorded pid: it may have been reused by another program
+    s = await ensureDaemon();
+    try { r = await send(s, cmd, argv.slice(1)); }
+    catch (e2) { process.stderr.write('browser daemon unreachable: ' + e2.message + '\n'); process.exit(1); }
+  }
+  process.stdout.write(shownText(String(r.out)) + '\n'); // page-derived text (title, snapshot, console): control/bidi characters dropped, line breaks and tabs kept
+  process.exit(r.ok ? 0 : 1);
+}

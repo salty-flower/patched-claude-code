@@ -1,0 +1,21 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.281
+import{zSo,xwo}from"./chunk-twxt3h9y.js";import{Nb}from"./chunk-mvgykbex.js";import{a}from"./chunk-3a4khaz5.js";import{bge}from"./chunk-x4gz28fm.js";import{ii,iQt,nN}from"./chunk-3hhyr2db.js";import{vd}from"./chunk-kgnc2rh2.js";import{ol}from"./chunk-7gtwr3kz.js";import{iP}from"./chunk-3zxzrqfd.js";import{THe}from"./chunk-ghyf3crg.js";import{Pa}from"./chunk-n321ny0e.js";import{ago,lgo}from"./chunk-e8vcmwr6.js";import{mt}from"./chunk-xmjn1tps.js";var sP="EnterWorktree";var cR="ReportFindings",Qyr="Report code-review findings as a typed list so the host UI can render them. Use this only when the active code-review instructions tell you to report findings with this tool; otherwise follow whatever output format those instructions specify. When reporting a review's results, call it once with the verified findings ranked most-severe first (empty array if nothing survived verification) and do not also print the findings as text. When re-reporting after applying fixes (only if the apply instructions ask for it), set `outcome` on each finding to what actually happened.";var l=((...args)=>{const value=import.meta.require(...args);return typeof args[0]==="string"&&args[0].endsWith(".embedded.txt")?value.default:value})("./chunk-zp4gn95j.js").BRIEF_TOOL_NAME,m=new Set([cR,vd,THe]),u=`Fetches full schema definitions for deferred tools so they can be called.
+
+Deferred tools appear by name in <system-reminder> messages.`,p=" Until fetched, only the name is known \u2014 there is no parameter schema, so the tool cannot be invoked.",c=` Until fetched, only the name is known \u2014 there is no parameter schema, so calling the tool fails with InputValidationError. When any instruction, system reminder, or other tool's description names a deferred tool, fetch it with query "select:<name>" before calling it.`,d=` This tool takes a query, matches it against the deferred tool list, and returns the matched tools' complete JSONSchema definitions inside a <functions> block. Once a tool's schema appears in that result, it is callable exactly like any tool defined at the top of the prompt.
+
+Result format: each matched tool appears as one <function>{"description": "...", "name": "...", "parameters": {...}}</function> line inside the <functions> block \u2014 the same encoding as the tool list at the top of this prompt.
+
+Query forms:
+- "select:Read,Edit,Grep" \u2014 fetch these exact tools by name
+- "notebook jupyter" \u2014 keyword search, up to max_results best matches
+- "+slack send" \u2014 require "slack" in the name, rank by remaining terms`;function Cpe(e){return zSo(e.name)??Fwe(e)}function Fwe(e){if(e.alwaysLoad===!0)return!1;if(h(e))return!1;if(iQt())return!1;if(e.isMcp===!0)return!0;if(lgo()&&Nb(e,m))return!0;return e.shouldDefer===!0}function h(e){return i(e)||T(e)}function i(e){if(Nb(e,ago()))return!0;if(e.isMcp===!0)return!1;if(e.name===Pa)return!0;if(e.name===ii)return!0;if(e.name===mt){let t=((...args)=>{const value=import.meta.require(...args);return typeof args[0]==="string"&&args[0].endsWith(".embedded.txt")?value.default:value})("./chunk-1vcrpdj0.js");if(t.isForkSubagentEnabled())return!0}if(e.name===l)return!0;if(e.name===iP&&bge())return!0;if(e.name===ol)return!0;return!1}function T(e){return e.isMcp!==!0&&e.name===sP&&a.CLAUDE_CODE_SESSION_KIND==="bg"}function Yoe(e,t,r,{toolSearchAbsent:s=!1,placements:o="hooks"}={}){let n=o==="hooks"?zSo(e.name):void 0;if(n!==void 0)return n;if(s){if(t===void 0)return!1}else if(t===void 0)return o==="hooks"?Cpe(e):Fwe(e);if(r!==void 0&&nN(r))return!1;if(i(e))return!1;return!t.has(e.name)}function Zyr(e){return e.name}function aDn(){return u+(xwo()?c:p)+d}
+export{sP,cR,Qyr,Cpe,Fwe,Yoe,Zyr,aDn};

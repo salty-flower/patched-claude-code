@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.281
+import{Ne}from"./chunk-6cqmwr9m.js";import{V,W}from"./chunk-s8xs8s76.js";function v1(o,t,s=32000){let n=Math.min(500*Math.pow(2,o-1),s),e=Math.round(n+Math.random()*0.25*n);if(t){let i=parseInt(t,10);if(!isNaN(i))return Math.max(i*1000,e)}return e}var a=new V(()=>Ne());function r(){return a.of(W().host)}function zFn(){r().emit()}function Vho(o){return r().subscribe(o)}
+export{v1,zFn,Vho};

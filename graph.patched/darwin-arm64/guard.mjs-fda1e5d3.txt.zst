@@ -1,0 +1,164 @@
+// Pure decision helpers of the browser launcher, kept free of process state so they can be unit-tested:
+// the snapshot-line grammar and the page-origin judgement for secret typing, the network-fence plan and the page-level
+// socket guard script, and the secret redactor. playwright-mcp.mjs wires them to its live state.
+import { isLocalHost } from './config.mjs';
+
+/** The plain text of a yaml scalar as the snapshot prints values: double-quoted (JSON-style escapes) when special, else raw. */
+export function yamlScalar(s) { const t = String(s).trim(); if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) { try { return JSON.parse(t); } catch { return t.slice(1, -1); } } return t; }
+
+/** One aria-snapshot yaml line, read by a strict grammar: indent, "- ", then a KEY that is either yaml-single-quoted ('…' with '' escapes)
+ *  or raw, where KEY = role [space "json-quoted name"] { space [attr] | [attr=token] }, followed by nothing, ":" or ": inline text".
+ *  Anything else (a raw /…/ name, which Playwright prints unquoted; odd roles; stray text) does not parse and is IGNORED — an ignored
+ *  line can only ever cause a refusal, never an acceptance. Returns { indent, role, ref } or null. */
+export function parseSnapLine(line) {
+  const m = line.match(/^( *)- (.*)$/); if (!m) return null;
+  let key; let value = ''; const body = m[2];
+  if (body.startsWith("'")) { let i = 1, out = ''; for (;;) { const j = body.indexOf("'", i); if (j < 0) return null; if (body[j + 1] === "'") { out += body.slice(i, j) + "'"; i = j + 2; continue; } out += body.slice(i, j); const rest = body.slice(j + 1); if (rest !== '' && rest !== ':' && !rest.startsWith(': ')) return null; key = out; value = rest.startsWith(': ') ? rest.slice(2) : ''; break; } }
+  else { const c = body.search(/: |:$/); key = c >= 0 ? body.slice(0, c) : body; value = c >= 0 && body.startsWith(': ', c) ? body.slice(c + 2) : ''; }
+  const k = key.match(/^([a-z][a-zA-Z]*)(?: "(?:[^"\\]|\\.)*")?((?: \[[a-zA-Z][\w-]*(?:=[^\]\s\[]*)?\])*)$/); if (!k) return null;
+  const ref = (k[2].match(/ \[ref=((?:f\d+)?e\d+)\]/) || [null, null])[1];
+  const active = / \[active\]/.test(k[2]);
+  return { indent: m[1].length, role: k[1].toLowerCase(), ref, value, active }; // value = the inline text after the key ("- textbox \"Email\" [ref=e6]: typed text"), '' when none
+}
+
+/** holdsValueOf for a given secrets list ([key, variants, raw] entries). */
+export function makeHoldsValueOf(secrets) {
+  return function holdsValueOf(fieldValue, key, { appended = false } = {}) { const raw = (secrets.find(([k]) => k === key) || [null, null, null])[2]; if (raw == null) return false; const norm = (s) => String(s).trim().replace(/\s+/g, ' '); const plain = norm(String(fieldValue).replace(/<secret>([\w.-]+)<\/secret>/g, (m, k) => { const s = secrets.find(([kk]) => kk === k); return s ? s[2] : m; })); const want = norm(raw); return want !== '' && (plain === want || (appended && plain.endsWith(want))); } // both sides whitespace-normalised alike (a snapshot trims and space-joins what a field shows); appended: slowly:true types AFTER whatever the field held
+}
+
+/** Decide a held secret-typing call from the launcher's OWN browser_snapshot answer text (the joined text content of the probe's result).
+ *  Pure: secretOrigins is a Set of origins a secret may be typed on; targets/pairs come from the vetted call; holdsValueOf from
+ *  makeHoldsValueOf. Returns { origin, why, allowed, alreadyHolds, valueAtProbe } — allowed only when origin is a secret origin AND every
+ *  target is a text field of the page's own document; why is the refusal reason otherwise. */
+export function judgeProbe(text, { secretOrigins, targets, pairs, holdsValueOf }) {
+  let origin = null; let why = 'the page\'s address could not be confirmed'; let alreadyHolds = []; let valueAtProbe = {};
+  try {
+    const sections = ('\n' + text).split(/\n### /).slice(1);
+    const titles = sections.map((s) => s.split('\n')[0]);
+    const tabs = sections.find((s) => s.startsWith('Open tabs\n'));
+    const page = sections.find((s) => s.startsWith('Page\n'));
+    const snap = sections.find((s) => s.startsWith('Snapshot\n'));
+    const urlLine = page ? page.split('\n')[1] || '' : '';
+    const u = (urlLine.match(/^- Page URL: (\S+)$/) || [null, ''])[1];
+    const head = titles.slice(0, titles.indexOf('Snapshot') >= 0 ? titles.indexOf('Snapshot') + 1 : titles.length); // what precedes (and is) the snapshot decides what the probe reads; later sections (Events) do not
+    const odd = head.find((t, i) => head.indexOf(t) !== i || !['Open tabs', 'Page', 'Snapshot', 'Ran Playwright code'].includes(t));
+    if (odd !== undefined) why = 'the page\'s state could not be read cleanly (a "' + odd.slice(0, 40) + '" section before the snapshot — an open dialog shows up this way: handle it with browser_handle_dialog, then try again)';
+    else if (tabs && tabs.split('\n').filter((l) => /^- \d+: /.test(l)).length > 1) why = 'more than one tab is open — a secret is typed only with a single tab (another tab could hold a handle to this page); close the others with browser_tabs first';
+    else if (!page) why = 'no page is open yet — navigate to the app first';
+    else if (!snap || !/^Snapshot\n```yaml\n/.test(snap)) why = 'the page snapshot is missing from the browser\'s answer — take a browser_snapshot, then try again';
+    else {
+      try { origin = /^https?:\/\//.test(u) ? new URL(u).origin : null; } catch { origin = null; }
+      if (!origin) why = /^(about:|chrome-error:|$)/.test(u) ? 'no page is open yet — navigate to the app first' : 'the page\'s address could not be confirmed — refused to be safe';
+      else if (secretOrigins.has(origin)) {
+        // The element must be a text field of the page's OWN document: top-level yaml lines (indent 0) are the main document, whose refs share
+        // one prefix ("" at first, "fN" after later navigations); a frame's refs carry another. Lines are read by a strict grammar
+        // (parseSnapLine) so text the page controls — quoted names, inline values, raw /…/ names — can never supply a ref or a role.
+        const rows = snap.replace(/^Snapshot\n```yaml\n/, '').split('\n').map(parseSnapLine);
+        const top = rows.find((r) => r && r.indent === 0 && r.ref);
+        const mainPrefix = top ? (top.ref.match(/^f\d+/) || [''])[0] : null;
+        const rowOf = (ref) => rows.find((r) => r && r.ref === ref) || null;
+        const snapLines = snap.replace(/^Snapshot\n```yaml\n/, '').split('\n');
+        const valueAt = (t) => { const i = rows.findIndex((r) => r && r.ref === t); if (i < 0) return null; let v = yamlScalar(rows[i].value); for (let j = i + 1; j < snapLines.length; j++) { const ind = (snapLines[j].match(/^ */) || [''])[0].length; if (snapLines[j].trim() === '') continue; if (ind <= rows[i].indent) break; const c = snapLines[j].match(/^ *- text: (.*)$/); if (c && ind === rows[i].indent + 2) v += (v ? ' ' : '') + yamlScalar(c[1]); } return v; };
+        valueAtProbe = Object.fromEntries(pairs.map(([t]) => [t, valueAt(t)]));
+        alreadyHolds = pairs.filter(([t, k]) => { const v = valueAt(t); return v !== null && holdsValueOf(v, k); }); // exactly the value, nothing more: a field holding the value plus stray text still gets the correcting fill — decided below, after the frame/role checks
+        const FIELD_ROLES = new Set(['textbox', 'searchbox', 'combobox']); // text fields only: a number field (spinbutton) can be stepped with arrow keys into a readable neighbour of the value
+        const stale = targets.find((t) => !rowOf(t));
+        const wrong = targets.find((t) => (t.match(/^f\d+/) || [''])[0] !== mainPrefix);
+        const notField = targets.find((t) => rowOf(t) && !FIELD_ROLES.has(rowOf(t).role));
+        if (mainPrefix === null) { origin = null; why = 'the page has no element to type into yet'; }
+        else if (stale !== undefined) { origin = null; why = 'the element ' + stale + ' is not in the current page snapshot (a ref from an earlier page, or a line the launcher cannot read) — take a new browser_snapshot and use the field\'s ref from it'; }
+        else if (wrong !== undefined) { origin = null; why = 'the element ' + wrong + ' is inside a frame, not in the page on ' + u.replace(/[?#].*$/, '') + ' itself — a secret goes only into the page\'s own fields'; }
+        else if (notField !== undefined) { origin = null; why = 'the element ' + notField + ' is a ' + rowOf(notField).role + ', not a text field — a secret goes only into a textbox / searchbox / combobox, by its current ref'; }
+      }
+    }
+  } catch { origin = null; }
+  return { origin, why, allowed: !!(origin && secretOrigins.has(origin)), alreadyHolds, valueAtProbe };
+}
+
+// ── network fence ──
+/** An allowedOrigins entry that is on this machine (scheme optional, host, optional port or :*). */
+export const isLoopbackOriginEntry = (o) => { const m = String(o).match(/^(?:https?:\/\/)?(\[[^\]]+\]|[^/:]+)(:\d+|:\*)?$/i); return !!m && isLocalHost(m[1]); };
+/** Chromium --proxy-bypass entries for one allowedOrigins entry: scheme-less host:port (a bare host → :80 and :443). */
+export const bypassOf = (o) => { const m = String(o).match(/^(?:(https?):\/\/)?(\[[^\]]+\]|[^/:]+)(?::(\d+|\*))?$/i); if (!m) return []; const host = m[2]; if (m[3] === '*') return [host]; if (m[3]) return [host + ':' + m[3]]; return m[1] === 'https' ? [host + ':443'] : m[1] === 'http' ? [host + ':80'] : [host + ':80', host + ':443']; };
+/** Whether the dead-proxy layer applies, and the bypass list when it does: only for Chromium-family browsers AND when every allowed origin is on
+ *  this machine (a remote entry may need the user's real proxy settings, which a forced --proxy-server would override). */
+/** Chromium switches that keep WebRTC and QUIC (both UDP, which an HTTP proxy never sees) from leaving the machine: WebRTC may use only
+ *  proxied routes (full Chrome reads the first spelling, the headless shell the second) and QUIC is off. The page-level guard stays as well. */
+/** Chromium's --host-resolver-rules value that pins each name to the ONE address it had when the browser server started:
+ *  [{ name, address }] → "MAP a.example 10.0.0.5,MAP b.example [fd00::1]". A trusted origin whose name resolves to private space reaches the app directly
+ *  (past the proxy), so the browser would otherwise resolve it again for every connection — and whoever runs that name's DNS could move it later.
+ *  Only a well-formed host name and a literal address get in, one rule per name; '' when there is nothing to pin. */
+export function resolverPins(list) {
+  const rules = new Map();
+  for (const e of list || []) {
+    const name = e && typeof e.name === 'string' ? e.name.toLowerCase() : ''; const address = e && typeof e.address === 'string' ? e.address : '';
+    if (!/^[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?$/.test(name) || name.includes('..') || rules.has(name)) continue;
+    const v4 = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(address) && address.split('.').every((n) => Number(n) <= 255); const v6 = !v4 && /^[0-9a-f:]{2,39}$/i.test(address) && address.includes(':');
+    if (!v4 && !v6) continue;
+    rules.set(name, 'MAP ' + name + ' ' + (v6 ? '[' + address + ']' : address)); if (rules.size >= 50) break;
+  }
+  return [...rules.values()].join(',');
+}
+export const UDP_FENCE_ARGS = ['--webrtc-ip-handling-policy=disable_non_proxied_udp', '--force-webrtc-ip-handling-policy=disable_non_proxied_udp', '--disable-quic'];
+export function fencePlan(allowedOrigins, chromiumFamily) {
+  const deadProxy = !!chromiumFamily && allowedOrigins.every(isLoopbackOriginEntry);
+  return { deadProxy, bypass: deadProxy ? ['<-loopback>', ...new Set(allowedOrigins.flatMap(bypassOf))] : [], remote: allowedOrigins.filter((o) => !isLoopbackOriginEntry(o)), chromiumArgs: deadProxy ? UDP_FENCE_ARGS : [] };
+}
+/** The text of a tool answer on the wire: its result.content[] text parts joined by newlines; '' when the line is not a tool answer. */
+export function toolTextOf(line) { try { const m = JSON.parse(line); return m && m.result && Array.isArray(m.result.content) ? m.result.content.filter((c) => c && c.type === 'text' && typeof c.text === 'string').map((c) => c.text).join('\n') : ''; } catch { return ''; } }
+/** The top-level page's address as the browser server states it, from a tool answer's text: { url, clean } or null when the answer has no
+ *  "### Page" section. url = the first "- Page URL:" line inside the first Page section. clean = every section before that Page section is one
+ *  the server writes itself with no page-controlled text ("Ran Playwright code", "Open tabs"); an answer whose Page section comes after a
+ *  "Result" or "Error" section (console messages, network dumps, evaluate results — raw page text with line breaks) is NOT clean, and a caller
+ *  must not let such an answer widen anything (it may still narrow). */
+export function pageUrlFromToolText(text) {
+  const sections = ('\n' + String(text)).split(/\n### /).slice(1); const i = sections.findIndex((s) => s.startsWith('Page\n')); if (i < 0) return null;
+  const urlOf = (s) => { const m = s.split('\n').slice(1).map((l) => l.match(/^- Page URL: (\S+)$/)).find(Boolean); return m ? m[1] : null; };
+  const clean = sections.slice(0, i).every((s) => /^(Ran Playwright code|Open tabs)\n/.test(s) || s === 'Ran Playwright code' || s === 'Open tabs');
+  const urls = [...new Set(sections.filter((s) => s.startsWith('Page\n')).map(urlOf).filter(Boolean))]; if (!urls.length) return null; // EVERY Page section's address, each once, with no cap: the browser's own section comes last, and a cap is something page text printed ahead of it could outrun
+  return { url: urls[0], clean, urls };
+}
+/** The page-level guard injected with --init-script: WebSocket / WebSocketStream / WebTransport may only target allowed origins; WebRTC reads as absent. */
+export function guardScript(cfg, { sockets = true } = {}) {
+  // sockets:false — behind the filtering proxy, which judges and counts every socket (workers included), the page-level wrap adds nothing and would refuse
+  // a load-only host the proxy allows; only the WebRTC removal stays (WebRTC never passes a proxy).
+  if (!sockets) return '(() => { try {\n' + RTC_OFF + '} catch (e) {} })();\n';
+  return '(() => { try {\n' +
+    'const allowed = ' + JSON.stringify(cfg.allowedOrigins) + ';\n' +
+    'const originOk = (u) => { let x; try { x = new URL(u, location.href); } catch { return false; } const proto = x.protocol === "wss:" ? "https:" : x.protocol === "ws:" ? "http:" : x.protocol; if (proto !== "http:" && proto !== "https:") return false; const host = x.hostname.toLowerCase(); const port = x.port; const origin = proto + "//" + x.host.toLowerCase();\n' +
+    '  for (const o of allowed) { if (/^https?:\\/\\//.test(o)) { if (origin === o.toLowerCase() || origin === new URL(o).origin.toLowerCase()) return true; continue; } const mm = o.match(/^(\\[[^\\]]+\\]|[^:]+)(?::(\\d+))?$/); if (mm && host === mm[1].toLowerCase() && (mm[2] ? port === mm[2] : port === "")) return true; }\n' +
+    '  return false; };\n' +
+    'const refuse = (what, u) => { throw new DOMException("Claude Test: " + what + " to " + String(u).slice(0, 200) + " is outside the allowed origins", "SecurityError"); };\n' +
+    'const wrap = (name) => { const C = globalThis[name]; if (typeof C !== "function") return; const P = new Proxy(C, { construct(t, args, nt) { if (!originOk(args[0])) refuse(name, args[0]); return Reflect.construct(t, args, nt); } }); try { Object.defineProperty(C.prototype, "constructor", { value: P, writable: true, configurable: true }); } catch (e) {} try { Object.defineProperty(globalThis, name, { value: P, writable: true, configurable: true }); } catch (e) { globalThis[name] = P; } };\n' +
+    'wrap("WebSocket"); wrap("WebSocketStream"); wrap("WebTransport");\n' +
+    RTC_OFF +
+    '} catch (e) {} })();\n';
+}
+// WebRTC does not go through a proxy at all: in the test browser it is switched off (a local dev app under test rarely needs it); feature detection sees "absent" and degrades.
+const RTC_OFF = 'for (const name of ["RTCPeerConnection", "webkitRTCPeerConnection", "RTCDataChannel"]) { try { delete globalThis[name]; } catch (e) {} if (name in globalThis) { try { Object.defineProperty(globalThis, name, { value: undefined, writable: true, configurable: true }); } catch (e) {} } }\n';
+
+// ── secret redaction ──
+/** The scrub spellings of one secret value (raw, JSON-escaped, double-escaped, whitespace-normalised, URL/form-encoded), 6+ chars, longest first. */
+export function secretVariants(v) {
+  const esc1 = JSON.stringify(v).slice(1, -1), esc2 = JSON.stringify(esc1).slice(1, -1), norm = v.trim().replace(/\s+/g, ' ');
+  return [...new Set([v, esc1, esc2, norm, JSON.stringify(norm).slice(1, -1), JSON.stringify(JSON.stringify(norm).slice(1, -1)).slice(1, -1), encodeURIComponent(v), encodeURIComponent(v).replace(/%20/g, '+'), new URLSearchParams([['v', v]]).toString().slice(2)])].filter((x) => x.length >= 6).sort((a, b) => b.length - a.length);
+}
+/** A redactor over a fixed secrets list ([key, variants, raw] entries, longest raw first): redact(line, { splits }) replaces every spelling with
+ *  <secret>KEY</secret>, re-assembles a value that contains another secret's value, and — when splits is true (a secret is in a page) and the
+ *  line is under 2 MB — also the value with one line break or space inserted anywhere. */
+export function makeRedactor(secrets) {
+  let nestedFixups = null; // [pattern, replacement] for a value that CONTAINS another secret's value: the server redacts in file order and can leave "<secret>SHORT</secret>rest-of-long"
+  function buildNestedFixups() { nestedFixups = []; const encs = [(s) => s, (s) => JSON.stringify(s).slice(1, -1), (s) => JSON.stringify(JSON.stringify(s).slice(1, -1)).slice(1, -1), (s) => encodeURIComponent(s), (s) => new URLSearchParams([['v', s]]).toString().slice(2)]; for (const [ky, , ry] of secrets) for (const [kx, , rx] of secrets) { if (kx === ky || !rx || !ry || rx === ry || !String(ry).includes(rx)) continue; for (const e of encs) { const parts = String(ry).split(rx).map(e); nestedFixups.push([parts.join('<secret>' + kx + '</secret>'), '<secret>' + ky + '</secret>']); } } nestedFixups = [...new Map(nestedFixups).entries()].filter(([p, r]) => p !== r).sort((a, b) => b[0].length - a[0].length); }
+  let splitVariants = null; // [pattern, key]: the value with ONE line break or space inserted somewhere (an Enter or a wrap inside a textarea), in the spellings a snapshot, a URL or a JSON string would carry
+  function buildSplitVariants() { splitVariants = []; const esc = (s) => JSON.stringify(s).slice(1, -1), enc = (s) => encodeURIComponent(s), form = (s) => new URLSearchParams([['v', s]]).toString().slice(2); for (const [k, , raw] of secrets) { const v = String(raw || ''); if (v.length < 6) continue; const nested = secrets.some(([k2, , r2]) => k2 !== k && r2 && String(r2) !== v && v.includes(String(r2))); /* contains another secret's value: its split spellings must run BEFORE the whole ones or the shorter value breaks them */ for (let i = 1; i < v.length; i++) { const a = v.slice(0, i), b = v.slice(i); for (const p of new Set([a + ' ' + b, esc(a) + ' ' + esc(b), esc(a) + '\\n' + esc(b), esc(a) + '\\r\\n' + esc(b), enc(a) + '%0A' + enc(b), enc(a) + '%0D%0A' + enc(b), form(a) + '%0A' + form(b), form(a) + '%0D%0A' + form(b), enc(a) + '%20' + enc(b), form(a) + '+' + form(b)])) splitVariants.push([p, k, nested]); } } splitVariants.sort((x, y) => y[0].length - x[0].length); }
+  function redact(line, { splits = false } = {}) {
+    const doSplits = splits && line.length < 2000000; if (doSplits && splitVariants === null) buildSplitVariants(); // split spellings (one inserted break) only once a secret is in a page, and not on multi-megabyte image lines
+    if (doSplits) for (const [p, k, nested] of splitVariants) if (nested && line.includes(p)) line = line.split(p).join('<secret>' + k + '</secret>'); // a value containing another secret's value: its split spellings first, or the shorter value would break them
+    for (const [k, variants] of secrets) for (const v of variants) if (line.includes(v)) line = line.split(v).join('<secret>' + k + '</secret>'); // every whole spelling, longest values first
+    if (doSplits) for (const [p, k, nested] of splitVariants) if (!nested && line.includes(p)) line = line.split(p).join('<secret>' + k + '</secret>'); // the other split spellings after the whole ones (so "VALUE VALUE" is two values, not one split)
+    if (nestedFixups === null) buildNestedFixups();
+    for (const [p, r] of nestedFixups) if (line.includes(p)) line = line.split(p).join(r);
+    return line;
+  }
+  return { redact };
+}

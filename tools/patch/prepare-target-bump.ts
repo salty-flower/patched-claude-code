@@ -131,7 +131,7 @@ export function buildTargetBumpSteps(
     {
       id: "verify-patches",
       label: "verify patch locators and rationale refs",
-      command: ["bun", "run", "tools/patch/verify-patches.ts", "--against", upstream],
+      command: ["bun", "run", "tools/patch/verify-patches.ts", "--against", upstream, "--quiet-skips"],
     },
     {
       id: "verify-native-contract",

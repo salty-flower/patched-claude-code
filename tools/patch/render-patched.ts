@@ -142,6 +142,7 @@ function main(): number {
           join(ROOT, "tools", "patch", "verify-patches.ts"),
           "--against",
           join(ROOT, "staging", args.version, "cli.js"),
+          "--quiet-skips",
         ],
         { cwd: ROOT },
       )
@@ -161,7 +162,10 @@ function main(): number {
 
   mkdirSync(dirname(output), { recursive: true })
   if (!args.skipVerify) {
-    runChecked(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input], { cwd: ROOT })
+    runChecked(
+      ["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input, "--quiet-skips"],
+      { cwd: ROOT },
+    )
   }
   runChecked(["bun", "run", join(ROOT, "tools", "patch", "build-patched.ts"), input, output, args.version], {
     cwd: ROOT,

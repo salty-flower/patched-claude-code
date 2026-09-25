@@ -10,7 +10,7 @@ stage version=target source=source:
   tools/patch/resource-guard.sh bun run tools/patch/stage-target.ts --version "{{version}}" --source "{{source}}"
 
 verify version=target source=source: (stage version source)
-  tools/patch/resource-guard.sh bun run tools/patch/verify-patches.ts --against "staging/{{version}}/cli.js"
+  tools/patch/resource-guard.sh bun run tools/patch/verify-patches.ts --against "staging/{{version}}/cli.js" --quiet-skips
   bun run tools/patch/check-native-extraction-contract.ts
 
 render version=target source=source: (verify version source)

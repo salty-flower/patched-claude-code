@@ -63,10 +63,16 @@ nix shell nixpkgs#dotnet-sdk_10 --command bun run "$repo/tools/test/csharp-tool-
   --bundle "$repo/staging/2.1.273/cli.patched.js" --case success
 nix shell nixpkgs#dotnet-sdk_10 --command bun run "$repo/tools/test/csharp-tool-tui-smoke.ts" \
   --bundle "$repo/staging/2.1.273/cli.patched.js" --case stderr-exit
+nix shell nixpkgs#dotnet-sdk_10 --command bun run "$repo/tools/test/csharp-tool-tui-smoke.ts" \
+  --bundle "$repo/staging/2.1.273/cli.patched.js" --permission allow
+nix shell nixpkgs#dotnet-sdk_10 --command bun run "$repo/tools/test/csharp-tool-tui-smoke.ts" \
+  --bundle "$repo/staging/2.1.273/cli.patched.js" --permission deny
 nix shell nixpkgs#dotnet-sdk_10 nixpkgs#socat nixpkgs#bubblewrap --command bun run "$repo/tools/test/csharp-tool-tui-smoke.ts" \
   --bundle "$repo/staging/2.1.273/cli.patched.js" --case success --sandbox --require-sandbox-success
 ```
 
+The `--permission` cases exercise the interactive ask dialog: allow once
+executes C#, while No stops before `dotnet` starts.
 Remove `--require-sandbox-success` to treat a reported sandbox startup failure
 as a safe failure. The strict flag requires completed C# execution and a
 denied write outside the allowed paths.

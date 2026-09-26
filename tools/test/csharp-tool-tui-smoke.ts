@@ -10,6 +10,7 @@ import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } f
 type Args = {
   bundle: string
   resultCase: "success" | "stderr-exit"
+  permission: "bypass" | "allow" | "deny"
   sandbox: boolean
   requireSandboxSuccess: boolean
   timeoutSeconds: number
@@ -25,13 +26,24 @@ function parseArgs(argv: string[]): Args {
   const options = createCommand("csharp-tool-tui-smoke")
     .requiredOption("--bundle <cli.patched.js>", "rendered patched Claude Code bundle")
     .option("--case <success|stderr-exit>", "C# result path", "success")
+    .option("--permission <bypass|allow|deny>", "permission prompt path", "bypass")
     .option("--sandbox", "enable Claude Code's native sandbox")
     .option("--require-sandbox-success", "fail unless C# runs inside the sandbox and the write probe is denied")
     .option("--timeout-seconds <seconds>", "PTY timeout", (value) => Number.parseInt(value, 10), 120)
     .parse(argv, { from: "user" })
-    .opts<{ bundle: string; case: string; sandbox: boolean; requireSandboxSuccess: boolean; timeoutSeconds: number }>()
+    .opts<{
+      bundle: string
+      case: string
+      permission: string
+      sandbox: boolean
+      requireSandboxSuccess: boolean
+      timeoutSeconds: number
+    }>()
   if (options.case !== "success" && options.case !== "stderr-exit") {
     throw new Error(`--case must be success or stderr-exit, got ${options.case}`)
+  }
+  if (options.permission !== "bypass" && options.permission !== "allow" && options.permission !== "deny") {
+    throw new Error(`--permission must be bypass, allow, or deny, got ${options.permission}`)
   }
   if (options.requireSandboxSuccess && !options.sandbox) {
     throw new Error("--require-sandbox-success requires --sandbox")
@@ -39,6 +51,7 @@ function parseArgs(argv: string[]): Args {
   return {
     bundle: resolve(options.bundle),
     resultCase: options.case,
+    permission: options.permission,
     sandbox: options.sandbox,
     requireSandboxSuccess: options.requireSandboxSuccess,
     timeoutSeconds: options.timeoutSeconds,
@@ -148,7 +161,15 @@ function toolResultContent(request: ClaudeApiRequest): string {
   return ""
 }
 
-function toolSource(resultCase: Args["resultCase"], sandbox: boolean, probeFile: string): string {
+function toolSource(
+  resultCase: Args["resultCase"],
+  permission: Args["permission"],
+  sandbox: boolean,
+  probeFile: string,
+): string {
+  if (permission === "deny") {
+    return `System.IO.File.WriteAllText(${JSON.stringify(probeFile)}, "PCC_CSHARP_UNEXPECTED_EXECUTION");`
+  }
   if (resultCase === "stderr-exit") {
     return 'Console.Error.WriteLine("PCC_CSHARP_STDERR_EXIT"); Environment.Exit(23);'
   }
@@ -192,7 +213,7 @@ async function main(): Promise<number> {
               type: "tool_use",
               id: TOOL_USE_ID,
               name: "CSharp",
-              input: { command: toolSource(args.resultCase, args.sandbox, probeFile) },
+              input: { command: toolSource(args.resultCase, args.permission, args.sandbox, probeFile) },
             },
           ],
           "tool_use",
@@ -260,7 +281,7 @@ async function main(): Promise<number> {
       "--preload",
       shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts")),
       shellQuote(args.bundle),
-      "--dangerously-skip-permissions",
+      ...(args.permission === "bypass" ? ["--dangerously-skip-permissions"] : ["--permission-mode", "default"]),
       "--hide-builtin-footer",
       "--model",
       "sonnet",
@@ -269,7 +290,23 @@ async function main(): Promise<number> {
       "sleep 3",
       `printf %s ${shellQuote(`\x1b[200~${PROMPT}\x1b[201~`)}`,
       enter,
-      `for ((i=0;i<90;i++)); do test -f ${shellQuote(resultMarker)} && break; sleep 1; done`,
+      ...(args.permission === "bypass"
+        ? []
+        : [
+            "sleep 6",
+            ...(args.permission === "allow"
+              ? [enter]
+              : [
+                  `printf %s ${shellQuote("\x1b[B")}`,
+                  "sleep 0.2",
+                  `printf %s ${shellQuote("\x1b[B")}`,
+                  "sleep 0.2",
+                  enter,
+                ]),
+          ]),
+      ...(args.permission === "deny"
+        ? ["sleep 4"]
+        : [`for ((i=0;i<90;i++)); do test -f ${shellQuote(resultMarker)} && break; sleep 1; done`]),
       "sleep 3",
       `printf %s ${shellQuote("\x1b[200~/exit\x1b[201~")}`,
       enter,
@@ -297,7 +334,7 @@ async function main(): Promise<number> {
       console.error(output)
       return 1
     }
-    if (toolRequest === undefined || resultRequest === undefined) {
+    if (toolRequest === undefined || (args.permission !== "deny" && resultRequest === undefined)) {
       console.error(
         `CSharp TUI smoke did not complete the tool round trip (tool request: ${toolRequest !== undefined}, result request: ${resultRequest !== undefined})`,
       )
@@ -315,11 +352,30 @@ async function main(): Promise<number> {
       console.error(normalized.slice(-5000))
       return 1
     }
+    if (args.permission !== "bypass" && (!normalized.includes("Tool use CSharp") || !normalized.includes("3. No"))) {
+      console.error("CSharp manual permission dialog did not render")
+      console.error(normalized)
+      return 1
+    }
     if (!toolRequest.rawBody.includes('"name":"CSharp"') || !toolRequest.rawBody.includes('"name":"Bash"')) {
       console.error("CSharp and Bash were not both exposed as distinct tools")
       console.error(toolRequest.rawBody)
       return 1
     }
+    if (args.permission === "deny") {
+      if (
+        resultRequest !== undefined ||
+        existsSync(probeFile) ||
+        !normalized.includes("What should Claude do instead?")
+      ) {
+        console.error("CSharp denial did not stop execution at the permission dialog")
+        console.error(normalized)
+        return 1
+      }
+      console.log("ok: CSharp manual permission dialog denied execution before dotnet started")
+      return 0
+    }
+    if (resultRequest === undefined) throw new Error("CSharp tool result missing after approval")
     const resultText = toolResultContent(resultRequest)
     const sandboxUnavailable = args.sandbox && resultText.includes("CSharp sandbox is enabled but unavailable")
     const sandboxWrapperFailed = args.sandbox && resultText.includes("bwrap: Creating new namespace failed")

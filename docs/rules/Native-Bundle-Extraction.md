@@ -10,7 +10,7 @@ extraction layout produced `staging/<version>/cli.js`.
 | --- | --- | --- |
 | `package/cli.js` exists in `@anthropic-ai/claude-code` tarball | `2.1.112` | Copy `package/cli.js`; no native extraction is involved. |
 | Wrapper package declares a platform optional dependency with a Bun standalone binary | `2.1.132`, `2.1.133`, `2.1.181`, `2.1.197`, `2.1.199`, `2.1.201`, `2.1.210`, `2.1.212`, `2.1.215`, `2.1.216`, `2.1.226` | Extract the entrypoint from the native package's Bun standalone module graph. Treat `>=2.1.132 <2.2.0` as provisional until smoke-tested and recorded. |
-| Claude direct-download manifest exposes platform Bun standalone binaries | `2.1.132`, `2.1.133`, `2.1.181`, `2.1.197`, `2.1.199`, `2.1.201`, `2.1.208`, `2.1.210`, `2.1.212`, `2.1.215`, `2.1.216`, `2.1.220`, `2.1.251`, `2.1.258`, `2.1.260`, `2.1.263`, `2.1.266`, `2.1.267`, `2.1.268`, `2.1.273`, `2.1.281`, `2.1.282` | Download `https://downloads.claude.ai/claude-code-releases/<version>/<platform>/claude`, verify the manifest checksum, then extract the same Bun standalone module graph. |
+| Claude direct-download manifest exposes platform Bun standalone binaries | `2.1.132`, `2.1.133`, `2.1.181`, `2.1.197`, `2.1.199`, `2.1.201`, `2.1.208`, `2.1.210`, `2.1.212`, `2.1.215`, `2.1.216`, `2.1.220`, `2.1.251`, `2.1.258`, `2.1.260`, `2.1.263`, `2.1.266`, `2.1.267`, `2.1.268`, `2.1.273`, `2.1.281`, `2.1.282`, `2.1.285` | Download `https://downloads.claude.ai/claude-code-releases/<version>/<platform>/claude`, verify the manifest checksum, then extract the same Bun standalone module graph. |
 
 ## Bun Standalone Layout
 
@@ -38,7 +38,7 @@ Released graphs MUST expose embedded text assets as UTF-8 bytes.
 | Loader | Materialization | Failure boundary |
 | --- | --- | --- |
 | JavaScript (`1`) | Rewrite Bun-root specifiers to graph-relative paths. | Unresolved specifier or parse failure. |
-| Compressed text (`5`) | Require Zstandard frame magic; decompress without renaming. | Missing magic, decompression failure, or invalid UTF-8. |
+| File asset (`5`) | Decompress Zstandard-framed text without renaming; preserve non-framed bytes, including binary assets. | Decompression failure or compressed text with invalid UTF-8. |
 | Native binary (`10`) | Preserve bytes. | None beyond inventory integrity. |
 | Plain text (`13`) | Decode the record's encoding into UTF-8; route runtime references to a byte-identical `.embedded.txt` sidecar. | Unknown encoding, invalid text, or sidecar collision. |
 
@@ -51,7 +51,9 @@ Text encoding is the module record's byte at offset `48`:
 `0` UTF-8 bytes, `1` Latin-1, `2` UTF-16LE.
 Preserve native byte hashes separately from the decoded UTF-8 hashes.
 The disk text loader's module namespace MUST be unwrapped to the original string value.
-The upstream runtime accepts compressed or identity-encoded text by inspecting frame magic.
+Determine file-asset compression from frame magic, never from the loader or extension.
+The upstream runtime accepts compressed or identity-encoded bytes;
+raw font assets MUST retain their identity encoding and byte hashes.
 
 `graph-manifest.json` MUST bind both representations for every file:
 

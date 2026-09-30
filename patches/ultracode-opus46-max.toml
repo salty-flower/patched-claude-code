@@ -9872,3 +9872,50 @@ path = "params.0"
   name = "2.1.282 model-specific ultracode effort is rendered"
   assert_contains = 'ultracode \xB7 ${h==="max"?"max":"xhigh"} + workflows \xB7 /effort'
   assert_not_contains = "ultracode \\xB7 xhigh + workflows \\xB7 /effort"
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-285-darwin"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = ["darwin-arm64"]
+rationale = "Upstream 2.1.285 decouples ultracode from effort but still restricts availability to xhigh-capable models. Preserve availability for max-capable models within their effort cap without changing the independent effort setting. Af is the workflow gate, ne delegates to xhigh capability, l7 checks max capability, and GVn checks the effort cap in the same module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "cR", source = 'function cR(e){return Af()&&(e===void 0||ne(e))}' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '{return Af()&&(e===void 0||ne(e)||l7(e)&&GVn("max",e))}'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.285 darwin-arm64 ultracode accepts capped max without forcing effort"
+assert_contains = 'function cR(e){return Af()&&(e===void 0||ne(e)||l7(e)&&GVn("max",e))}'
+assert_not_contains = 'function cR(e){return Af()&&(e===void 0||ne(e))}'
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-285-linux"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = ["linux-x64"]
+rationale = "Upstream 2.1.285 decouples ultracode from effort but still restricts availability to xhigh-capable models. Preserve availability for max-capable models within their effort cap without changing the independent effort setting. Tf is the workflow gate, ne delegates to xhigh capability, eJ checks max capability, and Eqn checks the effort cap in the same module."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "sR", source = 'function sR(e){return Tf()&&(e===void 0||ne(e))}' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '{return Tf()&&(e===void 0||ne(e)||eJ(e)&&Eqn("max",e))}'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.285 linux-x64 ultracode accepts capped max without forcing effort"
+assert_contains = 'function sR(e){return Tf()&&(e===void 0||ne(e)||eJ(e)&&Eqn("max",e))}'
+assert_not_contains = 'function sR(e){return Tf()&&(e===void 0||ne(e))}'

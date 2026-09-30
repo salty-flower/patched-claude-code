@@ -54,7 +54,8 @@ test("resume restores 1m defaults after alias resolution", async () => {
         .map((file) => readFileSync(join(graphDir, file), "utf8"))
         .join("\n")
     : readFileSync(entrypoint, "utf8")
-  const applied = loadPatchEntriesFromFile(PATCH_FILE).filter((patch) => patchApplies(patch, TARGET_VERSION)).length
+  const activePatches = loadPatchEntriesFromFile(PATCH_FILE).filter((patch) => patchApplies(patch, TARGET_VERSION))
+  const applied = activePatches.length
 
   if (isVersionAtLeast(TARGET_VERSION, "2.1.170") && isVersionBefore(TARGET_VERSION, "2.1.172")) {
     expect(applied).toBe(3)
@@ -110,7 +111,6 @@ test("resume restores 1m defaults after alias resolution", async () => {
   if (isVersionAtLeast(TARGET_VERSION, "2.1.282")) {
     // The shared AST port captures each platform's current-model resolver and
     // normalizer. Check the guarded data flow without fixing their minified names.
-    expect(applied).toBe(1)
     const resolvedDefault =
       /,__acc_resume_model=(?<configured>[\w$]+)\?\?(?<current>[\w$]+)\(\),(?<normalized>[\w$]+)=__acc_resume_model\?(?<normalize>[\w$]+)\(__acc_resume_model\):void 0,(?<bare>[\w$]+)=\k<normalized>\?(?<strip>[\w$]+)\(\k<normalized>\):void 0;/g
     const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
@@ -118,7 +118,13 @@ test("resume restores 1m defaults after alias resolution", async () => {
       .filter((file) => file.endsWith(".js"))
       .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
       .join("\n")
-    for (const graph of [patched, linuxPatched]) {
+    for (const [platform, graph] of [
+      ["darwin-arm64", patched],
+      ["linux-x64", linuxPatched],
+    ]) {
+      const platformPatches = activePatches.filter((patch) => !patch.platforms || patch.platforms.includes(platform))
+      expect(platformPatches).toHaveLength(1)
+      expect(platformPatches[0]?.name).toStartWith("resume-detects-default-1m-after-alias-resolution-")
       const matches = [...graph.matchAll(resolvedDefault)]
       expect(matches).toHaveLength(1)
       const groups = matches[0]?.groups

@@ -138,6 +138,21 @@ export function writeGraphCredentialHarness(options: {
       enableConfigs: namedExport("enableConfigs"),
       initSinks: namedExport("initSinks"),
     }
+    // The public readers own the memoization and, since 2.1.285, the --bare
+    // guard. Calling only the patch-owned inner readers bypasses that guard.
+    for (const [role, field] of [
+      ["legacyReadSync", ".value"],
+      ["legacyReadAsync", ".promise"],
+    ] as const) {
+      const reader = bindings[role]
+      if (!reader) throw new Error(`Missing ${role} binding`)
+      bindings[`${role}Public`] = findFunction(
+        `${role} public wrapper`,
+        [`=${reader.name}();`, field],
+        undefined,
+        reader.file,
+      )
+    }
     const resume = bindings.resume
     if (!resume) throw new Error("Missing resume binding")
     const cleanupName = captureIdentifier(resume.source, "resume cleanup", /throw await ([\w$]+)\(/)
@@ -216,7 +231,7 @@ try {
   if(action==="legacy-delete"){await legacyDelete();finish({deleted:legacyReadSync()===null})}
   if(action==="legacy-delete-outer"){await legacyDeleteOuter();finish({deleted:true})}
   if(action==="legacy-read"){finish({sync:legacyReadSync()?.key===env.CLAUDE_KEYCHAIN_LEGACY_KEY,async:(await legacyReadAsync())?.key===env.CLAUDE_KEYCHAIN_LEGACY_KEY})}
-  if(action==="legacy-guard"){finish({sync:legacyReadSync()===null,async:await legacyReadAsync()===null})}
+  if(action==="legacy-guard"){finish({sync:legacyReadSyncPublic()===null,async:await legacyReadAsyncPublic()===null})}
   if(action==="session-resume"){
     const dir=await resume({load:async()=>[{}]},crypto.randomUUID(),process.cwd(),process.env);
     if(!dir)throw Error("SessionStore resume did not materialize");

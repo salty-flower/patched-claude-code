@@ -559,6 +559,49 @@ test("main-screen thinking display uses the same live state as transcript render
   }
 })
 
+test("live thinking memo updates its row when only the stream snapshot changes", () => {
+  if (isVersionBefore(TARGET_VERSION, "2.1.282")) return
+  for (const body of [patched, linuxPatched]) {
+    const markerIndex = body.indexOf("__acc_streamingThinking?.thinking&&e(n,")
+    expect(markerIndex).toBeGreaterThanOrEqual(0)
+    const start = body.lastIndexOf("function ", markerIndex)
+    const end = body.indexOf("function ", markerIndex)
+    const wrapper = body.slice(start, end)
+    const allocation = /^function [\w$]+\([^)]*\)\{let ([\w$]+)=[\w$]+\((\d+)\)/.exec(wrapper)
+    const row = /let ([\w$]+);if\([^;]+__acc_streamingThinking[^;]+;else \1=[^;]+;return \1/.exec(wrapper)
+    if (!allocation || !row) throw new Error("Missing live thinking memo allocation or output row")
+    expect(Number(allocation[2])).toBe(44)
+    const inputs = /children:\[([\w$]+),([\w$]+),([\w$]+),__acc_streamingThinking/.exec(row[0])
+    const provider = /r\(([\w$]+)\.Provider,\{value:([\w$]+),/.exec(row[0])
+    if (!inputs || !provider) throw new Error("Missing live row inputs")
+    type Element = { children?: unknown[] | string }
+    const jsx = (_type: unknown, props: Element) => props
+    const render = new Function(
+      allocation[1],
+      "__acc_streamingThinking",
+      ...inputs.slice(1),
+      provider[2],
+      provider[1],
+      "r",
+      "e",
+      "n",
+      row[0],
+    ) as (...args: unknown[]) => Element
+    const cache = Array<unknown>(44)
+    const stableInputs = [{}, {}, {}, {}, { Provider: "provider" }, jsx, jsx, "text"]
+    const firstSnapshot = { thinking: "first", isStreaming: true }
+    const first = render(cache, firstSnapshot, ...stableInputs)
+    expect(first.children?.[3]).toMatchObject({ children: "first" })
+    expect(render(cache, firstSnapshot, ...stableInputs)).toBe(first)
+    const next = render(cache, { thinking: "first second", isStreaming: true }, ...stableInputs)
+    expect(next).not.toBe(first)
+    expect(next.children?.[3]).toMatchObject({ children: "first second" })
+    const cleared = render(cache, null, ...stableInputs)
+    expect(cleared.children?.[3]).toBeUndefined()
+    expect(cache.length).toBe(44)
+  }
+})
+
 test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
   if (!targetUses259ThinkingSymbols) return
 
@@ -874,6 +917,13 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
   }
 
   if (targetClearsLiveThinkingWithStream) {
+    if (isVersionAtLeast(TARGET_VERSION, "2.1.285")) {
+      for (const body of [patched, linuxPatched]) {
+        expect(body.includes("isVirtual:!0})]});this.stream.setStreamingThinking(null);let{salvage:")).toBe(true)
+        expect(body.includes("isVirtual:!0})]});let{salvage:")).toBe(false)
+      }
+      return
+    }
     expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
     expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
     return

@@ -2,6 +2,7 @@ import { afterEach, expect, test } from "bun:test"
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { parse } from "@babel/parser"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiRequest, type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { hostGraphPlatform, renderRunnableBundle } from "./helpers/render-runnable-bundle"
@@ -37,6 +38,21 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
   if (!client || classMatch?.index === undefined) {
     throw new Error("could not locate bundled Anthropic client symbols")
   }
+  // Native SDK chunks can hide the class behind an IIFE. Its inner class name
+  // is not available to the module-level harness; resolve the containing binding.
+  const program = parse(source, { sourceType: "module" }).program
+  for (const statement of program.body) {
+    if (statement.type !== "VariableDeclaration") continue
+    for (const declaration of statement.declarations) {
+      if (declaration.id.type !== "Identifier" || declaration.init?.type !== "CallExpression") continue
+      const factory = declaration.init.callee
+      if (factory.type !== "ArrowFunctionExpression" || factory.body.type !== "BlockStatement") continue
+      const sdkClass = factory.body.body.find(
+        (node) => node.type === "ClassDeclaration" && node.start === classMatch.index && node.id?.name === client,
+      )
+      if (sdkClass) return { init: "", client: declaration.id.name }
+    }
+  }
   const initializerMatches = [
     ...source.slice(0, classMatch.index).matchAll(/var ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\(\(\)=>\{/g),
   ]
@@ -46,7 +62,7 @@ function findBundledAnthropicClientSymbols(source: string): { init: string; clie
 
 function injectSdkHarness(source: string): string {
   const { init, client } = findBundledAnthropicClientSymbols(source)
-  const replacement = `${init ? `${init}();` : ""}(async()=>{try{let e=new ${client}({baseURL:process.env.ANTHROPIC_BASE_URL,apiKey:process.env.ANTHROPIC_API_KEY,authToken:process.env.ANTHROPIC_AUTH_TOKEN,maxRetries:0}),t={model:process.env.CLAUDE_STUB_HARNESS_MODEL,max_tokens:1,messages:[{role:"user",content:"hello"}]},n={headers:{"x-api-key":"caller-key",Authorization:"Bearer caller-token"}};await e.messages.create({...t,stream:false},n);await e.beta.messages.create({...t,stream:false,betas:["token-counting-2024-11-01"]},n);await e.messages.countTokens(t,n);await e.beta.messages.countTokens({...t,betas:["token-counting-2024-11-01"]},n);process.stdout.write("ok\\n")}catch(r){console.error(r?.stack??String(r));process.exit(1)}})();`
+  const replacement = `${init ? `${init}();` : ""}(async()=>{try{let __pcc_client=new ${client}({baseURL:process.env.ANTHROPIC_BASE_URL,apiKey:process.env.ANTHROPIC_API_KEY,authToken:process.env.ANTHROPIC_AUTH_TOKEN,maxRetries:0}),t={model:process.env.CLAUDE_STUB_HARNESS_MODEL,max_tokens:1,messages:[{role:"user",content:"hello"}]},n={headers:{"x-api-key":"caller-key",Authorization:"Bearer caller-token"}};await __pcc_client.messages.create({...t,stream:false},n);await __pcc_client.beta.messages.create({...t,stream:false,betas:["token-counting-2024-11-01"]},n);await __pcc_client.messages.countTokens(t,n);await __pcc_client.beta.messages.countTokens({...t,betas:["token-counting-2024-11-01"]},n);process.stdout.write("ok\\n")}catch(r){console.error(r?.stack??String(r));process.exit(1)}})();`
   const exportIndex = source.lastIndexOf("export{")
   if (exportIndex !== -1) {
     return `${source.slice(0, exportIndex)}${replacement}${source.slice(exportIndex)}`

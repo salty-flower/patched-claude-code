@@ -1010,7 +1010,7 @@ assert_not_contains = '''return W_t()'''
 
 [[patches]]
 name = "channels-feature-gate"
-target_version = "2.1.281"
+target_version = "2.1.285"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1045,7 +1045,7 @@ assert_contains = '''return!0}'''
 
 [[patches]]
 name = "channels-provider-gate"
-target_version = "2.1.281"
+target_version = "2.1.285"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1753,3 +1753,40 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.282 Linux AskUserQuestion no longer delegates through the channel gate"
   assert_not_contains = "isEnabled(){return G6()}"
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-285"
+lineage = "ask-user-question-channels-gate"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+rationale = "Allow AskUserQuestion independently of provider or populated allowed channels. Match the tool descriptor by its own completion event and isEnabled method, then replace only that method. This 2.1.285 AST variant carries no minified helper names; the shared channel predicate remains available to its other callers."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "isEnabled"
+    string_literal = "tengu_ask_user_question_completed"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "isEnabled\\(\\)\\{return [\\w$]+\\(\\)\\}"
+  value = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 AskUserQuestion gate is open"
+  assert_contains = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 AskUserQuestion no longer delegates through the channel gate"
+  assert_not_contains = "isEnabled(){return TY()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 Linux AskUserQuestion no longer delegates through the channel gate"
+  assert_not_contains = "isEnabled(){return _9()}"

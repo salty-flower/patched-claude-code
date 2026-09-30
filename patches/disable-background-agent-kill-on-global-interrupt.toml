@@ -887,3 +887,90 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.282 has no bare global ctrl_c call options"
   assert_not_contains = '({gesture:"ctrl_c"})'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-285-darwin-arm64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "darwin-arm64" ]
+rationale = "Hand foreground agents off before shared cancellation in 2.1.285 Darwin. Registry Wt comes from ay(); JDe uses get/update, sets isBackgrounded and resolves agentBackgroundSignalResolvers. Defer yx.of(Ft).stopRunning(),E() one event-loop turn after a handoff."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = 'if(ye!==void 0&&!ye.aborted||be||Ie&&Gr)return wo.current=Date.now(),i("tengu_cancel",Zn),yx.of(Ft).stopRunning(),E(),!0;'
+expected_matches = 1
+replacement = 'if(ye!==void 0&&!ye.aborted||be||Ie&&Gr){let __hadForegroundAgent=!1;for(let __agent of Object.values(Wt.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=JDe(__agent.id,Wt)||__hadForegroundAgent;return wo.current=Date.now(),i("tengu_cancel",Zn),__hadForegroundAgent?setTimeout(()=>{yx.of(Ft).stopRunning(),E()},0):(yx.of(Ft).stopRunning(),E()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 darwin-arm64 foreground handoff precedes deferred parent cancellation"
+  assert_contains = 'if(ye!==void 0&&!ye.aborted||be||Ie&&Gr){let __hadForegroundAgent=!1;for(let __agent of Object.values(Wt.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=JDe(__agent.id,Wt)||__hadForegroundAgent;return wo.current=Date.now(),i("tengu_cancel",Zn),__hadForegroundAgent?setTimeout(()=>{yx.of(Ft).stopRunning(),E()},0):(yx.of(Ft).stopRunning(),E()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 darwin-arm64 foreground handoff excludes the previous registry bindings"
+  assert_not_contains = 'if(be!==void 0&&!be.aborted||we||Te&&Gr){let __hadForegroundAgent=!1;for(let __agent of Object.values(Bt.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=W0e(__agent.id,Bt)||__hadForegroundAgent;return To.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{cR.of(Lt).stopRunning(),v()},0):(cR.of(Lt).stopRunning(),v()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 darwin-arm64 foreground cancellation no longer aborts immediately"
+  assert_not_contains = 'if(ye!==void 0&&!ye.aborted||be||Ie&&Gr)return wo.current=Date.now(),i("tengu_cancel",Zn),yx.of(Ft).stopRunning(),E(),!0;'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-285-linux-x64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "linux-x64" ]
+rationale = "Hand foreground agents off before shared cancellation in 2.1.285 Linux. Registry qt comes from iy(); zDe uses get/update, sets isBackgrounded and resolves agentBackgroundSignalResolvers. Defer fx.of(jt).stopRunning(),v() one event-loop turn after a handoff."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = 'if(ye!==void 0&&!ye.aborted||Se||Pe&&zr)return wo.current=Date.now(),i("tengu_cancel",Zn),fx.of(jt).stopRunning(),v(),!0;'
+expected_matches = 1
+replacement = 'if(ye!==void 0&&!ye.aborted||Se||Pe&&zr){let __hadForegroundAgent=!1;for(let __agent of Object.values(qt.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=zDe(__agent.id,qt)||__hadForegroundAgent;return wo.current=Date.now(),i("tengu_cancel",Zn),__hadForegroundAgent?setTimeout(()=>{fx.of(jt).stopRunning(),v()},0):(fx.of(jt).stopRunning(),v()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 linux-x64 foreground handoff precedes deferred parent cancellation"
+  assert_contains = 'if(ye!==void 0&&!ye.aborted||Se||Pe&&zr){let __hadForegroundAgent=!1;for(let __agent of Object.values(qt.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=zDe(__agent.id,qt)||__hadForegroundAgent;return wo.current=Date.now(),i("tengu_cancel",Zn),__hadForegroundAgent?setTimeout(()=>{fx.of(jt).stopRunning(),v()},0):(fx.of(jt).stopRunning(),v()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 linux-x64 foreground handoff excludes the previous registry bindings"
+  assert_not_contains = 'if(Se!==void 0&&!Se.aborted||ve||Ce&&Gr){let __hadForegroundAgent=!1;for(let __agent of Object.values($t.all()))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=LHe(__agent.id,$t)||__hadForegroundAgent;return Co.current=Date.now(),i("tengu_cancel",fr),__hadForegroundAgent?setTimeout(()=>{iR.of(Ot).stopRunning(),M()},0):(iR.of(Ot).stopRunning(),M()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 linux-x64 foreground cancellation no longer aborts immediately"
+  assert_not_contains = 'if(ye!==void 0&&!ye.aborted||Se||Pe&&zr)return wo.current=Date.now(),i("tengu_cancel",Zn),fx.of(jt).stopRunning(),v(),!0;'
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-285"
+lineage = "global-interrupt-cancel-only"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+rationale = "Keep global Ctrl+C on cancel-only mode so it cannot kill unrelated background agents. Match the sole bare ctrl_c gesture options object and add suppressBackgroundAgentKill, retaining the graph-local callback automatically. Explicit chat:killAgents remains available."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = '{gesture:"ctrl_c"}'
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "suppressBackgroundAgentKill"
+  value = "!0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 global interrupt explicitly suppresses background agent kills"
+  assert_contains = '{gesture:"ctrl_c",suppressBackgroundAgentKill:!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 has no bare global ctrl_c call options"
+  assert_not_contains = '({gesture:"ctrl_c"})'

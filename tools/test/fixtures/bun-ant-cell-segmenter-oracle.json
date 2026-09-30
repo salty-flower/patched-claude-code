@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "source": {
-    "upstreamVersion": "2.1.282",
+    "upstreamVersion": "2.1.285",
     "platform": "darwin-arm64",
     "bunVersion": "1.4.3",
-    "nativeBinarySha256": "fcfd837103965c64de34a6b9b94370d77a347ea71819715a27d5f0ef01775ea4",
+    "nativeBinarySha256": "51f09bd1e021d9fa8a1864c179799bd37cb39962a937935c5cf6823398e86db4",
     "captureTool": "tools/debug/capture-bun-ant-cell-segmenter.ts"
   },
   "introspection": {
@@ -26,6 +26,8 @@
       "getConsoleOutputCP",
       "setConsoleOutputCP",
       "memoryPressureLevel",
+      "createPowerAssertion",
+      "releasePowerAssertion",
       "CellSegmenter"
     ],
     "constructorLength": 0,

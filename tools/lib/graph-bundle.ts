@@ -160,6 +160,20 @@ export function expandZstdTextAsset(bytes: Uint8Array, label: string): Uint8Arra
   return expanded
 }
 
+// Loader 5 is a file asset, not a compression marker. Upstream's binary
+// asset reader checks frame magic before decompression; fonts are raw bytes.
+export function materializeStandaloneFileAsset(
+  bytes: Uint8Array,
+  label: string,
+): {
+  bytes: Uint8Array
+  encoding: "identity" | "zstd"
+  transformation: "identity" | "zstd-decompress-v1"
+} {
+  if (!isZstdFrame(bytes)) return { bytes, encoding: "identity", transformation: "identity" }
+  return { bytes: expandZstdTextAsset(bytes, label), encoding: "zstd", transformation: "zstd-decompress-v1" }
+}
+
 export type LoadedGraphBundle = {
   platform: string
   root: string

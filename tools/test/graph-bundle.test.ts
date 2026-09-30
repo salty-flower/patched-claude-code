@@ -7,6 +7,7 @@ import {
   decodeStandaloneText,
   expandZstdTextAsset,
   isZstdFrame,
+  materializeStandaloneFileAsset,
   rewriteBunfsSpecifiers,
   textAssetRuntimePath,
 } from "../lib/graph-bundle"
@@ -139,4 +140,23 @@ test("compressed text materialization fails closed", () => {
 
   const invalidUtf8 = Bun.zstdCompressSync(new Uint8Array([0xff]))
   expect(() => expandZstdTextAsset(invalidUtf8, "invalid.js")).toThrow("decompressed to invalid UTF-8")
+})
+
+test("file loader preserves raw binary assets and records actual compression", () => {
+  // Include invalid UTF-8: treating a binary asset as text corrupts its bytes.
+  const font = new Uint8Array([0x77, 0x4f, 0x46, 0x32, 0, 0xff, 0x80])
+  expect(materializeStandaloneFileAsset(font, "opaque.asset")).toEqual({
+    bytes: font,
+    encoding: "identity",
+    transformation: "identity",
+  })
+  const text = new TextEncoder().encode("embedded text")
+  expect(materializeStandaloneFileAsset(Bun.zstdCompressSync(text), "opaque.asset")).toEqual({
+    bytes: text,
+    encoding: "zstd",
+    transformation: "zstd-decompress-v1",
+  })
+  expect(() => materializeStandaloneFileAsset(new Uint8Array([0x28, 0xb5, 0x2f, 0xfd]), "broken.asset")).toThrow(
+    "failed Zstandard decompression",
+  )
 })

@@ -1011,3 +1011,74 @@ platforms = [ "linux-x64" ]
   name = "2.1.282 linux-x64 drops stale cleanup symbols"
   assert_contains = "return H7o(e,(s)=>"
   assert_not_contains = 'h=He()==="firstParty"&&Ss()?GMt(e,s,g):R6o(e,'
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-285-darwin"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+rationale = "The 2.1.285 darwin-arm64 normalizer V0t uses gBt to remove only foreign-model thinking signatures. Preserve this path for provider Pe returning firstParty and the imported official URL predicate Ms; otherwise use local cleanup Hmr for all assistant messages. Hmr filters blocks through qtn, which recognizes redacted_thinking or nonempty thinking signatures. The imported Ms honors the explicit assume-first-party override and delegates via Eh to vh, which checks api.anthropic.com. These are audited 2.1.285 graph bindings, with replacement scope capped before 2.1.286."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "ast_transform"
+platforms = [ "darwin-arm64" ]
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "V0t"
+    strings = [ "messagesPreNormalize:", "gBt(e,s,g)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "h=gBt(e,s,g),"
+  value = 'h=Pe()==="firstParty"&&Ms()?gBt(e,s,g):Hmr(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 darwin-arm64 custom endpoints remove signed assistant thinking"
+  assert_contains = 'h=Pe()==="firstParty"&&Ms()?gBt(e,s,g):Hmr(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+  assert_not_contains = "h=gBt(e,s,g),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 darwin-arm64 drops stale cleanup symbols"
+  assert_contains = "return Hmr(e,(s)=>"
+  assert_not_contains = 'h=Le()==="firstParty"&&Cs()?LPt(e,s,g):V7o(e,'
+
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-285-linux"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+rationale = "The 2.1.285 linux-x64 normalizer $0t uses sBt to remove only foreign-model thinking signatures. Preserve this path for provider Ie returning firstParty and the imported official URL predicate Ds; otherwise use local cleanup Hmr for all assistant messages. Hmr filters blocks through xtn, which recognizes redacted_thinking or nonempty thinking signatures. The imported Ds honors the explicit assume-first-party override and delegates via wh to vh, which checks api.anthropic.com. These are audited 2.1.285 graph bindings, with replacement scope capped before 2.1.286."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+locator_kind = "ast_transform"
+platforms = [ "linux-x64" ]
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "$0t"
+    strings = [ "messagesPreNormalize:", "sBt(e,s,g)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "h=sBt(e,s,g),"
+  value = 'h=Ie()==="firstParty"&&Ds()?sBt(e,s,g):Hmr(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 linux-x64 custom endpoints remove signed assistant thinking"
+  assert_contains = 'h=Ie()==="firstParty"&&Ds()?sBt(e,s,g):Hmr(e,(__pccMessage)=>__pccMessage.type==="assistant"),'
+  assert_not_contains = "h=sBt(e,s,g),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.285 linux-x64 drops stale cleanup symbols"
+  assert_contains = "return Hmr(e,(s)=>"
+  assert_not_contains = 'h=De()==="firstParty"&&ks()?FPt(e,s,g):H7o(e,'

@@ -1113,3 +1113,193 @@ replacement = 'function*ace(){if(ece.__acc_notice!==void 0){const __acc_notice=e
   name = "2.1.282 Linux effort retry notice drains through Lo"
   assert_contains = 'function*ace(){if(ece.__acc_notice!==void 0){const __acc_notice=ece.__acc_notice;delete ece.__acc_notice;yield Fo({content:__acc_notice,error:"warning"})'
   assert_not_contains = 'function*T5e(){if(i6e.__acc_notice!==void 0){const __acc_notice=i6e.__acc_notice;delete i6e.__acc_notice;yield bw(__acc_notice,"warning")}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-285-darwin-arm64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "darwin-arm64" ]
+rationale = "Restore normalized capability lookup for both configured custom model slots before the first-party early return; a configured effort level also declares the associated effort capability. Authored against 2.1.285; verified zD parameters e/n, first-party gate Kl, capability table VD in chunk-er6f56rj.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(Kl())return;for(let r of VD)"
+replacement = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Kl())return;for(let r of VD)'
+lineage = "custom-model-slot-capabilities"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "custom-model-slot-capabilities-2-1-285-darwin-arm64 uses current bindings"
+  assert_contains = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}'
+  assert_not_contains = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Sc())return;for(let r of ux)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-285-darwin-arm64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "darwin-arm64" ]
+rationale = "Honor explicit environment capability declarations for default model slots before the first-party early return; custom option slots retain their separate precedence. Authored against 2.1.285; verified zD parameters e/n, first-party gate Kl, capability table VD in chunk-er6f56rj.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(Kl())return;for(let r of VD)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of VD){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Kl())return;for(let r of VD)'
+lineage = "explicit-capabilities-first-party"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "explicit-capabilities-first-party-2-1-285-darwin-arm64 uses current bindings"
+  assert_contains = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of VD){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Kl())return;for(let r of VD)'
+  assert_not_contains = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of ux){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Sc())return;for(let r of ux)'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-285-darwin-arm64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "darwin-arm64" ]
+rationale = "Keep selected max and xhigh effort values intact so backend rejection, rather than a local capability guess, disables later requests. Authored against 2.1.285; verified normalizer A parameters e/n, working effort r, max helper l7, xhigh helper G5e. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!l7(n))r="high";if(r==="xhigh"&&!G5e(n))r="high";'
+replacement = "/* effort capability is learned from backend rejection */"
+lineage = "effort-reactive-capability"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "effort-reactive-capability-2-1-285-darwin-arm64 uses current bindings"
+  assert_contains = "/* effort capability is learned from backend rejection */"
+  assert_not_contains = "function uWt(e){n().modelSelection.replaceMainLoopEffortState(e)}"
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-285-darwin-arm64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "darwin-arm64" ]
+rationale = "Queue a visible notice only after the unsupported-effort classifier accepts a backend refusal, retaining the native rejection latch and retry behavior. Authored against 2.1.285; verified recovery callback rye, classifier W$, request options D, drain generator Rye, warning factory Vo in chunk-59zy4j10.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "literal"
+locator_pattern = "rye=(Un)=>{if(!W$(Un))return null;"
+replacement = 'rye=(Un)=>{if(!W$(Un))return null;rye.__acc_notice="Model "+D.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+lineage = "effort-retry-notice-queue"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "effort-retry-notice-queue-2-1-285-darwin-arm64 uses current bindings"
+  assert_contains = 'rye=(Un)=>{if(!W$(Un))return null;rye.__acc_notice="Model "+D.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+  assert_not_contains = 'tce=(zn)=>{if(!ID(zn))return null;tce.__acc_notice="Model "+h.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-285-darwin-arm64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "darwin-arm64" ]
+rationale = "Drain the queued unsupported-effort notice through the native API-message factory while preserving the existing pending-message generator. Authored against 2.1.285; verified recovery callback rye, classifier W$, request options D, drain generator Rye, warning factory Vo in chunk-59zy4j10.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "literal"
+locator_pattern = "function*Rye(){"
+replacement = 'function*Rye(){if(rye.__acc_notice!==void 0){const __acc_notice=rye.__acc_notice;delete rye.__acc_notice;yield Vo({content:__acc_notice,error:"warning"})}'
+lineage = "effort-retry-notice-drain"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "effort-retry-notice-drain-2-1-285-darwin-arm64 uses current bindings"
+  assert_contains = 'function*Rye(){if(rye.__acc_notice!==void 0){const __acc_notice=rye.__acc_notice;delete rye.__acc_notice;yield Vo({content:__acc_notice,error:"warning"})}'
+  assert_not_contains = 'function*lce(){if(tce.__acc_notice!==void 0){const __acc_notice=tce.__acc_notice;delete tce.__acc_notice;yield $o({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-285-linux-x64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "linux-x64" ]
+rationale = "Restore normalized capability lookup for both configured custom model slots before the first-party early return; a configured effort level also declares the associated effort capability. Authored against 2.1.285; verified XD parameters e/n, first-party gate Vl, capability table qD in chunk-f74xvn8g.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(Vl())return;for(let r of qD)"
+replacement = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Vl())return;for(let r of qD)'
+lineage = "custom-model-slot-capabilities"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "custom-model-slot-capabilities-2-1-285-linux-x64 uses current bindings"
+  assert_contains = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}'
+  assert_not_contains = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const __acc_key of ["ANTHROPIC_CUSTOM_MODEL_OPTION","ANTHROPIC_CUSTOM_MODEL_OPTION_2"]){const __acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(e))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(n==="effort"||n==="max_effort"&&__acc_effort==="max"||n==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(bc())return;for(let r of VO)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-285-linux-x64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "linux-x64" ]
+rationale = "Honor explicit environment capability declarations for default model slots before the first-party early return; custom option slots retain their separate precedence. Authored against 2.1.285; verified XD parameters e/n, first-party gate Vl, capability table qD in chunk-f74xvn8g.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(Vl())return;for(let r of qD)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of qD){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Vl())return;for(let r of qD)'
+lineage = "explicit-capabilities-first-party"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "explicit-capabilities-first-party-2-1-285-linux-x64 uses current bindings"
+  assert_contains = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of qD){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Vl())return;for(let r of qD)'
+  assert_not_contains = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of VO){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(bc())return;for(let r of VO)'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-285-linux-x64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "linux-x64" ]
+rationale = "Keep selected max and xhigh effort values intact so backend rejection, rather than a local capability guess, disables later requests. Authored against 2.1.285; verified normalizer A parameters e/n, working effort r, max helper eJ, xhigh helper L6e. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!eJ(n))r="high";if(r==="xhigh"&&!L6e(n))r="high";'
+replacement = "/* effort capability is learned from backend rejection */"
+lineage = "effort-reactive-capability"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "effort-reactive-capability-2-1-285-linux-x64 uses current bindings"
+  assert_contains = "/* effort capability is learned from backend rejection */"
+  assert_not_contains = "function XWt(e){n().modelSelection.replaceMainLoopEffortState(e)}"
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-285-linux-x64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "linux-x64" ]
+rationale = "Queue a visible notice only after the unsupported-effort classifier accepts a backend refusal, retaining the native rejection latch and retry behavior. Authored against 2.1.285; verified recovery callback pye, classifier k0, request options M, drain generator Cye, warning factory Vo in chunk-qazw855w.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "literal"
+locator_pattern = "pye=(Un)=>{if(!k0(Un))return null;"
+replacement = 'pye=(Un)=>{if(!k0(Un))return null;pye.__acc_notice="Model "+M.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+lineage = "effort-retry-notice-queue"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "effort-retry-notice-queue-2-1-285-linux-x64 uses current bindings"
+  assert_contains = 'pye=(Un)=>{if(!k0(Un))return null;pye.__acc_notice="Model "+M.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+  assert_not_contains = 'ece=(zn)=>{if(!rL(zn))return null;ece.__acc_notice="Model "+h.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-285-linux-x64"
+enabled = true
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+platforms = [ "linux-x64" ]
+rationale = "Drain the queued unsupported-effort notice through the native API-message factory while preserving the existing pending-message generator. Authored against 2.1.285; verified recovery callback pye, classifier k0, request options M, drain generator Cye, warning factory Vo in chunk-qazw855w.js. Preserve the established model-local effort and backend-rejection semantics."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "literal"
+locator_pattern = "function*Cye(){"
+replacement = 'function*Cye(){if(pye.__acc_notice!==void 0){const __acc_notice=pye.__acc_notice;delete pye.__acc_notice;yield Vo({content:__acc_notice,error:"warning"})}'
+lineage = "effort-retry-notice-drain"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "effort-retry-notice-drain-2-1-285-linux-x64 uses current bindings"
+  assert_contains = 'function*Cye(){if(pye.__acc_notice!==void 0){const __acc_notice=pye.__acc_notice;delete pye.__acc_notice;yield Vo({content:__acc_notice,error:"warning"})}'
+  assert_not_contains = 'function*ace(){if(ece.__acc_notice!==void 0){const __acc_notice=ece.__acc_notice;delete ece.__acc_notice;yield Fo({content:__acc_notice,error:"warning"})}'

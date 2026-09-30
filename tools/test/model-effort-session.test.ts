@@ -59,10 +59,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       [binding("model normalization", /slug=([\w$]+)\(model/)]: normalize,
       [binding("default model", /model\?\?([\w$]+)\(\)/)]: () => "gpt-5.6-luna",
       [binding("environment effort", /const configured=([\w$]+)\(\)/)]: () => environmentEffort,
-      W: { kind: "default" },
-      [binding("launch default predicate", /if\(honorLaunchPin&&([\w$]+)\((?:slug)?\)(?:\.includes\(slug\))?\)/)]: () => [],
+      [binding("inherited session effort", /const session=state\.sessionEffort\?\?([\w$]+);/)]: { kind: "inherit" },
+      [binding("launch default predicate", /if\(honorLaunchPin&&([\w$]+)\((?:slug)?\)(?:\.includes\(slug\))?\)/)]:
+        () => [],
       [binding("model effort default", /chosen=([\w$]+)\(slug\);source="model launch default"/)]: () => "medium",
-      Y: () => null,
+      [binding("organization effort cap", /chosen=([\w$]+)\(slug\)!==null\?/)]: () => null,
       [binding(
         "backend rejection",
         /if\(([\w$]+)\(slug\)\)\{chosen=(?:undefined|void 0);source="backend default \(effort unsupported\)"/,

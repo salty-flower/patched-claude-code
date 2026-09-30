@@ -3,7 +3,9 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { Terminal } from "@xterm/headless"
+import { gte } from "semver"
 import { createCommand, runCli } from "../lib/cli"
+import { targetVersion } from "../lib/target"
 import { type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { EventConditions } from "./helpers/event-conditions"
 import { shellEnvironment, shellQuote } from "./helpers/pty"
@@ -316,7 +318,19 @@ async function session(
       "effort slider does not explain that the change is model-local",
     )
     recordOracle("slider-scope")
-    await waitFor(() => !screen.includes("ultracode"), "model effort slider still offers the global ultracode workflow")
+    if (gte(targetVersion(), "2.1.285")) {
+      const lines = screen.split("\n")
+      const labels = lines[lines.findIndex((line) => line.includes("▲")) + 1] ?? ""
+      if (/ultracode/i.test(labels)) throw new Error("ultracode still occupies an effort-level slider position")
+      if (/Ultracode/.test(screen) && !/Ultracode\s+(?:on|off)/.test(screen)) {
+        throw new Error("available ultracode control is not a separate on/off toggle")
+      }
+    } else {
+      await waitFor(
+        () => !screen.includes("ultracode"),
+        "model effort slider still offers the global ultracode workflow",
+      )
+    }
     recordOracle("slider-workflow")
     await key("\x1b[D")
     await waitFor(() => sliderLevel() === "xhigh", "effort slider did not adjust max to xhigh")

@@ -32,7 +32,7 @@ import {
   DUAL_GRAPH_SOURCE,
   decodeStandaloneText,
   dispatcherSource,
-  expandZstdTextAsset,
+  materializeStandaloneFileAsset,
   rewriteBunfsSpecifiers,
   sha256HexBytes,
   textAssetRuntimePath,
@@ -178,13 +178,11 @@ function materializePlatform(
     const target = join(graphDir, targetName)
     mkdirSync(dirname(target), { recursive: true })
     const upstream = {
-      encoding: (file.loader === 5
-        ? "zstd"
-        : file.loader === 13 && file.encoding === 2
-          ? "utf16le"
-          : file.loader === 13 && file.encoding === 1
-            ? "latin1"
-            : "identity") as MaterializedFileReport["upstream"]["encoding"],
+      encoding: (file.loader === 13 && file.encoding === 2
+        ? "utf16le"
+        : file.loader === 13 && file.encoding === 1
+          ? "latin1"
+          : "identity") as MaterializedFileReport["upstream"]["encoding"],
       bytes: file.contents.byteLength,
       sha256: sha256HexBytes(file.contents),
     }
@@ -209,17 +207,17 @@ function materializePlatform(
     }
 
     if (file.loader === 5) {
-      const expanded = expandZstdTextAsset(file.contents, `${platform}/${targetName}`)
-      writeFileSync(target, expanded)
+      const asset = materializeStandaloneFileAsset(file.contents, `${platform}/${targetName}`)
+      writeFileSync(target, asset.bytes)
       files.push({
         path: targetName,
         loader: file.loader,
-        transformation: "zstd-decompress-v1",
-        upstream,
+        transformation: asset.transformation,
+        upstream: { ...upstream, encoding: asset.encoding },
         materialized: {
           encoding: "identity",
-          bytes: expanded.byteLength,
-          sha256: sha256HexBytes(expanded),
+          bytes: asset.bytes.byteLength,
+          sha256: sha256HexBytes(asset.bytes),
         },
       })
       continue

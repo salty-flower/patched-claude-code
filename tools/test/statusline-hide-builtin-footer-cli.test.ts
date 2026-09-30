@@ -3,7 +3,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { patchApplies } from "../lib/apply-patches"
-import { applyAstTransformPatches } from "../lib/ast-transform-patches"
+import { applyAstTransformPatches, prepareAstTransformPatches } from "../lib/ast-transform-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
@@ -118,6 +118,73 @@ test("footer schema parses settings with the target graph's actual schema constr
       data: ["footer", "effort_notification"],
     })
     expect(schema.disabledFooter.safeParse(["not-a-footer-item"]).success).toBe(false)
+  }
+})
+
+test("footer visibility invalidates notification memo callbacks and effect dependencies", () => {
+  if (isVersionBefore(TARGET_VERSION, "2.1.282")) return
+  for (const platform of ["darwin-arm64", "linux-x64"]) {
+    const graphDir = join(ROOT, "staging", TARGET_VERSION, "graph", platform)
+    const source = readdirSync(graphDir)
+      .filter((file) => file.endsWith(".js"))
+      .map((file) => readFileSync(join(graphDir, file), "utf8"))
+      .find((text) => text.includes('text:"Deeper reasoning requested for this turn"'))
+    if (!source) throw new Error(`No notification effects in ${platform}`)
+    for (const [lineage, visibility, focused] of [
+      ["statusline-footer-control-effort-level", "__acc_hide_effort_level", true],
+      ["statusline-footer-control-effort-notification", "__acc_hide_effort", false],
+    ] as const) {
+      const patch = activeStatuslinePatches.find(
+        (entry) =>
+          entry.name.startsWith(`${lineage}-2-`) &&
+          entry.ast?.match.node === "IfStatement" &&
+          patchAppliesToPlatform(entry, platform),
+      )
+      if (!patch?.ast || !patch.transform) throw new Error(`No memo patch for ${lineage} in ${platform}`)
+      const prepared = prepareAstTransformPatches(source, [
+        { name: patch.name, ast: patch.ast, transform: patch.transform },
+      ])
+      const result = prepared.results[0]
+      if (!result.ok || result.start === undefined || result.end === undefined) throw new Error(result.message)
+      const block = prepared.source.slice(result.start, prepared.source.length - (source.length - result.end))
+      const memo = /^if\(([\w$]+)\[/.exec(block)?.[1]
+      const callback = /\)([\w$]+)=\(\)=>/.exec(block)?.[1]
+      const dependencies = /},([\w$]+)=\[([^\]]+)\]/.exec(block)
+      if (!memo || !callback || !dependencies) throw new Error(`Unrecognized memo shape: ${patch.name}`)
+      const inputs = dependencies[2].split(",").filter((name) => name !== visibility)
+      const inputNames = inputs.map((name) => name.replace(/\.length$/, ""))
+      const events: string[] = []
+      const add = () => events.push("add")
+      const remove = () => events.push("remove")
+      const inputValues = focused ? ["effort message", add, remove] : [add, remove, ["ultrathink"]]
+      const additionalName = focused ? /key:([\w$]+),/.exec(block)?.[1] : /\.length&&([\w$]+)\(\)/.exec(block)?.[1]
+      if (!additionalName) throw new Error(`Missing native notification input: ${patch.name}`)
+      const render = new Function(
+        memo,
+        visibility,
+        ...inputNames,
+        additionalName,
+        `let ${callback},${dependencies[1]};${block};return {callback:${callback},deps:${dependencies[1]}}`,
+      ) as (...args: unknown[]) => { callback: () => void; deps: unknown[] }
+      const slots: unknown[] = []
+      const run = (hidden: boolean) => render(slots, hidden, ...inputValues, focused ? "effort-key" : () => true)
+      const visible = run(false)
+      visible.callback()
+      expect(events.at(-1)).toBe("add")
+      expect(visible.deps.at(-1)).toBe(false)
+      const hidden = run(true)
+      expect(hidden.callback).not.toBe(visible.callback)
+      expect(hidden.deps).not.toBe(visible.deps)
+      expect(hidden.deps.at(-1)).toBe(true)
+      hidden.callback()
+      expect(events.at(-1)).toBe("remove")
+      const unchanged = run(true)
+      expect(unchanged.callback).toBe(hidden.callback)
+      expect(unchanged.deps).toBe(hidden.deps)
+      const restored = run(false)
+      restored.callback()
+      expect(events.at(-1)).toBe("add")
+    }
   }
 })
 
@@ -785,7 +852,9 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       }
       return
     }
-    if (TARGET_VERSION === "2.1.282") {
+    if (TARGET_VERSION === "2.1.282" || TARGET_VERSION === "2.1.285") {
+      const effortMemoSlot = TARGET_VERSION === "2.1.285" ? 391 : 370
+      const ultrathinkMemoSlot = TARGET_VERSION === "2.1.285" ? 125 : 117
       const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
       const linuxPatched = readdirSync(linuxGraphDir)
         .filter((file) => file.endsWith(".js"))
@@ -808,8 +877,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
           )
           expect(bundle).toContain(`,${selector}]`)
         }
-        expect(bundle).toContain("[370]?.[3]!==__acc_hide_effort_level")
-        expect(bundle).toContain("[117]?.[3]!==__acc_hide_effort")
+        expect(bundle).toContain(`[${effortMemoSlot}]?.[3]!==__acc_hide_effort_level`)
+        expect(bundle).toContain(`[${ultrathinkMemoSlot}]?.[3]!==__acc_hide_effort`)
         expect(bundle).toMatch(/if\(![\w$]+\|\|__acc_hide_effort_level\)\{[\w$]+\([\w$]+\);return}/)
         expect(bundle).toContain("if(!__acc_hide_effort&&")
         expect(bundle).toMatch(/else [\w$]+\("ultrathink-active"\)/)

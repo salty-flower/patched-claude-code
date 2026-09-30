@@ -153,7 +153,9 @@ function assertAgentTool(agent: JsonRecord): void {
   }
   const toolDescription = typeof agent.description === "string" ? agent.description : ""
   if (!toolDescription.includes("the `model` and `effort` parameters here override the definition for this one call")) {
-    throw new Error("Agent usage prompt does not advertise per-call model and effort overrides")
+    throw new Error(
+      `Agent usage prompt does not advertise per-call model and effort overrides: ${JSON.stringify(toolDescription)}`,
+    )
   }
   if (toolDescription.includes("a `model` override is ignored")) {
     throw new Error("Agent usage prompt retains the model-only fork restriction")

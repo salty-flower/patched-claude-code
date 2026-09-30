@@ -127,6 +127,7 @@ async function session(
   let transcript = ""
   let exited = false
   let outputError: unknown
+  let exitTranscriptOffset: number | undefined
   const unsubscribe = stub.onRequest(() => events.notify())
   void proc.exited.then((code) => {
     clearTimeout(watchdog)
@@ -136,6 +137,9 @@ async function session(
   const output = (async () => {
     for await (const chunk of proc.stdout) {
       transcript += new TextDecoder().decode(chunk)
+      // Close input only after the CLI has begun restoring the terminal.
+      // Earlier EOF can race Enter; leaving it open keeps the pipe wrapper alive.
+      if (exitTranscriptOffset !== undefined && transcript.includes("\x1b[?1049l", exitTranscriptOffset)) endInput()
       await new Promise<void>((done) => terminal.write(chunk, done))
       screen = screenText(terminal)
       if (screen.includes("❯")) lastInteractiveScreen = screen
@@ -365,9 +369,10 @@ async function session(
           "footer retains rejected max effort",
         ),
     })
+    exitTranscriptOffset = transcript.length
     await submit("/exit")
-    endInput()
     const code = await proc.exited
+    endInput()
     await output
     const stderr = await errors
     if (process.env.TUI_SMOKE_SHOW_STDERR === "1" && stderr) console.log(`pty stderr:\n${stderr}`)

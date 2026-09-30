@@ -238,7 +238,15 @@ jobs:
                ([.platforms[].files[] |
                  (.upstream.sha256 | type == "string") and
                  (.materialized.sha256 | type == "string") and
-                 (if .loader == 5 then .transformation == "zstd-decompress-v1" else true end)] | all)' \
+                 (if .loader == 5 then
+                   .materialized.encoding == "identity" and
+                   (if .upstream.encoding == "zstd" then .transformation == "zstd-decompress-v1"
+                    elif .upstream.encoding == "identity" then
+                      .transformation == "identity" and
+                      .upstream.sha256 == .materialized.sha256 and
+                      .upstream.bytes == .materialized.bytes
+                    else false end)
+                 else true end)] | all)' \
               "$stage/graph-manifest.json"
           else
             jq -e \
@@ -311,7 +319,15 @@ jobs:
                ([.platforms[].files[] |
                  (.upstream.sha256 | type == "string") and
                  (.materialized.sha256 | type == "string") and
-                 (if .loader == 5 then .transformation == "zstd-decompress-v1" else true end)] | all)' \
+                 (if .loader == 5 then
+                   .materialized.encoding == "identity" and
+                   (if .upstream.encoding == "zstd" then .transformation == "zstd-decompress-v1"
+                    elif .upstream.encoding == "identity" then
+                      .transformation == "identity" and
+                      .upstream.sha256 == .materialized.sha256 and
+                      .upstream.bytes == .materialized.bytes
+                    else false end)
+                 else true end)] | all)' \
               "$stage/graph-manifest.json"
           else
             jq -e \

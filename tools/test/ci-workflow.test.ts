@@ -7,6 +7,51 @@ import { DEFAULT_TARGET_VERSION } from "../lib/target"
 const ROOT = join(import.meta.dir, "..", "..")
 const WORKFLOW = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8")
 
+test("canonical workflow gates accept raw assets and reject inconsistent materialization", () => {
+  let checked = 0
+  for (const name of ["ci.yml", "auto-release.yml"]) {
+    const workflow = readFileSync(join(ROOT, ".github", "workflows", name), "utf8")
+    for (const match of workflow.matchAll(/'([^']*\.loader == 5[^']*)'/g)) {
+      const compressed = {
+        loader: 5,
+        upstream: { encoding: "zstd", sha256: "compressed", bytes: 10 },
+        materialized: { encoding: "identity", sha256: "expanded", bytes: 20 },
+        transformation: "zstd-decompress-v1",
+      }
+      const raw = {
+        loader: 5,
+        upstream: { encoding: "identity", sha256: "font", bytes: 30 },
+        materialized: { encoding: "identity", sha256: "font", bytes: 30 },
+        transformation: "identity",
+      }
+      for (const [asset, accepted] of [
+        [raw, true],
+        [{ ...raw, transformation: "zstd-decompress-v1" }, false],
+        [{ ...raw, materialized: { ...raw.materialized, sha256: "changed" } }, false],
+        [{ ...raw, materialized: { ...raw.materialized, bytes: 31 } }, false],
+        [{ ...raw, upstream: { ...raw.upstream, encoding: "unknown" } }, false],
+        [{ ...compressed, transformation: "identity" }, false],
+      ] as const) {
+        const manifest = {
+          schema: 2,
+          mergePolicy: "canonical-dual-graph-v1",
+          textAssetMaterialization: "zstd-decompress-v1",
+          platforms: [{ files: [compressed, asset] }, { files: [compressed, asset] }],
+        }
+        const result = Bun.spawnSync(["jq", "-e", match[1]!], {
+          stdin: Buffer.from(JSON.stringify(manifest)),
+          stdout: "pipe",
+          stderr: "pipe",
+        })
+        expect(result.stderr.toString()).toBe("")
+        expect(result.exitCode).toBe(accepted ? 0 : 1)
+      }
+      checked++
+    }
+  }
+  expect(checked).toBe(3)
+})
+
 function workflowStep(name: string, workflow = WORKFLOW): string {
   const start = workflow.indexOf(`- name: ${name}`)
   expect(start).toBeGreaterThanOrEqual(0)

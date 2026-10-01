@@ -16,6 +16,7 @@ function pickerSource(patch: PatchEntry): string {
   // Structural locators must capture these fixture bindings and preserve the
   // upstream first-slot statement before adding the second slot.
   // Deliberately use names distinct from the staged bundle's minified bindings.
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: this string is JavaScript fixture source.
   return "if(slot&&!rows.some((row)=>row.value===slot))rows.push({value:slot,label:settings.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??labelForModel(slot)??slot,description:settings.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${slot})`,sessionTail:!0});"
 }
 
@@ -160,6 +161,45 @@ for (const patch of pickerPatches) {
   })
 }
 
+for (const patch of pickerPatches.filter((entry) => patchApplies(entry, TARGET_VERSION))) {
+  test(`${patch.name}: ten slots retain order and metadata, skipping empty and duplicate models`, () => {
+    const environment: Environment = {}
+    for (let slot = 1; slot <= 11; slot += 1) {
+      const key = `ANTHROPIC_CUSTOM_MODEL_OPTION${slot === 1 ? "" : `_${slot}`}`
+      environment[key] = `provider/model-${slot}`
+      environment[`${key}_NAME`] = `Slot ${slot}`
+      environment[`${key}_DESCRIPTION`] = `Description ${slot}`
+    }
+    const run = picker(patch)
+    const rows = run([], environment)
+    expect(rows).toHaveLength(10)
+    expect(rows.map((row) => row.label)).toEqual(Array.from({ length: 10 }, (_, i) => `Slot ${i + 1}`))
+    expect(rows[9]).toEqual({ value: "provider/model-10", label: "Slot 10", description: "Description 10" })
+    environment.ANTHROPIC_CUSTOM_MODEL_OPTION_3 = " "
+    delete environment.ANTHROPIC_CUSTOM_MODEL_OPTION_4
+    environment.ANTHROPIC_CUSTOM_MODEL_OPTION_8 = " PROVIDER/MODEL-2[1M] "
+    environment.ANTHROPIC_CUSTOM_MODEL_OPTION_9 = "provider/pinned"
+    environment.ANTHROPIC_DEFAULT_SONNET_MODEL = " Provider/Pinned[1m] "
+    delete environment.ANTHROPIC_CUSTOM_MODEL_OPTION_10_NAME
+    delete environment.ANTHROPIC_CUSTOM_MODEL_OPTION_10_DESCRIPTION
+    const sparse = run([{ value: "sonnet" }], environment)
+    expect(sparse.map((row) => row.value)).toEqual([
+      "sonnet",
+      "provider/model-1",
+      "provider/model-2",
+      "provider/model-5",
+      "provider/model-6",
+      "provider/model-7",
+      "provider/model-10",
+    ])
+    expect(sparse.at(-1)).toEqual({
+      value: "provider/model-10",
+      label: "provider/model-10",
+      description: "Custom model 10 (provider/model-10)",
+    })
+  })
+}
+
 for (const patch of entries.filter((entry) => /^(recognize|validate)-second-custom-model-option/.test(entry.name))) {
   test(`${patch.name}: slot 2 is preconfigured without a namespace getter`, () => {
     if (!patch.ast || !patch.transform) throw new Error(`${patch.name}: missing AST transform`)
@@ -180,7 +220,7 @@ for (const patch of entries.filter((entry) => /^(recognize|validate)-second-cust
     if (!candidate) throw new Error(`${patch.name}: unsupported fixture binding`)
     const declarations = namespace
       ? `const ${namespace}=Object.freeze({ANTHROPIC_CUSTOM_MODEL_OPTION:"provider/first"});`
-      : "const " + (recognition?.[1] ?? "firstModel") + '=(model)=>model==="provider/first";'
+      : `const ${recognition?.[1] ?? "firstModel"}=(model)=>model==="provider/first";`
     const fixture = `function fixture(${candidate}){${declarations}${source}return false}`
     const transformed = applyAstTransformPatches(fixture, [
       {
@@ -199,5 +239,17 @@ for (const patch of entries.filter((entry) => /^(recognize|validate)-second-cust
     expect(execute(process, "provider/second")).toEqual({ [field]: true })
     expect(execute(process, "provider/first")).toEqual({ [field]: true })
     expect(execute(process, "provider/unconfigured")).toBe(false)
+    if (patchApplies(patch, TARGET_VERSION)) {
+      for (let slot = 3; slot <= 10; slot += 1) {
+        expect(
+          execute(
+            { env: { [`ANTHROPIC_CUSTOM_MODEL_OPTION_${slot}`]: ` provider/slot-${slot} ` } },
+            `provider/slot-${slot}`,
+          ),
+        ).toEqual({ [field]: true })
+      }
+      expect(execute({ env: { ANTHROPIC_CUSTOM_MODEL_OPTION_10: " " } }, "")).toBe(false)
+      expect(execute({ env: { ANTHROPIC_CUSTOM_MODEL_OPTION_11: "provider/eleven" } }, "provider/eleven")).toBe(false)
+    }
   })
 }

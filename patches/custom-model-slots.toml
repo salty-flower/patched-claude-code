@@ -2496,7 +2496,7 @@ name = "append-second-custom-model-option-2-1-285"
 lineage = "append-second-custom-model-option"
 target_version = "2.1.285"
 applies_to = ">=2.1.285 <2.1.286"
-rationale = "Preserve the 2.1.285 slot-one row and add the second custom slot with alias-aware duplicate suppression. Capture the rows array and first slot from the matched conditional; retain the original label helper and callback from the target bytes. No replacement depends on their minified names."
+rationale = "Preserve the 2.1.285 slot-one row and add custom slots 2 through 10 with alias-aware duplicate suppression. Capture the rows array and first slot from the matched conditional; retain the original label helper and callback from the target bytes. No replacement depends on their minified names."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
 locator_kind = "ast_transform"
 
@@ -2522,12 +2522,12 @@ path = "test.left"
 
   [patches.transform]
   op = "wrap_expression"
-  template = '{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim();if(__acc_custom_model_2&&!__acc_dup(%%CAPTURE:rows%%,__acc_custom_model_2))%%CAPTURE:rows%%.push({value:__acc_custom_model_2,label:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME??__acc_custom_model_2,description:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_DESCRIPTION??`Custom model 2 (${__acc_custom_model_2})`});}'
+  template = '{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot,__acc_model=process.env[__acc_key]?.trim();if(__acc_model&&!__acc_dup(%%CAPTURE:rows%%,__acc_model))%%CAPTURE:rows%%.push({value:__acc_model,label:process.env[__acc_key+"_NAME"]??__acc_model,description:process.env[__acc_key+"_DESCRIPTION"]??`Custom model ${__acc_slot} (${__acc_model})`});}}'
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.285 inserts slot two into the captured picker rows"
-  assert_contains = "if(__acc_custom_model_2&&!__acc_dup(s,__acc_custom_model_2))s.push({value:__acc_custom_model_2"
+  name = "2.1.285 inserts slots 2 through 10 into the captured picker rows"
+  assert_contains = "if(__acc_model&&!__acc_dup(s,__acc_model))s.push({value:__acc_model"
   assert_not_contains = "if(!__acc_dup(s,g)){if(g&&!s.some((D)=>D.value===g))s.push({value:g,label:a.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??Tit(g)"
 
 
@@ -2536,7 +2536,7 @@ name = "recognize-second-custom-model-option-2-1-285"
 lineage = "recognize-second-custom-model-option"
 target_version = "2.1.285"
 applies_to = ">=2.1.285 <2.1.286"
-rationale = "Recognize the second custom slot immediately after the existing slot-one predicate in 2.1.285. Capture its trimmed model argument; preserve Darwin a4n and Linux B5n calls from target bytes instead of injecting helper names."
+rationale = "Recognize custom slots 2 through 10 immediately after the existing slot-one predicate in 2.1.285. Capture its trimmed model argument; preserve Darwin a4n and Linux B5n calls from target bytes instead of injecting helper names."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
 locator_kind = "ast_transform"
 
@@ -2553,12 +2553,12 @@ path = "test.arguments.0"
 
   [patches.transform]
   op = "insert_after_node"
-  code = "if(%%CAPTURE:model%%===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};"
+  code = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_model=process.env["ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot]?.trim();if(__acc_model&&%%CAPTURE:model%%===__acc_model)return{recognized:!0};}'
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.285 recognizes the second model without a probe"
-  assert_contains = "if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{recognized:!0};"
+  name = "2.1.285 recognizes models in slots 2 through 10 without a probe"
+  assert_contains = 'if(__acc_model&&n===__acc_model)return{recognized:!0};'
   assert_not_contains = "if(yUn(n))return{recognized:!0};"
 
 
@@ -2567,7 +2567,7 @@ name = "validate-second-custom-model-option-without-probe-2-1-285"
 lineage = "validate-second-custom-model-option-without-probe"
 target_version = "2.1.285"
 applies_to = ">=2.1.285 <2.1.286"
-rationale = "Prevalidate the second custom slot beside the first slot before the optional server probe in 2.1.285. Capture the trimmed model binding; the injected check names only process.env and does not reuse the prior version parameter n."
+rationale = "Prevalidate custom slots 2 through 10 beside the first slot before the optional server probe in 2.1.285. Capture the trimmed model binding; the injected check names only process.env and does not reuse the prior version parameter n."
 rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
 locator_kind = "ast_transform"
 
@@ -2584,10 +2584,10 @@ path = "test.left"
 
   [patches.transform]
   op = "insert_after_node"
-  code = "if(%%CAPTURE:model%%===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};"
+  code = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_model=process.env["ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot]?.trim();if(__acc_model&&%%CAPTURE:model%%===__acc_model)return{valid:!0};}'
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.285 skips the server probe for the second model"
-  assert_contains = "if(r===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};"
+  name = "2.1.285 skips the server probe for models in slots 2 through 10"
+  assert_contains = 'if(__acc_model&&r===__acc_model)return{valid:!0};'
   assert_not_contains = "if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};"

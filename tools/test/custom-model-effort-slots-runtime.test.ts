@@ -10,6 +10,7 @@ const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
 const CUSTOM_MODEL_1 = "provider/custom-model-1"
 const CUSTOM_MODEL_2 = "provider/custom-model-2"
+const CUSTOM_MODEL_10 = "provider/custom-model-10"
 
 const tempDirs: string[] = []
 const stubs: ClaudeApiStub[] = []
@@ -27,16 +28,21 @@ function makeTempDir(prefix: string): string {
 
 function requestBody(request: ClaudeApiRequest): {
   model?: string
-  output_config?: { effort?: string }
+  output_config?: { effort?: string; format?: unknown }
 } {
   if (typeof request.jsonBody !== "object" || request.jsonBody === null) {
     throw new Error("captured request has no JSON body")
   }
-  return request.jsonBody as { model?: string; output_config?: { effort?: string } }
+  return request.jsonBody as { model?: string; output_config?: { effort?: string; format?: unknown } }
 }
 
 async function runPrint(bundle: string, home: string, stub: ClaudeApiStub, model: string): Promise<ClaudeApiRequest> {
   const before = stub.requests.length
+  const environment = Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key]) => !key.startsWith("ANTHROPIC_") && !key.startsWith("CLAUDE_CODE_") && key !== "CLAUDE_CONFIG_DIR",
+    ),
+  )
   const proc = Bun.spawn({
     cmd: [
       process.execPath,
@@ -52,7 +58,7 @@ async function runPrint(bundle: string, home: string, stub: ClaudeApiStub, model
     ],
     cwd: home,
     env: {
-      ...process.env,
+      ...environment,
       HOME: home,
       CLAUDE_CONFIG_DIR: join(home, ".claude"),
       ANTHROPIC_API_KEY: "stub-api-key",
@@ -65,6 +71,9 @@ async function runPrint(bundle: string, home: string, stub: ClaudeApiStub, model
       ANTHROPIC_CUSTOM_MODEL_OPTION_2_NAME: "Custom Two",
       ANTHROPIC_CUSTOM_MODEL_OPTION_2_SUPPORTED_CAPABILITIES: "effort",
       ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL: "high",
+      ANTHROPIC_CUSTOM_MODEL_OPTION_10: CUSTOM_MODEL_10,
+      ANTHROPIC_CUSTOM_MODEL_OPTION_10_SUPPORTED_CAPABILITIES: "effort,xhigh_effort",
+      ANTHROPIC_CUSTOM_MODEL_OPTION_10_EFFORT_LEVEL: "xhigh",
       CLAUDE_CODE_EFFORT_LEVEL: "low",
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
       CLAUDE_CODE_SKIP_ONBOARDING: "1",
@@ -85,7 +94,11 @@ async function runPrint(bundle: string, home: string, stub: ClaudeApiStub, model
   const request = stub.requests
     .slice(before)
     .reverse()
-    .find((candidate) => candidate.path.endsWith("/messages"))
+    .find((candidate) => {
+      if (!candidate.path.endsWith("/messages")) return false
+      const body = requestBody(candidate)
+      return body.model === model && body.output_config?.format === undefined
+    })
   if (!request) throw new Error(`rendered bundle did not reach the message stub\n${stdout}\n${stderr}`)
   return request
 }
@@ -112,6 +125,10 @@ test("custom model slots keep their efforts separate from each other and global 
   const customRequest2 = requestBody(await runPrint(bundle, home, stub, CUSTOM_MODEL_2))
   expect(customRequest2.model).toBe(CUSTOM_MODEL_2)
   expect(customRequest2.output_config?.effort).toBe("high")
+
+  const customRequest10 = requestBody(await runPrint(bundle, home, stub, CUSTOM_MODEL_10))
+  expect(customRequest10.model).toBe(CUSTOM_MODEL_10)
+  expect(customRequest10.output_config?.effort).toBe("xhigh")
 
   const globalRequest = requestBody(await runPrint(bundle, home, stub, "claude-sonnet-4-6"))
   expect(globalRequest.model).toBe("claude-sonnet-4-6")

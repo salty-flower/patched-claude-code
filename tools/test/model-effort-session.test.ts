@@ -91,6 +91,21 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       ) => string | undefined
     }
     expect(read("sonnet")).toMatchObject({ slug: "gpt-5.6-luna", value: "max", source: "configured default" })
+    for (let slot = 2; slot <= 10; slot += 1) {
+      const key = `ANTHROPIC_CUSTOM_MODEL_OPTION_${slot}`
+      environment[key] = ` Provider/Slot-${slot}[1m] `
+      environment[`${key}_EFFORT_LEVEL`] = slot % 2 === 0 ? " XHIGH " : " LOW "
+      expect(read(`provider/slot-${slot}`)).toMatchObject({
+        value: slot % 2 === 0 ? "xhigh" : "low",
+        source: "configured default",
+      })
+    }
+    expect(read("provider/slot-10", "set", "high").value).toBe("high")
+    expect(read("provider/slot-9").value).toBe("low")
+    expect(read("provider/slot-10", "clear").value).toBe("xhigh")
+    environment.ANTHROPIC_CUSTOM_MODEL_OPTION_11 = "provider/eleven"
+    environment.ANTHROPIC_CUSTOM_MODEL_OPTION_11_EFFORT_LEVEL = "max"
+    expect(read("provider/eleven").value).toBe("medium")
     expect(read("gpt-6-astra", "set", "low").value).toBe("low")
     expect(read("sonnet").value).toBe("max")
     // A subagent caller can pass the main loop's effort as fallback; slot defaults still win.

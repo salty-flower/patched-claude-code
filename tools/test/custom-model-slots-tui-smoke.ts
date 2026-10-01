@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { Terminal } from "@xterm/headless"
 import { createCommand, runCli } from "../lib/cli"
-import { startClaudeApiStub } from "./helpers/claude-api-stub"
+import { type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
 
 type Args = {
@@ -14,6 +14,7 @@ type Args = {
 
 const CUSTOM_MODEL_1 = "provider/custom-model-1"
 const CUSTOM_MODEL_2 = "provider/custom-model-2"
+const CUSTOM_MODEL_10 = "provider/custom-model-10"
 
 type PickerCase = {
   name: string
@@ -22,6 +23,10 @@ type PickerCase = {
   present: string[]
   absent: string[]
   select?: string
+  selectedModel?: string
+  expectedEffort?: string
+  cols?: number
+  height?: number
 }
 
 // Read rendered cells, not accumulated ANSI output: removed rows must not count.
@@ -33,9 +38,16 @@ function screenText(terminal: Terminal): string {
   ).join("\n")
 }
 
-async function runPicker(bundle: string, scenario: PickerCase, timeoutSeconds: number, baseUrl: string): Promise<void> {
+async function runPicker(
+  bundle: string,
+  scenario: PickerCase,
+  timeoutSeconds: number,
+  stub: ClaudeApiStub,
+): Promise<void> {
   const home = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-custom-picker-")))
-  const terminal = new Terminal({ allowProposedApi: true, cols: 120, rows: 40, scrollback: 100 })
+  const cols = scenario.cols ?? 120
+  const height = scenario.height ?? 40
+  const terminal = new Terminal({ allowProposedApi: true, cols, rows: height, scrollback: 100 })
   const configDir = join(home, ".claude")
   mkdirSync(configDir, { recursive: true })
   await Bun.write(
@@ -51,7 +63,7 @@ async function runPicker(bundle: string, scenario: PickerCase, timeoutSeconds: n
     HOME: home,
     CLAUDE_CONFIG_DIR: configDir,
     ANTHROPIC_API_KEY: "stub-api-key",
-    ANTHROPIC_BASE_URL: baseUrl,
+    ANTHROPIC_BASE_URL: stub.baseUrl,
     ANTHROPIC_CUSTOM_MODEL_OPTION: CUSTOM_MODEL_1,
     ANTHROPIC_CUSTOM_MODEL_OPTION_NAME: "PICKER SLOT ONE",
     ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION: "First independent custom slot",
@@ -71,7 +83,7 @@ async function runPicker(bundle: string, scenario: PickerCase, timeoutSeconds: n
       ([key]) => !key.startsWith("ANTHROPIC_") && !key.startsWith("CLAUDE_CODE_") && key !== "CLAUDE_CONFIG_DIR",
     ),
   )
-  const command = `stty cols 120 rows 40; exec timeout --kill-after=3s ${Math.max(timeoutSeconds, 45)}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(environment.ANTHROPIC_CUSTOM_MODEL_OPTION)}`
+  const command = `stty cols ${cols} rows ${height}; exec timeout --kill-after=3s ${Math.max(timeoutSeconds, 45)}s env ${shellEnvironment(environment)} bun --preload ${shellQuote(resolve(import.meta.dir, "..", "..", "runtime", "bun-ant-cell-segmenter.ts"))} ${shellQuote(bundle)} --bare --model ${shellQuote(environment.ANTHROPIC_CUSTOM_MODEL_OPTION)}`
   const proc = Bun.spawn({
     // Bun uses a socket for stdin:"pipe"; Darwin script requires a real pipe.
     cmd: ["bash", "-lc", makeScriptCommand(command, "cat")],
@@ -156,10 +168,31 @@ async function runPicker(bundle: string, scenario: PickerCase, timeoutSeconds: n
         await waitFor(() => selected() !== previous, "selection did not advance to custom slot")
       }
       await key("\r")
-      await waitFor(
-        () => !screen.includes("Select model") && screen.includes(CUSTOM_MODEL_2),
-        "slot 2 was not selected",
-      )
+      const model = scenario.selectedModel ?? CUSTOM_MODEL_2
+      await waitFor(() => !screen.includes("Select model") && screen.includes(model), `${model} was not selected`)
+      if (scenario.expectedEffort) {
+        const before = stub.requests.length
+        const prompt = "check tenth slot effort"
+        await key(prompt)
+        await waitFor(() => screen.includes(prompt), "request prompt was not echoed")
+        await key("\r")
+        await waitFor(() => screen.includes(stub.text), "local API response missing")
+        const requests = stub.requests.slice(before).filter((request) => request.path.endsWith("/messages"))
+        const body = requests
+          .map(
+            (request) =>
+              request.jsonBody as {
+                model?: string
+                output_config?: { effort?: string; format?: unknown }
+              },
+          )
+          .find((body) => body.model === model && body.output_config?.format === undefined)
+        if (body?.output_config?.effort !== scenario.expectedEffort) {
+          throw new Error(
+            `${scenario.name}: expected ${model} effort ${scenario.expectedEffort}, got ${JSON.stringify(body)}`,
+          )
+        }
+      }
     } else {
       await key("\x1b")
       await waitFor(() => !screen.includes("Select model"), "picker did not close")
@@ -297,7 +330,7 @@ async function main(): Promise<number> {
     return 2
   }
   const bundle = resolve(args.bundle)
-  const stub = await startClaudeApiStub()
+  const stub = await startClaudeApiStub({ text: "tenth slot request verified" })
   try {
     await runCustomModel(bundle, CUSTOM_MODEL_1, "medium", args.timeoutSeconds, stub.baseUrl)
     await runCustomModel(bundle, CUSTOM_MODEL_2, "high", args.timeoutSeconds, stub.baseUrl)
@@ -312,7 +345,63 @@ async function main(): Promise<number> {
         select: "PICKER SLOT TWO",
       },
       args.timeoutSeconds,
-      stub.baseUrl,
+      stub,
+    )
+    const extraSlots: Record<string, string> = {}
+    for (let slot = 3; slot <= 10; slot += 1) {
+      const key = `ANTHROPIC_CUSTOM_MODEL_OPTION_${slot}`
+      extraSlots[key] = `provider/custom-model-${slot}`
+      extraSlots[`${key}_NAME`] = `PICKER SLOT ${slot}`
+      extraSlots[`${key}_DESCRIPTION`] = `Independent custom slot ${slot}`
+    }
+    await runPicker(
+      bundle,
+      {
+        name: "all ten slots render and the tenth sends its own effort",
+        environment: {
+          ...extraSlots,
+          ANTHROPIC_CUSTOM_MODEL_OPTION_10_EFFORT_LEVEL: "xhigh",
+          ANTHROPIC_CUSTOM_MODEL_OPTION_10_SUPPORTED_CAPABILITIES: "effort,xhigh_effort",
+        },
+        expectedRows: 15,
+        present: ["PICKER SLOT ONE", "PICKER SLOT TWO", ...Array.from({ length: 8 }, (_, i) => `PICKER SLOT ${i + 3}`)],
+        absent: [],
+        select: "PICKER SLOT 10",
+        selectedModel: CUSTOM_MODEL_10,
+        expectedEffort: "xhigh",
+      },
+      args.timeoutSeconds,
+      stub,
+    )
+    await runPicker(
+      bundle,
+      {
+        name: "narrow picker skips gaps and duplicate slots while slot ten stays selectable",
+        environment: {
+          ...extraSlots,
+          ANTHROPIC_CUSTOM_MODEL_OPTION_3: " ",
+          ANTHROPIC_CUSTOM_MODEL_OPTION_4: "",
+          ANTHROPIC_CUSTOM_MODEL_OPTION_8: ` ${CUSTOM_MODEL_2.toUpperCase()}[1m] `,
+          ANTHROPIC_CUSTOM_MODEL_OPTION_9: "provider/tier-sonnet",
+          ANTHROPIC_DEFAULT_SONNET_MODEL: "provider/tier-sonnet[1m]",
+        },
+        expectedRows: 11,
+        present: [
+          "PICKER SLOT ONE",
+          "PICKER SLOT TWO",
+          "PICKER SLOT 5",
+          "PICKER SLOT 6",
+          "PICKER SLOT 7",
+          "PICKER SLOT 10",
+        ],
+        absent: ["PICKER SLOT 3", "PICKER SLOT 4", "PICKER SLOT 8", "PICKER SLOT 9"],
+        select: "PICKER SLOT 10",
+        selectedModel: CUSTOM_MODEL_10,
+        cols: 80,
+        height: 24,
+      },
+      args.timeoutSeconds,
+      stub,
     )
     const tierPins = {
       ANTHROPIC_DEFAULT_FABLE_MODEL: "provider/tier-fable",
@@ -332,7 +421,7 @@ async function main(): Promise<number> {
         absent: ["PICKER SLOT ONE", "PICKER SLOT TWO"],
       },
       args.timeoutSeconds,
-      stub.baseUrl,
+      stub,
     )
     await runPicker(
       bundle,
@@ -343,7 +432,7 @@ async function main(): Promise<number> {
         absent: ["PICKER SLOT TWO"],
       },
       args.timeoutSeconds,
-      stub.baseUrl,
+      stub,
     )
     return 0
   } finally {

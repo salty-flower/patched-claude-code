@@ -2,16 +2,31 @@
 
 ## Picker rows versus model configuration
 
-`ANTHROPIC_CUSTOM_MODEL_OPTION` and `ANTHROPIC_CUSTOM_MODEL_OPTION_2`
-add custom models to `/model` only when an equivalent row is not already present.
-Slot 2 reads its slug, `_NAME`, and `_DESCRIPTION` directly from `process.env`;
-it does not require registration in upstream's environment accessor.
+From patched 2.1.285, configure up to **10 custom model slots**.
+Slot 1 uses `ANTHROPIC_CUSTOM_MODEL_OPTION`;
+slots 2–10 use `ANTHROPIC_CUSTOM_MODEL_OPTION_2` through `ANTHROPIC_CUSTOM_MODEL_OPTION_10`.
+Existing slot 1 and slot 2 configuration remains compatible.
+Each slot adds a model to `/model` only when an equivalent row is not already present.
+Slots 2–10 read their slug, `_NAME`, and `_DESCRIPTION` directly from `process.env`;
+they do not require registration in upstream's environment accessor.
+Unset and whitespace-only added slots are skipped; gaps do not hide later slots.
 
-Deduplication compares both slots against the rows actually present in the picker.
+Each slot accepts `_NAME`, `_DESCRIPTION`, `_EFFORT_LEVEL`, and `_SUPPORTED_CAPABILITIES` suffixes.
+For example, configure slot 10 in your launch environment:
+
+```text
+ANTHROPIC_CUSTOM_MODEL_OPTION_10=provider/my-model
+ANTHROPIC_CUSTOM_MODEL_OPTION_10_NAME=My model
+ANTHROPIC_CUSTOM_MODEL_OPTION_10_DESCRIPTION=My tenth custom model
+ANTHROPIC_CUSTOM_MODEL_OPTION_10_EFFORT_LEVEL=xhigh
+ANTHROPIC_CUSTOM_MODEL_OPTION_10_SUPPORTED_CAPABILITIES=effort,xhigh_effort
+```
+
+Deduplication compares every slot against the rows actually present in the picker.
 For `fable`, `opus`, `sonnet`, and `haiku` rows,
 it resolves the corresponding `ANTHROPIC_DEFAULT_<TIER>_MODEL` pin.
 Comparisons ignore surrounding whitespace, case, and `[1m]` annotations.
-The second slot also deduplicates against the first.
+Later slots also deduplicate against earlier slots, in numeric slot order.
 
 A configured tier pin cannot suppress a slot when that tier row is absent.
 Removing a pin or choosing an unrelated custom model can make the slot reappear.
@@ -51,7 +66,7 @@ These displays describe the request parameter, not unverifiable reasoning perfor
 
 ## Agent model and effort overrides
 
-`Agent` accepts any model ID, including either configured custom-slot model.
+`Agent` accepts any model ID, including all configured custom-slot models.
 It accepts `low`, `medium`, `high`, `xhigh`, or `max` as an optional effort override.
 The model-visible tool description names full custom model IDs and both per-call overrides.
 Coordinator guidance keeps model inheritance as the default,
@@ -72,6 +87,8 @@ The transform tests exercise every historical picker variant,
 including absent tier rows, annotated pins, duplicate slots, and direct slot 2 environment access.
 The API-stub PTY smoke test opens `/model`, enumerates a complete row-selection cycle,
 selects a distinct second slot, and checks both pinned-tier deduplication and unrelated-slot visibility.
+It also enumerates all ten slots, captures a slot 10 request with its own effort,
+and selects slot 10 in an 80-column picker with empty and duplicate intermediate slots.
 `tools/test/model-effort-session-tui-smoke.ts` checks session choices against rendered screens and captured local API requests.
 It advances on parsed terminal updates and captured HTTP requests, not fixed input delays or polling.
 Text submission requires a ready cursor-line prompt and a complete input echo before Enter.

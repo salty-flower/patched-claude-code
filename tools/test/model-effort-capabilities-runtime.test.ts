@@ -15,7 +15,7 @@ function mainConversation(request: ClaudeApiRequest): boolean {
   return request.path.endsWith("/messages") && body?.output_config?.format === undefined
 }
 
-for (const mode of ["tier declaration", "second slot default"] as const) {
+for (const mode of ["tier declaration", "second slot default", "tenth slot default"] as const) {
   test(`rendered firstParty ${mode} sends max then retries without effort after backend rejection`, async () => {
     const work = mkdtempSync(join(tmpdir(), "patched-cc-backend-effort-"))
     const home = join(work, "home")
@@ -81,9 +81,10 @@ for (const mode of ["tier declaration", "second slot default"] as const) {
                 ANTHROPIC_DEFAULT_FABLE_MODEL_SUPPORTED_CAPABILITIES: "effort,max_effort",
               }
             : {
-                ANTHROPIC_CUSTOM_MODEL_OPTION_2: "gpt-5.6-astra",
-                ANTHROPIC_CUSTOM_MODEL_OPTION_2_EFFORT_LEVEL: "max",
-                ANTHROPIC_CUSTOM_MODEL_OPTION_2_SUPPORTED_CAPABILITIES: "effort",
+                [`ANTHROPIC_CUSTOM_MODEL_OPTION_${mode === "second slot default" ? 2 : 10}`]: "gpt-5.6-astra",
+                [`ANTHROPIC_CUSTOM_MODEL_OPTION_${mode === "second slot default" ? 2 : 10}_EFFORT_LEVEL`]: "max",
+                [`ANTHROPIC_CUSTOM_MODEL_OPTION_${mode === "second slot default" ? 2 : 10}_SUPPORTED_CAPABILITIES`]:
+                  "effort",
               }),
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
           CLAUDE_CODE_SKIP_ONBOARDING: "1",

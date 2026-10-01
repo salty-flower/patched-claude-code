@@ -22,7 +22,10 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     const sources = files
       .map((file) => readFileSync(join(graph, file), "utf8"))
       .filter((source) => source.includes(locator))
-    if (sources.length !== 1) throw new Error(`${patch.name}: expected one current graph file, found ${sources.length}`)
+    let source = sources[0]
+    if (sources.length !== 1 || source === undefined) {
+      throw new Error(`${patch.name}: expected one current graph file, found ${sources.length}`)
+    }
     const sameSite = entries.filter(
       (candidate) =>
         candidate.locator_kind === patch.locator_kind &&
@@ -30,7 +33,6 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
         patchApplies(candidate, version) &&
         (candidate.platforms?.includes(platform) ?? true),
     )
-    let source = sources[0]!
     let original = source
     for (const candidate of sameSite) {
       const result = patchedFunction(source, candidate)
@@ -50,9 +52,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       /for\(const \{modelEnvVar,capabilitiesEnvVar\} of ([\w$]+)\)/,
     )
     const env: Record<string, string> = { MODEL: " GPT-5.6-Astra[1m] ", CAPS: "effort, MAX_EFFORT" }
-    const run = new Function("process", table, firstPartyGate, `${patched};return ${name};`)({ env }, [
-      { modelEnvVar: "MODEL", capabilitiesEnvVar: "CAPS" },
-    ], () => true) as (model: string, capability: string) => boolean | undefined
+    const run = new Function("process", table, firstPartyGate, `${patched};return ${name};`)(
+      { env },
+      [{ modelEnvVar: "MODEL", capabilitiesEnvVar: "CAPS" }],
+      () => true,
+    ) as (model: string, capability: string) => boolean | undefined
     expect(run("gpt-5.6-astra", "max_effort")).toBe(true)
     expect(run(" GPT-5.6-ASTRA[1m] ", "effort")).toBe(true)
     expect(run("gpt-5.6-astra", "xhigh_effort")).toBe(false)
@@ -73,6 +77,22 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(run("gpt-5.6-spark", "xhigh_effort")).toBe(false)
     env.ANTHROPIC_CUSTOM_MODEL_OPTION_2_SUPPORTED_CAPABILITIES = ""
     expect(run("gpt-5.6-spark", "effort")).toBe(false)
+    for (let slot = 3; slot <= 10; slot += 1) {
+      const key = `ANTHROPIC_CUSTOM_MODEL_OPTION_${slot}`
+      env[key] = ` Provider/Slot-${slot}[1M] `
+      env[`${key}_EFFORT_LEVEL`] = " MAX "
+      expect(run(`provider/slot-${slot}`, "effort")).toBe(true)
+      expect(run(`provider/slot-${slot}`, "max_effort")).toBe(true)
+      delete env[`${key}_EFFORT_LEVEL`]
+      env[`${key}_SUPPORTED_CAPABILITIES`] = " effort, XHIGH_EFFORT "
+      expect(run(`provider/slot-${slot}`, "xhigh_effort")).toBe(true)
+      expect(run(`provider/slot-${slot}`, "max_effort")).toBe(false)
+      env[`${key}_SUPPORTED_CAPABILITIES`] = ""
+      expect(run(`provider/slot-${slot}`, "effort")).toBe(false)
+    }
+    env.ANTHROPIC_CUSTOM_MODEL_OPTION_11 = "provider/eleven"
+    env.ANTHROPIC_CUSTOM_MODEL_OPTION_11_SUPPORTED_CAPABILITIES = "effort"
+    expect(run("provider/eleven", "effort")).toBeUndefined()
   })
 
   test(`${platform}: active normalization preserves selected effort and organization policy`, () => {

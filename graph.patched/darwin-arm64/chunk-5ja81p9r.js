@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.285
+import{t}from"./chunk-3wz0srxw.js";import{p}from"./chunk-dsp1md5e.js";import{or,Hu,k$e}from"./chunk-tzrm2y8w.js";import{x}from"./chunk-er6f56rj.js";import{dSe}from"./chunk-tn1j6vmr.js";import{o,ae,d,ue}from"./chunk-g4gq2k0z.js";var l=p(()=>d({server_instructions:o().optional(),server_instructions_by_server:ue(o(),o()).optional(),tools:ue(o(),o()).optional(),search_hints:ue(o(),o()).optional(),param_descriptions:ue(o(),ue(o(),o())).optional(),prompts:ue(o(),o()).optional(),skills:ue(o(),o()).optional()})),g=p(()=>ue(o(),ae()));function Tie(e){if(!e.pluginSource)return;let{name:r,marketplace:n}=or(e.pluginSource);if(!Hu(n)&&!k$e(r,n))return;let u=x("tengu_official_plugin_prompt_overrides",{}),i=g().safeParse(u);if(!i.success){t("tengu_official_plugin_prompt_overrides: GB payload is not an object; ignoring",{level:"error"});return}let f=i.data[r];if(f===void 0)return;let c=l().safeParse(f);if(!c.success){t(`tengu_official_plugin_prompt_overrides: entry for '${r}' failed schema (${c.error.issues[0]?.message}); using baked-in text`,{level:"error"});return}let s=c.data;if(Object.keys(s).length===0)return;return{...s,server_instructions_by_server:a(s.server_instructions_by_server),tools:a(s.tools),search_hints:a(s.search_hints),param_descriptions:a(s.param_descriptions),prompts:a(s.prompts),skills:a(s.skills)}}function a(e){if(e===void 0)return;let r=Object.create(null);return Object.assign(r,e)}function EJt(e,r){if(!e)return;let n=e.server_instructions_by_server;if(n){let u=dSe(r),i=u&&n[u.serverName];if(i!==void 0)return i}return e.server_instructions}function vJt(e,r){if(!r||!e.properties)return e;let n={...e.properties},u=!1;for(let[i,f]of Object.entries(r)){let c=n[i];if(c!==null&&typeof c==="object")n[i]={...c,description:f},u=!0}if(!u)return e;return{...e,properties:n}}
+export{Tie,EJt,vJt};

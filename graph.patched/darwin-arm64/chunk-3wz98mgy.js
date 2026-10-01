@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.285
+import{ee,qs}from"./chunk-hs50vfa7.js";import{u}from"./chunk-zwbw6dvp.js";import{ne}from"./chunk-57g2c672.js";import{Ud}from"./chunk-n8h76tq4.js";import{jt}from"./chunk-er6f56rj.js";import{Zge,V2n,q2n,ete,Osn,FAo,UAo}from"./chunk-p9bh21nv.js";import{sdo}from"./chunk-emr1zxe9.js";import{writeFile as p}from"fs/promises";var m=30000,k=300000,f=Zge,y=16777216,c="/api/oauth/organizations/:orgUUID/skills/list-skills?include_wiggle_skills=true";async function mAt(o={}){let t=await d(o);if(!t.success&&ete(t))return d(o);return t}async function d(o){let t=Ud(),l=t?`${c}&entrypoint=${encodeURIComponent(t)}`:c;try{let r=await jt.get(l,{auth:"teleport-org",isBackground:o.isBackground,timeout:m,maxContentLength:y,credentials:o.credentials});if(!r.ok||!Array.isArray(r.data?.skills))return V2n("skills",r);let i=r.data.skills.filter(UAo),n=i.map(FAo);try{sdo(i)}catch(a){ne("warn","skills_sync_ownerships_not_recorded"),u(ee(a))}return{success:!0,skills:n}}catch(r){return q2n(r)}}async function odo(o,t,l,r={}){let i=Ud(),n=[];if(i)n.push(`entrypoint=${encodeURIComponent(i)}`);if(l)n.push(`version=${encodeURIComponent(l)}`);let a=n.length>0?`?${n.join("&")}`:"";try{let s=await jt.get(`/api/oauth/organizations/:orgUUID/skills/${encodeURIComponent(o)}/download${a}`,{auth:"teleport-org",isBackground:r.isBackground,timeout:k,responseType:"arraybuffer",maxContentLength:f,credentials:r.credentials});if(!s.ok||!s.data)return ne("warn","skills_sync_download_not_ok",{reason:s.ok?"empty_body":s.reason}),!1;let e=Buffer.from(s.data);if(e.length<2||e[0]!==80||e[1]!==75)return ne("warn","skills_sync_download_not_zip",{serverError:Osn(e),bodyLen:e.length}),!1;return await p(t,e),!0}catch(s){let{kind:e}=qs(s);return ne("warn","skills_sync_download_exception",{kind:e}),!1}}
+export{mAt,odo};

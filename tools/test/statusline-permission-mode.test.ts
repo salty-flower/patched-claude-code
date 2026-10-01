@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -46,7 +46,15 @@ test("statusline mode survives an undefined or conflicting hook payload through 
   }
 })
 
-test("rendered statusline exports and refreshes permission modes with the built-in footer hidden", async () => {
-  const bundle = await renderRunnableBundle({ root, version, outDir: join(temp, "bundle"), platforms: "host" })
-  await statuslinePermissionModeSmoke(bundle)
-}, 180_000)
+describe("rendered statusline", () => {
+  let bundle: string
+  // Full graph rendering needs its own setup budget on the Darwin CI runner.
+  // Keep the interaction test bounded by the smoke harness's 65-second watchdog.
+  beforeAll(async () => {
+    bundle = await renderRunnableBundle({ root, version, outDir: join(temp, "bundle"), platforms: "host" })
+  }, 300_000)
+
+  test("exports and refreshes permission modes with the built-in footer hidden", async () => {
+    await statuslinePermissionModeSmoke(bundle)
+  }, 90_000)
+})

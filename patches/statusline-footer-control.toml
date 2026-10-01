@@ -22425,7 +22425,7 @@ lineage = "statusline-json-permission-mode"
 target_version = "2.1.285"
 applies_to = ">=2.1.285 <2.1.286"
 platforms = [ "darwin-arm64", "linux-x64" ]
-rationale = "Expose the active permissionMode argument in custom statusLine JSON. Capture it directly from the builder parameter rather than carrying a minified local across versions."
+rationale = "Expose the active permissionMode argument in custom statusLine JSON after the native hook payload spread, whose omitted third argument produces permission_mode:undefined. Capture the builder parameter directly; inserting before model prevents the spread from overwriting the statusline mode."
 rationale_ref = "reference/v2.1.88/sources/src/components/StatusLine.tsx#L65-L126"
 locator_kind = "ast_transform"
 expected_matches = 1
@@ -22448,13 +22448,14 @@ path = "params.0.properties.1.value"
 
   [patches.transform]
   op = "replace_substring"
-  find = "return{"
-  value = "return{permission_mode:%%CAPTURE:permission%%,"
+  find = "model:{id:"
+  value = "permission_mode:%%CAPTURE:permission%%,model:{id:"
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.285 statusline-json-permission-mode preserves return{permission_mode:"
-  assert_contains = "return{permission_mode:"
+  name = "2.1.285 statusline permission mode follows the hook payload spread"
+  assert_contains = "permission_mode:n,model:{id:"
+  assert_not_contains = "return{permission_mode:n,..."
 
 [[patches]]
 name = "statusline-json-effort-level-2-1-285-darwin-arm64"

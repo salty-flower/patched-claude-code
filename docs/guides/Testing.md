@@ -15,12 +15,16 @@ Capabilities 测试从当前平台 graph 的唯一 locator 定位原生函数，
 | 当前 replacement 是否完整写入、旧符号是否移除 | `just patch-test <version>`，逐 entry、逐 platform 执行 TOML 断言 |
 | `/later`、effort 和 capabilities 的行为、边界输入、状态优先级 | 当前 active-entry TypeScript tests |
 | 原生 helper 的语义和实际调用链 | rendered bundle + localhost API stub／PTY；snippet tests 不能替代此层 |
+| Statusline permission mode | `statusline-permission-mode.test.ts`: JSON serialization fixture using the active transform plus rendered PTY; `api-stub-smoke` also exercises mode changes |
 | 历史 scheduler API | `tools/test/historic/later-command-legacy.test.ts`；不作为当前版本的证据 |
 | 跨版本 prompt review | 历史 catalog 使用其记录的 ruleset；当前 catalog 必须使用当前 ruleset |
 
 一个 static test 同时声明 `assert_contains` 和 `assert_not_contains` 时，两条都必须通过。
 同一个 test 的 Darwin 命中不能满足 Linux 断言。
 平台中立断言必须在两个 graph 上分别通过；缺少 graph 或 active entry 没有 tests 必须失败。
+Statusline mode checks must inspect the JSON received by the command and the current TUI across `default → acceptEdits → plan → auto → default`.
+A hook payload containing `permission_mode: undefined` or a stale value must not overwrite the current mode.
+Matching the field name alone is insufficient behavioral evidence.
 
 ## 避免反复重跑
 

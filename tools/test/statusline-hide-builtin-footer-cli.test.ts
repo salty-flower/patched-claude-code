@@ -895,7 +895,12 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         expect(bundle).toMatch(
           /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\.session\(\2,"get",void 0,([\w$]+)\)\.value\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\.session\(\2,"get",void 0,\4\)\.value}}/,
         )
-        expect(bundle).toMatch(/return\{permission_mode:[\w$]+,\.\.\./)
+        if (TARGET_VERSION === "2.1.285") {
+          expect(/permission_mode:[\w$]+,model:\{id:/.test(bundle)).toBe(true)
+          expect(/return\{permission_mode:[\w$]+,\.\.\./.test(bundle)).toBe(false)
+        } else {
+          expect(/return\{permission_mode:[\w$]+,\.\.\./.test(bundle)).toBe(true)
+        }
       }
       return
     }

@@ -63,6 +63,108 @@ function capturedSelection(text: string): CapturedSelection {
   return value as CapturedSelection
 }
 
+type QuestionDialogInput = {
+  screen(): string
+  hasAnswerReceipt(): boolean
+  key(value: string): Promise<void>
+  waitFor(predicate: () => boolean, description: string): Promise<void>
+  notify(): void
+  scheduleRetry(callback: () => void): () => void
+  snapshot(label: string): void
+}
+
+function selectedDialogOption(screen: string, label: string): boolean {
+  return screen.split("\n").some((line) => {
+    const option = line.replaceAll("\u00a0", " ").match(/^\s*❯\s+\d+\.\s+(.+?)\s*$/)?.[1]
+    return option === label
+  })
+}
+
+async function pressDialogKey(
+  input: QuestionDialogInput,
+  key: string,
+  ready: () => boolean,
+  acknowledged: () => boolean,
+  description: string,
+): Promise<void> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await input.waitFor(
+      () => input.hasAnswerReceipt() || acknowledged() || ready(),
+      `${description}: control not ready`,
+    )
+    if (input.hasAnswerReceipt() || acknowledged()) return
+    if (!ready()) continue
+    await input.key(key)
+    let retryDue = false
+    const cancelRetry = input.scheduleRetry(() => {
+      retryDue = true
+      input.notify()
+    })
+    try {
+      await input.waitFor(
+        () => input.hasAnswerReceipt() || acknowledged() || retryDue,
+        `${description}: key was not acknowledged`,
+      )
+    } finally {
+      cancelRetry()
+    }
+    if (input.hasAnswerReceipt() || acknowledged()) return
+  }
+  throw new Error(`${description}: dialog did not acknowledge input after 3 attempts`)
+}
+
+export async function answerWorkflowApproval(input: QuestionDialogInput): Promise<void> {
+  const questionReady = (label: string): boolean => {
+    const screen = input.screen()
+    return (
+      screen.includes(APPROVAL_QUESTION) && screen.includes("Enter to select") && selectedDialogOption(screen, label)
+    )
+  }
+  const reviewReady = (): boolean => {
+    const screen = input.screen()
+    return (
+      screen.includes("Review your answers") &&
+      screen.includes("Ready to submit your answers?") &&
+      selectedDialogOption(screen, "Submit answers")
+    )
+  }
+  await input.waitFor(() => input.hasAnswerReceipt() || questionReady(APPROVAL_ANSWER), "approval dialog missing")
+  if (input.hasAnswerReceipt()) return
+  // A focus round trip acknowledges the live dialog, not question text left in the transcript.
+  await pressDialogKey(
+    input,
+    "\x1b[B",
+    () => questionReady(APPROVAL_ANSWER),
+    () => questionReady("Do not approve"),
+    "question focus did not move down",
+  )
+  await pressDialogKey(
+    input,
+    "\x1b[A",
+    () => questionReady("Do not approve"),
+    () => questionReady(APPROVAL_ANSWER),
+    "question focus did not return to approval",
+  )
+  if (input.hasAnswerReceipt()) return
+  input.snapshot("genuine AskUserQuestion approval")
+  await pressDialogKey(
+    input,
+    "\x1b[13u",
+    () => questionReady(APPROVAL_ANSWER),
+    reviewReady,
+    "question selection did not advance to submission",
+  )
+  if (input.hasAnswerReceipt()) return
+  input.snapshot("review selected approval before submission")
+  await pressDialogKey(
+    input,
+    "\x1b[13u",
+    reviewReady,
+    () => input.hasAnswerReceipt(),
+    "human approval was not submitted",
+  )
+}
+
 async function fixtureCommand(cmd: string[], cwd: string, env: Record<string, string>): Promise<string> {
   const proc = Bun.spawn({ cmd, cwd, env, stdout: "pipe", stderr: "pipe" })
   const [code, stdout, stderr] = await Promise.all([
@@ -243,8 +345,9 @@ async function main(): Promise<number> {
       events.fail(new Error(`PTY exited ${code}`))
     })
     const output = (async () => {
+      const decoder = new TextDecoder()
       for await (const chunk of proc.stdout) {
-        transcript += new TextDecoder().decode(chunk)
+        transcript += decoder.decode(chunk, { stream: true })
         if (exitOffset !== undefined && transcript.includes("\x1b[?1049l", exitOffset)) endInput()
         await new Promise<void>((done) => terminal.write(chunk, done))
         screen = screenText(terminal)
@@ -253,8 +356,15 @@ async function main(): Promise<number> {
           events.fail(new Error(`render or tool validation failure: ${screen}`))
         } else events.notify()
       }
+      transcript += decoder.decode()
     })().catch((error: unknown) => events.fail(error instanceof Error ? error : new Error(String(error))))
-    const errors = new Response(proc.stderr).text()
+    let stderrText = ""
+    const errors = (async () => {
+      const decoder = new TextDecoder()
+      for await (const chunk of proc.stderr) stderrText += decoder.decode(chunk, { stream: true })
+      stderrText += decoder.decode()
+      return stderrText
+    })()
     const waitFor = (predicate: () => boolean, description: string) =>
       events.waitFor(() => {
         assert(fixture.errors.length === 0, fixture.errors.join("\n"))
@@ -280,17 +390,21 @@ async function main(): Promise<number> {
     try {
       await waitFor(() => screen.includes("Claude Code") && idle(), "startup prompt missing")
       await submit(INITIAL_PROMPT)
-      await waitFor(
-        () => screen.includes(APPROVAL_QUESTION) && screen.includes(APPROVAL_ANSWER),
-        "approval dialog missing",
-      )
-      snapshot("genuine AskUserQuestion approval")
-      await key("\r")
-      await waitFor(
-        () => screen.includes("Submit answers") || screen.includes(APPROVAL_DONE),
-        "question selection did not advance to submission",
-      )
-      if (!screen.includes(APPROVAL_DONE)) await key("\r")
+      await answerWorkflowApproval({
+        screen: () => screen,
+        hasAnswerReceipt: () => fixture.parentRequests.some((request) => hasToolResult(request, ASK_ID)),
+        key,
+        waitFor,
+        notify: () => events.notify(),
+        scheduleRetry: (callback) => {
+          // Native AskUserQuestion rejects answers within 150ms of reveal.
+          // Retry only after 250ms while the same intended control remains selected;
+          // a changed UI or actual tool-result receipt acknowledges the key immediately.
+          const timer = setTimeout(callback, 250)
+          return () => clearTimeout(timer)
+        },
+        snapshot,
+      })
       await waitFor(() => screen.includes(APPROVAL_DONE) && idle(), "human approval was not submitted")
       assert(
         fixture.parentRequests.some(
@@ -473,6 +587,8 @@ async function main(): Promise<number> {
           Bun.write(join(home, "screen.txt"), lastInteractiveScreen || screen),
           Bun.write(join(home, "screens.json"), JSON.stringify(snapshots, null, 2)),
           Bun.write(join(home, "tui.txt"), normalizeTuiOutput(transcript)),
+          Bun.write(join(home, "tui.raw.txt"), transcript),
+          Bun.write(join(home, "stderr.txt"), stderrText),
           Bun.write(
             join(home, "requests.json"),
             JSON.stringify(
@@ -482,6 +598,12 @@ async function main(): Promise<number> {
             ),
           ),
         ])
+      }
+      if (!passed) {
+        console.error(`workflow PTY current screen after cleanup:\n${screen}`)
+        console.error(`workflow PTY last interactive screen:\n${lastInteractiveScreen}`)
+        console.error(`workflow PTY raw transcript (JSON escaped):\n${JSON.stringify(transcript)}`)
+        console.error(`workflow PTY stderr:\n${stderrText}`)
       }
       terminal.dispose()
       if (passed && !options.keepArtifacts) rmSync(home, { recursive: true, force: true })

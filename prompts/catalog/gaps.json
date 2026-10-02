@@ -1,0 +1,5334 @@
+[
+  {
+    "id": "prompt-000025",
+    "lineageId": "prompt-000025",
+    "occurrenceId": "v2.1.285-0000",
+    "catalogPath": "entries/tool-description/tool/prompt-000025.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:701672-702854",
+    "role": "tool",
+    "ordinal": 0,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 701672,
+      "endCodeUnit": 702854,
+      "sourceSha256": "sha256-Q/D6tcOGBDDnz74Imq16dPHUBwh9joauOP7gdUQS8ik="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000137",
+    "lineageId": "prompt-000137",
+    "occurrenceId": "v2.1.285-0001",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000137.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:778065-778332",
+    "role": "unknown",
+    "ordinal": 1,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 778065,
+      "endCodeUnit": 778332,
+      "sourceSha256": "sha256-mvL8Mmt4B0zTnupFx/gJ9aWc3roCRYKTNQeTM8+1UmY="
+    },
+    "detectorSignals": [
+      "you-must",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000279",
+    "lineageId": "prompt-000279",
+    "occurrenceId": "v2.1.285-0002",
+    "catalogPath": "entries/auxiliary/system/prompt-000279.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:919293-921017",
+    "role": "system",
+    "ordinal": 2,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 7,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 919293,
+      "endCodeUnit": 921017,
+      "sourceSha256": "sha256-TYqGipmJjiQNA8oQQMuzfFPeWAqHOC2rKVnLhNQvdbs="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000281",
+    "lineageId": "prompt-000281",
+    "occurrenceId": "v2.1.285-0003",
+    "catalogPath": "entries/auxiliary/user/prompt-000281.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:924282-925676",
+    "role": "user",
+    "ordinal": 3,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 12,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 924282,
+      "endCodeUnit": 925676,
+      "sourceSha256": "sha256-KY+EhuYXAfUD/q8z6m1FbJPFHGGdRphPnNCWj6KJcoA="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000580",
+    "lineageId": "prompt-000580",
+    "occurrenceId": "v2.1.285-0004",
+    "catalogPath": "entries/compact/system/prompt-000580.md",
+    "familyId": "compact",
+    "callsiteId": "patched:928896-929888",
+    "role": "system",
+    "ordinal": 4,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 928896,
+      "endCodeUnit": 929888,
+      "sourceSha256": "sha256-5n5Kffz3MHDUMEskF4LveU6qiKcGlv1YqbOhn9qUyaI="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000282",
+    "lineageId": "prompt-000282",
+    "occurrenceId": "v2.1.285-0005",
+    "catalogPath": "entries/compact/system/prompt-000282.md",
+    "familyId": "compact",
+    "callsiteId": "patched:929893-930938",
+    "role": "system",
+    "ordinal": 5,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 13,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 929893,
+      "endCodeUnit": 930938,
+      "sourceSha256": "sha256-6qmhiw2H5rf2GXMPFn98K060nih1VqjeQduzF4T5L3w="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000050",
+    "lineageId": "prompt-000050",
+    "occurrenceId": "v2.1.285-0008",
+    "catalogPath": "entries/agent/user/prompt-000050.md",
+    "familyId": "agent",
+    "callsiteId": "patched:1889067-1890856",
+    "role": "user",
+    "ordinal": 8,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 1889067,
+      "endCodeUnit": 1890856,
+      "sourceSha256": "sha256-gT8o1hxpDk+YHgiKC0A4n3dapbUOhKhi8BiSKusXqEA="
+    },
+    "detectorSignals": [
+      "respond",
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000148",
+    "lineageId": "prompt-000148",
+    "occurrenceId": "v2.1.285-0013",
+    "catalogPath": "entries/memory/system/prompt-000148.md",
+    "familyId": "memory",
+    "callsiteId": "patched:2593810-2601207",
+    "role": "system",
+    "ordinal": 13,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 2593810,
+      "endCodeUnit": 2601207,
+      "sourceSha256": "sha256-szeT2dt8L3oI/3PPJW+zKF7YTmCs09TaGkaoopaVzzc="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000581",
+    "lineageId": "prompt-000581",
+    "occurrenceId": "v2.1.285-0014",
+    "catalogPath": "entries/tool-description/tool/prompt-000581.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:3161236-3162305",
+    "role": "tool",
+    "ordinal": 14,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3161236,
+      "endCodeUnit": 3162305,
+      "sourceSha256": "sha256-vK7uIAbtDhtDSgX+EdJlYQ5IKL9V2ZmHhnQy2sGHVp0="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000020",
+    "lineageId": "prompt-000020",
+    "occurrenceId": "v2.1.285-0015",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000020.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:3668506-3668687",
+    "role": "unknown",
+    "ordinal": 15,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3668506,
+      "endCodeUnit": 3668687,
+      "sourceSha256": "sha256-7JiNRCRW3RFbVeS8iYowapqD7ULLNRThIRRhO7XyfBg="
+    },
+    "detectorSignals": [
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000169",
+    "lineageId": "prompt-000169",
+    "occurrenceId": "v2.1.285-0017",
+    "catalogPath": "entries/auxiliary/user/prompt-000169.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:3703687-3704155",
+    "role": "user",
+    "ordinal": 17,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3703687,
+      "endCodeUnit": 3704155,
+      "sourceSha256": "sha256-EG5XlMzbXvgRo8m9wQytG1h1+MwEqEW0cbP6Dksdf8k="
+    },
+    "detectorSignals": [
+      "respond",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000548",
+    "lineageId": "prompt-000548",
+    "occurrenceId": "v2.1.285-0020",
+    "catalogPath": "entries/memory/system/prompt-000548.md",
+    "familyId": "memory",
+    "callsiteId": "patched:3710082-3710369",
+    "role": "system",
+    "ordinal": 20,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3710082,
+      "endCodeUnit": 3710369,
+      "sourceSha256": "sha256-f1wCJTKtB+8l4ZNdewcM2hxVHznYe8d5iZecxgdiFPc="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000011",
+    "lineageId": "prompt-000011",
+    "occurrenceId": "v2.1.285-0021",
+    "catalogPath": "entries/auxiliary/system/prompt-000011.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:3711349-3711690",
+    "role": "system",
+    "ordinal": 21,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3711349,
+      "endCodeUnit": 3711690,
+      "sourceSha256": "sha256-EXtialEFkfdkHc0ttGYMFisiUBsujArBErCXzlF83S8="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000464",
+    "lineageId": "prompt-000464",
+    "occurrenceId": "v2.1.285-0022",
+    "catalogPath": "entries/auxiliary/system/prompt-000464.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:3740978-3741261",
+    "role": "system",
+    "ordinal": 22,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3740978,
+      "endCodeUnit": 3741261,
+      "sourceSha256": "sha256-AxWPAlf+TTrJZ3bv0OwgeIw72a4BH0SI7tbyL9fudas="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000465",
+    "lineageId": "prompt-000465",
+    "occurrenceId": "v2.1.285-0023",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000465.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:3741348-3741831",
+    "role": "unknown",
+    "ordinal": 23,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3741348,
+      "endCodeUnit": 3741831,
+      "sourceSha256": "sha256-tA0L431yU54yR145xIvbOpqSYy+st5aUVanfkFUdzRM="
+    },
+    "detectorSignals": [
+      "you-must",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000044",
+    "lineageId": "prompt-000044",
+    "occurrenceId": "v2.1.285-0024",
+    "catalogPath": "entries/auxiliary/system/prompt-000044.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:3759737-3761817",
+    "role": "system",
+    "ordinal": 24,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 7,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3759737,
+      "endCodeUnit": 3761817,
+      "sourceSha256": "sha256-4YTLpa4y9EYqG0q0VN4/i0ZWZh0Urg1eD3XOU7A6IEI="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000046",
+    "lineageId": "prompt-000046",
+    "occurrenceId": "v2.1.285-0025",
+    "catalogPath": "entries/memory/system/prompt-000046.md",
+    "familyId": "memory",
+    "callsiteId": "patched:3763445-3765974",
+    "role": "system",
+    "ordinal": 25,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 3763445,
+      "endCodeUnit": 3765974,
+      "sourceSha256": "sha256-wR5i8bcuB5edM1YLv2+DdS8e1ijOTsicFyl0/zXJ8Pg="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000470",
+    "lineageId": "prompt-000470",
+    "occurrenceId": "v2.1.285-0031",
+    "catalogPath": "entries/memory/unknown/prompt-000470.md",
+    "familyId": "memory",
+    "callsiteId": "patched:4313102-4313539",
+    "role": "unknown",
+    "ordinal": 31,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4313102,
+      "endCodeUnit": 4313539,
+      "sourceSha256": "sha256-jO+3iBo5B7sbBPAL0RIPjl4S1kDt/AXVu9kmXKL8Qug="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000063",
+    "lineageId": "prompt-000063",
+    "occurrenceId": "v2.1.285-0033",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000063.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:4544567-4544943",
+    "role": "unknown",
+    "ordinal": 33,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4544567,
+      "endCodeUnit": 4544943,
+      "sourceSha256": "sha256-dUOOWVpGWlsGWmBYJRDY633uSmmUcmY00xTumFXYpf4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000065",
+    "lineageId": "prompt-000065",
+    "occurrenceId": "v2.1.285-0034",
+    "catalogPath": "entries/memory/system/prompt-000065.md",
+    "familyId": "memory",
+    "callsiteId": "patched:4545824-4551857",
+    "role": "system",
+    "ordinal": 34,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 14,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4545824,
+      "endCodeUnit": 4551857,
+      "sourceSha256": "sha256-aRoMt/lZDe5RpNxT9H/7/xCd33xhhTnt4UuLtvu/NQc="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "instruction",
+      "return",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000110",
+    "lineageId": "prompt-000110",
+    "occurrenceId": "v2.1.285-0036",
+    "catalogPath": "entries/auxiliary/system/prompt-000110.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:4712602-4712998",
+    "role": "system",
+    "ordinal": 36,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4712602,
+      "endCodeUnit": 4712998,
+      "sourceSha256": "sha256-VOw0/DvOPLagpJc7BZqzEhdsrJFyCM94fa5mfxLfuRo="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000192",
+    "lineageId": "prompt-000192",
+    "occurrenceId": "v2.1.285-0040",
+    "catalogPath": "entries/auxiliary/system/prompt-000192.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:4747381-4751817",
+    "role": "system",
+    "ordinal": 40,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4747381,
+      "endCodeUnit": 4751817,
+      "sourceSha256": "sha256-fUtT6K78gAyehcyKYWGI2kU3gTDrrFtoLG3+Zi9X3nA="
+    },
+    "detectorSignals": [
+      "you-are",
+      "your-task",
+      "you-must",
+      "do-not",
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000061",
+    "lineageId": "prompt-000061",
+    "occurrenceId": "v2.1.285-0041",
+    "catalogPath": "entries/agent/system/prompt-000061.md",
+    "familyId": "agent",
+    "callsiteId": "patched:4956953-4957288",
+    "role": "system",
+    "ordinal": 41,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4956953,
+      "endCodeUnit": 4957288,
+      "sourceSha256": "sha256-gwWp0pR2ZRNGBkHtGpkGEkFKkq5tVlbec9F0ArCXolE="
+    },
+    "detectorSignals": [
+      "instruction",
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000062",
+    "lineageId": "prompt-000062",
+    "occurrenceId": "v2.1.285-0042",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000062.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:4957319-4957588",
+    "role": "unknown",
+    "ordinal": 42,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4957319,
+      "endCodeUnit": 4957588,
+      "sourceSha256": "sha256-6394OF42mM5rKdc5+E1mDiln00ifNxRutzBeQU6DGXQ="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000397",
+    "lineageId": "prompt-000397",
+    "occurrenceId": "v2.1.285-0043",
+    "catalogPath": "entries/auxiliary/system/prompt-000397.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:4975237-4975606",
+    "role": "system",
+    "ordinal": 43,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 10,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 4975237,
+      "endCodeUnit": 4975606,
+      "sourceSha256": "sha256-BWoIoWZqCmUD/JP1txSWT7XIs1/H9O0dN7gVAUptCjw="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000568",
+    "lineageId": "prompt-000568",
+    "occurrenceId": "v2.1.285-0044",
+    "catalogPath": "entries/auxiliary/system/prompt-000568.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:5010739-5011103",
+    "role": "system",
+    "ordinal": 44,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5010739,
+      "endCodeUnit": 5011103,
+      "sourceSha256": "sha256-FY+jPUGA6yH4TXxYW/wcBYhYM0fSKDJYZ2ij6g1ZrTY="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000031",
+    "lineageId": "prompt-000031",
+    "occurrenceId": "v2.1.285-0045",
+    "catalogPath": "entries/agent/system/prompt-000031.md",
+    "familyId": "agent",
+    "callsiteId": "patched:5014413-5015369",
+    "role": "system",
+    "ordinal": 45,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5014413,
+      "endCodeUnit": 5015369,
+      "sourceSha256": "sha256-nWm+yd1gka1TpudN8fR2H4jTRCtrgs0GoQBwpGUou4E="
+    },
+    "detectorSignals": [
+      "you-are",
+      "your-task",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000166",
+    "lineageId": "prompt-000166",
+    "occurrenceId": "v2.1.285-0046",
+    "catalogPath": "entries/auxiliary/user/prompt-000166.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:5017662-5020260",
+    "role": "user",
+    "ordinal": 46,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5017662,
+      "endCodeUnit": 5020260,
+      "sourceSha256": "sha256-wbGkKHJcOx9oxC6O8koWuPkiy17sZj3ZRAZP6x9wFU0="
+    },
+    "detectorSignals": [
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000170",
+    "lineageId": "prompt-000170",
+    "occurrenceId": "v2.1.285-0050",
+    "catalogPath": "entries/auxiliary/system/prompt-000170.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:5029683-5030094",
+    "role": "system",
+    "ordinal": 50,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5029683,
+      "endCodeUnit": 5030094,
+      "sourceSha256": "sha256-u/y6wRVGvAtlzhaRU4YWN58sBsweSoC3+Qf3qpTZTHs="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "instruction",
+      "generate"
+    ]
+  },
+  {
+    "id": "prompt-000173",
+    "lineageId": "prompt-000173",
+    "occurrenceId": "v2.1.285-0053",
+    "catalogPath": "entries/auxiliary/system/prompt-000173.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:5039630-5039904",
+    "role": "system",
+    "ordinal": 53,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5039630,
+      "endCodeUnit": 5039904,
+      "sourceSha256": "sha256-qqSHjCgPCztcq9Vub8r5NJNlKU6faXXFpW9wASytGqQ="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000174",
+    "lineageId": "prompt-000174",
+    "occurrenceId": "v2.1.285-0054",
+    "catalogPath": "entries/agent/system/prompt-000174.md",
+    "familyId": "agent",
+    "callsiteId": "patched:5040925-5041430",
+    "role": "system",
+    "ordinal": 54,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5040925,
+      "endCodeUnit": 5041430,
+      "sourceSha256": "sha256-39GEb0xMf0LhU7VebRpXR9tMOaRXzbQuHgmNBwx9TjU="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000179",
+    "lineageId": "prompt-000179",
+    "occurrenceId": "v2.1.285-0060",
+    "catalogPath": "entries/auxiliary/user/prompt-000179.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:5052694-5053606",
+    "role": "user",
+    "ordinal": 60,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5052694,
+      "endCodeUnit": 5053606,
+      "sourceSha256": "sha256-M8wQmOuj/Tu9H6mgpGsLZmZGHku0jjlIiOHnv+iVOzE="
+    },
+    "detectorSignals": [
+      "do-not",
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000358",
+    "lineageId": "prompt-000358",
+    "occurrenceId": "v2.1.285-0061",
+    "catalogPath": "entries/agent/user/prompt-000358.md",
+    "familyId": "agent",
+    "callsiteId": "patched:5055714-5056602",
+    "role": "user",
+    "ordinal": 61,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5055714,
+      "endCodeUnit": 5056602,
+      "sourceSha256": "sha256-n2dXIhirfkuvsqOpz1Tu3Zw4GaXsPs8bOgn26vPiR+o="
+    },
+    "detectorSignals": [
+      "respond",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000043",
+    "lineageId": "prompt-000043",
+    "occurrenceId": "v2.1.285-0064",
+    "catalogPath": "entries/memory/system/prompt-000043.md",
+    "familyId": "memory",
+    "callsiteId": "patched:5077822-5085683",
+    "role": "system",
+    "ordinal": 64,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 10,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5077822,
+      "endCodeUnit": 5085683,
+      "sourceSha256": "sha256-YfPfIBskVmGRMOxGOxeVt9mqcd4j/8f4CMqAfCG1fcQ="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000048",
+    "lineageId": "prompt-000048",
+    "occurrenceId": "v2.1.285-0067",
+    "catalogPath": "entries/agent/system/prompt-000048.md",
+    "familyId": "agent",
+    "callsiteId": "patched:5091831-5104911",
+    "role": "system",
+    "ordinal": 67,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5091831,
+      "endCodeUnit": 5104911,
+      "sourceSha256": "sha256-HXDnNaMu+YLzXoDixZ1LKf5yLi3d5NKtlPKH4pJhjZI="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "instruction",
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000399",
+    "lineageId": "prompt-000399",
+    "occurrenceId": "v2.1.285-0068",
+    "catalogPath": "entries/memory/system/prompt-000399.md",
+    "familyId": "memory",
+    "callsiteId": "patched:5105167-5107699",
+    "role": "system",
+    "ordinal": 68,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5105167,
+      "endCodeUnit": 5107699,
+      "sourceSha256": "sha256-qUSrWi5PO+ieYK/Fj/PJseIcZGJyNXUi+dLWqCrunUo="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000400",
+    "lineageId": "prompt-000400",
+    "occurrenceId": "v2.1.285-0069",
+    "catalogPath": "entries/auxiliary/system/prompt-000400.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:5107732-5109188",
+    "role": "system",
+    "ordinal": 69,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5107732,
+      "endCodeUnit": 5109188,
+      "sourceSha256": "sha256-xupPe31c6RQUC7OeZgYKn5G4Z4eqUzZjwmY6h5pAkew="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000037",
+    "lineageId": "prompt-000037",
+    "occurrenceId": "v2.1.285-0073",
+    "catalogPath": "entries/compact/system/prompt-000037.md",
+    "familyId": "compact",
+    "callsiteId": "patched:5399467-5403775",
+    "role": "system",
+    "ordinal": 73,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5399467,
+      "endCodeUnit": 5403775,
+      "sourceSha256": "sha256-XZSS6iPHdnlX5hN04m/SfB6ABydQcgEqrvxQn8GaZNA="
+    },
+    "detectorSignals": [
+      "you-are",
+      "your-task",
+      "do-not",
+      "instruction",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000038",
+    "lineageId": "prompt-000038",
+    "occurrenceId": "v2.1.285-0074",
+    "catalogPath": "entries/compact/system/prompt-000038.md",
+    "familyId": "compact",
+    "callsiteId": "patched:5403780-5406232",
+    "role": "system",
+    "ordinal": 74,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5403780,
+      "endCodeUnit": 5406232,
+      "sourceSha256": "sha256-/6d33F8ZWEhuiRKCMXxmBfEj/jvGu59RA9zSr+6kLOg="
+    },
+    "detectorSignals": [
+      "your-task",
+      "do-not",
+      "instruction",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000040",
+    "lineageId": "prompt-000040",
+    "occurrenceId": "v2.1.285-0075",
+    "catalogPath": "entries/compact/system/prompt-000040.md",
+    "familyId": "compact",
+    "callsiteId": "patched:5406237-5408651",
+    "role": "system",
+    "ordinal": 75,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 5406237,
+      "endCodeUnit": 5408651,
+      "sourceSha256": "sha256-uqsX8FRz9qpReQoK0MPBhUsgw0dSvQiovPkD+beDDmo="
+    },
+    "detectorSignals": [
+      "your-task",
+      "do-not",
+      "instruction",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000123",
+    "lineageId": "prompt-000123",
+    "occurrenceId": "v2.1.285-0079",
+    "catalogPath": "entries/agent/unknown/prompt-000123.md",
+    "familyId": "agent",
+    "callsiteId": "patched:6118058-6119132",
+    "role": "unknown",
+    "ordinal": 79,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6118058,
+      "endCodeUnit": 6119132,
+      "sourceSha256": "sha256-mE0KGhV++oQUQfPearXSfgkds79fp3IN2E45qVEc03Q="
+    },
+    "detectorSignals": [
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000141",
+    "lineageId": "prompt-000141",
+    "occurrenceId": "v2.1.285-0082",
+    "catalogPath": "entries/title/system/prompt-000141.md",
+    "familyId": "title",
+    "callsiteId": "patched:6161362-6200031",
+    "role": "system",
+    "ordinal": 82,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 9,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6161362,
+      "endCodeUnit": 6200031,
+      "sourceSha256": "sha256-oS1hNW9uMwrxoEhMykNDH7I0iww/EgmPyDIEfwppKps="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "instruction",
+      "write",
+      "return",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000149",
+    "lineageId": "prompt-000149",
+    "occurrenceId": "v2.1.285-0089",
+    "catalogPath": "entries/title/system/prompt-000149.md",
+    "familyId": "title",
+    "callsiteId": "patched:6361303-6364551",
+    "role": "system",
+    "ordinal": 89,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 15,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6361303,
+      "endCodeUnit": 6364551,
+      "sourceSha256": "sha256-+m9Wy/8OlJ4rnrQLqxFRpZgPdLJlG8ro4flPJR9fX+I="
+    },
+    "detectorSignals": [
+      "your-task",
+      "you-must",
+      "do-not",
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000152",
+    "lineageId": "prompt-000152",
+    "occurrenceId": "v2.1.285-0091",
+    "catalogPath": "entries/agent/system/prompt-000152.md",
+    "familyId": "agent",
+    "callsiteId": "patched:6369840-6370432",
+    "role": "system",
+    "ordinal": 91,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6369840,
+      "endCodeUnit": 6370432,
+      "sourceSha256": "sha256-HqkJ5cm1I/dG7bycS5LGqhD84DlT3WP7dnpQIYSWH50="
+    },
+    "detectorSignals": [
+      "instruction",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000154",
+    "lineageId": "prompt-000154",
+    "occurrenceId": "v2.1.285-0093",
+    "catalogPath": "entries/auxiliary/system/prompt-000154.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:6370529-6372302",
+    "role": "system",
+    "ordinal": 93,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6370529,
+      "endCodeUnit": 6372302,
+      "sourceSha256": "sha256-fgpu872V+6bxMsqAf1F/Mpueop2WuV/F4y07FvOkYH4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000155",
+    "lineageId": "prompt-000155",
+    "occurrenceId": "v2.1.285-0094",
+    "catalogPath": "entries/permission-security/system/prompt-000155.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:6372311-6394200",
+    "role": "system",
+    "ordinal": 94,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6372311,
+      "endCodeUnit": 6394200,
+      "sourceSha256": "sha256-xHqJHJViPyAa+DVX3SsX0IUF/LB8al+VJpCH2IRMRu4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "write",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000158",
+    "lineageId": "prompt-000158",
+    "occurrenceId": "v2.1.285-0096",
+    "catalogPath": "entries/memory/system/prompt-000158.md",
+    "familyId": "memory",
+    "callsiteId": "patched:6421825-6432600",
+    "role": "system",
+    "ordinal": 96,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6421825,
+      "endCodeUnit": 6432600,
+      "sourceSha256": "sha256-W6Nlm9H7oeX4PggaAHbrS4QgDdTk4/m6r3toPuHX8pc="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "instruction",
+      "write",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000562",
+    "lineageId": "prompt-000562",
+    "occurrenceId": "v2.1.285-0097",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000562.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:6753814-6754391",
+    "role": "unknown",
+    "ordinal": 97,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6753814,
+      "endCodeUnit": 6754391,
+      "sourceSha256": "sha256-/Wpz3eRkTXFZSFysrSQ1FzYOy2eJww+clNFd2Vd+8kE="
+    },
+    "detectorSignals": [
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000051",
+    "lineageId": "prompt-000051",
+    "occurrenceId": "v2.1.285-0099",
+    "catalogPath": "entries/agent/system/prompt-000051.md",
+    "familyId": "agent",
+    "callsiteId": "patched:6917477-6918925",
+    "role": "system",
+    "ordinal": 99,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6917477,
+      "endCodeUnit": 6918925,
+      "sourceSha256": "sha256-2nHI/Qf87Zb9YK4m+K2bCHThUMPwtf+KeRE7XYMBbPk="
+    },
+    "detectorSignals": [
+      "instruction",
+      "return",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000096",
+    "lineageId": "prompt-000096",
+    "occurrenceId": "v2.1.285-0102",
+    "catalogPath": "entries/auxiliary/system/prompt-000096.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:6956699-6957835",
+    "role": "system",
+    "ordinal": 102,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6956699,
+      "endCodeUnit": 6957835,
+      "sourceSha256": "sha256-6FlDaanYJc0EN5pul1fWew1ZpL3Z09MH+4LlYDIru5s="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000097",
+    "lineageId": "prompt-000097",
+    "occurrenceId": "v2.1.285-0103",
+    "catalogPath": "entries/agent/unknown/prompt-000097.md",
+    "familyId": "agent",
+    "callsiteId": "patched:6957839-6960208",
+    "role": "unknown",
+    "ordinal": 103,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6957839,
+      "endCodeUnit": 6960208,
+      "sourceSha256": "sha256-hOQmwT3aMqU4DQNEku9YGux5JGFzEPp/+5xgLtz0UOw="
+    },
+    "detectorSignals": [
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000098",
+    "lineageId": "prompt-000098",
+    "occurrenceId": "v2.1.285-0104",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000098.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:6961150-6962698",
+    "role": "unknown",
+    "ordinal": 104,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6961150,
+      "endCodeUnit": 6962698,
+      "sourceSha256": "sha256-2ZUM6hz06yRPDp8Vbx5u4DRxnjxnbUVUWyYNztHeSzs="
+    },
+    "detectorSignals": [
+      "write",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000099",
+    "lineageId": "prompt-000099",
+    "occurrenceId": "v2.1.285-0105",
+    "catalogPath": "entries/auxiliary/user/prompt-000099.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:6962699-6963496",
+    "role": "user",
+    "ordinal": 105,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 6962699,
+      "endCodeUnit": 6963496,
+      "sourceSha256": "sha256-6yTgJ2XMWKllA3OTsR2pYgP3i2ZSTzMlQEp44ibwI6Q="
+    },
+    "detectorSignals": [
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000068",
+    "lineageId": "prompt-000068",
+    "occurrenceId": "v2.1.285-0111",
+    "catalogPath": "entries/auxiliary/user/prompt-000068.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7394102-7394841",
+    "role": "user",
+    "ordinal": 111,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7394102,
+      "endCodeUnit": 7394841,
+      "sourceSha256": "sha256-ySkBpxcqddDS9CwpJknNuWV0INyERwUJVy8y2Zi6b1o="
+    },
+    "detectorSignals": [
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000069",
+    "lineageId": "prompt-000069",
+    "occurrenceId": "v2.1.285-0112",
+    "catalogPath": "entries/tool-description/tool/prompt-000069.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:7407948-7408607",
+    "role": "tool",
+    "ordinal": 112,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7407948,
+      "endCodeUnit": 7408607,
+      "sourceSha256": "sha256-1djA9vZZq+HavMHt5mM0ZB9KRoUvl2rCDsYGHVty6Hs="
+    },
+    "detectorSignals": [
+      "you-must",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000067",
+    "lineageId": "prompt-000067",
+    "occurrenceId": "v2.1.285-0113",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000067.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7566173-7566408",
+    "role": "unknown",
+    "ordinal": 113,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7566173,
+      "endCodeUnit": 7566408,
+      "sourceSha256": "sha256-gvtOaZeALEzw4elJvUx5EN8UEpSbKwmAo0ieMvt+4LA="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000549",
+    "lineageId": "prompt-000549",
+    "occurrenceId": "v2.1.285-0114",
+    "catalogPath": "entries/tool-description/tool/prompt-000549.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:7581630-7582027",
+    "role": "tool",
+    "ordinal": 114,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7581630,
+      "endCodeUnit": 7582027,
+      "sourceSha256": "sha256-QQUXdyLQUhAoNSPEkbyeCt5CVYgz73IUkPVmWMxyXro="
+    },
+    "detectorSignals": [
+      "use-this-tool",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000550",
+    "lineageId": "prompt-000550",
+    "occurrenceId": "v2.1.285-0115",
+    "catalogPath": "entries/tool-description/tool/prompt-000550.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:7582032-7583307",
+    "role": "tool",
+    "ordinal": 115,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7582032,
+      "endCodeUnit": 7583307,
+      "sourceSha256": "sha256-keM+979s1YLUqyadtHkUb4zCpug5qL+FexmhFeWuSf4="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000200",
+    "lineageId": "prompt-000200",
+    "occurrenceId": "v2.1.285-0116",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000200.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7659881-7660784",
+    "role": "unknown",
+    "ordinal": 116,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7659881,
+      "endCodeUnit": 7660784,
+      "sourceSha256": "sha256-VVbCtUEkuhz2+gmhxbhQGO7NO8EzwSsU/lHpu7w0J2o="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000194",
+    "lineageId": "prompt-000194",
+    "occurrenceId": "v2.1.285-0118",
+    "catalogPath": "entries/auxiliary/system/prompt-000194.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7661827-7662543",
+    "role": "system",
+    "ordinal": 118,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 8,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7661827,
+      "endCodeUnit": 7662543,
+      "sourceSha256": "sha256-vJJVHsSe9Pgk4yoFl36CCh33dEmpFpoM2H5BqyVZawg="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000352",
+    "lineageId": "prompt-000352",
+    "occurrenceId": "v2.1.285-0119",
+    "catalogPath": "entries/web-browser/user/prompt-000352.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:7667402-7669355",
+    "role": "user",
+    "ordinal": 119,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7667402,
+      "endCodeUnit": 7669355,
+      "sourceSha256": "sha256-hgUKDPQ2m7bjtVuIghsLuPlrbxdYyKSU4cK0lng4Dvo="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000359",
+    "lineageId": "prompt-000359",
+    "occurrenceId": "v2.1.285-0120",
+    "catalogPath": "entries/auxiliary/user/prompt-000359.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7669378-7670534",
+    "role": "user",
+    "ordinal": 120,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7669378,
+      "endCodeUnit": 7670534,
+      "sourceSha256": "sha256-CqVh1vFrTifnUxKTO6ev8WyqutpGixavm73Bc8AHN8w="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000195",
+    "lineageId": "prompt-000195",
+    "occurrenceId": "v2.1.285-0121",
+    "catalogPath": "entries/auxiliary/system/prompt-000195.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7671747-7672813",
+    "role": "system",
+    "ordinal": 121,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7671747,
+      "endCodeUnit": 7672813,
+      "sourceSha256": "sha256-TYY987ZXcEGAmEaraAyvTAdx69cAnbp1lqVCBe5mzZY="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000433",
+    "lineageId": "prompt-000433",
+    "occurrenceId": "v2.1.285-0122",
+    "catalogPath": "entries/auxiliary/system/prompt-000433.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7673011-7673256",
+    "role": "system",
+    "ordinal": 122,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7673011,
+      "endCodeUnit": 7673256,
+      "sourceSha256": "sha256-HKk+jsZW8M24u6EbOm7HnrCdfeoEhG+3tq+znMXo1gY="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000434",
+    "lineageId": "prompt-000434",
+    "occurrenceId": "v2.1.285-0123",
+    "catalogPath": "entries/auxiliary/system/prompt-000434.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7673257-7673549",
+    "role": "system",
+    "ordinal": 123,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7673257,
+      "endCodeUnit": 7673549,
+      "sourceSha256": "sha256-pkuHm+zerEIOqgV+4nmiuVwW7x1lHBLdTp4UCekxD+E="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000203",
+    "lineageId": "prompt-000203",
+    "occurrenceId": "v2.1.285-0125",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000203.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7676547-7676830",
+    "role": "unknown",
+    "ordinal": 125,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7676547,
+      "endCodeUnit": 7676830,
+      "sourceSha256": "sha256-nFfuT2h4SzuG7kTnN06BbB3dRmQraxQUhSYJ8Sm5knU="
+    },
+    "detectorSignals": [
+      "you-must",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000196",
+    "lineageId": "prompt-000196",
+    "occurrenceId": "v2.1.285-0126",
+    "catalogPath": "entries/auxiliary/system/prompt-000196.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7691119-7691889",
+    "role": "system",
+    "ordinal": 126,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7691119,
+      "endCodeUnit": 7691889,
+      "sourceSha256": "sha256-5MNAln9YY1NXvOEA6Ocl/cs0Fpc9w39WrQyQRZfGUG8="
+    },
+    "detectorSignals": [
+      "you-are",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000197",
+    "lineageId": "prompt-000197",
+    "occurrenceId": "v2.1.285-0127",
+    "catalogPath": "entries/auxiliary/system/prompt-000197.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7697699-7698674",
+    "role": "system",
+    "ordinal": 127,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7697699,
+      "endCodeUnit": 7698674,
+      "sourceSha256": "sha256-Xzz0cDUKGQ0pOOZUtsAqw6wWXg3NN8cr5X1hpNLfseQ="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000473",
+    "lineageId": "prompt-000473",
+    "occurrenceId": "v2.1.285-0128",
+    "catalogPath": "entries/auxiliary/system/prompt-000473.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7707687-7707929",
+    "role": "system",
+    "ordinal": 128,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7707687,
+      "endCodeUnit": 7707929,
+      "sourceSha256": "sha256-ixYN1g361QX5kJvHe7pOFpbsHmNcNZKgaZRMl369v+I="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000198",
+    "lineageId": "prompt-000198",
+    "occurrenceId": "v2.1.285-0129",
+    "catalogPath": "entries/auxiliary/system/prompt-000198.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7709055-7709626",
+    "role": "system",
+    "ordinal": 129,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7709055,
+      "endCodeUnit": 7709626,
+      "sourceSha256": "sha256-slSlnq71FzykAwHlCk744vnBsQYgqVADW1U5hE+L7Dg="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000518",
+    "lineageId": "prompt-000518",
+    "occurrenceId": "v2.1.285-0130",
+    "catalogPath": "entries/auxiliary/user/prompt-000518.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7710286-7710644",
+    "role": "user",
+    "ordinal": 130,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7710286,
+      "endCodeUnit": 7710644,
+      "sourceSha256": "sha256-YjoQTdC0xVXQoYF7rd2SdI6P3blWMhcOlPR4ZL5claU="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000199",
+    "lineageId": "prompt-000199",
+    "occurrenceId": "v2.1.285-0131",
+    "catalogPath": "entries/auxiliary/user/prompt-000199.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:7710645-7711092",
+    "role": "user",
+    "ordinal": 131,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 7710645,
+      "endCodeUnit": 7711092,
+      "sourceSha256": "sha256-2BkOeVHC1t9MfHmjLpnGuehcbMceIrB0HmgLhYTPasY="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000093",
+    "lineageId": "prompt-000093",
+    "occurrenceId": "v2.1.285-0132",
+    "catalogPath": "entries/auxiliary/system/prompt-000093.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:8566038-8566248",
+    "role": "system",
+    "ordinal": 132,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 8566038,
+      "endCodeUnit": 8566248,
+      "sourceSha256": "sha256-YxiCzyLUIvfTcfyg3Iv701quMEI94NET8amUQoKxLQo="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000520",
+    "lineageId": "prompt-000520",
+    "occurrenceId": "v2.1.285-0133",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000520.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:8754017-8754250",
+    "role": "unknown",
+    "ordinal": 133,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 8754017,
+      "endCodeUnit": 8754250,
+      "sourceSha256": "sha256-qSh6wpzHh0izKByAYIKBiL9hWJ2koN3lDU4IeCYjxG8="
+    },
+    "detectorSignals": [
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000584",
+    "lineageId": "prompt-000584",
+    "occurrenceId": "v2.1.285-0136",
+    "catalogPath": "entries/tool-description/tool/prompt-000584.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:9042863-9044786",
+    "role": "tool",
+    "ordinal": 136,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 9042863,
+      "endCodeUnit": 9044786,
+      "sourceSha256": "sha256-TeDTB1xAR7jGX9G72QgdY609asXllUZaIMFW1Mq1kn4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000523",
+    "lineageId": "prompt-000523",
+    "occurrenceId": "v2.1.285-0138",
+    "catalogPath": "entries/auxiliary/system/prompt-000523.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:9616964-9617352",
+    "role": "system",
+    "ordinal": 138,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 9616964,
+      "endCodeUnit": 9617352,
+      "sourceSha256": "sha256-F6kGZKUfHGdJ9po0sEFadcyFOhFY/s5rY3unqFlVJOE="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000477",
+    "lineageId": "prompt-000477",
+    "occurrenceId": "v2.1.285-0139",
+    "catalogPath": "entries/permission-security/system/prompt-000477.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:9620106-9623468",
+    "role": "system",
+    "ordinal": 139,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 9620106,
+      "endCodeUnit": 9623468,
+      "sourceSha256": "sha256-xD948aD8uBj2gDinq7UA2meIuh6+T1d1c6yNQ5bSJTg="
+    },
+    "detectorSignals": [
+      "you-are",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000122",
+    "lineageId": "prompt-000122",
+    "occurrenceId": "v2.1.285-0140",
+    "catalogPath": "entries/agent/user/prompt-000122.md",
+    "familyId": "agent",
+    "callsiteId": "patched:9623478-9625089",
+    "role": "user",
+    "ordinal": 140,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 9623478,
+      "endCodeUnit": 9625089,
+      "sourceSha256": "sha256-fSCRieu5Hc+K5PNcGCh9INlccEOUmO7CjVaiE5BDsHA="
+    },
+    "detectorSignals": [
+      "you-must",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000456",
+    "lineageId": "prompt-000456",
+    "occurrenceId": "v2.1.285-0142",
+    "catalogPath": "entries/permission-security/system/prompt-000456.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:9757981-9761061",
+    "role": "system",
+    "ordinal": 142,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 9757981,
+      "endCodeUnit": 9761061,
+      "sourceSha256": "sha256-vMTt83ro+zxEDx1S9/ZBO4bNATseBM1QMgwW9r8MXGw="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "write",
+      "return",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000092",
+    "lineageId": "prompt-000092",
+    "occurrenceId": "v2.1.285-0143",
+    "catalogPath": "entries/permission-security/system/prompt-000092.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:9761257-9778785",
+    "role": "system",
+    "ordinal": 143,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 9,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 9761257,
+      "endCodeUnit": 9778785,
+      "sourceSha256": "sha256-EDVQgf49ztjtsQB2Jsh50cDOznh7ewAT4w6e87d0aEE="
+    },
+    "detectorSignals": [
+      "use-this-tool",
+      "do-not",
+      "instruction",
+      "generate",
+      "write",
+      "return",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000079",
+    "lineageId": "prompt-000079",
+    "occurrenceId": "v2.1.285-0145",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000079.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:9940419-9941109",
+    "role": "unknown",
+    "ordinal": 145,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 9940419,
+      "endCodeUnit": 9941109,
+      "sourceSha256": "sha256-PPK4g4rZ2dY2wP7NF+HmdVpTNAixjnV+bV08zA6qTR8="
+    },
+    "detectorSignals": [
+      "return",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000577",
+    "lineageId": "prompt-000577",
+    "occurrenceId": "v2.1.285-0147",
+    "catalogPath": "entries/auxiliary/system/prompt-000577.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:10179614-10180872",
+    "role": "system",
+    "ordinal": 147,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 10179614,
+      "endCodeUnit": 10180872,
+      "sourceSha256": "sha256-pr67fCSkQF8s2vIP7RCczPff4OWyzD6C1zsFXYgKTlM="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000053",
+    "lineageId": "prompt-000053",
+    "occurrenceId": "v2.1.285-0149",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000053.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:10530693-10530993",
+    "role": "unknown",
+    "ordinal": 149,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 10530693,
+      "endCodeUnit": 10530993,
+      "sourceSha256": "sha256-CJN72wUU8BG/45qKxBx2CrtXB1o9p5e8BCwIkyjBL18="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000056",
+    "lineageId": "prompt-000056",
+    "occurrenceId": "v2.1.285-0152",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000056.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:10534281-10534664",
+    "role": "unknown",
+    "ordinal": 152,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 10534281,
+      "endCodeUnit": 10534664,
+      "sourceSha256": "sha256-QsrIObo5flRSMlcAhEz5AhI8QRTGyC6VgcruvAI/kyY="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000057",
+    "lineageId": "prompt-000057",
+    "occurrenceId": "v2.1.285-0153",
+    "catalogPath": "entries/hook/user/prompt-000057.md",
+    "familyId": "hook",
+    "callsiteId": "patched:10535229-10541869",
+    "role": "user",
+    "ordinal": 153,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 16,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 10535229,
+      "endCodeUnit": 10541869,
+      "sourceSha256": "sha256-Aowsg4d1WR3f5b8XwLqu9HdbGZqdyymHi53FcBdTTgk="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000539",
+    "lineageId": "prompt-000539",
+    "occurrenceId": "v2.1.285-0154",
+    "catalogPath": "entries/auxiliary/system/prompt-000539.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:10927966-10928519",
+    "role": "system",
+    "ordinal": 154,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 10927966,
+      "endCodeUnit": 10928519,
+      "sourceSha256": "sha256-mLvY60ndAiH1Qniydr0wi3LDVha2itkt8VmwXELW+nI="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000108",
+    "lineageId": "prompt-000108",
+    "occurrenceId": "v2.1.285-0155",
+    "catalogPath": "entries/tool-description/tool/prompt-000108.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:11079682-11088799",
+    "role": "tool",
+    "ordinal": 155,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11079682,
+      "endCodeUnit": 11088799,
+      "sourceSha256": "sha256-s5ERwHcDGZlPEp3b9LwmOtxYv1go+SgTvQkisN5MrjY="
+    },
+    "detectorSignals": [
+      "you-are",
+      "use-this-tool",
+      "instruction",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000585",
+    "lineageId": "prompt-000585",
+    "occurrenceId": "v2.1.285-0157",
+    "catalogPath": "entries/memory/system/prompt-000585.md",
+    "familyId": "memory",
+    "callsiteId": "patched:11106119-11107972",
+    "role": "system",
+    "ordinal": 157,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11106119,
+      "endCodeUnit": 11107972,
+      "sourceSha256": "sha256-uwyN7/Fy07Q7vsvXdQwmLDp26w8DDCRmxH1UXnOqpOU="
+    },
+    "detectorSignals": [
+      "you-are",
+      "use-this-tool",
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000111",
+    "lineageId": "prompt-000111",
+    "occurrenceId": "v2.1.285-0158",
+    "catalogPath": "entries/memory/system/prompt-000111.md",
+    "familyId": "memory",
+    "callsiteId": "patched:11134765-11138060",
+    "role": "system",
+    "ordinal": 158,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11134765,
+      "endCodeUnit": 11138060,
+      "sourceSha256": "sha256-k21CoQBqI9qTARjPh5YEm4xDEVTemSqr1W++Z2Y9JC0="
+    },
+    "detectorSignals": [
+      "use-this-tool",
+      "instruction",
+      "return",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000113",
+    "lineageId": "prompt-000113",
+    "occurrenceId": "v2.1.285-0160",
+    "catalogPath": "entries/tool-description/tool/prompt-000113.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:11153994-11156152",
+    "role": "tool",
+    "ordinal": 160,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11153994,
+      "endCodeUnit": 11156152,
+      "sourceSha256": "sha256-uDFypEAnr3vfV9ikEEF5e/zfZH7bvQa4PZF/vy0uD1k="
+    },
+    "detectorSignals": [
+      "you-are",
+      "use-this-tool",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000115",
+    "lineageId": "prompt-000115",
+    "occurrenceId": "v2.1.285-0162",
+    "catalogPath": "entries/tool-description/tool/prompt-000115.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:11166895-11167851",
+    "role": "tool",
+    "ordinal": 162,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11166895,
+      "endCodeUnit": 11167851,
+      "sourceSha256": "sha256-S6/KV599XYPW1OpIp06uQCz1GH/aKGEJCsSQRZmYaKU="
+    },
+    "detectorSignals": [
+      "use-this-tool",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000015",
+    "lineageId": "prompt-000015",
+    "occurrenceId": "v2.1.285-0167",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000015.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:11312615-11312850",
+    "role": "unknown",
+    "ordinal": 167,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11312615,
+      "endCodeUnit": 11312850,
+      "sourceSha256": "sha256-kX3ibVnRhw7sx3rYCri+ZtKBeXhw/77Zlgc1p+dFDng="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000019",
+    "lineageId": "prompt-000019",
+    "occurrenceId": "v2.1.285-0168",
+    "catalogPath": "entries/memory/unknown/prompt-000019.md",
+    "familyId": "memory",
+    "callsiteId": "patched:11321500-11321814",
+    "role": "unknown",
+    "ordinal": 168,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11321500,
+      "endCodeUnit": 11321814,
+      "sourceSha256": "sha256-Xu5KNk7o6FCWVXO/mdSDCWiGMmKzDwlrsHXdT68fbJ8="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000560",
+    "lineageId": "prompt-000560",
+    "occurrenceId": "v2.1.285-0169",
+    "catalogPath": "entries/memory/unknown/prompt-000560.md",
+    "familyId": "memory",
+    "callsiteId": "patched:11332179-11332423",
+    "role": "unknown",
+    "ordinal": 169,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11332179,
+      "endCodeUnit": 11332423,
+      "sourceSha256": "sha256-Y/pQqWjHvpeisKEgzdj7VT3Z2M/X+2GL5feUbNUbTu4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000586",
+    "lineageId": "prompt-000586",
+    "occurrenceId": "v2.1.285-0170",
+    "catalogPath": "entries/auxiliary/user/prompt-000586.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:11452022-11452330",
+    "role": "user",
+    "ordinal": 170,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 11452022,
+      "endCodeUnit": 11452330,
+      "sourceSha256": "sha256-I8JWZE/Cko+7x2xzW9LU4tjy87JZjdPynYwEkzzqV3M="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000532",
+    "lineageId": "prompt-000532",
+    "occurrenceId": "v2.1.285-0174",
+    "catalogPath": "entries/auxiliary/system/prompt-000532.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12244313-12244950",
+    "role": "system",
+    "ordinal": 174,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12244313,
+      "endCodeUnit": 12244950,
+      "sourceSha256": "sha256-td+m8HdGbSR5i6rE3lYm0zZCu/Y5iTMxQcMtoCSWIFs="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000533",
+    "lineageId": "prompt-000533",
+    "occurrenceId": "v2.1.285-0175",
+    "catalogPath": "entries/auxiliary/system/prompt-000533.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12252891-12253220",
+    "role": "system",
+    "ordinal": 175,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12252891,
+      "endCodeUnit": 12253220,
+      "sourceSha256": "sha256-pPaG1J2ccphq1EBewyt5S1B0S14v0snlukaniLM0k+8="
+    },
+    "detectorSignals": [
+      "you-are",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000381",
+    "lineageId": "prompt-000381",
+    "occurrenceId": "v2.1.285-0176",
+    "catalogPath": "entries/auxiliary/system/prompt-000381.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12271522-12272143",
+    "role": "system",
+    "ordinal": 176,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12271522,
+      "endCodeUnit": 12272143,
+      "sourceSha256": "sha256-PAIyx0evaD5TrCXsvD21VM+dGTgcE9njKK0aWS5AgmA="
+    },
+    "detectorSignals": [
+      "instruction",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000356",
+    "lineageId": "prompt-000356",
+    "occurrenceId": "v2.1.285-0180",
+    "catalogPath": "entries/auxiliary/system/prompt-000356.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12350339-12351017",
+    "role": "system",
+    "ordinal": 180,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12350339,
+      "endCodeUnit": 12351017,
+      "sourceSha256": "sha256-kKuWXH7zRpO3SVcLjKsewnF6X7gHbSPv7+zis/zKvk0="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "never-claim",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000404",
+    "lineageId": "prompt-000404",
+    "occurrenceId": "v2.1.285-0181",
+    "catalogPath": "entries/auxiliary/system/prompt-000404.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12352691-12353239",
+    "role": "system",
+    "ordinal": 181,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12352691,
+      "endCodeUnit": 12353239,
+      "sourceSha256": "sha256-5PrG2jzTeZGsJgz8TT+WwRvK1J8Bw4ISiELd9mUHBrg="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000425",
+    "lineageId": "prompt-000425",
+    "occurrenceId": "v2.1.285-0182",
+    "catalogPath": "entries/auxiliary/system/prompt-000425.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12354460-12356079",
+    "role": "system",
+    "ordinal": 182,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12354460,
+      "endCodeUnit": 12356079,
+      "sourceSha256": "sha256-op9eKNvTtaiYmqqt36F9TRKURXrit6XpTuaZh2SQlpo="
+    },
+    "detectorSignals": [
+      "you-are",
+      "instruction",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000367",
+    "lineageId": "prompt-000367",
+    "occurrenceId": "v2.1.285-0183",
+    "catalogPath": "entries/auxiliary/system/prompt-000367.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12358338-12358911",
+    "role": "system",
+    "ordinal": 183,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12358338,
+      "endCodeUnit": 12358911,
+      "sourceSha256": "sha256-lE+5GqbusQDRG8tdPfGj2Zd2c2A7QUmmpltxUfQnYqU="
+    },
+    "detectorSignals": [
+      "respond",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000357",
+    "lineageId": "prompt-000357",
+    "occurrenceId": "v2.1.285-0184",
+    "catalogPath": "entries/auxiliary/system/prompt-000357.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12362365-12364838",
+    "role": "system",
+    "ordinal": 184,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12362365,
+      "endCodeUnit": 12364838,
+      "sourceSha256": "sha256-KKp60QzjKnTBVZ/SuFmh/j0IMZvognpO/MgoueoJTtU="
+    },
+    "detectorSignals": [
+      "you-are",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000368",
+    "lineageId": "prompt-000368",
+    "occurrenceId": "v2.1.285-0185",
+    "catalogPath": "entries/auxiliary/system/prompt-000368.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:12367816-12368231",
+    "role": "system",
+    "ordinal": 185,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 12367816,
+      "endCodeUnit": 12368231,
+      "sourceSha256": "sha256-0Bh3iW8IOmcRJbBB5Ort7+uqXqw9jsbQjAjTd/REcm8="
+    },
+    "detectorSignals": [
+      "instruction",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000060",
+    "lineageId": "prompt-000060",
+    "occurrenceId": "v2.1.285-0186",
+    "catalogPath": "entries/auxiliary/system/prompt-000060.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:13045504-13045796",
+    "role": "system",
+    "ordinal": 186,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 13045504,
+      "endCodeUnit": 13045796,
+      "sourceSha256": "sha256-wAXhJkVhwnfmIWc71CDMl//+3xbGxfz1JtEgCh3IFZ8="
+    },
+    "detectorSignals": [
+      "you-are",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000204",
+    "lineageId": "prompt-000204",
+    "occurrenceId": "v2.1.285-0190",
+    "catalogPath": "entries/permission-security/unknown/prompt-000204.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:13704517-13707958",
+    "role": "unknown",
+    "ordinal": 190,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 13704517,
+      "endCodeUnit": 13707958,
+      "sourceSha256": "sha256-ULu6qElldwEe9RgEThTsey0sUnF6sTmyjHTleE+srIE="
+    },
+    "detectorSignals": [
+      "you-must",
+      "write",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000487",
+    "lineageId": "prompt-000487",
+    "occurrenceId": "v2.1.285-0194",
+    "catalogPath": "entries/auxiliary/system/prompt-000487.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:14370556-14371059",
+    "role": "system",
+    "ordinal": 194,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 14370556,
+      "endCodeUnit": 14371059,
+      "sourceSha256": "sha256-MUrV/6UpNfLnOk5zCERp6JWhm2CtJcbw9vhz+9nFYGA="
+    },
+    "detectorSignals": [
+      "you-are",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000207",
+    "lineageId": "prompt-000207",
+    "occurrenceId": "v2.1.285-0195",
+    "catalogPath": "entries/auxiliary/system/prompt-000207.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:14405605-14419566",
+    "role": "system",
+    "ordinal": 195,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 13,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 14405605,
+      "endCodeUnit": 14419566,
+      "sourceSha256": "sha256-a2cRtqdJjbNur1KdBsnv/xTTEoIdCDCTZ3kIbKI0ckI="
+    },
+    "detectorSignals": [
+      "you-must",
+      "do-not",
+      "write",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000541",
+    "lineageId": "prompt-000541",
+    "occurrenceId": "v2.1.285-0197",
+    "catalogPath": "entries/auxiliary/system/prompt-000541.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:14420525-14420799",
+    "role": "system",
+    "ordinal": 197,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 14420525,
+      "endCodeUnit": 14420799,
+      "sourceSha256": "sha256-f81z2tyM8Uh1RsBNdRwYXCSQ/ha/u79j1VpoecWmf84="
+    },
+    "detectorSignals": [
+      "you-are",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000570",
+    "lineageId": "prompt-000570",
+    "occurrenceId": "v2.1.285-0200",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000570.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:15026196-15026763",
+    "role": "unknown",
+    "ordinal": 200,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 15026196,
+      "endCodeUnit": 15026763,
+      "sourceSha256": "sha256-RS73JcprXUTmX9x5h/ET0yP+v5Xf6UnLhmjsmSXtcBI="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000427",
+    "lineageId": "prompt-000427",
+    "occurrenceId": "v2.1.285-0204",
+    "catalogPath": "entries/web-browser/system/prompt-000427.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:15229714-15232161",
+    "role": "system",
+    "ordinal": 204,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 15229714,
+      "endCodeUnit": 15232161,
+      "sourceSha256": "sha256-BWOnxQQgOUfwPyfTu5TEB7TEWuJ6FvncxYHKLQrvC/U="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000531",
+    "lineageId": "prompt-000531",
+    "occurrenceId": "v2.1.285-0205",
+    "catalogPath": "entries/auxiliary/system/prompt-000531.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:15232166-15233092",
+    "role": "system",
+    "ordinal": 205,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 15232166,
+      "endCodeUnit": 15233092,
+      "sourceSha256": "sha256-LT6urVWOU9KqL8do+2n0rxT3xq1Vu/ijQpBxUrij/to="
+    },
+    "detectorSignals": [
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000370",
+    "lineageId": "prompt-000370",
+    "occurrenceId": "v2.1.285-0206",
+    "catalogPath": "entries/auxiliary/system/prompt-000370.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:15236420-15239039",
+    "role": "system",
+    "ordinal": 206,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 15236420,
+      "endCodeUnit": 15239039,
+      "sourceSha256": "sha256-Jn9AC3VNtb1Ea2/31OhdAvdZmgtntGZkvA0Gc6cXpYw="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000484",
+    "lineageId": "prompt-000484",
+    "occurrenceId": "v2.1.285-0208",
+    "catalogPath": "entries/auxiliary/system/prompt-000484.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:15400720-15401361",
+    "role": "system",
+    "ordinal": 208,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 15400720,
+      "endCodeUnit": 15401361,
+      "sourceSha256": "sha256-drdo4wlTxeKQObslkAOJbKCr1KVkk2IWRgVZUTY5Alg="
+    },
+    "detectorSignals": [
+      "instruction",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000538",
+    "lineageId": "prompt-000538",
+    "occurrenceId": "v2.1.285-0211",
+    "catalogPath": "entries/permission-security/system/prompt-000538.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:16522014-16524963",
+    "role": "system",
+    "ordinal": 211,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 16522014,
+      "endCodeUnit": 16524963,
+      "sourceSha256": "sha256-JI6j+XxF3JEVUpGtJhfYkOI5+6WXeq2AA1OPI1f/I5k="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000024",
+    "lineageId": "prompt-000024",
+    "occurrenceId": "v2.1.285-0219",
+    "catalogPath": "entries/auxiliary/user/prompt-000024.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:18716128-18721066",
+    "role": "user",
+    "ordinal": 219,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 18716128,
+      "endCodeUnit": 18721066,
+      "sourceSha256": "sha256-Sm4Raz17KgISfNBs6bvUNI3fTa6QoIzAGZZ7rRoTa9A="
+    },
+    "detectorSignals": [
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000023",
+    "lineageId": "prompt-000023",
+    "occurrenceId": "v2.1.285-0225",
+    "catalogPath": "entries/tool-description/tool/prompt-000023.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:19664211-19665045",
+    "role": "tool",
+    "ordinal": 225,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 19664211,
+      "endCodeUnit": 19665045,
+      "sourceSha256": "sha256-ec1Om9SapxfxRGWzRoillq1y9mwRFXM4FQOZCsp37h4="
+    },
+    "detectorSignals": [
+      "you-are",
+      "use-this-tool",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000588",
+    "lineageId": "prompt-000588",
+    "occurrenceId": "v2.1.285-0227",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000588.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:19928965-19929188",
+    "role": "unknown",
+    "ordinal": 227,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 19928965,
+      "endCodeUnit": 19929188,
+      "sourceSha256": "sha256-uqJYAMpziomvCdoizjGtq4Q/niNtDUrsrCc0uk4VzvQ="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000517",
+    "lineageId": "prompt-000517",
+    "occurrenceId": "v2.1.285-0228",
+    "catalogPath": "entries/permission-security/system/prompt-000517.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:20104167-20105608",
+    "role": "system",
+    "ordinal": 228,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 21,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20104167,
+      "endCodeUnit": 20105608,
+      "sourceSha256": "sha256-7sKFv9lWbIuBm5uHnnAFNDDXntkS8m61wU0uHdy1Csc="
+    },
+    "detectorSignals": [
+      "your-task",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000534",
+    "lineageId": "prompt-000534",
+    "occurrenceId": "v2.1.285-0229",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000534.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20200745-20200978",
+    "role": "unknown",
+    "ordinal": 229,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20200745,
+      "endCodeUnit": 20200978,
+      "sourceSha256": "sha256-Qc/pd2LEO3WHFkRd+RQEeQk2sQziBlLTdOFOEkZqqRQ="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000535",
+    "lineageId": "prompt-000535",
+    "occurrenceId": "v2.1.285-0230",
+    "catalogPath": "entries/auxiliary/system/prompt-000535.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20334937-20335232",
+    "role": "system",
+    "ordinal": 230,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20334937,
+      "endCodeUnit": 20335232,
+      "sourceSha256": "sha256-qnZubuJEiEfzuYKE4HUQp/DpmTixlTFaxTvplJejrCg="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000536",
+    "lineageId": "prompt-000536",
+    "occurrenceId": "v2.1.285-0231",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000536.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20379607-20381203",
+    "role": "unknown",
+    "ordinal": 231,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20379607,
+      "endCodeUnit": 20381203,
+      "sourceSha256": "sha256-cXebF4TkxjnueCo1KPxJ8FolO5l8/1uTHInlBB/mzyQ="
+    },
+    "detectorSignals": [
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000537",
+    "lineageId": "prompt-000537",
+    "occurrenceId": "v2.1.285-0232",
+    "catalogPath": "entries/auxiliary/system/prompt-000537.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20392650-20394261",
+    "role": "system",
+    "ordinal": 232,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20392650,
+      "endCodeUnit": 20394261,
+      "sourceSha256": "sha256-bkYBwSOy21m+P2IOhem/QW2HZzh1ayPPOYaIRhanxCU="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000509",
+    "lineageId": "prompt-000509",
+    "occurrenceId": "v2.1.285-0233",
+    "catalogPath": "entries/auxiliary/system/prompt-000509.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20555227-20555641",
+    "role": "system",
+    "ordinal": 233,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20555227,
+      "endCodeUnit": 20555641,
+      "sourceSha256": "sha256-9TFEwXklV8X3aNZdWsLirmX4LyEI5u0Muo8Gg/fMbk8="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000510",
+    "lineageId": "prompt-000510",
+    "occurrenceId": "v2.1.285-0234",
+    "catalogPath": "entries/auxiliary/system/prompt-000510.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20555660-20556360",
+    "role": "system",
+    "ordinal": 234,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20555660,
+      "endCodeUnit": 20556360,
+      "sourceSha256": "sha256-+GeH2zSqOWvZMsj2J3HZGFuXhnF/JIAVCTOu/dffixQ="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000566",
+    "lineageId": "prompt-000566",
+    "occurrenceId": "v2.1.285-0236",
+    "catalogPath": "entries/auxiliary/system/prompt-000566.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20669001-20670037",
+    "role": "system",
+    "ordinal": 236,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20669001,
+      "endCodeUnit": 20670037,
+      "sourceSha256": "sha256-FQjnMQ+FQROeEU1sU1WDN3GdUI6voMrDV0av/Qnle24="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000567",
+    "lineageId": "prompt-000567",
+    "occurrenceId": "v2.1.285-0237",
+    "catalogPath": "entries/auxiliary/system/prompt-000567.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:20672123-20672656",
+    "role": "system",
+    "ordinal": 237,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 20672123,
+      "endCodeUnit": 20672656,
+      "sourceSha256": "sha256-lbopyOZ7q8iLLE3TQ/hLbfYOUTQtsEBR/2YUKuZBPKk="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000042",
+    "lineageId": "prompt-000042",
+    "occurrenceId": "v2.1.285-0239",
+    "catalogPath": "entries/permission-security/system/prompt-000042.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:21043002-21046923",
+    "role": "system",
+    "ordinal": 239,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 21043002,
+      "endCodeUnit": 21046923,
+      "sourceSha256": "sha256-gIpbezMoGVdIeO7KefB3L2Ke+1yHo9XKDqmx9t7USB0="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000589",
+    "lineageId": "prompt-000589",
+    "occurrenceId": "v2.1.285-0240",
+    "catalogPath": "entries/auxiliary/user/prompt-000589.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:21049284-21049863",
+    "role": "user",
+    "ordinal": 240,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 21049284,
+      "endCodeUnit": 21049863,
+      "sourceSha256": "sha256-C/AQ5m+KU1lu9G3LLatRUGwImVy7x+T4Q7AAE81enw4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000119",
+    "lineageId": "prompt-000119",
+    "occurrenceId": "v2.1.285-0246",
+    "catalogPath": "entries/permission-security/system/prompt-000119.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:21513618-21517350",
+    "role": "system",
+    "ordinal": 246,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 21513618,
+      "endCodeUnit": 21517350,
+      "sourceSha256": "sha256-zq/iWgs2Fa+jieHaJScKuNGcPupVknVpAwx6no77YhA="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000591",
+    "lineageId": "prompt-000591",
+    "occurrenceId": "v2.1.285-0248",
+    "catalogPath": "entries/auxiliary/user/prompt-000591.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:21675734-21677144",
+    "role": "user",
+    "ordinal": 248,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 21675734,
+      "endCodeUnit": 21677144,
+      "sourceSha256": "sha256-N0Asy3CtLGwFlPfJ+LHillo1MlXx/hCSHrIEAgmvyDU="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000186",
+    "lineageId": "prompt-000186",
+    "occurrenceId": "v2.1.285-0250",
+    "catalogPath": "entries/web-browser/system/prompt-000186.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:22255349-22258711",
+    "role": "system",
+    "ordinal": 250,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 22255349,
+      "endCodeUnit": 22258711,
+      "sourceSha256": "sha256-nQy7VNb7I7yXO7OW5LVvCuzbycISmj+EPlB2Sv++3UU="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000561",
+    "lineageId": "prompt-000561",
+    "occurrenceId": "v2.1.285-0257",
+    "catalogPath": "entries/auxiliary/system/prompt-000561.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:22661188-22661830",
+    "role": "system",
+    "ordinal": 257,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 22661188,
+      "endCodeUnit": 22661830,
+      "sourceSha256": "sha256-sUjPT6+0iqsTb0R2VAtGXoBMFHJP7yLSz5l2BHvFgBE="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000415",
+    "lineageId": "prompt-000415",
+    "occurrenceId": "v2.1.285-0258",
+    "catalogPath": "entries/auxiliary/system/prompt-000415.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:22834107-22834575",
+    "role": "system",
+    "ordinal": 258,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 22834107,
+      "endCodeUnit": 22834575,
+      "sourceSha256": "sha256-hlmQzmFnAVRvnfcLwLr4SjIS+SzSIH1eBlQtzfPE448="
+    },
+    "detectorSignals": [
+      "you-are",
+      "never-claim"
+    ]
+  },
+  {
+    "id": "prompt-000432",
+    "lineageId": "prompt-000432",
+    "occurrenceId": "v2.1.285-0259",
+    "catalogPath": "entries/auxiliary/system/prompt-000432.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:22834590-22835701",
+    "role": "system",
+    "ordinal": 259,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 22834590,
+      "endCodeUnit": 22835701,
+      "sourceSha256": "sha256-N8ajwFBwcuKoFzsGShk8YWdfx1ZqNKWo0NQu2dRn578="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000126",
+    "lineageId": "prompt-000126",
+    "occurrenceId": "v2.1.285-0260",
+    "catalogPath": "entries/auxiliary/system/prompt-000126.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:22835702-22838249",
+    "role": "system",
+    "ordinal": 260,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 22835702,
+      "endCodeUnit": 22838249,
+      "sourceSha256": "sha256-D6Ne4jgPKZI1zisZoMEzl67lTVJmFia8EGrLgmbfJM4="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000125",
+    "lineageId": "prompt-000125",
+    "occurrenceId": "v2.1.285-0261",
+    "catalogPath": "entries/web-browser/system/prompt-000125.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:22841606-22846983",
+    "role": "system",
+    "ordinal": 261,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 22841606,
+      "endCodeUnit": 22846983,
+      "sourceSha256": "sha256-rtLE1c7q+YF+y69NHF+xQajTtdi4dJPjUTjpJjBk9jQ="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000077",
+    "lineageId": "prompt-000077",
+    "occurrenceId": "v2.1.285-0262",
+    "catalogPath": "entries/auxiliary/system/prompt-000077.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:22929327-22929711",
+    "role": "system",
+    "ordinal": 262,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 22929327,
+      "endCodeUnit": 22929711,
+      "sourceSha256": "sha256-eQGvJc+X+Pc63sYoAud6sQzy3B4h2hlyfGWIA+cIuFs="
+    },
+    "detectorSignals": [
+      "you-are",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000058",
+    "lineageId": "prompt-000058",
+    "occurrenceId": "v2.1.285-0264",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000058.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:23410192-23410452",
+    "role": "unknown",
+    "ordinal": 264,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 23410192,
+      "endCodeUnit": 23410452,
+      "sourceSha256": "sha256-tDU45w7D7uYCgGepVbaxHlHWrg6YRJG1pwgXFFsHmK0="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000380",
+    "lineageId": "prompt-000380",
+    "occurrenceId": "v2.1.285-0265",
+    "catalogPath": "entries/permission-security/system/prompt-000380.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:23450044-23452020",
+    "role": "system",
+    "ordinal": 265,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 23450044,
+      "endCodeUnit": 23452020,
+      "sourceSha256": "sha256-IdHQZ+vnKCsqnsXrt8dXjzkpsHItgjoPmsQGaSN4k3s="
+    },
+    "detectorSignals": [
+      "you-are",
+      "your-task",
+      "do-not",
+      "instruction",
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000337",
+    "lineageId": "prompt-000337",
+    "occurrenceId": "v2.1.285-0266",
+    "catalogPath": "entries/web-browser/unknown/prompt-000337.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:23563942-23568979",
+    "role": "unknown",
+    "ordinal": 266,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 8,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 23563942,
+      "endCodeUnit": 23568979,
+      "sourceSha256": "sha256-psIzNXitMD2bMVPsb02Ly1H9Cg/jWMYCeU/kmh6vu9o="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000500",
+    "lineageId": "prompt-000500",
+    "occurrenceId": "v2.1.285-0267",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000500.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:23655770-23655946",
+    "role": "unknown",
+    "ordinal": 267,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 23655770,
+      "endCodeUnit": 23655946,
+      "sourceSha256": "sha256-LNmtCZAAUi0tlvUDWEZD31oqPCvV8XL+NcbtM9UPnJ4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000593",
+    "lineageId": "prompt-000593",
+    "occurrenceId": "v2.1.285-0268",
+    "catalogPath": "entries/hook/unknown/prompt-000593.md",
+    "familyId": "hook",
+    "callsiteId": "patched:23762094-23762434",
+    "role": "unknown",
+    "ordinal": 268,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 23762094,
+      "endCodeUnit": 23762434,
+      "sourceSha256": "sha256-Z/hf4JrMneF7Nx+dM2iH5uI9H0hFT/LwqlTKHVjqhv4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000138",
+    "lineageId": "prompt-000138",
+    "occurrenceId": "v2.1.285-0271",
+    "catalogPath": "entries/memory/system/prompt-000138.md",
+    "familyId": "memory",
+    "callsiteId": "patched:23859435-23862729",
+    "role": "system",
+    "ordinal": 271,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 12,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 23859435,
+      "endCodeUnit": 23862729,
+      "sourceSha256": "sha256-KlFqb2RNakeuI2kIL3HqgPBKFN7p2tjrQBeH4U28Pqk="
+    },
+    "detectorSignals": [
+      "you-are",
+      "write",
+      "return",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000150",
+    "lineageId": "prompt-000150",
+    "occurrenceId": "v2.1.285-0272",
+    "catalogPath": "entries/hook/system/prompt-000150.md",
+    "familyId": "hook",
+    "callsiteId": "patched:24303992-24304873",
+    "role": "system",
+    "ordinal": 272,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 24303992,
+      "endCodeUnit": 24304873,
+      "sourceSha256": "sha256-ST50pXbErfwLSdHicAsolUvNH0EvcoXKF/nV7FCjMrM="
+    },
+    "detectorSignals": [
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000371",
+    "lineageId": "prompt-000371",
+    "occurrenceId": "v2.1.285-0273",
+    "catalogPath": "entries/compact/system/prompt-000371.md",
+    "familyId": "compact",
+    "callsiteId": "patched:24381895-24388043",
+    "role": "system",
+    "ordinal": 273,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 24381895,
+      "endCodeUnit": 24388043,
+      "sourceSha256": "sha256-InNGpTLLzGNIVF7DpQWHFfIvyhV62BNVKwVgI5N1mLc="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "respond",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000553",
+    "lineageId": "prompt-000553",
+    "occurrenceId": "v2.1.285-0274",
+    "catalogPath": "entries/auxiliary/system/prompt-000553.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:24457657-24458264",
+    "role": "system",
+    "ordinal": 274,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 24457657,
+      "endCodeUnit": 24458264,
+      "sourceSha256": "sha256-1uYBfQ3ECHktrTp8dJckQWi9UFK5T0aVJ6rrE31jCcM="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000555",
+    "lineageId": "prompt-000555",
+    "occurrenceId": "v2.1.285-0275",
+    "catalogPath": "entries/auxiliary/system/prompt-000555.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:24459209-24459537",
+    "role": "system",
+    "ordinal": 275,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 24459209,
+      "endCodeUnit": 24459537,
+      "sourceSha256": "sha256-eoStrFZclk8x/aFZGwUhS21nB5qnqIQKwVe1JfA/x2Y="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000594",
+    "lineageId": "prompt-000594",
+    "occurrenceId": "v2.1.285-0276",
+    "catalogPath": "entries/auxiliary/system/prompt-000594.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:24800347-24800659",
+    "role": "system",
+    "ordinal": 276,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 24800347,
+      "endCodeUnit": 24800659,
+      "sourceSha256": "sha256-kBBEalpXfhPUq+iu4TiOO7Z7SUGB6rU1DHa8X7Ipzq8="
+    },
+    "detectorSignals": [
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000219",
+    "lineageId": "prompt-000219",
+    "occurrenceId": "v2.1.285-0277",
+    "catalogPath": "entries/auxiliary/user/prompt-000219.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:25515882-25516160",
+    "role": "user",
+    "ordinal": 277,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 25515882,
+      "endCodeUnit": 25516160,
+      "sourceSha256": "sha256-nktB15wLxaalTQUeRtaddED1mhAnbI97YOvTY1AYXAQ="
+    },
+    "detectorSignals": [
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000283",
+    "lineageId": "prompt-000283",
+    "occurrenceId": "v2.1.285-0286",
+    "catalogPath": "entries/auxiliary/system/prompt-000283.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:27138370-27149752",
+    "role": "system",
+    "ordinal": 286,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 21,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27138370,
+      "endCodeUnit": 27149752,
+      "sourceSha256": "sha256-/5j4foR4ls5Jdx5t78ibnQCLc8fJ5ja4HGuIqFhOgEE="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "generate",
+      "write",
+      "return",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000090",
+    "lineageId": "prompt-000090",
+    "occurrenceId": "v2.1.285-0289",
+    "catalogPath": "entries/auxiliary/system/prompt-000090.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:27197344-27197725",
+    "role": "system",
+    "ordinal": 289,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27197344,
+      "endCodeUnit": 27197725,
+      "sourceSha256": "sha256-2N7PE5lIuQwx24dPj9PPrSq69REu9qiHuBTq5BO8boE="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000091",
+    "lineageId": "prompt-000091",
+    "occurrenceId": "v2.1.285-0290",
+    "catalogPath": "entries/agent/system/prompt-000091.md",
+    "familyId": "agent",
+    "callsiteId": "patched:27197729-27198315",
+    "role": "system",
+    "ordinal": 290,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27197729,
+      "endCodeUnit": 27198315,
+      "sourceSha256": "sha256-3WE/KoyghL3753zjC6j8mD3jJOszFW4Jm5Yxb94IsMQ="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000087",
+    "lineageId": "prompt-000087",
+    "occurrenceId": "v2.1.285-0291",
+    "catalogPath": "entries/auxiliary/system/prompt-000087.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:27217796-27218148",
+    "role": "system",
+    "ordinal": 291,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27217796,
+      "endCodeUnit": 27218148,
+      "sourceSha256": "sha256-NQeQXeMxyd1417DVMKxNYWKdsSjwKODXqnE42Is0vnU="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000028",
+    "lineageId": "prompt-000028",
+    "occurrenceId": "v2.1.285-0292",
+    "catalogPath": "entries/web-browser/user/prompt-000028.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:27253845-27255159",
+    "role": "user",
+    "ordinal": 292,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27253845,
+      "endCodeUnit": 27255159,
+      "sourceSha256": "sha256-vKNToCzU77RXlBbgYbkQg5Mwr1amWKwGaTR/SV/lmfQ="
+    },
+    "detectorSignals": [
+      "use-this-tool",
+      "you-must"
+    ]
+  },
+  {
+    "id": "prompt-000365",
+    "lineageId": "prompt-000365",
+    "occurrenceId": "v2.1.285-0293",
+    "catalogPath": "entries/memory/unknown/prompt-000365.md",
+    "familyId": "memory",
+    "callsiteId": "patched:27370260-27371532",
+    "role": "unknown",
+    "ordinal": 293,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27370260,
+      "endCodeUnit": 27371532,
+      "sourceSha256": "sha256-G8R8SRP+HrxFq+wyHT9luEt1Kgy5HhtLIV0H/TViRjU="
+    },
+    "detectorSignals": [
+      "you-must",
+      "write",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000366",
+    "lineageId": "prompt-000366",
+    "occurrenceId": "v2.1.285-0295",
+    "catalogPath": "entries/memory/system/prompt-000366.md",
+    "familyId": "memory",
+    "callsiteId": "patched:27376693-27377201",
+    "role": "system",
+    "ordinal": 295,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27376693,
+      "endCodeUnit": 27377201,
+      "sourceSha256": "sha256-2vsTTINCeXBLwnwW4fWaJbutBAcHOsvI5Z9gST1lQto="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000121",
+    "lineageId": "prompt-000121",
+    "occurrenceId": "v2.1.285-0296",
+    "catalogPath": "entries/memory/user/prompt-000121.md",
+    "familyId": "memory",
+    "callsiteId": "patched:27399377-27403819",
+    "role": "user",
+    "ordinal": 296,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 7,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27399377,
+      "endCodeUnit": 27403819,
+      "sourceSha256": "sha256-9J4WgdE7AOTo4W5lF5cUIF80hKkOk8DzjlaxuDdbWsE="
+    },
+    "detectorSignals": [
+      "use-this-tool",
+      "do-not",
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000372",
+    "lineageId": "prompt-000372",
+    "occurrenceId": "v2.1.285-0298",
+    "catalogPath": "entries/memory/system/prompt-000372.md",
+    "familyId": "memory",
+    "callsiteId": "patched:27556204-27573377",
+    "role": "system",
+    "ordinal": 298,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 12,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27556204,
+      "endCodeUnit": 27573377,
+      "sourceSha256": "sha256-sxoDkBcskgEPtccJ85tTJJqo8/DNl1+HnifPxCY2BZY="
+    },
+    "detectorSignals": [
+      "you-are",
+      "generate",
+      "write",
+      "return",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000002",
+    "lineageId": "prompt-000002",
+    "occurrenceId": "v2.1.285-0299",
+    "catalogPath": "entries/web-browser/user/prompt-000002.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:27880167-27880563",
+    "role": "user",
+    "ordinal": 299,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27880167,
+      "endCodeUnit": 27880563,
+      "sourceSha256": "sha256-0N5CC/4o4PUqKKTveOoZBHY+saX6NbkeDbQgfJ2Y4XM="
+    },
+    "detectorSignals": [
+      "you-must",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000421",
+    "lineageId": "prompt-000421",
+    "occurrenceId": "v2.1.285-0306",
+    "catalogPath": "entries/tool-description/tool/prompt-000421.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:27996396-27997410",
+    "role": "tool",
+    "ordinal": 306,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 27996396,
+      "endCodeUnit": 27997410,
+      "sourceSha256": "sha256-pZIGeLjeaHc8lgyuTAPB7dRVzr+HoENUYrdoWhiPoCY="
+    },
+    "detectorSignals": [
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000420",
+    "lineageId": "prompt-000420",
+    "occurrenceId": "v2.1.285-0308",
+    "catalogPath": "entries/auxiliary/user/prompt-000420.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:28010573-28011244",
+    "role": "user",
+    "ordinal": 308,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 28010573,
+      "endCodeUnit": 28011244,
+      "sourceSha256": "sha256-uumntl5V/qGbNWZhzpLBta/FwSJ+vhJJfrEd5mAGJ9Q="
+    },
+    "detectorSignals": [
+      "do-not",
+      "respond"
+    ]
+  },
+  {
+    "id": "prompt-000515",
+    "lineageId": "prompt-000515",
+    "occurrenceId": "v2.1.285-0309",
+    "catalogPath": "entries/permission-security/system/prompt-000515.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:28061735-28062905",
+    "role": "system",
+    "ordinal": 309,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 28061735,
+      "endCodeUnit": 28062905,
+      "sourceSha256": "sha256-4DiUE24OPiy8quftkU+5DNKExg477ZR5byAOWIzhnMU="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000075",
+    "lineageId": "prompt-000075",
+    "occurrenceId": "v2.1.285-0318",
+    "catalogPath": "entries/memory/system/prompt-000075.md",
+    "familyId": "memory",
+    "callsiteId": "patched:29369912-29373519",
+    "role": "system",
+    "ordinal": 318,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 29369912,
+      "endCodeUnit": 29373519,
+      "sourceSha256": "sha256-yf52kBwJa2mlFTTy5IukpXDuukaL19GjBr1fWjbewI0="
+    },
+    "detectorSignals": [
+      "use-this-tool",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000076",
+    "lineageId": "prompt-000076",
+    "occurrenceId": "v2.1.285-0319",
+    "catalogPath": "entries/memory/unknown/prompt-000076.md",
+    "familyId": "memory",
+    "callsiteId": "patched:29374751-29375214",
+    "role": "unknown",
+    "ordinal": 319,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 29374751,
+      "endCodeUnit": 29375214,
+      "sourceSha256": "sha256-zq972wjUBYDbLU1oVzGr8pdpOmOpkwJF3Pp2WFCqHWQ="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000078",
+    "lineageId": "prompt-000078",
+    "occurrenceId": "v2.1.285-0320",
+    "catalogPath": "entries/agent/system/prompt-000078.md",
+    "familyId": "agent",
+    "callsiteId": "patched:29396039-29396226",
+    "role": "system",
+    "ordinal": 320,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 29396039,
+      "endCodeUnit": 29396226,
+      "sourceSha256": "sha256-59+6iEKKg9vXaMO3M0BmPo/K/iMxkOuLuNYptv2E/vA="
+    },
+    "detectorSignals": [
+      "you-are",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000136",
+    "lineageId": "prompt-000136",
+    "occurrenceId": "v2.1.285-0323",
+    "catalogPath": "entries/web-browser/system/prompt-000136.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:29684067-29708341",
+    "role": "system",
+    "ordinal": 323,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 29684067,
+      "endCodeUnit": 29708341,
+      "sourceSha256": "sha256-80KokGK0XxqW578mjoFc3o6E3EUZU0bwpTL++gH5Es8="
+    },
+    "detectorSignals": [
+      "instruction",
+      "generate",
+      "write",
+      "return",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000163",
+    "lineageId": "prompt-000163",
+    "occurrenceId": "v2.1.285-0325",
+    "catalogPath": "entries/memory/system/prompt-000163.md",
+    "familyId": "memory",
+    "callsiteId": "patched:29936079-29938189",
+    "role": "system",
+    "ordinal": 325,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 7,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 29936079,
+      "endCodeUnit": 29938189,
+      "sourceSha256": "sha256-mWuN8nOjXQhhVO20MbxWrpGtlf1pDlzuqkvb93uTVmw="
+    },
+    "detectorSignals": [
+      "respond",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000164",
+    "lineageId": "prompt-000164",
+    "occurrenceId": "v2.1.285-0326",
+    "catalogPath": "entries/auxiliary/user/prompt-000164.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:29991609-29992114",
+    "role": "user",
+    "ordinal": 326,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 8,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 29991609,
+      "endCodeUnit": 29992114,
+      "sourceSha256": "sha256-ge6QCkIIgre9ziiA8ZS02WNWYlAu7x4FpQCG3Jl7rCk="
+    },
+    "detectorSignals": [
+      "do-not",
+      "respond",
+      "generate",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000595",
+    "lineageId": "prompt-000595",
+    "occurrenceId": "v2.1.285-0328",
+    "catalogPath": "entries/auxiliary/system/prompt-000595.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:30404136-30404380",
+    "role": "system",
+    "ordinal": 328,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 30404136,
+      "endCodeUnit": 30404380,
+      "sourceSha256": "sha256-KRFMIGehpTrvFLFZA+qsEUvvCPg8QtnjcyqUM1wdQGI="
+    },
+    "detectorSignals": [
+      "instruction",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000205",
+    "lineageId": "prompt-000205",
+    "occurrenceId": "v2.1.285-0329",
+    "catalogPath": "entries/auxiliary/system/prompt-000205.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:30596635-30596973",
+    "role": "system",
+    "ordinal": 329,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 30596635,
+      "endCodeUnit": 30596973,
+      "sourceSha256": "sha256-d3cEXtbFf7l6AB/jJNPSAX8H4lj+R+cUvZHe3XZOcq4="
+    },
+    "detectorSignals": [
+      "instruction",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000206",
+    "lineageId": "prompt-000206",
+    "occurrenceId": "v2.1.285-0330",
+    "catalogPath": "entries/auxiliary/system/prompt-000206.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:30597351-30599440",
+    "role": "system",
+    "ordinal": 330,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 30597351,
+      "endCodeUnit": 30599440,
+      "sourceSha256": "sha256-lttMXj/4j5XNcFeuFzopQuSwIN3OA6wG8+I44DE+Jhg="
+    },
+    "detectorSignals": [
+      "instruction",
+      "return",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000596",
+    "lineageId": "prompt-000596",
+    "occurrenceId": "v2.1.285-0331",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000596.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:30644152-30644364",
+    "role": "unknown",
+    "ordinal": 331,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 30644152,
+      "endCodeUnit": 30644364,
+      "sourceSha256": "sha256-THEYQO5sVh6bsktOCTMuA6cnN9hVz2S9tNCLVAunyQE="
+    },
+    "detectorSignals": [
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000278",
+    "lineageId": "prompt-000278",
+    "occurrenceId": "v2.1.285-0332",
+    "catalogPath": "entries/memory/user/prompt-000278.md",
+    "familyId": "memory",
+    "callsiteId": "patched:30647840-30658942",
+    "role": "user",
+    "ordinal": 332,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 30647840,
+      "endCodeUnit": 30658942,
+      "sourceSha256": "sha256-apZZMU3FKH0Q+1ckP2eT7RRqTbksB283PCrcwZWdn+o="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000396",
+    "lineageId": "prompt-000396",
+    "occurrenceId": "v2.1.285-0334",
+    "catalogPath": "entries/agent/unknown/prompt-000396.md",
+    "familyId": "agent",
+    "callsiteId": "patched:31186713-31187504",
+    "role": "unknown",
+    "ordinal": 334,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 31186713,
+      "endCodeUnit": 31187504,
+      "sourceSha256": "sha256-zuzG83Gk/3CxUmeT/pijytc8crePro2ysjTDw3x86C8="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000049",
+    "lineageId": "prompt-000049",
+    "occurrenceId": "v2.1.285-0336",
+    "catalogPath": "entries/agent/system/prompt-000049.md",
+    "familyId": "agent",
+    "callsiteId": "patched:31313828-31316275",
+    "role": "system",
+    "ordinal": 336,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 31313828,
+      "endCodeUnit": 31316275,
+      "sourceSha256": "sha256-/7qLOb6brilN405WB2Hl4dn0hfacCv0tpmFGzOzoO/o="
+    },
+    "detectorSignals": [
+      "you-are",
+      "your-task",
+      "instruction",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000418",
+    "lineageId": "prompt-000418",
+    "occurrenceId": "v2.1.285-0337",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000418.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:31426364-31427141",
+    "role": "unknown",
+    "ordinal": 337,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 31426364,
+      "endCodeUnit": 31427141,
+      "sourceSha256": "sha256-iQ5ucQ5cOO2BCpa3cDvDlRl7dNAjUDfWnpBkzh4wpQg="
+    },
+    "detectorSignals": [
+      "do-not",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000597",
+    "lineageId": "prompt-000597",
+    "occurrenceId": "v2.1.285-0338",
+    "catalogPath": "entries/web-browser/system/prompt-000597.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:31945790-31946824",
+    "role": "system",
+    "ordinal": 338,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 31945790,
+      "endCodeUnit": 31946824,
+      "sourceSha256": "sha256-fndGnMPU0Ii1XTL5s7o0e44l0AxuKxULEq2wAsfKXPY="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000559",
+    "lineageId": "prompt-000559",
+    "occurrenceId": "v2.1.285-0339",
+    "catalogPath": "entries/hook/system/prompt-000559.md",
+    "familyId": "hook",
+    "callsiteId": "patched:31950570-31954664",
+    "role": "system",
+    "ordinal": 339,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 16,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 31950570,
+      "endCodeUnit": 31954664,
+      "sourceSha256": "sha256-S67678h8GDzCJm4Gb/mP9uqBIDZu+4bRlksPG230e7s="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000026",
+    "lineageId": "prompt-000026",
+    "occurrenceId": "v2.1.285-0340",
+    "catalogPath": "entries/auxiliary/system/prompt-000026.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:33057734-33058011",
+    "role": "system",
+    "ordinal": 340,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 33057734,
+      "endCodeUnit": 33058011,
+      "sourceSha256": "sha256-olybwt+UMtzO3BNbQ5aW22LXGJswVdXh6nch3JMlQY0="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction"
+    ]
+  },
+  {
+    "id": "prompt-000374",
+    "lineageId": "prompt-000374",
+    "occurrenceId": "v2.1.285-0342",
+    "catalogPath": "entries/permission-security/user/prompt-000374.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:33447363-33468945",
+    "role": "user",
+    "ordinal": 342,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 20,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 33447363,
+      "endCodeUnit": 33468945,
+      "sourceSha256": "sha256-n83NofMdoyvp+3r8Ev28P/aLYcKbkenNtgiBiqSvI8c="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000437",
+    "lineageId": "prompt-000437",
+    "occurrenceId": "v2.1.285-0343",
+    "catalogPath": "entries/auxiliary/user/prompt-000437.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:33527308-33527642",
+    "role": "user",
+    "ordinal": 343,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 33527308,
+      "endCodeUnit": 33527642,
+      "sourceSha256": "sha256-u50qYYuiDFP9MP2/+t/3hY+Rg99R+RmkqzsJ/B0kJaU="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000030",
+    "lineageId": "prompt-000030",
+    "occurrenceId": "v2.1.285-0344",
+    "catalogPath": "entries/permission-security/system/prompt-000030.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:33531132-33546861",
+    "role": "system",
+    "ordinal": 344,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 36,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 33531132,
+      "endCodeUnit": 33546861,
+      "sourceSha256": "sha256-uZxFU/mj9JIlsJIe8tpGGOSIY+t19dcw4Gmr/Feo30s="
+    },
+    "detectorSignals": [
+      "you-are",
+      "you-must",
+      "do-not",
+      "instruction",
+      "write",
+      "return",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000103",
+    "lineageId": "prompt-000103",
+    "occurrenceId": "v2.1.285-0345",
+    "catalogPath": "entries/tool-description/tool/prompt-000103.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:34166819-34167418",
+    "role": "tool",
+    "ordinal": 345,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34166819,
+      "endCodeUnit": 34167418,
+      "sourceSha256": "sha256-mnboB5uY+VT6so58d8w4OcFWH6m/nTL2HZ1DCxudE6M="
+    },
+    "detectorSignals": [
+      "do-not",
+      "respond"
+    ]
+  },
+  {
+    "id": "prompt-000220",
+    "lineageId": "prompt-000220",
+    "occurrenceId": "v2.1.285-0347",
+    "catalogPath": "entries/memory/unknown/prompt-000220.md",
+    "familyId": "memory",
+    "callsiteId": "patched:34867366-34867711",
+    "role": "unknown",
+    "ordinal": 347,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34867366,
+      "endCodeUnit": 34867711,
+      "sourceSha256": "sha256-2tvPAQexesq13YmlgQekCW0yaZ8mbXl0QFFOzdVfvM4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000227",
+    "lineageId": "prompt-000227",
+    "occurrenceId": "v2.1.285-0348",
+    "catalogPath": "entries/web-browser/system/prompt-000227.md",
+    "familyId": "web-browser",
+    "callsiteId": "patched:34882591-34886680",
+    "role": "system",
+    "ordinal": 348,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 11,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34882591,
+      "endCodeUnit": 34886680,
+      "sourceSha256": "sha256-iCDx3NNCt/qhbidz32TdFYPOrqBFZfbFil1wwMbxsdc="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "instruction",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000132",
+    "lineageId": "prompt-000132",
+    "occurrenceId": "v2.1.285-0350",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000132.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:34910505-34910973",
+    "role": "unknown",
+    "ordinal": 350,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34910505,
+      "endCodeUnit": 34910973,
+      "sourceSha256": "sha256-3l5NQivkn2Z7r+DHhzSvajsKIqm4qELCyyuhHbhUPx4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000128",
+    "lineageId": "prompt-000128",
+    "occurrenceId": "v2.1.285-0351",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000128.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:34910986-34911500",
+    "role": "unknown",
+    "ordinal": 351,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34910986,
+      "endCodeUnit": 34911500,
+      "sourceSha256": "sha256-gKiacQh6oEoZcqPCAo4Tt+tEUXvBYcgqtZ02U1D9TBU="
+    },
+    "detectorSignals": [
+      "do-not",
+      "return",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000129",
+    "lineageId": "prompt-000129",
+    "occurrenceId": "v2.1.285-0352",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000129.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:34911509-34912396",
+    "role": "unknown",
+    "ordinal": 352,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 4,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34911509,
+      "endCodeUnit": 34912396,
+      "sourceSha256": "sha256-kACIchAbM8DWvk9VZzX3bS/be+1FkP1ESm0t3/AlhRE="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000130",
+    "lineageId": "prompt-000130",
+    "occurrenceId": "v2.1.285-0353",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000130.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:34913811-34914050",
+    "role": "unknown",
+    "ordinal": 353,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34913811,
+      "endCodeUnit": 34914050,
+      "sourceSha256": "sha256-+7QtmJqFlIWYOYKnpcwjmYJcdmWroPUG+5Rr0DXRus4="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000131",
+    "lineageId": "prompt-000131",
+    "occurrenceId": "v2.1.285-0354",
+    "catalogPath": "entries/auxiliary/system/prompt-000131.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:34920324-34921187",
+    "role": "system",
+    "ordinal": 354,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 10,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34920324,
+      "endCodeUnit": 34921187,
+      "sourceSha256": "sha256-epKtiu22AzMAxDDXJuZygUM3vpbKIp3Fl0VTWXjcBT4="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000228",
+    "lineageId": "prompt-000228",
+    "occurrenceId": "v2.1.285-0355",
+    "catalogPath": "entries/agent/system/prompt-000228.md",
+    "familyId": "agent",
+    "callsiteId": "patched:34926120-34928772",
+    "role": "system",
+    "ordinal": 355,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 9,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34926120,
+      "endCodeUnit": 34928772,
+      "sourceSha256": "sha256-hUkK+d91q+NqchFmQ3j7M2wAcQlGZiHqXDBS3dj/9gg="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "write",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000353",
+    "lineageId": "prompt-000353",
+    "occurrenceId": "v2.1.285-0356",
+    "catalogPath": "entries/auxiliary/system/prompt-000353.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:34928786-34930410",
+    "role": "system",
+    "ordinal": 356,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34928786,
+      "endCodeUnit": 34930410,
+      "sourceSha256": "sha256-+OQAbJuIZW1xIaNhcr/i4jzuhUjmKEBMUja805M/cCQ="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000390",
+    "lineageId": "prompt-000390",
+    "occurrenceId": "v2.1.285-0357",
+    "catalogPath": "entries/hook/system/prompt-000390.md",
+    "familyId": "hook",
+    "callsiteId": "patched:34944411-34947689",
+    "role": "system",
+    "ordinal": 357,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 5,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34944411,
+      "endCodeUnit": 34947689,
+      "sourceSha256": "sha256-8pSMpTiwBqiNGVo2gOsMUaQs/GdvHAf9spKX1T6j1EI="
+    },
+    "detectorSignals": [
+      "your-task",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000264",
+    "lineageId": "prompt-000264",
+    "occurrenceId": "v2.1.285-0360",
+    "catalogPath": "entries/memory/system/prompt-000264.md",
+    "familyId": "memory",
+    "callsiteId": "patched:34963646-35010623",
+    "role": "system",
+    "ordinal": 360,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 34963646,
+      "endCodeUnit": 35010623,
+      "sourceSha256": "sha256-Q/NYqKxoen60FIV2pOIlf4hRrnpqZuUVbisUtaqi6LI="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not",
+      "instruction",
+      "write",
+      "output",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000393",
+    "lineageId": "prompt-000393",
+    "occurrenceId": "v2.1.285-0365",
+    "catalogPath": "entries/title/system/prompt-000393.md",
+    "familyId": "title",
+    "callsiteId": "patched:35039384-35041469",
+    "role": "system",
+    "ordinal": 365,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 13,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 35039384,
+      "endCodeUnit": 35041469,
+      "sourceSha256": "sha256-EnJqECNpA567cAF0BW02mnWER3MNP5jcBXGlh22ecKQ="
+    },
+    "detectorSignals": [
+      "your-task",
+      "do-not",
+      "return"
+    ]
+  },
+  {
+    "id": "prompt-000270",
+    "lineageId": "prompt-000270",
+    "occurrenceId": "v2.1.285-0366",
+    "catalogPath": "entries/auxiliary/system/prompt-000270.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:35044209-35045417",
+    "role": "system",
+    "ordinal": 366,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 6,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 35044209,
+      "endCodeUnit": 35045417,
+      "sourceSha256": "sha256-N1Ba7KajQOtHxQKwRwWiMvOozzOuWIdU3Lf08D7Sz9g="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000271",
+    "lineageId": "prompt-000271",
+    "occurrenceId": "v2.1.285-0367",
+    "catalogPath": "entries/auxiliary/system/prompt-000271.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:35045421-35046899",
+    "role": "system",
+    "ordinal": 367,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 8,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 35045421,
+      "endCodeUnit": 35046899,
+      "sourceSha256": "sha256-AvOatQlWDf/ok8Wl2zej5BBxVCUdfxrnFvx0OZTK0Fg="
+    },
+    "detectorSignals": [
+      "you-are",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000275",
+    "lineageId": "prompt-000275",
+    "occurrenceId": "v2.1.285-0371",
+    "catalogPath": "entries/hook/user/prompt-000275.md",
+    "familyId": "hook",
+    "callsiteId": "patched:35066096-35070399",
+    "role": "user",
+    "ordinal": 371,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 35066096,
+      "endCodeUnit": 35070399,
+      "sourceSha256": "sha256-V6A3/ZBiRQWll3nKDD2DodabI6DkZKNLb/P4GadGtLM="
+    },
+    "detectorSignals": [
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000522",
+    "lineageId": "prompt-000522",
+    "occurrenceId": "v2.1.285-0373",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000522.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:35421643-35422206",
+    "role": "unknown",
+    "ordinal": 373,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 35421643,
+      "endCodeUnit": 35422206,
+      "sourceSha256": "sha256-VwtBdL9lvEBdrHYyXUkf+58NctMK70jJSDWKRUZwUxY="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write",
+      "xml-tag"
+    ]
+  },
+  {
+    "id": "prompt-000074",
+    "lineageId": "prompt-000074",
+    "occurrenceId": "v2.1.285-0377",
+    "catalogPath": "entries/tool-description/tool/prompt-000074.md",
+    "familyId": "tool-description",
+    "callsiteId": "patched:35761148-35762969",
+    "role": "tool",
+    "ordinal": 377,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 3,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 35761148,
+      "endCodeUnit": 35762969,
+      "sourceSha256": "sha256-Kt2t1CR5MRFkJN2oV40fK762gNbl6FqGiNuxL0FqqWM="
+    },
+    "detectorSignals": [
+      "you-are",
+      "use-this-tool",
+      "do-not"
+    ]
+  },
+  {
+    "id": "prompt-000507",
+    "lineageId": "prompt-000507",
+    "occurrenceId": "v2.1.285-0379",
+    "catalogPath": "entries/auxiliary/user/prompt-000507.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:37206386-37208327",
+    "role": "user",
+    "ordinal": 379,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 37206386,
+      "endCodeUnit": 37208327,
+      "sourceSha256": "sha256-UKTduWvpP7YhdwGe+TOWOb8kt8069CSAVA0ZcywGYEA="
+    },
+    "detectorSignals": [
+      "do-not",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000010",
+    "lineageId": "prompt-000010",
+    "occurrenceId": "v2.1.285-0388",
+    "catalogPath": "entries/auxiliary/unknown/prompt-000010.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:38615745-38616732",
+    "role": "unknown",
+    "ordinal": 388,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 2,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 38615745,
+      "endCodeUnit": 38616732,
+      "sourceSha256": "sha256-8ampqoefrUxBgHP6Iop92mhwkvMbvdDzgrIyPqNTONU="
+    },
+    "detectorSignals": [
+      "write",
+      "output"
+    ]
+  },
+  {
+    "id": "prompt-000579",
+    "lineageId": "prompt-000579",
+    "occurrenceId": "v2.1.285-0389",
+    "catalogPath": "entries/permission-security/unknown/prompt-000579.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:38635800-38636265",
+    "role": "unknown",
+    "ordinal": 389,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 38635800,
+      "endCodeUnit": 38636265,
+      "sourceSha256": "sha256-RderuDSxVMoNFCw6QVcH/hYJ0oi0H4Y+ORsk/ib/3LE="
+    },
+    "detectorSignals": [
+      "do-not",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000506",
+    "lineageId": "prompt-000506",
+    "occurrenceId": "v2.1.285-0390",
+    "catalogPath": "entries/auxiliary/system/prompt-000506.md",
+    "familyId": "auxiliary",
+    "callsiteId": "patched:38636966-38637374",
+    "role": "system",
+    "ordinal": 390,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 38636966,
+      "endCodeUnit": 38637374,
+      "sourceSha256": "sha256-y5rnopZ83FiVyqJnM6WIW4fx8UneYIHuQIcagJcH3lk="
+    },
+    "detectorSignals": [
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "prompt-000441",
+    "lineageId": "prompt-000441",
+    "occurrenceId": "v2.1.285-0391",
+    "catalogPath": "entries/permission-security/system/prompt-000441.md",
+    "familyId": "permission-security",
+    "callsiteId": "patched:38638258-38639013",
+    "role": "system",
+    "ordinal": 391,
+    "classification": "contextual-gap",
+    "provenance": "upstream",
+    "reasonCode": "runtime-expressions",
+    "detail": "Template contains runtime expressions; no canonical effective value exists at release time.",
+    "expressionCount": 1,
+    "source": {
+      "bundle": "patched",
+      "startCodeUnit": 38638258,
+      "endCodeUnit": 38639013,
+      "sourceSha256": "sha256-ujZy1x9o/+dKLd3l2dpiBc7Liy5gWlRXrjLSfA6uaew="
+    },
+    "detectorSignals": [
+      "do-not",
+      "instruction",
+      "write"
+    ]
+  },
+  {
+    "id": "catalog-scope",
+    "familyId": "catalog-scope",
+    "callsiteId": "ruleset:outside-static-literal-candidates",
+    "role": "unknown",
+    "ordinal": 400,
+    "classification": "opaque-gap",
+    "provenance": "unknown",
+    "reasonCode": "outside-static-literal-ruleset",
+    "detail": "Computed concatenations, short literals, encrypted/encoded data, and strings below the declared signal threshold are outside this catalog's candidate inventory."
+  }
+]

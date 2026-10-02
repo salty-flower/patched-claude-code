@@ -8,7 +8,9 @@ The runtime constructs authentic context and retains existing controls; no new a
 ## Status
 
 Accepted on 2026-10-01 after the user selected prompt-based self-check over a mandatory pre-start check.
-This is a design decision; the instruction has not been added to the runtime.
+Implemented for 2.1.285 on 2026-10-02.
+The [implementation record](../records/2026-10-02-workflow-history.md) verifies instruction delivery;
+it does not establish that a model performs or follows the self-check.
 
 ## Context
 

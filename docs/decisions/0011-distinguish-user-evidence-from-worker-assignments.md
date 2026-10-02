@@ -7,7 +7,9 @@ The worker interprets that evidence and performs its assigned scope; framing doe
 
 ## Status
 
-Accepted on 2026-10-01; design commitment, not an implemented runtime feature.
+Accepted on 2026-10-01; implemented for 2.1.285 on 2026-10-02.
+See the [implementation evidence and limitations](../records/2026-10-02-workflow-history.md);
+deterministic fixtures do not establish model compliance.
 
 ## Context
 

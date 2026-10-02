@@ -223,6 +223,21 @@ function main(): number {
         env: sharedEnv,
       })
     }
+    if (
+      ledger.decisions.some((decision) => decision.familyId === "workflow-history" && decision.disposition === "ported")
+    ) {
+      runChecked(["bun", "test", "--timeout", "0", "tools/test/workflow-history-runtime.test.ts"], {
+        cwd: ROOT,
+        env: sharedEnv,
+      })
+      runChecked(
+        ["bun", "run", "tools/test/workflow-history-tui-smoke.ts", "--version", args.version, "--bundle", dispatcher],
+        {
+          cwd: ROOT,
+          env: sharedEnv,
+        },
+      )
+    }
     const { selectedPatchEntries, oracleResults } = collectPortedOracleEvidence({
       registry,
       ledger,

@@ -12,6 +12,8 @@ test("canonical workflow gates accept raw assets and reject inconsistent materia
   for (const name of ["ci.yml", "auto-release.yml"]) {
     const workflow = readFileSync(join(ROOT, ".github", "workflows", name), "utf8")
     for (const match of workflow.matchAll(/'([^']*\.loader == 5[^']*)'/g)) {
+      const expression = match[1]
+      if (expression === undefined) throw new Error("Asset gate expression is missing")
       const compressed = {
         loader: 5,
         upstream: { encoding: "zstd", sha256: "compressed", bytes: 10 },
@@ -38,7 +40,7 @@ test("canonical workflow gates accept raw assets and reject inconsistent materia
           textAssetMaterialization: "zstd-decompress-v1",
           platforms: [{ files: [compressed, asset] }, { files: [compressed, asset] }],
         }
-        const result = Bun.spawnSync(["jq", "-e", match[1]!], {
+        const result = Bun.spawnSync(["jq", "-e", expression], {
           stdin: Buffer.from(JSON.stringify(manifest)),
           stdout: "pipe",
           stderr: "pipe",
@@ -90,7 +92,7 @@ test("ci runs final packaging through a rendered-only declarative just target", 
   expect(previousCatalogStep).toContain("git ls-remote --tags origin")
   expect(previousCatalogStep).toContain("'refs/tags/claude-code-*-patch.*'")
   expect(previousCatalogStep).toContain('candidate_version="${candidate_version%-patch.*}"')
-  expect(previousCatalogStep).toContain('prompt-identities/versions/${candidate_version}.json')
+  expect(previousCatalogStep).toContain("prompt-identities/versions/${candidate_version}.json")
   expect(previousCatalogStep).toContain("sort -Vr")
   expect(previousCatalogStep).toContain('git show "$candidate:prompts/catalog/manifest.json"')
   expect(previousCatalogStep).toContain("'.target.upstreamVersion // empty'")
@@ -292,4 +294,24 @@ test("ci routes workflow and pre-commit wiring edits through tool tests", () => 
   expect(workflow).toContain("runtime/bun-ant-cell-segmenter.ts")
   expect(workflow).toContain("runtime/macos-keychain.ts")
   expect(workflow).toContain("runtime/release-integrity.ts")
+})
+
+test("ci routes bundled runtime source and prompt edits through full verification", () => {
+  const routing = workflowStep("Classify changed paths").match(/case "\$path" in[\s\S]*?\besac\b/)?.[0]
+  expect(routing).toBeDefined()
+  for (const path of ["tools/runtime/workflow-history.ts", "tools/runtime/workflow-history-prompts.yaml"]) {
+    const result = Bun.spawnSync(
+      [
+        "bash",
+        "-euc",
+        `full=false\ntypecheck=false\npath=$1\n${routing}\nprintf '%s %s' "$full" "$typecheck"`,
+        "routing",
+        path,
+      ],
+      { stdout: "pipe", stderr: "pipe" },
+    )
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr.toString()).toBe("")
+    expect(result.stdout.toString()).toBe("true true")
+  }
 })

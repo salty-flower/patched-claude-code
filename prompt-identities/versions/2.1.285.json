@@ -2,8 +2,8 @@
   "schema": 2,
   "scope": "prompt-occurrence-ledger",
   "upstreamVersion": "2.1.285",
-  "inventorySha256": "sha256-Xn7QmeC/vReW8npr5caIV73Qj263JFs6Rk8XA/8YKxw=",
-  "lineageSetSha256": "sha256-msuIgZOhOMdwqv+z/STKGe36wxj0PEZ/DI1d4A7JMwg=",
+  "inventorySha256": "sha256-70dm1HQNvFRMu9COF02FA4fJkuQDEO0F8f+e/C0oKoE=",
+  "lineageSetSha256": "sha256-nFwd+yTK5UxDllQtltV+Kub7Tc1M7VfE9e88CpAt9hs=",
   "occurrences": [
     {
       "occurrenceId": "v2.1.285-0000",
@@ -2739,7 +2739,7 @@
       "sourceSha256": "sha256-EDVQgf49ztjtsQB2Jsh50cDOznh7ewAT4w6e87d0aEE=",
       "textMinHash": "ABAkRgACeGoAA5xFABkKgAAED1YAG3KdAADiFgADcvAALVBDAATneAAK/TsAAONYABffLAAbNL4ACSZwABVlBgAU9LQABI7LAAnsSwAWx9sATdBWABN6QwA5ByUAFFHbAA7RwAAFGfAAKaPqAApVRAACfjAACkddAAkxAQAo5bA=",
       "normalizedTokenCount": 3866,
-      "astContextSha256": "sha256-TSWubL9AQ47vEkwEi9fesVHNIJWJFr4RTzAjuuWFIWU=",
+      "astContextSha256": "sha256-kKdiPwqPEalD37+Jwa8Kx2RcDMAgofLfQdK3yrK43HU=",
       "lineageId": "prompt-000092",
       "relation": "carry",
       "predecessors": [
@@ -7612,7 +7612,25 @@
         "v2.1.282-0394"
       ],
       "evidence": "unique-exact-observation"
+    },
+    {
+      "occurrenceId": "v2.1.285-0399",
+      "ordinal": 399,
+      "familyHint": "compact",
+      "roleHint": "system",
+      "classification": "static",
+      "detectorSha256": "sha256-hgFf485NaArTlqC6lA+C4aY52a3I62wfAtNVhLDmJWQ=",
+      "revisionSha256": "sha256-hgFf485NaArTlqC6lA+C4aY52a3I62wfAtNVhLDmJWQ=",
+      "sourceSha256": "sha256-Rd+o+EH470CZRB+X031Ztpm1urBB7PvB/2gx/5GppJ0=",
+      "textMinHash": "AD+xHQDYNwQDshTfAH0nFgC83xQAQKQ4ADeR2gBUq64Ajq8WAVIUaACBKbQAbFd0ADf6BAAVQU0AEG0uADPtBAFV65EB+hlzAT23AAAgSkABpJjCAI30xQAiIDAChRp+APvGnQDX/7kBlZK6AIYTfgBr3AwASTd0Ab1mJAL1i/s=",
+      "normalizedTokenCount": 316,
+      "astContextSha256": "sha256-snqOxEH01gM+RExj8HDLPMavSxOGtSJZb+Jf09IoOv4=",
+      "lineageId": "prompt-000599",
+      "relation": "new",
+      "predecessors": [],
+      "evidence": "maintainer-rule",
+      "rationale": "Proposed for maintainer review: new repository-authored Workflow delegation-history preflight resource in patched-workflow-history.js, rendered from tools/runtime/workflow-history-prompts.yaml. This introduces the per-worker userHistoryTurns contract and advisory scope/approval self-check accepted in ADR-0010 through ADR-0013; it is appended to the existing authoring reference and tool description and does not replace or split an existing catalog occurrence. Its proposed canonical family is agent/system because this is Workflow delegation guidance; the scanner familyHint remains compact as extraction evidence."
     }
   ],
-  "ledgerSha256": "sha256-20sU9Naa7ksq7m78ilYMPYCxY58oxkySlGnT4Vfk/+I="
+  "ledgerSha256": "sha256-CsMS1beRV7+bjYBMR6/gskVk2uVOeGJrleS4QsS46NY="
 }

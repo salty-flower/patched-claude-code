@@ -1,0 +1,917 @@
+name = "workflow-history"
+target_version = "2.1.285"
+applies_to = ">=2.1.285 <2.1.286"
+
+[[patches]]
+name = "workflow-history-framing-import-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Load the graph-local, integrity-bound selector and prompt resources without a global preload or external runtime dependency. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ccr"
+    string = "strictHuman"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {selectWorkflowHistory as __pccSelectWorkflowHistory,renderWorkflowHistory as __pccRenderWorkflowHistory,renderWorkflowTask as __pccRenderWorkflowTask,unwrapWorkflowTask as __pccUnwrapWorkflowTask} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "framing-import is rendered for darwin-arm64"
+  assert_contains = "selectWorkflowHistory as __pccSelectWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-select-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Select a bounded chronological interaction suffix, including host-linked genuine Q&A, instead of a single latest user message. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ccr"
+    string = "strictHuman"
+
+[patches.ast.captures.messages]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.agentId]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.analyze]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.analyze.select]
+  node = "CallExpression"
+  callee_property = "hq"
+
+[patches.ast.captures.child]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.child.select]
+  node = "CallExpression"
+  callee_property = "r1"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccSelectWorkflowHistory(%%CAPTURE:messages%%,arguments[2],%%CAPTURE:analyze%%,%%CAPTURE:child%%(%%CAPTURE:agentId%%));}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "select is rendered for darwin-arm64"
+  assert_contains = "return __pccSelectWorkflowHistory(e,arguments[2],"
+
+[[patches]]
+name = "workflow-history-render-history-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Present genuine selected history and omission information without claiming it is the sole user voice. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "pcr"
+    string = "referentTail"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowHistory(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "render-history is rendered for darwin-arm64"
+  assert_contains = "return __pccRenderWorkflowHistory(e);"
+
+[[patches]]
+name = "workflow-history-render-task-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Describe a usable narrow delegated assignment while retaining its agent-authored provenance. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "BRn"
+    source_regex = "^function [\\w$]+\\(e\\)\\{return i\\+"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowTask(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "render-task is rendered for darwin-arm64"
+  assert_contains = "return __pccRenderWorkflowTask(e);"
+
+[[patches]]
+name = "workflow-history-display-task-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Keep transcript display unwrapping compatible with both new and already persisted legacy task frames; a and i are the native header constants. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "woo"
+    string = "t.slice(i.length+1)"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccUnwrapWorkflowTask(%%CAPTURE:value%%,a,i);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "display-task is rendered for darwin-arm64"
+  assert_contains = "return __pccUnwrapWorkflowTask(e,a,i);"
+
+[[patches]]
+name = "workflow-history-runner-import-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Import history capture and option validation into the existing Workflow runner. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ho"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {captureWorkflowHistory as __pccCaptureWorkflowHistory,bindWorkflowHistoryOptions as __pccBindWorkflowHistoryOptions} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "runner-import is rendered for darwin-arm64"
+  assert_contains = "captureWorkflowHistory as __pccCaptureWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-snapshot-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Capture immutable source evidence once at workflow start; later child launches select from this same snapshot. e is the native tool-use context. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ho"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __pccWorkflowSnapshot=__pccCaptureWorkflowHistory(e.messages);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "snapshot is rendered for darwin-arm64"
+  assert_contains = "const __pccWorkflowSnapshot=__pccCaptureWorkflowHistory(e.messages);"
+
+[[patches]]
+name = "workflow-history-options-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Validate userHistoryTurns and bind the effective count and source snapshot to native journal keys, preventing cached results from crossing changed history. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "kpn(o(B))"
+    parent_node = "VariableDeclarator"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "__pccBindWorkflowHistoryOptions(%%EXPR%%,__pccWorkflowSnapshot)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "options is rendered for darwin-arm64"
+  assert_contains = "__pccBindWorkflowHistoryOptions(kpn(o(B)),__pccWorkflowSnapshot)"
+
+[[patches]]
+name = "workflow-history-select-local-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Pass the caller's per-worker history count and the frozen snapshot through the existing provenance branch; native gate and child-session handling remain in place. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "Be?ccr(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "Be?ccr(e.messages,e.agentId):null"
+  value = "Be?ccr(__pccWorkflowSnapshot,e.agentId,ve?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "select-local is rendered for darwin-arm64"
+  assert_contains = "Be?ccr(__pccWorkflowSnapshot,e.agentId,ve?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-select-remote-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Pass the caller's per-worker history count and the frozen snapshot through the existing provenance branch; native gate and child-session handling remain in place. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "Qe?ccr(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "Qe?ccr(e.messages,e.agentId):null"
+  value = "Qe?ccr(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "select-remote is rendered for darwin-arm64"
+  assert_contains = "Qe?ccr(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-human-origin-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Mark only the host-produced selected human-history envelope as human evidence for the native classifier; the renderer keeps questions and limitations explicitly attributed. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = "{content:Tn}"
+    parent_node = "CallExpression"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = 'origin:{kind:"human"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "human-origin is rendered for darwin-arm64"
+  assert_contains = '{content:Tn,origin:{kind:"human"}}'
+
+[[patches]]
+name = "workflow-history-assignment-origin-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Mark computed worker assignments as coordinator-authored so native classification cannot promote task text or quoted consent into a human request; Te is the final native task payload. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 2
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = "{content:Te}"
+    parent_node = "CallExpression"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = 'origin:{kind:"coordinator"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "assignment-origin is rendered for darwin-arm64"
+  assert_contains = '{content:Te,origin:{kind:"coordinator"}}'
+
+[[patches]]
+name = "workflow-history-classifier-import-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Use the same host-linked Q&A validation in the invoked native classifier as in worker history selection. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "bzt"
+    string = "harnessMarked"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "classifier-import is rendered for darwin-arm64"
+  assert_contains = "renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer"
+
+[[patches]]
+name = "workflow-history-classifier-answer-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Replace name-and-ID-only answer credit with strict successful host result linkage. Native e is the redacted transcript, en the result record, xo the tool-result block and Vn the normalized content accumulator; no classifier activation predicate changes. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "BlockStatement"
+    source_regex = "^\\{let [\\w$]+=typeof xo\\.content"
+    string = ".startsWith(Uat)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,en,xo.tool_use_id);if(__pccAnswer!==null)Vn.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "classifier-answer is rendered for darwin-arm64"
+  assert_contains = "const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,en,xo.tool_use_id);"
+
+[[patches]]
+name = "workflow-history-authoring-import-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Load standalone advisory preflight wording and the history option contract into the Workflow authoring surface. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "far"
+    string = "# Workflow authoring reference"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {appendWorkflowPreflight as __pccAppendWorkflowPreflight} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "authoring-import is rendered for darwin-arm64"
+  assert_contains = "appendWorkflowPreflight as __pccAppendWorkflowPreflight"
+
+[[patches]]
+name = "workflow-history-authoring-reference-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Teach the script author the history parameter and advisory approval-versus-task check, including context repair before repeated user approval. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "TemplateLiteral"
+    parent_node = "ReturnStatement"
+    string = "# Workflow authoring reference"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "authoring-reference is rendered for darwin-arm64"
+  assert_contains = "return __pccAppendWorkflowPreflight(`# Workflow authoring reference"
+
+[[patches]]
+name = "workflow-history-tool-description-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+rationale = "Deliver the same advisory selfcheck when the tool description defers the full authoring reference to a skill; appending is idempotent. This is the 2.1.285 darwin-arm64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = """
+e?`${t}
+
+${i}`:`${t}
+
+${far()}`"""
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "tool-description is rendered for darwin-arm64"
+  assert_contains = "return  __pccAppendWorkflowPreflight(e?"
+
+[[patches]]
+name = "workflow-history-framing-import-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Load the graph-local, integrity-bound selector and prompt resources without a global preload or external runtime dependency. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ulr"
+    string = "strictHuman"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {selectWorkflowHistory as __pccSelectWorkflowHistory,renderWorkflowHistory as __pccRenderWorkflowHistory,renderWorkflowTask as __pccRenderWorkflowTask,unwrapWorkflowTask as __pccUnwrapWorkflowTask} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "framing-import is rendered for linux-x64"
+  assert_contains = "selectWorkflowHistory as __pccSelectWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-select-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Select a bounded chronological interaction suffix, including host-linked genuine Q&A, instead of a single latest user message. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ulr"
+    string = "strictHuman"
+
+[patches.ast.captures.messages]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.agentId]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.analyze]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.analyze.select]
+  node = "CallExpression"
+  callee_property = "lK"
+
+[patches.ast.captures.child]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.child.select]
+  node = "CallExpression"
+  callee_property = "zF"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccSelectWorkflowHistory(%%CAPTURE:messages%%,arguments[2],%%CAPTURE:analyze%%,%%CAPTURE:child%%(%%CAPTURE:agentId%%));}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "select is rendered for linux-x64"
+  assert_contains = "return __pccSelectWorkflowHistory(e,arguments[2],"
+
+[[patches]]
+name = "workflow-history-render-history-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Present genuine selected history and omission information without claiming it is the sole user voice. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Wlr"
+    string = "referentTail"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowHistory(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "render-history is rendered for linux-x64"
+  assert_contains = "return __pccRenderWorkflowHistory(e);"
+
+[[patches]]
+name = "workflow-history-render-task-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Describe a usable narrow delegated assignment while retaining its agent-authored provenance. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "TRn"
+    source_regex = "^function [\\w$]+\\(e\\)\\{return i\\+"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowTask(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "render-task is rendered for linux-x64"
+  assert_contains = "return __pccRenderWorkflowTask(e);"
+
+[[patches]]
+name = "workflow-history-display-task-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Keep transcript display unwrapping compatible with both new and already persisted legacy task frames; a and i are the native header constants. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Vro"
+    string = "t.slice(i.length+1)"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccUnwrapWorkflowTask(%%CAPTURE:value%%,a,i);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "display-task is rendered for linux-x64"
+  assert_contains = "return __pccUnwrapWorkflowTask(e,a,i);"
+
+[[patches]]
+name = "workflow-history-runner-import-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Import history capture and option validation into the existing Workflow runner. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ho"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {captureWorkflowHistory as __pccCaptureWorkflowHistory,bindWorkflowHistoryOptions as __pccBindWorkflowHistoryOptions} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "runner-import is rendered for linux-x64"
+  assert_contains = "captureWorkflowHistory as __pccCaptureWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-snapshot-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Capture immutable source evidence once at workflow start; later child launches select from this same snapshot. e is the native tool-use context. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ho"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __pccWorkflowSnapshot=__pccCaptureWorkflowHistory(e.messages);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "snapshot is rendered for linux-x64"
+  assert_contains = "const __pccWorkflowSnapshot=__pccCaptureWorkflowHistory(e.messages);"
+
+[[patches]]
+name = "workflow-history-options-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Validate userHistoryTurns and bind the effective count and source snapshot to native journal keys, preventing cached results from crossing changed history. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "cpn(o(B))"
+    parent_node = "VariableDeclarator"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "__pccBindWorkflowHistoryOptions(%%EXPR%%,__pccWorkflowSnapshot)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "options is rendered for linux-x64"
+  assert_contains = "__pccBindWorkflowHistoryOptions(cpn(o(B)),__pccWorkflowSnapshot)"
+
+[[patches]]
+name = "workflow-history-select-local-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Pass the caller's per-worker history count and the frozen snapshot through the existing provenance branch; native gate and child-session handling remain in place. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "Be?Ulr(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "Be?Ulr(e.messages,e.agentId):null"
+  value = "Be?Ulr(__pccWorkflowSnapshot,e.agentId,ve?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "select-local is rendered for linux-x64"
+  assert_contains = "Be?Ulr(__pccWorkflowSnapshot,e.agentId,ve?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-select-remote-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Pass the caller's per-worker history count and the frozen snapshot through the existing provenance branch; native gate and child-session handling remain in place. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "Qe?Ulr(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "Qe?Ulr(e.messages,e.agentId):null"
+  value = "Qe?Ulr(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "select-remote is rendered for linux-x64"
+  assert_contains = "Qe?Ulr(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-human-origin-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Mark only the host-produced selected human-history envelope as human evidence for the native classifier; the renderer keeps questions and limitations explicitly attributed. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = "{content:_n}"
+    parent_node = "CallExpression"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = 'origin:{kind:"human"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "human-origin is rendered for linux-x64"
+  assert_contains = '{content:_n,origin:{kind:"human"}}'
+
+[[patches]]
+name = "workflow-history-assignment-origin-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Mark computed worker assignments as coordinator-authored so native classification cannot promote task text or quoted consent into a human request; Te is the final native task payload. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 2
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = "{content:Te}"
+    parent_node = "CallExpression"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = 'origin:{kind:"coordinator"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "assignment-origin is rendered for linux-x64"
+  assert_contains = '{content:Te,origin:{kind:"coordinator"}}'
+
+[[patches]]
+name = "workflow-history-classifier-import-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Use the same host-linked Q&A validation in the invoked native classifier as in worker history selection. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Dzt"
+    string = "harnessMarked"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "classifier-import is rendered for linux-x64"
+  assert_contains = "renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer"
+
+[[patches]]
+name = "workflow-history-classifier-answer-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Replace name-and-ID-only answer credit with strict successful host result linkage. Native e is the redacted transcript, en the result record, xo the tool-result block and Vn the normalized content accumulator; no classifier activation predicate changes. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "BlockStatement"
+    source_regex = "^\\{let [\\w$]+=typeof xo\\.content"
+    string = ".startsWith(Rat)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,en,xo.tool_use_id);if(__pccAnswer!==null)Vn.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "classifier-answer is rendered for linux-x64"
+  assert_contains = "const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,en,xo.tool_use_id);"
+
+[[patches]]
+name = "workflow-history-authoring-import-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Load standalone advisory preflight wording and the history option contract into the Workflow authoring surface. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ksr"
+    string = "# Workflow authoring reference"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {appendWorkflowPreflight as __pccAppendWorkflowPreflight} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "authoring-import is rendered for linux-x64"
+  assert_contains = "appendWorkflowPreflight as __pccAppendWorkflowPreflight"
+
+[[patches]]
+name = "workflow-history-authoring-reference-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Teach the script author the history parameter and advisory approval-versus-task check, including context repair before repeated user approval. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "TemplateLiteral"
+    parent_node = "ReturnStatement"
+    string = "# Workflow authoring reference"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "authoring-reference is rendered for linux-x64"
+  assert_contains = "return __pccAppendWorkflowPreflight(`# Workflow authoring reference"
+
+[[patches]]
+name = "workflow-history-tool-description-linux-x64"
+platforms = [ "linux-x64" ]
+rationale = "Deliver the same advisory selfcheck when the tool description defers the full authoring reference to a skill; appending is idempotent. This is the 2.1.285 linux-x64 minified-symbol variant; exact function/call matches and local identifiers are bounded to this target. The Workflow provenance surface postdates the audit baseline; the referenced native agent/tool-result/classifier boundary establishes the source intent. See docs/records/2026-10-02-workflow-history.md. Remove this entry when upstream supplies bounded, attributed Workflow history with genuine question answers and compatible classification."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = """
+e?`${t}
+
+${i}`:`${t}
+
+${Ksr()}`"""
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "tool-description is rendered for linux-x64"
+  assert_contains = "return  __pccAppendWorkflowPreflight(e?"

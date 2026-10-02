@@ -2531,11 +2531,79 @@
       "oracleIds": [
         "ultracode-opus46-max/xhigh-settings-opus-max-fallback"
       ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "bounded-human-history",
+      "introducedVersion": "2.1.285",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541",
+        "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466",
+        "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "workflow-history/bounded-human-history"
+      ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "assignment-provenance",
+      "introducedVersion": "2.1.285",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541",
+        "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "workflow-history/assignment-provenance"
+      ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "classifier-answer-provenance",
+      "introducedVersion": "2.1.285",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359",
+        "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "workflow-history/classifier-answer-provenance"
+      ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "advisory-preflight",
+      "introducedVersion": "2.1.285",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "workflow-history/advisory-preflight"
+      ]
     }
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "salty-flower",
-    "approvedAt": "2026-09-25",
-    "catalogSha256": "315a0b12184a715a6b1d0115fe4f716815db0ac7601cf361f7d9739fb3fce093"
+    "approvedAt": "2026-10-02",
+    "catalogSha256": "9d7bb9e15a8fbb34549c640690f3a9c21c09580d22ce6077f6648bffe67f278e"
   }
 }

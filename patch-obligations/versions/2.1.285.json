@@ -1225,6 +1225,70 @@
       "patchEntries": [
         "require-local-opt-in-for-served-tool-text-list-2-1-285"
       ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "bounded-human-history",
+      "disposition": "ported",
+      "patchEntries": [
+        "workflow-history-framing-import-darwin-arm64",
+        "workflow-history-select-darwin-arm64",
+        "workflow-history-render-history-darwin-arm64",
+        "workflow-history-runner-import-darwin-arm64",
+        "workflow-history-snapshot-darwin-arm64",
+        "workflow-history-options-darwin-arm64",
+        "workflow-history-select-local-darwin-arm64",
+        "workflow-history-select-remote-darwin-arm64",
+        "workflow-history-human-origin-darwin-arm64",
+        "workflow-history-framing-import-linux-x64",
+        "workflow-history-select-linux-x64",
+        "workflow-history-render-history-linux-x64",
+        "workflow-history-runner-import-linux-x64",
+        "workflow-history-snapshot-linux-x64",
+        "workflow-history-options-linux-x64",
+        "workflow-history-select-local-linux-x64",
+        "workflow-history-select-remote-linux-x64",
+        "workflow-history-human-origin-linux-x64"
+      ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "assignment-provenance",
+      "disposition": "ported",
+      "patchEntries": [
+        "workflow-history-render-task-darwin-arm64",
+        "workflow-history-display-task-darwin-arm64",
+        "workflow-history-assignment-origin-darwin-arm64",
+        "workflow-history-render-task-linux-x64",
+        "workflow-history-display-task-linux-x64",
+        "workflow-history-assignment-origin-linux-x64"
+      ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "classifier-answer-provenance",
+      "disposition": "ported",
+      "patchEntries": [
+        "workflow-history-assignment-origin-darwin-arm64",
+        "workflow-history-classifier-import-darwin-arm64",
+        "workflow-history-classifier-answer-darwin-arm64",
+        "workflow-history-assignment-origin-linux-x64",
+        "workflow-history-classifier-import-linux-x64",
+        "workflow-history-classifier-answer-linux-x64"
+      ]
+    },
+    {
+      "familyId": "workflow-history",
+      "invariantId": "advisory-preflight",
+      "disposition": "ported",
+      "patchEntries": [
+        "workflow-history-authoring-import-darwin-arm64",
+        "workflow-history-authoring-reference-darwin-arm64",
+        "workflow-history-tool-description-darwin-arm64",
+        "workflow-history-authoring-import-linux-x64",
+        "workflow-history-authoring-reference-linux-x64",
+        "workflow-history-tool-description-linux-x64"
+      ]
     }
   ],
   "retirementProposal": {

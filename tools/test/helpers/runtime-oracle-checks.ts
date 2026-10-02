@@ -41,6 +41,18 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
   const materialized = keychain("materialized mode rejects default-Keychain legacy mutations and doctor probes")
   const plugin = keychain("real plugin eval child uses materialized selected-Keychain credentials without preload")
   const result: Record<string, string[]> = {
+    "workflow-history/bounded-human-history": [
+      "workflow-history-tui-smoke.ts: real Q&A, bounded windows, frozen snapshot and advisory preflight",
+    ],
+    "workflow-history/advisory-preflight": [
+      "workflow-history-tui-smoke.ts: real Q&A, bounded windows, frozen snapshot and advisory preflight",
+    ],
+    "workflow-history/assignment-provenance": [
+      "workflow-history-runtime.test.ts: native classifier preserves genuine answers and coordinator assignment provenance",
+    ],
+    "workflow-history/classifier-answer-provenance": [
+      "workflow-history-runtime.test.ts: native classifier preserves genuine answers and coordinator assignment provenance",
+    ],
     "agent-memory-discovery/agents-md-native-hook-load": [agentsMdNativeHookCheck],
     "later-command/later-command-submit-hook": [
       "later-command-patch.test.ts: active /later schedules once, lists, and forwards pasted contents",

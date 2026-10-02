@@ -7,7 +7,8 @@ Deterministic runtime code selects authentic interactions from the immutable his
 
 ## Status
 
-Accepted on 2026-10-01; design commitment, not an implemented runtime feature.
+Accepted on 2026-10-01; implemented for 2.1.285 on 2026-10-02.
+See the [implementation evidence and limitations](../records/2026-10-02-workflow-history.md).
 
 ## Context
 
@@ -62,8 +63,8 @@ Disclose count-based omissions, incomplete available history where known, and si
 never silently drop an oversized selection while presenting it as complete.
 Keep Q&A atomic under size limits as well as count limits.
 
-The public parameter spelling, default count, integer bounds, and size-limit handling remain detailed-design choices.
-They must be documented and validated before implementation is admitted.
+The public parameter spelling, default count, integer bounds, and size-limit handling are detailed-design choices.
+The implemented values and validation contract are documented in [Workflow History](../guides/Workflow-History.md).
 
 ## Consequences
 

@@ -48,10 +48,18 @@ test("statusline mode survives an undefined or conflicting hook payload through 
 
 describe("rendered statusline", () => {
   let bundle: string
-  // Full graph rendering needs its own setup budget on the Darwin CI runner.
+  // Render the patches that provide the smoke's footer and thinking flags.
+  // Footer JSON also calls the session resolver installed by model-effort-session.
+  // The api-stub-smoke recipe also runs this harness against the complete bundle.
   // Keep the interaction test bounded by the smoke harness's 65-second watchdog.
   beforeAll(async () => {
-    bundle = await renderRunnableBundle({ root, version, outDir: join(temp, "bundle"), platforms: "host" })
+    bundle = await renderRunnableBundle({
+      root,
+      version,
+      outDir: join(temp, "bundle"),
+      patchFiles: ["model-effort-session.toml", "statusline-footer-control.toml", "thinking-display.toml"],
+      platforms: "host",
+    })
   }, 300_000)
 
   test("exports and refreshes permission modes with the built-in footer hidden", async () => {

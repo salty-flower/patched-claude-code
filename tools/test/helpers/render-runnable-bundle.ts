@@ -10,6 +10,7 @@ import {
   stagedGraphRoot,
 } from "../../lib/graph-bundle"
 import { loadPatchEntriesFromDirectory, loadPatchEntriesFromFile, type PatchEntry } from "../../lib/patch-files"
+import { emitWorkflowHistoryRuntime } from "../../lib/workflow-history-runtime"
 
 // Render a runnable patched bundle for the staged target into a temp dir.
 //
@@ -60,6 +61,7 @@ export async function renderRunnableBundle(options: {
       if (text === undefined) throw new Error(`changed graph file missing: ${platform}/${path}`)
       await Bun.write(join(outGraph, path), text)
     }
+    await emitWorkflowHistoryRuntime(root, outGraph, patches, version)
   }
   // Resource bytes are copied unchanged by selective JavaScript patching.
   const stagedAudit = join(root, "staging", version, "builtin-skill-resources")

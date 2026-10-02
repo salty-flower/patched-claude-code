@@ -7,7 +7,9 @@ Existing runtime policy determines when classification runs; this feature does n
 
 ## Status
 
-Accepted on 2026-10-01; design commitment, not a claim of implemented classifier compatibility.
+Accepted on 2026-10-01; implemented for 2.1.285 on 2026-10-02.
+The [implementation record](../records/2026-10-02-workflow-history.md) documents native normalization evidence;
+model-backed classifier decisions have not been evaluated.
 
 ## Context
 

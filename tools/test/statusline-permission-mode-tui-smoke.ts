@@ -123,6 +123,7 @@ export async function statuslinePermissionModeSmoke(bundle: string): Promise<voi
       await proc.stdin.flush()
     }
     const waitFor = (predicate: () => boolean, description: string) => events.waitFor(predicate, description)
+    let failed = false
     try {
       for (const [index, mode] of ["default", "acceptEdits", "plan", "auto", "default"].entries()) {
         if (index > 0) await key("\x1b[Z")
@@ -153,11 +154,18 @@ export async function statuslinePermissionModeSmoke(bundle: string): Promise<voi
       if (code !== 0) throw new Error(`statusline PTY exited ${code}\n${screen}\n${stderr}`)
       if (stub.requests.some((request) => request.path.endsWith("/messages")))
         throw new Error("local mode interactions sent a model request")
+    } catch (error) {
+      failed = true
+      throw error
     } finally {
       clearTimeout(watchdog)
       closeInput()
       if (proc.exitCode === null) kill()
-      await Promise.all([proc.exited, output, errors])
+      const [, , stderr] = await Promise.all([proc.exited, output, errors])
+      if (failed) {
+        console.error(`statusline PTY raw transcript: ${JSON.stringify(transcript)}`)
+        console.error(`statusline PTY stderr: ${stderr}`)
+      }
       terminal.dispose()
     }
   } finally {

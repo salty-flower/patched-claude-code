@@ -20,6 +20,7 @@ import {
 import { runWithHeavyLock } from "../lib/heavy-lock"
 import { loadPatchEntriesFromDirectory } from "../lib/patch-files"
 import { runChecked } from "../lib/process"
+import { emitWorkflowHistoryRuntime } from "../lib/workflow-history-runtime"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
 const RENDER_PLATFORM = process.env.PCC_RENDER_PLATFORM
@@ -69,7 +70,7 @@ function renderGraphBatch(version: string, platform: string, patchIndices: numbe
   return 0
 }
 
-function renderDualGraph(version: string): number {
+async function renderDualGraph(version: string): Promise<number> {
   const patches = loadPatchEntriesFromDirectory(ROOT)
   console.error(`loaded ${patches.length} patch entries from patches/`)
   const graphRoot = stagedGraphRoot(ROOT, version)
@@ -116,6 +117,7 @@ function renderDualGraph(version: string): number {
       })
       if (result.exitCode !== 0) return result.exitCode
     }
+    await emitWorkflowHistoryRuntime(ROOT, join(patchedRoot, platform), patches, version)
     console.error(`rendered ${platform} graph -> graph.patched/${platform}`)
   }
 
@@ -124,7 +126,7 @@ function renderDualGraph(version: string): number {
   return 0
 }
 
-function main(): number {
+async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2))
   if (!args.version) {
     console.error(
@@ -162,10 +164,9 @@ function main(): number {
 
   mkdirSync(dirname(output), { recursive: true })
   if (!args.skipVerify) {
-    runChecked(
-      ["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input, "--quiet-skips"],
-      { cwd: ROOT },
-    )
+    runChecked(["bun", "run", join(ROOT, "tools", "patch", "verify-patches.ts"), "--against", input, "--quiet-skips"], {
+      cwd: ROOT,
+    })
   }
   runChecked(["bun", "run", join(ROOT, "tools", "patch", "build-patched.ts"), input, output, args.version], {
     cwd: ROOT,

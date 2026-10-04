@@ -6,7 +6,9 @@ Assess all 30 `patches/*.toml` feature requirements.
 Version coverage is metadata, not permission to retire a feature.
 A file excluded from v2.1.285 may need a target bump;
 its latest implementation still defines a requirement for this assessment.
-Likewise, an obligation marked `retired` does not establish that the user no longer wants the behavior.
+An inactive version range or unsigned retirement label does not establish abandonment.
+Accepted ADRs and digest-bound maintainer retirement decisions remain authoritative;
+keeping historical requirements in the assessment does not automatically reinstate them.
 
 | Evidence | Inspected boundary |
 | --- | --- |
@@ -48,7 +50,7 @@ Each verdict applies to the complete feature, not just one convenient locator.
 
 | Patch file | Entries | Verdict | Official seam and remaining requirement |
 | --- | ---: | --- | --- |
-| [agent-memory-discovery](../../patches/agent-memory-discovery.toml) | 0 | Full candidate, custom mod | `prompt.context`, Read `tool.call`, `$.fs.ancestors` and resolved `stat.realPath` supply discovery/dedup primitives. Implement explicit extra-directory scanning and edit invalidation; the shipped built-in alone provides partial coverage. |
+| [agent-memory-discovery](../../patches/agent-memory-discovery.toml) | 0 | Preserve accepted native ownership | ADR-0008 keeps native discovery and precedence together and explicitly retires the realpath-only promise. Custom Mod primitives are feasibility evidence, not authorization to replace that accepted behavior. Retain the native callback and verify applicable files and order. |
 | [agents-md-native-hook](../../patches/agents-md-native-hook.toml) | 1 | Upstream candidate | The upstream `agents-md` mod supplies instruction loading. This patch repairs its host registration in the extracted disk graph; a built-in mod's existence does not prove that our disk-graph launcher registers it correctly. |
 | [anti-trace](../../patches/anti-trace.toml) | 6 | Partial | Prompt and tool-description hooks can screen served text. Collector telemetry hooks do not prove control over raw-body OTel/local-file sinks or wire-bound project-thread author identifiers. |
 | [ask-user-question-unlimited](../../patches/ask-user-question-unlimited.toml) | 7 | Partial | `tool.describe` changes prose; `$.tool.register` can offer another unbounded tool. Neither changes the built-in standard/extended schemas and their batched answer contract. |
@@ -92,11 +94,16 @@ and [prompt composition types](https://github.com/anthropics/claude-code/blob/2b
 The [public agents-md mod](https://github.com/anthropics/claude-code/tree/2bfb629dfaff0c8318047a4beb93cf1dc5b58b18/mods/agents-md)
 demonstrates ancestor/nested instruction loading through `prompt.context` and Read hooks.
 Its fallback/additive mode and content-based deduplication must be compared with our intended behavior.
-`$.fs.stat(..., { resolve: true })` exposes realpath identity, so a custom implementation can address that difference;
-additional directories and edit invalidation still need end-to-end proof.
-The full-candidate verdict concerns that custom implementation, not installing the stock built-in.
-If edits do not refresh instructions through the target's supported hooks,
-retain the corresponding detector/invalidation patch rather than silently weakening the requirement.
+`$.fs.stat(..., { resolve: true })` supplies a realpath primitive for a hypothetical custom implementation.
+However, [ADR-0008](../decisions/0008-keep-native-agents-discovery-and-precedence-together.md)
+already adopts native path/content semantics and retires the realpath-only promise.
+[ADR-0009](../decisions/0009-bind-native-agents-hook-to-release-graph.md)
+keeps only the pinned, verified native callback and closure in the trusted host;
+other hooks remain in the restricted worker.
+The original full-custom-Mod recommendation overlooked these accepted decisions.
+Corrected on 2026-10-05: preserve native discovery, precedence, and trusted callback loading by default.
+A custom discovery replacement would require an explicit new boundary decision and runtime proof,
+not merely primitives appearing in the public API.
 
 For AskUserQuestion, changing its description or drawing does not change its input schema.
 A registered mod tool has a different tool name and contract.
@@ -151,7 +158,8 @@ and [native provenance record](../records/2026-10-02-workflow-history.md).
 
 The [v2.1.285 obligation decisions](../../patch-obligations/versions/2.1.285.json)
 record upstream equivalence for Fable's two OAuth picker paths.
-They record the API-key row as retired; this assessment retains that requirement for separate review.
+They record the API-key row as retired; retain it in the historical assessment,
+and inspect the maintainer acknowledgement before proposing reinstatement.
 The [npm-warning rationale](../../patches/suppress-npm-native-installer-warning.toml)
 records removal of the targeted notification/setup card in v2.1.227.
 These are concrete existing upstream claims to recheck, not conclusions drawn from missing target variants.

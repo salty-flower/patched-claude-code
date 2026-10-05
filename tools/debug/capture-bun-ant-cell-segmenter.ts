@@ -46,7 +46,7 @@ async function sha256File(path: string): Promise<string> {
   return hasher.digest("hex")
 }
 
-async function assertInspectorPortUnused(port: number): Promise<void> {
+async function inspectorPortOccupied(port: number): Promise<boolean> {
   const occupied = await new Promise<boolean>((accept) => {
     let settled = false
     const socket = createConnection({ host: "127.0.0.1", port })
@@ -60,7 +60,21 @@ async function assertInspectorPortUnused(port: number): Promise<void> {
     socket.once("error", () => finish(false))
     socket.setTimeout(1_000, () => finish(false))
   })
-  if (occupied) throw new Error(`inspector port ${port} is already in use; stop the stale process first`)
+  return occupied
+}
+
+async function assertInspectorPortUnused(port: number): Promise<void> {
+  if (await inspectorPortOccupied(port)) {
+    throw new Error(`inspector port ${port} is already in use; stop the stale process first`)
+  }
+}
+
+async function waitForInspectorRelease(port: number): Promise<void> {
+  const deadline = Date.now() + 5_000
+  while (await inspectorPortOccupied(port)) {
+    if (Date.now() >= deadline) throw new Error(`owned inspector port ${port} did not close after capture`)
+    await Bun.sleep(50)
+  }
 }
 
 function launchInspectedBinary(binary: string, port: number) {
@@ -378,7 +392,9 @@ async function main(): Promise<number> {
     // Stop the exact process identified through our inspector before waiting for script.
     if (nativePid !== undefined) {
       try {
-        process.kill(nativePid, "SIGTERM")
+        // This disposable debugger host has already produced its fixture.
+        // Native TUI signal handlers may defer SIGTERM and retain the inspector.
+        process.kill(nativePid, "SIGKILL")
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error
       }
@@ -386,6 +402,7 @@ async function main(): Promise<number> {
     inspected.stdin.end()
     inspected.kill()
     await inspected.exited
+    await waitForInspectorRelease(args.port)
   }
 }
 

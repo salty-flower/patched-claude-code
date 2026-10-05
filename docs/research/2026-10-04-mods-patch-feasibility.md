@@ -1,5 +1,8 @@
 # Claude Code Mods: Patch Feasibility and Bundle Interpretation
 
+The [selected migration plan](2026-10-05-privacy-and-invisible-mod-migration-plan.md)
+requires invisible native entrypoints/layouts; technical alternatives below are not all selected for implementation.
+
 ## Feature Requirements and Evidence
 
 Assess all 30 `patches/*.toml` feature requirements.

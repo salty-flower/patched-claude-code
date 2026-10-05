@@ -116,7 +116,7 @@ async function connect(port: number): Promise<{ socket: WebSocket; bunVersion: s
   return { socket, bunVersion: inspectorVersion["Bun-Version"] ?? "unknown" }
 }
 
-async function capture(socket: WebSocket): Promise<Record<string, unknown>> {
+async function capture(socket: WebSocket, ownNativePid: (pid: number) => void): Promise<Record<string, unknown>> {
   let nextId = 1
   const pending = new Map<number, (reply: CdpReply) => void>()
   socket.addEventListener("message", (event) => {
@@ -135,6 +135,12 @@ async function capture(socket: WebSocket): Promise<Record<string, unknown>> {
   }
 
   await send("Runtime.enable", {})
+  const pidReply = await send("Runtime.evaluate", { expression: "process.pid", returnByValue: true })
+  const nativePid = pidReply.result?.result?.value
+  if (typeof nativePid !== "number" || !Number.isSafeInteger(nativePid) || nativePid <= 1 || nativePid === process.pid) {
+    throw new Error("inspector did not identify the owned native process")
+  }
+  ownNativePid(nativePid)
   const reply = await send("Runtime.evaluate", {
     expression: PROBE,
     returnByValue: true,
@@ -345,10 +351,11 @@ async function main(): Promise<number> {
   const output = resolve(args.out)
   await assertInspectorPortUnused(args.port)
   const inspected = launchInspectedBinary(binary, args.port)
+  let nativePid: number | undefined
   try {
     const [{ socket, bunVersion }, nativeBinarySha256] = await Promise.all([connect(args.port), sha256File(binary)])
     try {
-      const payload = await capture(socket)
+      const payload = await capture(socket, (pid) => { nativePid = pid })
       const fixture = {
         schema: 1,
         source: {
@@ -367,6 +374,15 @@ async function main(): Promise<number> {
       socket.close()
     }
   } finally {
+    // script owns the PTY wrapper, but its native child can occupy another process group.
+    // Stop the exact process identified through our inspector before waiting for script.
+    if (nativePid !== undefined) {
+      try {
+        process.kill(nativePid, "SIGTERM")
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error
+      }
+    }
     inspected.stdin.end()
     inspected.kill()
     await inspected.exited

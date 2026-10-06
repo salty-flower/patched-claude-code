@@ -266,3 +266,115 @@ path = "params.0"
   name = "2.1.285 resolves the per-model declaration before upstream suffix detection"
   assert_contains = "if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;"
   assert_not_contains = "process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS=parseInt(process.env[__acc_model_context_key]"
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-289-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale = "Resolve a positive per-model context-window declaration before every upstream detection path in the 2.1.289 Darwin graph. The AST locator captures the current resolver's model argument, so the inserted logic depends on no version-local helper names."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "bv", source_regex = '''^function bv\(e,n\)\{if\(Xd\(e\)\)return 1e6;''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.transform]
+op = "prepend_function_body"
+code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin context resolver binds its current model parameter"
+assert_contains = '''function bv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(Xd(e))return 1e6;'''
+assert_not_contains = '''function Ob(e,n){'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-289-linux-x64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale = "Resolve a positive per-model context-window declaration before every upstream detection path in the 2.1.289 Linux graph. The AST locator captures the current resolver's model argument, so the inserted logic depends on no version-local helper names."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "vv", source_regex = '''^function vv\(e,n\)\{if\(Yd\(e\)\)return 1e6;''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.transform]
+op = "prepend_function_body"
+code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux context resolver binds its current model parameter"
+assert_contains = '''function vv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(Yd(e))return 1e6;'''
+assert_not_contains = '''function Cb(e,n){'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-290-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Resolve a positive per-model context-window declaration before upstream detection in the 2.1.290 Darwin graph. Capture the current resolver's model parameter and insert no version-local helper names."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "fv", source_regex = '''^function fv\(e,n\)\{if\(fu\(e\)\)return 1e6;''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.transform]
+op = "prepend_function_body"
+code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin context resolver captures current model argument"
+assert_contains = '''function fv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(fu(e))return 1e6;'''
+assert_not_contains = '''function bv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(Xd(e))return 1e6;'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-290-linux-x64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Resolve a positive per-model context-window declaration before upstream detection in the 2.1.290 Linux graph. Capture the current resolver's model parameter and insert no version-local helper names."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "mv", source_regex = '''^function mv\(e,n\)\{if\(pu\(e\)\)return 1e6;''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.transform]
+op = "prepend_function_body"
+code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux context resolver captures current model argument"
+assert_contains = '''function mv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(pu(e))return 1e6;'''
+assert_not_contains = '''function vv(e,n){'''

@@ -974,3 +974,301 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.285 has no bare global ctrl_c call options"
   assert_not_contains = '({gesture:"ctrl_c"})'
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-289-darwin-arm64"
+lineage = "foreground-agent-handoff-helper-import"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the 2.1.289 darwin-arm64 native background handoff helper into the cancel hook. T$e in chunk-x2pwb441.js performs the supported registry transition and resolves the local agent background signal; the alias keeps the inserted cancel path independent of platform helper names."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "_Z"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {T$e as __pccBackgroundForegroundAgent} from "./chunk-x2pwb441.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 imports the native handoff helper"
+  assert_contains = 'import {T$e as __pccBackgroundForegroundAgent} from "./chunk-x2pwb441.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 excludes the stale binding for darwin-arm64 imports the native handoff helper"
+  assert_not_contains = "import {JDe as __pccBackgroundForegroundAgent}"
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-289-darwin-arm64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "darwin-arm64" ]
+rationale = "Hand foreground local agents off before shared cancellation in 2.1.289 darwin-arm64. The hook reads tasks from ht.getState().tasks and the TaskRegistry from Rt; native T$e performs the registry update and resolves the background signal. Defer lb.of(Kt).stopRunning() and v() by one event-loop turn only when a foreground handoff occurred."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = 'if(he!==void 0&&!he.aborted||be||Pe&&rs)return ao.current=Date.now(),i("tengu_cancel",zn),lb.of(Kt).stopRunning(),v(),!0;'
+expected_matches = 1
+replacement = 'if(he!==void 0&&!he.aborted||be||Pe&&rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(ht.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return ao.current=Date.now(),i("tengu_cancel",zn),__hadForegroundAgent?setTimeout(()=>{lb.of(Kt).stopRunning(),v()},0):(lb.of(Kt).stopRunning(),v()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 Escape hands foreground local agents off before parent cancellation"
+  assert_contains = 'if(he!==void 0&&!he.aborted||be||Pe&&rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(ht.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return ao.current=Date.now(),i("tengu_cancel",zn),__hadForegroundAgent?setTimeout(()=>{lb.of(Kt).stopRunning(),v()},0):(lb.of(Kt).stopRunning(),v()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 excludes the stale binding for darwin-arm64 Escape hands foreground local agents off before parent cancellation"
+  assert_not_contains = 'if(he!==void 0&&!he.aborted||be||Pe&&rs)return ao.current=Date.now(),i("tengu_cancel",zn),lb.of(Kt).stopRunning(),v(),!0;'
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-289-linux-x64"
+lineage = "foreground-agent-handoff-helper-import"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "linux-x64" ]
+rationale = "Import the 2.1.289 linux-x64 native background handoff helper into the cancel hook. SFe in chunk-wgfrtm7w.js performs the supported registry transition and resolves the local agent background signal; the alias keeps the inserted cancel path independent of platform helper names."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "xZ"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {SFe as __pccBackgroundForegroundAgent} from "./chunk-wgfrtm7w.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 imports the native handoff helper"
+  assert_contains = 'import {SFe as __pccBackgroundForegroundAgent} from "./chunk-wgfrtm7w.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 excludes the stale binding for linux-x64 imports the native handoff helper"
+  assert_not_contains = "import {zDe as __pccBackgroundForegroundAgent}"
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-289-linux-x64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "linux-x64" ]
+rationale = "Hand foreground local agents off before shared cancellation in 2.1.289 linux-x64. The hook reads tasks from ht.getState().tasks and the TaskRegistry from Rt; native SFe performs the registry update and resolves the background signal. Defer aS.of(Gt).stopRunning() and E() by one event-loop turn only when a foreground handoff occurred."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "literal"
+locator_pattern = 'if(he!==void 0&&!he.aborted||Se||Pe&&rs)return ao.current=Date.now(),i("tengu_cancel",zn),aS.of(Gt).stopRunning(),E(),!0;'
+expected_matches = 1
+replacement = 'if(he!==void 0&&!he.aborted||Se||Pe&&rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(ht.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return ao.current=Date.now(),i("tengu_cancel",zn),__hadForegroundAgent?setTimeout(()=>{aS.of(Gt).stopRunning(),E()},0):(aS.of(Gt).stopRunning(),E()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 Escape hands foreground local agents off before parent cancellation"
+  assert_contains = 'if(he!==void 0&&!he.aborted||Se||Pe&&rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(ht.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return ao.current=Date.now(),i("tengu_cancel",zn),__hadForegroundAgent?setTimeout(()=>{aS.of(Gt).stopRunning(),E()},0):(aS.of(Gt).stopRunning(),E()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 excludes the stale binding for linux-x64 Escape hands foreground local agents off before parent cancellation"
+  assert_not_contains = 'if(he!==void 0&&!he.aborted||Se||Pe&&rs)return ao.current=Date.now(),i("tengu_cancel",zn),aS.of(Gt).stopRunning(),E(),!0;'
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-289"
+lineage = "global-interrupt-cancel-only"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+rationale = "Keep global Ctrl+C on cancel-only mode so it cannot kill unrelated background agents. Match the bare ctrl_c gesture options object and add suppressBackgroundAgentKill while preserving the callback's graph-local bindings. Explicit chat:killAgents remains the deliberate stop control."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = '{gesture:"ctrl_c"}'
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "suppressBackgroundAgentKill"
+  value = "!0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 global Ctrl+C suppresses background-agent kills"
+  assert_contains = '{gesture:"ctrl_c",suppressBackgroundAgentKill:!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 global Ctrl+C has no bare gesture options object"
+  assert_not_contains = '({gesture:"ctrl_c"})'
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-290-darwin-arm64"
+lineage = "foreground-agent-handoff-helper-import"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "darwin-arm64" ]
+rationale = "Import native helper bpe from chunk-y0b3kvx1.js into the 2.1.290 cancel hook; it performs the registry transition and resolves the local background signal."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "fee"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {bpe as __pccBackgroundForegroundAgent} from "./chunk-y0b3kvx1.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 imports the current native handoff helper"
+  assert_contains = 'import {bpe as __pccBackgroundForegroundAgent} from "./chunk-y0b3kvx1.js";'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-290-darwin-arm64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "darwin-arm64" ]
+rationale = "Hand foreground local agents off before shared cancellation in the 2.1.290 hook. Read task state from vt.getState().tasks and the TaskRegistry from _t; defer session stop and cancel by one event-loop turn only when a foreground handoff occurred."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 foreground local agents are handed off before cancellation"
+  assert_contains = 'if(he!==void 0&&!he.aborted||be||Pe&&qr){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(vt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,_t)||__hadForegroundAgent;return So.current=Date.now(),i("tengu_cancel",Yr),__hadForegroundAgent?setTimeout(()=>{Rb.of(It).stopRunning(),C()},0):(Rb.of(It).stopRunning(),C()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 immediate stop branch is replaced"
+  assert_not_contains = "if(he!==void 0&&!he.aborted||be||Pe&&qr)return"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(he!==void 0&&!he\\.aborted\\|\\|be\\|\\|Pe&&qr\\)return"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'if(he!==void 0&&!he.aborted||be||Pe&&qr){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(vt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,_t)||__hadForegroundAgent;return So.current=Date.now(),i("tengu_cancel",Yr),__hadForegroundAgent?setTimeout(()=>{Rb.of(It).stopRunning(),C()},0):(Rb.of(It).stopRunning(),C()),!0}'
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-290-linux-x64"
+lineage = "foreground-agent-handoff-helper-import"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "linux-x64" ]
+rationale = "Import native helper mpe from chunk-9wqh5j7s.js into the 2.1.290 cancel hook; it performs the registry transition and resolves the local background signal."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "gee"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {mpe as __pccBackgroundForegroundAgent} from "./chunk-9wqh5j7s.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 imports the current native handoff helper"
+  assert_contains = 'import {mpe as __pccBackgroundForegroundAgent} from "./chunk-9wqh5j7s.js";'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-290-linux-x64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "linux-x64" ]
+rationale = "Hand foreground local agents off before shared cancellation in the 2.1.290 hook. Read task state from kt.getState().tasks and the TaskRegistry from At; defer session stop and cancel by one event-loop turn only when a foreground handoff occurred."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 foreground local agents are handed off before cancellation"
+  assert_contains = 'if(he!==void 0&&!he.aborted||Se||Pe&&Fr){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(kt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,At)||__hadForegroundAgent;return So.current=Date.now(),i("tengu_cancel",Yr),__hadForegroundAgent?setTimeout(()=>{CS.of(Et).stopRunning(),k()},0):(CS.of(Et).stopRunning(),k()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 immediate stop branch is replaced"
+  assert_not_contains = "if(he!==void 0&&!he.aborted||Se||Pe&&Fr)return"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(he!==void 0&&!he\\.aborted\\|\\|Se\\|\\|Pe&&Fr\\)return"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'if(he!==void 0&&!he.aborted||Se||Pe&&Fr){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(kt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,At)||__hadForegroundAgent;return So.current=Date.now(),i("tengu_cancel",Yr),__hadForegroundAgent?setTimeout(()=>{CS.of(Et).stopRunning(),k()},0):(CS.of(Et).stopRunning(),k()),!0}'
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-290"
+lineage = "global-interrupt-cancel-only"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+rationale = "Keep global Ctrl+C on cancel-only mode so it cannot kill unrelated background agents. Match the bare ctrl_c gesture options object and add suppressBackgroundAgentKill while preserving the callback's graph-local bindings. Explicit chat:killAgents remains the deliberate stop control."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = '{gesture:"ctrl_c"}'
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "suppressBackgroundAgentKill"
+  value = "!0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 global Ctrl+C suppresses background-agent kills"
+  assert_contains = '{gesture:"ctrl_c",suppressBackgroundAgentKill:!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 global Ctrl+C has no bare gesture object"
+  assert_not_contains = '({gesture:"ctrl_c"})'

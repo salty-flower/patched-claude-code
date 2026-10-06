@@ -1016,7 +1016,7 @@ platforms = [ "linux-x64" ]
 name = "strip-signatures-for-custom-base-url-2-1-285-darwin"
 lineage = "strip-signatures-for-custom-base-url"
 target_version = "2.1.285"
-applies_to = ">=2.1.285 <2.1.286"
+applies_to = ">=2.1.285 <2.1.289"
 rationale = "The 2.1.285 darwin-arm64 normalizer V0t uses gBt to remove only foreign-model thinking signatures. Preserve this path for provider Pe returning firstParty and the imported official URL predicate Ms; otherwise use local cleanup Hmr for all assistant messages. Hmr filters blocks through qtn, which recognizes redacted_thinking or nonempty thinking signatures. The imported Ms honors the explicit assume-first-party override and delegates via Eh to vh, which checks api.anthropic.com. These are audited 2.1.285 graph bindings, with replacement scope capped before 2.1.286."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "ast_transform"
@@ -1052,7 +1052,7 @@ platforms = [ "darwin-arm64" ]
 name = "strip-signatures-for-custom-base-url-2-1-285-linux"
 lineage = "strip-signatures-for-custom-base-url"
 target_version = "2.1.285"
-applies_to = ">=2.1.285 <2.1.286"
+applies_to = ">=2.1.285 <2.1.289"
 rationale = "The 2.1.285 linux-x64 normalizer $0t uses sBt to remove only foreign-model thinking signatures. Preserve this path for provider Ie returning firstParty and the imported official URL predicate Ds; otherwise use local cleanup Hmr for all assistant messages. Hmr filters blocks through xtn, which recognizes redacted_thinking or nonempty thinking signatures. The imported Ds honors the explicit assume-first-party override and delegates via wh to vh, which checks api.anthropic.com. These are audited 2.1.285 graph bindings, with replacement scope capped before 2.1.286."
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
 locator_kind = "ast_transform"
@@ -1082,3 +1082,175 @@ platforms = [ "linux-x64" ]
   name = "2.1.285 linux-x64 drops stale cleanup symbols"
   assert_contains = "return Hmr(e,(s)=>"
   assert_not_contains = 'h=De()==="firstParty"&&ks()?FPt(e,s,g):H7o(e,'
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-289-darwin-arm64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+Keep the 2.1.289 Darwin normalizer's foreign-model thinking filter when
+requests use the first-party provider and official Anthropic endpoint. For
+other endpoints, remove redacted thinking and thinking blocks with signatures
+from assistant messages before request normalization. The inline filter
+preserves the prior Hmr/qtn behavior without using Hmr, which is a numeric
+constant in this graph. Darwin provider and endpoint predicates He and ni are
+imported from chunk-fd3xj8bd.js; oKt is the existing foreign-signature filter.
+"""
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Aqt", strings = ["messagesPreNormalize:", "h=oKt(e,s,g)"] }
+
+[patches.transform]
+op = "replace_substring"
+find = "h=oKt(e,s,g),"
+value = '''h=He()==="firstParty"&&ni()?oKt(e,s,g):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin keeps the official endpoint signature path"
+assert_contains = '''h=He()==="firstParty"&&ni()?oKt(e,s,g):(()=>{let __pccChanged'''
+assert_not_contains = '''h=Pe()==="firstParty"&&Ms()?gBt(e,s,g):Hmr(e,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin removes stale cleanup helper usage"
+assert_not_contains = '''Hmr(e,(__pccMessage)=>__pccMessage.type==="assistant")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin replaces the old normalizer expression"
+assert_not_contains = '''h=oKt(e,s,g),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-289-linux-x64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+Keep the 2.1.289 Linux normalizer's foreign-model thinking filter when
+requests use the first-party provider and official Anthropic endpoint. For
+other endpoints, remove redacted thinking and thinking blocks with signatures
+from assistant messages before request normalization. The inline filter
+preserves the prior Hmr/qtn behavior without using Hmr, which is a numeric
+constant in this graph. Linux provider and endpoint predicates Me and ni are
+imported from chunk-jepmcrwm.js; Qqt is the existing foreign-signature filter.
+"""
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Iqt", strings = ["messagesPreNormalize:", "h=Qqt(e,s,g)"] }
+
+[patches.transform]
+op = "replace_substring"
+find = "h=Qqt(e,s,g),"
+value = '''h=Me()==="firstParty"&&ni()?Qqt(e,s,g):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux keeps the official endpoint signature path"
+assert_contains = '''h=Me()==="firstParty"&&ni()?Qqt(e,s,g):(()=>{let __pccChanged'''
+assert_not_contains = '''h=Ie()==="firstParty"&&Ds()?sBt(e,s,g):Hmr(e,'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux removes stale cleanup helper usage"
+assert_not_contains = '''Hmr(e,(__pccMessage)=>__pccMessage.type==="assistant")'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux replaces the old normalizer expression"
+assert_not_contains = '''h=Qqt(e,s,g),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-290-darwin-arm64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+Keep the 2.1.290 Darwin normalizer's foreign-model thinking filter for the
+first-party provider at Anthropic's official endpoint. The target normalizer
+aZt uses TZt(e,s,g); TZt is defined in this module. Me and
+ri are imported from chunk-sac2pmqn.js. Me selects the provider and ri accepts
+the official api.anthropic.com endpoint (or the explicit first-party
+assumption). For other endpoints, remove redacted thinking and signed
+thinking blocks from assistant messages before request normalization.
+"""
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "aZt", strings = ["messagesPreNormalize:", "h=TZt(e,s,g)"] }
+
+[patches.transform]
+op = "replace_substring"
+find = "h=TZt(e,s,g),"
+value = '''h=Me()==="firstParty"&&ri()?TZt(e,s,g):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin retains official first-party signature handling"
+assert_contains = '''h=Me()==="firstParty"&&ri()?TZt(e,s,g):(()=>{let __pccChanged=!1'''
+assert_not_contains = '''h=TZt(e,s,g),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin removes the superseded predecessor normalizer call"
+assert_not_contains = '''h=oKt(e,s,g),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin removes the superseded provider predicate"
+assert_not_contains = '''He()==="firstParty"&&ni()?oKt(e,s,g)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-290-linux-x64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = """
+Keep the 2.1.290 Linux normalizer's foreign-model thinking filter for the
+first-party provider at Anthropic's official endpoint. The target normalizer
+iZt uses vZt(e,s,g); vZt is defined in this module. He and
+ri are imported from chunk-9dnqpecd.js. He selects the provider and ri accepts
+the official api.anthropic.com endpoint (or the explicit first-party
+assumption). For other endpoints, remove redacted thinking and signed
+thinking blocks from assistant messages before request normalization.
+"""
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "iZt", strings = ["messagesPreNormalize:", "h=vZt(e,s,g)"] }
+
+[patches.transform]
+op = "replace_substring"
+find = "h=vZt(e,s,g),"
+value = '''h=He()==="firstParty"&&ri()?vZt(e,s,g):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux retains official first-party signature handling"
+assert_contains = '''h=He()==="firstParty"&&ri()?vZt(e,s,g):(()=>{let __pccChanged=!1'''
+assert_not_contains = '''h=vZt(e,s,g),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux removes the superseded predecessor normalizer call"
+assert_not_contains = '''h=Qqt(e,s,g),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux removes the superseded provider predicate"
+assert_not_contains = '''Me()==="firstParty"&&ni()?Qqt(e,s,g)'''

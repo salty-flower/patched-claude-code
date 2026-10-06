@@ -225,8 +225,8 @@ async function main(): Promise<number> {
     .parse(process.argv.slice(2), { from: "user" })
     .opts<{ bundle: string; version: string; timeoutSeconds: number; keepArtifacts?: boolean }>()
   assert(valid(options.version), "--version must be an explicit semver")
-  if (options.version !== "2.1.285") {
-    console.log(`skip: workflow history PTY requires target 2.1.285 (got ${options.version})`)
+  if (options.version !== "2.1.285" && options.version !== "2.1.289" && options.version !== "2.1.290") {
+    console.log(`skip: workflow history PTY supports targets 2.1.285, 2.1.289 and 2.1.290 (got ${options.version})`)
     return 0
   }
   assert(

@@ -1,11 +1,9 @@
 import { expect, test } from "bun:test"
-import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
-import { patchedFunction } from "./helpers/patched-function"
+import { patchedEntryFunction } from "./helpers/patched-function"
 
 const root = join(import.meta.dir, "..", "..")
 const version = targetVersion()
@@ -14,32 +12,11 @@ const entries = loadPatchEntriesFromFile(join(root, "patches/model-effort-capabi
 for (const platform of ["darwin-arm64", "linux-x64"]) {
   // Missing current graphs are errors, never a reason to skip or read an old target.
   const graph = join(root, "staging", version, "graph", platform)
-  const files = readdirSync(graph).filter((file) => file.endsWith(".js"))
+  // Apply the real graph pipeline so entries sharing one function compose in order,
+  // then return that function's text before and after patching.
   function contract(prefix: string) {
     const patch = activePatch(entries, version, platform, prefix)
-    const locator = patch.locator_pattern
-    if (patch.locator_kind !== "literal" || !locator) throw new Error(`${patch.name}: expected a literal locator`)
-    const sources = files
-      .map((file) => readFileSync(join(graph, file), "utf8"))
-      .filter((source) => source.includes(locator))
-    let source = sources[0]
-    if (sources.length !== 1 || source === undefined) {
-      throw new Error(`${patch.name}: expected one current graph file, found ${sources.length}`)
-    }
-    const sameSite = entries.filter(
-      (candidate) =>
-        candidate.locator_kind === patch.locator_kind &&
-        candidate.locator_pattern === patch.locator_pattern &&
-        patchApplies(candidate, version) &&
-        (candidate.platforms?.includes(platform) ?? true),
-    )
-    let original = source
-    for (const candidate of sameSite) {
-      const result = patchedFunction(source, candidate)
-      original = result.original
-      source = result.patched
-    }
-    return { original, patched: source }
+    return patchedEntryFunction({ graph, entries, version, platform, patch })
   }
 
   test(`${platform}: active capability resolver accepts normalized firstParty declarations`, () => {
@@ -112,6 +89,8 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(make(true)("max", "custom")).toBe("max")
   })
 
+  // Each contract() locates and applies a function slice from the staged graph,
+  // which is slower than a plain fixture read.
   test(`${platform}: active native rejection recovery queues one visible warning`, () => {
     const callback = contract("effort-retry-notice-queue-").patched
     const drain = contract("effort-retry-notice-drain-")
@@ -157,5 +136,5 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(messages[0]?.text).toContain("Model alias rejected")
     expect(messages[0]?.text).toContain("backend default is unknown")
     expect([...run.drain()]).toEqual([])
-  })
+  }, 20_000)
 }

@@ -9919,3 +9919,109 @@ kind = "static"
 name = "2.1.285 linux-x64 ultracode accepts capped max without forcing effort"
 assert_contains = 'function sR(e){return Tf()&&(e===void 0||ne(e)||eJ(e)&&Eqn("max",e))}'
 assert_not_contains = 'function sR(e){return Tf()&&(e===void 0||ne(e))}'
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-289-darwin"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale = "Preserve Ultracode availability on 2.1.289 Darwin for models that support max and have no lower effort cap, without changing the active effort setting."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Dx", source_regex = '''^function Dx\(e\)\{return gm\(\)&&\(e===void 0\|\|Ee\(e\)\)\}$''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return gm()&&(e===void 0||Ee(e)||rZ(e)&&MWt(e)===null)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin Ultracode accepts max-capable uncapped models"
+assert_contains = '''function Dx(e){return gm()&&(e===void 0||Ee(e)||rZ(e)&&MWt(e)===null)}'''
+assert_not_contains = '''function cR(e){return Af()&&(e===void 0||ne(e))}'''
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-289-linux"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale = "Preserve Ultracode availability on 2.1.289 Linux for models that support max and have no lower effort cap, without changing the active effort setting."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Ox", source_regex = '''^function Ox\(e\)\{return gm\(\)&&\(e===void 0\|\|Ee\(e\)\)\}$''' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return gm()&&(e===void 0||Ee(e)||XQ(e)&&bzt(e)===null)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux Ultracode accepts max-capable uncapped models"
+assert_contains = '''function Ox(e){return gm()&&(e===void 0||Ee(e)||XQ(e)&&bzt(e)===null)}'''
+assert_not_contains = '''function sR(e){return Tf()&&(e===void 0||ne(e))}'''
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-290-darwin"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Preserve Ultracode availability on 2.1.290 Darwin for models that support max and have no lower effort cap, without changing the active effort setting. The local yP gate checks workflow availability, Ee delegates xhigh support, vee checks max support, and Mqt checks the effort cap."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "yP", source = 'function yP(e){return Om()&&(e===void 0||Ee(e))}' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return Om()&&(e===void 0||Ee(e)||vee(e)&&Mqt(e)===null)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin Ultracode accepts capped max models"
+assert_contains = '''function yP(e){return Om()&&(e===void 0||Ee(e)||vee(e)&&Mqt(e)===null)}'''
+assert_not_contains = '''function yP(e){return Om()&&(e===void 0||Ee(e))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin Ultracode excludes the 2.1.289 capability gate"
+assert_not_contains = '''function Dx(e){return gm()&&(e===void 0||Ee(e)||rZ(e)&&MWt(e)===null)}'''
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-290-linux"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Preserve Ultracode availability on 2.1.290 Linux for models that support max and have no lower effort cap, without changing the active effort setting. The local fP gate checks workflow availability, Ee delegates xhigh support, hee checks max support, and bKt checks the effort cap."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "fP", source = 'function fP(e){return Om()&&(e===void 0||Ee(e))}' }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return Om()&&(e===void 0||Ee(e)||hee(e)&&bKt(e)===null)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux Ultracode accepts capped max models"
+assert_contains = '''function fP(e){return Om()&&(e===void 0||Ee(e)||hee(e)&&bKt(e)===null)}'''
+assert_not_contains = '''function fP(e){return Om()&&(e===void 0||Ee(e))}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+assert_not_contains = '''function Ox(e){return gm()&&(e===void 0||Ee(e)||XQ(e)&&bzt(e)===null)}'''

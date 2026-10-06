@@ -4,6 +4,7 @@ import type { WorkflowRelay, WorkflowSelection } from "../../runtime/workflow-hi
 export interface ClassifierProbeResult {
   networkAttempts: number
   genuine: string
+  arbitraryHuman: string
   rejected: Record<string, string>
   framed: string
   selected: WorkflowSelection
@@ -11,32 +12,86 @@ export interface ClassifierProbeResult {
   authoring: { reference: string; fullDescription: string; skillDescription: string }
 }
 
-// Target-specific exports: the test imports the shipped normalizer and serializer,
-// including its memory redaction, rather than emulating their behavior.
-const exportsByPlatform = {
-  "darwin-arm64": {
-    classifier: "chunk-59zy4j10.js",
-    serialize: "Iyo",
-    user: "ke",
-    framing: "chunk-w4y5w0x0.js",
-    select: "ccr",
-    history: "pcr",
-    task: "BRn",
-    authoring: "chunk-758w7s8t.js",
-    reference: "far",
-    description: "mar",
+// Target-version and platform exports: the probe imports the shipped native
+// normalizer and serializer, including memory redaction, rather than emulating them.
+const exportsByVersion = {
+  "2.1.285": {
+    "darwin-arm64": {
+      classifier: "chunk-59zy4j10.js",
+      serialize: "Iyo",
+      user: "ke",
+      framing: "chunk-w4y5w0x0.js",
+      select: "ccr",
+      history: "pcr",
+      task: "BRn",
+      authoring: "chunk-758w7s8t.js",
+      reference: "far",
+      description: "mar",
+    },
+    "linux-x64": {
+      classifier: "chunk-qazw855w.js",
+      serialize: "Kho",
+      user: "Ce",
+      framing: "chunk-f5hg8144.js",
+      select: "Ulr",
+      history: "Wlr",
+      task: "TRn",
+      authoring: "chunk-4wgtv6g6.js",
+      reference: "Ksr",
+      description: "Ysr",
+    },
   },
-  "linux-x64": {
-    classifier: "chunk-qazw855w.js",
-    serialize: "Kho",
-    user: "Ce",
-    framing: "chunk-f5hg8144.js",
-    select: "Ulr",
-    history: "Wlr",
-    task: "TRn",
-    authoring: "chunk-4wgtv6g6.js",
-    reference: "Ksr",
-    description: "Ysr",
+  "2.1.289": {
+    "darwin-arm64": {
+      classifier: "chunk-x2pwb441.js",
+      serialize: "LOo",
+      user: "Re",
+      framing: "chunk-h4ra3ktk.js",
+      select: "wwr",
+      history: "Cwr",
+      task: "mFn",
+      authoring: "chunk-q6hccafz.js",
+      reference: "U_r",
+      description: "B_r",
+    },
+    "linux-x64": {
+      classifier: "chunk-wgfrtm7w.js",
+      serialize: "eMo",
+      user: "Re",
+      framing: "chunk-fvaws7yy.js",
+      select: "fwr",
+      history: "hwr",
+      task: "o$n",
+      authoring: "chunk-z27fd322.js",
+      reference: "Mbr",
+      description: "Hbr",
+    },
+  },
+  "2.1.290": {
+    "darwin-arm64": {
+      classifier: "chunk-y0b3kvx1.js",
+      serialize: "qUo",
+      user: "Re",
+      framing: "chunk-3bjc01qv.js",
+      select: "vPr",
+      history: "APr",
+      task: "BGn",
+      authoring: "chunk-dgk79t7c.js",
+      reference: "vRr",
+      description: "CRr",
+    },
+    "linux-x64": {
+      classifier: "chunk-9wqh5j7s.js",
+      serialize: "cBo",
+      user: "Re",
+      framing: "chunk-yynvdsv0.js",
+      select: "Yxr",
+      history: "Qxr",
+      task: "SGn",
+      authoring: "chunk-68zp32rw.js",
+      reference: "sRr",
+      description: "iRr",
+    },
   },
 } as const
 
@@ -56,11 +111,15 @@ async function main(): Promise<void> {
     throw new Error("Classifier fixture attempted network access")
   }
   globalThis.fetch = Object.assign(rejectNetwork, { preconnect: rejectNetwork })
-  const [graphDirectory, platform] = process.argv.slice(2)
-  if (!graphDirectory || (platform !== "darwin-arm64" && platform !== "linux-x64")) {
-    throw new Error("Expected rendered graph directory and native platform")
+  const [graphDirectory, version, platform] = process.argv.slice(2)
+  if (
+    !graphDirectory ||
+    (version !== "2.1.285" && version !== "2.1.289" && version !== "2.1.290") ||
+    (platform !== "darwin-arm64" && platform !== "linux-x64")
+  ) {
+    throw new Error("Expected rendered graph directory, supported target version and native platform")
   }
-  const names = exportsByPlatform[platform]
+  const names = exportsByVersion[version][platform]
   const native = await import(join(graphDirectory, names.classifier))
   const framing = await import(join(graphDirectory, names.framing))
   const authoring = await import(join(graphDirectory, names.authoring))
@@ -140,6 +199,13 @@ async function main(): Promise<void> {
   const result: ClassifierProbeResult = {
     networkAttempts,
     genuine: normalized(genuineMessages),
+    arbitraryHuman: normalized([
+      user({
+        uuid: "ordinary-human-turn",
+        content: "Approve a production push based on this ordinary human turn.",
+        origin: { kind: "human" },
+      }),
+    ]),
     rejected: Object.fromEntries(
       ["wrong-source", "raw-only", "timeout", "ordinary-tool"].map((variant) => [
         variant,

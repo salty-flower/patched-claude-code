@@ -28,6 +28,12 @@ function activeStatuslinePatch(prefix: string, platform: string): PatchEntry | u
   )
 }
 
+function activeStatuslineMemoIndex(patchName: string, fallback: number): number {
+  const patch = activeStatuslinePatches.find((entry) => entry.name.startsWith(patchName))
+  const indexes = [...JSON.stringify(patch?.transform ?? "").matchAll(/\[(\d+)\]/g)].map((match) => Number(match[1]))
+  return indexes.length > 0 ? Math.max(...indexes) : fallback
+}
+
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-statusline-"))
 
 afterAll(() => {
@@ -852,9 +858,21 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       }
       return
     }
-    if (TARGET_VERSION === "2.1.282" || TARGET_VERSION === "2.1.285") {
-      const effortMemoSlot = TARGET_VERSION === "2.1.285" ? 391 : 370
-      const ultrathinkMemoSlot = TARGET_VERSION === "2.1.285" ? 125 : 117
+    if (
+      TARGET_VERSION === "2.1.282" ||
+      TARGET_VERSION === "2.1.285" ||
+      TARGET_VERSION === "2.1.289" ||
+      TARGET_VERSION === "2.1.290"
+    ) {
+      const versionSuffix = TARGET_VERSION.replaceAll(".", "-")
+      const effortMemoSlot = activeStatuslineMemoIndex(
+        `statusline-footer-control-effort-level-${versionSuffix}`,
+        370,
+      )
+      const ultrathinkMemoSlot = activeStatuslineMemoIndex(
+        `statusline-footer-control-effort-notification-${versionSuffix}`,
+        117,
+      )
       const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
       const linuxPatched = readdirSync(linuxGraphDir)
         .filter((file) => file.endsWith(".js"))
@@ -892,13 +910,24 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         expect(bundle).toContain('__acc_rate_settings?.disabledFooter?.includes("footer")')
         expect(bundle).toMatch(/__acc_remove_rate\("rate-limit-warning"\);[\w$]+=null;return}/)
         expect(bundle).toContain("__acc_rate_context.store.getState().settings?.statusLine")
-        expect(bundle).toMatch(
-          /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\.session\(\2,"get",void 0,([\w$]+)\)\.value\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\.session\(\2,"get",void 0,\4\)\.value}}/,
-        )
-        if (TARGET_VERSION === "2.1.285") {
+        if (TARGET_VERSION === "2.1.289" || TARGET_VERSION === "2.1.290") {
+          expect(bundle).toMatch(
+            /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\(\2,([\w$]+)\)\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\(\2,\4\)}}/,
+          )
+          const effortPayload = /effort_level:[^,]+,\.\.\.[^\n]{0,220}/.exec(bundle)?.[0] ?? ""
+          expect(effortPayload).not.toMatch(/(?:jE|Bv)\.session\(/)
+          expect(/permission_mode:[\w$]+,model:\{id:/.test(bundle)).toBe(true)
+          expect(/return\{permission_mode:[\w$]+,\.\.\./.test(bundle)).toBe(false)
+        } else if (TARGET_VERSION === "2.1.285") {
+          expect(bundle).toMatch(
+            /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\.session\(\2,"get",void 0,([\w$]+)\)\.value\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\.session\(\2,"get",void 0,\4\)\.value}}/,
+          )
           expect(/permission_mode:[\w$]+,model:\{id:/.test(bundle)).toBe(true)
           expect(/return\{permission_mode:[\w$]+,\.\.\./.test(bundle)).toBe(false)
         } else {
+          expect(bundle).toMatch(
+            /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\.session\(\2,"get",void 0,([\w$]+)\)\.value\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\.session\(\2,"get",void 0,\4\)\.value}}/,
+          )
           expect(/return\{permission_mode:[\w$]+,\.\.\./.test(bundle)).toBe(true)
         }
       }

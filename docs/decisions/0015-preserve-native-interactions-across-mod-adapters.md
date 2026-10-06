@@ -20,7 +20,7 @@ A request rewrite or new control cannot establish equivalent canonical session s
 Allow a functional Mod to adapt an existing native path only when its entrypoint,
 tool/command identity, layout, focus, keyboard behavior, and lifecycle remain equivalent.
 Keep native host handlers and resolvers as the sole authority for schemas,
-effective state, precedence, routing, permissions, and persistence.
+effective state, precedence, routing, permissions, sandbox behavior, and persistence.
 Adapters use existing typed events/calls; introduce no generic intent bus or parallel preference authority.
 
 Prioritize Read basename and MCP full-text rendering behind their existing result rows.

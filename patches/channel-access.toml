@@ -1790,3 +1790,41 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.285 Linux AskUserQuestion no longer delegates through the channel gate"
   assert_not_contains = "isEnabled(){return _9()}"
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-289"
+lineage = "ask-user-question-channels-gate"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.291"
+rationale = "Allow AskUserQuestion independently of provider or populated allowed channels. Match the tool descriptor by its completed-event name and isEnabled method, then replace only that method. In the 2.1.289 Darwin and Linux graphs the old gate helpers are cJ and n7, replacing the 2.1.285 bindings TY and _9; no helper is inserted by this AST transform, so the channel predicate remains available to its other callers."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "isEnabled"
+    string_literal = "tengu_ask_user_question_completed"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "isEnabled\\(\\)\\{return [\\w$]+\\(\\)\\}"
+  value = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 AskUserQuestion gate is open"
+  assert_contains = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 AskUserQuestion no longer delegates through the Darwin gate"
+  assert_not_contains = "isEnabled(){return cJ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 Linux AskUserQuestion no longer delegates through the channel gate"
+  assert_not_contains = "isEnabled(){return n7()}"

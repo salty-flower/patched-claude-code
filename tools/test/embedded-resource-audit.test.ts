@@ -116,6 +116,34 @@ test("dynamic resource mappings remain explicit blocking gaps", () => {
   })
 })
 
+test("resource map spreads resolve local literal aliases and reject dynamic or cyclic spreads", () => {
+  for (const [spread, blocked] of [
+    ['var a=load("./runner.mjs.embedded.txt"),base={"scripts/runner.mjs":a},alias=base,f={...alias}', false],
+    ['var f={...compute()}', true],
+    ['var base={...base},f={...base}', true],
+  ] as const) {
+    fixture((root, manifest) => {
+      const source = `${spread};export{f as SKILL_FILES}`
+      writeFileSync(join(root, "graph/darwin-arm64/skill.js"), source)
+      required(required(manifest.platforms[0]).files[0]).materialized = {
+        encoding: "identity",
+        bytes: Buffer.byteLength(source),
+        sha256: sha256(source).hex,
+      }
+      writeFileSync(join(root, "graph-manifest.json"), JSON.stringify(manifest))
+      const audit = extract(root)
+      if (blocked) {
+        expect(audit.gaps).toHaveLength(1)
+        expect(() => validateEmbeddedResourceAudit(join(root, "audit"))).toThrow("unresolved gaps")
+      } else {
+        expect(audit.gaps).toEqual([])
+        expect(audit.entries.map((entry) => entry.logicalPath)).toEqual(["scripts/runner.mjs"])
+        expect(validateEmbeddedResourceAudit(join(root, "audit"), join(root, "graph"))).toEqual(audit)
+      }
+    })
+  }
+})
+
 test("resource audit validation detects tampering and unexpected payload files", () => {
   fixture((root) => {
     const audit = extract(root)

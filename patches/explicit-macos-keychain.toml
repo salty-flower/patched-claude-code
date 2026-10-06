@@ -9305,7 +9305,7 @@ locator_kind = "ast_transform"
 
 [patches.ast]
 schema = 1
-match = { node = "FunctionDeclaration", function_name = "Gn", string = "return M(b,T)" }
+match = { node = "FunctionDeclaration", function_name = "Gn", string = "M(b,T)" }
 
 [patches.transform]
 op = "replace_substring"

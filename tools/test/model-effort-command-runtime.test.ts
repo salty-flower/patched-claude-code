@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test"
-import { resolve } from "node:path"
+import { readdirSync, readFileSync } from "node:fs"
+import { join, resolve } from "node:path"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
+import { patchedFunction } from "./helpers/patched-function"
 
 type Update = { value?: string; ultracode?: boolean }
 type Result = { message: string; effortUpdate?: Update }
@@ -156,5 +158,33 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(state.effortRevision).toBe(2)
     expect(operations).toBe(2)
     expect(state.ultracode).toBe(true)
+  })
+
+  test(`${platform}: 2.1.290 slider guard uses the native current-status component`, () => {
+    const guard = activePatch(patches, "2.1.290", platform, "model-effort-slider-guard-")
+    const graph = resolve(import.meta.dir, "../../staging/2.1.290/graph", platform)
+    const candidates = readdirSync(graph)
+      .filter((file) => file.endsWith(".js"))
+      .map((file) => readFileSync(join(graph, file), "utf8"))
+      .filter((source) => source.includes("function Oo(d){let o=w(4);"))
+    if (candidates.length !== 1) throw new Error(`expected one native slider module, got ${candidates.length}`)
+    const native = candidates[0]!
+    const status = captureIdentifier(
+      native,
+      "current-status component",
+      /o==="current"\|\|o==="status"\)return e\(([\w$]+),/,
+    )
+    const guarded = patchedFunction(native, guard).patched
+    let effective: { cli: boolean; value?: string } = { cli: true, value: "low" }
+    const onDone = () => {}
+    const render = new Function("w", "patchedEffort", "e", status, `${guarded};return Oo;`)(
+      () => [],
+      { session: () => effective },
+      (component: string, props: unknown) => ({ component, props }),
+      "native-current-status",
+    ) as (props: { onDone: () => void }) => { component: string; props: unknown }
+    expect(render({ onDone })).toEqual({ component: "native-current-status", props: { onDone } })
+    effective = { cli: false, value: undefined }
+    expect(render({ onDone })).toEqual({ component: "native-current-status", props: { onDone } })
   })
 }

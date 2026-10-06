@@ -258,6 +258,9 @@ async function main(): Promise<number> {
     // Whitelist shell necessities: no host provider, proxy, credential, or Claude configuration reaches the child.
     const environment = {
       PATH: process.env.PATH ?? "/usr/bin:/bin",
+      // util-linux script otherwise falls back to the account's login shell.
+      // The command below uses POSIX exec and quoting, so select bash explicitly.
+      SHELL: Bun.which("bash") ?? "/bin/bash",
       LANG: "en_US.UTF-8",
       HOME: home,
       TMPDIR: home,

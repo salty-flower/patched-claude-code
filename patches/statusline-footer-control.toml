@@ -23628,7 +23628,7 @@ name = "statusline-footer-control-effort-level-settings-2-1-290"
 lineage = "statusline-footer-control-effort-level"
 target_version = "2.1.290"
 applies_to = ">=2.1.290 <2.1.291"
-rationale = "The focused-model effort notification remains independent of the footer renderer in 2.1.290. Capture the AppState selector from PromptInput's first declaration and subscribe to the footer visibility setting before its notification effect. The adjacent memo port consumes this value so changes dismiss an existing notification."
+rationale = "The focused-model effort notification remains independent of the footer renderer in 2.1.290. PromptInput's first declaration uses slot 19 for the two-argument external-store reader and slot 20 for the one-argument AppState selector (V on Darwin, q on Linux). Capture slot 20 and subscribe to footer visibility before its notification effect; passing a selector as the external-store reader's first argument crashes getSnapshot during TUI startup. The adjacent memo port consumes this value so changes dismiss an existing notification."
 rationale_ref = "reference/v2.1.88/sources/src/components/PromptInput/PromptInput.tsx#L1966-L1982"
 locator_kind = "ast_transform"
 expected_matches = 1
@@ -23643,7 +23643,7 @@ expected_matches = 1
 
 [patches.ast.captures.app_state]
 kind = "identifier"
-path = "declarations.19.init.callee"
+path = "declarations.20.init.callee"
 
   [patches.ast.captures.app_state.select]
   node = "VariableDeclaration"
@@ -23662,6 +23662,11 @@ path = "declarations.19.init.callee"
   kind = "static"
   name = "2.1.290 focused effort observes settings"
   assert_contains = '((state)=>state.settings.statusLine?.hideBuiltinFooter||state.settings.statusLine?.disabledFooter?.includes("effort_notification"))'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 focused effort does not call the external-store reader as an AppState selector"
+  assert_not_contains = 'let __acc_hide_effort_level=xe('
 
 [[patches]]
 name = "statusline-footer-control-effort-level-2-1-290"

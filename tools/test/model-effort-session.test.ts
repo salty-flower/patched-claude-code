@@ -5,27 +5,28 @@ import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
 import { patchedEntryFunction } from "./helpers/patched-function"
 
+type EffortValue = string | number
 type EffortResult = {
   slug: string
-  value: string | undefined
+  value: EffortValue | undefined
   source: string
   cli: boolean
-  effortByModel: Map<string, string>
+  effortByModel: Map<string, EffortValue>
 }
 type Resolver = (
   model: string,
   operation?: "set" | "clear",
-  value?: string,
-  fallback?: string,
+  value?: EffortValue,
+  fallback?: EffortValue,
   honorLaunchPin?: boolean,
-  agentOverride?: string,
-  carriedEffort?: string | null,
+  agentOverride?: EffortValue,
+  carriedEffort?: EffortValue | null,
   withHold?: boolean,
 ) => EffortResult
 type EffortTable = { default?: string; byModel: Record<string, string> }
 type Owner = {
-  effortByModel?: Map<string, string>
-  effortLaunchValue?: string
+  effortByModel?: Map<string, EffortValue>
+  effortLaunchValue?: EffortValue
   mainLoopEffortState: () => { settingsEffortTable?: EffortTable }
 }
 
@@ -51,16 +52,19 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       ANTHROPIC_CUSTOM_MODEL_OPTION_EFFORT_LEVEL: "max",
     }
     const state: {
-      sessionEffort?: { kind: "default" | "inherit" | "level"; value?: string }
+      sessionEffort?: { kind: "default" | "inherit" | "level"; value?: EffortValue }
       settingsEffortTable?: EffortTable
       mainLoopModelForSession?: string
       mainLoopModel?: string
     } = {}
     let owner: Owner = { mainLoopEffortState: () => state }
     const unsupported = new Set<string>()
-    let environmentEffort: string | null | undefined
-    let modelDefault: string | undefined = "medium"
-    let carriedEffortValue: string | null | undefined
+    let environmentEffort: EffortValue | null | undefined
+    let modelDefault: EffortValue | undefined = "medium"
+    let carriedEffortValue: EffortValue | null | undefined
+    const numericModels = new Set<string>()
+    const heldModels = new Set<string>()
+    const normalizeNumeric = (value: EffortValue) => (typeof value === "number" ? "high" : value)
     const normalize = (model: string) =>
       model.trim().toLowerCase() === "sonnet"
         ? "gpt-5.6-luna"
@@ -73,25 +77,27 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       [binding("model normalization", /slug=([\w$]+)\(modelName\)/)]: normalize,
       [binding("default model", /modelName=model\?\?[^;]*\?\?([\w$]+)\(\)/)]: () => "gpt-5.6-luna",
       [binding("environment effort", /const configured=([\w$]+)\(\)/)]: () => environmentEffort,
-      [binding("model effort default", /chosen=([\w$]+)\(modelName,carriedEffort\);source="model default"/)]:
-        () => modelDefault,
+      [binding("model effort default", /chosen=([\w$]+)\(modelName,carriedEffort\);source="model default"/)]: (
+        _model: string,
+        carried: EffortValue | null | undefined,
+      ) => carried ?? modelDefault,
       [binding("capability", /if\(!([\w$]+)\(modelName\)\)\{chosen=/)]: (model: string) =>
         !unsupported.has(normalize(model)),
-      [binding("organization normalization", /const normalized=([\w$]+)\(chosen,modelName\)/)]: (value: string) => value,
-      [binding(
-        "per-model table predicate",
-        /if\(([\w$]+)\(table\)&&!hasCarried\)nativeTable=table\.default/,
-      )]: (table: EffortTable) => Object.keys(table.byModel).length === 0,
+      [binding("organization normalization", /const normalized=([\w$]+)\(chosen,modelName\)/)]: (value: EffortValue) =>
+        value,
+      [binding("per-model table predicate", /if\(([\w$]+)\(table\)&&!hasCarried\)nativeTable=table\.default/)]: (
+        table: EffortTable,
+      ) => Object.keys(table.byModel).length === 0,
       [binding("table lookup", /nativeTable=([\w$]+)\(table,slug\)/)]: (table: EffortTable, slug: string) =>
         table.byModel[slug] ?? table.default,
       [binding("carried effort default", /carriedEffort===void 0\?([\w$]+)\(\):carriedEffort!==null/)]: () =>
         carriedEffortValue,
       [binding("wrapper carried default", /carriedEffort:d=([\w$]+)\(e\)/)]: () => carriedEffortValue,
-      [binding("with-hold predicate", /&&([\w$]+)\(modelName\)!==void 0\)nativeTable=void 0/)]: () => undefined,
-      // Numeric-effort capability is `capability(...) !== null`; null means the model
-      // takes string effort, which is the default this test exercises.
-      [binding("numeric capability", /let __acc_numeric=([\w$]+)\(e\)!==null/)]: () => null,
-      [binding("hook normalizer", /\?([\w$]+)\(s\):s;return/)]: (value: string) => value,
+      [binding("with-hold predicate", /&&([\w$]+)\(modelName\)!==void 0\)nativeTable=void 0/)]: (model: string) =>
+        heldModels.has(normalize(model)) ? "low" : undefined,
+      [binding("numeric capability", /let __acc_numeric=([\w$]+)\(e\)!==null/)]: (model: string) =>
+        numericModels.has(normalize(model)) ? { numeric: true } : null,
+      [binding("hook normalizer", /\?([\w$]+)\(s\):s;return/)]: normalizeNumeric,
       process: { env: environment },
     }
     // Execute both the active replacement and its public wrapper, not a reimplementation.
@@ -102,9 +108,14 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       read: Resolver
       turn: (
         model: string,
-        fallback?: string,
-        options?: { turnEffort?: string; agentOverride?: string },
-      ) => string | undefined
+        fallback?: EffortValue,
+        options?: {
+          turnEffort?: EffortValue
+          hookEffortValue?: EffortValue
+          agentOverride?: EffortValue
+          carriedEffort?: EffortValue | null
+        },
+      ) => EffortValue | undefined
     }
     expect(read("sonnet")).toMatchObject({ slug: "gpt-5.6-luna", value: "max", source: "configured default" })
     for (let slot = 2; slot <= 10; slot += 1) {
@@ -163,5 +174,51 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     environmentEffort = undefined
     unsupported.add("other-model")
     expect(read("other-model")).toMatchObject({ value: undefined, source: "backend default (effort not supported)" })
-  }, 20_000)
+    unsupported.clear()
+
+    // The public .session function has its own numeric-capability scope; no
+    // wrapper-local variable is injected into this test's globals.
+    numericModels.add("numeric-model")
+    state.settingsEffortTable = undefined
+    expect(read("numeric-model", "set", 42)).toMatchObject({ value: "high", source: "this session" })
+    expect(read("numeric-model", "clear").value).toBe("medium")
+    environmentEffort = null
+    expect(read("numeric-model")).toMatchObject({ value: "medium", source: "model default" })
+    expect(read("ordinary-model")).toMatchObject({ value: undefined, source: "effort omitted by environment" })
+    expect(turn("numeric-model", undefined, { hookEffortValue: 42 })).toBe("high")
+    environmentEffort = undefined
+
+    // Explicit carried effort reaches the model-default helper through both
+    // .session and the public wrapper. Explicit null rejects the carried value.
+    expect(read("unconfigured", undefined, undefined, undefined, true, undefined, "low")).toMatchObject({
+      value: "low",
+      source: "session fallback",
+    })
+    carriedEffortValue = "xhigh"
+    expect(turn("unconfigured")).toBe("xhigh")
+    expect(turn("unconfigured", undefined, { carriedEffort: "low" })).toBe("low")
+    expect(turn("unconfigured", undefined, { carriedEffort: null })).toBe("medium")
+    carriedEffortValue = undefined
+
+    // A native hold suppresses configured table values unless the caller
+    // explicitly opts out of the hold or clears carried effort with null.
+    state.settingsEffortTable = { default: "high", byModel: { "held-model": "xhigh" } }
+    heldModels.add("held-model")
+    expect(read("held-model", undefined, undefined, undefined, true, undefined, "low", true)).toMatchObject({
+      value: "low",
+      source: "session fallback",
+    })
+    expect(read("held-model", undefined, undefined, undefined, true, undefined, "low", false)).toMatchObject({
+      value: "xhigh",
+      source: "configured model default",
+    })
+    expect(read("held-model", undefined, undefined, undefined, true, undefined, null, true)).toMatchObject({
+      value: "xhigh",
+      source: "configured model default",
+    })
+    heldModels.clear()
+    state.settingsEffortTable = undefined
+    modelDefault = undefined
+    expect(read("no-default").value).toBeUndefined()
+  }, 120_000)
 }

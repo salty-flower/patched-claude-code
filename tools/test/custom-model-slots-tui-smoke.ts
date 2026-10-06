@@ -6,6 +6,7 @@ import { Terminal } from "@xterm/headless"
 import { createCommand, runCli } from "../lib/cli"
 import { type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { makeScriptCommand, normalizeTuiOutput, shellEnvironment, shellQuote } from "./helpers/pty"
+import { emptyPrompt, submitPtyText } from "./helpers/pty-input"
 
 type Args = {
   bundle: string
@@ -73,6 +74,7 @@ async function runPicker(
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
     CLAUDE_CODE_SKIP_ONBOARDING: "1",
     CLAUDE_CODE_SKIP_PROMPT_HISTORY: "1",
+    CLAUDE_CODE_MAX_CONTEXT_TOKENS: "200000",
     FORCE_COLOR: "0",
     TERM: "xterm-256color",
     ...scenario.environment,
@@ -96,12 +98,20 @@ async function runPicker(
   let screen = ""
   let transcript = ""
   let exited = false
+  let inputEnded = false
+  let exitTranscriptOffset: number | undefined
+  function endInput(): void {
+    if (inputEnded) return
+    inputEnded = true
+    proc.stdin.end()
+  }
   void proc.exited.then(() => {
     exited = true
   })
   const output = (async () => {
     for await (const chunk of proc.stdout) {
       transcript += new TextDecoder().decode(chunk)
+      if (exitTranscriptOffset !== undefined && transcript.includes("\x1b[?1049l", exitTranscriptOffset)) endInput()
       await new Promise<void>((done) => terminal.write(chunk, done))
       screen = screenText(terminal)
     }
@@ -124,6 +134,14 @@ async function runPicker(
     await proc.stdin.flush()
     await Bun.sleep(100)
   }
+  function inputLine(): string {
+    const buffer = terminal.buffer.active
+    return (buffer.getLine(buffer.baseY + buffer.cursorY)?.translateToString(true) ?? "").replaceAll(" ", " ")
+  }
+  async function submit(text: string): Promise<void> {
+    await waitFor(() => emptyPrompt(inputLine()) && !/esc to interrupt/i.test(screen), `input not idle before ${text}`)
+    await submitPtyText({ line: inputLine, key, waitFor }, text)
+  }
   const selected = () => screen.match(/❯\s+(\d+)\.\s+([^\n]+)/)?.[1]
   const rows = new Map<number, string>()
   function collectRows(): void {
@@ -134,8 +152,7 @@ async function runPicker(
   }
   try {
     await waitFor(() => screen.includes("Claude Code") && screen.includes("❯"), "startup prompt missing")
-    await key("/model")
-    await key("\r")
+    await submit("/model")
     await waitFor(() => screen.includes("Select model") && selected() !== undefined, "picker did not open")
     const first = selected()
     let wrapped = false
@@ -173,9 +190,7 @@ async function runPicker(
       if (scenario.expectedEffort) {
         const before = stub.requests.length
         const prompt = "check tenth slot effort"
-        await key(prompt)
-        await waitFor(() => screen.includes(prompt), "request prompt was not echoed")
-        await key("\r")
+        await submit(prompt)
         await waitFor(() => screen.includes(stub.text), "local API response missing")
         const requests = stub.requests.slice(before).filter((request) => request.path.endsWith("/messages"))
         const body = requests
@@ -197,10 +212,10 @@ async function runPicker(
       await key("\x1b")
       await waitFor(() => !screen.includes("Select model"), "picker did not close")
     }
-    await key("/exit")
-    await key("\r")
-    proc.stdin.end()
+    exitTranscriptOffset = transcript.length
+    await submit("/exit")
     const exitCode = await proc.exited
+    endInput()
     await output
     const errors = await stderr
     if (exitCode !== 0 || /TypeError|ReferenceError|React error #\d+/.test(transcript + errors)) {
@@ -209,7 +224,7 @@ async function runPicker(
     console.log(`ok: picker ${scenario.name}: ${rows.size} enumerated rows`)
     if (process.env.TUI_SMOKE_SHOW_OUTPUT === "1") console.log(labels)
   } finally {
-    proc.stdin.end()
+    endInput()
     if (!exited) proc.kill()
     await Promise.all([proc.exited, output, stderr])
     terminal.dispose()

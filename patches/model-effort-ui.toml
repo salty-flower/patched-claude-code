@@ -8631,7 +8631,7 @@ lineage = "model-effort-slider-guard"
 target_version = "2.1.290"
 applies_to = ">=2.1.290 <2.1.291"
 platforms = ["darwin-arm64"]
-rationale = "In chunk-jft51dzw.js, keep the native four-slot memo wrapper and route CLI-pinned or unsupported values through the native empty fallback."
+rationale = "Authored against 2.1.290. In chunk-jft51dzw.js, keep the native Oo four-slot memo wrapper and route CLI-pinned or unsupported values through wo, the same status-only component selected by /effort current. The ko typed-command component requires args and getMessages and is not an empty fallback. Preserve the native slider and Ultracode paths when editable."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
 locator_kind = "ast_transform"
 
@@ -8642,13 +8642,13 @@ match = { node = "FunctionDeclaration", function_name = "Oo", strings = ["let o=
 [patches.transform]
 op = "replace_substring"
 find = "function Oo(d){let o=w(4);"
-value = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(ko,{onDone:d.onDone});"
+value = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(wo,{onDone:d.onDone});"
 
 [[patches.tests]]
 kind = "static"
 name = "2.1.290 model-effort-slider-guard slider memo wrapper and guard"
-assert_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)"
-assert_not_contains = "function Po(d){let o=w(4);const effective=patchedEffort.session()"
+assert_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(wo,{onDone:d.onDone});"
+assert_not_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(ko,{onDone:d.onDone});"
 
 [[patches]]
 name = "model-effort-slider-guard-2-1-290-linux"
@@ -8656,7 +8656,7 @@ lineage = "model-effort-slider-guard"
 target_version = "2.1.290"
 applies_to = ">=2.1.290 <2.1.291"
 platforms = ["linux-x64"]
-rationale = "In chunk-krh8n04b.js, keep the native four-slot memo wrapper and route CLI-pinned or unsupported values through the native empty fallback."
+rationale = "Authored against 2.1.290. In chunk-krh8n04b.js, keep the native Oo four-slot memo wrapper and route CLI-pinned or unsupported values through wo, the same status-only component selected by /effort current. The ko typed-command component requires args and getMessages and is not an empty fallback. Preserve the native slider and Ultracode paths when editable."
 rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
 locator_kind = "ast_transform"
 
@@ -8667,13 +8667,13 @@ match = { node = "FunctionDeclaration", function_name = "Oo", strings = ["let o=
 [patches.transform]
 op = "replace_substring"
 find = "function Oo(d){let o=w(4);"
-value = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(ko,{onDone:d.onDone});"
+value = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(wo,{onDone:d.onDone});"
 
 [[patches.tests]]
 kind = "static"
 name = "2.1.290 model-effort-slider-guard slider memo wrapper and guard"
-assert_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)"
-assert_not_contains = "function Po(d){let o=w(4);const effective=patchedEffort.session()"
+assert_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(wo,{onDone:d.onDone});"
+assert_not_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(ko,{onDone:d.onDone});"
 
 [[patches]]
 name = "model-effort-slider-import-2-1-290-darwin"
@@ -8794,6 +8794,66 @@ kind = "static"
 name = "2.1.290 model-effort-slider-scope slider session scope wording"
 assert_contains = "children:[Ye,\" for this model, this session\"]"
 assert_not_contains = "children:[Ye,\" for this session only\"]"
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-290-darwin"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Authored against 2.1.290. In chunk-8ze70cc6.js, Yt.Se passes effort f, model Lre(n), saveAsDefault P, and storageV5 a to the imported C4 writer. Disable only its persistence argument so picker effort remains model-local session state, while the separate P-controlled mut model-default save remains native. Retire when upstream separates session effort from saved model defaults."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", source = "C4(f,Lre(n),P,a)" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 2
+value = "!1"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin model confirmation keeps effort session-only"
+assert_contains = "C4(f,Lre(n),!1,a)"
+assert_not_contains = "C4(f,Lre(n),P,a)"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin model confirmation preserves native default-model save"
+assert_contains = "P?await mut(n,a):null"
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-290-linux"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Authored against 2.1.290. In chunk-4bdeekv6.js, Yt.Se passes effort f, model Hre(n), saveAsDefault P, and storageV5 a to the imported h6 writer. Disable only its persistence argument so picker effort remains model-local session state, while the separate P-controlled fut model-default save remains native. Retire when upstream separates session effort from saved model defaults."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "CallExpression", source = "h6(f,Hre(n),P,a)" }
+
+[patches.transform]
+op = "set_call_arg"
+index = 2
+value = "!1"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux model confirmation keeps effort session-only"
+assert_contains = "h6(f,Hre(n),!1,a)"
+assert_not_contains = "h6(f,Hre(n),P,a)"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux model confirmation preserves native default-model save"
+assert_contains = "P?await fut(n,a):null"
 
 [[patches]]
 name = "model-effort-slider-scope-2-1-290-linux"

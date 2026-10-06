@@ -1,26 +1,36 @@
-import { readFileSync, readdirSync } from "node:fs"
-import { join } from "node:path"
 import { parseSync } from "oxc-parser"
-import { applyAstTransformPatches } from "../../lib/ast-transform-patches"
 import { patchApplies } from "../../lib/apply-patches"
+import { applyAstTransformPatches, prepareAstTransformPatches } from "../../lib/ast-transform-patches"
+import type { AstTransformPatch } from "../../lib/ast-transform-patches"
+import { applyPatchEntriesToGraphBundle, loadGraphBundle } from "../../lib/graph-bundle"
 import type { PatchEntry } from "../../lib/patch-files"
 
-type Range = { start: number; end: number; name?: string }
+type Range = { start: number; end: number; name?: string; kind: string; attachedEnd?: number }
+type MatchRange = { matches: number; start?: number; end?: number }
+type LocatedRange = { file: string; matches: number; start: number; end: number }
+type ContractGraph = {
+  originals: Map<string, string>
+  patched: Map<string, string>
+  anchors: Map<PatchEntry, LocatedRange[]>
+  functions: Map<string, Range[]>
+}
+
+// Staged graphs and entry arrays are immutable during one test run. Cache the
+// production render and native anchors, not a separately implemented patch pipe.
+const graphs = new WeakMap<PatchEntry[], Map<string, ContractGraph>>()
 
 // Preserve the native function around one patch; only its external dependencies are stubbed.
 export function patchedFunction(source: string, patch: PatchEntry): { original: string; patched: string } {
   if (patch.locator_kind === "ast_transform") {
-    if (!patch.ast || !patch.transform) throw new Error(`${patch.name}: missing AST transform metadata`)
-    const result = applyAstTransformPatches(source, [
-      { name: patch.name, expectedMatches: patch.expected_matches, ast: patch.ast, transform: patch.transform },
-    ])
-    const report = result.reports[0]
-    if (!report || report.matches === 0) throw new Error(`${patch.name}: locator matched no node`)
-    const boundary = enclosingFunction(source, report.start, patch.name)
-    const after = enclosingFunction(result.source, report.start, patch.name)
+    const anchor = nativeMatchRange(source, patch)
+    if (!anchor.matches || anchor.start === undefined || anchor.end === undefined) {
+      throw new Error(`${patch.name}: locator matched no node`)
+    }
+    const boundary = enclosingFunction(functionRanges(source, patch.name), anchor.start, anchor.end, patch.name)
+    const result = applyAstTransformPatches(source, [astPatch(patch)])
     return {
       original: source.slice(boundary.start, boundary.end),
-      patched: result.source.slice(after.start, after.end),
+      patched: extractPatchedFunction(result.source, functionRanges(result.source, patch.name), boundary, patch.name),
     }
   }
 
@@ -33,15 +43,14 @@ export function patchedFunction(source: string, patch: PatchEntry): { original: 
   if (start < 0 || source.indexOf(locator, start + 1) !== -1) {
     throw new Error(`${patch.name}: expected one locator in source`)
   }
-  const boundary = enclosingFunction(source, start, patch.name)
+  const boundary = enclosingFunction(functionRanges(source, patch.name), start, start + locator.length, patch.name)
   const original = source.slice(boundary.start, boundary.end)
   // Function replacer keeps literal dollar signs in minified identifiers intact.
   return { original, patched: original.replace(locator, () => replacement) }
 }
 
-// Apply every active entry that anchors inside one function, then return that
-// function's text before and after. Entries sharing a function compose in file
-// order even when their locator kinds differ.
+// Run the production graph pipeline, then extract the named native target from
+// its output. AST transforms therefore share the production batch/count rules.
 export function patchedEntryFunction(options: {
   graph: string
   entries: PatchEntry[]
@@ -50,134 +59,181 @@ export function patchedEntryFunction(options: {
   patch: PatchEntry
 }): { original: string; patched: string } {
   const { graph, entries, version, platform, patch } = options
-  const needle = entryNeedle(patch)
-  const candidates = readdirSync(graph)
-    .filter((file) => file.endsWith(".js"))
-    .map((file) => ({ file, text: readFileSync(join(graph, file), "utf8") }))
-    .filter(({ text }) => needle === undefined || text.includes(needle))
-
-  const located = candidates
-    .map(({ file, text }) => ({ file, text, offset: anchorOffset(text, patch) }))
-    .filter((candidate): candidate is { file: string; text: string; offset: number } => candidate.offset !== undefined)
-  if (located.length !== 1) throw new Error(`${patch.name}: expected one graph file, found ${located.length}`)
-
-  const { text } = located[0]!
-  const offset = located[0]!.offset
-  const boundary = enclosingFunction(text, offset, patch.name)
-  const original = text.slice(boundary.start, boundary.end)
-
-  // Cheap in-slice test: an entry anchors here only if its own anchor text is in
-  // the slice. This avoids re-parsing the whole chunk once per candidate entry.
-  const sameFunction = entries
-    .filter((entry) => patchApplies(entry, version))
-    .filter((entry) => (entry.platforms?.includes(platform) ?? true))
-    .filter((entry) => sliceHoldsEntry(original, entry))
-
-  let patched = original
-  for (const entry of sameFunction) {
-    if (entry.locator_kind === "ast_transform") {
-      if (!entry.ast || !entry.transform) throw new Error(`${entry.name}: missing AST transform metadata`)
-      patched = applyAstTransformPatches(patched, [
-        { name: entry.name, expectedMatches: entry.expected_matches, ast: entry.ast, transform: entry.transform },
-      ]).source
-    } else {
-      const locator = entry.locator_pattern
-      const replacement = entry.replacement
-      if (locator === undefined || replacement === undefined) throw new Error(`${entry.name}: missing replacement`)
-      if (!patched.includes(locator)) continue
-      patched = patched.split(locator).join(replacement)
+  const active = entries.filter(
+    (entry) => patchApplies(entry, version) && (!entry.platforms?.length || entry.platforms.includes(platform)),
+  )
+  if (!active.includes(patch)) throw new Error(`${patch.name}: inactive or absent graph entry`)
+  const key = JSON.stringify([graph, version, platform, active.map((entry) => entry.name)])
+  let cache = graphs.get(entries)
+  if (!cache) {
+    cache = new Map()
+    graphs.set(entries, cache)
+  }
+  let contract = cache.get(key)
+  if (!contract) {
+    const bundle = loadGraphBundle(graph, platform)
+    const outcome = applyPatchEntriesToGraphBundle(bundle, entries, version)
+    const anchors = new Map(active.map((entry) => [entry, [] as LocatedRange[]]))
+    const astEntries = active.filter((entry) => entry.locator_kind === "ast_transform")
+    const batch = astEntries.map(astPatch)
+    for (const { path, text } of bundle.files) {
+      const prepared = prepareAstTransformPatches(text, batch, { collectMatches: true, independent: true })
+      for (let i = 0; i < astEntries.length; i++) {
+        const result = prepared.results[i]!
+        if (!result.ok) throw new Error(`${astEntries[i]!.name}: ${path}: ${result.message}`)
+        rememberAnchor(anchors, astEntries[i]!, path, result)
+      }
+      for (const entry of active) {
+        if (entry.locator_kind !== "ast_transform") rememberAnchor(anchors, entry, path, nativeMatchRange(text, entry))
+      }
     }
+    contract = {
+      originals: new Map(bundle.files.map(({ path, text }) => [path, text])),
+      patched: outcome.texts,
+      anchors,
+      functions: new Map(),
+    }
+    cache.set(key, contract)
   }
-  return { original, patched }
-}
-
-// Whether a patch's anchor appears inside a function slice, judged without parsing.
-function sliceHoldsEntry(slice: string, patch: PatchEntry): boolean {
-  if (patch.locator_kind === "literal") return slice.includes(patch.locator_pattern ?? "\u0000")
-  const match = patch.ast?.match
-  if (match?.function_name) {
-    // Minified generators are declared as `function*name(`; plain ones as `function name(`.
-    return new RegExp(`function\\*?\\s*${match.function_name}\\(`).test(slice)
+  const located = contract.anchors.get(patch) ?? []
+  const total = located.reduce((sum, anchor) => sum + anchor.matches, 0)
+  if (located.length !== 1 || total !== (patch.expected_matches ?? 1)) {
+    throw new Error(`${patch.name}: expected one native graph target, found ${located.length} files / ${total} matches`)
   }
-  if (match?.source_regex) {
-    const literal = regexLiteral(match.source_regex)
-    if (literal !== undefined) return slice.includes(literal)
+  const anchor = located[0]!
+  const original = contract.originals.get(anchor.file)!
+  const patched = contract.patched.get(anchor.file)!
+  const ranges = (text: string, stage: string): Range[] => {
+    const rangeKey = `${stage}:${anchor.file}`
+    let found = contract.functions.get(rangeKey)
+    if (!found) {
+      found = functionRanges(text, patch.name)
+      contract.functions.set(rangeKey, found)
+    }
+    return found
   }
-  if (match?.string) return slice.includes(match.string)
-  if (match?.strings?.length) return match.strings.every((value) => slice.includes(value))
-  return false
+  const boundary = enclosingFunction(ranges(original, "native"), anchor.start, anchor.end, patch.name)
+  return {
+    original: original.slice(boundary.start, boundary.end),
+    patched: extractPatchedFunction(patched, ranges(patched, "patched"), boundary, patch.name),
+  }
 }
 
-// The longest literal prefix a source regex requires, or undefined when it has none.
-function regexLiteral(source: string): string | undefined {
-  const literal = source
-    .replace(/^\^/, "")
-    .replace(/\$$/, "")
-    .replace(/\\([()[\]{}.+*?^$|\\])/g, "$1")
-  return literal.length >= 8 ? literal : undefined
+function rememberAnchor(
+  anchors: Map<PatchEntry, LocatedRange[]>,
+  entry: PatchEntry,
+  file: string,
+  result: MatchRange,
+): void {
+  if (!result.matches) return
+  if (result.start === undefined || result.end === undefined)
+    throw new Error(`${entry.name}: missing native match range`)
+  anchors.get(entry)!.push({ file, matches: result.matches, start: result.start, end: result.end })
 }
 
-// A cheap literal that must appear in the file holding a patch, or undefined when
-// the match is too generic to narrow the search.
-function entryNeedle(patch: PatchEntry): string | undefined {
-  if (patch.locator_kind === "literal") return undefined
-  const match = patch.ast?.match
-  if (match?.function_name) return match.function_name
-  if (match?.source_regex) return regexLiteral(match.source_regex)
-  if (match?.string) return match.string
-  if (match?.strings?.[0]) return match.strings[0]
-  return undefined
+function astPatch(patch: PatchEntry): AstTransformPatch {
+  if (!patch.ast || !patch.transform) throw new Error(`${patch.name}: missing AST transform metadata`)
+  return { name: patch.name, expectedMatches: patch.expected_matches, ast: patch.ast, transform: patch.transform }
 }
 
-// The byte offset a patch anchors on, without applying it.
+// Locate actual native matches. Missing anchors return undefined; AST errors do
+// not become missing anchors, and a transform's edit offset is not its target.
 export function anchorOffset(source: string, patch: PatchEntry): number | undefined {
-  if (patch.locator_kind === "literal") {
-    const at = source.indexOf(patch.locator_pattern ?? "")
-    return at < 0 ? undefined : at
-  }
-  if (patch.locator_kind === "ast_transform") {
-    if (!patch.ast || !patch.transform) return undefined
-    try {
-      const report = applyAstTransformPatches(source, [
-        { name: patch.name, expectedMatches: patch.expected_matches, ast: patch.ast, transform: patch.transform },
-      ]).reports[0]
-      return report && report.matches > 0 ? report.start : undefined
-    } catch {
-      return undefined
-    }
-  }
-  const pattern = patch.locator_pattern ? new RegExp(patch.locator_pattern) : undefined
-  const match = pattern?.exec(source)
-  return match ? match.index : undefined
+  return nativeMatchRange(source, patch).start
 }
 
-function enclosingFunction(source: string, offset: number, name: string): Range {
+function nativeMatchRange(source: string, patch: PatchEntry): MatchRange {
+  if (patch.locator_kind === "ast_transform") {
+    const result = prepareAstTransformPatches(source, [astPatch(patch)], { collectMatches: true, independent: true })
+      .results[0]!
+    if (!result.ok) throw new Error(`${patch.name}: ${result.message}`)
+    return result
+  }
+  const locator = patch.locator_pattern
+  if (!locator) throw new Error(`${patch.name}: missing locator`)
+  const matches =
+    patch.locator_kind === "literal"
+      ? [...source.matchAll(new RegExp(locator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"))]
+      : [...source.matchAll(new RegExp(locator, "g"))]
+  const first = matches[0]
+  const last = matches.at(-1)
+  return { matches: matches.length, start: first?.index, end: last ? last.index + last[0].length : undefined }
+}
+
+function extractPatchedFunction(source: string, ranges: Range[], native: Range, name: string): string {
+  if (!native.name) throw new Error(`${name}: native target has no function name`)
+  const matches = ranges.filter((range) => range.name === native.name && range.kind === native.kind)
+  if (matches.length !== 1)
+    throw new Error(`${name}: expected one patched function ${native.name}, found ${matches.length}`)
+  const boundary = matches[0]!
+  return source.slice(boundary.start, boundary.attachedEnd ?? boundary.end)
+}
+
+function enclosingFunction(ranges: Range[], start: number, end: number, name: string): Range {
+  const candidates = ranges.filter((range) => range.start <= start && range.end > start && range.end >= end)
+  candidates.sort((a, b) => a.end - a.start - (b.end - b.start))
+  if (!candidates[0]) throw new Error(`${name}: no enclosing function for locator`)
+  return candidates[0]
+}
+
+function functionRanges(source: string, name: string): Range[] {
   const ast = parseSync("patch-contract.js", source, { lang: "js", sourceType: "module" })
   if (ast.errors.length) throw new Error(`${name}: cannot parse target source`)
-  const candidates: Range[] = []
+  const ranges: Range[] = []
+  const attachment = (value: unknown, functionName: string | undefined): boolean => {
+    const node = value as {
+      type?: string
+      expression?: {
+        type?: string
+        operator?: string
+        left?: {
+          type?: string
+          object?: { type?: string; name?: string }
+        }
+        right?: { type?: string }
+      }
+    }
+    const expression = node?.expression
+    return (
+      functionName !== undefined &&
+      node?.type === "ExpressionStatement" &&
+      expression?.type === "AssignmentExpression" &&
+      expression.operator === "=" &&
+      expression.left?.type === "MemberExpression" &&
+      expression.left.object?.type === "Identifier" &&
+      expression.left.object.name === functionName &&
+      (expression.right?.type === "FunctionExpression" || expression.right?.type === "ArrowFunctionExpression")
+    )
+  }
   function visit(value: unknown): void {
     if (!value || typeof value !== "object") return
     if (Array.isArray(value)) {
-      for (const item of value) visit(item)
+      for (let i = 0; i < value.length; i++) {
+        const node = value[i] as { type?: string; start?: number; end?: number; id?: { name?: string } }
+        if (node?.type === "FunctionDeclaration" && typeof node.start === "number" && typeof node.end === "number") {
+          let attachedEnd = node.end
+          for (let j = i + 1; j < value.length && attachment(value[j], node.id?.name); j++) {
+            attachedEnd = (value[j] as { end: number }).end
+          }
+          ranges.push({ start: node.start, end: node.end, name: node.id?.name, kind: node.type, attachedEnd })
+        }
+        visit(value[i])
+      }
       return
     }
     const node = value as Record<string, unknown>
-    if (typeof node.start !== "number" || typeof node.end !== "number") return
-    // Half-open containment: a preceding function ending exactly at the offset
-    // must not win over the one that starts there.
-    if (node.start > offset || node.end <= offset) return
     const init = node.init as { type?: string } | undefined
     const id = node.id as { name?: string } | undefined
-    if (node.type === "FunctionDeclaration") {
-      candidates.push({ start: node.start, end: node.end, name: id?.name })
-    } else if (node.type === "VariableDeclarator" && init?.type === "ArrowFunctionExpression") {
-      candidates.push({ start: node.start, end: node.end, name: id?.name })
+    if (
+      node.type === "VariableDeclarator" &&
+      init?.type === "ArrowFunctionExpression" &&
+      typeof node.start === "number" &&
+      typeof node.end === "number"
+    ) {
+      ranges.push({ start: node.start, end: node.end, name: id?.name, kind: node.type })
     }
     for (const child of Object.values(node)) visit(child)
   }
   visit(ast.program)
-  candidates.sort((a, b) => a.end - a.start - (b.end - b.start))
-  const boundary = candidates[0]
-  if (!boundary) throw new Error(`${name}: no enclosing function for locator`)
-  return boundary
+  return ranges
 }

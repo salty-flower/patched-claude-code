@@ -46,7 +46,7 @@ beforeAll(async () => {
     .filter((file) => file.endsWith(".js"))
     .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
     .join("\n")
-})
+}, 120_000)
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })

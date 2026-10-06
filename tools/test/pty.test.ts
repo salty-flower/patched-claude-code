@@ -6,10 +6,20 @@ import { captureCommand } from "./helpers/captured-command"
 import {
   isExpectedTimeoutExitCode,
   makeScriptCommand,
+  normalizeTuiOutput,
   shellQuote,
   timeoutCommand,
   withProcessGroupTimeout,
 } from "./helpers/pty"
+
+test("PTY normalization retains rendered text between string-terminated OSC controls", () => {
+  const output =
+    "\x1b]0;Claude Code\x1b\\\x1b[HClaude\x1b[19GCode v2.1.290" +
+    "\x1b]8;;https://example.test\x1b\\Fable\x1b]8;;\x1b\\" +
+    "\x1b]0;idle\x07" +
+    " draft-local-only /exit"
+  expect(normalizeTuiOutput(output)).toBe(" Claude Code v2.1.290 Fable draft-local-only /exit")
+})
 
 test("PTY timeout escalates to SIGKILL when the child ignores SIGTERM", () => {
   expect(timeoutCommand(16)).toEqual(["timeout", "--kill-after=5s", "16s"])

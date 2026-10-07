@@ -48,7 +48,7 @@ export function findPatchCarryoverWarnings(
   toVersion: string,
 ): PatchCarryoverWarning[] {
   if (!gt(toVersion, fromVersion)) return []
-  const lineageKey = (patch: PatchEntry) => `${patch.featureName}\0${patchLineageName(patch.name)}`
+  const lineageKey = (patch: PatchEntry) => `${patch.featureName}\0${patch.lineage ?? patchLineageName(patch.name)}`
   const successorCoverage = new Map<string, Set<string>>()
   for (const patch of patches.filter((candidate) => appliesAtVersion(candidate, toVersion))) {
     const key = lineageKey(patch)

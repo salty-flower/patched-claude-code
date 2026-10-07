@@ -16,6 +16,7 @@ applies_to = ">=2.1.112"              # semver range; null means same as target_
 
 [[patches]]
 name = "ask-user-question-channels-gate"
+lineage = "ask-user-question-channels-gate" # optional; stable carryover name when entries are renamed
 rationale = """
 One-line summary of WHY this patch exists. Followed by a short paragraph that
 states the user-visible effect, the alternative we rejected, and the cleanup
@@ -144,6 +145,9 @@ Supported transform ops:
 
 ## Field rules
 
+- `lineage`, when present, MUST be a nonempty string naming the same behavior across target variants.
+  Carryover checks use it within the feature; otherwise they normalize the entry name's version/platform suffixes.
+  Shared lineage does not replace the obligation ledger's per-entry coverage or runtime proof.
 - Each patch entry's `rationale_ref` MUST point at a real line range in
   `reference/v2.1.88/sources/`. CI rejects dangling refs.
 - Each `literal` or `regex` patch entry's `locator_pattern` MUST hit exactly

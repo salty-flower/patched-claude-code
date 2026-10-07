@@ -264,14 +264,20 @@ async function session(
   }
   async function picker(): Promise<void> {
     await commandText("/model", /Select model/)
-    const selected = () => screen.match(/❯\s+\d+\.\s+([^\n]+)/)?.[1] ?? ""
+    const pickerText = () => screen.slice(screen.lastIndexOf("Select model"))
+    const selected = () => pickerText().match(/❯\s+\d+\.\s+([^\n]+)/)?.[1] ?? ""
+    // Darwin script can split a frame after its heading. Sending Down before
+    // the rows arrive moves the already-focused Luna row to Default.
+    await waitFor(
+      () => selected() !== "" && /Enter to set as default[^\n]*Esc to cancel/.test(pickerText()),
+      "picker rows and keyboard footer did not render",
+    )
     for (let count = 0; !selected().includes("Luna effort test") && count < 20; count++) {
       const previous = selected()
       await key("\x1b[B")
       await waitFor(() => selected() !== previous, "picker selection did not advance")
     }
     await waitFor(() => selected().includes("Luna effort test"), "Luna picker row missing")
-    const pickerText = () => screen.slice(screen.lastIndexOf("Select model"))
     const pickerEffort = () => pickerText().match(/(?:low|medium|high|xhigh|max) effort \([^\n)]+\)/i)?.[0]
     await waitFor(() => pickerEffort() !== undefined, "picker effort level did not render for the selected Luna row")
     const initialEffort = pickerEffort()

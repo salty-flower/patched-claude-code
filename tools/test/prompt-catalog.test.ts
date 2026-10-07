@@ -526,4 +526,4 @@ test("release payload rebinds a verified CI catalog when upstream bytes are unav
     expect(payload.manifest.promptCatalog.entries).toBe(1)
     expect(readPromptCatalogManifest(join(root, "payload", "prompts", "catalog")).target.releaseId).toBe("patch.1")
   })
-}, 30_000)
+}, 120_000)

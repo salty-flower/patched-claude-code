@@ -22,6 +22,17 @@ const targetClearsLiveThinkingWithStream = activeThinkingPatches.some(
     patch.transform.code === "this.stream.setStreamingThinking(null);",
 )
 
+function liveThinkingCacheSize(platform: string): number {
+  const allocation = activeThinkingPatches.find(
+    (patch) =>
+      patch.name.startsWith("thinking-render-live-row-cache-allocation-") &&
+      (patch.platforms === undefined || patch.platforms.includes(platform)),
+  )
+  const allocatedSlots = allocation?.replacement?.match(/=\w+\((\d+)\)/)?.[1]
+  if (allocatedSlots !== undefined) return Number(allocatedSlots)
+  return TARGET_VERSION === "2.1.289" ? 45 : 44
+}
+
 const tempDir = mkdtempSync(join(tmpdir(), "patched-cc-thinking-"))
 let patched = ""
 let linuxPatched = ""
@@ -35,7 +46,7 @@ beforeAll(async () => {
     .filter((file) => file.endsWith(".js"))
     .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
     .join("\n")
-})
+}, 120_000)
 
 afterAll(() => {
   rmSync(tempDir, { recursive: true, force: true })
@@ -561,7 +572,10 @@ test("main-screen thinking display uses the same live state as transcript render
 
 test("live thinking memo updates its row when only the stream snapshot changes", () => {
   if (isVersionBefore(TARGET_VERSION, "2.1.282")) return
-  for (const body of [patched, linuxPatched]) {
+  for (const [body, platform] of [
+    [patched, "darwin-arm64"],
+    [linuxPatched, "linux-x64"],
+  ] as const) {
     const markerIndex = body.indexOf("__acc_streamingThinking?.thinking&&e(n,")
     expect(markerIndex).toBeGreaterThanOrEqual(0)
     const start = body.lastIndexOf("function ", markerIndex)
@@ -570,7 +584,8 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     const allocation = /^function [\w$]+\([^)]*\)\{let ([\w$]+)=[\w$]+\((\d+)\)/.exec(wrapper)
     const row = /let ([\w$]+);if\([^;]+__acc_streamingThinking[^;]+;else \1=[^;]+;return \1/.exec(wrapper)
     if (!allocation || !row) throw new Error("Missing live thinking memo allocation or output row")
-    expect(Number(allocation[2])).toBe(44)
+    const expectedAllocation = liveThinkingCacheSize(platform)
+    expect(Number(allocation[2])).toBe(expectedAllocation)
     const inputs = /children:\[([\w$]+),([\w$]+),([\w$]+),__acc_streamingThinking/.exec(row[0])
     const provider = /r\(([\w$]+)\.Provider,\{value:([\w$]+),/.exec(row[0])
     if (!inputs || !provider) throw new Error("Missing live row inputs")
@@ -587,7 +602,7 @@ test("live thinking memo updates its row when only the stream snapshot changes",
       "n",
       row[0],
     ) as (...args: unknown[]) => Element
-    const cache = Array<unknown>(44)
+    const cache = Array<unknown>(expectedAllocation)
     const stableInputs = [{}, {}, {}, {}, { Provider: "provider" }, jsx, jsx, "text"]
     const firstSnapshot = { thinking: "first", isStreaming: true }
     const first = render(cache, firstSnapshot, ...stableInputs)
@@ -598,7 +613,7 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     expect(next.children?.[3]).toMatchObject({ children: "first second" })
     const cleared = render(cache, null, ...stableInputs)
     expect(cleared.children?.[3]).toBeUndefined()
-    expect(cache.length).toBe(44)
+    expect(cache.length).toBe(expectedAllocation)
   }
 })
 

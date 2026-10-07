@@ -117,11 +117,14 @@ async function session(
   // If the inner timeout kills the CLI while `script` is waiting for stdin,
   // end the complete wrapper group and wake any event wait before the harness
   // safety timeout. The inner PTY child gets its own TERM/KILL window first.
-  const watchdog = setTimeout(() => {
-    endInput()
-    events.fail(new Error("whole-session watchdog expired"))
-    killGroup()
-  }, (timeout + watchdogKillAfterSeconds + 1) * 1000)
+  const watchdog = setTimeout(
+    () => {
+      endInput()
+      events.fail(new Error("whole-session watchdog expired"))
+      killGroup()
+    },
+    (timeout + watchdogKillAfterSeconds + 1) * 1000,
+  )
   let screen = ""
   let lastInteractiveScreen = ""
   let transcript = ""
@@ -143,8 +146,13 @@ async function session(
       await new Promise<void>((done) => terminal.write(chunk, done))
       screen = screenText(terminal)
       if (screen.includes("❯")) lastInteractiveScreen = screen
-      if (/TypeError|ReferenceError|React error #\d+/.test(screen)) events.fail(new Error(screen))
-      else events.notify()
+      if (
+        /TypeError|ReferenceError|React error #\d+|Claude Code exited after an unrecoverable interface error/.test(
+          screen,
+        )
+      ) {
+        events.fail(new Error(screen))
+      } else events.notify()
     }
   })().catch((error: unknown) => {
     outputError = error
@@ -256,14 +264,20 @@ async function session(
   }
   async function picker(): Promise<void> {
     await commandText("/model", /Select model/)
-    const selected = () => screen.match(/❯\s+\d+\.\s+([^\n]+)/)?.[1] ?? ""
+    const pickerText = () => screen.slice(screen.lastIndexOf("Select model"))
+    const selected = () => pickerText().match(/❯\s+\d+\.\s+([^\n]+)/)?.[1] ?? ""
+    // Darwin script can split a frame after its heading. Sending Down before
+    // the rows arrive moves the already-focused Luna row to Default.
+    await waitFor(
+      () => selected() !== "" && /Enter to set as default[^\n]*Esc to cancel/.test(pickerText()),
+      "picker rows and keyboard footer did not render",
+    )
     for (let count = 0; !selected().includes("Luna effort test") && count < 20; count++) {
       const previous = selected()
       await key("\x1b[B")
       await waitFor(() => selected() !== previous, "picker selection did not advance")
     }
     await waitFor(() => selected().includes("Luna effort test"), "Luna picker row missing")
-    const pickerText = () => screen.slice(screen.lastIndexOf("Select model"))
     const pickerEffort = () => pickerText().match(/(?:low|medium|high|xhigh|max) effort \([^\n)]+\)/i)?.[0]
     await waitFor(() => pickerEffort() !== undefined, "picker effort level did not render for the selected Luna row")
     const initialEffort = pickerEffort()
@@ -300,6 +314,16 @@ async function session(
       () => !screen.includes("Select model") && screen.includes("with xhigh effort") && inputReady(),
       "picker did not commit xhigh and restore the input prompt",
     )
+    const saved = (await Bun.file(join(configDir, "settings.json")).json()) as {
+      model?: string
+      effortLevel?: string
+      modelSettings?: unknown
+    }
+    if (saved.model !== LUNA) throw new Error(`native picker did not save the default model: ${JSON.stringify(saved)}`)
+    if (saved.effortLevel !== "medium" || saved.modelSettings !== undefined) {
+      throw new Error(`picker confirmation persisted session effort: ${JSON.stringify(saved)}`)
+    }
+    console.log("ok: native picker saved the default model without saving session effort")
   }
   async function slider(): Promise<void> {
     await submit("/effort")
@@ -546,7 +570,7 @@ async function main(): Promise<number> {
         await ui.request(LUNA, "max")
         const messages = rejecting.requests.filter(conversationRequest)
         if (messages.length < 2) throw new Error("unsupported effort did not retry")
-        await ui.command("/effort current", /backend default.*effort unsupported/i)
+        await ui.command("/effort current", /backend default.*effort not supported/i)
         await ui.request(LUNA, undefined)
         await ui.footerCleared()
         for (const request of messages.slice(1)) {

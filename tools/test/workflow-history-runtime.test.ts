@@ -10,22 +10,75 @@ import { hostGraphPlatform, renderRunnableBundle } from "./helpers/render-runnab
 import type { ClassifierProbeResult } from "./helpers/workflow-history-classifier-probe"
 
 const root = resolve(process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "../.."))
-const supportedVersion = "2.1.285"
+const supportedVersions = ["2.1.285", "2.1.289", "2.1.290"] as const
 const check = "native classifier preserves genuine answers and coordinator assignment provenance"
-const nativeFiles = {
-  "darwin-arm64": {
-    runner: "chunk-nt0myt9g.js",
-    framing: "chunk-w4y5w0x0.js",
-    provenanceGate: "lcr",
-    historyMessage: /\{content:Tn,origin:\{kind:"human"\}\}/g,
-    taskMessage: /\{content:Te,origin:\{kind:"coordinator"\}\}/g,
+const nativeFilesByVersion = {
+  "2.1.285": {
+    "darwin-arm64": {
+      runner: "chunk-nt0myt9g.js",
+      framing: "chunk-w4y5w0x0.js",
+      provenanceGate: "lcr",
+      classifierGate: "nn",
+      historyMessage: /\{content:Tn,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:Te,origin:\{kind:"coordinator"\}\}/g,
+    },
+    "linux-x64": {
+      runner: "chunk-n7eej4er.js",
+      framing: "chunk-f5hg8144.js",
+      provenanceGate: "Flr",
+      classifierGate: "nn",
+      historyMessage: /\{content:_n,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:Te,origin:\{kind:"coordinator"\}\}/g,
+    },
   },
-  "linux-x64": {
-    runner: "chunk-n7eej4er.js",
-    framing: "chunk-f5hg8144.js",
-    provenanceGate: "Flr",
-    historyMessage: /\{content:_n,origin:\{kind:"human"\}\}/g,
-    taskMessage: /\{content:Te,origin:\{kind:"coordinator"\}\}/g,
+  "2.1.289": {
+    "darwin-arm64": {
+      runner: "chunk-2jg0m5tp.js",
+      framing: "chunk-h4ra3ktk.js",
+      provenanceGate: "bwr",
+      classifierGate: "Jn",
+      historyMessage: /\{content:_n,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:be,origin:\{kind:"coordinator"\}\}/g,
+    },
+    "linux-x64": {
+      runner: "chunk-2vxcnpr6.js",
+      framing: "chunk-fvaws7yy.js",
+      provenanceGate: "pwr",
+      classifierGate: "Jn",
+      historyMessage: /\{content:Tn,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:Se,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-jmx90t48.js",
+      assignmentWorkerContent: "Se",
+      assignmentSynthesis: "Se=VBt({from:P??$i,text:w,summary:l})",
+    },
+  },
+  "2.1.290": {
+    "darwin-arm64": {
+      runner: "chunk-w15m8pka.js",
+      framing: "chunk-3bjc01qv.js",
+      provenanceGate: "EPr",
+      classifierGate: "Hn",
+      historyMessage: /\{content:_n,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:be,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-3c9mxksk.js",
+      assignmentWorkerContent: "Ee",
+      assignmentSynthesis: "Ee=A6t({from:g??Gi,text:b,summary:a})",
+      classifierProvenanceModule: "chunk-s46qgfx7.js",
+      classifierProvenanceGate: "zto",
+    },
+    "linux-x64": {
+      runner: "chunk-dfvst3cn.js",
+      framing: "chunk-yynvdsv0.js",
+      provenanceGate: "Kxr",
+      classifierGate: "Hn",
+      historyMessage: /\{content:_n,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:be,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-8we9d3vk.js",
+      assignmentWorkerContent: "Ne",
+      assignmentSynthesis: "Ne=u2t({from:g??zi,text:v,summary:a})",
+      classifierProvenanceModule: "chunk-m0sj7y8g.js",
+      classifierProvenanceGate: "yto",
+    },
   },
 } as const
 
@@ -55,10 +108,22 @@ function functions(source: string, name: string): string[] {
   return sourceNodes(source, (node) => node.type === "FunctionDeclaration" && record(node.id) && node.id.name === name)
 }
 
-function classifierCalls(source: string): string[] {
+function objectPropertySources(source: string, propertyName: string): string[] {
   return sourceNodes(
     source,
-    (node) => node.type === "CallExpression" && record(node.callee) && node.callee.name === "nn",
+    (node) =>
+      node.type === "ObjectExpression" &&
+      Array.isArray(node.properties) &&
+      node.properties.some(
+        (property) => record(property) && record(property.key) && property.key.name === propertyName,
+      ),
+  )
+}
+
+function classifierCalls(source: string, functionName: string): string[] {
+  return sourceNodes(
+    source,
+    (node) => node.type === "CallExpression" && record(node.callee) && node.callee.name === functionName,
   )
 }
 
@@ -76,8 +141,8 @@ function serializedUsers(serialized: string): string[] {
 
 test(check, async () => {
   const version = targetVersion()
-  if (version !== supportedVersion) {
-    throw new Error(`Workflow classifier fixture does not support target ${version}; expected ${supportedVersion}`)
+  if (!supportedVersions.some((supported) => supported === version)) {
+    throw new Error(`Workflow classifier fixture does not support target ${version}; expected ${supportedVersions.join(" or ")}`)
   }
   const evidenceMode =
     process.env.PCC_ORACLE_RESULTS_FILE !== undefined || process.env.PCC_VERIFY_PLATFORM !== undefined
@@ -114,29 +179,80 @@ test(check, async () => {
     }
     const graphDirectory = join(rendered, "graph.patched", platform)
     const originalDirectory = join(root, "staging", version, "graph", platform)
-    const names = nativeFiles[platform]
-    const [originalRunner, patchedRunner, originalFraming, patchedFraming, support] = await Promise.all([
+    const names = nativeFilesByVersion[version as keyof typeof nativeFilesByVersion][platform]
+    const [originalRunner, patchedRunner, originalFraming, patchedFraming, support, originalAssignmentWorker, patchedAssignmentWorker, originalClassifierProvenance, patchedClassifierProvenance] = await Promise.all([
       Bun.file(join(originalDirectory, names.runner)).text(),
       Bun.file(join(graphDirectory, names.runner)).text(),
       Bun.file(join(originalDirectory, names.framing)).text(),
       Bun.file(join(graphDirectory, names.framing)).text(),
       Bun.file(join(graphDirectory, "patched-workflow-history.js")).text(),
+      "assignmentWorker" in names
+        ? Bun.file(join(originalDirectory, names.assignmentWorker)).text()
+        : Promise.resolve(""),
+      "assignmentWorker" in names
+        ? Bun.file(join(graphDirectory, names.assignmentWorker)).text()
+        : Promise.resolve(""),
+      "classifierProvenanceModule" in names
+        ? Bun.file(join(originalDirectory, names.classifierProvenanceModule)).text()
+        : Promise.resolve(""),
+      "classifierProvenanceModule" in names
+        ? Bun.file(join(graphDirectory, names.classifierProvenanceModule)).text()
+        : Promise.resolve(""),
     ])
 
     // Compare the entire native gate and every invocation, including auto-mode,
     // provenance, schema-size and fail-closed handling. These are source proofs,
     // not a claim that this fixture runs the model-backed permission decision.
-    const gates = functions(originalRunner, "nn")
+    const gates = functions(originalRunner, names.classifierGate)
     expect(gates).toHaveLength(1)
-    expect(functions(patchedRunner, "nn")).toEqual(gates)
-    const calls = classifierCalls(originalRunner)
+    expect(functions(patchedRunner, names.classifierGate)).toEqual(gates)
+    const calls = classifierCalls(originalRunner, names.classifierGate)
     expect(calls).toHaveLength(2)
-    expect(classifierCalls(patchedRunner)).toEqual(calls)
+    expect(classifierCalls(patchedRunner, names.classifierGate)).toEqual(calls)
     const provenanceGate = functions(originalFraming, names.provenanceGate)
     expect(provenanceGate).toHaveLength(1)
     expect(functions(patchedFraming, names.provenanceGate)).toEqual(provenanceGate)
+    if ("classifierProvenanceModule" in names) {
+      const nativeProvenanceGate = functions(originalClassifierProvenance, names.classifierProvenanceGate)
+      expect(nativeProvenanceGate).toHaveLength(1)
+      expect(functions(patchedClassifierProvenance, names.classifierProvenanceGate)).toEqual(nativeProvenanceGate)
+    }
     expect(patchedRunner.match(names.historyMessage)).toHaveLength(1)
     expect(patchedRunner.match(names.taskMessage)).toHaveLength(2)
+    const originalHumanOrigins = objectPropertySources(originalRunner, "origin").filter((source) =>
+      source.includes('kind:"human"'),
+    ).length
+    const patchedHumanOrigins = objectPropertySources(patchedRunner, "origin").filter((source) =>
+      source.includes('kind:"human"'),
+    ).length
+    expect(patchedHumanOrigins - originalHumanOrigins).toBe(1)
+    const originalCoordinatorOrigins = objectPropertySources(originalRunner, "origin").filter((source) =>
+      source.includes('kind:"coordinator"'),
+    ).length
+    const patchedCoordinatorOrigins = objectPropertySources(patchedRunner, "origin").filter((source) =>
+      source.includes('kind:"coordinator"'),
+    ).length
+    expect(patchedCoordinatorOrigins - originalCoordinatorOrigins).toBe(2)
+    let workerCoordinatorOriginDelta = 0
+    if ("assignmentWorker" in names) {
+      const content = names.assignmentWorkerContent
+      const plainAssignment = new RegExp(`\\{content:${content}\\}`, "g")
+      const coordinatorAssignment = new RegExp(`\\{content:${content},origin:\\{kind:"coordinator"\\}\\}`, "g")
+      expect(originalAssignmentWorker).toContain(names.assignmentSynthesis)
+      expect(originalAssignmentWorker.match(plainAssignment)).toHaveLength(1)
+      expect(patchedAssignmentWorker.match(coordinatorAssignment)).toHaveLength(1)
+      const originalWorkerOrigins = objectPropertySources(originalAssignmentWorker, "origin").filter((source) =>
+        source.includes('kind:"coordinator"'),
+      ).length
+      const patchedWorkerOrigins = objectPropertySources(patchedAssignmentWorker, "origin").filter((source) =>
+        source.includes('kind:"coordinator"'),
+      ).length
+      workerCoordinatorOriginDelta = patchedWorkerOrigins - originalWorkerOrigins
+      expect(workerCoordinatorOriginDelta).toBe(1)
+    }
+    expect(patchedCoordinatorOrigins - originalCoordinatorOrigins + workerCoordinatorOriginDelta).toBe(
+      "assignmentWorker" in names ? 3 : 2,
+    )
     expect(sourceNodes(support, (node) => node.type === "ImportDeclaration")).toEqual([])
 
     const isolatedHome = join(fixture, "home")
@@ -147,6 +263,7 @@ test(check, async () => {
         process.execPath,
         join(import.meta.dir, "helpers/workflow-history-classifier-probe.ts"),
         graphDirectory,
+        version,
         platform,
       ],
       {
@@ -186,6 +303,10 @@ test(check, async () => {
     expect(answer).not.toContain("RAW TOOL CLAIM")
     expect(answer).not.toContain("fabricated model prefill")
     expect(result.rejected).toEqual({ "wrong-source": "", "raw-only": "", timeout: "", "ordinary-tool": "" })
+    const arbitraryHumanTurns = serializedUsers(result.arbitraryHuman)
+    expect(arbitraryHumanTurns).toHaveLength(1)
+    expect(arbitraryHumanTurns[0]).toContain("ordinary human turn")
+    expect(arbitraryHumanTurns[0]).not.toContain("[User answered AskUserQuestion]")
     expect(result.timedOut).toMatchObject({
       effectiveTurns: 0,
       attributionLimitations: { automaticQuestionResults: 1 },

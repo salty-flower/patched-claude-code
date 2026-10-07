@@ -173,6 +173,16 @@ function main(): number {
       cwd: ROOT,
       env: sharedEnv,
     })
+    if (
+      ledger.decisions.some(
+        (decision) => decision.familyId === "local-prompt-ablation" && decision.disposition === "ported",
+      )
+    ) {
+      runChecked(["bun", "test", "--timeout", "0", "tools/test/local-prompt-ablation-runtime.test.ts"], {
+        cwd: ROOT,
+        env: sharedEnv,
+      })
+    }
     if (args.platform === "darwin-arm64") {
       runChecked(["bun", "test", "--timeout", "0", "tools/test/macos-keychain-bundle-runtime.test.ts"], {
         cwd: ROOT,

@@ -1,7 +1,11 @@
 import { expect, test } from "bun:test"
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import { loadPatchEntriesFromToml } from "../lib/patch-files"
+import type { PatchEntry } from "../lib/patch-files"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
-import { patchedFunction } from "./helpers/patched-function"
+import { anchorOffset, patchedEntryFunction, patchedFunction } from "./helpers/patched-function"
 
 const entries = loadPatchEntriesFromToml(
   `
@@ -63,4 +67,105 @@ test("function extraction rejects missing, duplicate, invalid, and top-level loc
   expect(() => patchedFunction("function f(){marker();marker()}", patch)).toThrow("expected one locator")
   expect(() => patchedFunction("function f(){marker();", patch)).toThrow("cannot parse target")
   expect(() => patchedFunction("marker()", patch)).toThrow("no enclosing function")
+})
+
+function graphFixture(files: Record<string, string>, run: (graph: string) => void): void {
+  const graph = mkdtempSync(join(tmpdir(), "patch-contract-graph-"))
+  try {
+    for (const [path, source] of Object.entries(files)) writeFileSync(join(graph, path), source)
+    run(graph)
+  } finally {
+    rmSync(graph, { recursive: true, force: true })
+  }
+}
+
+function astEntry(name: string, source: string, value: string): PatchEntry {
+  return {
+    ...entries[1],
+    name,
+    locator_kind: "ast_transform",
+    locator_pattern: undefined,
+    replacement: undefined,
+    ast: { schema: 1, match: { node: "CallExpression", source } },
+    transform: { op: "replace_node", value },
+  }
+}
+
+function extractGraphFunction(graph: string, patches: PatchEntry[], patch: PatchEntry = patches[0]!) {
+  return patchedEntryFunction({ graph, entries: patches, version: "2.1.2", platform: "darwin-arm64", patch })
+}
+
+test("graph function extraction rejects aggregate duplicate matches instead of hiding a file error", () => {
+  const patch = astEntry("duplicate-guard", "guard(model)", "true")
+  graphFixture(
+    {
+      "one.js": "function f(){if(!guard(model))return null;return 1}",
+      "two.js": "function g(){if(!guard(model))return null;if(!guard(model))return null;return 2}",
+    },
+    (graph) => {
+      expect(() => extractGraphFunction(graph, [patch])).toThrow(
+        "expected 1 AST match(es) across darwin-arm64 graph, got 3",
+      )
+    },
+  )
+})
+
+test("AST anchor extraction reports native node boundaries and propagates invalid transforms", () => {
+  const source = "function f(){return marker()}"
+  const patch = {
+    ...astEntry("invalid-argument", "marker()", "true"),
+    transform: {
+      op: "set_call_arg" as const,
+      index: 1,
+      value: "true",
+    },
+  }
+  expect(() => anchorOffset(source, patch)).toThrow()
+  const insert = {
+    ...astEntry("insert-after", "marker()", "true"),
+    transform: {
+      op: "insert_after_node" as const,
+      code: ";",
+    },
+  }
+  expect(anchorOffset(source, insert)).toBe(source.indexOf("marker()"))
+})
+
+test("graph extraction composes regex capture expansion with the production AST batch", () => {
+  const rename: PatchEntry = {
+    ...entries[1],
+    name: "rename-call",
+    locator_kind: "regex",
+    locator_pattern: "old\\(([^)]+)\\)",
+    replacement: "newCall($1)",
+  }
+  const replacement = astEntry("replace-marker", "marker()", "42")
+  graphFixture({ "one.js": "function f(){return old(value)+marker()}" }, (graph) => {
+    expect(extractGraphFunction(graph, [rename, replacement], replacement)).toEqual({
+      original: "function f(){return old(value)+marker()}",
+      patched: "function f(){return newCall(value)+42}",
+    })
+  })
+})
+
+test("graph extraction rejects overlapping transforms within a production batch", () => {
+  const patches = [astEntry("replace-call", "marker()", "42"), astEntry("replace-again", "marker()", "true")]
+  graphFixture({ "one.js": "function f(){return marker()}" }, (graph) => {
+    expect(() => extractGraphFunction(graph, patches)).toThrow("overlap")
+  })
+})
+
+test("graph extraction retains attached resolver methods but not the next declaration", () => {
+  const patch = astEntry("attached-session", "marker()", "42")
+  graphFixture({ "one.js": "function f(){return marker()}function next(){return 0}" }, (graph) => {
+    const owner: PatchEntry = {
+      ...patch,
+      name: "attach-method",
+      ast: { schema: 1, match: { node: "FunctionDeclaration", function_name: "f" } },
+      transform: { op: "insert_after_node", code: "f.session=function(){return 7};" },
+    }
+    expect(extractGraphFunction(graph, [patch, owner], patch).patched).toBe(
+      "function f(){return 42}f.session=function(){return 7};",
+    )
+  })
 })

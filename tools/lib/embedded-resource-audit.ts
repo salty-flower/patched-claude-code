@@ -235,7 +235,21 @@ export function writeEmbeddedResourceAudit(options: {
           value = module.variables.get(id)
         }
         const resources: Array<{ logicalPath: string; value?: Node }> = []
-        const flatten = (current: Node | undefined, prefix: string): void => {
+        const staticMap = (current: Node | undefined, seen = new Set<string>()): Node | undefined => {
+          if (current?.type === "ObjectExpression") return current
+          if (current?.type === "Identifier") {
+            const id = name(current)
+            if (!id || seen.has(id)) return undefined
+            return staticMap(module.variables.get(id), new Set([...seen, id]))
+          }
+          return undefined
+        }
+        const flatten = (current: Node | undefined, prefix: string, ancestors = new Set<Node>()): void => {
+          if (current && ancestors.has(current)) {
+            resources.push({ logicalPath: "<dynamic>" })
+            return
+          }
+          const nextAncestors = current ? new Set([...ancestors, current]) : ancestors
           if (current?.type === "CallExpression") {
             const callee = node(current.callee)
             const args = nodes(current.arguments)
@@ -247,15 +261,21 @@ export function writeEmbeddedResourceAudit(options: {
               args.length === 1 &&
               node(args[0])?.type === "ObjectExpression"
             ) {
-              flatten(node(args[0]), prefix)
+              flatten(node(args[0]), prefix, nextAncestors)
               return
             }
           }
           if (current?.type === "ObjectExpression") {
             for (const property of nodes(current.properties)) {
+              if (property.type === "SpreadElement") {
+                const spread = staticMap(node(property.argument))
+                if (spread) flatten(spread, prefix, nextAncestors)
+                else resources.push({ logicalPath: "<dynamic>" })
+                continue
+              }
               const key = !property.computed && name(property.key)
               if (!key) resources.push({ logicalPath: "<dynamic>" })
-              else flatten(node(property.value), prefix ? `${prefix}/${key}` : key)
+              else flatten(node(property.value), prefix ? `${prefix}/${key}` : key, nextAncestors)
             }
           } else
             resources.push({

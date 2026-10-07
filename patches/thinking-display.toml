@@ -7591,3 +7591,569 @@ rationale = "Clear live thinking after preserving its interrupted text. The 2.1.
   kind = "static"
   name = "2.1.285 interrupt excludes the previous message-array boundary"
   assert_not_contains = "isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:"
+
+[[patches]]
+name = "thinking-render-live-output-2-1-289-darwin"
+lineage = "thinking-render-live-output"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the live thinking snapshot into the 2.1.289 Darwin wrapper _te. Its native memo cache has 44 slots, with the provider output at slot 43; allocate slot 43 to the stream snapshot and move the provider output to slot 44. The stream selector xe, stream field sD, React memo allocator w, and text component n are in the matched target scopes."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "_te"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "L=xe((R?v:null)?.stream,sD)??_l,B=T?v:null,"
+  value = "L=xe((R?v:null)?.stream,sD)??_l,__acc_streamingThinking=xe((R?v:null)?.stream,(T)=>T.streamingThinking),B=T?v:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 live output subscribes to the current thinking snapshot"
+  assert_contains = "L=xe((R?v:null)?.stream,sD)??_l,__acc_streamingThinking=xe((R?v:null)?.stream,(T)=>T.streamingThinking),B=T?v:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 live output excludes the previous stream bindings"
+  assert_not_contains = "N=xe((S?h:null)?.stream,l0)??Fa,__acc_streamingThinking=xe((S?h:null)?.stream,(T)=>T.streamingThinking),A=R?h:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-289-darwin"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.289 Darwin wrapper _te allocates 44 memo slots and uses slot 43 for its provider output. Reserve slot 43 for the live thinking snapshot and expand the cache to 45 slots so the provider output can move to slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+  locator_pattern = "function _te(l){let u=w(44),"
+  replacement = "function _te(l){let u=w(45),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 live row allocates its thinking snapshot cache slot"
+  assert_contains = "function _te(l){let u=w(45),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 live row excludes the previous wrapper allocation"
+  assert_not_contains = "function _te(l){let u=w(44),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-289-darwin"
+lineage = "thinking-render-live-row"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "darwin-arm64" ]
+rationale = "In 2.1.289 Darwin the live wrapper _te caches provider output at slot 43. Add the stream snapshot to slot 43, include it in the provider cache key, render its text as a child, and move provider output to the newly allocated slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "_te"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue)gt=r(jkt.Provider,{value:ue,children:[$e,qe,pt]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=gt;else gt=u[43];return gt"
+  value = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue||u[43]!==__acc_streamingThinking)gt=r(jkt.Provider,{value:ue,children:[$e,qe,pt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=__acc_streamingThinking,u[44]=gt;else gt=u[44];return gt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 live row invalidates and renders the thinking snapshot"
+  assert_contains = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue||u[43]!==__acc_streamingThinking)gt=r(jkt.Provider,{value:ue,children:[$e,qe,pt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=__acc_streamingThinking,u[44]=gt;else gt=u[44];return gt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 live row excludes the previous provider bindings"
+  assert_not_contains = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue)gt=r(jkt.Provider,{value:ue,children:[$e,qe,pt]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=gt;else gt=u[43];return gt"
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-289-darwin"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.289 Darwin stream dispatcher moved to FLr. Keep its target-local NLr progress estimate and g progress callback while forwarding each thinking delta through the stream state's onStreamingThinking setter."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "FLr"
+    strings = [
+  "authoringProgressSurface",
+  "thinking_delta",
+  "onStreamingText"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:he}=e.event;if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if("thinking"in he&&typeof he.thinking==="string"&&he.thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:NLr(he.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:NLr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 thinking deltas update live state and preserve token estimation"
+  assert_contains = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:NLr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 darwin-arm64 thinking deltas exclude the previous estimator bindings"
+  assert_not_contains = 'estimatedTokensDelta:jCr(thinking)'
+
+[[patches]]
+name = "thinking-render-live-output-2-1-289-linux"
+lineage = "thinking-render-live-output"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "linux-x64" ]
+rationale = "Port the live thinking snapshot into the 2.1.289 Linux wrapper dte. Its native memo cache has 44 slots, with the provider output at slot 43; allocate slot 43 to the stream snapshot and move the provider output to slot 44. The stream selector xe, stream field sD, React memo allocator w, and text component n are in the matched target scopes."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "dte"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "B=xe((R?v:null)?.stream,sD)??kl,O=C?v:null,"
+  value = "B=xe((R?v:null)?.stream,sD)??kl,__acc_streamingThinking=xe((R?v:null)?.stream,(T)=>T.streamingThinking),O=C?v:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 live output subscribes to the current thinking snapshot"
+  assert_contains = "B=xe((R?v:null)?.stream,sD)??kl,__acc_streamingThinking=xe((R?v:null)?.stream,(T)=>T.streamingThinking),O=C?v:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 live output excludes the previous stream bindings"
+  assert_not_contains = "C=xe((b?h:null)?.stream,u0)??Fa,__acc_streamingThinking=xe((b?h:null)?.stream,(T)=>T.streamingThinking),N=R?h:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-289-linux"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.289 Linux wrapper dte allocates 44 memo slots and uses slot 43 for its provider output. Reserve slot 43 for the live thinking snapshot and expand the cache to 45 slots so the provider output can move to slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+  locator_pattern = "function dte(l){let u=w(44),"
+  replacement = "function dte(l){let u=w(45),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 live row allocates its thinking snapshot cache slot"
+  assert_contains = "function dte(l){let u=w(45),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 live row excludes the previous wrapper allocation"
+  assert_not_contains = "function dte(l){let u=w(44),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-289-linux"
+lineage = "thinking-render-live-row"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "linux-x64" ]
+rationale = "In 2.1.289 Linux the live wrapper dte caches provider output at slot 43. Add the stream snapshot to slot 43, include it in the provider cache key, render its text as a child, and move provider output to the newly allocated slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "dte"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue)gt=r(gAt.Provider,{value:ue,children:[$e,qe,pt]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=gt;else gt=u[43];return gt"
+  value = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue||u[43]!==__acc_streamingThinking)gt=r(gAt.Provider,{value:ue,children:[$e,qe,pt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=__acc_streamingThinking,u[44]=gt;else gt=u[44];return gt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 live row invalidates and renders the thinking snapshot"
+  assert_contains = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue||u[43]!==__acc_streamingThinking)gt=r(gAt.Provider,{value:ue,children:[$e,qe,pt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=__acc_streamingThinking,u[44]=gt;else gt=u[44];return gt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 live row excludes the previous provider bindings"
+  assert_not_contains = "let gt;if(u[39]!==$e||u[40]!==qe||u[41]!==pt||u[42]!==ue)gt=r(gAt.Provider,{value:ue,children:[$e,qe,pt]}),u[39]=$e,u[40]=qe,u[41]=pt,u[42]=ue,u[43]=gt;else gt=u[43];return gt"
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-289-linux"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.289 Linux stream dispatcher moved to dLr. Keep its target-local cLr progress estimate and g progress callback while forwarding each thinking delta through the stream state's onStreamingThinking setter."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "dLr"
+    strings = [
+  "authoringProgressSurface",
+  "thinking_delta",
+  "onStreamingText"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:he}=e.event;if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if("thinking"in he&&typeof he.thinking==="string"&&he.thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:cLr(he.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:cLr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 thinking deltas update live state and preserve token estimation"
+  assert_contains = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:cLr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 linux-x64 thinking deltas exclude the previous estimator bindings"
+  assert_not_contains = 'estimatedTokensDelta:mkr(thinking)'
+
+[[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-289"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+lineage = "thinking-clear-live-on-interrupt"
+rationale = "Clear live thinking after preserving its interrupted text. The 2.1.289 transcript writes an append event with messages instead of passing the message array directly; retain the AST insertion and assert the new append-event boundary."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "thinkingStartedAt!==null", "isVirtual:!0", "signature:\"\"" ]
+    parent_node = "BlockStatement"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = "this.stream.setStreamingThinking(null);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 interrupt clears thinking after preserving the append event"
+  assert_contains = "isVirtual:!0})]});this.stream.setStreamingThinking(null);let{salvage:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.289 interrupt excludes the previous message-array boundary"
+  assert_not_contains = "isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:"
+
+[[patches]]
+name = "thinking-render-live-output-2-1-290-darwin"
+lineage = "thinking-render-live-output"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the live thinking snapshot into the 2.1.290 Darwin wrapper qne. Its native memo cache has 44 slots, with the provider output at slot 43; allocate slot 43 to the stream snapshot and move the provider output to slot 44. The stream selector xe reads streamingToolUses through mD and the same live turn through a streamingThinking selector. Provider TPt, JSX factories e/r, Text n, and memo allocator w are imported in this target scope."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "qne"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "N=xe((T?R:null)?.stream,mD)??Cl,U=M?R:null,"
+  value = "N=xe((T?R:null)?.stream,mD)??Cl,__acc_streamingThinking=xe((T?R:null)?.stream,(T)=>T.streamingThinking),U=M?R:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 live output subscribes to the current thinking snapshot"
+  assert_contains = "N=xe((T?R:null)?.stream,mD)??Cl,__acc_streamingThinking=xe((T?R:null)?.stream,(T)=>T.streamingThinking),U=M?R:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 live output excludes the previous stream bindings"
+  assert_not_contains = "N=xe((S?h:null)?.stream,l0)??Fa,__acc_streamingThinking=xe((S?h:null)?.stream,(T)=>T.streamingThinking),A=R?h:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-290-darwin"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.290 Darwin wrapper qne allocates 44 memo slots and uses slot 43 for its provider output. Reserve slot 43 for the live thinking snapshot and expand the cache to 45 slots so the provider output can move to slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+  locator_pattern = "function qne(l){let u=w(44),"
+  replacement = "function qne(l){let u=w(45),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 live row allocates its thinking snapshot cache slot"
+  assert_contains = "function qne(l){let u=w(45),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 live row excludes the previous wrapper allocation"
+  assert_not_contains = "function qne(l){let u=w(44),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-290-darwin"
+lineage = "thinking-render-live-row"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "darwin-arm64" ]
+rationale = "In 2.1.290 Darwin the live wrapper qne caches provider output at slot 43. Add the stream snapshot to slot 43, include it in the provider cache key, render its text as a child, and move provider output to the newly allocated slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "qne"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let dt;if(u[39]!==ze||u[40]!==tt||u[41]!==gt||u[42]!==de)dt=r(TPt.Provider,{value:de,children:[ze,tt,gt]}),u[39]=ze,u[40]=tt,u[41]=gt,u[42]=de,u[43]=dt;else dt=u[43];return dt"
+  value = "let dt;if(u[39]!==ze||u[40]!==tt||u[41]!==gt||u[42]!==de||u[43]!==__acc_streamingThinking)dt=r(TPt.Provider,{value:de,children:[ze,tt,gt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=ze,u[40]=tt,u[41]=gt,u[42]=de,u[43]=__acc_streamingThinking,u[44]=dt;else dt=u[44];return dt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 live row invalidates and renders the thinking snapshot"
+  assert_contains = "let dt;if(u[39]!==ze||u[40]!==tt||u[41]!==gt||u[42]!==de||u[43]!==__acc_streamingThinking)dt=r(TPt.Provider,{value:de,children:[ze,tt,gt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=ze,u[40]=tt,u[41]=gt,u[42]=de,u[43]=__acc_streamingThinking,u[44]=dt;else dt=u[44];return dt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 live row excludes the previous provider bindings"
+  assert_not_contains = "let dt;if(u[39]!==ze||u[40]!==tt||u[41]!==gt||u[42]!==de)dt=r(TPt.Provider,{value:de,children:[ze,tt,gt]}),u[39]=ze,u[40]=tt,u[41]=gt,u[42]=de,u[43]=dt;else dt=u[43];return dt"
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-290-darwin"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.290 Darwin stream dispatcher moved to LGr. Keep its target-local DGr progress estimate and g progress callback while forwarding each thinking delta through the stream state's onStreamingThinking setter."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "LGr"
+    strings = [
+  "authoringProgressSurface",
+  "thinking_delta",
+  "onStreamingText"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:he}=e.event;if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if("thinking"in he&&typeof he.thinking==="string"&&he.thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:DGr(he.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:DGr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 thinking deltas update live state and preserve token estimation"
+  assert_contains = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:DGr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 darwin-arm64 thinking deltas exclude the previous estimator bindings"
+  assert_not_contains = "estimatedTokensDelta:NLr(thinking)"
+
+[[patches]]
+name = "thinking-render-live-output-2-1-290-linux"
+lineage = "thinking-render-live-output"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "linux-x64" ]
+rationale = "Port the live thinking snapshot into the 2.1.290 Linux wrapper Fne. Its native memo cache has 44 slots, with the provider output at slot 43; allocate slot 43 to the stream snapshot and move the provider output to slot 44. The stream selector xe reads streamingToolUses through uD and the same live turn through a streamingThinking selector. Provider IPt, JSX factories e/r, Text n, and memo allocator w are imported in this target scope."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Fne"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "B=xe((R?v:null)?.stream,uD)??Cl,O=k?v:null,"
+  value = "B=xe((R?v:null)?.stream,uD)??Cl,__acc_streamingThinking=xe((R?v:null)?.stream,(T)=>T.streamingThinking),O=k?v:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 live output subscribes to the current thinking snapshot"
+  assert_contains = "B=xe((R?v:null)?.stream,uD)??Cl,__acc_streamingThinking=xe((R?v:null)?.stream,(T)=>T.streamingThinking),O=k?v:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 live output excludes the previous stream bindings"
+  assert_not_contains = "C=xe((b?h:null)?.stream,u0)??Fa,__acc_streamingThinking=xe((b?h:null)?.stream,(T)=>T.streamingThinking),N=R?h:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-290-linux"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.290 Linux wrapper Fne allocates 44 memo slots and uses slot 43 for its provider output. Reserve slot 43 for the live thinking snapshot and expand the cache to 45 slots so the provider output can move to slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+  locator_pattern = "function Fne(l){let u=w(44),"
+  replacement = "function Fne(l){let u=w(45),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 live row allocates its thinking snapshot cache slot"
+  assert_contains = "function Fne(l){let u=w(45),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 live row excludes the previous wrapper allocation"
+  assert_not_contains = "function Fne(l){let u=w(44),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-290-linux"
+lineage = "thinking-render-live-row"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "linux-x64" ]
+rationale = "In 2.1.290 Linux the live wrapper Fne caches provider output at slot 43. Add the stream snapshot to slot 43, include it in the provider cache key, render its text as a child, and move provider output to the newly allocated slot 44."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Fne"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let dt;if(u[39]!==Ge||u[40]!==tt||u[41]!==gt||u[42]!==de)dt=r(IPt.Provider,{value:de,children:[Ge,tt,gt]}),u[39]=Ge,u[40]=tt,u[41]=gt,u[42]=de,u[43]=dt;else dt=u[43];return dt"
+  value = "let dt;if(u[39]!==Ge||u[40]!==tt||u[41]!==gt||u[42]!==de||u[43]!==__acc_streamingThinking)dt=r(IPt.Provider,{value:de,children:[Ge,tt,gt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=Ge,u[40]=tt,u[41]=gt,u[42]=de,u[43]=__acc_streamingThinking,u[44]=dt;else dt=u[44];return dt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 live row invalidates and renders the thinking snapshot"
+  assert_contains = "let dt;if(u[39]!==Ge||u[40]!==tt||u[41]!==gt||u[42]!==de||u[43]!==__acc_streamingThinking)dt=r(IPt.Provider,{value:de,children:[Ge,tt,gt,__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})]}),u[39]=Ge,u[40]=tt,u[41]=gt,u[42]=de,u[43]=__acc_streamingThinking,u[44]=dt;else dt=u[44];return dt"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 live row excludes the previous provider bindings"
+  assert_not_contains = "let dt;if(u[39]!==Ge||u[40]!==tt||u[41]!==gt||u[42]!==de)dt=r(IPt.Provider,{value:de,children:[Ge,tt,gt]}),u[39]=Ge,u[40]=tt,u[41]=gt,u[42]=de,u[43]=dt;else dt=u[43];return dt"
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-290-linux"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.290 Linux stream dispatcher moved to lGr. Keep its target-local aGr progress estimate and g progress callback while forwarding each thinking delta through the stream state's onStreamingThinking setter."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "lGr"
+    strings = [
+  "authoringProgressSurface",
+  "thinking_delta",
+  "onStreamingText"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:he}=e.event;if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if("thinking"in he&&typeof he.thinking==="string"&&he.thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:aGr(he.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:aGr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 thinking deltas update live state and preserve token estimation"
+  assert_contains = 'case"thinking_delta":{let{delta:he}=e.event,thinking=typeof he.thinking==="string"?he.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in he&&typeof he.estimated_tokens==="number")g?.({type:"thinking_progress",estimatedTokensDelta:he.estimated_tokens});else if(thinking.length>0)g?.({type:"thinking_progress",estimatedTokensDelta:aGr(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 linux-x64 thinking deltas exclude the previous estimator bindings"
+  assert_not_contains = "estimatedTokensDelta:cLr(thinking)"
+
+[[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-290"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+lineage = "thinking-clear-live-on-interrupt"
+rationale = "Clear live thinking after preserving its interrupted text. The 2.1.290 transcript writes an append event with messages instead of passing the message array directly; retain the AST insertion and assert the new append-event boundary."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "thinkingStartedAt!==null", "isVirtual:!0", "signature:\"\"" ]
+    parent_node = "BlockStatement"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = "this.stream.setStreamingThinking(null);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 interrupt clears thinking after preserving the append event"
+  assert_contains = "isVirtual:!0})]});this.stream.setStreamingThinking(null);let{salvage:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.290 interrupt excludes the previous message-array boundary"
+  assert_not_contains = "isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:"

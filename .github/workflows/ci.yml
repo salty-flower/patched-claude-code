@@ -9,10 +9,10 @@ on:
       target_version:
         description: "Claude Code version to audit"
         required: false
-        default: "2.1.285"
+        default: "2.1.290"
 
 env:
-  TARGET_VERSION: ${{ inputs.target_version || '2.1.285' }}
+  TARGET_VERSION: ${{ inputs.target_version || '2.1.290' }}
   TARGET_SOURCE: canonical
   TARGET_PLATFORM_PACKAGE: "@anthropic-ai/claude-code-darwin-arm64"
 
@@ -334,6 +334,25 @@ jobs:
               '(.unclassifiedDrift | length == 0) and (.acceptedDrift | length == 0) and (.output.structuralParseErrors == 0)' \
               "$stage/canonical/platform-merge-report.json"
           fi
+
+      - name: Capture native Darwin CellSegmenter oracle twice
+        run: |
+          set -euo pipefail
+          binary="staging/${TARGET_VERSION}/platform-merge/darwin-arm64/claude"
+          chmod u+x "$binary"
+          for capture in first second; do
+            bun run tools/debug/capture-bun-ant-cell-segmenter.ts \
+              --binary "$binary" --version "$TARGET_VERSION" --platform darwin-arm64 \
+              --out "dist/cell-segmenter-darwin-${capture}.json"
+          done
+          cmp dist/cell-segmenter-darwin-first.json dist/cell-segmenter-darwin-second.json
+
+      - name: Upload native Darwin CellSegmenter oracle
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: native-cell-segmenter-darwin-${{ env.TARGET_VERSION }}
+          path: dist/cell-segmenter-darwin-*.json
+          if-no-files-found: error
 
       - name: Upload canonical stage report
         uses: actions/upload-artifact@v7.0.1

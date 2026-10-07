@@ -41,6 +41,12 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
   const materialized = keychain("materialized mode rejects default-Keychain legacy mutations and doctor probes")
   const plugin = keychain("real plugin eval child uses materialized selected-Keychain credentials without preload")
   const result: Record<string, string[]> = {
+    "local-prompt-ablation/local-source-admission": [
+      "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission",
+    ],
+    "local-prompt-ablation/telemetry-unreachable": [
+      "local-prompt-ablation-runtime.test.ts: native prompt deletion never records matching strings or emits analytics",
+    ],
     "workflow-history/bounded-human-history": [
       "workflow-history-tui-smoke.ts: real Q&A, bounded windows, frozen snapshot and advisory preflight",
     ],

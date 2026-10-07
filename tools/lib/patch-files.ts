@@ -10,6 +10,7 @@ export type PatchEntry = {
   file: string
   featureName: string
   name: string
+  lineage?: string
   enabled: boolean
   target_version: string
   applies_to?: string
@@ -28,6 +29,7 @@ export type PatchEntry = {
 
 type PatchFields = {
   name?: unknown
+  lineage?: unknown
   enabled?: unknown
   target_version?: unknown
   applies_to?: unknown
@@ -59,6 +61,10 @@ export function loadPatchEntriesFromToml(rawToml: string, file: string): PatchEn
       file,
       featureName,
       name: requiredString(entry.name, `patches[${index}].name`, file),
+      lineage:
+        entry.lineage === undefined
+          ? undefined
+          : requiredString(entry.lineage, `patches[${index}].lineage`, file),
       enabled: inheritedBoolean(entry.enabled, parsed.enabled, `patches[${index}].enabled`, file),
       target_version: inheritedString(entry.target_version, parsed.target_version, "target_version", file),
       applies_to: optionalInheritedString(entry.applies_to, parsed.applies_to, "applies_to", file),

@@ -1298,8 +1298,472 @@ locator_pattern = "function*Cye(){"
 replacement = 'function*Cye(){if(pye.__acc_notice!==void 0){const __acc_notice=pye.__acc_notice;delete pye.__acc_notice;yield Vo({content:__acc_notice,error:"warning"})}'
 lineage = "effort-retry-notice-drain"
 
-  [[patches.tests]]
-  kind = "static"
-  name = "effort-retry-notice-drain-2-1-285-linux-x64 uses current bindings"
-  assert_contains = 'function*Cye(){if(pye.__acc_notice!==void 0){const __acc_notice=pye.__acc_notice;delete pye.__acc_notice;yield Vo({content:__acc_notice,error:"warning"})}'
-  assert_not_contains = 'function*ace(){if(ece.__acc_notice!==void 0){const __acc_notice=ece.__acc_notice;delete ece.__acc_notice;yield Fo({content:__acc_notice,error:"warning"})}'
+[[patches.tests]]
+kind = "static"
+name = "effort-retry-notice-drain-2-1-285-linux-x64 uses current bindings"
+assert_contains = 'function*Cye(){if(pye.__acc_notice!==void 0){const __acc_notice=pye.__acc_notice;delete pye.__acc_notice;yield Vo({content:__acc_notice,error:"warning"})}'
+assert_not_contains = 'function*ace(){if(ece.__acc_notice!==void 0){const __acc_notice=ece.__acc_notice;delete ece.__acc_notice;yield Fo({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-289-darwin-arm64"
+lineage = "custom-model-slot-capabilities"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale = "Restore normalized capability lookup for all ten configured custom model slots before the first-party early return in the 2.1.289 Darwin graph. A configured effort level also declares the associated effort capability."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "yN", source_regex = '''^function yN\(e,n\)\{if\(ad\(\)\)return;for\(let r of _N\)''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin custom slots bind the current model and capability parameters"
+assert_contains = '''const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key]'''
+assert_not_contains = '''if(Kl())return;for(let r of VD)'''
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-289-linux-x64"
+lineage = "custom-model-slot-capabilities"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale = "Restore normalized capability lookup for all ten configured custom model slots before the first-party early return in the 2.1.289 Linux graph. A configured effort level also declares the associated effort capability."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "ZI", source_regex = '''^function ZI\(e,n\)\{if\(ad\(\)\)return;for\(let r of QI\)''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux custom slots bind the current model and capability parameters"
+assert_contains = '''const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key]'''
+assert_not_contains = '''if(Vl())return;for(let r of qD)'''
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-289-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale = "Honor explicit environment capability declarations for default model slots before the 2.1.289 Darwin first-party early return; custom slots retain their separate precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = '''if(ad())return;for(let r of _N)'''
+replacement = '''const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of _N){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(ad())return;for(let r of _N)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin explicit capabilities use current first-party table"
+assert_contains = '''const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of _N)'''
+assert_not_contains = '''if(Kl())return;for(let r of VD)'''
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-289-linux-x64"
+lineage = "explicit-capabilities-first-party"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale = "Honor explicit environment capability declarations for default model slots before the 2.1.289 Linux first-party early return; custom slots retain their separate precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = '''if(ad())return;for(let r of QI)'''
+replacement = '''const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of QI){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(ad())return;for(let r of QI)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux explicit capabilities use current first-party table"
+assert_contains = '''const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of QI)'''
+assert_not_contains = '''if(Vl())return;for(let r of qD)'''
+
+[[patches]]
+name = "effort-reactive-capability-2-1-289-darwin-arm64"
+lineage = "effort-reactive-capability"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale = "Keep selected max and xhigh values intact in the 2.1.289 Darwin resolver so backend refusal, rather than speculative local capability checks, disables later requests."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = '''if(r==="max"&&!rZ(n))r="high";if(r==="xhigh"&&!AJe(n))r="high";'''
+replacement = '''/* effort capability is learned from backend rejection */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin effort resolver leaves cap normalization intact"
+assert_contains = '''/* effort capability is learned from backend rejection */'''
+assert_not_contains = '''if(r==="max"&&!l7(n))r="high";if(r==="xhigh"&&!G5e(n))r="high";'''
+
+[[patches]]
+name = "effort-reactive-capability-2-1-289-linux-x64"
+lineage = "effort-reactive-capability"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale = "Keep selected max and xhigh values intact in the 2.1.289 Linux resolver so backend refusal, rather than speculative local capability checks, disables later requests."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = '''if(r==="max"&&!XQ(n))r="high";if(r==="xhigh"&&!y7e(n))r="high";'''
+replacement = '''/* effort capability is learned from backend rejection */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux effort resolver leaves cap normalization intact"
+assert_contains = '''/* effort capability is learned from backend rejection */'''
+assert_not_contains = '''if(r==="max"&&!eJ(n))r="high";if(r==="xhigh"&&!L6e(n))r="high";'''
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-289-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale = "Queue a visible notice only after the 2.1.289 Darwin unsupported-effort classifier accepts a backend refusal, retaining the native latch and retry behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source_regex = '''^if\(!z0\(Wn\)\)return null;$''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''F3e.__acc_notice="Model "+V.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin rejection queue follows the current classifier"
+assert_contains = '''if(!z0(Wn))return null;F3e.__acc_notice="Model "+V.model+" rejected the effort parameter.'''
+assert_not_contains = '''rye.__acc_notice'''
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-289-linux-x64"
+lineage = "effort-retry-notice-queue"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale = "Queue a visible notice only after the 2.1.289 Linux unsupported-effort classifier accepts a backend refusal, retaining the native latch and retry behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source_regex = '''^if\(!H0\(Wn\)\)return null;$''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''I9e.__acc_notice="Model "+V.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux rejection queue follows the current classifier"
+assert_contains = '''if(!H0(Wn))return null;I9e.__acc_notice="Model "+V.model+" rejected the effort parameter.'''
+assert_not_contains = '''pye.__acc_notice'''
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-289-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["darwin-arm64"]
+rationale = "Drain the queued 2.1.289 Darwin unsupported-effort notice through the current API warning-message factory."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "V3e", body_statement_count = 1, source_regex = '''^function\*V3e\(\)\{if\(G3e!==void 0\)''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(F3e.__acc_notice!==void 0){const __acc_notice=F3e.__acc_notice;delete F3e.__acc_notice;yield cs({content:__acc_notice,error:"warning"})}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Darwin pending-message generator drains retry notice"
+assert_contains = '''function*V3e(){if(F3e.__acc_notice!==void 0){const __acc_notice=F3e.__acc_notice;delete F3e.__acc_notice;yield cs({content:__acc_notice,error:"warning"})}'''
+assert_not_contains = '''function*Rye(){if(rye.__acc_notice!==void 0)'''
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-289-linux-x64"
+lineage = "effort-retry-notice-drain"
+target_version = "2.1.289"
+applies_to = ">=2.1.289 <2.1.290"
+platforms = ["linux-x64"]
+rationale = "Drain the queued 2.1.289 Linux unsupported-effort notice through the current API warning-message factory."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "K9e", body_statement_count = 1, source_regex = '''^function\*K9e\(\)\{if\(B9e!==void 0\)''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(I9e.__acc_notice!==void 0){const __acc_notice=I9e.__acc_notice;delete I9e.__acc_notice;yield cs({content:__acc_notice,error:"warning"})}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.289 Linux pending-message generator drains retry notice"
+assert_contains = '''function*K9e(){if(I9e.__acc_notice!==void 0){const __acc_notice=I9e.__acc_notice;delete I9e.__acc_notice;yield cs({content:__acc_notice,error:"warning"})}'''
+assert_not_contains = '''function*Cye(){if(pye.__acc_notice!==void 0)'''
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-290-darwin-arm64"
+lineage = "custom-model-slot-capabilities"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Restore normalized capability lookup for all ten configured custom model slots before the 2.1.290 Darwin first-party early return. A configured effort level declares its associated effort capability."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "wN", source_regex = '''^function wN\(e,n\)\{if\(Cd\(\)\)return;for\(let r of SN\)''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin custom slots bind current model and capability parameters"
+assert_contains = '''const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key]'''
+assert_not_contains = '''if(ad())return;for(let r of _N)'''
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-290-linux-x64"
+lineage = "custom-model-slot-capabilities"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Restore normalized capability lookup for all ten configured custom model slots before the 2.1.290 Linux first-party early return. A configured effort level declares its associated effort capability."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "ZI", source_regex = '''^function ZI\(e,n\)\{if\(kd\(\)\)return;for\(let r of QI\)''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux custom slots bind current model and capability parameters"
+assert_contains = '''const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key]'''
+assert_not_contains = '''if(ad())return;for(let r of QI)'''
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-290-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Honor explicit capability declarations for default models before the 2.1.290 Darwin first-party early return. The custom model slots retain their earlier dedicated lookup."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = '''if(Cd())return;for(let r of SN)'''
+replacement = '''const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of SN){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Cd())return;for(let r of SN)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin explicit capabilities bind the current default-model table"
+assert_contains = '''for(const {modelEnvVar,capabilitiesEnvVar} of SN){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'''
+assert_not_contains = '''if(ad())return;for(let r of _N)'''
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-290-linux-x64"
+lineage = "explicit-capabilities-first-party"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Honor explicit capability declarations for default models before the 2.1.290 Linux first-party early return. The custom model slots retain their earlier dedicated lookup."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = '''if(kd())return;for(let r of QI)'''
+replacement = '''const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of QI){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(kd())return;for(let r of QI)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux explicit capabilities bind the current default-model table"
+assert_contains = '''for(const {modelEnvVar,capabilitiesEnvVar} of QI){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'''
+assert_not_contains = '''if(ad())return;for(let r of QI)'''
+
+[[patches]]
+name = "effort-reactive-capability-2-1-290-darwin-arm64"
+lineage = "effort-reactive-capability"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Keep selected max and xhigh values intact in the 2.1.290 Darwin resolver so backend refusal, rather than speculative local downgrades, controls later requests."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = '''if(r==="max"&&!vee(n))r="high";if(r==="xhigh"&&!Eet(n))r="high";'''
+replacement = '''/* effort capability is learned from backend refusal */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin effort resolver preserves selected high levels"
+assert_contains = '''/* effort capability is learned from backend refusal */'''
+assert_not_contains = '''if(r==="max"&&!rZ(n))r="high";if(r==="xhigh"&&!AJe(n))r="high";'''
+
+[[patches]]
+name = "effort-reactive-capability-2-1-290-linux-x64"
+lineage = "effort-reactive-capability"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Keep selected max and xhigh values intact in the 2.1.290 Linux resolver so backend refusal, rather than speculative local downgrades, controls later requests."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = '''if(r==="max"&&!hee(n))r="high";if(r==="xhigh"&&!fet(n))r="high";'''
+replacement = '''/* effort capability is learned from backend refusal */'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux effort resolver preserves selected high levels"
+assert_contains = '''/* effort capability is learned from backend refusal */'''
+assert_not_contains = '''if(r==="max"&&!XQ(n))r="high";if(r==="xhigh"&&!y7e(n))r="high";'''
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-290-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Queue a visible notice only after the 2.1.290 Darwin request retry classifier accepts an unsupported-effort refusal, preserving its model fallback."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source_regex = '''^if\(!BH\(Wn\)\)return null;$''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''AJe.__acc_notice="Model "+Y.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin retry notice follows current refusal classifier"
+assert_contains = '''if(!BH(Wn))return null;AJe.__acc_notice="Model "+Y.model+" rejected the effort parameter.'''
+assert_not_contains = '''if(!z0(Wn))return null;F3e.__acc_notice'''
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-290-linux-x64"
+lineage = "effort-retry-notice-queue"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Queue a visible notice only after the 2.1.290 Linux request retry classifier accepts an unsupported-effort refusal, preserving its model fallback."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "IfStatement", source_regex = '''^if\(!TH\(Wn\)\)return null;$''' }
+
+[patches.transform]
+op = "insert_after_node"
+code = '''MJe.__acc_notice="Model "+Y.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux retry notice follows current refusal classifier"
+assert_contains = '''if(!TH(Wn))return null;MJe.__acc_notice="Model "+Y.model+" rejected the effort parameter.'''
+assert_not_contains = '''if(!H0(Wn))return null;I9e.__acc_notice'''
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-290-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale = "Drain the queued 2.1.290 Darwin unsupported-effort notice through the current warning-message factory."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "jJe", body_statement_count = 1, source_regex = '''^function\*jJe\(\)\{if\(NJe!==void 0\)''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(AJe.__acc_notice!==void 0){const __acc_notice=AJe.__acc_notice;delete AJe.__acc_notice;yield hs({content:__acc_notice,error:"warning"})}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Darwin pending-message generator drains retry notice"
+assert_contains = '''function*jJe(){if(AJe.__acc_notice!==void 0){const __acc_notice=AJe.__acc_notice;delete AJe.__acc_notice;yield hs({content:__acc_notice,error:"warning"})}'''
+assert_not_contains = '''function*V3e(){if(F3e.__acc_notice!==void 0)'''
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-290-linux-x64"
+lineage = "effort-retry-notice-drain"
+target_version = "2.1.290"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale = "Drain the queued 2.1.290 Linux unsupported-effort notice through the current warning-message factory."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "QJe", body_statement_count = 1, source_regex = '''^function\*QJe\(\)\{if\(\$Je!==void 0\)''' }
+
+[patches.transform]
+op = "prepend_function_body"
+code = '''if(MJe.__acc_notice!==void 0){const __acc_notice=MJe.__acc_notice;delete MJe.__acc_notice;yield hs({content:__acc_notice,error:"warning"})}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 Linux pending-message generator drains retry notice"
+assert_contains = '''function*QJe(){if(MJe.__acc_notice!==void 0){const __acc_notice=MJe.__acc_notice;delete MJe.__acc_notice;yield hs({content:__acc_notice,error:"warning"})}'''
+assert_not_contains = '''function*K9e(){if(I9e.__acc_notice!==void 0)'''

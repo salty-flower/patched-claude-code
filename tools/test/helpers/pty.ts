@@ -44,7 +44,7 @@ export function isExpectedTimeoutExitCode(exitCode: number): boolean {
 
 export function normalizeTuiOutput(output: string): string {
   return output
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, " ")
+    .replace(/\x1B\](?:[^\x07\x1B]|\x1B(?!\\))*(?:\x07|\x1B\\)/g, " ")
     .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, " ")
     .replace(/[\x00-\x1F\x7F]+/g, " ")
     .replace(/\s+/g, " ")

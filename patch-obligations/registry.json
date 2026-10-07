@@ -2599,11 +2599,43 @@
       "oracleIds": [
         "workflow-history/advisory-preflight"
       ]
+    },
+    {
+      "familyId": "local-prompt-ablation",
+      "invariantId": "local-source-admission",
+      "introducedVersion": "2.1.290",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "local-prompt-ablation/local-source-admission"
+      ]
+    },
+    {
+      "familyId": "local-prompt-ablation",
+      "invariantId": "telemetry-unreachable",
+      "introducedVersion": "2.1.290",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/services/analytics/index.ts#L80-L146"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "local-prompt-ablation/telemetry-unreachable"
+      ]
     }
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "salty-flower",
-    "approvedAt": "2026-10-02",
-    "catalogSha256": "9d7bb9e15a8fbb34549c640690f3a9c21c09580d22ce6077f6648bffe67f278e"
+    "approvedAt": "2026-10-07",
+    "catalogSha256": "333cda8d53df15930ddab7d31a5d27569b6218a150b6cd574e83e696db16d6ea"
   }
 }

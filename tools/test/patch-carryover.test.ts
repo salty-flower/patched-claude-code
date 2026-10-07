@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { PatchEntry } from "../lib/patch-files"
+import { loadPatchEntriesFromToml, type PatchEntry } from "../lib/patch-files"
 import {
   findPatchCarryoverWarnings,
   patchLineageName,
@@ -65,6 +65,55 @@ test("accepts a platform-split successor for an older shared lineage", () => {
   )
 
   expect(warnings).toEqual([])
+})
+
+test("loads explicit lineage and accepts renamed request/response successors", () => {
+  const patches = loadPatchEntriesFromToml(`
+name = "anti-trace"
+target_version = "2.1.290"
+rationale = "test"
+
+[[patches]]
+name = "disable-raw-api-body-otel-2-1-285"
+applies_to = ">=2.1.285 <2.1.290"
+rationale_ref = "reference/v2.1.88/sources/example.ts#L1-L2"
+locator_kind = "literal"
+locator_pattern = "before"
+replacement = "after"
+
+[[patches]]
+name = "disable-raw-api-request-body-otel-2-1-290-darwin"
+lineage = "disable-raw-api-body-otel"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/example.ts#L1-L2"
+locator_kind = "literal"
+locator_pattern = "before"
+replacement = "after"
+
+[[patches]]
+name = "disable-raw-api-response-body-otel-2-1-290-linux"
+lineage = "disable-raw-api-body-otel"
+applies_to = ">=2.1.290 <2.1.291"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/example.ts#L1-L2"
+locator_kind = "literal"
+locator_pattern = "before"
+replacement = "after"
+`, "patches/example.toml")
+
+  expect(patches[0]?.lineage).toBeUndefined()
+  expect(patches[1]?.lineage).toBe("disable-raw-api-body-otel")
+  expect(findPatchCarryoverWarnings(patches, "2.1.285", "2.1.290")).toEqual([])
+  expect(findPatchCarryoverWarnings(patches.slice(0, 2), "2.1.285", "2.1.290")).toEqual([
+    {
+      feature: "anti-trace",
+      lineage: "disable-raw-api-body-otel",
+      missingPlatforms: ["linux-x64"],
+      previousEntries: ["disable-raw-api-body-otel-2-1-285"],
+      rationaleRefs: ["reference/v2.1.88/sources/example.ts#L1-L2"],
+    },
+  ])
 })
 
 test("warns when a platform-split successor leaves old shared coverage incomplete", () => {

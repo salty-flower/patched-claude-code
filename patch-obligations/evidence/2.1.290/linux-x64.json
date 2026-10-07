@@ -1,0 +1,1062 @@
+{
+  "schema": 2,
+  "targetVersion": "2.1.290",
+  "sourceCommit": "29c57fd25e370ff3815d39b292b55cc3b8466a6d",
+  "platform": "linux-x64",
+  "upstreamEntrypointSha256": "d7a1aeda8acbddab19cff3ad83d5565fb46e96674a538117c6f11f15b47bc802",
+  "patchedEntrypointSha256": "013758a971f5edfcee1f9cd19ec2e116c17e03389b2155bd8c673c7a97bfead6",
+  "selectedPatchEntries": [
+    "agent-effective-effort-2-1-290-linux-x64",
+    "agent-effort-layer-marker",
+    "agent-effort-request-context",
+    "agent-effort-resolver-priority-2-1-290-linux-x64",
+    "agent-model-and-effort-schema-2-1-290-linux-x64",
+    "agent-model-description-custom-id",
+    "agent-ordinary-effort-2-1-290-linux-x64",
+    "agent-prompt-call-overrides",
+    "agent-prompt-call-overrides-compact-2-1-290",
+    "agent-prompt-fork-overrides",
+    "agent-teammate-effort-2-1-290-linux-x64",
+    "agents-md-native-hook-host-path-2-1-290",
+    "append-second-custom-model-option-2-1-290",
+    "ask-user-question-channels-gate-2-1-289",
+    "ask-user-question-extended-description",
+    "ask-user-question-remove-extended-question-cap",
+    "ask-user-question-remove-standard-question-cap",
+    "ask-user-question-standard-host-description",
+    "ask-user-question-standard-sdk-description",
+    "ask-user-question-tool-description",
+    "ask-user-question-tool-prompt",
+    "channels-feature-gate",
+    "channels-provider-gate",
+    "coordinator-agent-effort-guidance",
+    "coordinator-agent-override-guidance",
+    "custom-model-slot-capabilities-2-1-290-linux-x64",
+    "disable-default-base-url-guard",
+    "disable-raw-api-request-body-otel-2-1-290-linux",
+    "disable-raw-api-response-body-otel-2-1-290-linux",
+    "effort-effective-suffix-2-1-290-linux-x64",
+    "effort-launch-pin-2-1-290-linux-x64",
+    "effort-model-state-selector-2-1-290-linux-x64",
+    "effort-reactive-capability-2-1-290-linux-x64",
+    "effort-retry-notice-drain-2-1-290-linux-x64",
+    "effort-retry-notice-queue-2-1-290-linux-x64",
+    "effort-session-owner-2-1-290-linux-x64",
+    "effort-session-resolver-2-1-290-linux-x64",
+    "explicit-capabilities-first-party-2-1-290-linux-x64",
+    "foreground-agent-handoff-before-cancel-2-1-290-linux-x64",
+    "foreground-agent-handoff-helper-import-2-1-290-linux-x64",
+    "global-interrupt-cancel-only-2-1-290",
+    "inject-per-model-into-beta-count-tokens-2-1-290",
+    "inject-per-model-into-beta-create-2-1-290",
+    "inject-per-model-into-nonbeta-count-tokens-2-1-290",
+    "inject-per-model-into-nonbeta-create-2-1-290",
+    "later-command-submit-hook-2-1-290-linux-x64",
+    "later-command-suggestion-metadata-2-1-290",
+    "local-prompt-ablation-local-source-admission-2-1-290",
+    "local-prompt-ablation-telemetry-bookkeeping-2-1-290",
+    "local-prompt-ablation-telemetry-emitter-noop-2-1-290",
+    "model-effort-command-2-1-290-linux",
+    "model-effort-current-2-1-290-linux",
+    "model-effort-inline-echo-2-1-290-linux",
+    "model-effort-inline-model-state-2-1-290-linux",
+    "model-effort-inline-model-state-import-2-1-290-linux",
+    "model-effort-model-echo-2-1-290-linux",
+    "model-effort-model-import-2-1-290-linux",
+    "model-effort-model-no-persist-2-1-290-linux",
+    "model-effort-model-state-2-1-290-linux",
+    "model-effort-picker-arrows-2-1-290-linux",
+    "model-effort-picker-cli-hint-2-1-290-linux",
+    "model-effort-picker-focus-2-1-290-linux",
+    "model-effort-picker-hotkey-echo-2-1-290-linux",
+    "model-effort-picker-import-2-1-290-linux",
+    "model-effort-picker-initial-2-1-290-linux",
+    "model-effort-picker-select-2-1-290-linux",
+    "model-effort-picker-source-2-1-290-linux",
+    "model-effort-picker-state-setter-2-1-290-linux",
+    "model-effort-slider-guard-2-1-290-linux",
+    "model-effort-slider-import-2-1-290-linux",
+    "model-effort-slider-initial-2-1-290-linux",
+    "model-effort-slider-scope-2-1-290-linux",
+    "neutralize-project-thread-author-marker-2-1-289",
+    "read-result-path-context-2-1-281",
+    "read-result-path-image-2-1-289",
+    "read-result-path-notebook-2-1-289",
+    "read-result-path-parts-2-1-290",
+    "read-result-path-pdf-2-1-289",
+    "read-result-path-text-2-1-289",
+    "read-result-path-unchanged-2-1-289",
+    "recognize-second-custom-model-option-2-1-290",
+    "require-explicit-assistant-response-otel-2-1-289",
+    "require-local-opt-in-for-served-tool-text-2-1-289",
+    "require-local-opt-in-for-served-tool-text-list-2-1-290",
+    "require-local-opt-in-for-served-tool-text-web-search-2-1-290",
+    "resolve-model-specific-context-window-2-1-290-linux-x64",
+    "resume-detects-default-1m-after-alias-resolution-2-1-290-linux-x64",
+    "statusline-footer-control-cli-option-2-1-290",
+    "statusline-footer-control-clipboard-image-hint-2-1-290",
+    "statusline-footer-control-clipboard-image-hint-context-2-1-290",
+    "statusline-footer-control-clipboard-image-hint-linux-context-2-1-290",
+    "statusline-footer-control-command-length-mount-2-1-290",
+    "statusline-footer-control-command-length-update-2-1-233",
+    "statusline-footer-control-effort-level-2-1-290",
+    "statusline-footer-control-effort-level-settings-2-1-290",
+    "statusline-footer-control-effort-notification-2-1-290",
+    "statusline-footer-control-effort-notification-settings-2-1-290",
+    "statusline-footer-control-mode-hint-2-1-290",
+    "statusline-footer-control-mode-hint-2-1-290-memo",
+    "statusline-footer-control-mode-hint-narrow-expanded-2-1-290",
+    "statusline-footer-control-mode-hint-narrow-small-2-1-290",
+    "statusline-footer-control-rate-limit-warning-2-1-290",
+    "statusline-footer-control-rate-limit-warning-deps-2-1-290",
+    "statusline-footer-control-render-2-1-290",
+    "statusline-footer-control-render-state-2-1-290",
+    "statusline-footer-control-schema-2-1-290",
+    "statusline-json-effort-level-2-1-290-linux-x64",
+    "statusline-json-permission-mode-2-1-290",
+    "strip-signatures-for-custom-base-url-2-1-290-linux-x64",
+    "subagent-preserve-tool-results",
+    "system-prompt-section-override-bridge-2-1-290",
+    "teammate-in-process-effort-config",
+    "teammate-process-effort-flag",
+    "thinking-clear-live-on-interrupt-2-1-290",
+    "thinking-render-live-complete",
+    "thinking-render-live-delta-2-1-290-linux",
+    "thinking-render-live-output-2-1-290-linux",
+    "thinking-render-live-row-2-1-290-linux",
+    "thinking-render-live-row-cache-allocation-2-1-290-linux",
+    "transcript-preserve-repl-history",
+    "ultracode-capability-max-fallback-2-1-290-linux",
+    "validate-second-custom-model-option-without-probe-2-1-290",
+    "workflow-history-assignment-origin-2-1-290-linux-x64",
+    "workflow-history-authoring-import-2-1-290-linux-x64",
+    "workflow-history-authoring-reference-2-1-290-linux-x64",
+    "workflow-history-classifier-answer-2-1-290-linux-x64",
+    "workflow-history-classifier-import-2-1-290-linux-x64",
+    "workflow-history-display-task-2-1-290-linux-x64",
+    "workflow-history-framing-import-2-1-290-linux-x64",
+    "workflow-history-human-origin-2-1-290-linux-x64",
+    "workflow-history-options-2-1-290-linux-x64",
+    "workflow-history-render-history-2-1-290-linux-x64",
+    "workflow-history-render-task-2-1-290-linux-x64",
+    "workflow-history-runner-import-2-1-290-linux-x64",
+    "workflow-history-select-2-1-290-linux-x64",
+    "workflow-history-select-local-2-1-290-linux-x64",
+    "workflow-history-select-remote-2-1-290-linux-x64",
+    "workflow-history-snapshot-2-1-290-linux-x64",
+    "workflow-history-tool-description-2-1-290-linux-x64"
+  ],
+  "executedOracleIds": [
+    "agent-memory-discovery/agents-md-native-hook-load",
+    "anti-trace/disable-raw-api-body-otel",
+    "anti-trace/neutralize-project-thread-author-marker",
+    "anti-trace/require-explicit-assistant-response-otel",
+    "anti-trace/require-local-opt-in-for-served-tool-text",
+    "anti-trace/require-local-opt-in-for-served-tool-text-list",
+    "ask-user-question-unlimited/ask-user-question-extended-description",
+    "ask-user-question-unlimited/ask-user-question-remove-extended-question-cap",
+    "ask-user-question-unlimited/ask-user-question-remove-standard-question-cap",
+    "ask-user-question-unlimited/ask-user-question-standard-host-description",
+    "ask-user-question-unlimited/ask-user-question-standard-sdk-description",
+    "ask-user-question-unlimited/ask-user-question-tool-description",
+    "ask-user-question-unlimited/ask-user-question-tool-prompt",
+    "ask-user-question-unlimited/unbounded-coherent-question-batch",
+    "channel-access/ask-user-question-channels-gate-askuser",
+    "channel-access/channels-feature-gate",
+    "channel-access/channels-provider-gate",
+    "custom-model-slots/append-second-custom-model-option",
+    "custom-model-slots/custom-model-slot-applied-effort",
+    "custom-model-slots/custom-model-slot-capabilities",
+    "custom-model-slots/custom-model-slot-default-effort",
+    "custom-model-slots/recognize-second-custom-model-option",
+    "custom-model-slots/validate-second-custom-model-option-without-probe",
+    "disable-background-agent-kill-on-global-interrupt/foreground-agent-handoff-before-cancel",
+    "disable-background-agent-kill-on-global-interrupt/global-interrupt-cancel-only",
+    "file-read-path-context/read-result-path-context",
+    "file-read-path-context/read-result-path-image",
+    "file-read-path-context/read-result-path-notebook",
+    "file-read-path-context/read-result-path-parts",
+    "file-read-path-context/read-result-path-pdf",
+    "file-read-path-context/read-result-path-text",
+    "file-read-path-context/read-result-path-unchanged",
+    "later-command/later-command-submit-hook",
+    "later-command/later-command-suggestion-metadata",
+    "local-prompt-ablation/local-source-admission",
+    "local-prompt-ablation/telemetry-unreachable",
+    "model-effort-ui/inline-echo",
+    "model-effort-ui/model-echo",
+    "model-effort-ui/model-effort-current",
+    "model-effort-ui/model-import",
+    "model-effort-ui/slider-guard",
+    "model-effort-ui/slider-import",
+    "model-effort-ui/slider-initial",
+    "model-effort-ui/slider-scope",
+    "per-model-context-window/resolve-model-specific-context-window",
+    "per-model-endpoint/disable-default-base-url-guard",
+    "per-model-endpoint/inject-per-model-into-beta-count-tokens",
+    "per-model-endpoint/inject-per-model-into-beta-create",
+    "per-model-endpoint/inject-per-model-into-nonbeta-count-tokens",
+    "per-model-endpoint/inject-per-model-into-nonbeta-create",
+    "resume-1m-model-defaults/resume-detects-default-1m-after-alias-resolution",
+    "signature-block-custom-endpoint/strip-signatures-for-custom-base-url",
+    "statusline-footer-control/statusline-footer-control-cli-option",
+    "statusline-footer-control/statusline-footer-control-clipboard-image-hint",
+    "statusline-footer-control/statusline-footer-control-clipboard-image-hint-context",
+    "statusline-footer-control/statusline-footer-control-command-length-mount",
+    "statusline-footer-control/statusline-footer-control-command-length-update",
+    "statusline-footer-control/statusline-footer-control-effort-level",
+    "statusline-footer-control/statusline-footer-control-effort-notification",
+    "statusline-footer-control/statusline-footer-control-mode-hint",
+    "statusline-footer-control/statusline-footer-control-mode-hint-narrow",
+    "statusline-footer-control/statusline-footer-control-rate-limit-warning",
+    "statusline-footer-control/statusline-footer-control-rate-limit-warning-deps",
+    "statusline-footer-control/statusline-footer-control-render",
+    "statusline-footer-control/statusline-footer-control-render-state",
+    "statusline-footer-control/statusline-footer-control-schema",
+    "statusline-footer-control/statusline-json-effort-level",
+    "statusline-footer-control/statusline-json-permission-mode",
+    "subagent-preserve-tool-results/subagent-preserve-tool-results",
+    "system-prompt-section-overrides/system-prompt-section-override-bridge",
+    "thinking-display/thinking-clear-live-on-interrupt",
+    "thinking-display/thinking-render-live-complete",
+    "thinking-display/thinking-render-live-delta",
+    "thinking-display/thinking-render-live-output",
+    "thinking-display/thinking-render-live-row",
+    "transcript-preserve-repl-history/transcript-preserve-repl-history",
+    "ultracode-opus46-max/ultracode-capability-max-fallback",
+    "ultracode-opus46-max/ultracode-help-menu-max-fallback",
+    "ultracode-opus46-max/ultracode-model-picker-max-fallback",
+    "ultracode-opus46-max/ultracode-model-picker-persist-max-fallback",
+    "ultracode-opus46-max/ultracode-thin-client-usage-max-fallback",
+    "ultracode-opus46-max/ultracode-usage-hint-max-fallback",
+    "ultracode-opus46-max/ultracode-valid-options-max-fallback",
+    "workflow-history/advisory-preflight",
+    "workflow-history/assignment-provenance",
+    "workflow-history/bounded-human-history",
+    "workflow-history/classifier-answer-provenance"
+  ],
+  "oracleResults": [
+    {
+      "oracleId": "agent-memory-discovery/agents-md-native-hook-load",
+      "evidenceClass": "real-os-runtime",
+      "outcome": "passed",
+      "checks": [
+        "agents-md-tui-smoke.ts: parent, project, and child AGENTS.md markers reach the main conversation in native parent-to-child order with no CLAUDE.md"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/disable-raw-api-body-otel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: disable-raw-api-request-body-otel-2-1-290-linux: static: 2.1.290 Linux raw request gate is disabled at its current binding",
+        "run-patch-tests.ts: disable-raw-api-request-body-otel-2-1-290-linux: static: 2.1.290 Linux raw request gate no longer exposes capture mode",
+        "run-patch-tests.ts: disable-raw-api-request-body-otel-2-1-290-linux: static: 2.1.290 Linux raw request gate rejects stale 2.1.289 binding",
+        "run-patch-tests.ts: disable-raw-api-request-body-otel-2-1-290-linux: static: 2.1.290 Linux request-body capture still checks the disabled gate",
+        "run-patch-tests.ts: disable-raw-api-response-body-otel-2-1-290-linux: static: 2.1.290 Linux response helper exits before serialization",
+        "run-patch-tests.ts: disable-raw-api-response-body-otel-2-1-290-linux: static: 2.1.290 Linux response helper rejects its bypassing direct-mode branch",
+        "run-patch-tests.ts: disable-raw-api-response-body-otel-2-1-290-linux: static: 2.1.290 Linux response helper rejects stale 2.1.289 path",
+        "run-patch-tests.ts: disable-raw-api-response-body-otel-2-1-290-linux: static: 2.1.290 Linux response source no longer reaches its raw-body writer"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/neutralize-project-thread-author-marker",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: neutralize-project-thread-author-marker-2-1-289: static: 2.1.289 project-thread author marker drops account identification",
+        "run-patch-tests.ts: neutralize-project-thread-author-marker-2-1-289: static: 2.1.289 project-thread author marker is neutral"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-explicit-assistant-response-otel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-explicit-assistant-response-otel-2-1-289: static: 2.1.289 assistant-response telemetry does not inherit prompt logging",
+        "run-patch-tests.ts: require-explicit-assistant-response-otel-2-1-289: static: 2.1.289 assistant-response telemetry requires explicit opt-in"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-local-opt-in-for-served-tool-text",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-2-1-289: static: 2.1.289 free-form served Agent text keeps its prompt fallback",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-2-1-289: static: 2.1.289 free-form served Agent text requires the local opt-in",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-web-search-2-1-290: static: 2.1.290 WebSearch preserves the explicit local fast-argument path",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-web-search-2-1-290: static: 2.1.290 WebSearch served text requires local opt-in before xr"
+      ]
+    },
+    {
+      "oracleId": "anti-trace/require-local-opt-in-for-served-tool-text-list",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-list-2-1-290: static: 2.1.290 served Agent model list has no unguarded lookup path",
+        "run-patch-tests.ts: require-local-opt-in-for-served-tool-text-list-2-1-290: static: 2.1.290 served Agent model-list lookup uses the local opt-in before xr"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-extended-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-extended-description: static: extended description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-remove-extended-question-cap",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-remove-extended-question-cap: static: extended question array has no fixed maximum"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-remove-standard-question-cap",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-remove-standard-question-cap: static: standard question array has no fixed maximum"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-standard-host-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-standard-host-description: static: standard host description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-standard-sdk-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-standard-sdk-description: static: standard SDK description advertises unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-tool-description",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-tool-description: static: tool description states the unbounded contract"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/ask-user-question-tool-prompt",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-tool-prompt: static: tool prompt encourages coherent unbounded batching"
+      ]
+    },
+    {
+      "oracleId": "ask-user-question-unlimited/unbounded-coherent-question-batch",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "ask-user-question-tui-smoke.ts: rendered and submitted six questions"
+      ]
+    },
+    {
+      "oracleId": "channel-access/ask-user-question-channels-gate-askuser",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-289: static: 2.1.289 AskUserQuestion gate is open",
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-289: static: 2.1.289 AskUserQuestion no longer delegates through the Darwin gate",
+        "run-patch-tests.ts: ask-user-question-channels-gate-2-1-289: static: 2.1.289 Linux AskUserQuestion no longer delegates through the channel gate"
+      ]
+    },
+    {
+      "oracleId": "channel-access/channels-feature-gate",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: channels-feature-gate: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "channel-access/channels-provider-gate",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: channels-provider-gate: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/append-second-custom-model-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: append-second-custom-model-option-2-1-290: static: 2.1.290 picker adds custom slots 2 through 10 with alias deduplication",
+        "run-patch-tests.ts: append-second-custom-model-option-2-1-290: static: 2.1.290 picker checks aliases only against present rows",
+        "run-patch-tests.ts: append-second-custom-model-option-2-1-290: static: 2.1.290 picker does not use a slot-two-only path"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-applied-effort",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: agent-effective-effort-2-1-290-linux-x64: static: 2.1.290 Linux Agent tool effort uses the current coordinator guard",
+        "run-patch-tests.ts: agent-effort-layer-marker: static: runAgent marks only its definition effort layer",
+        "run-patch-tests.ts: agent-effort-request-context: static: query options distinguish explicit agent effort",
+        "run-patch-tests.ts: agent-effort-resolver-priority-2-1-290-linux-x64: static: 2.1.290 Linux carried-effort comparison also receives agent override",
+        "run-patch-tests.ts: agent-effort-resolver-priority-2-1-290-linux-x64: static: 2.1.290 Linux request effort keeps the carried comparison and agent override",
+        "run-patch-tests.ts: agent-model-and-effort-schema-2-1-290-linux-x64: static: 2.1.290 Linux schema exposes current agent effort and custom model bindings",
+        "run-patch-tests.ts: agent-model-and-effort-schema-2-1-290-linux-x64: static: 2.1.290 Linux schema uses current coordinator guard",
+        "run-patch-tests.ts: agent-model-and-effort-schema-2-1-290-linux-x64: static: 2.1.290 Linux schema uses the current custom model string builder",
+        "run-patch-tests.ts: agent-model-description-custom-id: static: Agent model description advertises full custom IDs",
+        "run-patch-tests.ts: agent-ordinary-effort-2-1-290-linux-x64: static: 2.1.290 Linux ordinary agents receive explicit effort before model resolution",
+        "run-patch-tests.ts: agent-prompt-call-overrides-compact-2-1-290: static: 2.1.290 compact Agent prompt advertises both per-call overrides",
+        "run-patch-tests.ts: agent-prompt-call-overrides: static: Agent usage prompt advertises per-call model and effort",
+        "run-patch-tests.ts: agent-prompt-fork-overrides: static: fork prompt rejects both per-call overrides",
+        "run-patch-tests.ts: agent-teammate-effort-2-1-290-linux-x64: static: 2.1.290 Linux teammates receive per-call or definition effort",
+        "run-patch-tests.ts: coordinator-agent-effort-guidance: static: ordinary coordinator prompt advertises per-call effort",
+        "run-patch-tests.ts: coordinator-agent-override-guidance: static: coordinator prompt distinguishes model and effort force behavior",
+        "run-patch-tests.ts: effort-launch-pin-2-1-290-linux-x64: static: 2.1.290 Linux CLI effort pin writes through the current initializer",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-290-linux-x64: static: 2.1.290 Linux selector forwards native withHold behavior",
+        "run-patch-tests.ts: effort-reactive-capability-2-1-290-linux-x64: static: 2.1.290 Linux effort resolver preserves selected high levels",
+        "run-patch-tests.ts: effort-retry-notice-drain-2-1-290-linux-x64: static: 2.1.290 Linux pending-message generator drains retry notice",
+        "run-patch-tests.ts: effort-retry-notice-queue-2-1-290-linux-x64: static: 2.1.290 Linux retry notice follows current refusal classifier",
+        "run-patch-tests.ts: effort-session-owner-2-1-290-linux-x64: static: 2.1.290 Linux effort-session owner uses the current model-selection wrapper",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux request resolver preserves native carried-effort and CLI-agent priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session preserves CLI then agent override priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session resolver keeps withHold and the live carrier fallback",
+        "run-patch-tests.ts: explicit-capabilities-first-party-2-1-290-linux-x64: static: 2.1.290 Linux explicit capabilities bind the current default-model table",
+        "run-patch-tests.ts: teammate-in-process-effort-config: static: teammate in-process configuration carries effort from spawn input",
+        "run-patch-tests.ts: teammate-process-effort-flag: static: both teammate process launchers append explicit effort"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-capabilities",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: custom-model-slot-capabilities-2-1-290-linux-x64: static: 2.1.290 Linux custom slots bind current model and capability parameters"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/custom-model-slot-default-effort",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: effort-effective-suffix-2-1-290-linux-x64: static: 2.1.290 Linux effective suffix reports model-scoped source",
+        "run-patch-tests.ts: effort-launch-pin-2-1-290-linux-x64: static: 2.1.290 Linux CLI effort pin writes through the current initializer",
+        "run-patch-tests.ts: effort-model-state-selector-2-1-290-linux-x64: static: 2.1.290 Linux selector forwards native withHold behavior",
+        "run-patch-tests.ts: effort-session-owner-2-1-290-linux-x64: static: 2.1.290 Linux effort-session owner uses the current model-selection wrapper",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux request resolver preserves native carried-effort and CLI-agent priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session preserves CLI then agent override priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session resolver keeps withHold and the live carrier fallback",
+        "run-patch-tests.ts: model-effort-command-2-1-290-linux: static: 2.1.290 model-effort-command ordinary effort uses the model resolver and native toggle parser",
+        "run-patch-tests.ts: model-effort-command-2-1-290-linux: static: 2.1.290 model-effort-command remote and Ultracode paths retain the native parser additional invariant",
+        "run-patch-tests.ts: model-effort-model-no-persist-2-1-290-linux: static: 2.1.290 Linux model confirmation keeps effort session-only",
+        "run-patch-tests.ts: model-effort-model-no-persist-2-1-290-linux: static: 2.1.290 Linux model confirmation preserves native default-model save",
+        "run-patch-tests.ts: model-effort-picker-arrows-2-1-290-linux: static: 2.1.290 model-effort-picker-arrows native effort arrows write the model map and retain keys",
+        "run-patch-tests.ts: model-effort-picker-cli-hint-2-1-290-linux: static: 2.1.290 model-effort-picker-cli-hint CLI pin hides only the native effort adjustment hint",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-290-linux: static: 2.1.290 model-effort-picker-focus focus resolves the row's model",
+        "run-patch-tests.ts: model-effort-picker-import-2-1-290-linux: static: 2.1.290 model-effort-picker-import native picker resolver and app-state imports",
+        "run-patch-tests.ts: model-effort-picker-select-2-1-290-linux: static: 2.1.290 model-effort-picker-select model selection preserves explicit effort and CLI precedence",
+        "run-patch-tests.ts: model-effort-picker-source-2-1-290-linux: static: 2.1.290 model-effort-picker-source native row shows resolver source",
+        "run-patch-tests.ts: model-effort-picker-state-setter-2-1-290-linux: static: 2.1.290 model-effort-picker-state-setter native picker captures the app-state setter"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/recognize-second-custom-model-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: recognize-second-custom-model-option-2-1-290: static: 2.1.290 recognizes configured models in slots 2 through 10"
+      ]
+    },
+    {
+      "oracleId": "custom-model-slots/validate-second-custom-model-option-without-probe",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: validate-second-custom-model-option-without-probe-2-1-290: static: 2.1.290 skips probes for configured custom slots 2 through 10"
+      ]
+    },
+    {
+      "oracleId": "disable-background-agent-kill-on-global-interrupt/foreground-agent-handoff-before-cancel",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: foreground-agent-handoff-before-cancel-2-1-290-linux-x64: static: 2.1.290 foreground local agents are handed off before cancellation",
+        "run-patch-tests.ts: foreground-agent-handoff-before-cancel-2-1-290-linux-x64: static: 2.1.290 immediate stop branch is replaced",
+        "run-patch-tests.ts: foreground-agent-handoff-helper-import-2-1-290-linux-x64: static: 2.1.290 imports the current native handoff helper"
+      ]
+    },
+    {
+      "oracleId": "disable-background-agent-kill-on-global-interrupt/global-interrupt-cancel-only",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: global-interrupt-cancel-only-2-1-290: static: 2.1.290 global Ctrl+C has no bare gesture object",
+        "run-patch-tests.ts: global-interrupt-cancel-only-2-1-290: static: 2.1.290 global Ctrl+C suppresses background-agent kills"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-context",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-context-2-1-281: static: 2.1.281 context injection drops the stale input argument",
+        "run-patch-tests.ts: read-result-path-context-2-1-281: static: 2.1.281 result path comes from the current renderer argument"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-image",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-image-2-1-289: static: 2.1.289 image result does not leave the old unwrapped summary",
+        "run-patch-tests.ts: read-result-path-image-2-1-289: static: 2.1.289 image result keeps the current summary and adds the path suffix"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-notebook",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-notebook-2-1-289: static: 2.1.289 notebook result does not leave the old unwrapped summary",
+        "run-patch-tests.ts: read-result-path-notebook-2-1-289: static: 2.1.289 notebook result keeps the current summary and adds the path suffix"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-parts",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-parts-2-1-290: static: 2.1.290 parts result does not leave the unwrapped current summary",
+        "run-patch-tests.ts: read-result-path-parts-2-1-290: static: 2.1.290 parts result keeps its current size expression and adds the suffix"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-pdf",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-pdf-2-1-289: static: 2.1.289 PDF result does not leave the old unwrapped summary",
+        "run-patch-tests.ts: read-result-path-pdf-2-1-289: static: 2.1.289 PDF result keeps the current summary and adds the path suffix"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-text",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-text-2-1-289: static: 2.1.289 text result does not leave the old unwrapped summary",
+        "run-patch-tests.ts: read-result-path-text-2-1-289: static: 2.1.289 text result keeps the current summary and adds the path suffix"
+      ]
+    },
+    {
+      "oracleId": "file-read-path-context/read-result-path-unchanged",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: read-result-path-unchanged-2-1-289: static: 2.1.289 unchanged result has no unwrapped children conditional",
+        "run-patch-tests.ts: read-result-path-unchanged-2-1-289: static: 2.1.289 unchanged result keeps the current summary and adds the path suffix"
+      ]
+    },
+    {
+      "oracleId": "later-command/later-command-submit-hook",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "later-command-patch.test.ts: active /later schedules once, lists, and forwards pasted contents"
+      ]
+    },
+    {
+      "oracleId": "later-command/later-command-suggestion-metadata",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-290: static: 2.1.290 /later metadata preserves loader trusted-name bookkeeping",
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-290: static: 2.1.290 /later suggestion does not reuse the previous target list binding",
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-290: static: 2.1.290 /later suggestion metadata appears in the trusted command list",
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-290: static: 2.1.290 /later suggestion uses the current trusted command list",
+        "run-patch-tests.ts: later-command-suggestion-metadata-2-1-290: static: 2.1.290 does not reuse the previous target command-list binding"
+      ]
+    },
+    {
+      "oracleId": "local-prompt-ablation/local-source-admission",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission"
+      ]
+    },
+    {
+      "oracleId": "local-prompt-ablation/telemetry-unreachable",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "local-prompt-ablation-runtime.test.ts: native prompt deletion never records matching strings or emits analytics"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/inline-echo",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered inline /model route reports the selected model's effective effort and source"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/model-echo",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered model picker reports the selected model's effective effort and source"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/model-effort-current",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered /effort current reports the active model's effective effort and source"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/model-import",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: model-effort-inline-model-state-import-2-1-290-linux: static: 2.1.290 model-effort-inline-model-state-import inline state helper imports current resolver",
+        "run-patch-tests.ts: model-effort-model-import-2-1-290-linux: static: 2.1.290 model-effort-model-import model module imports current resolver and default helper"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-guard",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered CLI-pinned effort selector shows status instead of an editable slider"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-import",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: model-effort-slider-import-2-1-290-linux: static: 2.1.290 model-effort-slider-import slider resolver import"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-initial",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered effort slider initializes from the active model's effort"
+      ]
+    },
+    {
+      "oracleId": "model-effort-ui/slider-scope",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "model-effort-session-tui-smoke.ts: rendered effort slider explains that changes apply to this model for this session"
+      ]
+    },
+    {
+      "oracleId": "per-model-context-window/resolve-model-specific-context-window",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: resolve-model-specific-context-window-2-1-290-linux-x64: static: 2.1.290 Linux context resolver captures current model argument"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/disable-default-base-url-guard",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: disable-default-base-url-guard: static: guard function always returns false",
+        "run-patch-tests.ts: disable-default-base-url-guard: static: old guard pattern is removed"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-beta-count-tokens",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-beta-count-tokens-2-1-290: static: 2.1.290 beta-count-tokens routes the captured model"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-beta-create",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-beta-create-2-1-290: static: 2.1.290 beta-create routes the captured model"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-nonbeta-count-tokens",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-count-tokens-2-1-290: static: 2.1.290 nonbeta-count-tokens routes the captured model"
+      ]
+    },
+    {
+      "oracleId": "per-model-endpoint/inject-per-model-into-nonbeta-create",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: inject-per-model-into-nonbeta-create-2-1-290: static: 2.1.290 nonbeta-create routes the captured model"
+      ]
+    },
+    {
+      "oracleId": "resume-1m-model-defaults/resume-detects-default-1m-after-alias-resolution",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: resume-detects-default-1m-after-alias-resolution-2-1-290-linux-x64: static: 2.1.290 Linux resolves current model before alias normalization",
+        "run-patch-tests.ts: resume-detects-default-1m-after-alias-resolution-2-1-290-linux-x64: static: 2.1.290 Linux retains the current canonical family normalizer"
+      ]
+    },
+    {
+      "oracleId": "signature-block-custom-endpoint/strip-signatures-for-custom-base-url",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-290-linux-x64: static: 2.1.290 Linux removes the superseded predecessor normalizer call",
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-290-linux-x64: static: 2.1.290 Linux removes the superseded provider predicate",
+        "run-patch-tests.ts: strip-signatures-for-custom-base-url-2-1-290-linux-x64: static: 2.1.290 Linux retains official first-party signature handling"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-cli-option",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-290: static: 2.1.290 footer CLI option excludes the stale constructor",
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-290: static: 2.1.290 footer CLI option is installed",
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-290: static: 2.1.290 footer CLI option records hidden items",
+        "run-patch-tests.ts: statusline-footer-control-cli-option-2-1-290: static: 2.1.290 footer CLI option uses the target Option constructor"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-clipboard-image-hint",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-2-1-290: static: 2.1.290 statusline-footer-control-clipboard-image-hint preserves globalThis.__acc_clipboard_image_av",
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-linux-context-2-1-290: static: 2.1.290 statusline-footer-control-clipboard-image-hint-linux-context preserves statusLine:{disabledFooter:__acc_cl"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-clipboard-image-hint-context",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-clipboard-image-hint-context-2-1-290: static: 2.1.290 statusline-footer-control-clipboard-image-hint-context preserves statusLine:{disabledFooter:globalTh"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-command-length-mount",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-command-length-mount-2-1-290: static: 2.1.290 statusline-footer-control-command-length-mount preserves .command?.length??0"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-command-length-update",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-command-length-update-2-1-233: static: 2.1.233 result telemetry tolerates missing commands"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-effort-level",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-effort-level-2-1-290: static: 2.1.290 focused effort effect tracks setting changes",
+        "run-patch-tests.ts: statusline-footer-control-effort-level-2-1-290: static: 2.1.290 focused effort excludes the previous memo slot",
+        "run-patch-tests.ts: statusline-footer-control-effort-level-2-1-290: static: 2.1.290 focused effort memo tracks setting changes",
+        "run-patch-tests.ts: statusline-footer-control-effort-level-settings-2-1-290: static: 2.1.290 focused effort does not call the external-store reader as an AppState selector",
+        "run-patch-tests.ts: statusline-footer-control-effort-level-settings-2-1-290: static: 2.1.290 focused effort observes settings",
+        "run-patch-tests.ts: statusline-footer-control-effort-level-settings-2-1-290: static: 2.1.290 focused effort selects current footer visibility"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-effort-notification",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-2-1-290: static: 2.1.290 ultrathink effect tracks setting changes",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-2-1-290: static: 2.1.290 ultrathink excludes the previous memo slot",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-2-1-290: static: 2.1.290 ultrathink memo tracks setting changes",
+        "run-patch-tests.ts: statusline-footer-control-effort-notification-settings-2-1-290: static: 2.1.290 ultrathink selects current footer visibility"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-mode-hint",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-2-1-290-memo: static: 2.1.290 statusline-footer-control-mode-hint-memo preserves if(!0||",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-2-1-290: static: 2.1.290 statusline-footer-control-mode-hint preserves ((__acc_mode_state)=>__acc_mode_sta"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-mode-hint-narrow",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-expanded-2-1-290: static: 2.1.290 statusline-footer-control-mode-hint-narrow-expanded preserves denseShowHint:!__acc_hide_mode&&(",
+        "run-patch-tests.ts: statusline-footer-control-mode-hint-narrow-small-2-1-290: static: 2.1.290 statusline-footer-control-mode-hint-narrow-small preserves toolPermissionContext:__acc_hide_mo"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-rate-limit-warning",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-2-1-290: static: 2.1.290 statusline-footer-control-rate-limit-warning preserves __acc_remove_rate(\"rate-limit-warni"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-rate-limit-warning-deps",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-rate-limit-warning-deps-2-1-290: static: 2.1.290 statusline-footer-control-rate-limit-warning-deps preserves __acc_rate_context.removeNotificati"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-render",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-render-2-1-290: static: 2.1.290 footer return excludes the previous row binding",
+        "run-patch-tests.ts: statusline-footer-control-render-2-1-290: static: 2.1.290 hidden footer selects the custom statusline row"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-render-state",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-render-state-2-1-290: static: 2.1.290 footer render state does not retain the 2.1.281 settings local",
+        "run-patch-tests.ts: statusline-footer-control-render-state-2-1-290: static: 2.1.290 footer render state follows settings and CLI overrides"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-footer-control-schema",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-footer-control-schema-2-1-290: static: 2.1.290 footer schema excludes the eager settings factory",
+        "run-patch-tests.ts: statusline-footer-control-schema-2-1-290: static: 2.1.290 footer schema uses the lazy settings factory",
+        "run-patch-tests.ts: statusline-footer-control-schema-2-1-290: static: 2.1.290 statusline-footer-control-schema preserves [\"footer\",\"permission_mode\",\"mode\","
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-json-effort-level",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-json-effort-level-2-1-290-linux-x64: static: 2.1.290 linux-x64 effort JSON excludes the stale session resolver",
+        "run-patch-tests.ts: statusline-json-effort-level-2-1-290-linux-x64: static: 2.1.290 linux-x64 effort JSON uses the target effective-level helper"
+      ]
+    },
+    {
+      "oracleId": "statusline-footer-control/statusline-json-permission-mode",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: statusline-json-permission-mode-2-1-290: static: 2.1.290 statusline permission mode follows the hook payload spread"
+      ]
+    },
+    {
+      "oracleId": "subagent-preserve-tool-results/subagent-preserve-tool-results",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: subagent-preserve-tool-results: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "system-prompt-section-overrides/system-prompt-section-override-bridge",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: system-prompt-section-override-bridge-2-1-290: static: native composed prompt vector crosses the override bridge"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-clear-live-on-interrupt",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-clear-live-on-interrupt-2-1-290: static: 2.1.290 interrupt clears thinking after preserving the append event",
+        "run-patch-tests.ts: thinking-clear-live-on-interrupt-2-1-290: static: 2.1.290 interrupt excludes the previous message-array boundary"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-complete",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-complete: static: completed thinking clears live buffer",
+        "run-patch-tests.ts: thinking-render-live-complete: static: completed thinking no longer mirrors a timed live buffer"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-delta",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-290-linux: static: 2.1.290 linux-x64 thinking deltas exclude the previous estimator bindings",
+        "run-patch-tests.ts: thinking-render-live-delta-2-1-290-linux: static: 2.1.290 linux-x64 thinking deltas update live state and preserve token estimation"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-output",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-output-2-1-290-linux: static: 2.1.290 linux-x64 live output excludes the previous stream bindings",
+        "run-patch-tests.ts: thinking-render-live-output-2-1-290-linux: static: 2.1.290 linux-x64 live output subscribes to the current thinking snapshot"
+      ]
+    },
+    {
+      "oracleId": "thinking-display/thinking-render-live-row",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: thinking-render-live-row-2-1-290-linux: static: 2.1.290 linux-x64 live row excludes the previous provider bindings",
+        "run-patch-tests.ts: thinking-render-live-row-2-1-290-linux: static: 2.1.290 linux-x64 live row invalidates and renders the thinking snapshot",
+        "run-patch-tests.ts: thinking-render-live-row-cache-allocation-2-1-290-linux: static: 2.1.290 linux-x64 live row allocates its thinking snapshot cache slot",
+        "run-patch-tests.ts: thinking-render-live-row-cache-allocation-2-1-290-linux: static: 2.1.290 linux-x64 live row excludes the previous wrapper allocation"
+      ]
+    },
+    {
+      "oracleId": "transcript-preserve-repl-history/transcript-preserve-repl-history",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: transcript-preserve-repl-history: static: replacement is rendered"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-capability-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode accepts capped max models",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-help-menu-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode accepts capped max models",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-model-picker-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux request resolver preserves native carried-effort and CLI-agent priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session preserves CLI then agent override priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session resolver keeps withHold and the live carrier fallback",
+        "run-patch-tests.ts: model-effort-picker-focus-2-1-290-linux: static: 2.1.290 model-effort-picker-focus focus resolves the row's model",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode accepts capped max models",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-model-picker-persist-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: effort-session-owner-2-1-290-linux-x64: static: 2.1.290 Linux effort-session owner uses the current model-selection wrapper",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux request resolver preserves native carried-effort and CLI-agent priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session preserves CLI then agent override priority",
+        "run-patch-tests.ts: effort-session-resolver-2-1-290-linux-x64: static: 2.1.290 Linux session resolver keeps withHold and the live carrier fallback",
+        "run-patch-tests.ts: model-effort-picker-arrows-2-1-290-linux: static: 2.1.290 model-effort-picker-arrows native effort arrows write the model map and retain keys",
+        "run-patch-tests.ts: model-effort-picker-select-2-1-290-linux: static: 2.1.290 model-effort-picker-select model selection preserves explicit effort and CLI precedence",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode accepts capped max models",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-thin-client-usage-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode accepts capped max models",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-usage-hint-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode accepts capped max models",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+      ]
+    },
+    {
+      "oracleId": "ultracode-opus46-max/ultracode-valid-options-max-fallback",
+      "evidenceClass": "static",
+      "outcome": "passed",
+      "checks": [
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode accepts capped max models",
+        "run-patch-tests.ts: ultracode-capability-max-fallback-2-1-290-linux: static: 2.1.290 Linux Ultracode excludes the 2.1.289 capability gate"
+      ]
+    },
+    {
+      "oracleId": "workflow-history/advisory-preflight",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "workflow-history-tui-smoke.ts: real Q&A, bounded windows, frozen snapshot and advisory preflight"
+      ]
+    },
+    {
+      "oracleId": "workflow-history/assignment-provenance",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "workflow-history-runtime.test.ts: native classifier preserves genuine answers and coordinator assignment provenance"
+      ]
+    },
+    {
+      "oracleId": "workflow-history/bounded-human-history",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "workflow-history-tui-smoke.ts: real Q&A, bounded windows, frozen snapshot and advisory preflight"
+      ]
+    },
+    {
+      "oracleId": "workflow-history/classifier-answer-provenance",
+      "evidenceClass": "runtime",
+      "outcome": "passed",
+      "checks": [
+        "workflow-history-runtime.test.ts: native classifier preserves genuine answers and coordinator assignment provenance"
+      ]
+    }
+  ],
+  "evidenceClass": "runtime",
+  "outcome": "passed",
+  "skippedOracleIds": []
+}

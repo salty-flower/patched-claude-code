@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{Ist,Ost,Hst,BDn,jDn,Dst,Ego,ux,Ks}from"./chunk-8mvda08c.js";import{Mge}from"./chunk-s46qgfx7.js";import{NYt,uTt}from"./chunk-ts0309p1.js";import{s$o,que,b1t,Cmn,U1o,ohn,E0,y2r,Ipe,f3,k_n,TGo}from"./chunk-y0b3kvx1.js";import{bo}from"./chunk-rdy2m4vh.js";import{kYt}from"./chunk-s7j36v3t.js";import{BXr,SJo}from"./chunk-ax2crbgp.js";import{yVt}from"./chunk-mf4zqhen.js";import{xGt}from"./chunk-f66ke795.js";import{nue,dMr}from"./chunk-fck1wtc3.js";import{kMo}from"./chunk-btzehhfs.js";import{R1e}from"./chunk-0nwvpnqs.js";import{Wut}from"./chunk-xes9emk3.js";import{pMo}from"./chunk-ab59tq10.js";import{zRe}from"./chunk-bvj717h8.js";function cMr(t,r=new Set,i,o,l,n=!1){let a=r.size>0;if(Cmn(t),uTt(t),yVt.of(t).clear(),dMr(nue),E0(),SJo(r),!a)xGt.peek(t)?.clear();let s=y2r();if(s?.getTeleportCacheState().status==="active")s.revertTeleportCache("transcript_cleared","main");if(Ipe(t,void 0,i,void 0,void 0,l),ux("clear"),f3(),Ist(Ks()),Hst(Ks()),BDn(Ks()),Ost(Ks()),jDn(Ks()),Dst(Ks()),!n)ZVn(),ohn(t.host);if(b1t(t,"session_start"),que.of(t).reset(),BXr.of(t).clear(),R1e.of(t).reset(),i?.((e)=>{if(e.storedImagePaths.size===0&&e.imageDescriptions.size===0&&Object.keys(e.displayedMessageContent).length===0)return e;return{...e,storedImagePaths:new Map,imageDescriptions:new Map,displayedMessageContent:{}}}),s$o(),!a)pMo();if(kYt(),!a)kMo();if(Ego(r),NYt(),TGo(),k_n().catch(()=>{}),U1o(t),o)o.get(Wut).clear(),o.get(zRe).clear(),import("./chunk-spg1pme1.js").then(({WebFetchCache:e})=>o.get(e).clear()),import("./chunk-5vdhkgfv.js").then(({WebFetchHistory:e})=>o.get(e).clear()),import("./chunk-75eg5txs.js").then(({ToolSearchDescriptionCache:e})=>o.get(e).clear());import("./chunk-at3b07c7.js").then(({clearAgentDefinitionsCache:e})=>e())}function ZVn(){let t=bo();t.bashPromptSkillCommands=void 0,t.workflowAuthoringSkillAvailable=void 0,Mge()}
+export{cMr,ZVn};

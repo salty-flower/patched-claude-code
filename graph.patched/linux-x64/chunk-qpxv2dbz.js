@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{v,j}from"./chunk-fdatg9ax.js";import{b,t}from"./chunk-gvn18sr5.js";import{Yt}from"./chunk-0qcng0ek.js";import{ft}from"./chunk-0834hdpw.js";import{f}from"./chunk-wp37h1qm.js";import{Dr,fO}from"./chunk-m0sj7y8g.js";import{o,E,u,pe,R}from"./chunk-6kgnb6mn.js";import{join as h}from"path";var yDr="published-floor.json",l=1,F=32,a=65536,C=f(()=>u({version:R(l),sources:pe(o().min(1).max(64),u({version:E().int().nonnegative(),issuedAt:o().max(64),recordedAt:E().int().nonnegative()}))}));function c(){return h(fO(),yDr)}function s(){return Dr().publishedCatalogFloorMarks}async function Tdn(e){return await m(),s().get(e)?.version??0}async function Uut(e,r,i=Date.now()){await m();let n=s().get(e);if(n!==void 0&&n.version>=r.version)return;s().set(e,{version:r.version,issuedAt:(r.issued_at??"").slice(0,64),recordedAt:i}),await P()}function m(){let e=Dr();return e.publishedCatalogFloorRead??=p().then(g),e.publishedCatalogFloorRead}function g(e){if(e===void 0)return;for(let[r,i]of e){let n=s().get(r);if(n===void 0||i.version>n.version)s().set(r,i)}}async function p(){let e;try{e=await Yt().readRange(c(),0,a+1)}catch(i){if(!j(i))t(`[publishedCatalog] floor file read failed: ${v(i)??"unknown"}; no persisted version marks this session`);return}let r=e.length>a?void 0:C().safeParse(ft(e.toString("utf8"),!1));if(!r?.success){t(`[publishedCatalog] floor file ${r===void 0?"oversized":"invalid"}; no persisted version marks this session`);return}return new Map(Object.entries(r.data.sources))}function P(){let e=Dr(),r=(e.publishedCatalogFloorWrite??Promise.resolve()).then(d,d);return e.publishedCatalogFloorWrite=r,r}async function d(){try{g(await p());let e=[...s().entries()].sort(([,i],[,n])=>n.recordedAt-i.recordedAt).slice(0,F),r=Yt();await r.mkdir(fO()),await r.atomicWrite(c(),b({version:l,sources:Object.fromEntries(e)}),384)}catch(e){t(`[publishedCatalog] floor file write failed: ${v(e)??"unknown"}`)}}
+export{yDr,Tdn,Uut};

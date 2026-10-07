@@ -1,0 +1,13 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{l}from"./chunk-fqsygynq.js";import{S,X,t}from"./chunk-f8eqwxpt.js";import{kn}from"./chunk-wd4jmzs1.js";import{Qh,ml}from"./chunk-9k1s2d1q.js";import{f}from"./chunk-2pfss7d0.js";import{zi}from"./chunk-04n4xm68.js";import{o,v,u,R}from"./chunk-seb9y51t.js";import{createHash as h,randomBytes as y,timingSafeEqual as w}from"crypto";import{unlinkSync as b}from"fs";import{mkdir as P,open as x,readdir as z,unlink as d}from"fs/promises";import{homedir as T}from"os";import{dirname as j,join as m}from"path";var B=/^([1-9][0-9]{0,9})\.([0-9a-f]{64})$/,c=4096,k=f(()=>u({version:R(1),pid:v().int().positive(),procStart:o().min(1),nonceSha256:o()}));function p(){return m(T(),".claude","state","unattended-serving-runs")}function a(e){return m(p(),`${e}.json`)}async function kvs(){try{let e=await Qh();if(e===void 0)return;let r=y(32).toString("hex"),n=a(process.pid);return await P(j(n),{recursive:!0,mode:448}),await kn(n,`${S({version:1,pid:process.pid,procStart:e,nonceSha256:g(r)})}
+`,384),await N(),process.once("exit",()=>{try{b(n)}catch{}}),{token:`${process.pid}.${r}`,remove:async()=>{try{await d(n)}catch{}}}}catch(e){t(`unattended run grant: not recorded (${l(e)})`,{level:"warn"});return}}async function $0r(e){try{let r=e===void 0?null:B.exec(e);if(!r)return!1;let n=Number(r[1]),i=await A(a(n));if(i===void 0||i.pid!==n||!E(i.nonceSha256,g(r[2]))||!zi(n))return!1;return await ml(n,{skipCache:!0})===i.procStart}catch{return!1}}async function A(e){let r;try{r=await x(e,"r");let n=Buffer.alloc(c+1),{bytesRead:i}=await r.read(n,0,n.length,0);if(i>c)return;let s=k().safeParse(X(n.subarray(0,i).toString("utf8")));return s.success?s.data:void 0}catch{return}finally{await r?.close().catch(()=>{})}}function g(e){return h("sha256").update(e).digest("hex")}function E(e,r){let n=Buffer.from(e),i=Buffer.from(r);return n.length===i.length&&w(n,i)}async function N(){try{for(let e of await z(p())){let r=Number(/^([1-9][0-9]{0,9})\.json$/.exec(e)?.[1]);if(Number.isInteger(r)&&!zi(r))await d(a(r)).catch(()=>{})}}catch{}}
+export{kvs,$0r};

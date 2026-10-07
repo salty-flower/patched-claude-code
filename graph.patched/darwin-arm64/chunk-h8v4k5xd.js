@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import"./chunk-hdvxmrfb.js";import{E}from"./chunk-fqsygynq.js";import"./chunk-12mdvf4x.js";import"./chunk-29aedz4e.js";import"./chunk-8mvda08c.js";import"./chunk-ht3pd6g4.js";import"./chunk-ws170zqm.js";import"./chunk-5qeme8w3.js";import{G5}from"./chunk-f8eqwxpt.js";import"./chunk-xbg4a11x.js";import"./chunk-sgznn49v.js";import"./chunk-pey4mmsy.js";import"./chunk-fqzh3zpr.js";import"./chunk-ym46rm1e.js";import"./chunk-j77txbjn.js";import"./chunk-yfyrtrqq.js";import"./chunk-qfs4y3ww.js";import"./chunk-ev2h864q.js";import"./chunk-jppak124.js";import"./chunk-egwr9wbg.js";import{Ke,Cj}from"./chunk-efx2t2v4.js";import"./chunk-1affnqfa.js";import{SZe}from"./chunk-76mqbbzv.js";import{pP,fP,vE}from"./chunk-kr0v878c.js";import"./chunk-n8f5x5ps.js";import{C5,j1,Ohe}from"./chunk-dy624h5m.js";import"./chunk-1d5bwndp.js";import"./chunk-pqzrrpbd.js";import{open as c}from"fs/promises";var m=10485760;async function S(o,s){try{let t=Ke(s);if(SZe(t)||Cj(t))return"not_recordable";await using r=await c(t,G5());let n=Math.floor((await r.stat()).mtimeMs),e=o.get(t);if(e!==void 0&&!(e.contentFromTranscript&&e.limit===void 0&&pP(e)&&e.timestamp<n))return"kept_existing";let i=await Ohe(r,t,m);if(i.content.slice(0,4096).includes("\x00"))return"not_recordable";let a=vE(i.content);if(e!==void 0&&!fP(e,a.trim()))return"kept_existing";let d=o.get(t);if(d!==void 0&&d!==e)return"kept_existing";return o.set(t,{content:a,timestamp:n,offset:void 0,limit:void 0,contentNotInModelContext:!0}),"recorded"}catch(t){let r=E(t);return r==="ENOENT"||r==="EISDIR"||C5(t)||j1(t)?"not_recordable":"read_failed"}}export{S as recordStagedOutputAsRead};

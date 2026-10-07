@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{M7}from"./chunk-xbg4a11x.js";import{ve}from"./chunk-8mvda08c.js";import{Nk}from"./chunk-ztcjt60p.js";import{ss}from"./chunk-s46qgfx7.js";import{xH}from"./chunk-mcq8tx7b.js";import{An}from"./chunk-9s9xt61j.js";import{me}from"./chunk-861a7whf.js";import{ble,R5,Pj,Ij,EYt,$S}from"./chunk-6pw2mkqv.js";import{S2n}from"./chunk-wp56qdm7.js";import{eEn}from"./chunk-hj1a8p8c.js";import{AHt}from"./chunk-3f5p5v7e.js";import{e5e}from"./chunk-ma9b3nt7.js";import{Qr}from"./chunk-rnxw3wwn.js";var LRr={};Qr(LRr,{default:()=>LRr,earlyCredentialsOf:()=>IRr,hostProxyAuthConfigured:()=>HRr,personProxyAuthHelper:()=>ORr,proxyAgentsInstalled:()=>MRr,sessionFactsRestored:()=>OTe,signInRestored:()=>DRr});function IRr(e){return e?.backend!==void 0&&M7(e.configHome)?Nk(e?.backend):void 0}function ORr(){let e=me("policySettings")?.proxyAuthHelper,r=An("userSettings")?me("userSettings")?.proxyAuthHelper:void 0;return{helper:e??r,fromProjectOrLocal:e===void 0&&r!==void 0&&(me("projectSettings")?.proxyAuthHelper===r||me("localSettings")?.proxyAuthHelper===r),trustAccepted:ss,sources:"personAndPolicy"}}var s=`a proxy helper set by this project is not run by this command
+`;function HRr(){let e=xH(),t=e&&Boolean(process.stderr.isTTY)&&(me("projectSettings")?.proxyAuthHelper!==void 0||me("localSettings")?.proxyAuthHelper!==void 0);if(e)EYt(ORr());if(t)process.stderr.write(s)}var p="Error: the proxy setting named above is refused.";function MRr(){let e=Pj(),t=e!==void 0&&!Ij(e.value);return $S(),t?{reason:p,kind:"lasting"}:null}function DRr(e){let t=Boolean(process.stderr.isTTY)||!ve();return AHt(IRr(e),()=>t)}async function OTe(e){let t=await Promise.resolve().then(e5e).then(()=>Promise.all([ble(),R5()])).then(eEn).then(HRr).then(()=>DRr(e)).then(()=>null,S2n),r=await Promise.resolve().then(MRr).catch(S2n);return t??r}export{IRr,ORr,HRr,MRr,DRr,OTe,LRr};

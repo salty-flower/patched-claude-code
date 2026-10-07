@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{oG}from"./chunk-s46qgfx7.js";import{w}from"./chunk-k8a9av7b.js";import{s,n,Nt}from"./chunk-0x4ch5gg.js";import{x,g,L}from"./chunk-bkksmm2y.js";import{Js}from"./chunk-wce204v6.js";import{Iu}from"./chunk-8ddwckwx.js";import{Bo}from"./chunk-071wge9a.js";import{e,r}from"./chunk-mq8eg5v4.js";import{b}from"./chunk-rnxw3wwn.js";L();function q(l,c){let p=l.match(k);if(!p){return e(n,{dimColor:!0,children:l},c)}let A=p[0];let I=p.index??0;let F=l.slice(0,I);let G=l.slice(I+A.length);return r(n,{dimColor:!0,children:[F,e(Nt,{url:A,children:A}),G]},c)}var k=/https?:\/\/\S+/;function _3e(){let a=w(10),f;if(a[0]===b)f=oG.getInstance().getStatus(),a[0]=f;else f=a[0];let[t,R]=g(f),m,d;if(a[1]===b)m=()=>oG.getInstance().subscribe(R),d=[],a[1]=m,a[2]=d;else m=a[1],d=a[2];if(x(m,d),!t.isAuthenticating&&!t.error&&t.output.length===0){return null}if(!t.isAuthenticating&&!t.error){return null}let u;if(a[3]!==t.output)u=t.output.length>0&&e(s,{flexDirection:"column",children:t.output.slice(-5).map(q)}),a[3]=t.output,a[4]=u;else u=a[4];let i;if(a[5]!==t.error)i=t.error&&e(Bo,{error:t.error}),a[5]=t.error,a[6]=i;else i=a[6];let C;if(a[7]!==u||a[8]!==i)C=e(s,{marginY:1,children:r(Iu,{color:"permission",title:"Authentication",children:[u,i]})}),a[7]=u,a[8]=i,a[9]=C;else C=a[9];return C}function Cr(a){let i=w(10),{message:f,bold:t,dimColor:R,subtitle:m}=a,d=t===void 0?!1:t,u=R===void 0?!1:R,C;if(i[0]===b)C=e(Js,{}),i[0]=C;else C=i[0];let l;if(i[1]!==d||i[2]!==u||i[3]!==f)l=r(s,{flexDirection:"row",children:[C,r(n,{bold:d,dimColor:u,children:[" ",f]})]}),i[1]=d,i[2]=u,i[3]=f,i[4]=l;else l=i[4];let c;if(i[5]!==m)c=m&&e(n,{dimColor:!0,children:m}),i[5]=m,i[6]=c;else c=i[6];let p;if(i[7]!==l||i[8]!==c)p=r(s,{flexDirection:"column",children:[l,c]}),i[7]=l,i[8]=c,i[9]=p;else p=i[9];return p}
+export{_3e,Cr};

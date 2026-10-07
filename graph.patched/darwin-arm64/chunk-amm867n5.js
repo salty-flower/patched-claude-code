@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{t}from"./chunk-f8eqwxpt.js";import{f}from"./chunk-2pfss7d0.js";import{Cn,El,t6e}from"./chunk-vhhr71m6.js";import{k}from"./chunk-s46qgfx7.js";import{xDe}from"./chunk-qs7t29dk.js";import{o,ie,u,pe}from"./chunk-seb9y51t.js";var l=f(()=>u({server_instructions:o().optional(),server_instructions_by_server:pe(o(),o()).optional(),tools:pe(o(),o()).optional(),search_hints:pe(o(),o()).optional(),param_descriptions:pe(o(),pe(o(),o())).optional(),prompts:pe(o(),o()).optional(),skills:pe(o(),o()).optional()})),g=f(()=>pe(o(),ie()));function yde(e){if(!e.pluginSource)return;let{name:r,marketplace:n}=Cn(e.pluginSource);if(!El(n)&&!t6e(r,n))return;let p=k("tengu_official_plugin_prompt_overrides",{}),i=g().safeParse(p);if(!i.success){t("tengu_official_plugin_prompt_overrides: GB payload is not an object; ignoring",{level:"error"});return}let a=i.data[r];if(a===void 0)return;let c=l().safeParse(a);if(!c.success){t(`tengu_official_plugin_prompt_overrides: entry for '${r}' failed schema (${c.error.issues[0]?.message}); using baked-in text`,{level:"error"});return}let s=c.data;if(Object.keys(s).length===0)return;return{...s,server_instructions_by_server:d(s.server_instructions_by_server),tools:d(s.tools),search_hints:d(s.search_hints),param_descriptions:d(s.param_descriptions),prompts:d(s.prompts),skills:d(s.skills)}}function d(e){if(e===void 0)return;let r=Object.create(null);return Object.assign(r,e)}function Msn(e,r){if(!e)return;let n=e.server_instructions_by_server;if(n){let p=xDe(r),i=p&&n[p.serverName];if(i!==void 0)return i}return e.server_instructions}function Dsn(e,r){if(!r||!e.properties)return e;let n={...e.properties},p=!1;for(let[i,a]of Object.entries(r)){let c=n[i];if(c!==null&&typeof c==="object")n[i]={...c,description:a},p=!0}if(!p)return e;return{...e,properties:n}}
+export{yde,Msn,Dsn};

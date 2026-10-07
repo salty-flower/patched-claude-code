@@ -1,0 +1,55 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{ve,aI,U7t,GD,g6,DH,Oh}from"./chunk-8mvda08c.js";import{d}from"./chunk-hdvxmrfb.js";import{f}from"./chunk-2pfss7d0.js";import{Ql,Xk}from"./chunk-nqb0d8cm.js";import{i}from"./chunk-qbf9wv32.js";import{y,p}from"./chunk-e3gw32ew.js";import{S,t}from"./chunk-f8eqwxpt.js";import{Et,gN}from"./chunk-s46qgfx7.js";import{RN,jOn}from"./chunk-590ye0ab.js";import{a_,fl,ac,l9t}from"./chunk-d4ww8xgn.js";import{Ot,qt}from"./chunk-ax2crbgp.js";import{yh,YYr,Cw,jWe}from"./chunk-1gcevkyr.js";import{cv}from"./chunk-5vgtbtkf.js";import{xi}from"./chunk-hyrvpa38.js";import{sb,R6t,x6t}from"./chunk-29gv1sq5.js";import{HZ}from"./chunk-wbk1aq9q.js";import{Bft,cYe,W2}from"./chunk-y0b3kvx1.js";import{Ku}from"./chunk-qmgtg38c.js";import{Ok,Ps}from"./chunk-pm2anp49.js";import{Lo}from"./chunk-qbhz7d2q.js";import{Ztr}from"./chunk-084h5xmq.js";import{TE}from"./chunk-g91118eq.js";import{ht,B$}from"./chunk-bpy60snq.js";import{Cu}from"./chunk-2h4aaqgh.js";import{o,H,T,u,Ge,G}from"./chunk-seb9y51t.js";function E(r,e){for(let n of Object.values(e.tasks))if(Ku(n)&&n.identity.agentName===r)return n.id;return}function I(r,e,n){e.update(r,(a)=>({...a,awaitingPlanApproval:n!==null,pendingPlanApproval:n?{requestId:n.requestId,answered:!1}:void 0}))}function QOo(r,e,n,a){let s=n.get(r);if(!s||!Ku(s)||!s.awaitingPlanApproval)return null;switch(R6t(s.pendingPlanApproval,e)){case"mismatch":return t(`[InProcessTeammate] Plan approval response ${S(e.requestId)} does not name the pending plan request ${S(s.pendingPlanApproval?.requestId)}; resolving the wait as a rejection`,{level:"warn"}),p("plan_approval","request_binding_mismatch"),I(r,n,null),x6t(e);case"unbound":p("plan_approval","verdict_unbound");break;case"bound":y("plan_approval");break;case"already_answered":return null}if(!e.approved)return I(r,n,null),e;let P=C(e.permissionMode);return n.update(r,(m)=>({...m,awaitingPlanApproval:!1,pendingPlanApproval:void 0,permissionMode:P})),Ztr(s.identity.teamName,s.identity.agentName,P,a),e}function C(r){let e=Ql(Xk(r??"default"));if(e==="bypassPermissions"&&TE())return"default";if(e==="auto"&&!cv())return"default";return e}class A extends Error{constructor(r){super(r);this.name="PlanPreconditionError"}}function $ln(r){if(!r||gN()!=="default")return"";return`
+
+If this plan can be broken down into multiple independent tasks, consider spawning named teammates with the ${ht} tool (pass a \`name\`) to parallelize the work.`}var O=`Use this tool when you are in plan mode and have finished writing your plan to the plan file and are ready for user approval.
+
+## How This Tool Works
+- You should have already written your plan to the plan file specified in the plan mode system message
+- This tool does NOT take the plan content as a parameter - it will read the plan from the file you wrote
+- This tool simply signals that you're done planning and ready for the user to review and approve
+- The user will see the contents of your plan file when they review it
+
+## When to Use This Tool
+IMPORTANT: Only use this tool when the task requires planning the implementation steps of a task that requires writing code. For research tasks where you're gathering information, searching files, reading files or in general trying to understand the codebase - do NOT use this tool.
+
+## Before Using This Tool
+Ensure your plan is complete and unambiguous:
+- If you have unresolved questions about requirements or approach, use ${Ps} first (in earlier phases)
+- Once your plan is finalized, use THIS tool to request approval
+
+**Important:** Do NOT use ${Ps} to ask "Is this plan okay?" or "Should I proceed?" - that's exactly what THIS tool does. ExitPlanMode inherently requests user approval of your plan.
+
+## Examples
+
+1. Initial task: "Search for and understand the implementation of vim mode in the codebase" - Do not use the exit plan mode tool because you are not planning the implementation steps of a task.
+2. Initial task: "Help me implement yank mode for vim" - Use the exit plan mode tool after you have finished planning the implementation steps of the task.
+3. Initial task: "Add a new feature to handle user authentication" - If unsure about auth method (OAuth, JWT, etc.), use ${Ps} first, then use exit plan mode tool after clarifying the approach.
+`;var z=f(()=>u({tool:G(["Bash"]).describe("The tool this prompt applies to"),prompt:o().describe('Semantic description of the action, e.g. "run tests", "install dependencies"')})),N=f(()=>Ge({allowedPrompts:T(z()).optional().describe("Deprecated: no longer used.")}).passthrough()),Me=f(()=>N().extend({plan:o().optional().describe("The plan content (injected by normalizeToolInput from disk)"),planFilePath:o().optional().describe("The plan file path (injected by normalizeToolInput)")})),q=f(()=>u({plan:o().nullable().describe("The plan that was presented to the user"),isAgent:H(),filePath:o().optional().describe("The file path where the plan was saved"),hasTaskTool:H().optional().describe("Whether the Agent tool is available in the current context"),planWasEdited:H().optional().describe("True when the user edited the plan (CCR web UI or Ctrl+G); determines whether the plan is echoed back in tool_result"),awaitingLeaderApproval:H().optional().describe("When true, the teammate has sent a plan approval request to the team leader"),requestId:o().optional().describe("Unique identifier for the plan approval request")})),Y6=qt({name:Cu,searchHint:"present plan for approval and start coding (plan mode only)",backgrounding:"never",maxResultSizeChars:1e5,async description(){return"Prompts the user to exit plan mode and start coding"},async prompt(){return O},get inputSchema(){return N()},get outputSchema(){return q()},userFacingName(){return""},shouldDefer:!0,isEnabled(){if(Oh().length>0&&ve())return!1;if(ve()&&!Bft(aI()))return!1;return!0},isConcurrencySafe(){return!0},isReadOnly(){return!1},requiresUserInteraction(){if(ac())return!1;return!0},renderToolUseMessage(){return null},create(r){return{async validateInput(e){let n=r;if(n.agentContext.agentType==="subagent"&&n.agentContext.isBuiltIn===!0&&n.agentContext.subagentName===B$&&(ac()||n.permissions().mode==="plan"))return{result:!1,message:"A fork cannot exit plan mode; that belongs to the session that forked it. Finish your part and report back.",errorCode:2};if(ac())return{result:!0};let s=n.permissions().mode;if(s!=="plan")return i("tengu_exit_plan_mode_called_outside_plan",{model:Et(n.mainLoopModel()),mode:d(s),hasExitedPlanModeInSession:U7t()}),{result:!1,message:`You are not in plan mode. To enter plan mode, call the ${Ok} tool first. If your plan was already approved, continue with implementation.`,errorCode:1};return{result:!0}},async checkPermissions(e){if(ac())return{behavior:"allow",updatedInput:W2(Cu,e)};return{behavior:"ask",message:"Exit plan mode?",updatedInput:e}},async call(e,{onProgress:n}){let a=r,s=null,c=null;[s,c]=await Promise.all([import("./chunk-s3fm9x7p.js"),import("./chunk-5vtg4j6z.js")]);let P=!!a.agentId,m=Cw(a.agentId),b="plan"in e&&typeof e.plan==="string"?e.plan:void 0;yh(m);let w=b??await jWe(a.agentId,a.storageV5);if(b!==void 0&&m)await YYr(m,b,a.storageV5),cYe(a.storageV5);if(ac()&&l9t()){if(!w)throw new A(`No plan file found at ${m}. Please write your plan to this file before calling ExitPlanMode.`);let l=a_()||"unknown",g=fl(),v=jOn("plan_approval",RN(l,g||"default")),k={type:"plan_approval_request",from:l,timestamp:new Date().toISOString(),planFilePath:m,planContent:w,requestId:v};if(await sb("team-lead",{from:l,text:S(k),timestamp:new Date().toISOString()},g,a.storageV5)===void 0)throw new A("Failed to write the plan approval request to the lead's inbox \u2014 plan not submitted; try again");let _=E(l,{tasks:a.tasks()??{}});if(_)I(_,a.taskRegistry,{requestId:v});else xi().swarmPermissions.pendingPlanApproval={requestId:v,answered:!1};return{data:{plan:w,isAgent:!0,filePath:m,awaitingLeaderApproval:!0,requestId:v}}}let x=null;{let l=a.permissions().prePlanMode??"default";if(l==="auto"&&!(c?.isAutoModeGateEnabled()??!1)){let g=c?.getAutoModeUnavailableReason()??"circuit-breaker";x=c?.getAutoModeUnavailableNotification(g)??"auto mode unavailable",t(`[auto-mode gate @ ExitPlanModeV2Tool] prePlanMode=${l} but gate is off (reason=${g}) \u2014 falling back to default on plan exit`,{level:"warn"})}}if(x)n?.({type:"notification",notification:{key:"auto-mode-gate-plan-exit-fallback",text:`plan exit \u2192 default \xB7 ${x}`,priority:"immediate",color:"warning",timeoutMs:1e4}});let M=a.permissions();if(M.mode==="plan"){GD(!0),g6(!0);let l=M.prePlanMode??"default";{if(l==="auto"&&!(c?.isAutoModeGateEnabled()??!1))l="default";let k=l==="auto",h=s?.isAutoModeActive()??!1;if(s?.setAutoModeActive(k),h&&!k)DH(!0)}HZ({from:"plan",to:l,trigger:"exit_plan_mode"});let g=l==="auto",v=M.strippedDangerousRules;a.setToolPermissionContext((k)=>{let h=k;if(g)h=c?.stripDangerousPermissionsForAutoMode(h)??h;else if(v)h=c?.restoreDangerousPermissions(h)??h;return{...h,mode:l,prePlanMode:void 0}})}let R=Lo()&&a.tools.some((l)=>Ot(l,ht));return{data:{plan:w,isAgent:P,filePath:m,hasTaskTool:R||void 0,planWasEdited:b!==void 0||void 0}}}}},mapToolResultToToolResultBlockParam({isAgent:r,plan:e,filePath:n,hasTaskTool:a,planWasEdited:s,awaitingLeaderApproval:c,requestId:P},m){if(c)return{type:"tool_result",content:`Your plan has been submitted to the team lead for approval.
+
+Plan file: ${n}
+
+**What happens next:**
+1. Wait for the team lead to review your plan
+2. You will receive a message in your inbox with approval/rejection
+3. If approved, you can proceed with implementation
+4. If rejected, refine your plan based on the feedback
+
+**Important:** Do NOT proceed until you receive approval. Check your inbox for response.
+
+Request ID: ${P}`,tool_use_id:m};if(r)return{type:"tool_result",content:'User has approved the plan. There is nothing else needed from you now. Please respond with "ok"',tool_use_id:m};if(!e||e.trim()==="")return{type:"tool_result",content:"User has approved exiting plan mode. You can now proceed.",tool_use_id:m};let b=$ln(Boolean(a));return{type:"tool_result",content:`User has approved your plan. You can now start coding. Start with updating your todo list if applicable
+
+Your plan has been saved to: ${n}
+You can refer back to it if needed during implementation.${b}
+
+## ${s?"Approved Plan (edited by user)":"Approved Plan"}:
+${e}`,tool_use_id:m}}});
+export{QOo,$ln,Y6};

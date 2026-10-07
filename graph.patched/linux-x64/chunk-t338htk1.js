@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.290
+import{F}from"./chunk-aywwjcwq.js";import{B}from"./chunk-f16c4jnr.js";import{Yr}from"./chunk-tzahwj8w.js";import{b,Q}from"./chunk-gvn18sr5.js";import{Tn,LO}from"./chunk-4hsn0a4s.js";import{f}from"./chunk-wp37h1qm.js";import{De}from"./chunk-7n5tp35k.js";import{pQn,fQn,UI}from"./chunk-vanx1pds.js";import{Jl}from"./chunk-hdjzp1hc.js";import{o,E,C,u}from"./chunk-6kgnb6mn.js";import{createHash as D}from"crypto";import{mkdir as S,readdir as h,rm as w,unlink as z}from"fs/promises";import{join as p}from"path";var l=86400000,d=8388608;function c(t){return D("sha256").update(t).digest("hex").slice(0,8)}function n(t){return p(UI(),`.draft-${c(t)}`)}function m(t){return b({...t,ts:Date.now()})}async function KLt(t,r,e){await GVn(t,r,e)}async function GVn(t,r,e){if(B()&&e)return(await e.write(De.jobDraft(c(t)),m(r),{publishDiscipline:"atomic",mode:438&~process.umask()}).catch(()=>{return}))?.ok===!0;try{return await S(UI(),{recursive:!0}),await Tn(n(t),m(r)),!0}catch{return!1}}function dDr(t,r){try{LO(n(t),m(r))}catch{}}async function uDr(t,r){if(r){await r.delete(De.jobDraft(c(t))).catch(()=>{});return}await z(n(t)).catch(()=>{})}var g=f(()=>u({q:o(),collapsed:C(o()).optional(),ts:E()}));async function QHo(t,r){let e=r?await k(r,t):await Jl(n(t),d);if(e===null)return;let a;try{a=g().safeParse(Q(e))}catch{return}if(!a.success)return;let{q:i,collapsed:s,ts:y}=a.data;if(Date.now()-y>l)return;return{q:i,collapsed:s??[]}}async function k(t,r){return fQn(t,De.jobDraft(c(r)),{cap:d,screens:P(),screenKey:n(r)})}function P(){return pQn.of(F().host).drafts}async function vdn(){return Yr("job_sweep_drafts",async()=>{let t;try{t=await h(UI())}catch{return}let r=Date.now();await Promise.all(t.filter((e)=>e.startsWith(".draft-")).map(async(e)=>{let a=p(UI(),e),i=await Jl(a,d);if(i!==null)try{let s=g().safeParse(Q(i));if(s.success&&r-s.data.ts<=l)return}catch{}await w(a,{recursive:!0,force:!0}).catch(()=>{})}))})}
+export{KLt,GVn,dDr,uDr,QHo,vdn};

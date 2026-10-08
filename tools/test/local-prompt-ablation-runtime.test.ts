@@ -8,7 +8,7 @@ import { recordOracleCheck } from "./helpers/oracle-evidence"
 import { evaluateStaticPatchTests, type StaticPatchTest } from "../lib/patch-tests"
 
 const root = resolve(process.env.PATCHED_CC_ROOT ?? resolve(import.meta.dir, "../.."))
-const version = "2.1.290"
+const version = "2.1.293"
 const platforms = ["darwin-arm64", "linux-x64"] as const
 type Platform = (typeof platforms)[number]
 
@@ -16,9 +16,9 @@ type FunctionSources = {
   config: string
   rewrite: string
   emit: string
-  configName: "zto" | "nno"
-  rewriteName: "dbe" | "oSe"
-  emitName: "_Tt" | "aTt"
+  configName: "Hno" | "voo"
+  rewriteName: "pEe" | "sve"
+  emitName: "hCt" | "YRt"
 }
 
 type PromptConfig = { strings: string[]; matched: Set<string> }
@@ -83,7 +83,7 @@ function patchedFunctions(platform: Platform): FunctionSources {
 
   const graph = loadGraphBundle(resolve(root, `staging/${version}/graph/${platform}`), platform)
   const rendered = applyPatchEntriesToGraphBundle(graph, patches, version)
-  const chunkName = platform === "darwin-arm64" ? "chunk-y0b3kvx1.js" : "chunk-9wqh5j7s.js"
+  const chunkName = platform === "darwin-arm64" ? "chunk-nwqfvmza.js" : "chunk-g263vvvn.js"
   const graphFile = graph.files.find((file) => file.path === chunkName)
   expect(graphFile).toBeDefined()
   const source = rendered.texts.get(chunkName) ?? graphFile!.text
@@ -92,9 +92,9 @@ function patchedFunctions(platform: Platform): FunctionSources {
   const staticResults = evaluateStaticPatchTests(renderedBundle, staticTests as StaticPatchTest[])
   expect(staticResults.filter((result) => !result.ok)).toEqual([])
   const nodes = declarations(source)
-  const configName = platform === "darwin-arm64" ? "zto" : "nno"
-  const rewriteName = platform === "darwin-arm64" ? "dbe" : "oSe"
-  const emitName = platform === "darwin-arm64" ? "_Tt" : "aTt"
+  const configName = platform === "darwin-arm64" ? "Hno" : "voo"
+  const rewriteName = platform === "darwin-arm64" ? "pEe" : "sve"
+  const emitName = platform === "darwin-arm64" ? "hCt" : "YRt"
   const sources: FunctionSources = {
     configName,
     rewriteName,
@@ -126,20 +126,19 @@ function instantiate(
   const factory = new Function(
     "a",
     "process",
-    "ft",
-    "Nc",
-    "Lc",
-    "yTt",
-    "iTt",
-    "i",
+    "gt",
+    "Qc",
+    "Jc",
+    "gCt",
+    "VRt",
     "t",
+    "i",
     "c",
-    "uD",
-    "a0",
-    "PO",
-    "RO",
-    "bo",
-    "So",
+    "nL",
+    "Q0",
+    "i0",
+    "rM",
+    "_o",
     `${sources.config}\n${sources.rewrite}\n${sources.emit}\nreturn { config: ${sources.configName}, rewrite: ${sources.rewriteName} }`,
   ) as (...args: unknown[]) => NativeBindings
 
@@ -151,14 +150,13 @@ function instantiate(
     remoteCacheRead,
     "remove_prompt_strings",
     "remove_prompt_strings",
-    (name: unknown, metadata: unknown) => analyticsCalls.push({ name, metadata }),
     () => undefined,
+    (name: unknown, metadata: unknown) => analyticsCalls.push({ name, metadata }),
     () => undefined,
     (context: unknown) => record(context) && context.nativeSkip === true,
     (context: unknown) => record(context) && context.nativeSkip === true,
     Symbol("darwin-sentinel"),
     Symbol("linux-sentinel"),
-    () => state,
     () => state,
   )
 
@@ -193,7 +191,7 @@ test(sourceAdmissionCheck, () => {
   for (const platform of platforms) {
     withOracle("local-prompt-ablation/local-source-admission", sourceAdmissionCheck, platform, () => {
       const sources = patchedFunctions(platform)
-      const nativeModeGate = platform === "darwin-arm64" ? "if(uD(n)||e===PO)return e;" : "if(a0(n)||e===RO)return e;"
+      const nativeModeGate = platform === "darwin-arm64" ? "if(nL(n)||e===i0)return e;" : "if(Q0(n)||e===rM)return e;"
       expect(sources.rewrite).toContain(nativeModeGate)
 
       const denied = instantiate(sources, {

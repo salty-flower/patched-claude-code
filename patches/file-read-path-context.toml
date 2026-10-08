@@ -4366,7 +4366,183 @@ locator_kind = "ast_transform"
   name = "2.1.290 parts result keeps its current size expression and adds the suffix"
   assert_contains = '''un(o.file.originalSize),")"],Z])'''
 
+[[patches.tests]]
+kind = "static"
+name = "2.1.290 parts result does not leave the unwrapped current summary"
+assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",un(o.file.originalSize),")"]'
+
+[[patches]]
+name = "read-result-path-image-2-1-293"
+lineage = "read-result-path-image"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Append the compact path suffix to the 2.1.293 image Read result. Both target graphs now bind the current size formatter as en instead of the 2.1.290 binding un; the transform preserves the current summary expression and appends the suffix Z from the shared context patch."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read image ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
   [[patches.tests]]
   kind = "static"
-  name = "2.1.290 parts result does not leave the unwrapped current summary"
-  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",un(o.file.originalSize),")"]'
+  name = "2.1.293 image result keeps its current formatter and adds the path suffix"
+  assert_contains = "s=en(t)"
+  assert_not_contains = "s=un(t)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 image result has no unwrapped summary"
+  assert_contains = '''([...["Read image ("'''
+  assert_not_contains = 'children:["Read image (",s,")"]'
+
+[[patches]]
+name = "read-result-path-pdf-2-1-293"
+lineage = "read-result-path-pdf"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Append the compact path suffix to the 2.1.293 PDF Read result. Both target graphs now bind the current size formatter as en instead of the 2.1.290 binding un; the transform preserves the current summary expression and appends the suffix Z from the shared context patch."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read PDF ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 PDF result keeps its current formatter and adds the path suffix"
+  assert_contains = "s=en(t)"
+  assert_not_contains = "s=un(t)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 PDF result has no unwrapped summary"
+  assert_contains = '''([...["Read PDF ("'''
+  assert_not_contains = 'children:["Read PDF (",s,")"]'
+
+[[patches]]
+name = "read-result-path-notebook-2-1-293"
+lineage = "read-result-path-notebook"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Append the compact path suffix to the 2.1.293 notebook Read result. The AST transform preserves the current cell-count summary and appends the suffix Z from the shared context patch."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = " cells"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 notebook result keeps its current cell-count summary and adds the path suffix"
+  assert_contains = '''" cells"],Z])'''
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:t.length})," cells"]'
+
+[[patches]]
+name = "read-result-path-parts-2-1-293"
+lineage = "read-result-path-parts"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Append the compact basename suffix to the 2.1.293 page and parts Read result. The current size formatter binding is en, which differs from the 2.1.290 binding un. The transform captures the whole summary expression and inserts only the already-bound path suffix Z."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "pages"
+    strings = ["\"Read \"", ".file.originalSize", ".file.count"]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 parts result keeps its current size expression and adds the suffix"
+  assert_contains = '''en(o.file.originalSize),")"],Z])'''
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",en(o.file.originalSize),")"]'
+
+[[patches]]
+name = "read-result-path-text-2-1-293"
+lineage = "read-result-path-text"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Append the compact path suffix to the 2.1.293 text Read result. The AST transform preserves the current line-count summary and appends the suffix Z from the shared context patch."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "lines"
+    strings = ["\"Read \"", "bold:!0", "\"line\""]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 text result keeps its current line-count summary and adds the path suffix"
+  assert_contains = '''"lines"],Z])'''
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:t})," ",t===1?"line":"lines"]'
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-293"
+lineage = "read-result-path-unchanged"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Append the compact path suffix to the 2.1.293 unchanged Read result. The seeded-path formatter now uses _i, Kl, and f instead of the 2.1.290 bindings ui, Nl, and g; the transform preserves that current conditional and adds the shared suffix Z."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    string_literal = "Unchanged since last read"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 unchanged result keeps its current seeded-path formatter and adds the suffix"
+  assert_contains = '''_i(Kl(f(o.file.filePath)))'''
+  assert_not_contains = '''ui(Nl(g(o.file.filePath)))'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 unchanged result has no unwrapped children conditional"
+  assert_contains = '''"Unchanged since last read",Z])'''
+  assert_not_contains = 'children:o.source==="seeded"?'

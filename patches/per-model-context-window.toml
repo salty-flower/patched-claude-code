@@ -1,5 +1,5 @@
 name = "per-model-context-window"
-target_version = "2.1.281"
+target_version = "2.1.293"
 applies_to = ">=2.1.238 <2.2.0"
 
 rationale = """
@@ -378,3 +378,59 @@ kind = "static"
 name = "2.1.290 Linux context resolver captures current model argument"
 assert_contains = '''function mv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(pu(e))return 1e6;'''
 assert_not_contains = '''function vv(e,n){'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-293-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = ["darwin-arm64"]
+rationale = "Resolve the positive per-model context-window declaration before upstream detection in the 2.1.293 Darwin graph. The AST captures the current resolver's model parameter; its body calls vu and g6 for detection, while the inserted preamble uses only the captured parameter and process.env."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Pv", source_regex = '''^function Pv\(e,n\)\{if\(vu\(e\)\)return 1e6;''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.transform]
+op = "prepend_function_body"
+code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.293 Darwin context resolver uses its current model symbol"
+assert_contains = '''function Pv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(vu(e))return 1e6;'''
+assert_not_contains = '''function fv(e,n){if(fu(e))return 1e6;'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-293-linux-x64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = ["linux-x64"]
+rationale = "Resolve the positive per-model context-window declaration before upstream detection in the 2.1.293 Linux graph. The AST captures the current resolver's model parameter; its body calls vu and Pv for detection, while the inserted preamble uses only the captured parameter and process.env."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "Iv", source_regex = '''^function Iv\(e,n\)\{if\(vu\(e\)\)return 1e6;''' }
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.transform]
+op = "prepend_function_body"
+code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.293 Linux context resolver uses its current model symbol"
+assert_contains = '''function Iv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(vu(e))return 1e6;'''
+assert_not_contains = '''function mv(e,n){if(pu(e))return 1e6;'''

@@ -862,7 +862,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       TARGET_VERSION === "2.1.282" ||
       TARGET_VERSION === "2.1.285" ||
       TARGET_VERSION === "2.1.289" ||
-      TARGET_VERSION === "2.1.290"
+      TARGET_VERSION === "2.1.290" ||
+      TARGET_VERSION === "2.1.293"
     ) {
       const versionSuffix = TARGET_VERSION.replaceAll(".", "-")
       const effortMemoSlot = activeStatuslineMemoIndex(
@@ -878,7 +879,16 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         .filter((file) => file.endsWith(".js"))
         .map((file) => readFileSync(join(linuxGraphDir, file), "utf8"))
         .join("\n")
-      for (const bundle of [patched, linuxPatched]) {
+      for (const [platform, bundle] of [
+        ["darwin-arm64", patched],
+        ["linux-x64", linuxPatched],
+      ] as const) {
+        if (TARGET_VERSION === "2.1.293") {
+          expect(bundle).toContain(
+            'new cs("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")',
+          )
+          expect(bundle).not.toContain('new os("--hide-builtin-footer [items]"')
+        }
         expect(bundle).toMatch(
           /new [\w$]+\("--hide-builtin-footer \[items\]","Hide built-in footer items"\)\.preset\("all"\)/,
         )
@@ -910,12 +920,38 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         expect(bundle).toContain('__acc_rate_settings?.disabledFooter?.includes("footer")')
         expect(bundle).toMatch(/__acc_remove_rate\("rate-limit-warning"\);[\w$]+=null;return}/)
         expect(bundle).toContain("__acc_rate_context.store.getState().settings?.statusLine")
-        if (TARGET_VERSION === "2.1.289" || TARGET_VERSION === "2.1.290") {
+        if (
+          TARGET_VERSION === "2.1.289" ||
+          TARGET_VERSION === "2.1.290" ||
+          TARGET_VERSION === "2.1.293"
+        ) {
           expect(bundle).toMatch(
             /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\(\2,([\w$]+)\)\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\(\2,\4\)}}/,
           )
           const effortPayload = /effort_level:[^,]+,\.\.\.[^\n]{0,220}/.exec(bundle)?.[0] ?? ""
           expect(effortPayload).not.toMatch(/(?:jE|Bv)\.session\(/)
+          if (TARGET_VERSION === "2.1.293") {
+            const currentEffort =
+              platform === "darwin-arm64"
+                ? "effort_level:QE(Ie)?hT(Ie,ke)??null:null,...QE(Ie)&&{effort:{level:hT(Ie,ke)}}"
+                : "effort_level:Xv(Ie)?fC(Ie,ke)??null:null,...Xv(Ie)&&{effort:{level:fC(Ie,ke)}}"
+            const previousEffort =
+              platform === "darwin-arm64"
+                ? "effort_level:xE(Ne)?LA(Ne,ke)??null:null,...xE(Ne)&&{effort:{level:LA(Ne,ke)}}"
+                : "effort_level:Cv(Me)?MA(Me,ke)??null:null,...Cv(Me)&&{effort:{level:MA(Me,ke)}}"
+            const currentAppStateHook = platform === "darwin-arm64" ? "q" : "V"
+            const previousAppStateHook = platform === "darwin-arm64" ? "V" : "q"
+            const selectorCode =
+              '((state)=>state.settings.statusLine?.hideBuiltinFooter||state.settings.statusLine?.disabledFooter?.includes("effort_notification"))'
+            expect(bundle).toContain(currentEffort)
+            expect(bundle).not.toContain(previousEffort)
+            for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
+              expect(bundle).toContain(`let ${selector}=${currentAppStateHook}${selectorCode}`)
+              expect(bundle).not.toContain(`let ${selector}=${previousAppStateHook}${selectorCode}`)
+              expect(bundle).not.toContain(`let ${selector}=xe(`)
+            }
+            expect(bundle).toContain("permission_mode:n,model:{id:")
+          }
           expect(/permission_mode:[\w$]+,model:\{id:/.test(bundle)).toBe(true)
           expect(/return\{permission_mode:[\w$]+,\.\.\./.test(bundle)).toBe(false)
         } else if (TARGET_VERSION === "2.1.285") {

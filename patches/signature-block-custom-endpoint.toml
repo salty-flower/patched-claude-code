@@ -1,5 +1,5 @@
 name = "signature-block-custom-endpoint"
-target_version = "2.1.281"
+target_version = "2.1.293"
 applies_to = ">=2.1.150 <2.2.0"
 
 rationale = """
@@ -1254,3 +1254,53 @@ assert_not_contains = '''h=Qqt(e,s,g),'''
 kind = "static"
 name = "2.1.290 Linux removes the superseded provider predicate"
 assert_not_contains = '''Me()==="firstParty"&&ni()?Qqt(e,s,g)'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-293-darwin-arm64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = ["darwin-arm64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "Keep the 2.1.293 Darwin normalizer's foreign-model thinking filter when the provider is first-party and the endpoint gate accepts the Anthropic API. The graph calls Eon for normalization; imported Pe selects the provider, and imported pi honors the explicit first-party base-URL assumption or checks for api.anthropic.com. Gfr uses both predicates together in the message module. Other endpoints remove redacted thinking and signed thinking blocks from assistant messages before request normalization."
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["messagesPreNormalize:", "h=Eon(e,s,g)"] }
+
+[patches.transform]
+op = "replace_substring"
+find = "h=Eon(e,s,g),"
+value = '''h=Pe()==="firstParty"&&pi()?Eon(e,s,g):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.293 Darwin retains official endpoint signature handling"
+assert_contains = '''h=Pe()==="firstParty"&&pi()?Eon(e,s,g):(()=>{let __pccChanged=!1'''
+assert_not_contains = '''h=TZt(e,s,g),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-293-linux-x64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = ["linux-x64"]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "Keep the 2.1.293 Linux normalizer's foreign-model thinking filter when the provider is first-party and the endpoint gate accepts the Anthropic API. The graph calls Ton for normalization; imported Pe selects the provider, and imported pi honors the explicit first-party base-URL assumption or checks for api.anthropic.com. kpr uses both predicates together in the message module. Other endpoints remove redacted thinking and signed thinking blocks from assistant messages before request normalization."
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", strings = ["messagesPreNormalize:", "h=Ton(e,s,g)"] }
+
+[patches.transform]
+op = "replace_substring"
+find = "h=Ton(e,s,g),"
+value = '''h=Pe()==="firstParty"&&pi()?Ton(e,s,g):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.293 Linux retains official endpoint signature handling"
+assert_contains = '''h=Pe()==="firstParty"&&pi()?Ton(e,s,g):(()=>{let __pccChanged=!1'''
+assert_not_contains = '''h=vZt(e,s,g),'''

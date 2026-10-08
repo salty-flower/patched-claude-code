@@ -17,7 +17,7 @@ import {
 } from "../lib/prompt-identity"
 import { summarizePromptIdentityDraft } from "../lib/prompt-identity-audit"
 import { latestPreviousLedgerVersion, preparePromptIdentityBump } from "../lib/prompt-identity-bump"
-import { loadPatches, sha256, writeReleasePayload } from "../lib/release-payload"
+import { hashPatchSet, loadPatches, sha256, writeReleasePayload } from "../lib/release-payload"
 import { RUNTIME_PRELOAD_FILES } from "../lib/runtime-support"
 
 const ROOT = join(import.meta.dir, "..", "..")
@@ -46,6 +46,25 @@ function writeFixture(root: string): { upstream: string; patched: string; identi
   bootstrapPromptIdentityFiles(identityRoot, "2.1.217", inspectPromptIdentityObservations(source, "2.1.217"))
   return { upstream, patched, identityRoot }
 }
+
+test("patch-set streaming hash preserves the legacy byte contract", () => {
+  const duplicate = { patch: { name: "same" }, raw: 'name = "same"\n' }
+  const fixtures: Array<Array<{ patch: { name: string }; raw: string }>> = [
+    [],
+    [{ patch: { name: "one" }, raw: 'name = "one"\n' }],
+    [
+      { patch: { name: "first" }, raw: 'name = "first"\n' },
+      { patch: { name: "模型-π" }, raw: 'rationale = "café 🧪"\n' },
+      duplicate,
+      duplicate,
+    ],
+  ]
+
+  for (const fixture of fixtures) {
+    const legacyHash = sha256(fixture.map(({ patch, raw }) => `${patch.name}\0${raw}`).join("\n"))
+    expect(hashPatchSet(fixture)).toEqual(legacyHash)
+  }
+})
 
 test("static prompt catalog emits exact Markdown and explicit contextual gaps", () => {
   withTempDir((root) => {
@@ -496,11 +515,7 @@ test("catalog extraction rejects malformed UTF-8 before parsing", () => {
 test("release payload rebinds a verified CI catalog when upstream bytes are unavailable", () => {
   withTempDir((root) => {
     const { upstream, patched, identityRoot } = writeFixture(root)
-    const patchSetSha256 = sha256(
-      loadPatches(ROOT)
-        .map(({ patch, raw }) => `${patch.name}\0${raw}`)
-        .join("\n"),
-    ).sri
+    const patchSetSha256 = hashPatchSet(loadPatches(ROOT)).sri
     const catalogDir = join(root, "ci", "catalog")
     writePromptCatalog({
       upstreamVersion: "2.1.217",

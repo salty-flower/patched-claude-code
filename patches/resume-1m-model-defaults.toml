@@ -1,5 +1,5 @@
 name = "resume-1m-model-defaults"
-target_version = "2.1.170"
+target_version = "2.1.293"
 applies_to = ">=2.1.170 <2.1.172"
 
 rationale = """
@@ -1975,6 +1975,104 @@ kind = "static"
 name = "2.1.290 Linux retains the current canonical family normalizer"
 assert_contains = "s=n?In(n):void 0"
 assert_not_contains = "s=n?Hn(n):void 0"
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "FunctionDeclaration"
+strings = ["kind:\"mode_dependent_setting\"", "\"unknown_family\"", "modelId", "[1m]"]
+
+[patches.ast.captures.initial]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.normalized]
+kind = "identifier"
+path = "body.body.0.declarations.1.id"
+
+[patches.ast.captures.normalize]
+kind = "identifier"
+path = "body.body.0.declarations.1.init.consequent.callee"
+
+[patches.ast.captures.current]
+kind = "identifier"
+path = "init.callee"
+
+[patches.ast.captures.current.select]
+node = "VariableDeclarator"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\(\\)$"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = ",[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\?[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\):void 0,"
+value = ",__acc_resume_model=%%CAPTURE:initial%%??%%CAPTURE:current%%(),%%CAPTURE:normalized%%=__acc_resume_model?%%CAPTURE:normalize%%(__acc_resume_model):void 0,"
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-293-darwin-arm64"
+platforms = ["darwin-arm64"]
+lineage = "resume-detects-default-1m-after-alias-resolution"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = "Resolve the current 2.1.293 Darwin model when the resume callback has no initial model, then guard alias normalization against an absent default. The AST captures the current-model getter Gy and alias normalizer Pt from the target function; Dn remains the canonical family normalizer."
+locator_kind = "ast_transform"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.293 Darwin resolves current model before alias normalization"
+assert_contains = ",__acc_resume_model=o??Gy(),n=__acc_resume_model?Pt(__acc_resume_model):void 0"
+assert_not_contains = ",__acc_resume_model=o??wy(),n=__acc_resume_model?xt(__acc_resume_model):void 0"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "FunctionDeclaration"
+strings = ["kind:\"mode_dependent_setting\"", "\"unknown_family\"", "modelId", "[1m]"]
+
+[patches.ast.captures.initial]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.normalized]
+kind = "identifier"
+path = "body.body.0.declarations.1.id"
+
+[patches.ast.captures.normalize]
+kind = "identifier"
+path = "body.body.0.declarations.1.init.consequent.callee"
+
+[patches.ast.captures.current]
+kind = "identifier"
+path = "init.callee"
+
+[patches.ast.captures.current.select]
+node = "VariableDeclarator"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\(\\)$"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = ",[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\?[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\):void 0,"
+value = ",__acc_resume_model=%%CAPTURE:initial%%??%%CAPTURE:current%%(),%%CAPTURE:normalized%%=__acc_resume_model?%%CAPTURE:normalize%%(__acc_resume_model):void 0,"
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-293-linux-x64"
+platforms = ["linux-x64"]
+lineage = "resume-detects-default-1m-after-alias-resolution"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+rationale = "Resolve the current 2.1.293 Linux model when the resume callback has no initial model, then guard alias normalization against an absent default. The AST captures the current-model getter Wy and alias normalizer Pt from the target function; Dn remains the canonical family normalizer."
+locator_kind = "ast_transform"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.293 Linux resolves current model before alias normalization"
+assert_contains = ",__acc_resume_model=o??Wy(),n=__acc_resume_model?Pt(__acc_resume_model):void 0"
+assert_not_contains = ",__acc_resume_model=o??Sy(),n=__acc_resume_model?xt(__acc_resume_model):void 0"
+
 [patches.ast]
 schema = 1
 

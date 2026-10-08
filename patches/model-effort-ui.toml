@@ -8878,3 +8878,1375 @@ kind = "static"
 name = "2.1.290 model-effort-slider-scope slider session scope wording"
 assert_contains = "children:[Ye,\" for this model, this session\"]"
 assert_not_contains = "children:[Ye,\" for this session only\"]"
+
+[[patches]]
+name = "model-effort-picker-import-2-1-293-darwin"
+lineage = "model-effort-picker-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the current Darwin model-local effort resolver into the 2.1.293 ModelPicker chunk. The target component already imports native selector lc; bind Vw from the current core chunk for model-local reads."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{[^}]+\}from"\./chunk-a6m0cyhg\.js";?$'
+    strings = [
+  "hle",
+  "QE",
+  "Yte",
+  "Hrt",
+  "nA",
+  "Upr",
+  "Bpr",
+  "Fhe",
+  "M5",
+  "f7",
+  "WN",
+  "g7",
+  "Noo",
+  "F5t",
+  "Bq",
+  "lc",
+  "Nrt",
+  "h7",
+  "D5",
+  "hT",
+  "ly",
+  "N1"
+]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin picker imports the current resolver export"
+  assert_contains = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js";'
+  assert_not_contains = 'import{kw as patchedEffort}from"./chunk-3f84vcqr.js"'
+
+[[patches]]
+name = "model-effort-picker-import-2-1-293-linux"
+lineage = "model-effort-picker-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Import the current Linux model-local effort resolver into the 2.1.293 ModelPicker chunk. The target component already imports native selector lc; bind Gw from the current core chunk for model-local reads."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{[^}]+\}from"\./chunk-hxnfcf28\.js";?$'
+    strings = [
+  "dle",
+  "Xv",
+  "Wte",
+  "Trt",
+  "ZT",
+  "bpr",
+  "Spr",
+  "Ohe",
+  "A3",
+  "aJ",
+  "NN",
+  "cJ",
+  "coo",
+  "E3t",
+  "HK",
+  "lc",
+  "xrt",
+  "dJ",
+  "C3",
+  "fC",
+  "ly",
+  "AU"
+]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux picker imports the current resolver export"
+  assert_contains = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js";'
+  assert_not_contains = 'import{kw as patchedEffort}from"./chunk-w05br7qr.js"'
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-293-darwin"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Hide the 2.1.293 Darwin native effort-adjustment hint when the selected model is pinned by CLI effort, preserving the existing filter and Ultracode controls."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "LogicalExpression"
+    source = '(!io||xo==="")&&r(n,{color:"subtle",children:[" ",e(G,{chord:["left","right"],action:"adjust"})]})'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '!patchedEffort.session(Qn).cli&&(!io||xo==="")&&r(n,{color:"subtle",children:[" ",e(G,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin picker hides adjustment hint for CLI-pinned effort"
+  assert_contains = '!patchedEffort.session(Qn).cli&&(!io||xo==="")'
+  assert_not_contains = "!patchedEffort.session(Xn).cli"
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-293-linux"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Hide the 2.1.293 Linux native effort-adjustment hint when the selected model is pinned by CLI effort, preserving the existing filter and Ultracode controls."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "LogicalExpression"
+    source = '(!io||_o==="")&&r(n,{color:"subtle",children:[" ",e(z,{chord:["left","right"],action:"adjust"})]})'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '!patchedEffort.session(Qn).cli&&(!io||_o==="")&&r(n,{color:"subtle",children:[" ",e(z,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux picker hides adjustment hint for CLI-pinned effort"
+  assert_contains = '!patchedEffort.session(Qn).cli&&(!io||_o==="")'
+  assert_not_contains = "!patchedEffort.session(Xn).cli"
+
+[[patches]]
+name = "model-effort-picker-hotkey-echo-2-1-293-darwin"
+lineage = "model-effort-picker-hotkey-echo"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Append the 2.1.293 Darwin selected model's effective effort and source to the existing ModelPicker hotkey notice while preserving native model and saved-default wording."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Model set to ",
+  "model-switched",
+  "tengu_model_picker_hotkey"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "let rS=([^;]+);if\\(rS=rS\\+fwe\\(iM,\\$N,nS\\)"
+  value = 'const effective=patchedEffort.session(nS);let rS=$1+" with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")";if(rS=rS+fwe(iM,$N,nS)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin model picker hotkey notice reports effective effort source"
+  assert_contains = 'effective.source+" for "+effective.slug'
+  assert_not_contains = "const effective=patchedEffort.session(Tv);let Pv"
+
+[[patches]]
+name = "model-effort-picker-hotkey-echo-2-1-293-linux"
+lineage = "model-effort-picker-hotkey-echo"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Append the 2.1.293 Linux selected model's effective effort and source to the existing ModelPicker hotkey notice while preserving native model and saved-default wording."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Model set to ",
+  "model-switched",
+  "tengu_model_picker_hotkey"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "let dS=([^;]+);if\\(dS=dS\\+cwe\\(lM,WN,iS\\)"
+  value = 'const effective=patchedEffort.session(iS);let dS=$1+" with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")";if(dS=dS+cwe(lM,WN,iS)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux model picker hotkey notice reports effective effort source"
+  assert_contains = 'effective.source+" for "+effective.slug'
+  assert_not_contains = "const effective=patchedEffort.session(hv);let Sv"
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-293-darwin"
+lineage = "model-effort-picker-initial"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Initialize the 2.1.293 Darwin ModelPicker effort from the selected model's resolver value, retaining the native initial value as fallback."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = "^rd\\(xn!==void 0\\?N1\\(xn\\):void 0\\)$"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "rd((()=>{let initial=patchedEffort.session(It.value).value;return initial!==void 0?N1(initial):xn!==void 0?N1(xn):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin picker initializes from the selected model resolver"
+  assert_contains = "patchedEffort.session(It.value).value"
+  assert_not_contains = "Bc(Fn!==void 0?G$(Fn):void 0)"
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-293-linux"
+lineage = "model-effort-picker-initial"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Initialize the 2.1.293 Linux ModelPicker effort from the selected model's resolver value, retaining the native initial value as fallback."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = "^nd\\(_n!==void 0\\?AU\\(_n\\):void 0\\)$"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "nd((()=>{let initial=patchedEffort.session(It.value).value;return initial!==void 0?AU(initial):_n!==void 0?AU(_n):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux picker initializes from the selected model resolver"
+  assert_contains = "patchedEffort.session(It.value).value"
+  assert_not_contains = "Uc(On!==void 0?MF(On):void 0)"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-293-darwin"
+lineage = "model-effort-picker-state-setter"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Capture the current 2.1.293 Darwin ModelPicker local effort-state setter. Vw.session stores per-model choices in the session owner; go triggers the component rerender after a model adjustment."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "modelPicker:increaseEffort", "modelPicker:thisSessionOnly" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __acc_set_state=(value)=>go(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin picker captures its current local effort setter"
+  assert_contains = "const __acc_set_state=(value)=>go(value);"
+  assert_not_contains = "let __acc_set_state=__acc_state_setter();"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-293-linux"
+lineage = "model-effort-picker-state-setter"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Capture the current 2.1.293 Linux ModelPicker local effort-state setter. Gw.session stores per-model choices in the session owner; go triggers the component rerender after a model adjustment."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "modelPicker:increaseEffort", "modelPicker:thisSessionOnly" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __acc_set_state=(value)=>go(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux picker captures its current local effort setter"
+  assert_contains = "const __acc_set_state=(value)=>go(value);"
+  assert_not_contains = "let __acc_set_state=__acc_state_setter();"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-293-darwin"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "In chunk-me4xzjyw.js, retain native left/right actions while cycling the focused option from and writing it through the 2.1.293 resolver."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(wr\\)=>\\{let On=qt\\(\\),is=Go\\.find\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(wr)=>{let selected=qt(),row=Go.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=kS(selected),config=lK(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=n0e(current.value??config.defaultEffort,wr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?N1(effective.value):gse(selected));No(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker arrows use Darwin symbols and resolver API"
+  assert_contains = "model=kS(selected),config=lK(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=n0e(current.value??config.defaultEffort"
+  assert_not_contains = "let model=iS(selected),config=s1(selected)"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-293-linux"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "In chunk-848z1p5h.js, retain native left/right actions while cycling the focused option from and writing it through the 2.1.293 resolver."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(wr\\)=>\\{let On=Vt\\(\\),is=zo\\.find\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(wr)=>{let selected=Vt(),row=zo.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=DS(selected),config=yK(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=$0e(current.value??config.defaultEffort,wr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?A3(effective.value):hse(selected));Do(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker arrows use Linux symbols and resolver API"
+  assert_contains = "model=DS(selected),config=yK(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=$0e(current.value??config.defaultEffort"
+  assert_not_contains = "let model=cS(selected),config=p1(selected)"
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-293-darwin"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Keep the native focus callback in chunk-me4xzjyw.js, then resolve the effort value for the focused option."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(wr\\)=>\\{if\\(xt\\(wr\\),Fo\\(\\)\\)return;let On=lc\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = "(wr)=>{if(xt(wr),Fo())return;let effective=patchedEffort.session(kS(wr));go(effective.value!==void 0?N1(effective.value):gse(wr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker focus uses Darwin symbols and resolver API"
+  assert_contains = "if(xt(wr),Fo())return;let effective=patchedEffort.session(kS(wr))"
+  assert_not_contains = "if(At(Un),Wo())return;let effective=patchedEffort.session(iS(Un))"
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-293-linux"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Keep the native focus callback in chunk-848z1p5h.js, then resolve the effort value for the focused option."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(wr\\)=>\\{if\\(xt\\(wr\\),Lo\\(\\)\\)return;let On=lc\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = "(wr)=>{if(xt(wr),Lo())return;let effective=patchedEffort.session(DS(wr));go(effective.value!==void 0?AU(effective.value):hse(wr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker focus uses Linux symbols and resolver API"
+  assert_contains = "if(xt(wr),Lo())return;let effective=patchedEffort.session(DS(wr))"
+  assert_not_contains = "if(It(Un),Ho())return;let effective=patchedEffort.session(cS(Un))"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-293-darwin"
+lineage = "model-effort-picker-select"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Preserve the native ns selection callback in chunk-me4xzjyw.js while forwarding only a supported explicit resolver value when the CLI does not pin effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ns"
+    strings = [ "tengu_model_command_menu_effort", "QE(On)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let ks=$r&&On&&QE(On)?Fs:void 0"
+  value = "let effective=On?patchedEffort.session(On):void 0,ks=$r&&On&&QE(On)&&!effective.cli?(effective.value??Fs):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker selection uses Darwin symbols and resolver API"
+  assert_contains = "let effective=On?patchedEffort.session(On):void 0,ks=$r&&On&&QE(On)&&!effective.cli?"
+  assert_not_contains = "let effective=hr?patchedEffort.session(hr):void 0,Ns=$r&&hr&&xE(hr)&&!effective.cli?"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-293-linux"
+lineage = "model-effort-picker-select"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Preserve the native ns selection callback in chunk-848z1p5h.js while forwarding only a supported explicit resolver value when the CLI does not pin effort."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ns"
+    strings = [ "tengu_model_command_menu_effort", "Xv(On)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let ks=Wr&&On&&Xv(On)?Us:void 0"
+  value = "let effective=On?patchedEffort.session(On):void 0,ks=Wr&&On&&Xv(On)&&!effective.cli?(effective.value??Us):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker selection uses Linux symbols and resolver API"
+  assert_contains = "let effective=On?patchedEffort.session(On):void 0,ks=Wr&&On&&Xv(On)&&!effective.cli?"
+  assert_not_contains = "let effective=hr?patchedEffort.session(hr):void 0,Ls=Vr&&hr&&Cv(hr)&&!effective.cli?"
+
+[[patches]]
+name = "model-effort-picker-source-2-1-293-darwin"
+lineage = "model-effort-picker-source"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Show the 2.1.293 resolver source beside the native effort row in chunk-me4xzjyw.js while retaining its default label."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source_regex = '^Ar===ar\?" \(default\)":""$'
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'patchedEffort.session(kS(Yn)).source==="default"?" (default)":" ("+patchedEffort.session(kS(Yn)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker source uses Darwin symbols and resolver API"
+  assert_contains = 'patchedEffort.session(kS(Yn)).source==="default"?" (default)"'
+  assert_not_contains = 'patchedEffort.session(Xn).source==="default"'
+
+[[patches]]
+name = "model-effort-picker-source-2-1-293-linux"
+lineage = "model-effort-picker-source"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Show the 2.1.293 resolver source beside the native effort row in chunk-848z1p5h.js while retaining its default label."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source_regex = '^vr===ar\?" \(default\)":""$'
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'patchedEffort.session(DS(Yn)).source==="default"?" (default)":" ("+patchedEffort.session(DS(Yn)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 picker source uses Linux symbols and resolver API"
+  assert_contains = 'patchedEffort.session(DS(Yn)).source==="default"?" (default)"'
+  assert_not_contains = 'patchedEffort.session(Xn).source==="default"'
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-293-darwin"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Authored against 2.1.293 Darwin. Keep the native four-slot slider wrapper, but route CLI-pinned or unsupported effort through the status-only component used by /effort current. That component needs only onDone; the typed-command component requires command arguments and message access. Preserve the native slider and Ultracode branches for editable values."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ko"
+    strings = [ "let o=w(4);", "e(Ut,{...d})", "e(It,{...d})" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "function ko(d){let o=w(4);"
+  value = "function ko(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(Eo,{onDone:d.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin slider guard preserves the native memo wrapper and current-status route"
+  assert_contains = "function ko(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(Eo,{onDone:d.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin current-status component accepts only the completion callback"
+  assert_contains = "function Eo(d){let{onDone:l}=d"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin current command routes to the status-only component"
+  assert_contains = 'o==="current"||o==="status")return e(Eo,{onDone:d});'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin slider guard does not use the typed-command component"
+  assert_not_contains = "function ko(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(Ao,{onDone:d.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin slider guard rejects the stale 2.1.290 wrapper"
+  assert_not_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();"
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-293-linux"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Authored against 2.1.293 Linux. Keep the native four-slot slider wrapper, but route CLI-pinned or unsupported effort through the status-only component used by /effort current. That component needs only onDone; the typed-command component requires command arguments and message access. Preserve the native slider and Ultracode branches for editable values."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "No"
+    strings = [ "let o=w(4);", "e(Ut,{...d})", "e(It,{...d})" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "function No(d){let o=w(4);"
+  value = "function No(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(Ao,{onDone:d.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux slider guard preserves the native memo wrapper and current-status route"
+  assert_contains = "function No(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(Ao,{onDone:d.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux current-status component accepts only the completion callback"
+  assert_contains = "function Ao(d){let{onDone:l}=d"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux current command routes to the status-only component"
+  assert_contains = 'o==="current"||o==="status")return e(Ao,{onDone:d});'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux slider guard does not use the typed-command component"
+  assert_not_contains = "function No(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(wo,{onDone:d.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux slider guard rejects the stale 2.1.290 wrapper"
+  assert_not_contains = "function Oo(d){let o=w(4);const effective=patchedEffort.session();"
+
+[[patches]]
+name = "model-effort-slider-import-2-1-293-darwin"
+lineage = "model-effort-slider-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the 2.1.293 Darwin model-scoped effort resolver into the native slider module so its initial selection and guard share the same per-model session value."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{[^}]+\}from"\./chunk-a6m0cyhg\.js";?$'
+    strings = [ "WN", "eDe", "hT" ]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin slider imports the current resolver binding"
+  assert_contains = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js"'
+  assert_not_contains = 'import{kw as patchedEffort}from"./chunk-3f84vcqr.js"'
+
+[[patches]]
+name = "model-effort-slider-import-2-1-293-linux"
+lineage = "model-effort-slider-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Import the 2.1.293 Linux model-scoped effort resolver into the native slider module so its initial selection and guard share the same per-model session value."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{[^}]+\}from"\./chunk-hxnfcf28\.js";?$'
+    strings = [ "NN", "zDe", "fC" ]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux slider imports the current resolver binding"
+  assert_contains = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js"'
+  assert_not_contains = 'import{kw as patchedEffort}from"./chunk-w05br7qr.js"'
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-293-darwin"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Read the current model-local effort for the 2.1.293 Darwin slider, then retain the target's native model-level fallback when the resolver has no value."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Te"
+    source_regex = "^function Te\\(d,l,o\\)\\{let a=mr\\(\\)\\?void 0:WN\\(\\),f=a===null\\?void 0:a\\?\\?l;"
+    strings = [ "o.levels.findIndex", "hT(d,f)" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let f=patchedEffort.session(d).value;if(f!==void 0){let i=o.levels.findIndex((p)=>p.value===f);if(i!==-1)return i}let u=hT(d,f),m=o.levels.findIndex((i)=>i.value===u);return m===-1?Cr:m}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin slider initial value uses the model-scoped resolver"
+  assert_contains = "function Te(d,l,o){let f=patchedEffort.session(d).value;"
+  assert_not_contains = "function Te(d,l,o){let a=mr()?void 0:WN()"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin slider initial value preserves its native fallback binding"
+  assert_contains = "let u=hT(d,f),m=o.levels.findIndex((i)=>i.value===u);return m===-1?Cr:m"
+  assert_not_contains = "let u=LA(d,f)"
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-293-linux"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Read the current model-local effort for the 2.1.293 Linux slider, then retain the target's native model-level fallback when the resolver has no value."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Te"
+    source_regex = "^function Te\\(d,l,o\\)\\{let a=fr\\(\\)\\?void 0:NN\\(\\),f=a===null\\?void 0:a\\?\\?l;"
+    strings = [ "o.levels.findIndex", "fC(d,f)" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let f=patchedEffort.session(d).value;if(f!==void 0){let i=o.levels.findIndex((p)=>p.value===f);if(i!==-1)return i}let u=fC(d,f),m=o.levels.findIndex((i)=>i.value===u);return m===-1?Cr:m}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux slider initial value uses the model-scoped resolver"
+  assert_contains = "function Te(d,l,o){let f=patchedEffort.session(d).value;"
+  assert_not_contains = "function Te(d,l,o){let a=fr()?void 0:NN()"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux slider initial value preserves its native fallback binding"
+  assert_contains = "let u=fC(d,f),m=o.levels.findIndex((i)=>i.value===u);return m===-1?Cr:m"
+  assert_not_contains = "let u=MA(d,f)"
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-293-darwin"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Retain the native 2.1.293 Darwin footer while identifying the adjusted level as applying to this model in this session."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    source = '[Je," for this session only"]'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '[Je," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin slider footer names model-local session scope"
+  assert_contains = 'children:[Je," for this model, this session"]'
+  assert_not_contains = 'children:[Je," for this session only"]'
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-293-linux"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Retain the native 2.1.293 Linux footer while identifying the adjusted level as applying to this model in this session."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    source = '[Je," for this session only"]'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '[Je," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux slider footer names model-local session scope"
+  assert_contains = 'children:[Je," for this model, this session"]'
+  assert_not_contains = 'children:[Je," for this session only"]'
+
+[[patches]]
+name = "model-effort-command-2-1-293-darwin"
+lineage = "model-effort-command"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "In chunk-98dkand0.js, preserve native remote and Ultracode dispatch through P while routing ordinary local effort writes through the 2.1.293 model-session resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Zxe"
+    strings = [
+  "effortUpdate",
+  "await P(e,t,r",
+  "sessionEffort:l.sessionEffort"
+]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{async function patchedNativeEffortDarwin293(e,t,o,r=!0,s){let f=!1,n=null,E=await P(e,t,r,(u)=>{if(f=!0,u.ultracode===void 0)jOn();o((l)=>{n??={sessionEffort:l.sessionEffort,ultracode:l.ultracode??!1};let p=u.ultracode===void 0?Lrt(u.value):l.sessionEffort,m=u.ultracode??l.ultracode??!1;if(Xte(l.sessionEffort,p)&&(l.ultracode??!1)===m)return l;return{...l,sessionEffort:p,ultracode:m}})},s);if(f&&!E.effortUpdate)o((u)=>{if(n===null)return u;if(Xte(u.sessionEffort,n.sessionEffort)&&(u.ultracode??!1)===n.ultracode)return u;return{...u,sessionEffort:n.sessionEffort,ultracode:n.ultracode}});return E};if(mr()!==null)return patchedNativeEffortDarwin293(e,t,o,r,s);if(A(e.trim().toLowerCase())!==void 0)return patchedNativeEffortDarwin293(e,t,o,!1,s);const model=nt(),current=Vw.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await P(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?Vw.session(model,"clear"):Vw.session(model,"set",update.value);o((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-command ordinary effort uses the current model resolver and native toggle parser"
+  assert_contains = "const model=nt(),current=Vw.session(model);if(current.cli)return{message:"
+  assert_not_contains = "kw.session(model)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-command preserves native remote and Ultracode dispatch"
+  assert_contains = "if(mr()!==null)return patchedNativeEffortDarwin293(e,t,o,r,s);if(A(e.trim().toLowerCase())!==void 0)"
+  assert_not_contains = "patchedNativeEffortDarwin290"
+
+[[patches]]
+name = "model-effort-current-2-1-293-darwin"
+lineage = "model-effort-current"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "In chunk-98dkand0.js, report the resolver's model-local current value and source locally while preserving native remote effort and Ultracode text."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "hFt"
+    strings = [ "Current effort level:", "Effort level: auto", "Ultracode" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{if(mr()===null){const effective=Vw.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(nA(o,t)?" · Ultracode on":"")}}let r=nA(o,t)?" · Ultracode on":"",s=v(e);if(s===void 0){let n=hT(t,e),E=ZMe(t)!==null&&_Ct(t)===void 0&&Vw(t,e)!==void 0?", set by your organization":"";return{message:"Effort level: auto (currently "+f7(n)+E+")"+r}}let f=$oo(s);return{message:"Current effort level: "+f7(s)+" ("+f+")"+r}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-current reports model-local effort and native Ultracode state"
+  assert_contains = "function hFt(e,t,o){if(mr()===null){const effective=Vw.session(t);"
+  assert_not_contains = "kw(t,e)"
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-293-darwin"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Append the post-selection resolver value and source to the native inline /model result in chunk-14yhe0nx.js."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = '^MBe\(v,pe,\(\)=>u\.getState\(\),D,Ye,"command",de,Y\)$'
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '%%EXPR%%.then((message)=>{const effective=patchedEffort.session(pe);return message+"\nCurrent model runs with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")"})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-inline-echo follows native inline model selection"
+  assert_contains = 'Current model runs with "+(effective.value??"backend default")+" effort ("+effective.source'
+  assert_not_contains = 'vNe(R,pe,()=>u.getState(),L,Ye,"command",le,I)'
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-293-darwin"
+lineage = "model-effort-inline-model-state-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the 2.1.293 model-session resolver into chunk-2pvxpmve.js, where native MBe changes active model state."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{xm,Mde,Yen\}from"\./chunk-vd0a9d2s\.js";?$'
+    strings = [ "xm", "Mde", "Yen" ]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-inline-model-state-import imports current resolver"
+  assert_contains = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js"'
+  assert_not_contains = "chunk-3f84vcqr.js"
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-293-darwin"
+lineage = "model-effort-inline-model-state"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Migrate the previous inline session level before native MBe changes the model and preserve the 2.1.293 effort map, revision, and Ultracode state."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(g\\)=>\\(\\{\\.\\.\\.g,mainLoopModel:o,mainLoopModelForSession:null\\}\\)$"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(g)=>{const previous=g.mainLoopModelForSession??g.mainLoopModel??k_(),from=previous,target=o??k_(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&g.sessionEffort?.kind==="level")patchedEffort.session(from,"set",g.sessionEffort.value);const effective=patchedEffort.session(target);return{...g,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:g.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(g.effortRevision??0)+(changed?1:0),ultracode:g.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-inline-model-state migrates prior inline session effort before model change"
+  assert_contains = "previous=g.mainLoopModelForSession??g.mainLoopModel??k_(),from=previous,target=o??k_()"
+  assert_not_contains = "(g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null})"
+
+[[patches]]
+name = "model-effort-model-import-2-1-293-darwin"
+lineage = "model-effort-model-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the 2.1.293 model-session resolver into chunk-14yhe0nx.js for model-switch effort reporting and state migration."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{g7,lc,eDe,D5\}from"\./chunk-a6m0cyhg\.js";?$'
+    strings = [ "g7", "lc", "eDe", "D5" ]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-import imports current resolver"
+  assert_contains = 'import{Vw as patchedEffort}from"./chunk-a6m0cyhg.js"'
+  assert_not_contains = "chunk-3f84vcqr.js"
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-293-darwin"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "In chunk-14yhe0nx.js, disable only the native session-effort writer persistence argument so picker effort remains model-local, preserving the separate L?await Hmt(n,a):null model-default save."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "D5(f,cse(n),L,a)"
+
+  [patches.transform]
+  op = "set_call_arg"
+  index = 2
+  value = "!1"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-no-persist keeps picker effort session-only"
+  assert_contains = "D5(f,cse(n),!1,a)"
+  assert_not_contains = "D5(f,cse(n),L,a)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-no-persist preserves native default-model persistence"
+  assert_contains = "L?await Hmt(n,a):null"
+  assert_not_contains = 'patchedEffort.session(n,"set"'
+
+[[patches]]
+name = "model-effort-model-echo-2-1-293-darwin"
+lineage = "model-effort-model-echo"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Keep the native model-switch effort wording in chunk-14yhe0nx.js and append the resolver source and effective model."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "effort" ]
+    source_regex = "^if\\(f!==void 0\\)r\\+="
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const effective=patchedEffort.session(n);if(f!==void 0)r+=" with "+xw(f)+" effort";else r+=" with "+(effective.value??"backend default")+" effort";r+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-echo preserves native wording and appends effective source"
+  assert_contains = 'effective.source+" for "+effective.slug'
+  assert_not_contains = 'fw(f)+" effort"'
+
+[[patches]]
+name = "model-effort-model-state-2-1-293-darwin"
+lineage = "model-effort-model-state"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Migrate prior session effort before the native model-selection state update in chunk-14yhe0nx.js, retaining native fast-mode and selected-effort behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(ke\\)=>\\(C=!!ke\\.fastMode,k=jo\\(\\)\\?tx\\(n,ke\\.fastMode\\):C,\\{\\.\\.\\.ke,mainLoopModel:n,mainLoopModelForSession:null,\\.\\.\\.f!==void 0&&\\{sessionEffort:g7\\(f\\)\\},\\.\\.\\.k!==C&&\\{fastMode:k\\}\\}\\)$"
+    strings = [
+  "mainLoopModel:n",
+  "mainLoopModelForSession:null",
+  "sessionEffort:g7(f)"
+]
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(ke)=>{const prior=M.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??k_(),target=n??k_(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=f!==void 0?patchedEffort.session(target,"set",f):patchedEffort.session(target);C=!!ke.fastMode;k=jo()?tx(n,ke.fastMode):C;return{...ke,mainLoopModel:n,mainLoopModelForSession:null,sessionEffort:f!==void 0?g7(f):changed?{kind:"inherit"}:ke.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(ke.effortRevision??0)+1,ultracode:ke.ultracode??!1,...k!==C&&{fastMode:k}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-state migrates prior session effort and stores an explicit selected level"
+  assert_contains = "const prior=M.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??k_(),target=n??k_()"
+  assert_not_contains = "...f!==void 0&&{sessionEffort:g7(f)}"
+
+[[patches]]
+name = "model-effort-command-2-1-293-linux"
+lineage = "model-effort-command"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "In chunk-tg3tfq91.js, preserve native remote and Ultracode dispatch through P while routing ordinary local effort writes through the 2.1.293 model-session resolver."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "zxe"
+    strings = [
+  "effortUpdate",
+  "await P(e,t,r",
+  "sessionEffort:l.sessionEffort"
+]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{async function patchedNativeEffortLinux293(e,t,o,r=!0,s){let f=!1,n=null,E=await P(e,t,r,(u)=>{if(f=!0,u.ultracode===void 0)kOn();o((l)=>{n??={sessionEffort:l.sessionEffort,ultracode:l.ultracode??!1};let p=u.ultracode===void 0?Rrt(u.value):l.sessionEffort,m=u.ultracode??l.ultracode??!1;if(zte(l.sessionEffort,p)&&(l.ultracode??!1)===m)return l;return{...l,sessionEffort:p,ultracode:m}})},s);if(f&&!E.effortUpdate)o((u)=>{if(n===null)return u;if(zte(u.sessionEffort,n.sessionEffort)&&(u.ultracode??!1)===n.ultracode)return u;return{...u,sessionEffort:n.sessionEffort,ultracode:n.ultracode}});return E};if(fr()!==null)return patchedNativeEffortLinux293(e,t,o,r,s);if(A(e.trim().toLowerCase())!==void 0)return patchedNativeEffortLinux293(e,t,o,!1,s);const model=tt(),current=Gw.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await P(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?Gw.session(model,"clear"):Gw.session(model,"set",update.value);o((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-command ordinary effort uses the current model resolver and native toggle parser"
+  assert_contains = "const model=tt(),current=Gw.session(model);if(current.cli)return{message:"
+  assert_not_contains = "kw.session(model)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-command preserves native remote and Ultracode dispatch"
+  assert_contains = "if(fr()!==null)return patchedNativeEffortLinux293(e,t,o,r,s);if(A(e.trim().toLowerCase())!==void 0)"
+  assert_not_contains = "patchedNativeEffortLinux290"
+
+[[patches]]
+name = "model-effort-current-2-1-293-linux"
+lineage = "model-effort-current"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "In chunk-tg3tfq91.js, report the resolver's model-local current value and source locally while preserving native remote effort and Ultracode text."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "n$t"
+    strings = [ "Current effort level:", "Effort level: auto", "Ultracode" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{if(fr()===null){const effective=Gw.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(ZT(o,t)?" · Ultracode on":"")}}let r=ZT(o,t)?" · Ultracode on":"",s=v(e);if(s===void 0){let n=fC(t,e),E=WDe(t)!==null&&aTt(t)===void 0&&Gw(t,e)!==void 0?", set by your organization":"";return{message:"Effort level: auto (currently "+aJ(n)+E+")"+r}}let f=uoo(s);return{message:"Current effort level: "+aJ(s)+" ("+f+")"+r}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-current reports model-local effort and native Ultracode state"
+  assert_contains = "function n$t(e,t,o){if(fr()===null){const effective=Gw.session(t);"
+  assert_not_contains = "kw(t,e)"
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-293-linux"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Append the post-selection resolver value and source to the native inline /model result in chunk-5yz2yykm.js."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = '^D1e\(v,pe,\(\)=>u\.getState\(\),E,Ye,"command",de,Y\)$'
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '%%EXPR%%.then((message)=>{const effective=patchedEffort.session(pe);return message+"\nCurrent model runs with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")"})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-inline-echo follows native inline model selection"
+  assert_contains = 'Current model runs with "+(effective.value??"backend default")+" effort ("+effective.source'
+  assert_not_contains = 'yNe(v,pe,()=>u.getState(),E,Ye,"command",le,I'
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-293-linux"
+lineage = "model-effort-inline-model-state-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Import the 2.1.293 model-session resolver into chunk-z4m1x8h1.js, where native D1e changes active model state."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{xm,Rde,Men\}from"\./chunk-g79wjybr\.js";?$'
+    strings = [ "xm", "Rde", "Men" ]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-inline-model-state-import imports current resolver"
+  assert_contains = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js"'
+  assert_not_contains = "chunk-3f84vcqr.js"
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-293-linux"
+lineage = "model-effort-inline-model-state"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Migrate the previous inline session level before native D1e changes the model and preserve the 2.1.293 effort map, revision, and Ultracode state."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(g\\)=>\\(\\{\\.\\.\\.g,mainLoopModel:o,mainLoopModelForSession:null\\}\\)$"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(g)=>{const previous=g.mainLoopModelForSession??g.mainLoopModel??E_(),from=previous,target=o??E_(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&g.sessionEffort?.kind==="level")patchedEffort.session(from,"set",g.sessionEffort.value);const effective=patchedEffort.session(target);return{...g,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:g.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(g.effortRevision??0)+(changed?1:0),ultracode:g.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-inline-model-state migrates prior inline session effort before model change"
+  assert_contains = "previous=g.mainLoopModelForSession??g.mainLoopModel??E_(),from=previous,target=o??E_()"
+  assert_not_contains = "(g)=>({...g,mainLoopModel:o,mainLoopModelForSession:null})"
+
+[[patches]]
+name = "model-effort-model-import-2-1-293-linux"
+lineage = "model-effort-model-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Import the 2.1.293 model-session resolver into chunk-5yz2yykm.js for model-switch effort reporting and state migration."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source_regex = '^import\{cJ,lc,zDe,C3\}from"\./chunk-hxnfcf28\.js";?$'
+    strings = [ "cJ", "lc", "zDe", "C3" ]
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-import imports current resolver"
+  assert_contains = 'import{Gw as patchedEffort}from"./chunk-hxnfcf28.js"'
+  assert_not_contains = "chunk-3f84vcqr.js"
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-293-linux"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "In chunk-5yz2yykm.js, disable only the native session-effort writer persistence argument so picker effort remains model-local, preserving the separate T?await Mmt(n,a):null model-default save."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "C3(f,ase(n),T,a)"
+
+  [patches.transform]
+  op = "set_call_arg"
+  index = 2
+  value = "!1"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-no-persist keeps picker effort session-only"
+  assert_contains = "C3(f,ase(n),!1,a)"
+  assert_not_contains = "C3(f,ase(n),T,a)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-no-persist preserves native default-model persistence"
+  assert_contains = "T?await Mmt(n,a):null"
+  assert_not_contains = 'patchedEffort.session(n,"set"'
+
+[[patches]]
+name = "model-effort-model-echo-2-1-293-linux"
+lineage = "model-effort-model-echo"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Keep the native model-switch effort wording in chunk-5yz2yykm.js and append the resolver source and effective model."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "effort" ]
+    source_regex = "^if\\(f!==void 0\\)r\\+="
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const effective=patchedEffort.session(n);if(f!==void 0)r+=" with "+Rw(f)+" effort";else r+=" with "+(effective.value??"backend default")+" effort";r+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-echo preserves native wording and appends effective source"
+  assert_contains = 'effective.source+" for "+effective.slug'
+  assert_not_contains = 'pw(f)+" effort"'
+
+[[patches]]
+name = "model-effort-model-state-2-1-293-linux"
+lineage = "model-effort-model-state"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Migrate prior session effort before the native model-selection state update in chunk-5yz2yykm.js, retaining native fast-mode and selected-effort behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(ke\\)=>\\(O=!!ke\\.fastMode,k=Bo\\(\\)\\?JR\\(n,ke\\.fastMode\\):O,\\{\\.\\.\\.ke,mainLoopModel:n,mainLoopModelForSession:null,\\.\\.\\.f!==void 0&&\\{sessionEffort:cJ\\(f\\)\\},\\.\\.\\.k!==O&&\\{fastMode:k\\}\\}\\)$"
+    strings = [
+  "mainLoopModel:n",
+  "mainLoopModelForSession:null",
+  "sessionEffort:cJ(f)"
+]
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(ke)=>{const prior=M.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??E_(),target=n??E_(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=f!==void 0?patchedEffort.session(target,"set",f):patchedEffort.session(target);O=!!ke.fastMode;k=Bo()?JR(n,ke.fastMode):O;return{...ke,mainLoopModel:n,mainLoopModelForSession:null,sessionEffort:f!==void 0?cJ(f):changed?{kind:"inherit"}:ke.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(ke.effortRevision??0)+1,ultracode:ke.ultracode??!1,...k!==O&&{fastMode:k}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 model-effort-model-state migrates prior session effort and stores an explicit selected level"
+  assert_contains = "const prior=M.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??E_(),target=n??E_()"
+  assert_not_contains = "...f!==void 0&&{sessionEffort:cJ(f)}"

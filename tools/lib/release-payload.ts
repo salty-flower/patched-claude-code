@@ -135,6 +135,22 @@ export function sha256(buf: Buffer | Uint8Array | string): { hex: string; sri: s
   return { hex: digest.toString("hex"), sri: `sha256-${digest.toString("base64")}` }
 }
 
+export function hashPatchSet(
+  patches: Iterable<{ patch: Pick<Patch, "name">; raw: string }>,
+): { hex: string; sri: string } {
+  const hash = createHash("sha256")
+  let first = true
+  for (const { patch, raw } of patches) {
+    if (!first) hash.update("\n")
+    first = false
+    hash.update(patch.name)
+    hash.update("\0")
+    hash.update(raw)
+  }
+  const digest = hash.digest()
+  return { hex: digest.toString("hex"), sri: `sha256-${digest.toString("base64")}` }
+}
+
 export function graphDirectoryNameForEntrypoint(source: string): RuntimeGraphDirectory {
   // biome-ignore lint/suspicious/noTemplateCurlyInString: Match the dispatcher's literal platform interpolation.
   if (source.includes("./graph.patched/${platformDir}/cli.js")) return "graph.patched"
@@ -361,7 +377,7 @@ function buildReleaseManifest(
 ): Omit<ReleaseManifest, "promptCatalog"> {
   const patches = loadPatches(options.root)
   const stageManifest = sanitizeStageManifest(options.root, loadStageManifest(options.root, options.version))
-  const patchSetSource = patches.map(({ patch, raw }) => `${patch.name}\0${raw}`).join("\n")
+  const patchSetHash = hashPatchSet(patches)
 
   return {
     schema: 3,
@@ -389,7 +405,7 @@ function buildReleaseManifest(
     },
     patchSet: {
       count: patches.length,
-      sha256: sha256(patchSetSource).sri,
+      sha256: patchSetHash.sri,
       names: patches.map(({ patch }) => patch.name),
     },
     bundle: {

@@ -1272,3 +1272,162 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.290 global Ctrl+C has no bare gesture object"
   assert_not_contains = '({gesture:"ctrl_c"})'
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-293"
+lineage = "global-interrupt-cancel-only"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Keep 2.1.293 global Ctrl+C on cancel-only mode so it cannot kill unrelated background agents. The global interrupt callback still calls the cancel function with only gesture=ctrl_c after its active-request guard; add suppressBackgroundAgentKill while preserving graph-local bindings. The agent-view Ctrl+C branch already sets this option and its pressLandedOnWork handling stays intact. Explicit chat:killAgents remains the deliberate stop control."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = '{gesture:"ctrl_c"}'
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "suppressBackgroundAgentKill"
+  value = "!0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 global Ctrl+C suppresses background-agent kills"
+  assert_contains = '{gesture:"ctrl_c",suppressBackgroundAgentKill:!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 has no stale bare global ctrl_c options object"
+  assert_not_contains = '({gesture:"ctrl_c"})'
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-293-darwin-arm64"
+lineage = "foreground-agent-handoff-helper-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Import the 2.1.293 Darwin backgrounding helper ame from chunk-nwqfvmza.js into the cancel hook; it marks a foreground local agent backgrounded and resolves its local signal."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Vte"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = "import {ame as __pccBackgroundForegroundAgent} from \"./chunk-nwqfvmza.js\";"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin imports the current foreground-agent helper"
+  assert_contains = 'import {ame as __pccBackgroundForegroundAgent} from "./chunk-nwqfvmza.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin excludes the stale foreground-agent helper import"
+  assert_not_contains = 'import {bpe as __pccBackgroundForegroundAgent} from "./chunk-y0b3kvx1.js";'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-293-darwin-arm64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "darwin-arm64" ]
+rationale = "Hand foreground local agents off before shared cancellation in the 2.1.293 Darwin hook. Use the current task map and TaskRegistry, then defer stream stop and parent cancellation by one event-loop turn only when a handoff occurred."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(he!==void 0&&!he\\.aborted\\|\\|be\\|\\|Me&&ns\\)return"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'if(he!==void 0&&!he.aborted||be||Me&&ns){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(pt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return xo.current=Date.now(),i("tengu_cancel",gr),__hadForegroundAgent?setTimeout(()=>{$b.of(xt).stopRunning(),k()},0):($b.of(xt).stopRunning(),k()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin hands foreground local agents off before cancellation"
+  assert_contains = 'if(he!==void 0&&!he.aborted||be||Me&&ns){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(pt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return xo.current=Date.now(),i("tengu_cancel",gr),__hadForegroundAgent?setTimeout(()=>{$b.of(xt).stopRunning(),k()},0):($b.of(xt).stopRunning(),k()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Darwin no longer cancels before foreground handoff"
+  assert_not_contains = "if(he!==void 0&&!he.aborted||be||Me&&ns)return xo.current=Date.now(),i(\"tengu_cancel\",gr),$b.of(xt).stopRunning(),k(),!0"
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-293-linux-x64"
+lineage = "foreground-agent-handoff-helper-import"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Import the 2.1.293 Linux backgrounding helper tme from chunk-g263vvvn.js into the cancel hook; it marks a foreground local agent backgrounded and resolves its local signal."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Gte"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = "import {tme as __pccBackgroundForegroundAgent} from \"./chunk-g263vvvn.js\";"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux imports the current foreground-agent helper"
+  assert_contains = 'import {tme as __pccBackgroundForegroundAgent} from "./chunk-g263vvvn.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux excludes the stale foreground-agent helper import"
+  assert_not_contains = 'import {mpe as __pccBackgroundForegroundAgent} from "./chunk-9wqh5j7s.js";'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-293-linux-x64"
+lineage = "foreground-agent-handoff-before-cancel"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+platforms = [ "linux-x64" ]
+rationale = "Hand foreground local agents off before shared cancellation in the 2.1.293 Linux hook. Use the current task map and TaskRegistry, then defer stream stop and parent cancellation by one event-loop turn only when a handoff occurred."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(he!==void 0&&!he\\.aborted\\|\\|Se\\|\\|Me&&ns\\)return"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'if(he!==void 0&&!he.aborted||Se||Me&&ns){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(pt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return _o.current=Date.now(),i("tengu_cancel",pr),__hadForegroundAgent?setTimeout(()=>{$S.of(xt).stopRunning(),k()},0):($S.of(xt).stopRunning(),k()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux hands foreground local agents off before cancellation"
+  assert_contains = 'if(he!==void 0&&!he.aborted||Se||Me&&ns){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(pt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Rt)||__hadForegroundAgent;return _o.current=Date.now(),i("tengu_cancel",pr),__hadForegroundAgent?setTimeout(()=>{$S.of(xt).stopRunning(),k()},0):($S.of(xt).stopRunning(),k()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux no longer cancels before foreground handoff"
+  assert_not_contains = "if(he!==void 0&&!he.aborted||Se||Me&&ns)return _o.current=Date.now(),i(\"tengu_cancel\",pr),$S.of(xt).stopRunning(),k(),!0"

@@ -1828,3 +1828,51 @@ expected_matches = 1
   kind = "static"
   name = "2.1.289 Linux AskUserQuestion no longer delegates through the channel gate"
   assert_not_contains = "isEnabled(){return n7()}"
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-293"
+lineage = "ask-user-question-channels-gate"
+target_version = "2.1.293"
+applies_to = ">=2.1.293 <2.1.294"
+rationale = "Allow AskUserQuestion independently of provider or populated allowed channels. Match its tool descriptor by the completed event and isEnabled method, then replace only that method. The 2.1.293 Darwin and Linux gates delegate through CV and hV respectively; the transform inserts no local helper names, so the shared channel predicate remains available to its other callers."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "isEnabled"
+    string_literal = "tengu_ask_user_question_completed"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "isEnabled\\(\\)\\{return [\\w$]+\\(\\)\\}"
+  value = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 AskUserQuestion gate is open"
+  assert_contains = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 AskUserQuestion no longer delegates through the Darwin gate"
+  assert_not_contains = "isEnabled(){return CV()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 AskUserQuestion no longer delegates through the Linux gate"
+  assert_not_contains = "isEnabled(){return hV()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 AskUserQuestion rejects the stale Darwin 2.1.289 gate"
+  assert_not_contains = "isEnabled(){return cJ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 AskUserQuestion rejects the stale Linux 2.1.289 gate"
+  assert_not_contains = "isEnabled(){return n7()}"

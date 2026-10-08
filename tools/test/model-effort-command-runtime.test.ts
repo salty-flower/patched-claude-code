@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import { readdirSync, readFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
+import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
 import { patchedFunction } from "./helpers/patched-function"
 
@@ -15,11 +16,12 @@ type State = {
 }
 
 const patches = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches/model-effort-ui.toml"))
+const version = targetVersion()
 
 for (const platform of ["darwin-arm64", "linux-x64"]) {
-  test(platform + ": 2.1.290 effort command preserves independent ultracode and transactional model state", async () => {
-    const patch = activePatch(patches, "2.1.290", platform, "model-effort-command-")
-    const current = activePatch(patches, "2.1.290", platform, "model-effort-current-")
+  test(`${platform}: ${version} effort command preserves independent ultracode and transactional model state`, async () => {
+    const patch = activePatch(patches, version, platform, "model-effort-command-")
+    const current = activePatch(patches, version, platform, "model-effort-current-")
     const commandName = patch.ast?.match.function_name
     const currentName = current.ast?.match.function_name
     const source =
@@ -160,13 +162,16 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(state.ultracode).toBe(true)
   })
 
-  test(`${platform}: 2.1.290 slider guard uses the native current-status component`, () => {
-    const guard = activePatch(patches, "2.1.290", platform, "model-effort-slider-guard-")
-    const graph = resolve(import.meta.dir, "../../staging/2.1.290/graph", platform)
+  test(`${platform}: ${version} slider guard uses the native current-status component`, () => {
+    const guard = activePatch(patches, version, platform, "model-effort-slider-guard-")
+    const wrapper = guard.ast?.match.function_name
+    if (!wrapper || guard.transform?.op !== "replace_substring") throw new Error("slider guard anchor missing")
+    const anchor = guard.transform.find
+    const graph = resolve(import.meta.dir, `../../staging/${version}/graph`, platform)
     const candidates = readdirSync(graph)
       .filter((file) => file.endsWith(".js"))
       .map((file) => readFileSync(join(graph, file), "utf8"))
-      .filter((source) => source.includes("function Oo(d){let o=w(4);"))
+      .filter((source) => source.includes(anchor))
     if (candidates.length !== 1) throw new Error(`expected one native slider module, got ${candidates.length}`)
     const native = candidates[0]!
     const status = captureIdentifier(
@@ -177,7 +182,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     const guarded = patchedFunction(native, guard).patched
     let effective: { cli: boolean; value?: string } = { cli: true, value: "low" }
     const onDone = () => {}
-    const render = new Function("w", "patchedEffort", "e", status, `${guarded};return Oo;`)(
+    const render = new Function("w", "patchedEffort", "e", status, `${guarded};return ${wrapper};`)(
       () => [],
       { session: () => effective },
       (component: string, props: unknown) => ({ component, props }),

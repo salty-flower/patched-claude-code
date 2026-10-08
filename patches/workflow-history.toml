@@ -4269,7 +4269,12 @@ target_version = "2.1.293"
 applies_to = ">=2.1.293 <2.1.294"
 platforms = [ "linux-x64" ]
 rationale = """
-Replace name-and-ID-only answer credit with strict successful host result linkage. The 2.1.293 Linux classifier function vIt is in chunk-g263vvvn.js. Its transcript is e, current message is vn, tool result is Oo, and output accumulator is H. Keep the existing non-error z.has(tool_use_id) gate; pass e, vn, and the result ID to the host-linked answer renderer. This changes only answer attribution, not classifier activation.
+Replace name-and-ID-only answer credit with strict successful host result linkage.
+The 2.1.293 Linux classifier function vIt is in chunk-g263vvvn.js.
+Its transcript is e, current message is vn, and tool result is Oo.
+Keep the existing non-error z.has(tool_use_id) gate; pass e, vn, and the result ID to the host-linked answer renderer.
+Append the rendered answer to the current user message's content accumulator yo so the native classifier emits it as a valid user message.
+This changes only answer attribution, not classifier activation.
 """
 rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
 locator_kind = "ast_transform"
@@ -4284,7 +4289,7 @@ locator_kind = "ast_transform"
 
   [patches.transform]
   op = "replace_node"
-  value = '{const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,vn,Oo.tool_use_id);if(__pccAnswer!==null)H.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+  value = '{const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,vn,Oo.tool_use_id);if(__pccAnswer!==null)yo.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
 
   [[patches.tests]]
   kind = "static"
@@ -4295,7 +4300,8 @@ locator_kind = "ast_transform"
   [[patches.tests]]
   kind = "static"
   name = "2.1.293 linux-x64 preserves the classifier answer result gate and current local bindings"
-  assert_contains = 'else if(Oo?.type==="tool_result"&&!Oo.is_error&&z.has(Oo.tool_use_id)){const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,vn,Oo.tool_use_id);if(__pccAnswer!==null)H.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+  assert_contains = 'else if(Oo?.type==="tool_result"&&!Oo.is_error&&z.has(Oo.tool_use_id)){const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,vn,Oo.tool_use_id);if(__pccAnswer!==null)yo.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+  assert_not_contains = 'if(__pccAnswer!==null)H.push({type:"text",text:__pccAnswer,harnessMarked:!0});'
 
   [[patches.tests]]
   kind = "static"

@@ -9240,7 +9240,7 @@ lineage = "model-effort-picker-arrows"
 target_version = "2.1.293"
 applies_to = ">=2.1.293 <2.1.294"
 platforms = [ "linux-x64" ]
-rationale = "In chunk-848z1p5h.js, retain native left/right actions while cycling the focused option from and writing it through the 2.1.293 resolver."
+rationale = "In chunk-848z1p5h.js, retain native left/right actions while cycling the focused option from and writing it through the 2.1.293 resolver. Normalize the local display value with AU; A3 is the model-dependent cap helper and cannot be called without a model."
 rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
 locator_kind = "ast_transform"
 
@@ -9253,13 +9253,19 @@ locator_kind = "ast_transform"
 
   [patches.transform]
   op = "replace_node"
-  value = '(wr)=>{let selected=Vt(),row=zo.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=DS(selected),config=yK(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=$0e(current.value??config.defaultEffort,wr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?A3(effective.value):hse(selected));Do(!0)}'
+  value = '(wr)=>{let selected=Vt(),row=zo.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=DS(selected),config=yK(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=$0e(current.value??config.defaultEffort,wr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?AU(effective.value):hse(selected));Do(!0)}'
 
   [[patches.tests]]
   kind = "static"
   name = "2.1.293 picker arrows use Linux symbols and resolver API"
   assert_contains = "model=DS(selected),config=yK(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=$0e(current.value??config.defaultEffort"
   assert_not_contains = "let model=cS(selected),config=p1(selected)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.293 Linux picker normalizes its local state without calling the model cap helper"
+  assert_contains = "__acc_set_state(effective.value!==void 0?AU(effective.value):hse(selected))"
+  assert_not_contains = "__acc_set_state(effective.value!==void 0?A3(effective.value):hse(selected))"
 
 [[patches]]
 name = "model-effort-picker-focus-2-1-293-darwin"

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.293
+import{V,ci}from"./chunk-tnh13g2g.js";import{c}from"./chunk-tdmgys2e.js";import{te}from"./chunk-as4x8nna.js";import{Ju}from"./chunk-pf8p4bsg.js";import{zt}from"./chunk-gcyvvtkw.js";import{ens,nns,Ake,klr,Clr,xae,PRn}from"./chunk-8jrkzyv1.js";import{xlr,mns}from"./chunk-ev9vkzyy.js";import{Ojo}from"./chunk-1s22n1dc.js";import{writeFile as u}from"fs/promises";var m=30000,k=300000,f=Ake,y=16777216,d="/api/oauth/organizations/:orgUUID/skills/list-skills?include_wiggle_skills=true";async function J1t(o={}){let t=await p(o);if(!t.success&&xae(t))return p(o);return t}async function p(o){let t=Ju(),l=t?`${d}&entrypoint=${encodeURIComponent(t)}`:d;try{let r=await zt.get(l,{auth:"teleport-org",isBackground:o.isBackground,timeout:m,maxContentLength:y,credentials:o.credentials});if(!r.ok||!Array.isArray(r.data?.skills))return klr("skills",r);let s=r.data.skills.filter(nns),n=s.map(ens);try{Ojo(s)}catch(a){te("warn","skills_sync_ownerships_not_recorded"),c(V(a))}try{mns(s)}catch(a){te("warn","skills_sync_host_mount_kinds_not_recorded"),c(V(a))}return{success:!0,skills:n}}catch(r){return Clr(r)}}async function Ijo(o,t,l,r={}){let s=Ju(),n=[];if(s)n.push(`entrypoint=${encodeURIComponent(s)}`);if(l)n.push(`version=${encodeURIComponent(l)}`);let a=n.length>0?`?${n.join("&")}`:"";try{let e=await zt.get(`/api/oauth/organizations/:orgUUID/skills/${encodeURIComponent(o)}/download${a}`,{auth:"teleport-org",isBackground:r.isBackground,timeout:k,responseType:"arraybuffer",maxContentLength:f,credentials:r.credentials});if(!e.ok||!e.data)return te("warn","skills_sync_download_not_ok",{reason:e.ok?"empty_body":e.reason}),!1;let i=Buffer.from(e.data);if(!xlr(i))return te("warn","skills_sync_download_not_zip",{serverError:PRn(i),bodyLen:i.length}),!1;return await u(t,i),!0}catch(e){let{kind:i}=ci(e);return te("warn","skills_sync_download_exception",{kind:i}),!1}}
+export{J1t,Ijo};

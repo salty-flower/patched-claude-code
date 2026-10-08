@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.293
+import{ve}from"./chunk-g79wjybr.js";import{t}from"./chunk-p46wpkfz.js";import{te}from"./chunk-m8haxweq.js";import{$u}from"./chunk-cxjvwxsa.js";import{zht,I2r,FWe,Gi,$V,Rp}from"./chunk-g263vvvn.js";import{gr,e0e}from"./chunk-dxg9a8tj.js";import{tE}from"./chunk-p7b21nkd.js";import{uVe,wTe,ufr}from"./chunk-vxjrz2d6.js";import{Vq,H9e,Pft,WSe,BYn}from"./chunk-cycmn83x.js";async function _F(r){let n=performance.now(),i=!1,e,a=WSe(),o=!1;if(BYn())t("[mcp-policy-cold-start] waiting on remote managed-settings confirmation (managedMcpServers is withheld from the unverified cache)"),e=performance.now(),await H9e(),i=!0,o=!0;else if(!a&&!wTe());else if(r.hasDynamicMcpConfig||!r.pluginStateReliable||ve()||await d(r.storageV5)){if(a)t("[mcp-policy-cold-start] waiting on remote managed-settings load"),e=performance.now(),await Vq(),i=!0;o=!0}else t("[mcp-policy-cold-start] skipped \u2014 no MCP server source visible");if(e!==void 0&&e0e("mcp_policy_settings_wait_ms")===void 0){let s=performance.now()-e,c=Pft();gr("mcp_policy_settings_wait_ms",s,e),te(c?"warn":"info","mcp_policy_settings_wait",{waited_ms:Math.round(s),timed_out:c})}if(uVe("settings",()=>!i?"not_awaited":Pft()?"timed_out":"completed",{since:i?n:void 0}),o&&wTe()){if(t("[mcp-policy-cold-start] waiting on the policy-limits verdict (compliance taints feed config ${VAR} expansion)"),await ufr()==="timed_out")t("[mcp-policy-cold-start] policy-limits verdict did not land within the cold-start budget; loading MCP configs without it")}}async function d(r){for(let n of $V)if(Object.keys(Rp(n,{expandVars:!1}).servers).length>0)return!0;if(FWe())return!0;try{for(let{record:e}of I2r(zht()))for(let[a,o]of Object.entries(e??{}))if((o===!0||Array.isArray(o))&&!tE(a))return!0;let{enabled:n,errors:i}=await Gi(r);if(i.length>0)return!0;for(let e of n)if(!e.isBuiltin||e.mcpServers!==void 0&&Object.keys(e.mcpServers).length>0)return!0}catch{return!0}return $u()}
+export{_F};

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.293
+import{YWr}from"./chunk-dnhjt5zc.js";import{DOn}from"./chunk-vbpjgvgg.js";import{SNo}from"./chunk-w8747xeb.js";import{yNo}from"./chunk-ezkpgkjm.js";import{Ca}from"./chunk-rh7py0tc.js";import{vjo}from"./chunk-qwb4bnf4.js";import{y_}from"./chunk-bcvk3m9b.js";import{uae}from"./chunk-s16am1t3.js";import{e6}from"./chunk-1jfekfrk.js";function a(e,r){return Object.entries(e.frameUrls??{}).find(([o,s])=>s?.url!==void 0&&!uae(o)&&Ca(s.url)===r)?.[0]}function l(e){return Object.entries(e.frameUrls??{}).flatMap(([r,o])=>{if(o?.url===void 0||uae(r))return[];if(o.dismissed===!0)return[];let s=Ca(o.url),t=o.routineUnasked===!0||o.commentUnasked===!0;return s===null?[]:[{path:r,slug:s,url:o.url,unasked:t}]})}function d(e,r){return(e.workshopVerifiedSlugs??[]).includes(r)||Object.entries(e.frameUrls??{}).some(([o,s])=>s?.url!==void 0&&Ca(s.url)===r&&DOn(o))}var c=Object.freeze({}),m=e6("artifactReadConsentSlugs",c),g=e6("artifactConsentEpoch",0);function yLr(e,r){return{ownPublishes:YWr(e,r),workshopTelemetry:vjo(e,r),whiteboardTelemetry:yNo(e,r),prReviewTargets:SNo(e,r),recordedPages:{isWorkshopPage:(o)=>d(e(),o),localSourcePath:(o)=>a(e(),o),heldSourcePages:()=>l(e())},sharedReadConsent:m(e,r),consentEpoch:g(e,r)}}function EYe(){let e={};return yLr(()=>e,(r)=>{e=r(e)})}var vYe={assign:()=>y_[0],get:()=>{return}};function JUe(e){return{assign(r){let o=e.get(),s=o.assignments.get(r);if(s)return s;let t=y_[o.index%y_.length];return e.set((n)=>{if(n.assignments.has(r))return n;let i=new Map(n.assignments);return i.set(r,t),{assignments:i,index:n.index+1}}),t},get(r){return e.get().assignments.get(r)}}}var oZ=Object.freeze({bridge:void 0,channel:void 0});class h3n{#e=void 0;#r=void 0;get bridge(){return this.#e}get channel(){return this.#r}connectBridge(e){this.#e=e}disconnectBridge(){this.#e=void 0}setChannel(e){this.#r=e}}
+export{yLr,EYe,vYe,JUe,oZ,h3n};

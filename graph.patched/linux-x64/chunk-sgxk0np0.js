@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.293
+import"./chunk-28fj72x7.js";import"./chunk-ndcqd6bh.js";import"./chunk-g79wjybr.js";import"./chunk-4p5wb748.js";import"./chunk-bkr1h20c.js";import{q}from"./chunk-5g6j8x8p.js";import"./chunk-670y7hd9.js";import"./chunk-gwj7v27h.js";import{t}from"./chunk-p46wpkfz.js";import"./chunk-4z5wz91m.js";import"./chunk-gx95ar6n.js";import"./chunk-j6z0j5vh.js";import"./chunk-2j48j0j1.js";import{up}from"./chunk-5zqw5ss6.js";var y=2;function D(i){let e=null,l=null,a=0,r=!1,s=null,d=0,p=[],m=()=>{l?.clear(),l=null},v=()=>{if(m(),e===null)return;let n=e;l=i.setTimer(()=>{if(l=null,e!==n)return;if(i.now()<n.leaseExpiresAt){v();return}let o={...n,entries:[]};e=o.templates.length===0?null:o;for(let u of[...i.onLeaseExpired?[i.onLeaseExpired]:[],...p])try{u(o)}catch(c){t(`[deviceHooks] lease-expiry listener threw: ${q(c).stack??String(c)}`,{level:"error"})}},Math.min(up,Math.max(0,n.leaseExpiresAt-i.now())))};return{current:()=>e,generation:()=>d,recordMiss(n,o){if(e===null||e.instanceId!==n||o!==d)return!1;if(a+=1,!r&&a>=y)r=!0,s=i.now();return r},recordHit(n){if(e!==null&&e.instanceId===n)a=0},isAway:(n)=>e!==null&&e.instanceId===n&&r,awaySince:(n)=>e!==null&&e.instanceId===n&&r?s:null,replaceOwner(n){let o=e!==null&&e.instanceId!==n.instanceId?e.instanceId:void 0,u=e!==null&&o===void 0,c=u&&r?s:null;if(e=n,!u||c!==null)a=0,r=!1,s=null;return d+=1,v(),{...o!==void 0&&{replaced:o},...c!==null&&{awaySince:c}}},removeOwner(n){if(e===null||e.instanceId!==n)return!1;return e=null,a=0,r=!1,s=null,m(),!0},clear(){e=null,a=0,r=!1,s=null,m()},onLeaseExpired(n){p.push(n)}}}function H(i,e){let l=setTimeout(i,e);return l.unref(),{clear:()=>clearTimeout(l)}}export{D as createDeviceHookRegistry,H as productionRegistryTimer};

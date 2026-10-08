@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.293
+import{He}from"./chunk-6p13z9sq.js";import{sqo,SJn,C2t,A2t,ICs,OCs,HCs,mqo}from"./chunk-nwqfvmza.js";import{zl}from"./chunk-b0n7jg2p.js";function g(e,t){let n=e.subagentType===t.agent.agentType?t.agent:t.agents.find((o)=>o.agentType===e.subagentType);if(n!==void 0)return{agent:n};let p=t.agents.map((o)=>o.agentType),s=p.length>0?`available: ${p.join(", ")}`:"none is available";return{deny:`a hook's subagentType '${e.subagentType}' names no agent this call can dispatch (${s})`}}var m=(e)=>({tool_use_id:e.tool_use_id,prompt:e.prompt,description:e.description,subagentType:e.agent.agentType,provider:sqo(e.agent),model:e.model,parentModel:e.parentModel,...e.parentAgentId!==void 0&&{parentAgentId:e.parentAgentId},permissionMode:e.permissionMode,background:e.background,fork:e.fork,...e.isTeammate===!0&&{isTeammate:!0},...e.workflow!==void 0&&{workflow:e.workflow},name:e.name,cwd:e.cwd});var d=(e)=>({started:({agentId:t,model:r,teammateId:n})=>e.done({model:r,agentId:t,...n!==void 0&&{teammateId:n}}),[Symbol.dispose]:e[Symbol.dispose]});var c=Object.freeze({started:()=>{return},[Symbol.dispose]:()=>{return}});async function M3n(e){let{agent:t,agents:r,signal:n,origin:p}=e,s=m(e);if(!zl("agent.spawn"))return{spawn:s,agent:t,starting:c};let o=A2t(HCs),i=await C2t(o,mqo({signal:n,origin:p,core:{"agent.spawn":SJn(o)}}).agent.spawn(s));if(!i.arrived)return ICs({result:i.answered,input:s,signal:n});let f=i.arrived;OCs({input:s,spawn:f});let a=g(f,{agent:t,agents:r});if(a.deny!==void 0)return o.failed(new He(a.deny)),a;return{spawn:f,agent:a.agent,starting:d(o)}}export{M3n};

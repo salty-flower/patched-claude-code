@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.293
+import{ve,nc,VT,x4e,LI,Fn}from"./chunk-vd0a9d2s.js";import{Ln}from"./chunk-9exgg8sx.js";var n={ccr:{controlChannel:!0,modelCatalog:!0,setPermissionMode:!0,sessionRecord:!0,fanout:!0,presence:!0,catchupReplay:!0,bashExec:!0,fileRead:!0},ssh:{controlChannel:!0,modelCatalog:!0,setPermissionMode:!0,sessionRecord:!1,fanout:!1,presence:!1,catchupReplay:!1,bashExec:!1,fileRead:!0},direct:{controlChannel:!1,modelCatalog:!1,setPermissionMode:!1,sessionRecord:!1,fanout:!1,presence:!1,catchupReplay:!1,bashExec:!1,fileRead:!1}};var kEr={isRemoteMode:!1};function mr(){return LI().remote}var S1n="Stopped waiting for the remote \u2014 the command may still complete there";function Mt(){return Fn()||mr()!==null}function j_e(e,o){return Mt()?o:e}function il(){let e=mr();return e?.caps?.controlChannel===!0&&!e.viewerOnly}function b1n(){return!1}function gC(e){return mr()?.caps?.[e]===!0}function CEr(e,o){return o&&!(e.isRemoteMode&&e.viewerOnly)}function a(e){return Promise.reject(Error(`sendControlRequest not yet wired for ${e} transport`))}function AEr(e,o,r,s){if(!o.isRemoteMode)return kEr;return{kind:e,isRemoteMode:!0,viewerOnly:r,caps:n[e],sessionId:s,sendMessage:o.sendMessage,cancelRequest:o.cancelRequest,cancelHeldMessages:o.cancelHeldMessages??(()=>!1),disconnect:o.disconnect,sendControlRequest:o.sendControlRequest??(()=>a(e))}}import{AsyncLocalStorage as l}from"async_hooks";var t=new l;function t_(e,o){return t.run({cwd:Ln(e)},o)}function YTe(e,o){return t_(e??oe(),o)}function mde(){return t.getStore()!==void 0}function _Zt(e){let o=t.getStore();if(o)o.cwd=Ln(e);else x4e(e)}function SZt(){return t.getStore()?.cwd??VT()}function em(){if(t.getStore()?.cwd===void 0&&nc()===null)return null;return oe()}function oe(){try{return SZt()}catch{return ve()}}function TEr(){return!mde()&&Mt()?void 0:oe()}
+export{kEr,mr,S1n,Mt,j_e,il,b1n,gC,CEr,AEr,t_,YTe,mde,_Zt,SZt,em,oe,TEr};

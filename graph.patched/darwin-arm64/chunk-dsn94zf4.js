@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.296
+import{eee}from"./chunk-nqc6v990.js";import{ve}from"./chunk-4bw62nzm.js";import{Dv}from"./chunk-m6csay4q.js";import{vs}from"./chunk-bk5ct2gw.js";import{xD}from"./chunk-tadwrn0a.js";import{cn}from"./chunk-wtch2p0g.js";import{fe}from"./chunk-x0dc37w9.js";import{bpe,oY,ZW,eG,Trn,kb}from"./chunk-h20sc871.js";import{_Yn}from"./chunk-630w4d34.js";import{yOn}from"./chunk-k7rzvkc1.js";import{K1t}from"./chunk-ehhqq66b.js";import{gJe}from"./chunk-93jnxr7z.js";import{Hr}from"./chunk-txt1tvjz.js";var yBr={};Hr(yBr,{default:()=>yBr,earlyCredentialsOf:()=>pBr,hostProxyAuthConfigured:()=>mBr,personProxyAuthHelper:()=>fBr,proxyAgentsInstalled:()=>gBr,sessionFactsRestored:()=>SOe,signInRestored:()=>hBr});function pBr(e){return e?.backend!==void 0&&eee(e.configHome)?Dv(e?.backend):void 0}function fBr(){let e=fe("policySettings")?.proxyAuthHelper,r=cn("userSettings")?fe("userSettings")?.proxyAuthHelper:void 0;return{helper:e??r,fromProjectOrLocal:e===void 0&&r!==void 0&&(fe("projectSettings")?.proxyAuthHelper===r||fe("localSettings")?.proxyAuthHelper===r),trustAccepted:vs,sources:"personAndPolicy"}}var s=`a proxy helper set by this project is not run by this command
+`;function mBr(){let e=xD(),t=e&&Boolean(process.stderr.isTTY)&&(fe("projectSettings")?.proxyAuthHelper!==void 0||fe("localSettings")?.proxyAuthHelper!==void 0);if(e)Trn(fBr());if(t)process.stderr.write(s)}var p="Error: the proxy setting named above is refused.";function gBr(){let e=ZW(),t=e!==void 0&&!eG(e.value);return kb(),t?{reason:p,kind:"lasting"}:null}function hBr(e){let t=Boolean(process.stderr.isTTY)||!ve();return K1t(pBr(e),()=>t)}async function SOe(e){let t=await Promise.resolve().then(gJe).then(()=>Promise.all([bpe(),oY()])).then(yOn).then(mBr).then(()=>hBr(e)).then(()=>null,_Yn),r=await Promise.resolve().then(gBr).catch(_Yn);return t??r}export{pBr,fBr,mBr,gBr,hBr,SOe,yBr};

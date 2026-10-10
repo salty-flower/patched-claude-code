@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.296
+import{L}from"./chunk-6q0v3ahc.js";var zn="SendMessage",xtn="ccd_session_mgmt",Rdt=200,TAr=["type","recipient","recipient_kind","content","request_id","approve"];function Dwo(e){return"to"in e&&(("message"in e)||("notify_when_idle"in e))}function L0t(e){if(!L(e)||!Dwo(e)||!TAr.some((n)=>(n in e)))return;let o={...e};for(let n of TAr)delete o[n];return o}
+export{zn,xtn,Rdt,TAr,Dwo,L0t};

@@ -1,0 +1,16 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.296
+import{k}from"./chunk-bk5ct2gw.js";import{a}from"./chunk-yvnhkg35.js";import{_,t}from"./chunk-gyf58rwf.js";import{Hs,ne}from"./chunk-ax7r0qj7.js";import{c}from"./chunk-gsnbskq4.js";import{UMe}from"./chunk-sfn1dbxq.js";import{Td}from"./chunk-hwpb27as.js";import{gys}from"./chunk-v96accjb.js";var T=0.5,M=4,P=1600,g=25000;function u(){let e=a.MAX_MCP_OUTPUT_TOKENS;if(e!==void 0&&e>0)return e;let r=k("tengu_velvet_ibis",{})?.mcp_tool;if(typeof r==="number"&&Number.isFinite(r)&&r>0)return r;return g}function jie(e){if(!e||typeof e==="string"||!Array.isArray(e))return e;let n=e,r=!1;for(let o of n)if(o?.type==="text"&&"_meta"in o&&o._meta){r=!0;break}if(!r)return e;return n.map((o)=>{if(o?.type==="text"&&"_meta"in o&&o._meta){let{_meta:i,...s}=o;return s}return o})}var C=65536;function xGo(e){if(!Array.isArray(e))return e;let n=0;for(let r of e){if(r?.type!=="text"||!("_meta"in r)||!r._meta)continue;try{n+=_(r._meta).length}catch{n=1/0}if(n>C)return t(`MCP result: text blocks' _meta (over ${C} characters of JSON in all, or not serializable) left off the retained result`),jie(e)}return e}function p(e){return e.type==="text"}function d(e){return e.type==="image"}function POe(e){if(!e)return 0;if(typeof e==="string")return Td(e);if(!Array.isArray(e))return 0;return e.reduce((n,r)=>{if(p(r))return n+Td(r.text);else if(d(r))return n+P;return n},0)}function IOe(){return u()*4}var x="[OUTPUT TRUNCATED - exceeded ";function y(){return`
+
+${x}${u()} token limit]
+
+The tool output was truncated. If this MCP server provides pagination or filtering tools, use them to retrieve specific portions of the data. If pagination is not available, inform the user that you are working with truncated output and results may be incomplete.`}async function h(e,n){let r=[],o=0;for(let i of e)if(p(i)){let s=n-o;if(s<=0)break;if(i.text.length<=s)r.push(i),o+=i.text.length;else{let l=ne(i.text,s);if(l){let f={type:"text",text:l};if(i._meta)f._meta=i._meta;r.push(f)}break}}else if(d(i)){let s=P*4;if(o+s<=n)r.push(i),o+=s;else{let l=n-o;if(l>0){let f=Math.floor(l*0.75);try{let m=await gys(i,f);if(r.push(m),m.source.type==="base64")o+=m.source.data.length;else o+=s}catch{}}}}else r.push(i);return r}async function FBt(e,n){if(!e)return!1;let r=POe(e);if(r<=u()*T)return!1;if(POe(typeof e==="string"?e:e.filter(p))>u()*M)return!0;try{return(await UMe(typeof e==="string"?[{role:"user",content:e}]:[{role:"user",content:e}],[],void 0,{credentials:n})??r)>u()}catch(i){return c(i),r>u()}}async function $Bt(e){if(!e)return e;let n=IOe(),r=y();if(typeof e==="string")return Hs(e,n)+r;else{let o=await h(e,n);return o.push({type:"text",text:r}),o}}async function Wie(e,n){if(!await FBt(e,n))return e;return await $Bt(e)}
+export{jie,xGo,POe,IOe,FBt,$Bt,Wie};

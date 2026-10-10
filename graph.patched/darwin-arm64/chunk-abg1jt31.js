@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.296
+import{kY,UMt,Lh,C8e,kzn,rRo,Azn,FO,_pt,oRo,IPe,hwe,fxr,ff,NN,yo,ywe,FZ,Spt,DV,lj,mxr,sRo,$pe,FN,gxr,iRo,di,bpt,f4,wpt,_o,hxr,Vy,ie,zm,b1e,ID,aC,aRo,T8e}from"./chunk-gyf58rwf.js";import"./chunk-ax7r0qj7.js";import"./chunk-tat46164.js";import"./chunk-4bw62nzm.js";import"./chunk-k1419ccf.js";import"./chunk-nfna65jh.js";import"./chunk-nqc6v990.js";import"./chunk-ae84tp6z.js";import"./chunk-886tf6ja.js";import"./chunk-76anb6yt.js";import"./chunk-yjc18bey.js";import"./chunk-fdxhcr6b.js";export{Vy as NodeFsOperations,C8e as OPAQUE_LINK_TEXT,Spt as SYMLINK_TO_NETWORK_PATH_CODE,Lh as UNVERIFIED_ANCESTRY,hwe as entryReachesForeignNetwork,fxr as examineEntryChain,gxr as expandWin32ExistingLongNames,iRo as expandWin32ExistingLongNamesStrict,ff as findIntermediateUncJunction,NN as findIntermediateUncJunctionAsync,ie as getFsImplementation,f4 as getPathsForNetworkScreen,_o as getPathsForPermissionCheck,FO as hasUntouchableRecordSpelling,_pt as hasUntouchableRecordSpellingAsync,oRo as hasUntouchableRecordSpellingStrict,IPe as hasUntouchableRecordSpellingStrictAsync,Azn as hopCapExhausted,$pe as isDuplicatePath,rRo as isNetworkJunction,kzn as isOpaqueLinkText,UMt as isSpelledStrictAncestor,mxr as isSymlinkToNetworkPathError,kY as nonblockingReadFlags,hxr as permissionCheckSpellings,zm as processChdir,b1e as readFileRange,ID as readHandleUpTo,aRo as readLines,T8e as readLinesReverse,FZ as realpathExaminedSync,sRo as repoSettingsRefusalReason,FN as resolveDeepestExistingAncestorSync,wpt as resolvedSpellingWalk,yo as safeResolvePath,aC as tailFile,DV as vetRepoSettingsPath,lj as vetRepoSettingsPathAsync,ywe as vouchedLaunchAncestry,di as walkPermissionCheckPaths,bpt as walkPermissionCheckPathsAsync};

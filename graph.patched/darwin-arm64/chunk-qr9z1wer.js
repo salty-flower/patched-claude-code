@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.296
+import{Ee,ql,VR,W8e,zO,jn}from"./chunk-4bw62nzm.js";import{On}from"./chunk-ae84tp6z.js";var n={ccr:{controlChannel:!0,modelCatalog:!0,setPermissionMode:!0,sessionRecord:!0,fanout:!0,presence:!0,catchupReplay:!0,bashExec:!0,fileRead:!0},ssh:{controlChannel:!0,modelCatalog:!0,setPermissionMode:!0,sessionRecord:!1,fanout:!1,presence:!1,catchupReplay:!1,bashExec:!1,fileRead:!0},direct:{controlChannel:!1,modelCatalog:!1,setPermissionMode:!1,sessionRecord:!1,fanout:!1,presence:!1,catchupReplay:!1,bashExec:!1,fileRead:!1}};var BRr={isRemoteMode:!1};function vr(){return zO().remote}var qGn="Stopped waiting for the remote \u2014 the command may still complete there";function Ht(){return jn()||vr()!==null}function cwe(e,o){return Ht()?o:e}function ll(){let e=vr();return e?.caps?.controlChannel===!0&&!e.viewerOnly}function KGn(){return!1}function iC(e){return vr()?.caps?.[e]===!0}function jRr(e,o){return o&&!(e.isRemoteMode&&e.viewerOnly)}function a(e){return Promise.reject(Error(`sendControlRequest not yet wired for ${e} transport`))}function WRr(e,o,r,s){if(!o.isRemoteMode)return BRr;return{kind:e,isRemoteMode:!0,viewerOnly:r,caps:n[e],sessionId:s,sendMessage:o.sendMessage,cancelRequest:o.cancelRequest,cancelHeldMessages:o.cancelHeldMessages??(()=>!1),disconnect:o.disconnect,sendControlRequest:o.sendControlRequest??(()=>a(e))}}import{AsyncLocalStorage as l}from"async_hooks";var t=new l;function Wm(e,o){return t.run({cwd:On(e)},o)}function bPe(e,o){return Wm(e??se(),o)}function MZ(){return t.getStore()!==void 0}function kon(e){let o=t.getStore();if(o)o.cwd=On(e);else W8e(e)}function Aon(){return t.getStore()?.cwd??VR()}function df(){if(t.getStore()?.cwd===void 0&&ql()===null)return null;return se()}function se(){try{return Aon()}catch{return Ee()}}function GRr(){return!MZ()&&Ht()?void 0:se()}
+export{BRr,vr,qGn,Ht,cwe,ll,KGn,iC,jRr,WRr,Wm,bPe,MZ,kon,Aon,df,se,GRr};

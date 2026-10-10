@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test"
+import { beforeAll, expect, test } from "bun:test"
 import { resolve } from "node:path"
 import { parseSync } from "oxc-parser"
 import { applyPatchEntriesToGraphBundle, loadGraphBundle } from "../lib/graph-bundle"
@@ -204,6 +204,11 @@ function withOracle(
 
 const sourceAdmissionCheck = "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission"
 const telemetryCheck = "local-prompt-ablation-runtime.test.ts: native prompt deletion never records matching strings or emits analytics"
+
+// Cold dual-graph parsing has its own setup budget; scenario deadlines stay unchanged.
+beforeAll(() => {
+  for (const platform of platforms) patchedFunctions(platform)
+}, 120_000)
 
 test(sourceAdmissionCheck, () => {
   for (const platform of platforms) {

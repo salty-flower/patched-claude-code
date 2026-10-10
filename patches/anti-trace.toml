@@ -1,5 +1,5 @@
 name = "anti-trace"
-target_version = "2.1.197"
+target_version = "2.1.296"
 applies_to = ">=2.1.197 <2.1.198"
 
 rationale = """
@@ -4253,4 +4253,429 @@ assert_contains = '''by ${b(e)}, relayed by the coordinator session'''
 [[patches.tests]]
 kind = "static"
 name = "2.1.293 marker no longer carries the 2.1.289 account-id helper"
+assert_not_contains = '''function b(e){let t=e.author_kind==="owner"?"the project owner":"a member of the project";return ke.test(e.author_id)'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-296-darwin"
+lineage = "require-explicit-assistant-response-otel"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = """
+Require explicit assistant-response OTel opt-in in 2.1.296 Darwin.
+Upstream still inherits OTEL_LOG_USER_PROMPTS when the assistant-response
+setting is absent; keep response logging independent from prompt logging.
+Drop this variant when upstream removes the fallback.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "FunctionDeclaration", body_statement_count = 1, strings = ["OTEL_LOG_ASSISTANT_RESPONSES", "OTEL_LOG_USER_PROMPTS"] }
+
+  [patches.ast.captures.env]
+  kind = "identifier"
+  path = "body.body.0.argument.left.object"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '''{return %%CAPTURE:env%%.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin assistant-response telemetry requires explicit opt-in"
+  assert_contains = '''function Ecs(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin assistant-response telemetry does not inherit prompt logging"
+  assert_not_contains = '''OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-296-linux"
+lineage = "require-explicit-assistant-response-otel"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = """
+Require explicit assistant-response OTel opt-in in 2.1.296 Linux.
+Upstream still inherits OTEL_LOG_USER_PROMPTS when the assistant-response
+setting is absent; keep response logging independent from prompt logging.
+Drop this variant when upstream removes the fallback.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "FunctionDeclaration", body_statement_count = 1, strings = ["OTEL_LOG_ASSISTANT_RESPONSES", "OTEL_LOG_USER_PROMPTS"] }
+
+  [patches.ast.captures.env]
+  kind = "identifier"
+  path = "body.body.0.argument.left.object"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '''{return %%CAPTURE:env%%.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux assistant-response telemetry requires explicit opt-in"
+  assert_contains = '''function Nls(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux assistant-response telemetry does not inherit prompt logging"
+  assert_not_contains = '''OTEL_LOG_ASSISTANT_RESPONSES??a.OTEL_LOG_USER_PROMPTS'''
+
+[[patches]]
+name = "disable-raw-api-request-body-otel-2-1-296-darwin"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = """
+Disable 2.1.296 Darwin raw API request-body OTel capture.
+The current gate controls request-body capture; returning false preosnts its
+call into the raw-body serializer. The response helper has a separate entry.
+Drop this variant when upstream removes the raw request-body path.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "FunctionDeclaration", body_statement_count = 1, strings = ['.mode!=="disabled"'] }
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return!1}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin raw request gate is disabled at its current binding"
+  assert_contains = '''function _fr(){return!1}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin request-body capture still checks the disabled gate"
+  assert_contains = '''if(!_fr())return;'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin request-body gate rejects stale 2.1.293 binding"
+  assert_not_contains = '''function Nlr(){return!1}'''
+
+[[patches]]
+name = "disable-raw-api-request-body-otel-2-1-296-linux"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = """
+Disable 2.1.296 Linux raw API request-body OTel capture.
+The current gate controls request-body capture; returning false preosnts its
+call into the raw-body serializer. The response helper has a separate entry.
+Drop this variant when upstream removes the raw request-body path.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "FunctionDeclaration", body_statement_count = 1, strings = ['.mode!=="disabled"'] }
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return!1}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux raw request gate is disabled at its current binding"
+  assert_contains = '''function Ufr(){return!1}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux request-body capture still checks the disabled gate"
+  assert_contains = '''if(!Ufr())return;'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux request-body gate rejects stale 2.1.293 binding"
+  assert_not_contains = '''function bdr(){return!1}'''
+
+[[patches]]
+name = "disable-raw-api-response-body-otel-2-1-296-darwin"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = """
+Disable the separate 2.1.296 Darwin raw API response-body OTel path.
+The response helper reads capture mode directly and writes full response
+bodies without consulting the request gate, so replace its telemetry-only
+body with an immediate return.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "FunctionDeclaration", body_statement_count = 4, strings = ["api_response_body", "response_file", '.mode==="disabled"'] }
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin response helper exits before serialization"
+  assert_contains = '''function asn(e,n){return}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin response source no longer reaches its raw-body writer"
+  assert_not_contains = '''osn("api_response_body"'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin response helper rejects stale 2.1.293 path"
+  assert_not_contains = '''function Cen(e,n){return}'''
+
+[[patches]]
+name = "disable-raw-api-response-body-otel-2-1-296-linux"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = """
+Disable the separate 2.1.296 Linux raw API response-body OTel path.
+The response helper reads capture mode directly and writes full response
+bodies without consulting the request gate, so replace its telemetry-only
+body with an immediate return.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "FunctionDeclaration", body_statement_count = 4, strings = ["api_response_body", "response_file", '.mode==="disabled"'] }
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux response helper exits before serialization"
+  assert_contains = '''function msn(e,n){return}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux response source no longer reaches its raw-body writer"
+  assert_not_contains = '''usn("api_response_body"'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux response helper rejects stale 2.1.293 path"
+  assert_not_contains = '''function $en(e,n){return}'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-list-2-1-296-darwin"
+lineage = "require-local-opt-in-for-served-tool-text-list"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = """
+Keep the served tengu_lucky_cerf model list behind
+CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.296 Darwin. Preserve the current
+local lookup helper behind an explicit opt-in before Agent availability can
+depend on that served value. Drop when upstream removes the served list or
+adds an equivalent local opt-in.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "CallExpression", direct_string_literal = "tengu_lucky_cerf", parent_node = "VariableDeclarator" }
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '''["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?%%EXPR%%:null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin served Agent lookup uses the current opt-in binding"
+  assert_contains = '''?zr("tengu_lucky_cerf",null):null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin served Agent lookup no longer uses its stale helper"
+  assert_not_contains = '''$r("tengu_lucky_cerf",null)'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-list-2-1-296-linux"
+lineage = "require-local-opt-in-for-served-tool-text-list"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = """
+Keep the served tengu_lucky_cerf model list behind
+CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.296 Linux. Preserve the current
+local lookup helper behind an explicit opt-in before Agent availability can
+depend on that served value. Drop when upstream removes the served list or
+adds an equivalent local opt-in.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L59-L64"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "CallExpression", direct_string_literal = "tengu_lucky_cerf", parent_node = "VariableDeclarator" }
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '''["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?%%EXPR%%:null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux served Agent lookup uses the current opt-in binding"
+  assert_contains = '''?Gr("tengu_lucky_cerf",null):null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux served Agent lookup no longer uses its stale helper"
+  assert_not_contains = '''Fr("tengu_lucky_cerf",null)'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-web-search-2-1-296-darwin"
+lineage = "require-local-opt-in-for-served-tool-text"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = """
+Keep WebSearch served mode_description, system_hint, and web_search_addendum
+behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.296 Darwin.
+The local fast-argument branch remains first; gate only the served lookup.
+Drop the patch when upstream removes these served values or makes their
+availability explicitly local.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/WebSearchTool/prompt.ts#L5-L33"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "CallExpression", direct_string_literal = "tengu_sleepy_shore", parent_node = "ConditionalExpression" }
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '''["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?%%EXPR%%:null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin WebSearch served text uses the current opt-in binding"
+  assert_contains = '''?zr("tengu_sleepy_shore",null):null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin WebSearch preserves the explicit local fast-argument path"
+  assert_contains = '''a.CLAUDE_CODE_WEB_SEARCH_FAST_ARG!==void 0?{enabled:a.CLAUDE_CODE_WEB_SEARCH_FAST_ARG}:'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin WebSearch no longer uses its stale lookup helper"
+  assert_not_contains = '''$r("tengu_sleepy_shore",null)'''
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-web-search-2-1-296-linux"
+lineage = "require-local-opt-in-for-served-tool-text"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = """
+Keep WebSearch served mode_description, system_hint, and web_search_addendum
+behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.296 Linux.
+The local fast-argument branch remains first; gate only the served lookup.
+Drop the patch when upstream removes these served values or makes their
+availability explicitly local.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/WebSearchTool/prompt.ts#L5-L33"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "CallExpression", direct_string_literal = "tengu_sleepy_shore", parent_node = "ConditionalExpression" }
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '''["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?%%EXPR%%:null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux WebSearch served text uses the current opt-in binding"
+  assert_contains = '''?Gr("tengu_sleepy_shore",null):null'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux WebSearch preserves the explicit local fast-argument path"
+  assert_contains = '''a.CLAUDE_CODE_WEB_SEARCH_FAST_ARG!==void 0?{enabled:a.CLAUDE_CODE_WEB_SEARCH_FAST_ARG}:'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux WebSearch no longer uses its stale lookup helper"
+  assert_not_contains = '''Fr("tengu_sleepy_shore",null)'''
+
+[[patches]]
+name = "neutralize-project-thread-author-marker-2-1-296"
+lineage = "neutralize-project-thread-author-marker"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+rationale = "Keep project-thread author markers neutral in both 2.1.296 graphs. The shared formatter b still encodes author_kind and author_id into returned and relayed timeline markers, using the current je identifier check; replace its body with the fixed user label."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L1615-L1636"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+[patches.ast]
+schema = 1
+match = { node = "FunctionDeclaration", function_name = "b", body_statement_count = 2, strings = ["author_kind", "author_id", "the project owner", "a member of the project"] }
+
+[patches.transform]
+op = "replace_function_body"
+body = '''{return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 project-thread author marker uses a neutral label"
+assert_contains = '''function b(e){return"the user"}'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 project-thread author marker drops the current author-id helper"
+assert_not_contains = '''function b(e){let t=e.author_kind==="owner"?"the project owner":"a member of the project";return je.test(e.author_id)'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 returned timeline markers still use the neutralized formatter"
+assert_contains = '''by ${b(e)}, returned by'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 relayed timeline markers still use the neutralized formatter"
+assert_contains = '''by ${b(e)}, relayed by the coordinator session'''
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 marker no longer carries the 2.1.289 account-id helper"
 assert_not_contains = '''function b(e){let t=e.author_kind==="owner"?"the project owner":"a member of the project";return ke.test(e.author_id)'''

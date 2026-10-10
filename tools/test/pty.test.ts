@@ -67,6 +67,8 @@ test.skipIf(!Bun.which("script"))(
       const result = await captureCommand({
         cmd: ["bash", "-lc", makeScriptCommand(inner, "true", outputFile)],
         cwd: fixtureRoot,
+        // The POSIX wrapper must work even when script inherits a different shell.
+        env: { ...process.env, SHELL: Bun.which("nu") ?? Bun.which("false") ?? "false" },
         timeoutMs: 4_000,
         label: "PTY timeout fixture",
       })

@@ -62,7 +62,8 @@ export async function statuslinePermissionModeSmoke(bundle: string): Promise<voi
     const proc = Bun.spawn({
       cmd: ["bash", "-lc", `${script} < <(cat)`],
       cwd: home,
-      env,
+      // script executes this POSIX command using SHELL, not the Bun.spawn executable.
+      env: { ...env, SHELL: Bun.which("bash") ?? "bash" },
       detached: process.platform === "darwin",
       stdin: "pipe",
       stdout: "pipe",

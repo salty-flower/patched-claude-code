@@ -1,11 +1,11 @@
 name = "ask-user-question-unlimited"
 enabled = true
-target_version = "2.1.293"
+target_version = "2.1.296"
 applies_to = ">=2.1.260 <2.2.0"
 
 [[patches]]
 name = "ask-user-question-remove-standard-question-cap"
-target_version = "2.1.285"
+target_version = "2.1.296"
 rationale = """
 Allow a standard AskUserQuestion call to carry every related question in one interaction. The upstream four-question ceiling forces artificial follow-up rounds even when the user requested a larger coherent questionnaire; keep the one-question minimum and the separate per-question option bound. Remove this patch when upstream no longer imposes a fixed question-array maximum.
 """
@@ -28,7 +28,7 @@ assert_not_contains = '''.min(1).max(4).describe("Questions to ask the user (one
 
 [[patches]]
 name = "ask-user-question-remove-extended-question-cap"
-target_version = "2.1.285"
+target_version = "2.1.296"
 rationale = """
 Apply the same unbounded question-array contract to the extended AskUserQuestion schema used by hosts with richer question rendering. Keeping this sibling capped would make behavior depend on the active host format. Remove this patch when upstream removes the extended schema's fixed maximum.
 """
@@ -51,7 +51,7 @@ assert_not_contains = '''.min(1).max(4).describe("Questions to ask the user (one
 
 [[patches]]
 name = "ask-user-question-standard-host-description"
-target_version = "2.1.285"
+target_version = "2.1.296"
 rationale = """
 Describe the standard host-aware schema without the retired four-question limit while preserving its 2-4 options contract. This prevents the generated tool schema from teaching the model to split coherent questionnaires. Remove this patch when upstream advertises the unbounded question contract.
 """
@@ -73,7 +73,7 @@ assert_contains = '''Questions to ask the user (one or more; no fixed maximum). 
 
 [[patches]]
 name = "ask-user-question-standard-sdk-description"
-target_version = "2.1.285"
+target_version = "2.1.296"
 rationale = """
 Give SDK consumers the same unbounded question contract as the host-aware schema. Leaving the fallback description at 1-4 would preserve a model-visible limit for consumers without the richer host format. Remove this patch when upstream's fallback schema has no fixed question maximum.
 """
@@ -95,7 +95,7 @@ assert_contains = '''Questions to ask the user (one or more; no fixed maximum). 
 
 [[patches]]
 name = "ask-user-question-extended-description"
-target_version = "2.1.285"
+target_version = "2.1.296"
 rationale = """
 Update the extended input schema's model-visible description to match its unbounded runtime question array. The ordering guidance remains, but the prompt no longer instructs the model to split after four questions. Remove this patch when upstream documents the same contract.
 """
@@ -117,7 +117,7 @@ assert_contains = '''Questions to ask the user (one or more; no fixed maximum, m
 
 [[patches]]
 name = "ask-user-question-tool-description"
-target_version = "2.1.285"
+target_version = "2.1.296"
 rationale = """
 Make the top-level tool description state that one call may contain an unbounded question set. Schema details alone are not always surfaced prominently by tool consumers, so the concise description must carry the same contract. Remove this patch when upstream's tool description does so.
 """
@@ -139,7 +139,7 @@ assert_contains = '''A call has no fixed question-count maximum.'''
 
 [[patches]]
 name = "ask-user-question-tool-prompt"
-target_version = "2.1.285"
+target_version = "2.1.296"
 rationale = """
 Tell the model to batch a coherent set of questions instead of manufacturing follow-up calls at four. This aligns generation behavior with the relaxed runtime schema while still letting the model ask follow-ups when answers create new questions. Remove this patch when upstream prompt guidance has no fixed question cap.
 """

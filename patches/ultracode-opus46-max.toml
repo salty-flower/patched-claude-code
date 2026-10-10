@@ -1,5 +1,5 @@
 name = "ultracode-opus46-max"
-target_version = "2.1.197"
+target_version = "2.1.296"
 applies_to = ">=2.1.197 <2.1.198"
 
 rationale = """
@@ -10083,3 +10083,69 @@ assert_not_contains = '''function $P(e){return Gm()&&(e===void 0||ve(e))}'''
 kind = "static"
 name = "2.1.293 Linux Ultracode excludes the stale 2.1.290 capability gate"
 assert_not_contains = '''function fP(e){return Om()&&(e===void 0||Ee(e)||hee(e)&&bKt(e)===null)}'''
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-296-darwin"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.296 darwin-arm64 Ultracode gate ZI calls workflow availability dg and xhigh capability ve. In the same module Jre checks max_effort capability and E7t combines settings/catalog effort caps, returning null for uncapped max. Preserve availability without modifying selected effort."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ZI"
+    source = "function ZI(e){return dg()&&(e===void 0||ve(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return dg()&&(e===void 0||ve(e)||Jre(e)&&E7t(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 darwin-arm64 Ultracode accepts uncapped max-capable models"
+  assert_contains = "function ZI(e){return dg()&&(e===void 0||ve(e)||Jre(e)&&E7t(e)===null)}"
+  assert_not_contains = "function ZI(e){return dg()&&(e===void 0||ve(e))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 darwin-arm64 excludes the stale 2.1.293 gate"
+  assert_not_contains = "function jP(e){return zm()&&(e===void 0||ve(e)||Yte(e)&&N5t(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-296-linux"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.296 linux-x64 Ultracode gate XI calls workflow availability dg and xhigh capability ve. In the same module Gre checks max_effort capability and dJt combines settings/catalog effort caps, returning null for uncapped max. Preserve availability without modifying selected effort."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "XI"
+    source = "function XI(e){return dg()&&(e===void 0||ve(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return dg()&&(e===void 0||ve(e)||Gre(e)&&dJt(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 linux-x64 Ultracode accepts uncapped max-capable models"
+  assert_contains = "function XI(e){return dg()&&(e===void 0||ve(e)||Gre(e)&&dJt(e)===null)}"
+  assert_not_contains = "function XI(e){return dg()&&(e===void 0||ve(e))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 linux-x64 excludes the stale 2.1.293 gate"
+  assert_not_contains = "function $P(e){return Gm()&&(e===void 0||ve(e)||Wte(e)&&v3t(e)===null)}"

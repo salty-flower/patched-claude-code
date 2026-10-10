@@ -1,6 +1,6 @@
 name = "system-prompt-section-overrides"
 enabled = true
-target_version = "2.1.293"
+target_version = "2.1.296"
 applies_to = ">=2.1.217 <2.2.0"
 
 [[patches]]
@@ -195,3 +195,81 @@ template = '((orderedSections)=>globalThis[Symbol.for("patched-claude-code.syste
 kind = "static"
 name = "native composed prompt vector crosses the override bridge"
 assert_contains = 'Symbol.for("patched-claude-code.system-prompt-overrides.v1")'
+
+[[patches]]
+name = "system-prompt-section-override-bridge-2-1-296-darwin"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = """
+Wrap the 2.1.296 Darwin central structured-section conversion after upstream
+composition and local prompt-string deletion. The final map result remains the
+same ordered text vector when the bridge is absent, and the replacement adds
+no bundle-local identifiers. Keep this exact-version range until the central
+main-session seam is re-proved on a later target.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "CallExpression", callee_property = "map", parent_node = "ReturnStatement", source_regex = "^zVn\\(s,cue\\(\\)\\?AO:null\\)\\.map\\(" }
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((orderedSections)=>globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v1")]?.({orderedSections})?.effectiveSections??orderedSections)(%%EXPR%%)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin central prompt vector crosses the override bridge"
+  assert_contains = 'Symbol.for("patched-claude-code.system-prompt-overrides.v1")'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin bridge preserves the current final conversion bindings"
+  assert_contains = '''zVn(s,cue()?AO:null).map((h)=>xke(h))'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin bridge rejects the stale 2.1.293 conversion helper"
+  assert_not_contains = '''hzn(s,'''
+
+[[patches]]
+name = "system-prompt-section-override-bridge-2-1-296-linux"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = """
+Wrap the 2.1.296 Linux central structured-section conversion after upstream
+composition and local prompt-string deletion. The final map result remains the
+same ordered text vector when the bridge is absent, and the replacement adds
+no bundle-local identifiers. Keep this exact-version range until the central
+main-session seam is re-proved on a later target.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+  match = { node = "CallExpression", callee_property = "map", parent_node = "ReturnStatement", source_regex = "^QVn\\(s,nue\\(\\)\\?wO:null\\)\\.map\\(" }
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((orderedSections)=>globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v1")]?.({orderedSections})?.effectiveSections??orderedSections)(%%EXPR%%)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux central prompt vector crosses the override bridge"
+  assert_contains = 'Symbol.for("patched-claude-code.system-prompt-overrides.v1")'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux bridge preserves the current final conversion bindings"
+  assert_contains = '''QVn(s,nue()?wO:null).map((h)=>vke(h))'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux bridge rejects the stale 2.1.293 conversion helper"
+  assert_not_contains = '''hzn(s,'''

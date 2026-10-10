@@ -1,5 +1,5 @@
 name = "subagent-model-effort"
-target_version = "2.1.281"
+target_version = "2.1.296"
 applies_to = ">=2.1.263 <2.2.0"
 
 [[patches]]
@@ -2953,3 +2953,545 @@ kind = "static"
 name = "2.1.293 Linux ordinary agents receive explicit effort before model resolution"
 assert_contains = '''if(patchedAgentEffort!==void 0&&!Y)s={...s,effort:patchedAgentEffort};let ze=Y?"inherit":Je,ee=wF(gfe(s,ft),ft,ze,Me)'''
 assert_not_contains = '''if(patchedAgentEffort!==void 0&&!Y)s={...s,effort:patchedAgentEffort};let Qe=Y?"inherit":Ve,te=A$(xue(s,gt),gt,Qe,Me)'''
+
+[[patches]]
+name = "agent-teammate-effort-2-1-296-darwin-arm64"
+lineage = "agent-teammate-effort"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = "Carry the selected per-call effort into the named teammate spawn configuration in the 2.1.296 Darwin graph. Capture the agent definition from the target object so frontmatter effort remains the fallback."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L282-L300"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "modelSource"
+strings = ["use_splitpane:!0", "invokingRequestId", "agent_type", "agentDefinition"]
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "properties.8.value"
+
+[patches.transform]
+op = "append_object_property"
+code = "effort:patchedAgentEffort??%%CAPTURE:agent%%?.effort"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Darwin teammates receive per-call or definition effort"
+assert_contains = "agentDefinition:M,invokingRequestId:h?.requestId,effort:patchedAgentEffort??M?.effort"
+assert_not_contains = "agentDefinition:M,invokingRequestId:p?.requestId,effort:patchedAgentEffort??M?.effort"
+
+[[patches]]
+name = "agent-teammate-effort-2-1-296-linux-x64"
+lineage = "agent-teammate-effort"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = "Carry the selected per-call effort into the named teammate spawn configuration in the 2.1.296 Linux graph. Capture the agent definition from the target object so frontmatter effort remains the fallback."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L282-L300"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "modelSource"
+strings = ["use_splitpane:!0", "invokingRequestId", "agent_type", "agentDefinition"]
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "properties.8.value"
+
+[patches.transform]
+op = "append_object_property"
+code = "effort:patchedAgentEffort??%%CAPTURE:agent%%?.effort"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Linux teammates receive per-call or definition effort"
+assert_contains = "agentDefinition:O,invokingRequestId:h?.requestId,effort:patchedAgentEffort??O?.effort"
+assert_not_contains = "agentDefinition:O,invokingRequestId:p?.requestId,effort:patchedAgentEffort??O?.effort"
+
+[[patches]]
+name = "agent-model-and-effort-schema-2-1-296-darwin-arm64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = "Accept custom model IDs and explicit effort in the 2.1.296 Darwin subagent schema. Capture the current enum and string constructors, coordinator predicate, and settings namespace. Preserve target model descriptions and forced-inheritance behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "model"
+strings = ["Optional model override for this agent.", "Agents run in the background by default;"]
+
+[patches.ast.captures.enumeration]
+kind = "identifier"
+path = "callee"
+
+[patches.ast.captures.enumeration.select]
+node = "CallExpression"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\[\"sonnet\",\"opus\",\"haiku\",\"fable\"\\]\\)$"
+
+[patches.ast.captures.string]
+kind = "identifier"
+path = "properties.1.value.callee.object.callee"
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+[patches.ast.captures.coordinator.select]
+node = "ConditionalExpression"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+[patches.ast.captures.settings.select]
+node = "MemberExpression"
+member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "model:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[\"sonnet\",\"opus\",\"haiku\",\"fable\"\\]\\)\\.optional\\(\\)"
+value = "model:%%CAPTURE:string%%().optional()"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Darwin schema accepts custom model IDs while retaining native effort"
+assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+assert_not_contains = "model:G([\"sonnet\",\"opus\",\"haiku\",\"fable\"]).optional()"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Darwin schema uses the current custom model string builder"
+assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+
+[[patches]]
+name = "agent-model-and-effort-schema-2-1-296-linux-x64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = "Accept custom model IDs and explicit effort in the 2.1.296 Linux subagent schema. Capture the current enum and string constructors, coordinator predicate, and settings namespace. Preserve target model descriptions and forced-inheritance behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "model"
+strings = ["Optional model override for this agent.", "Agents run in the background by default;"]
+
+[patches.ast.captures.enumeration]
+kind = "identifier"
+path = "callee"
+
+[patches.ast.captures.enumeration.select]
+node = "CallExpression"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\[\"sonnet\",\"opus\",\"haiku\",\"fable\"\\]\\)$"
+
+[patches.ast.captures.string]
+kind = "identifier"
+path = "properties.1.value.callee.object.callee"
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+[patches.ast.captures.coordinator.select]
+node = "ConditionalExpression"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+[patches.ast.captures.settings.select]
+node = "MemberExpression"
+member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "model:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[\"sonnet\",\"opus\",\"haiku\",\"fable\"\\]\\)\\.optional\\(\\)"
+value = "model:%%CAPTURE:string%%().optional()"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Linux schema accepts custom model IDs while retaining native effort"
+assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+assert_not_contains = "model:z([\"sonnet\",\"opus\",\"haiku\",\"fable\"]).optional()"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Linux schema uses the current custom model string builder"
+assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+
+[[patches]]
+name = "agent-model-and-effort-description-2-1-296-darwin-arm64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = "Update the native 2.1.296 Agent effort field in place so its five supported levels retain per-call-over-definition guidance. The upstream field already exists, so do not prepend a duplicate effort property that the later native property would override."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "effort"
+strings = ["Reasoning effort for this agent.", "Optional model override for this agent.", "Agents run in the background by default;"]
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+[patches.ast.captures.coordinator.select]
+node = "ConditionalExpression"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+[patches.ast.captures.settings.select]
+node = "MemberExpression"
+member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(\"Reasoning effort for this agent\\.[^\"]*\")"
+value = "$1+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(%%CAPTURE:coordinator%%()&&%%CAPTURE:settings%%.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Darwin native effort field keeps its levels and gains per-call precedence guidance"
+assert_contains = "effort:U(Ia).optional().describe(\"Reasoning effort for this agent. Set this ONLY when the user, or instructions such as CLAUDE.md or a skill, explicitly ask that this agent or delegated work run at a specific effort level, never on your own judgment; otherwise omit it and the agent runs at its usual effort.\"+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(xa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+assert_not_contains = "effort:W(Dc).optional().describe(\"Reasoning effort for this agent. Set this ONLY when the user, or instructions such as CLAUDE.md or a skill, explicitly ask that this agent or delegated work run at a specific effort level, never on your own judgment; otherwise omit it and the agent runs at its usual effort.\"+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(ua()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Darwin native effort field retains its fork-specific suffix"
+assert_contains = "+(ene()?' Ignored for subagent_type: \"fork\": a fork runs at your own effort.':\"\"))"
+assert_not_contains = "+(ZZ()?' Ignored for subagent_type: \"fork\": a fork runs at your own effort.':\"\"))"
+
+[[patches]]
+name = "agent-model-and-effort-description-2-1-296-linux-x64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = "Update the native 2.1.296 Agent effort field in place so its five supported levels retain per-call-over-definition guidance. The upstream field already exists, so do not prepend a duplicate effort property that the later native property would override."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "effort"
+strings = ["Reasoning effort for this agent.", "Optional model override for this agent.", "Agents run in the background by default;"]
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+[patches.ast.captures.coordinator.select]
+node = "ConditionalExpression"
+source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+[patches.ast.captures.settings.select]
+node = "MemberExpression"
+member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(\"Reasoning effort for this agent\\.[^\"]*\")"
+value = "$1+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(%%CAPTURE:coordinator%%()&&%%CAPTURE:settings%%.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Linux native effort field keeps its levels and gains per-call precedence guidance"
+assert_contains = "effort:U(Ia).optional().describe(\"Reasoning effort for this agent. Set this ONLY when the user, or instructions such as CLAUDE.md or a skill, explicitly ask that this agent or delegated work run at a specific effort level, never on your own judgment; otherwise omit it and the agent runs at its usual effort.\"+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(xa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+assert_not_contains = "effort:j(Dc).optional().describe(\"Reasoning effort for this agent. Set this ONLY when the user, or instructions such as CLAUDE.md or a skill, explicitly ask that this agent or delegated work run at a specific effort level, never on your own judgment; otherwise omit it and the agent runs at its usual effort.\"+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(ua()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Linux native effort field retains its fork-specific suffix"
+assert_contains = "+(qte()?' Ignored for subagent_type: \"fork\": a fork runs at your own effort.':\"\"))"
+assert_not_contains = "+(VZ()?' Ignored for subagent_type: \"fork\": a fork runs at your own effort.':\"\"))"
+
+[[patches]]
+name = "agent-effective-effort-2-1-296-darwin-arm64"
+lineage = "agent-effective-effort"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = "Expose native sanitized absolute effort Je to patched teammate propagation, preserve native lower/higher effort pt, and suppress both under the 2.1.296 coordinator model inheritance guard."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L239-L253"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "FunctionDeclaration"
+strings = ["subagent_spawn_hook_retype_unreviewed"]
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(Vn=Date\\.now\\(\\));if\\(xa\\(\\)&&a\\.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL\\)Ke=void 0;"
+value = "$1,patchedAgentEffort=Je;if(xa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Ke=patchedAgentEffort=Je=pt=void 0;"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 native absolute and relative effort respect coordinator inheritance"
+assert_contains = "Vn=Date.now(),patchedAgentEffort=Je;if(xa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Ke=patchedAgentEffort=Je=pt=void 0;"
+assert_not_contains = "Xe=n.model,patchedAgentEffort=n.effort,zn=Date.now();if(ua()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Xe=patchedAgentEffort=void 0;"
+
+[[patches]]
+name = "agent-effective-effort-2-1-296-linux-x64"
+lineage = "agent-effective-effort"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = "Expose native sanitized absolute effort Je to patched teammate propagation, preserve native lower/higher effort pt, and suppress both under the 2.1.296 coordinator model inheritance guard."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L239-L253"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "FunctionDeclaration"
+strings = ["subagent_spawn_hook_retype_unreviewed"]
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(Vn=Date\\.now\\(\\));if\\(xa\\(\\)&&a\\.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL\\)Ke=void 0;"
+value = "$1,patchedAgentEffort=Je;if(xa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Ke=patchedAgentEffort=Je=pt=void 0;"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 native absolute and relative effort respect coordinator inheritance"
+assert_contains = "Vn=Date.now(),patchedAgentEffort=Je;if(xa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Ke=patchedAgentEffort=Je=pt=void 0;"
+assert_not_contains = "Xe=n.model,patchedAgentEffort=n.effort,zn=Date.now();if(ua()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Xe=patchedAgentEffort=void 0;"
+
+[[patches]]
+name = "agent-effort-resolver-priority-2-1-296-darwin-arm64"
+lineage = "agent-effort-resolver-priority"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = "Pass the explicit agent permission-layer effort into both carried-effort calculations in the 2.1.296 Darwin request loop, preserving the new carried-effort comparison."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1559-L1569"
+locator_kind = "ast_transform"
+expected_matches = 2
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "hookEffortValue"
+source_regex = "^\\{turnEffort:[A-Za-z_$][A-Za-z0-9_$]*\\.turnEffort,hookEffortValue:[A-Za-z_$][A-Za-z0-9_$]*\\.hookEffortValue,carriedEffort:[A-Za-z_$][A-Za-z0-9_$]*\\}$"
+parent_node = "CallExpression"
+
+[patches.ast.captures.options]
+kind = "identifier"
+path = "object"
+
+[patches.ast.captures.options.select]
+node = "MemberExpression"
+member_property = "hookEffortValue"
+
+[patches.transform]
+op = "append_object_property"
+code = "agentOverride:%%CAPTURE:options%%.agentEffortValue"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Darwin request effort keeps the carried comparison and agent override"
+assert_contains = "carriedEffort:Yr,agentOverride:X.agentEffortValue"
+assert_not_contains = "carriedEffort:Zo,agentOverride:Y.agentEffortValue"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Darwin carried-effort comparison also receives agent override"
+assert_contains = "carriedEffort:null,agentOverride:X.agentEffortValue"
+assert_not_contains = "carriedEffort:null,agentOverride:Y.agentEffortValue"
+
+[[patches]]
+name = "agent-effort-resolver-priority-2-1-296-linux-x64"
+lineage = "agent-effort-resolver-priority"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = "Pass the explicit agent permission-layer effort into both carried-effort calculations in the 2.1.296 Linux request loop, preserving the new carried-effort comparison."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1559-L1569"
+locator_kind = "ast_transform"
+expected_matches = 2
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "ObjectExpression"
+object_property_direct = "hookEffortValue"
+source_regex = "^\\{turnEffort:[A-Za-z_$][A-Za-z0-9_$]*\\.turnEffort,hookEffortValue:[A-Za-z_$][A-Za-z0-9_$]*\\.hookEffortValue,carriedEffort:[A-Za-z_$][A-Za-z0-9_$]*\\}$"
+parent_node = "CallExpression"
+
+[patches.ast.captures.options]
+kind = "identifier"
+path = "object"
+
+[patches.ast.captures.options.select]
+node = "MemberExpression"
+member_property = "hookEffortValue"
+
+[patches.transform]
+op = "append_object_property"
+code = "agentOverride:%%CAPTURE:options%%.agentEffortValue"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Linux request effort keeps the carried comparison and agent override"
+assert_contains = "carriedEffort:Yr,agentOverride:Y.agentEffortValue"
+assert_not_contains = "carriedEffort:Zo,agentOverride:Y.agentEffortValue"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 Linux carried-effort comparison also receives agent override"
+assert_contains = "carriedEffort:null,agentOverride:Y.agentEffortValue"
+
+[[patches]]
+name = "agent-prompt-call-overrides-compact-2-1-296"
+lineage = "agent-prompt-call-overrides"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+rationale = "Append per-call model and effort guidance to the compact Agent prompt in 2.1.296, capturing the current settings namespace for forced-model behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L255-L270"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "FunctionDeclaration"
+strings = ["When to fork", "fork inherits your full conversation context", "Each agent type's model, reasoning effort"]
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+[patches.ast.captures.settings.select]
+node = "MemberExpression"
+member_property = "CLAUDE_CODE_SUBAGENT_MODEL_FORCE"
+
+[patches.transform]
+op = "replace_substring_regex"
+find = "(- Each agent type's model, reasoning effort, and tools come from its definition [^\\n]+)(\\.)"
+value = "$1${%%CAPTURE:settings%%.CLAUDE_CODE_SUBAGENT_MODEL_FORCE?\"; the `effort` parameter here overrides the definition's reasoning effort for this one call\":\"; the `model` and `effort` parameters here override the definition for this one call\"}$2"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 compact Agent prompt advertises both per-call overrides"
+assert_contains = ".CLAUDE_CODE_SUBAGENT_MODEL_FORCE?\"; the `effort` parameter here overrides the definition's reasoning effort for this one call\":\"; the `model` and `effort` parameters here override the definition for this one call\""
+assert_not_contains = "frontmatter or SDK \\\\`agents\\\\`)."
+
+[[patches]]
+name = "agent-ordinary-effort-2-1-296-darwin-arm64"
+lineage = "agent-ordinary-effort"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["darwin-arm64"]
+rationale = "Apply the 2.1.296 native sanitized absolute effort before ordinary-agent model resolution; fork agents retain inherited effort. Preserve the later native assignment and relative lower/higher adjustment."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L603-L635"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "VariableDeclaration"
+strings = ["ze=z?\"inherit\":Qe", "o1(Bge(s,wt),wt,ze,De)"]
+
+[patches.ast.captures.fork]
+kind = "identifier"
+path = "declarations.0.init.test"
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "declarations.1.init.arguments.0.arguments.0"
+
+[patches.transform]
+op = "insert_before_node"
+code = "if(patchedAgentEffort!==void 0&&!%%CAPTURE:fork%%)%%CAPTURE:agent%%={...%%CAPTURE:agent%%,effort:patchedAgentEffort};"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 absolute effort precedes model resolution while native relative effort survives"
+assert_contains = "if(patchedAgentEffort!==void 0&&!z)s={...s,effort:patchedAgentEffort};let ze=z?\"inherit\":Qe,ee=o1(Bge(s,wt),wt,ze,De)"
+assert_not_contains = "if(patchedAgentEffort!==void 0&&!Y)s={...s,effort:patchedAgentEffort};let ze=Y?\"inherit\":Je,ee=I$(wfe(s,ft),ft,ze,De)"
+
+[[patches]]
+name = "agent-ordinary-effort-2-1-296-linux-x64"
+lineage = "agent-ordinary-effort"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = ["linux-x64"]
+rationale = "Apply the 2.1.296 native sanitized absolute effort before ordinary-agent model resolution; fork agents retain inherited effort. Preserve the later native assignment and relative lower/higher adjustment."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L603-L635"
+locator_kind = "ast_transform"
+
+[patches.ast]
+schema = 1
+
+[patches.ast.match]
+node = "VariableDeclaration"
+strings = ["ze=j?\"inherit\":Qe", "YU(Dge(s,wt),wt,ze,Re)"]
+
+[patches.ast.captures.fork]
+kind = "identifier"
+path = "declarations.0.init.test"
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "declarations.1.init.arguments.0.arguments.0"
+
+[patches.transform]
+op = "insert_before_node"
+code = "if(patchedAgentEffort!==void 0&&!%%CAPTURE:fork%%)%%CAPTURE:agent%%={...%%CAPTURE:agent%%,effort:patchedAgentEffort};"
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.296 absolute effort precedes model resolution while native relative effort survives"
+assert_contains = "if(patchedAgentEffort!==void 0&&!j)s={...s,effort:patchedAgentEffort};let ze=j?\"inherit\":Qe,ee=YU(Dge(s,wt),wt,ze,Re)"
+assert_not_contains = "if(patchedAgentEffort!==void 0&&!Y)s={...s,effort:patchedAgentEffort};let ze=Y?\"inherit\":Je,ee=wF(gfe(s,ft),ft,ze,Me)"

@@ -1,0 +1,1575 @@
+{
+  "schema": 1,
+  "scope": "prompt-lineage-resolution-proposal",
+  "status": "proposed-only-unapproved-final-observation-bound",
+  "targetVersion": "2.1.296",
+  "previousVersion": "2.1.293",
+  "binding": {
+    "draftSha256": "68e9b0052d7e1b1340b2ad7f54220f1e5519de566dcfb4804e9f9e20b939002f",
+    "inventorySha256": "sha256-jjasdD+kod1JTX2oIYjPxL9dZCjJE5yPtNLTGfz2CgA=",
+    "registrySha256": "sha256-lZqXsWVOuFPjzV3iiTiD9/YwscFO0AqvwQEno7b0MVQ=",
+    "predecessorLedgerSha256": "sha256-CC7ijpMczVEsay+61ynBTKH3j2qyfD8TBmaVg2T9Ndk="
+  },
+  "counts": {
+    "finalOccurrences": 420,
+    "uniqueExactCarries": 379,
+    "unresolvedCovered": 41,
+    "exactFullObservationMatches": 41,
+    "proposedRelations": {
+      "carry": 37,
+      "new": 3,
+      "split": 1,
+      "merge": 0
+    }
+  },
+  "resolutions": [
+    {
+      "currentOccurrenceId": "v2.1.296-0000",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0000",
+        "ordinal": 0,
+        "familyHint": "memory",
+        "roleHint": "user",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-I/99PjFqzMhqyeOUamvNMUtTDVXrZ3NQ+5/sRPfwrP0=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-f5GSnTb6t3+7VU7I2AeU3nxnWiy0c7hs+59CuglTSCU=",
+        "textMinHash": "ACYp/QANCI8AJdnNAAFIUgAo8HMAInttACL+FQAkvIQABvGsAAXs9QAobmEAF2fkAANe7AARR08An7E1AAFV5wAob7IALaulABNWAAAWiAMAAYbNABikuQBBDF4AUKalAHCJLwAJGAoAESjuAD3BegAbHrsACAXFAEJBUAAPwPA=",
+        "normalizedTokenCount": 2996,
+        "astContextSha256": "sha256-vNTCBit1jRZd6B6xLLcIf1v+EwotlRSWfasDRc6HRE4="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000374",
+      "proposedPredecessors": [
+        "v2.1.293-0344"
+      ],
+      "rationale": "Self-hosted-runner help remains in the same help/early-return command owner; the edit adds --server-auto-mode-lists and its environment setting.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-0n88wbb5.js",
+        "startCodeUnit": 219178,
+        "endCodeUnit": 241593,
+        "sourceSha256": "sha256-f5GSnTb6t3+7VU7I2AeU3nxnWiy0c7hs+59CuglTSCU="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-s9x6z4p5.js",
+          "startCodeUnit": 211344,
+          "endCodeUnit": 232926,
+          "sourceSha256": "sha256-csqycI8eU7DKLW/kVbMpWBKDwXi3YOnhV6/OdLx+MBA="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0004",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0004",
+        "ordinal": 4,
+        "familyHint": "web-browser",
+        "roleHint": "user",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-UT8xjhJQl74seX5abk/Jq3l6y76P3SIN68t4zhaidqY=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-uUU33Eci48NR4D1SkenLS26HEPvOPW8OTB13JZ3qLw0=",
+        "textMinHash": "AIVyqQIPD/QCAIXUAT1yFwFPhk0GVpzYACqRlADbg/4AxKhwAL9aNgJcu24A5nHgANPcqQBVAmAGbz+XAXBBSwQYycMCmu+qAULiyAHQW70AKxz8Az5y5wA4tFwBVrHWBTY5eAffSREAi+8KBQ4k/QE0510COaxvAXMorATwfrM=",
+        "normalizedTokenCount": 141,
+        "astContextSha256": "sha256-RWfGIAnPvYsCxOGuNwzS2jLPPCdOnROqQZ7wFPNoeqM="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000028",
+      "proposedPredecessors": [
+        "v2.1.293-0002"
+      ],
+      "rationale": "WebSearch full-description return remains the non-lean branch. Citation instructions are now conditional interpolations controlled by CLAUDE_CODE_WEBSEARCH_CITATIONS; original purpose and owner remain.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-0vbe15j3.js",
+        "startCodeUnit": 3250,
+        "endCodeUnit": 4591,
+        "sourceSha256": "sha256-uUU33Eci48NR4D1SkenLS26HEPvOPW8OTB13JZ3qLw0="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-05w3jt4d.js",
+          "startCodeUnit": 3840,
+          "endCodeUnit": 5154,
+          "sourceSha256": "sha256-a5vsoi/4mfkKlxSbpb4neAaAfw/NzZn//MwtbIVS0aQ="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0014",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0014",
+        "ordinal": 14,
+        "familyHint": "tool-description",
+        "roleHint": "tool",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-TE4N7aJwdw81n2LhiyNyOQXLvSpQCl3k4pXkGR7brZk=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-Y5KTPIdqia85ZazeO89gydAFB75Kvkyr/ezt7DmjxiM=",
+        "textMinHash": "AgFMZAAnp9YAB+8aAA+regHyX2cAU+xrAEduMwXeM+wAP2ldAHFPiAC1RuEA8+XQAQh6FQD0HlIBoioNBCTVJgAA1CgA5+YYAPmOowFC5ewBLo9QAMgoEgCksjsDMSykAbIiJAEguwoARnG6ABrYRgGp+joCTUHnACvbBwARhxI=",
+        "normalizedTokenCount": 164,
+        "astContextSha256": "sha256-v7+HegwrzSShZm1Tjc4JsViNT47Gfd/rCDKAUOn0vys="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000122",
+      "proposedPredecessors": [
+        "v2.1.293-0342"
+      ],
+      "rationale": "SendMessage description stays in the peer messaging owner with the same example and agent addressing guidance. Address rows and automatic-delivery guidance move to conditionals rather than a new prompt owner.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-1fr2177j.js",
+        "startCodeUnit": 23533,
+        "endCodeUnit": 25334,
+        "sourceSha256": "sha256-Y5KTPIdqia85ZazeO89gydAFB75Kvkyr/ezt7DmjxiM="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-ry0rs138.js",
+          "startCodeUnit": 22909,
+          "endCodeUnit": 24520,
+          "sourceSha256": "sha256-fSCRieu5Hc+K5PNcGCh9INlccEOUmO7CjVaiE5BDsHA="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0018",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0018",
+        "ordinal": 18,
+        "familyHint": "auxiliary",
+        "roleHint": "user",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-2dI7bZiwgg5YBYBIWoGWe9I41QuyO8J6Lb4K8EvPdlQ=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-B4vAj5WK5RWjVxt1ORxCEy+zAs78NeYYym/sdQb8Q5s=",
+        "textMinHash": "AF/6IgLAHXQAOWYXBGEyvwQHPrgCrufsBCDmLgkwE6IA7q1hBJaEtANqHCgAuVq+DX61SwB6ju8BXlwNBDX7MAB5pxIEoCaTABSIhQNXt5oApAJEAF7etwosQRUFWnufAHWhNAPbbbMAa2KgA56Q7AOz+zYAayRBAC04aQEiR4I=",
+        "normalizedTokenCount": 78,
+        "astContextSha256": "sha256-3fltuIOUkdj+tC/+CGAUgijMlLz7AhUJY+dPCwHHCqI="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000054",
+      "proposedPredecessors": [
+        "v2.1.293-0385"
+      ],
+      "rationale": "PowerShell sleep guidance remains in the same helper, with background-task advice moved behind the background capability parameter. Static-to-contextual classification change reflects this interpolation, not new identity.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-237kfbc1.js",
+        "startCodeUnit": 1586,
+        "endCodeUnit": 2352,
+        "sourceSha256": "sha256-B4vAj5WK5RWjVxt1ORxCEy+zAs78NeYYym/sdQb8Q5s="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-ytyamh38.js",
+          "startCodeUnit": 1396,
+          "endCodeUnit": 2144,
+          "sourceSha256": "sha256-02hJ+okYyWMDppdOea23fNL/1rQDDbzZwuJT7AJfgMc="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0025",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0025",
+        "ordinal": 25,
+        "familyHint": "agent",
+        "roleHint": "system",
+        "classification": "static",
+        "detectorSha256": "sha256-Z1lh2cJZ95NYm/aG+C8bGRrCiVV1y6O7J9GJRAka7Tc=",
+        "revisionSha256": "sha256-Z1lh2cJZ95NYm/aG+C8bGRrCiVV1y6O7J9GJRAka7Tc=",
+        "sourceSha256": "sha256-C1/4oQkQ98bRv5NtLf8akWybpIppg/NBGVkK/zplWOc=",
+        "textMinHash": "AEAvNgDnHu8A/NOdAXXbjAAAYz4Bp9NrAKLnRQBjnmAANVPeAe643QIxgzUCIjZJAEjbaQCgnM8ASWe+AJOkDgASHfAAySnlAMU5lQB67HUAnAVxAj+nWQFdVOYATjlhARdAFQCqi+EA3HzHAB9ZzgEZZvwAPncTAnsfQwB322Q=",
+        "normalizedTokenCount": 290,
+        "astContextSha256": "sha256-xOUvOsMl/N5QCEQNsayCAu9GBKh4795Kr84qWTAC8eU="
+      },
+      "proposedRelation": "new",
+      "proposedLineageId": null,
+      "proposedPredecessors": [],
+      "rationale": "New delegation-configuration classifier system prompt owned by the encourages_subagents/sources JSON schema and configuration aggregation. No corresponding classifier observation or context exists in the prior inventory, and the exact schema marker is absent from the prior graph.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-24k7d6mw.js",
+        "startCodeUnit": 1592907,
+        "endCodeUnit": 1594464,
+        "sourceSha256": "sha256-C1/4oQkQ98bRv5NtLf8akWybpIppg/NBGVkK/zplWOc="
+      },
+      "supportingPredecessorSourceSites": [],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0063",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0063",
+        "ordinal": 63,
+        "familyHint": "compact",
+        "roleHint": "system",
+        "classification": "static",
+        "detectorSha256": "sha256-XGE59QyK2P3esmmXb5dLJaSMxBzRtkLImqwP3C2/0Fc=",
+        "revisionSha256": "sha256-XGE59QyK2P3esmmXb5dLJaSMxBzRtkLImqwP3C2/0Fc=",
+        "sourceSha256": "sha256-n9KSthddVge0nsSe71gGHuYPAyAczTHcwWbbpH5Aps0=",
+        "textMinHash": "AALO2wAAPYMAADBCAAdk2AAC0PoADhMsAAgQvgABtyYABV2EAA4hxwACOHcAAaQAAALSbQAAw34AAzVwAAbVXAAAjToABMDIAAJYWgADlmQADoS8AAPyjwAACKkAAIKtAAZ0ZwADmS0AARVlAAjuGgAAy44AApEAAAgi4wADUW0=",
+        "normalizedTokenCount": 17687,
+        "astContextSha256": "sha256-dz1jJLqYfR1Nl5VUz3LrkVR3Cd6ZyJP84phRZ2s5O78="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000436",
+      "proposedPredecessors": [
+        "v2.1.293-0125"
+      ],
+      "rationale": "Embedded release-notes resource remains the changelog parser input and runtime build metadata neighbor. It prepends 2.1.295/294/293 and rolls off older notes, including 2.1.287; changing the rolling changelog content does not change its resource identity.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-8f5kkssn.js",
+        "startCodeUnit": 3164,
+        "endCodeUnit": 91724,
+        "sourceSha256": "sha256-n9KSthddVge0nsSe71gGHuYPAyAczTHcwWbbpH5Aps0="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-9ggm3f3m.js",
+          "startCodeUnit": 3164,
+          "endCodeUnit": 90285,
+          "sourceSha256": "sha256-kfLwKMv86TJoCpiLGWtWtKaK+OgHLej2RM7rmrtDteo="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0074",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0074",
+        "ordinal": 74,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-tcTk6G/LoNeSujvsQ4WOvVvZjHNwdURrHgE50VuziGY=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-IAYPwCLH4qkMEMW1DXVooxfDjLGa+kzF7BS/8A5qLfU=",
+        "textMinHash": "Aa9bfAC7DAAAUitoAD+hlAAvlbIAriTqAHI+BQG+Uz0ASzovAE0ULgAfE7kAq3sHATeObQFA+7YAdk5xARCccQAdOcUDHNFxASdgXAEML5sAGmbrAU0bAgChOBwAhIc3AQ0zXwCwq7sAYoqJADTJ7ABCFKQADx84AHw7wwEMJ2E=",
+        "normalizedTokenCount": 342,
+        "astContextSha256": "sha256-ACbSXJy4WPM8qSWkoBJZImUJLcg/6IvSzWUwiur10JE="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000536",
+      "proposedPredecessors": [
+        "v2.1.293-0349"
+      ],
+      "rationale": "Artifact authoring/skeleton instruction remains the same constant beside the Format rule. The skeleton removes the mandatory off-white ground, preserving all other authoring rules.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-95gcr8xw.js",
+        "startCodeUnit": 364607,
+        "endCodeUnit": 366180,
+        "sourceSha256": "sha256-IAYPwCLH4qkMEMW1DXVooxfDjLGa+kzF7BS/8A5qLfU="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-sgmqphbz.js",
+          "startCodeUnit": 362775,
+          "endCodeUnit": 364371,
+          "sourceSha256": "sha256-ZcFbxWUAq/chkHYhR5v5UeexkhcDuK0mf8tS+g++tp4="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0135",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0135",
+        "ordinal": 135,
+        "familyHint": "tool-description",
+        "roleHint": "tool",
+        "classification": "static",
+        "detectorSha256": "sha256-+y8RBBX+mOh6/ZfCs/S2KdAvNQdPHu6EQg+3E5dDyU4=",
+        "revisionSha256": "sha256-+y8RBBX+mOh6/ZfCs/S2KdAvNQdPHu6EQg+3E5dDyU4=",
+        "sourceSha256": "sha256-XF6T6GqKMz0SoPQRVnj3OgUSPv7x1CVEJSX2KN7VGsA=",
+        "textMinHash": "BLmzTAOy9EEClFXYAD4XDAA+WSQBp9NrB5N8ogPlWO4ARak9A6GyvwQoLhwKH0jNACL/aACFe1MB7g6dCxVleQG+xmMH2TLzAX/X1wBGAxgErnp/AEkPmAEVepwFCETJA5UbeQKW/IABRg8ZAXrQRgCKoTsBalh5APqHmwDM8OM=",
+        "normalizedTokenCount": 99,
+        "astContextSha256": "sha256-09Kx9M6wWqYl7mzc6odI9G32+HNLfqZa3k2KXpKYieI="
+      },
+      "proposedRelation": "split",
+      "proposedLineageId": null,
+      "proposedPredecessors": [
+        "v2.1.293-0130"
+      ],
+      "rationale": "AskUserQuestion extracts the common blocked-decision and usage guidance into Gao, adding a separate selected base path when plan tools are absent. Prior Feo always included the plan note. The continuing full-plan branch Nps carries the prior lineage; this common/base literal is an additional split occurrence.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-hmg4e8gm.js",
+        "startCodeUnit": 2543,
+        "endCodeUnit": 3004,
+        "sourceSha256": "sha256-XF6T6GqKMz0SoPQRVnj3OgUSPv7x1CVEJSX2KN7VGsA="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-ay3qjvhd.js",
+          "startCodeUnit": 2543,
+          "endCodeUnit": 3377,
+          "sourceSha256": "sha256-lD+e4HJDa98ty6zZs3SzLam3fx2uMCqmYS0atE9iWQk="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0136",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0136",
+        "ordinal": 136,
+        "familyHint": "tool-description",
+        "roleHint": "tool",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-MZ8fUoQiQ79rbFaPkfqSNMP16IeNCDGtHhO5w8TzKmo=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-BgpGlhs81cS+9hoG4zhMmo8x8272mVDYMyXuZkWQOD0=",
+        "textMinHash": "CT+ijgL5cCkBNKqBCfLJ9gDOcOIDGoYiAfF3ngA1UcMA9GmZAb5rQgHETCgHkJKYAD0QKQCykPMFTSSJB0xMpAH2swACjO7lBsSdfAHRvawIB2paChqWYADhZlMBIAdwAxOZsgCnfxwJd6zPAl3HsQHKrgkBAktKALbi3QRsXQM=",
+        "normalizedTokenCount": 81,
+        "astContextSha256": "sha256-LQ9/hQR+LdbN7tExeOYhwvJ5ztV5mYpWcDyY7/ZdPEA="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000023",
+      "proposedPredecessors": [
+        "v2.1.293-0130"
+      ],
+      "rationale": "AskUserQuestion Nps retains the prior Feo full plan-aware description, now interpolating Gao for its shared prefix. The tool consumer selects lrr(tools)?Gao:Nps; the Nps branch is the continuing prior full description, while Gao is recorded separately as split.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-hmg4e8gm.js",
+        "startCodeUnit": 3186,
+        "endCodeUnit": 3567,
+        "sourceSha256": "sha256-BgpGlhs81cS+9hoG4zhMmo8x8272mVDYMyXuZkWQOD0="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-ay3qjvhd.js",
+          "startCodeUnit": 2543,
+          "endCodeUnit": 3377,
+          "sourceSha256": "sha256-lD+e4HJDa98ty6zZs3SzLam3fx2uMCqmYS0atE9iWQk="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0140",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0140",
+        "ordinal": 140,
+        "familyHint": "compact",
+        "roleHint": "system",
+        "classification": "static",
+        "detectorSha256": "sha256-JvUfvKbDkqR5Mp2t+Cc1IbpPCGvtvM7qzXiZwIjnXlo=",
+        "revisionSha256": "sha256-JvUfvKbDkqR5Mp2t+Cc1IbpPCGvtvM7qzXiZwIjnXlo=",
+        "sourceSha256": "sha256-izjMZCFDquY+nhkIb56QwI4qP+6wS7RvClK+zcC/IEE=",
+        "textMinHash": "AIMCYgAY3m0AMs9TAJWJnQH/6sIAII8yAAuImwCOBygAIxGnAAnS+wBd2ocAdK4yAKgucgC5ulgAqZrWAJQ2lAAURG0ABxr/AMNpmgAYNWQAZ7D4AFWK1ABqJdYAGMOeABHesgBC98oAMkTCATPubABNHe0CZN0JAS83fwEFe6w=",
+        "normalizedTokenCount": 522,
+        "astContextSha256": "sha256-G2e4Ya5TPVUt+etnlAAHk9lZX99wRrPBzvF74dZp/go="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000574",
+      "proposedPredecessors": [
+        "v2.1.293-0163"
+      ],
+      "rationale": "Claude Test explorer embedded agent resource retains its frontmatter and read-only mapper owner. Credential-avoidance prose adds why reads must remain private: read content can enter the report.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-j8j49zsb.js",
+        "startCodeUnit": 12346,
+        "endCodeUnit": 14429,
+        "sourceSha256": "sha256-izjMZCFDquY+nhkIb56QwI4qP+6wS7RvClK+zcC/IEE="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-fdv8sce0.js",
+          "startCodeUnit": 11758,
+          "endCodeUnit": 13781,
+          "sourceSha256": "sha256-y45EB7Y1pQE0Lu752ZDCzi6QRrUSKSYN07RGlAVzD6U="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0155",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0155",
+        "ordinal": 155,
+        "familyHint": "memory",
+        "roleHint": "system",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-E11bJMSaUZ8YVjvg1rJvwkSJ4XJx9UHRmQngDi6hO34=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-DYj03s/PdjZZbOCiI7xTEYOI9KSP3fX1wI/RzBjbcsI=",
+        "textMinHash": "AAgeSABE9AwBGFdrASnilQA3b0YA3MVgAC9uIgDxWUQAE9F5AO90awAXuMwABBMHACx7IAEa+ssAth3oAGLcxACHK6sAH1NWABAaVwA0ClIAFsXmAMqYqQAzxzAACMvCAArEiwBAKeIASoNVAXlCIAC1X2QAx1cRAAwXGwFOHS8=",
+        "normalizedTokenCount": 533,
+        "astContextSha256": "sha256-4oNWjaE5iMe1/xiL7WIXMZZP3UAYe1yWLtlLjPXVAy4="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000138",
+      "proposedPredecessors": [
+        "v2.1.293-0021"
+      ],
+      "rationale": "Dream consolidation prompt remains the same memory pass template and task lifecycle owner. It removes logs-directory orientation/session-log priority and renumbers remaining existing-memory and transcript sources.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-kxgzv2t8.js",
+        "startCodeUnit": 4099,
+        "endCodeUnit": 7002,
+        "sourceSha256": "sha256-DYj03s/PdjZZbOCiI7xTEYOI9KSP3fX1wI/RzBjbcsI="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-2vsp67wr.js",
+          "startCodeUnit": 4275,
+          "endCodeUnit": 7569,
+          "sourceSha256": "sha256-IwTezeJMpsUJnJewbrETAmBBWp0JHykUqCkIx6A1QmE="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0160",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0160",
+        "ordinal": 160,
+        "familyHint": "auxiliary",
+        "roleHint": "system",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-ZsSe/NP+jQbcL9JMHwyc0DvOh/Qo3dQDy1faVIiqxds=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-8f9YEh6qzG0qjhIMZ7r6EI/wi8t+p26LSFHn6QyaVPc=",
+        "textMinHash": "ANrsMALkt64DcZ3OAlAU6AE2lX0AMGs8Ajx6KgCn+jEBaah2Ajh4UACPUNIEC70MAfTMcQME4UIBKmnzA2oZMgEWJiwDVCyQANaB+gTi1v8AFzHYAUErlABulJIAsT/oAH5u3QCYojQG0a+hCq+65QDiQT0DAxisAZEvAgLX1Io=",
+        "normalizedTokenCount": 104,
+        "astContextSha256": "sha256-7+gULKxhw6rbAcg5kKNjfZxUdpDwP55OqtvYYznwVXg="
+      },
+      "proposedRelation": "new",
+      "proposedLineageId": null,
+      "proposedPredecessors": [],
+      "rationale": "New reconnect shell-context branch handles mayBeRunning explicitly and forbids replay until a read-only outcome check. No prior observation or context has this reminder; the exact Nothing was replayed marker is absent from the prior graph. It supplements outcome-unknown branches in the new owner, not a carry inferred from unrelated shell guidance.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-n2m97prf.js",
+        "startCodeUnit": 77541,
+        "endCodeUnit": 78023,
+        "sourceSha256": "sha256-8f9YEh6qzG0qjhIMZ7r6EI/wi8t+p26LSFHn6QyaVPc="
+      },
+      "supportingPredecessorSourceSites": [],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0161",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0161",
+        "ordinal": 161,
+        "familyHint": "hook",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-/j1vwV53Dj0rkwCH9cfy/E94VZq+4zM73KcZP+wEqvo=",
+        "revisionSha256": "sha256-/j1vwV53Dj0rkwCH9cfy/E94VZq+4zM73KcZP+wEqvo=",
+        "sourceSha256": "sha256-VUAusd/dPj+wSCSfet3B0UNDwv9MV8BMzv40zM+kDvY=",
+        "textMinHash": "AArC0QAvFjQAB7eMAEDGBwAr86QAEuGIABl18wAFClQANf8WAFAQ/QAHuqMAA1e8ACBl8QABZs8ABgGeABAebwARMAcAFl+qACSSPQAKTYgAED0kACDkxwAgFjgAFOzZAAklMgAd5dIADYIjABH4AgAPseAAKBruAGVjlgAOW8g=",
+        "normalizedTokenCount": 3090,
+        "astContextSha256": "sha256-NhxHFDgWEq/AG4eXUzbm2BLtXZtK/4PMCScFL3tNb8s="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000521",
+      "proposedPredecessors": [
+        "v2.1.293-0404"
+      ],
+      "rationale": "Embedded host/limits surface runtime retains its install module and claude:hooks-types resource assembly. Single code change returns non-Button constructors early; identity remains this embedded runtime literal.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-n3ykh62m.js",
+        "startCodeUnit": 290822,
+        "endCodeUnit": 303646,
+        "sourceSha256": "sha256-VUAusd/dPj+wSCSfet3B0UNDwv9MV8BMzv40zM+kDvY="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-zwe9vtev.js",
+          "startCodeUnit": 468219,
+          "endCodeUnit": 481021,
+          "sourceSha256": "sha256-3gr10XBRG5XcfD0p3irDe1yobjHPiGR+rLmhPGG/7G8="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0180",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0180",
+        "ordinal": 180,
+        "familyHint": "hook",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-3n22cynfVVW9ltAjud7StSHYYGywK+v38bRM9ZH29fg=",
+        "revisionSha256": "sha256-3n22cynfVVW9ltAjud7StSHYYGywK+v38bRM9ZH29fg=",
+        "sourceSha256": "sha256-jJ00ZmsbRn0NqzypmANmiZSm0kJPakSpfzKHyabfELI=",
+        "textMinHash": "AAeDXQAQsKEAKEq8AA25lgATthkAT96xACT4oQAJDEwAAjp3AAcDZwA6USkABzwqAAiFjQAcoaYAD9KvADp0bgATOwIAFl+qACa3oAAImmoAY5BgAAyNtQANVzcAB6ZCABFmkwAgglwAOi4VAAjicQA0Ln0AA2V6AAQ+8wASupk=",
+        "normalizedTokenCount": 5004,
+        "astContextSha256": "sha256-5EKTbRhHcDgCrP2casJPufePznNTmp3gf3La8CQE9VA="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000476",
+      "proposedPredecessors": [
+        "v2.1.293-0369"
+      ],
+      "rationale": "Embedded JSX runtime remains the same h/Fragment constructor resource. Button handling now derives labels recursively from Text/string children, keeps supported children, and rejects stray non-Text nodes; the larger edit preserves the resource owner.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-nyce03br.js",
+        "startCodeUnit": 44891,
+        "endCodeUnit": 64643,
+        "sourceSha256": "sha256-jJ00ZmsbRn0NqzypmANmiZSm0kJPakSpfzKHyabfELI="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-vgzbbrrr.js",
+          "startCodeUnit": 44008,
+          "endCodeUnit": 62216,
+          "sourceSha256": "sha256-EMvLLMFe8vx4UIX0q8f6k6bOvXZ/OVMv+lhwh3btOm4="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0223",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0223",
+        "ordinal": 223,
+        "familyHint": "permission-security",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-QfgAVzOM66TTmdba5Tg6wGC2204G1wg6NlqnPekiqhU=",
+        "revisionSha256": "sha256-QfgAVzOM66TTmdba5Tg6wGC2204G1wg6NlqnPekiqhU=",
+        "sourceSha256": "sha256-5k1+amyg5NzbFQSxRrvlmrlI79C84OaqtbdZ7nbv8xk=",
+        "textMinHash": "AIWyEQBBAyMAEZZ+AARHVQAE2eAATz5rACrZwQAsXk8Ag9ZrAEUu6AAHs8MAf6DLAByMIgCsSbYACSZwAEB/5wA+R84AL/33AAsNpAAh5G0AlMliAAAQtQAOWKUASWuEAB0mQAAOXZ0AI1ZBACGEbgANa5oAObxVAETdwwBcGNU=",
+        "normalizedTokenCount": 2444,
+        "astContextSha256": "sha256-yrZUuzcFFgs5ernehIUnkzvYZ9ShUrLGEjgSfxEMpq0="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000021",
+      "proposedPredecessors": [
+        "v2.1.293-0215"
+      ],
+      "rationale": "Same PowerShell parser script owner following PWSH_PARSE_TIMEOUT_MS helpers. Script now base64-encodes JSON through Write-Result and accepts encoded input; parser purpose and downstream result schema remain. Current chunk-sfn1dbxq.js:513555; prior chunk-nwqfvmza.js:540222.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 513555,
+        "endCodeUnit": 524442,
+        "sourceSha256": "sha256-5k1+amyg5NzbFQSxRrvlmrlI79C84OaqtbdZ7nbv8xk="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 540222,
+          "endCodeUnit": 550934,
+          "sourceSha256": "sha256-KEWw+laLshscIJ5mIorFNuRa8FmU+vkI/wTNORQn83U="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0226",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0226",
+        "ordinal": 226,
+        "familyHint": "auxiliary",
+        "roleHint": "user",
+        "classification": "static",
+        "detectorSha256": "sha256-z3vFYQCsJr2ZUMB38VXzdGxpsjQ2bikm69F3QzI7btU=",
+        "revisionSha256": "sha256-z3vFYQCsJr2ZUMB38VXzdGxpsjQ2bikm69F3QzI7btU=",
+        "sourceSha256": "sha256-jb9EnJvcdHFC4LX/kFv/A5+Lg6APmEPuTby9hWouvQU=",
+        "textMinHash": "AHRxzABZ2WEARkKJAKBtFQA9Zr8A10CSAERTpgDqK1gAAcpSANxJIQAAFqMAEH1dAFc1VgFYIfkA7rNgARxHhgF9FKMBWEvIAmYWZgEeNZcAV8pUAL011QEfPi0AM01RAAZrxAABEFQCMOjYAAtJOwAAa0QCXlpOAIm2wACXT7w=",
+        "normalizedTokenCount": 360,
+        "astContextSha256": "sha256-yrZUuzcFFgs5ernehIUnkzvYZ9ShUrLGEjgSfxEMpq0="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000544",
+      "proposedPredecessors": [
+        "v2.1.293-0218"
+      ],
+      "rationale": "Same default delegation warning selected by tengu_lucky_cerf_text, following agent request-sent helpers. Dynamic/minified interpolation changed; branch owner persists. Current chunk-sfn1dbxq.js:741043; prior chunk-nwqfvmza.js:760128.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 741043,
+        "endCodeUnit": 742711,
+        "sourceSha256": "sha256-jb9EnJvcdHFC4LX/kFv/A5+Lg6APmEPuTby9hWouvQU="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 760128,
+          "endCodeUnit": 761794,
+          "sourceSha256": "sha256-rxcplysCnhN3wIbB2XV8XokqSgpHTE1CZqOhzkx0qlE="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0228",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0228",
+        "ordinal": 228,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-3XXJRcv7Swo45E7bHBJevejaNruHrBPh+T+PxIRGDTk=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-As0aW/LMlcsfsFiC9XWq3+cD86kg71fJgF6gxiR6UzY=",
+        "textMinHash": "AlzflwSXzhIGt57tAbkO3gJ2Zl4C0f88Br3A5gXE0ToFaiHlAXbDGwI/XpgAEH1dAIrpUQE8TW4Hg3I7DJflhwXHXMAJLvR+Afg+1xATodEATtqFB1muCwQNCiMAQvBBAtCIdAGdSuIADHuKAb2crgIReGwBhbCpA46azgMZPH8=",
+        "normalizedTokenCount": 79,
+        "astContextSha256": "sha256-io8qdwOzFs4Fi2/1JRyG/4sOt0NdrIH3BqBivFIL8so="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000063",
+      "proposedPredecessors": [
+        "v2.1.293-0220"
+      ],
+      "rationale": "Same Bash background-use description RPt/ZRt guarded by background feature predicates in main tool module; exclude separate background description owner 0384. Current chunk-sfn1dbxq.js:797610; prior chunk-nwqfvmza.js:812234.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 797610,
+        "endCodeUnit": 797994,
+        "sourceSha256": "sha256-As0aW/LMlcsfsFiC9XWq3+cD86kg71fJgF6gxiR6UzY="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 812234,
+          "endCodeUnit": 812610,
+          "sourceSha256": "sha256-XZjFBFo+Ts0e5uaM+KsUAf9FFee11TJtVH3VS55gIgw="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0242",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0242",
+        "ordinal": 242,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-AS6moqqobE3AafC0MpjzLcST5C6r4HXxD8CbXBHojPI=",
+        "revisionSha256": "sha256-AS6moqqobE3AafC0MpjzLcST5C6r4HXxD8CbXBHojPI=",
+        "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg=",
+        "textMinHash": "AnZe4waM1UwPOqgzFeH2Bgdq758EHuafCqCg/AUCPJoYtkAmHW1IbwagHVMLg2G4ALQcPwFbARUBr+uLDXWuBQB3SqkP8WU5CVAXgwtbDiYCNPrVEewH5wLCY7wC9WfaBXUPtQRaR/QDSK3oBMwISwRVsTYKliGFBI8Sxw9sl2w=",
+        "normalizedTokenCount": 36,
+        "astContextSha256": "sha256-wEbP1CCPsefX+AhWXJkcAQ1vfQKqUjaMNi7EKfQBXYI="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000471",
+      "proposedPredecessors": [
+        "v2.1.293-0234"
+      ],
+      "rationale": "Standalone import guard variable yZo continues prior standalone guard variable; distinguish identical guard literal inside offer-to-import template. Current chunk-sfn1dbxq.js:1134703; prior chunk-nwqfvmza.js:1148961.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 1134703,
+        "endCodeUnit": 1134916,
+        "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 1148961,
+          "endCodeUnit": 1149174,
+          "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0244",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0244",
+        "ordinal": 244,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-AS6moqqobE3AafC0MpjzLcST5C6r4HXxD8CbXBHojPI=",
+        "revisionSha256": "sha256-AS6moqqobE3AafC0MpjzLcST5C6r4HXxD8CbXBHojPI=",
+        "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg=",
+        "textMinHash": "AnZe4waM1UwPOqgzFeH2Bgdq758EHuafCqCg/AUCPJoYtkAmHW1IbwagHVMLg2G4ALQcPwFbARUBr+uLDXWuBQB3SqkP8WU5CVAXgwtbDiYCNPrVEewH5wLCY7wC9WfaBXUPtQRaR/QDSK3oBMwISwRVsTYKliGFBI8Sxw9sl2w=",
+        "normalizedTokenCount": 36,
+        "astContextSha256": "sha256-4GjcfGoTRSkH1FCtt9I+YWCrSPVXdtbnDpLwuRVbZWE="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000472",
+      "proposedPredecessors": [
+        "v2.1.293-0236"
+      ],
+      "rationale": "Guard literal interpolated into EBe offer-to-import template continues prior VFe interpolation arm; distinguish standalone variable. Current chunk-sfn1dbxq.js:1135186; prior chunk-nwqfvmza.js:1149444.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 1135186,
+        "endCodeUnit": 1135399,
+        "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 1149444,
+          "endCodeUnit": 1149657,
+          "sourceSha256": "sha256-orBs3cZyGWIKtomBAxmPGbBA7WhGtQvQK8YuWsgiytg="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0285",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0285",
+        "ordinal": 285,
+        "familyHint": "memory",
+        "roleHint": "system",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-/XNuEFNnID1tvL5jDyq/YHckac6l7rwe3ny0eHBW+mg=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-uG/TvM5YhNaFDhCKFPGIjRh/rPftbj23UVMIvwmBe6E=",
+        "textMinHash": "ABfl9ADvW+0BOBRKANG3+gJ2Zl4Bb9+tAt/bgQASCf0Ck/lTAIvTMgGfylcAEH1dAUTETwACNFsAHEqxAO835wASHfAAbHw5AARavgGHcckDh0/8AIAoagItiEgAHqKnALImWgDyHcgBbSN4BGUgrwAhalwBWputBZeydgFj5RU=",
+        "normalizedTokenCount": 352,
+        "astContextSha256": "sha256-1w7/Iu4WIV3qRRuHF6c+d0a/B/+SDVvbVYhp4hXBiEU="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000400",
+      "proposedPredecessors": [
+        "v2.1.293-0278"
+      ],
+      "rationale": "Same web-page-fetch agent description after untrusted-page/follow-up guidance. Removed sentence instructing follow-up via prior agent; fetch role and private-URL boundary remain. Current chunk-sfn1dbxq.js:2083266; prior chunk-nwqfvmza.js:2070854.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 2083266,
+        "endCodeUnit": 2085077,
+        "sourceSha256": "sha256-uG/TvM5YhNaFDhCKFPGIjRh/rPftbj23UVMIvwmBe6E="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 2070854,
+          "endCodeUnit": 2072471,
+          "sourceSha256": "sha256-ogymksBqfUTzC+u6/zhOoo2W6taDLMarsnF6Ota1Rcw="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0289",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0289",
+        "ordinal": 289,
+        "familyHint": "auxiliary",
+        "roleHint": "user",
+        "classification": "static",
+        "detectorSha256": "sha256-xezOrBfK0yPKDRTiIY3/fIDMIr4kr4eXmTwXEOU6Xlc=",
+        "revisionSha256": "sha256-xezOrBfK0yPKDRTiIY3/fIDMIr4kr4eXmTwXEOU6Xlc=",
+        "sourceSha256": "sha256-1wbqUftHXYTPfCrWlMf/PmjiNX1nmUgaBi7udLWKR2w=",
+        "textMinHash": "AVVFLAFdxucBNKqBANyW6wDYE3wAxG5gACjMhgCYqg0AOJozAEch2wIo+GgAgSjTACDt8QA9m/cARQtNAVuofgBnJzgAeyydAiVS7wDhWAYBhVgfAK/d+wBTbUYAsEVaAJRftwEIN3wBBURCAJtaiAAQkg0AXN1hACtg9wFvGoY=",
+        "normalizedTokenCount": 276,
+        "astContextSha256": "sha256-wEbP1CCPsefX+AhWXJkcAQ1vfQKqUjaMNi7EKfQBXYI="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000614",
+      "proposedPredecessors": [
+        "v2.1.293-0282"
+      ],
+      "rationale": "Same compaction transcript-summary user request adjacent to preserve-limits/next-step system guidance; dynamic/minified interpolation changed. Current chunk-sfn1dbxq.js:2495674; prior chunk-nwqfvmza.js:2471426.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 2495674,
+        "endCodeUnit": 2497008,
+        "sourceSha256": "sha256-1wbqUftHXYTPfCrWlMf/PmjiNX1nmUgaBi7udLWKR2w="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 2471426,
+          "endCodeUnit": 2472931,
+          "sourceSha256": "sha256-+53hW7lxFoRlStUKXxB7Y1mvYKAPEkL+bs995Xkj7FM="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0293",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0293",
+        "ordinal": 293,
+        "familyHint": "hook",
+        "roleHint": "system",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-5nzIbrldNWLS+3I4gke7J1rBFv3Um239gPBF2BWxG2o=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-OvwKKJJ6ei1DxefR60OiWP9r1JbTqUpnrbo7utJ+vRA=",
+        "textMinHash": "AOW2GQBDdsYAVfrOAF2nQwFOLqAAbYcPAFw7rgWrNuAAQXuwAd6ZLAAXGDoB8H7YADx/9wCI/AQBNSpjAUn3FgDRFKAAm6tHAJx/vgKTmfgAxJtmAo/BcQF+I8ICTv3KAG+ZvwCybvgAFta4AA2wJwCVLJcCMfjUALQiLgCYZuw=",
+        "normalizedTokenCount": 308,
+        "astContextSha256": "sha256-ethLcz+kmZ59uqKdx+YuCkwd6nafS9xnxjkTDkkgc90="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000189",
+      "proposedPredecessors": [
+        "v2.1.293-0286"
+      ],
+      "rationale": "Same stop-condition hook evaluation system prompt at model-query call with hook timeout and JSON result processing; separate ordinary hook branch remains. Current chunk-sfn1dbxq.js:2900082; prior chunk-nwqfvmza.js:2866633.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 2900082,
+        "endCodeUnit": 2901552,
+        "sourceSha256": "sha256-OvwKKJJ6ei1DxefR60OiWP9r1JbTqUpnrbo7utJ+vRA="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 2866633,
+          "endCodeUnit": 2868096,
+          "sourceSha256": "sha256-bXOFikJDuIQ7MjyAd0IKz246PDbmMyhDyYM0uWAuyqw="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0294",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0294",
+        "ordinal": 294,
+        "familyHint": "hook",
+        "roleHint": "system",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-WEnHziH3+aGr00yzB6IrlX7P0TkXaELdAqfM/fySzE8=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-OrvQ4T+izyhBi/0oiui9UXt0K9YyvC/24H5lN7meEME=",
+        "textMinHash": "Asax8gBDdsYAgqNOCniB6ACGZFgBQxngA9pHqQWrNuAAGOqKAtgurQJsjG0AiGHZBBgZSgrSlg4BnLXyA0Lq4gR7n7kBLizxAIpfWgLWPJAErnp/AvOM4gE4n0UCTv3KCwEeTACMXNsAFta4DTQuNgMI6JoKtOS6BLiikQOvCgU=",
+        "normalizedTokenCount": 93,
+        "astContextSha256": "sha256-ethLcz+kmZ59uqKdx+YuCkwd6nafS9xnxjkTDkkgc90="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000190",
+      "proposedPredecessors": [
+        "v2.1.293-0287"
+      ],
+      "rationale": "Same ordinary hook evaluation system-prompt branch after dedicated stop-condition branch. Wording changes from condition-satisfied judgment to action-may-proceed judgment; owner and response schema persist. Current chunk-sfn1dbxq.js:2901556; prior chunk-nwqfvmza.js:2868097.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 2901556,
+        "endCodeUnit": 2901894,
+        "sourceSha256": "sha256-OrvQ4T+izyhBi/0oiui9UXt0K9YyvC/24H5lN7meEME="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 2868097,
+          "endCodeUnit": 2868418,
+          "sourceSha256": "sha256-LmRskkZJSAfSNavJttypR+fSD4Ga4o7fJNHg2fJ1VRg="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0329",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0329",
+        "ordinal": 329,
+        "familyHint": "auxiliary",
+        "roleHint": "system",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-HfbOUGc9IzLvRAZ4b5KW8MFMRyl/qx7XOumuD06V2F8=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-SUosEj5CRBtm9s13znSWCBmx/4AiyO15NLk9Zcv87cY=",
+        "textMinHash": "E6vsGAC4WFEBkjY/AKx9EwYeq0wAX7PPADP+NgCZ6dMBiC9ZAfIVHgMHO3sAGGfiACYX0AMSqf0AaIKAA4vOmQlHHdsBvk2gCCRVuQZpaBwB7gLpAvOM4gE4n0UBhg80BISmwgESsPgA0Uj/AsoGVACUX/oARPVCApvxDABh8Ds=",
+        "normalizedTokenCount": 72,
+        "astContextSha256": "sha256-xTS00bkJ/h/6bEnSyZomzCw5XthYkzEaeTCvpSORDbg="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000198",
+      "proposedPredecessors": [
+        "v2.1.293-0322"
+      ],
+      "rationale": "Same failedMcpServers non-auth connection-failure reminder branch after auth-required handling. Static detector now isolates reminder suffix with dynamic retry advice rather than prior larger enclosing template; no second observed child requires split. Current chunk-sfn1dbxq.js:4498836; prior chunk-nwqfvmza.js:4431437.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-sfn1dbxq.js",
+        "startCodeUnit": 4498836,
+        "endCodeUnit": 4499240,
+        "sourceSha256": "sha256-SUosEj5CRBtm9s13znSWCBmx/4AiyO15NLk9Zcv87cY="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-nwqfvmza.js",
+          "startCodeUnit": 4431437,
+          "endCodeUnit": 4432008,
+          "sourceSha256": "sha256-WohF8bt7j7EfuY4HhU69QPrRjpJ2wVN0q12DYG+t3t8="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0348",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0348",
+        "ordinal": 348,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-iNNrKAj+KmBFO1rfe7ofARoGrCBSgvxZ2+1rXnuyTZ4=",
+        "revisionSha256": "sha256-iNNrKAj+KmBFO1rfe7ofARoGrCBSgvxZ2+1rXnuyTZ4=",
+        "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA=",
+        "textMinHash": "CEOJpQAW3+cAbyDOAxPU5gCOO2ECo8cOBLlSuwHcxjUFpIb6AadMEwPYYWIEJZdGAfVhqADcnhMFLLIZAEYinwAwEtMFsmEIDUOXiAkGAyYAe2mtAJPjhwGHSgUDi13OAUaDwgRSqMcD6bXdAqEKRwUIBH0AXUcvAZ9vsQNGEs8=",
+        "normalizedTokenCount": 93,
+        "astContextSha256": "sha256-NhLV4vPIk5OYiguWmd5UNanWGrnZMJ8oss8ALs7n1DI="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000458",
+      "proposedPredecessors": [
+        "v2.1.293-0148"
+      ],
+      "rationale": "Same bundled highlight.js language grammar keyword/property list owner; preserve bundled-module lineage rather than equal standalone generated asset. Current chunk-vgrqk0ky.js:80204; prior chunk-d4n11ed0.js:80204.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-vgrqk0ky.js",
+        "startCodeUnit": 80204,
+        "endCodeUnit": 80635,
+        "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-d4n11ed0.js",
+          "startCodeUnit": 80204,
+          "endCodeUnit": 80635,
+          "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0349",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0349",
+        "ordinal": 349,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-YK8lfDJ/rZSTzdzJPrS107MC1fhVn0T49U00GDoIY8o=",
+        "revisionSha256": "sha256-YK8lfDJ/rZSTzdzJPrS107MC1fhVn0T49U00GDoIY8o=",
+        "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg=",
+        "textMinHash": "A0jifwH722UCBEWyAX/wsAAsGEAC3Jj2Cw5wRQHkUZ0EaVNbAQzU8QGdWgsE4z9nANtmNwA/rBABLsWsBLm3lwBG1FoAOV00AH28VQFZ2oECui4rAMQNLABj3KgD/RvkAJAUwwA0dLgDGqjlAjG2FwA4d50G/eovAnr9AQFasSw=",
+        "normalizedTokenCount": 118,
+        "astContextSha256": "sha256-+6xuUrVofGS1ysYTAvdyICymyuNBLqS97xS/aemxlMw="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000459",
+      "proposedPredecessors": [
+        "v2.1.293-0149"
+      ],
+      "rationale": "Same bundled highlight.js language grammar keyword/property list owner; preserve bundled-module lineage rather than equal standalone generated asset. Current chunk-vgrqk0ky.js:153683; prior chunk-d4n11ed0.js:153683.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-vgrqk0ky.js",
+        "startCodeUnit": 153683,
+        "endCodeUnit": 154444,
+        "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-d4n11ed0.js",
+          "startCodeUnit": 153683,
+          "endCodeUnit": 154444,
+          "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0350",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0350",
+        "ordinal": 350,
+        "familyHint": "hook",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-hehe9Af4Qh6XWwMxG6y9skCn/tYCSTZkyQQ0pJEGYDQ=",
+        "revisionSha256": "sha256-hehe9Af4Qh6XWwMxG6y9skCn/tYCSTZkyQQ0pJEGYDQ=",
+        "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE=",
+        "textMinHash": "AWhdkgCGYcwAwsiIAT9JZQFYWogBKkGiABJorADucDwBQFpGAK6ZIQIEB+4AMd2/AmurOADqVAEAyWlHACZ/MgFy/SYB+l+lAFzt1gGg5IsC8RgEBsMt1ABiSsQBUn2uAT+I9gHCGzIBskgOATK0qgO2L0ICdP4QADTAfAHJymY=",
+        "normalizedTokenCount": 167,
+        "astContextSha256": "sha256-1MRyCe3mhbTt9HLqWaJsPYU25e+9ByOQaOuYoOrtUe0="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000460",
+      "proposedPredecessors": [
+        "v2.1.293-0150"
+      ],
+      "rationale": "Same bundled highlight.js language grammar keyword/property list owner; preserve bundled-module lineage rather than equal standalone generated asset. Current chunk-vgrqk0ky.js:273537; prior chunk-d4n11ed0.js:273537.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-vgrqk0ky.js",
+        "startCodeUnit": 273537,
+        "endCodeUnit": 274647,
+        "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-d4n11ed0.js",
+          "startCodeUnit": 273537,
+          "endCodeUnit": 274647,
+          "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0351",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0351",
+        "ordinal": 351,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-WMVmzUDeVoIPzy7Uz/TsQ40pqMi7iqJwAqoLMurZBCE=",
+        "revisionSha256": "sha256-WMVmzUDeVoIPzy7Uz/TsQ40pqMi7iqJwAqoLMurZBCE=",
+        "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM=",
+        "textMinHash": "AElsiABHXj8AQhFIAC9ovACcrl8AkGB2Ah4tAwJrC+0Cj6tSAHFPiAEqqZIAjt6JAJDGMwAy2ZMAM8FpADldewCQIHsAF/bxARDwLQDnT6cAz1hZAEvkDgAgFjgABK12AB1wVQAEUEgAmuw9AH+hXQA8bX0Ao04yAAByuQGMINw=",
+        "normalizedTokenCount": 362,
+        "astContextSha256": "sha256-+6xuUrVofGS1ysYTAvdyICymyuNBLqS97xS/aemxlMw="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000461",
+      "proposedPredecessors": [
+        "v2.1.293-0151"
+      ],
+      "rationale": "Same bundled highlight.js language grammar keyword/property list owner; preserve bundled-module lineage rather than equal standalone generated asset. Current chunk-vgrqk0ky.js:417078; prior chunk-d4n11ed0.js:417078.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-vgrqk0ky.js",
+        "startCodeUnit": 417078,
+        "endCodeUnit": 419256,
+        "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-d4n11ed0.js",
+          "startCodeUnit": 417078,
+          "endCodeUnit": 419256,
+          "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0352",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0352",
+        "ordinal": 352,
+        "familyHint": "memory",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-S/2LGEC16o9TK7+BS2KZKiFinT46Yzm4jEvyGsDICbw=",
+        "revisionSha256": "sha256-S/2LGEC16o9TK7+BS2KZKiFinT46Yzm4jEvyGsDICbw=",
+        "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4=",
+        "textMinHash": "AAkMlAAgtvMADAtBABFfrABE7okALn3bABi+lABBYL4AL53rAFXKLgAHoooAAn2fAEwFeAAA95EAIx9zAAxSewAk4KcAHykOAAft0QAPLGUAKgDmAADx8AADVswAZ5u8ACFlegADAGMAL+p9AAGq4AAgxzAAO5TBAKJCvwADaKU=",
+        "normalizedTokenCount": 1830,
+        "astContextSha256": "sha256-NhLV4vPIk5OYiguWmd5UNanWGrnZMJ8oss8ALs7n1DI="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000462",
+      "proposedPredecessors": [
+        "v2.1.293-0152"
+      ],
+      "rationale": "Same bundled highlight.js language grammar keyword/property list owner; preserve bundled-module lineage rather than equal standalone generated asset. Current chunk-vgrqk0ky.js:451925; prior chunk-d4n11ed0.js:451925.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-vgrqk0ky.js",
+        "startCodeUnit": 451925,
+        "endCodeUnit": 466768,
+        "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-d4n11ed0.js",
+          "startCodeUnit": 451925,
+          "endCodeUnit": 466768,
+          "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0353",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0353",
+        "ordinal": 353,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-uFt/YzOXED2DqFdfwZuLVMaYSty8twhEWHl9AL4ae0Q=",
+        "revisionSha256": "sha256-uFt/YzOXED2DqFdfwZuLVMaYSty8twhEWHl9AL4ae0Q=",
+        "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI=",
+        "textMinHash": "AB1GpADCiqkARpZzAHt42AAJFHUADbYxABHtGwBTx+UAtAzSAAcV3QBSdw8ASlkwAAEybwCokiIAb7w8AADTfQADOgcAJnCcAChyyQAoKG8AWwFTASflYAAhUj8AfQKNAAoR6ABenOAALGdXAH/pgQAXRmsAOEcRAFtZpQCTjYI=",
+        "normalizedTokenCount": 1024,
+        "astContextSha256": "sha256-1MRyCe3mhbTt9HLqWaJsPYU25e+9ByOQaOuYoOrtUe0="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000463",
+      "proposedPredecessors": [
+        "v2.1.293-0153"
+      ],
+      "rationale": "Same bundled highlight.js language grammar keyword/property list owner; preserve bundled-module lineage rather than equal standalone generated asset. Current chunk-vgrqk0ky.js:521146; prior chunk-d4n11ed0.js:521146.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-vgrqk0ky.js",
+        "startCodeUnit": 521146,
+        "endCodeUnit": 527036,
+        "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-d4n11ed0.js",
+          "startCodeUnit": 521146,
+          "endCodeUnit": 527036,
+          "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0361",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0361",
+        "ordinal": 361,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-rumXs6pWFwAGr5SeflbvW6c5l38t2iAq3W4A4GXBW7M=",
+        "revisionSha256": "sha256-rumXs6pWFwAGr5SeflbvW6c5l38t2iAq3W4A4GXBW7M=",
+        "sourceSha256": "sha256-ZPbi80efdx9e/85cy6fd5UvmLqi19w69/H0RCAojlgM=",
+        "textMinHash": "Aa9bfABF+WABHbaeAPY0CAAvlbIApvP8AH7pKwG+Uz0ASzovAb8vewH+kxQAq3sHATeObQAN/fwAdk5xARCccQAdOcUCcMpiASdgXAEML5sAQ2uxAT9rKgKADw0AhIc3AQ0zXwCtnI8BCrVVAaXrNABCFKQAoil6AHw7wwEMJ2E=",
+        "normalizedTokenCount": 254,
+        "astContextSha256": "sha256-sDNZk9R5bPJYqcNvhi+Mat77tGv4EjSvQi3PLsYApJE="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000494",
+      "proposedPredecessors": [
+        "v2.1.293-0141"
+      ],
+      "rationale": "Same artifact page publishing format/reset guidance IKr/gWr following consent description; adds light color-scheme to reset guidance. Exclude similar separate artifact tool-description owner 0349. Current chunk-x0tzrjjr.js:24624; prior chunk-ch0ffg8c.js:24624.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-x0tzrjjr.js",
+        "startCodeUnit": 24624,
+        "endCodeUnit": 25504,
+        "sourceSha256": "sha256-ZPbi80efdx9e/85cy6fd5UvmLqi19w69/H0RCAojlgM="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-ch0ffg8c.js",
+          "startCodeUnit": 24624,
+          "endCodeUnit": 25527,
+          "sourceSha256": "sha256-x02znhHX+dOgAXTSw4k6StwnV8NIJnOIjVSsyyggBz0="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0378",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0378",
+        "ordinal": 378,
+        "familyHint": "compact",
+        "roleHint": "user",
+        "classification": "static",
+        "detectorSha256": "sha256-qB4S/lKKnArKwSY4y8RMTFKiuFz4aIHhlMgoG3F6mgs=",
+        "revisionSha256": "sha256-qB4S/lKKnArKwSY4y8RMTFKiuFz4aIHhlMgoG3F6mgs=",
+        "sourceSha256": "sha256-EU4dEtwp9HNb/CqN6EofjizH4XKoeCrSKFa309qetIs=",
+        "textMinHash": "AABxwwAIvj0ABhfTAAEvZgAZWGoABHt5AA0R7gAMIhIABcvIABQhnwAvOl4AAo77ABUD1QAW2AsAPoqlAAFpsgAAxXcAA9YjAA4gsgADrHYAD+QRAAbAhQAGlbEAK5blAAKxfQAJAagAJyuvABHkcwAFakQAEr7MAAByuQAOsT4=",
+        "normalizedTokenCount": 4734,
+        "astContextSha256": "sha256-LrPwdPW9MnpTUd7+CmH1KqQ3eneedfYu4HNf9WSlzuw="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000454",
+      "proposedPredecessors": [
+        "v2.1.293-0118"
+      ],
+      "rationale": "Same gateway protocol document function FN/RN oidcConfigured true arm; distinguish false arm that applies no-IdP replacement. Current chunk-yhar7r1q.js:1355025; prior chunk-9927pzfe.js:1349732.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-yhar7r1q.js",
+        "startCodeUnit": 1355025,
+        "endCodeUnit": 1376134,
+        "sourceSha256": "sha256-EU4dEtwp9HNb/CqN6EofjizH4XKoeCrSKFa309qetIs="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-9927pzfe.js",
+          "startCodeUnit": 1349732,
+          "endCodeUnit": 1369567,
+          "sourceSha256": "sha256-GY13WSbnEyYctBvbPQmKIuMwZ8VWFlU/y7NcBCDVK9w="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0379",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0379",
+        "ordinal": 379,
+        "familyHint": "compact",
+        "roleHint": "user",
+        "classification": "static",
+        "detectorSha256": "sha256-qB4S/lKKnArKwSY4y8RMTFKiuFz4aIHhlMgoG3F6mgs=",
+        "revisionSha256": "sha256-qB4S/lKKnArKwSY4y8RMTFKiuFz4aIHhlMgoG3F6mgs=",
+        "sourceSha256": "sha256-EU4dEtwp9HNb/CqN6EofjizH4XKoeCrSKFa309qetIs=",
+        "textMinHash": "AABxwwAIvj0ABhfTAAEvZgAZWGoABHt5AA0R7gAMIhIABcvIABQhnwAvOl4AAo77ABUD1QAW2AsAPoqlAAFpsgAAxXcAA9YjAA4gsgADrHYAD+QRAAbAhQAGlbEAK5blAAKxfQAJAagAJyuvABHkcwAFakQAEr7MAAByuQAOsT4=",
+        "normalizedTokenCount": 4734,
+        "astContextSha256": "sha256-JEzXEC+aHd4gcS7Nc1U3sgpZjtL4vJY/YcbqZMZfscc="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000455",
+      "proposedPredecessors": [
+        "v2.1.293-0119"
+      ],
+      "rationale": "Same gateway protocol document function FN/RN oidcConfigured false arm followed by .replace adding no-identity-provider notice; distinguish true arm. Current chunk-yhar7r1q.js:1376135; prior chunk-9927pzfe.js:1369568.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-yhar7r1q.js",
+        "startCodeUnit": 1376135,
+        "endCodeUnit": 1397244,
+        "sourceSha256": "sha256-EU4dEtwp9HNb/CqN6EofjizH4XKoeCrSKFa309qetIs="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-9927pzfe.js",
+          "startCodeUnit": 1369568,
+          "endCodeUnit": 1389403,
+          "sourceSha256": "sha256-GY13WSbnEyYctBvbPQmKIuMwZ8VWFlU/y7NcBCDVK9w="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0381",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0381",
+        "ordinal": 381,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-YUTFBVTnH2OGbOmsOVoSUnXwmKX+iIolQy0FTqllG4I=",
+        "revisionSha256": "sha256-YUTFBVTnH2OGbOmsOVoSUnXwmKX+iIolQy0FTqllG4I=",
+        "sourceSha256": "sha256-4SThZTL1o5nk6/qUKVI/2CSKk7WGQIyAkCdB0i8leRM=",
+        "textMinHash": "Ap+grwlKxIcE3k/CCJsh+QyAwE8AU0BbAVuIswKv7UsAKcasAALkxwY2U9sBV/SBDcTA1ANffXsChDhxAVgt9AOYHYUBvgMfBVwx5gMeDYkAcOCbAE8iqwmLWUMBvshtAOtMLAEPJd8ECN9CAF+DUQGiIAkDoOdBAK+ZGACJ+rQ=",
+        "normalizedTokenCount": 78,
+        "astContextSha256": "sha256-ziGgtN4nyVXMwAu+VV1Qq1kyIYxRm9PR3MHPykEf+BA="
+      },
+      "proposedRelation": "new",
+      "proposedLineageId": null,
+      "proposedPredecessors": [],
+      "rationale": "New gateway configuration validation warning in desktop/bootstrapUrl policy branch; no corresponding observed prior warning or candidate predecessor. Do not infer lineage from nearby gateway protocol prose. Current chunk-yhar7r1q.js:1455549; no prior owner.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-yhar7r1q.js",
+        "startCodeUnit": 1455549,
+        "endCodeUnit": 1455965,
+        "sourceSha256": "sha256-4SThZTL1o5nk6/qUKVI/2CSKk7WGQIyAkCdB0i8leRM="
+      },
+      "supportingPredecessorSourceSites": [],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0382",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0382",
+        "ordinal": 382,
+        "familyHint": "memory",
+        "roleHint": "system",
+        "classification": "contextual-gap",
+        "detectorSha256": "sha256-n+zXZOzJ9mR4KBWbpldr1NeY4ocLmCG+tNEBIDydzBE=",
+        "revisionSha256": null,
+        "sourceSha256": "sha256-bohQpwJcoCM3M+L0AgjpN2j9Ryu1QovE+ouVTRJ9BqI=",
+        "textMinHash": "AAQTowAVPjUABAG6AA2LbwAAbjoADPVKAB+YjAAQcgYAIsppAAjMSQAhgZ8AGd+CAEuIoAARR08AA7EoABNDbAAZgPUAO5uGABZlbgANBUcADzG5AAq1ZQAEMjoAN38JAA8YXgAXzgIAHwGMADe2eAApQlAAFEFuAAFKzAADvKc=",
+        "normalizedTokenCount": 4582,
+        "astContextSha256": "sha256-1m3AD3C7z4vdyZTCq1JTVif+ZEU3R01+D74KmTUpkPg="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000372",
+      "proposedPredecessors": [
+        "v2.1.293-0156"
+      ],
+      "rationale": "Same self-hosted runner diagnosis resource module with runner base-URL context helper; diagnostic text revised in place. Current chunk-yttags1e.js:4284; prior chunk-e80xtnyg.js:4172.",
+      "supportingCurrentSourceSite": {
+        "file": "chunk-yttags1e.js",
+        "startCodeUnit": 4284,
+        "endCodeUnit": 24946,
+        "sourceSha256": "sha256-bohQpwJcoCM3M+L0AgjpN2j9Ryu1QovE+ouVTRJ9BqI="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "chunk-e80xtnyg.js",
+          "startCodeUnit": 4172,
+          "endCodeUnit": 21345,
+          "sourceSha256": "sha256-sxoDkBcskgEPtccJ85tTJJqo8/DNl1+HnifPxCY2BZY="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0412",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0412",
+        "ordinal": 412,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-iNNrKAj+KmBFO1rfe7ofARoGrCBSgvxZ2+1rXnuyTZ4=",
+        "revisionSha256": "sha256-iNNrKAj+KmBFO1rfe7ofARoGrCBSgvxZ2+1rXnuyTZ4=",
+        "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA=",
+        "textMinHash": "CEOJpQAW3+cAbyDOAxPU5gCOO2ECo8cOBLlSuwHcxjUFpIb6AadMEwPYYWIEJZdGAfVhqADcnhMFLLIZAEYinwAwEtMFsmEIDUOXiAkGAyYAe2mtAJPjhwGHSgUDi13OAUaDwgRSqMcD6bXdAqEKRwUIBH0AXUcvAZ9vsQNGEs8=",
+        "normalizedTokenCount": 93,
+        "astContextSha256": "sha256-5mYWPyYIHOjMikIp2qUG2l2RjfUlXAT0i7dab6Tv0m0="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000478",
+      "proposedPredecessors": [
+        "v2.1.293-0410"
+      ],
+      "rationale": "Same standalone hljsBundle.generated.min.js language grammar keyword/property list owner; preserve generated-asset lineage rather than equal bundled module. Current hljsBundle.generated.min.js:103141; prior hljsBundle.generated.min.js:103130.",
+      "supportingCurrentSourceSite": {
+        "file": "hljsBundle.generated.min.js",
+        "startCodeUnit": 103141,
+        "endCodeUnit": 103572,
+        "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "hljsBundle.generated.min.js",
+          "startCodeUnit": 103130,
+          "endCodeUnit": 103561,
+          "sourceSha256": "sha256-3KN1Z9a5EFGdfvc0hFxUeV4DJcT6mULTJZn+3jtXqfA="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0413",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0413",
+        "ordinal": 413,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-YK8lfDJ/rZSTzdzJPrS107MC1fhVn0T49U00GDoIY8o=",
+        "revisionSha256": "sha256-YK8lfDJ/rZSTzdzJPrS107MC1fhVn0T49U00GDoIY8o=",
+        "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg=",
+        "textMinHash": "A0jifwH722UCBEWyAX/wsAAsGEAC3Jj2Cw5wRQHkUZ0EaVNbAQzU8QGdWgsE4z9nANtmNwA/rBABLsWsBLm3lwBG1FoAOV00AH28VQFZ2oECui4rAMQNLABj3KgD/RvkAJAUwwA0dLgDGqjlAjG2FwA4d50G/eovAnr9AQFasSw=",
+        "normalizedTokenCount": 118,
+        "astContextSha256": "sha256-S2ZxxaeWeu9Enrd0XKXAiXQMfvZuQ+wP9rbqQl953AM="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000479",
+      "proposedPredecessors": [
+        "v2.1.293-0411"
+      ],
+      "rationale": "Same standalone hljsBundle.generated.min.js language grammar keyword/property list owner; preserve generated-asset lineage rather than equal bundled module. Current hljsBundle.generated.min.js:176455; prior hljsBundle.generated.min.js:176444.",
+      "supportingCurrentSourceSite": {
+        "file": "hljsBundle.generated.min.js",
+        "startCodeUnit": 176455,
+        "endCodeUnit": 177216,
+        "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "hljsBundle.generated.min.js",
+          "startCodeUnit": 176444,
+          "endCodeUnit": 177205,
+          "sourceSha256": "sha256-M9P/qBhqkmMkYxh8F95C3M7/bP+FIzm5CHaWGZ/0VAg="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0414",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0414",
+        "ordinal": 414,
+        "familyHint": "hook",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-hehe9Af4Qh6XWwMxG6y9skCn/tYCSTZkyQQ0pJEGYDQ=",
+        "revisionSha256": "sha256-hehe9Af4Qh6XWwMxG6y9skCn/tYCSTZkyQQ0pJEGYDQ=",
+        "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE=",
+        "textMinHash": "AWhdkgCGYcwAwsiIAT9JZQFYWogBKkGiABJorADucDwBQFpGAK6ZIQIEB+4AMd2/AmurOADqVAEAyWlHACZ/MgFy/SYB+l+lAFzt1gGg5IsC8RgEBsMt1ABiSsQBUn2uAT+I9gHCGzIBskgOATK0qgO2L0ICdP4QADTAfAHJymY=",
+        "normalizedTokenCount": 167,
+        "astContextSha256": "sha256-EvN54INcVVl6NBaViCpT8ow50ezsyyP/Xits8QCWAPM="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000480",
+      "proposedPredecessors": [
+        "v2.1.293-0412"
+      ],
+      "rationale": "Same standalone hljsBundle.generated.min.js language grammar keyword/property list owner; preserve generated-asset lineage rather than equal bundled module. Current hljsBundle.generated.min.js:295972; prior hljsBundle.generated.min.js:295961.",
+      "supportingCurrentSourceSite": {
+        "file": "hljsBundle.generated.min.js",
+        "startCodeUnit": 295972,
+        "endCodeUnit": 297082,
+        "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "hljsBundle.generated.min.js",
+          "startCodeUnit": 295961,
+          "endCodeUnit": 297071,
+          "sourceSha256": "sha256-3tuT/ZMiNDjz0nJooZ9o1ipZmuyWZkeLy8l93/h4GBE="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0415",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0415",
+        "ordinal": 415,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-WMVmzUDeVoIPzy7Uz/TsQ40pqMi7iqJwAqoLMurZBCE=",
+        "revisionSha256": "sha256-WMVmzUDeVoIPzy7Uz/TsQ40pqMi7iqJwAqoLMurZBCE=",
+        "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM=",
+        "textMinHash": "AElsiABHXj8AQhFIAC9ovACcrl8AkGB2Ah4tAwJrC+0Cj6tSAHFPiAEqqZIAjt6JAJDGMwAy2ZMAM8FpADldewCQIHsAF/bxARDwLQDnT6cAz1hZAEvkDgAgFjgABK12AB1wVQAEUEgAmuw9AH+hXQA8bX0Ao04yAAByuQGMINw=",
+        "normalizedTokenCount": 362,
+        "astContextSha256": "sha256-S2ZxxaeWeu9Enrd0XKXAiXQMfvZuQ+wP9rbqQl953AM="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000481",
+      "proposedPredecessors": [
+        "v2.1.293-0413"
+      ],
+      "rationale": "Same standalone hljsBundle.generated.min.js language grammar keyword/property list owner; preserve generated-asset lineage rather than equal bundled module. Current hljsBundle.generated.min.js:439222; prior hljsBundle.generated.min.js:439211.",
+      "supportingCurrentSourceSite": {
+        "file": "hljsBundle.generated.min.js",
+        "startCodeUnit": 439222,
+        "endCodeUnit": 441400,
+        "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "hljsBundle.generated.min.js",
+          "startCodeUnit": 439211,
+          "endCodeUnit": 441389,
+          "sourceSha256": "sha256-anE/59voi94X3a6VN/2t/l1tfgIhU+4SsRkdrYP4+CM="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0416",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0416",
+        "ordinal": 416,
+        "familyHint": "memory",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-S/2LGEC16o9TK7+BS2KZKiFinT46Yzm4jEvyGsDICbw=",
+        "revisionSha256": "sha256-S/2LGEC16o9TK7+BS2KZKiFinT46Yzm4jEvyGsDICbw=",
+        "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4=",
+        "textMinHash": "AAkMlAAgtvMADAtBABFfrABE7okALn3bABi+lABBYL4AL53rAFXKLgAHoooAAn2fAEwFeAAA95EAIx9zAAxSewAk4KcAHykOAAft0QAPLGUAKgDmAADx8AADVswAZ5u8ACFlegADAGMAL+p9AAGq4AAgxzAAO5TBAKJCvwADaKU=",
+        "normalizedTokenCount": 1830,
+        "astContextSha256": "sha256-5mYWPyYIHOjMikIp2qUG2l2RjfUlXAT0i7dab6Tv0m0="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000482",
+      "proposedPredecessors": [
+        "v2.1.293-0414"
+      ],
+      "rationale": "Same standalone hljsBundle.generated.min.js language grammar keyword/property list owner; preserve generated-asset lineage rather than equal bundled module. Current hljsBundle.generated.min.js:474038; prior hljsBundle.generated.min.js:474027.",
+      "supportingCurrentSourceSite": {
+        "file": "hljsBundle.generated.min.js",
+        "startCodeUnit": 474038,
+        "endCodeUnit": 488881,
+        "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "hljsBundle.generated.min.js",
+          "startCodeUnit": 474027,
+          "endCodeUnit": 488870,
+          "sourceSha256": "sha256-z7Hz+D7wnv2eY39g/sHuvbAvme1aUbtGbsJp2/komS4="
+        }
+      ],
+      "approvalStatus": "pending"
+    },
+    {
+      "currentOccurrenceId": "v2.1.296-0417",
+      "currentObservation": {
+        "occurrenceId": "v2.1.296-0417",
+        "ordinal": 417,
+        "familyHint": "auxiliary",
+        "roleHint": "unknown",
+        "classification": "static",
+        "detectorSha256": "sha256-uFt/YzOXED2DqFdfwZuLVMaYSty8twhEWHl9AL4ae0Q=",
+        "revisionSha256": "sha256-uFt/YzOXED2DqFdfwZuLVMaYSty8twhEWHl9AL4ae0Q=",
+        "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI=",
+        "textMinHash": "AB1GpADCiqkARpZzAHt42AAJFHUADbYxABHtGwBTx+UAtAzSAAcV3QBSdw8ASlkwAAEybwCokiIAb7w8AADTfQADOgcAJnCcAChyyQAoKG8AWwFTASflYAAhUj8AfQKNAAoR6ABenOAALGdXAH/pgQAXRmsAOEcRAFtZpQCTjYI=",
+        "normalizedTokenCount": 1024,
+        "astContextSha256": "sha256-EvN54INcVVl6NBaViCpT8ow50ezsyyP/Xits8QCWAPM="
+      },
+      "proposedRelation": "carry",
+      "proposedLineageId": "prompt-000483",
+      "proposedPredecessors": [
+        "v2.1.293-0415"
+      ],
+      "rationale": "Same standalone hljsBundle.generated.min.js language grammar keyword/property list owner; preserve generated-asset lineage rather than equal bundled module. Current hljsBundle.generated.min.js:543163; prior hljsBundle.generated.min.js:543149.",
+      "supportingCurrentSourceSite": {
+        "file": "hljsBundle.generated.min.js",
+        "startCodeUnit": 543163,
+        "endCodeUnit": 549053,
+        "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI="
+      },
+      "supportingPredecessorSourceSites": [
+        {
+          "file": "hljsBundle.generated.min.js",
+          "startCodeUnit": 543149,
+          "endCodeUnit": 549039,
+          "sourceSha256": "sha256-/WJrjmiVeme7JSVJkYGeK/RDgscWGHCdXIlA9Dr9ZuI="
+        }
+      ],
+      "approvalStatus": "pending"
+    }
+  ],
+  "ambiguousReviewItems": [],
+  "unmatchedPriorAccounting": {
+    "carriedByProposal": [
+      "prompt-000021",
+      "prompt-000023",
+      "prompt-000028",
+      "prompt-000054",
+      "prompt-000063",
+      "prompt-000122",
+      "prompt-000138",
+      "prompt-000189",
+      "prompt-000190",
+      "prompt-000198",
+      "prompt-000372",
+      "prompt-000374",
+      "prompt-000400",
+      "prompt-000436",
+      "prompt-000454",
+      "prompt-000455",
+      "prompt-000458",
+      "prompt-000459",
+      "prompt-000460",
+      "prompt-000461",
+      "prompt-000462",
+      "prompt-000463",
+      "prompt-000471",
+      "prompt-000472",
+      "prompt-000476",
+      "prompt-000478",
+      "prompt-000479",
+      "prompt-000480",
+      "prompt-000481",
+      "prompt-000482",
+      "prompt-000483",
+      "prompt-000494",
+      "prompt-000521",
+      "prompt-000536",
+      "prompt-000544",
+      "prompt-000574",
+      "prompt-000614"
+    ],
+    "remaining": [
+      {
+        "lineageId": "prompt-000563",
+        "predecessorOccurrenceId": "v2.1.293-0391",
+        "disposition": "not-observed-in-target",
+        "registryAction": "retain-existing-lineage",
+        "rationale": "The former artifact publication helper containing the Files-you-did-not-write warning was replaced by the current artifact-type/store guidance. Focused inspection found no current occurrence of that warning; no unrelated artifact prompt is assigned its identity."
+      },
+      {
+        "lineageId": "prompt-000612",
+        "predecessorOccurrenceId": "v2.1.293-0260",
+        "disposition": "not-observed-in-target",
+        "registryAction": "retain-existing-lineage",
+        "rationale": "The standalone Bash-call-cost advisory and tengu_velvet_moon composition gate are absent from the successor main module; no current detected descendant was identified. Other token-economy guidance remains."
+      }
+    ]
+  }
+}

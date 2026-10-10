@@ -2,13 +2,14 @@ import { expect, test } from "bun:test"
 import { resolve } from "node:path"
 import { parseSync } from "oxc-parser"
 import { applyPatchEntriesToGraphBundle, loadGraphBundle } from "../lib/graph-bundle"
+import { targetVersion } from "../lib/target"
 import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { recordOracleCheck } from "./helpers/oracle-evidence"
 import { evaluateStaticPatchTests, type StaticPatchTest } from "../lib/patch-tests"
 
 const root = resolve(process.env.PATCHED_CC_ROOT ?? resolve(import.meta.dir, "../.."))
-const version = "2.1.293"
+const version = targetVersion()
 const platforms = ["darwin-arm64", "linux-x64"] as const
 type Platform = (typeof platforms)[number]
 
@@ -16,9 +17,15 @@ type FunctionSources = {
   config: string
   rewrite: string
   emit: string
-  configName: "Hno" | "voo"
-  rewriteName: "pEe" | "sve"
-  emitName: "hCt" | "YRt"
+  configName: string
+  rewriteName: string
+  emitName: string
+  parserName: string
+  cacheName: string
+  cacheKeyName: string
+  skipName: string
+  sentinelName: string
+  stateName: string
 }
 
 type PromptConfig = { strings: string[]; matched: Set<string> }
@@ -66,12 +73,17 @@ function declarations(source: string): Array<{ name: string; source: string }> {
 
 function uniqueFunction(
   nodes: Array<{ name: string; source: string }>,
-  name: string,
-  predicate: (source: string) => boolean = () => true,
-): string {
-  const matches = nodes.filter((node) => node.name === name && predicate(node.source))
+  predicate: (source: string) => boolean,
+): { name: string; source: string } {
+  const matches = nodes.filter((node) => predicate(node.source))
   expect(matches).toHaveLength(1)
-  return matches[0]!.source
+  return matches[0]!
+}
+
+function capture(source: string, pattern: RegExp): string[] {
+  const match = source.match(pattern)
+  expect(match).not.toBeNull()
+  return match!.slice(1)
 }
 
 function patchedFunctions(platform: Platform): FunctionSources {
@@ -83,25 +95,39 @@ function patchedFunctions(platform: Platform): FunctionSources {
 
   const graph = loadGraphBundle(resolve(root, `staging/${version}/graph/${platform}`), platform)
   const rendered = applyPatchEntriesToGraphBundle(graph, patches, version)
-  const chunkName = platform === "darwin-arm64" ? "chunk-nwqfvmza.js" : "chunk-g263vvvn.js"
-  const graphFile = graph.files.find((file) => file.path === chunkName)
-  expect(graphFile).toBeDefined()
-  const source = rendered.texts.get(chunkName) ?? graphFile!.text
+  const graphFiles = graph.files.filter((file) =>
+    file.text.includes("CLAUDE_CODE_REMOVE_PROMPT_STRINGS") &&
+    file.text.includes("tengu_remove_prompt_strings_applied"),
+  )
+  expect(graphFiles).toHaveLength(1)
+  const graphFile = graphFiles[0]!
+  const source = rendered.texts.get(graphFile.path) ?? graphFile.text
   const renderedBundle = graph.files.map((file) => rendered.texts.get(file.path) ?? file.text).join("\n")
   const staticTests = patches.flatMap((entry) => (entry.tests ?? []).filter((test) => test.kind === "static"))
   const staticResults = evaluateStaticPatchTests(renderedBundle, staticTests as StaticPatchTest[])
   expect(staticResults.filter((result) => !result.ok)).toEqual([])
   const nodes = declarations(source)
-  const configName = platform === "darwin-arm64" ? "Hno" : "voo"
-  const rewriteName = platform === "darwin-arm64" ? "pEe" : "sve"
-  const emitName = platform === "darwin-arm64" ? "hCt" : "YRt"
+  const config = uniqueFunction(nodes, (body) => body.includes("CLAUDE_CODE_REMOVE_PROMPT_STRINGS"))
+  const rewrite = uniqueFunction(nodes, (body) => body.includes("promptAblation") && body.includes("replaceAll"))
+  const nativeEmit = uniqueFunction(declarations(graphFile.text), (body) => body.includes("tengu_remove_prompt_strings_applied"))
+  const emit = uniqueFunction(nodes, (body) => body.startsWith(`function ${nativeEmit.name}(`))
+  const [parserName] = capture(config.source, /([\w$]+)\(a\.CLAUDE_CODE_REMOVE_PROMPT_STRINGS,!1\)/)
+  const [cacheName, cacheKeyName] = capture(config.source, /([\w$]+)\(\)\?\.\[([\w$]+)\]/)
+  const [skipName, sentinelName] = capture(rewrite.source, /if\(([\w$]+)\(n\)\|\|e===([\w$]+)\)return e;/)
+  const [stateName] = capture(rewrite.source, /let [\w$]+=([\w$]+)\(\);try\{/)
   const sources: FunctionSources = {
-    configName,
-    rewriteName,
-    emitName,
-    config: uniqueFunction(nodes, configName, (body) => body.includes("CLAUDE_CODE_REMOVE_PROMPT_STRINGS")),
-    rewrite: uniqueFunction(nodes, rewriteName, (body) => body.includes("promptAblation") && body.includes("replaceAll")),
-    emit: uniqueFunction(nodes, emitName, (body) => body.includes("strings:e,matched:n")),
+    configName: config.name,
+    rewriteName: rewrite.name,
+    emitName: emit.name,
+    config: config.source,
+    rewrite: rewrite.source,
+    emit: emit.source,
+    parserName: parserName!,
+    cacheName: cacheName!,
+    cacheKeyName: cacheKeyName!,
+    skipName: skipName!,
+    sentinelName: sentinelName!,
+    stateName: stateName!,
   }
   sourceCache.set(platform, sources)
   return sources
@@ -126,19 +152,15 @@ function instantiate(
   const factory = new Function(
     "a",
     "process",
-    "gt",
-    "Qc",
-    "Jc",
-    "gCt",
-    "VRt",
+    sources.parserName,
+    sources.cacheName,
+    sources.cacheKeyName,
     "t",
     "i",
     "c",
-    "nL",
-    "Q0",
-    "i0",
-    "rM",
-    "_o",
+    sources.skipName,
+    sources.sentinelName,
+    sources.stateName,
     `${sources.config}\n${sources.rewrite}\n${sources.emit}\nreturn { config: ${sources.configName}, rewrite: ${sources.rewriteName} }`,
   ) as (...args: unknown[]) => NativeBindings
 
@@ -147,16 +169,12 @@ function instantiate(
     { env: { CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT: scenario.allowServedToolText } },
     (value: string) => JSON.parse(value),
     remoteCacheRead,
-    remoteCacheRead,
-    "remove_prompt_strings",
     "remove_prompt_strings",
     () => undefined,
     (name: unknown, metadata: unknown) => analyticsCalls.push({ name, metadata }),
     () => undefined,
     (context: unknown) => record(context) && context.nativeSkip === true,
-    (context: unknown) => record(context) && context.nativeSkip === true,
-    Symbol("darwin-sentinel"),
-    Symbol("linux-sentinel"),
+    Symbol("native-sentinel"),
     () => state,
   )
 
@@ -191,7 +209,7 @@ test(sourceAdmissionCheck, () => {
   for (const platform of platforms) {
     withOracle("local-prompt-ablation/local-source-admission", sourceAdmissionCheck, platform, () => {
       const sources = patchedFunctions(platform)
-      const nativeModeGate = platform === "darwin-arm64" ? "if(nL(n)||e===i0)return e;" : "if(Q0(n)||e===rM)return e;"
+      const nativeModeGate = `if(${sources.skipName}(n)||e===${sources.sentinelName})return e;`
       expect(sources.rewrite).toContain(nativeModeGate)
 
       const denied = instantiate(sources, {
@@ -248,11 +266,11 @@ test(telemetryCheck, () => {
   for (const platform of platforms) {
     withOracle("local-prompt-ablation/telemetry-unreachable", telemetryCheck, platform, () => {
       const sources = patchedFunctions(platform)
-      expect(sources.rewrite).toContain('g=g.replaceAll(h,"")')
+      expect(sources.rewrite).toMatch(/([\w$]+)=\1\.replaceAll\([\w$]+,""\)/)
       expect(sources.rewrite).not.toContain(".matched.has(")
       expect(sources.rewrite).not.toContain(".matched.add(")
       expect(sources.emit).not.toContain("tengu_remove_prompt_strings_applied")
-      expect(sources.emit).toMatch(new RegExp(`^function ${sources.emitName}\\(\\{strings:e,matched:n\\}\\)\\{\\}$`))
+      expect(sources.emit).toBe(`function ${sources.emitName}({strings:e,matched:n}){}`)
 
       const scenarios: Array<{ input: string; options: Scenario; expected: string }> = [
         {

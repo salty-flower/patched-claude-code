@@ -89,7 +89,7 @@ async function main(): Promise<number> {
   const proc = Bun.spawn({
     cmd: ["bash", "-lc", `${scriptCommand} < <(cat)`],
     cwd: home,
-    env: { ...cleanEnv, HOME: home, PATH: environment.PATH, TERM: environment.TERM },
+    env: { ...cleanEnv, HOME: home, PATH: environment.PATH, TERM: environment.TERM, SHELL: Bun.which("bash") ?? "bash" },
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",

@@ -69,6 +69,7 @@ export const STAGING_SUPPORT_CONTRACT = {
       "2.1.285",
       "2.1.290",
       "2.1.293",
+      "2.1.296",
     ],
     condition: "Claude direct-download manifest exposes platform Bun standalone binaries",
     layoutContract: BUN_STANDALONE_LAYOUT_CONTRACT.name,

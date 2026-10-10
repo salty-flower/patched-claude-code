@@ -863,7 +863,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       TARGET_VERSION === "2.1.285" ||
       TARGET_VERSION === "2.1.289" ||
       TARGET_VERSION === "2.1.290" ||
-      TARGET_VERSION === "2.1.293"
+      TARGET_VERSION === "2.1.293" ||
+      TARGET_VERSION === "2.1.296"
     ) {
       const versionSuffix = TARGET_VERSION.replaceAll(".", "-")
       const effortMemoSlot = activeStatuslineMemoIndex(
@@ -888,6 +889,18 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
             'new cs("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")',
           )
           expect(bundle).not.toContain('new os("--hide-builtin-footer [items]"')
+        }
+        if (TARGET_VERSION === "2.1.296") {
+          expect(bundle).toContain('new ds("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
+          expect(bundle).not.toContain('new cs("--hide-builtin-footer [items]"')
+          const effort = platform === "darwin-arm64"
+            ? "effort_level:Vb(Me)?qC(Me,ke)??null:null,...Vb(Me)&&{effort:{level:qC(Me,ke)}}"
+            : "effort_level:GS(Fe)?GA(Fe,ke)??null:null,...GS(Fe)&&{effort:{level:GA(Fe,ke)}}"
+          expect(bundle).toContain(effort)
+          for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
+            expect(bundle).toContain(`let ${selector}=V((state)=>state.settings.statusLine`)
+            expect(bundle).not.toContain(`let ${selector}=Re(`)
+          }
         }
         expect(bundle).toMatch(
           /new [\w$]+\("--hide-builtin-footer \[items\]","Hide built-in footer items"\)\.preset\("all"\)/,
@@ -923,7 +936,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         if (
           TARGET_VERSION === "2.1.289" ||
           TARGET_VERSION === "2.1.290" ||
-          TARGET_VERSION === "2.1.293"
+          TARGET_VERSION === "2.1.293" ||
+          TARGET_VERSION === "2.1.296"
         ) {
           expect(bundle).toMatch(
             /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\(\2,([\w$]+)\)\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\(\2,\4\)}}/,

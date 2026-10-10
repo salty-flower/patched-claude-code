@@ -92,7 +92,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
         table.byModel[slug] ?? table.default,
       [binding("carried effort default", /carriedEffort===void 0\?([\w$]+)\(\):carriedEffort!==null/)]: () =>
         carriedEffortValue,
-      [binding("wrapper carried default", /carriedEffort:d=([\w$]+)\(e\)/)]: () => carriedEffortValue,
+      [binding("wrapper carried default", /carriedEffort:[\w$]+=([\w$]+)\(e\)/)]: () => carriedEffortValue,
       [binding("with-hold predicate", /&&([\w$]+)\(modelName\)!==void 0\)nativeTable=void 0/)]: (model: string) =>
         heldModels.has(normalize(model)) ? "low" : undefined,
       [binding("numeric capability", /let __acc_numeric=([\w$]+)\(e\)!==null/)]: (model: string) =>

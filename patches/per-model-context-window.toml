@@ -1,5 +1,5 @@
 name = "per-model-context-window"
-target_version = "2.1.293"
+target_version = "2.1.296"
 applies_to = ">=2.1.238 <2.2.0"
 
 rationale = """
@@ -434,3 +434,67 @@ kind = "static"
 name = "2.1.293 Linux context resolver uses its current model symbol"
 assert_contains = '''function Iv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(vu(e))return 1e6;'''
 assert_not_contains = '''function mv(e,n){if(pu(e))return 1e6;'''
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-296-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.296 darwin-arm64 context resolver now first checks opt-in 1m eligibility via C1n(e,n), then belief and native-1m facts. Prepend the per-model override before those target-owned branches, using only the captured model parameter e and process.env."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Zv"
+    source_regex = "^function Zv\\(e,n\\)\\{if\\(C1n\\(e,n\\)\\)return 1e6;"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin context resolver uses its current model symbol"
+  assert_contains = 'function Zv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(C1n(e,n))return 1e6;'
+  assert_not_contains = 'function Pv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(vu(e))return 1e6;'
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-296-linux-x64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.296 linux-x64 context resolver now first checks opt-in 1m eligibility via lBn(e,n), then belief and native-1m facts. Prepend the per-model override before those target-owned branches, using only the captured model parameter e and process.env."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Jv"
+    source_regex = "^function Jv\\(e,n\\)\\{if\\(lBn\\(e,n\\)\\)return 1e6;"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux context resolver uses its current model symbol"
+  assert_contains = 'function Jv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(lBn(e,n))return 1e6;'
+  assert_not_contains = 'function Iv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(vu(e))return 1e6;'

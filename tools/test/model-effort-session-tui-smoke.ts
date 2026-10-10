@@ -90,7 +90,7 @@ async function session(
     // `cat | script` pipeline would make it wait for cat to see stdin EOF.
     cmd: ["bash", "-lc", `${scriptCommand} < <(cat)`],
     cwd: home,
-    env: cleanEnv,
+    env: { ...cleanEnv, SHELL: Bun.which("bash") ?? "bash" },
     detached: process.platform === "darwin",
     stdin: "pipe",
     stdout: "pipe",

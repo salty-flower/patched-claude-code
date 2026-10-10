@@ -13,7 +13,7 @@ export function makeScriptCommand(command: string, inputCommand: string, outputP
   if (process.platform === "darwin") {
     return `(${inputCommand}) | script -q -e ${output} bash -lc ${shellQuote(command)}`
   }
-  return `(${inputCommand}) | script -q -e -c ${shellQuote(command)} ${output}`
+  return `(${inputCommand}) | SHELL=${shellQuote(Bun.which("bash") ?? "bash")} script -q -e -c ${shellQuote(command)} ${output}`
 }
 
 export function withProcessGroupTimeout(command: string, seconds: number): string {

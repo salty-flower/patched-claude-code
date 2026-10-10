@@ -1,6 +1,6 @@
 name = "agents-md-native-hook-native-host-path"
 enabled = true
-target_version = "2.1.281"
+target_version = "2.1.296"
 applies_to = ">=2.1.281 <2.1.282"
 
 [[patches]]
@@ -330,3 +330,56 @@ expected_matches = 1
   kind = "static"
   name = "2.1.293 Linux agents-md rejects the stale 2.1.289 module binding"
   assert_not_contains = '''hooksModule:{module:S,scan:Le().scan,files:{}}'''
+
+[[patches]]
+name = "agents-md-native-hook-host-path-2-1-296"
+lineage = "agents-md-native-hook-host-path"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+rationale = "Expose the built-in agents-md scan descriptor to the native host in both 2.1.296 disk graphs. The Darwin and Linux registrations bind module namespace h and scan factory oe; capture them from the object that carries userConfig and preserve its registration and instructionFiles setting. The native hook registrar consumes the descriptor scan through registerScan/Ne.scan, so the upstream callback stays on the trusted runtime path without custom discovery or restricted-worker privilege changes. Remove when the disk runtime consumes this compiled descriptor directly."
+rationale_ref = "reference/v2.1.88/sources/src/utils/plugins/loadPluginHooks.ts#L123-L148"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "hooksModule"
+    strings = ["userConfig:", "import.meta.dir"]
+
+    [patches.ast.captures.module]
+    kind = "identifier"
+    path = "arguments.1"
+    select = { node = "CallExpression", source_regex = '^\w+\(import\.meta\.dir,' }
+
+    [patches.ast.captures.scan]
+    kind = "identifier"
+    path = "arguments.2.body.callee"
+    select = { node = "CallExpression", source_regex = '^\w+\(import\.meta\.dir,' }
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "hooksModule"
+  value = '''{module:%%CAPTURE:module%%,scan:%%CAPTURE:scan%%().scan,files:{}}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 agents-md carries the current module and scan bindings"
+  assert_contains = '''hooksModule:{module:h,scan:oe().scan,files:{}},userConfig:U'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin agents-md rejects the stale 2.1.289 module binding"
+  assert_not_contains = '''hooksModule:{module:I,scan:Le().scan,files:{}}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux agents-md rejects the stale 2.1.289 module binding"
+  assert_not_contains = '''hooksModule:{module:S,scan:Le().scan,files:{}}'''
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 rejects the previous descriptor bindings"
+  assert_not_contains = 'hooksModule:{module:M,scan:ke().scan,files:{}}'

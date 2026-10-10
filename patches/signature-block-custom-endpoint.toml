@@ -1,5 +1,5 @@
 name = "signature-block-custom-endpoint"
-target_version = "2.1.293"
+target_version = "2.1.296"
 applies_to = ">=2.1.150 <2.2.0"
 
 rationale = """
@@ -1304,3 +1304,59 @@ kind = "static"
 name = "2.1.293 Linux retains official endpoint signature handling"
 assert_contains = '''h=Pe()==="firstParty"&&pi()?Ton(e,s,g):(()=>{let __pccChanged=!1'''
 assert_not_contains = '''h=vZt(e,s,g),'''
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-296-darwin-arm64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = [ "darwin-arm64" ]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "Preserve the 2.1.296 darwin-arm64 foreign-thinking normalizer hln(e,s,h) for official endpoints. Its message-module imports Ie for the provider selector and Ei for the explicit first-party assumption or API-host check. Custom endpoints remove signed and redacted thinking before downstream normalization; the original keepForeignThinking policy argument h remains target-owned."
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "messagesPreNormalize:", "y=hln(e,s,h)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "y=hln(e,s,h),"
+  value = 'y=Ie()==="firstParty"&&Ei()?hln(e,s,h):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Darwin retains official endpoint signature handling"
+  assert_contains = 'y=Ie()==="firstParty"&&Ei()?hln(e,s,h):(()=>{let __pccChanged=!1'
+  assert_not_contains = 'h=Pe()==="firstParty"&&pi()?Eon(e,s,g):(()=>{let __pccChanged=!1'
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-296-linux-x64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+platforms = [ "linux-x64" ]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "Preserve the 2.1.296 linux-x64 foreign-thinking normalizer gln(e,s,h) for official endpoints. Its message-module imports Ie for the provider selector and vi for the explicit first-party assumption or API-host check. Custom endpoints remove signed and redacted thinking before downstream normalization; the original keepForeignThinking policy argument h remains target-owned."
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "messagesPreNormalize:", "y=gln(e,s,h)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "y=gln(e,s,h),"
+  value = 'y=Ie()==="firstParty"&&vi()?gln(e,s,h):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 Linux retains official endpoint signature handling"
+  assert_contains = 'y=Ie()==="firstParty"&&vi()?gln(e,s,h):(()=>{let __pccChanged=!1'
+  assert_not_contains = 'h=Pe()==="firstParty"&&pi()?Ton(e,s,g):(()=>{let __pccChanged=!1'

@@ -1,5 +1,5 @@
 name = "custom-model-slots"
-target_version = "2.1.234"
+target_version = "2.1.296"
 applies_to = ">=2.1.234 <2.1.238"
 
 rationale = """
@@ -2874,3 +2874,112 @@ kind = "static"
 name = "2.1.293 skips probes for configured custom slots 2 through 10"
 assert_contains = '''if(__acc_model&&r===__acc_model)return{valid:!0};'''
 assert_not_contains = '''if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};'''
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-296"
+lineage = "append-second-custom-model-option"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+rationale = "Preserve the 2.1.296 slot-one row and add configured slots 2 through 10 with alias-aware deduplication. The new Darwin and Linux graphs capture the live rows array s and slot-one value h. The injected code names no local minified helper; the original row expression remains target-owned bytes."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\("
+    strings = [
+  "ANTHROPIC_CUSTOM_MODEL_OPTION_NAME",
+  "ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION",
+  "sessionTail:!0"
+]
+
+[patches.ast.captures.rows]
+kind = "identifier"
+path = "consequent.expression.callee.object"
+
+[patches.ast.captures.slot]
+kind = "identifier"
+path = "test.left"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot,__acc_model=process.env[__acc_key]?.trim();if(__acc_model&&!__acc_dup(%%CAPTURE:rows%%,__acc_model))%%CAPTURE:rows%%.push({value:__acc_model,label:process.env[__acc_key+"_NAME"]??__acc_model,description:process.env[__acc_key+"_DESCRIPTION"]??`Custom model ${__acc_slot} (${__acc_model})`});}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 picker uses the captured slot-one row and adds configured slots"
+  assert_contains = "if(!__acc_dup(s,h)){"
+  assert_not_contains = "for(let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 picker adds slots 2 through 10 with alias deduplication"
+  assert_contains = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot,__acc_model=process.env[__acc_key]?.trim();'
+
+[[patches]]
+name = "recognize-second-custom-model-option-2-1-296"
+lineage = "recognize-second-custom-model-option"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+rationale = "Recognize configured custom slots 2 through 10 after the native recognition predicate in 2.1.296. Both the Darwin and Linux graphs capture model argument n, and the injected code names no local minified helper."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\([A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)\\)return\\{recognized:!0\\};$"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "test.arguments.0"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_model=process.env["ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot]?.trim();if(__acc_model&&%%CAPTURE:model%%===__acc_model)return{recognized:!0};}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 recognizes configured custom slots through the captured model"
+  assert_contains = "if(__acc_model&&n===__acc_model)return{recognized:!0};"
+  assert_not_contains = "if(Dcr(n))return{recognized:!0};"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 recognition does not retain the Linux 2.1.290 helper"
+  assert_not_contains = "if(mcr(n))return{recognized:!0};"
+
+[[patches]]
+name = "validate-second-custom-model-option-without-probe-2-1-296"
+lineage = "validate-second-custom-model-option-without-probe"
+target_version = "2.1.296"
+applies_to = ">=2.1.296 <2.1.297"
+rationale = "Prevalidate configured custom slots 2 through 10 beside the current slot-one predicate before the optional server probe in 2.1.296. Both graphs capture model argument r; the injected code names no local minified helper."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\([A-Za-z_$][A-Za-z0-9_$]*===[A-Za-z_$][A-Za-z0-9_$]*\\.ANTHROPIC_CUSTOM_MODEL_OPTION\\)return\\{valid:!0\\};$"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "test.left"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_model=process.env["ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot]?.trim();if(__acc_model&&%%CAPTURE:model%%===__acc_model)return{valid:!0};}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.296 skips probes for configured custom slots 2 through 10"
+  assert_contains = "if(__acc_model&&r===__acc_model)return{valid:!0};"
+  assert_not_contains = "if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};"

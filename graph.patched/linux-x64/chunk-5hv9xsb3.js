@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{a}from"./chunk-xwn0mfnc.js";import{ne}from"./chunk-b9getfsf.js";import{g$}from"./chunk-4bvn5mkj.js";import{pI}from"./chunk-hy5w63qr.js";import{o}from"./chunk-zypddzr3.js";var Fr="_host",mxr="_host_context",s=new WeakMap;function $Ms(e,n){return s.set(e,n),e}function EIe(e){let n=s.get(e);return n===void 0?{}:{[mxr]:n}}var kIe="device",c=["container","this-machine"],XBe=/^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;function zie(e){return!Pk(e)&&XBe.test(e)}function wG(){return a.CLAUDE_CODE_REMOTE?"container":"this-machine"}function Pk(e){return c.some((n)=>n===e)}function fq(){return pI()?{[Fr]:o().optional().describe("Optional. Name of an attached machine to run this tool call on; omit it to run in this session's own environment (the default). Use only a name this session listed as attached; the result says where it ran. Choose per call by which machine the command or file path concerns; the attached-machines note says what lives where and which are reachable now.")}:{}}var d=40;function cX(e){let{[Fr]:n,...t}=e;if(typeof n!=="string")return{requested:void 0,input:e};let r=n.trim();return{requested:r===""||Pk(r)?void 0:r,input:t}}function gxr(e){let n=cX(e).requested;return{requestedMachine:n,runsOnMachine:pI()&&n!==void 0&&zie(n)?n:void 0}}function MT(e){return ne(g$(e),d)}function Aj(){return`This call named a machine ("${Fr}") but was not forwarded to it; omit the field to run here.`}function s2n(){return`Running tool calls on an attached machine is not enabled in this session; omit "${Fr}" to run here.`}function Iu(e){return i(e)!==void 0}function fon(e){let n=i(e);return n===void 0?void 0:MT(n)||void 0}function i(e){if(typeof e!=="object"||e===null||!(Fr in e))return;let n=e[Fr];if(typeof n!=="string")return;let t=n.trim();return t===""||Pk(t)?void 0:t}var Yw="EnterPlanMode";
+export{Yw,Fr,mxr,$Ms,EIe,kIe,XBe,zie,wG,Pk,fq,cX,gxr,MT,Aj,s2n,Iu,fon};

@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import"./chunk-rs6p8dg3.js";import"./chunk-fr28a3he.js";import"./chunk-w7m8nded.js";import"./chunk-r2xfgg0x.js";import"./chunk-pzq28dp7.js";import"./chunk-c61xdsy8.js";import"./chunk-63mtweh2.js";import{a}from"./chunk-xwn0mfnc.js";import"./chunk-bfqfmbd0.js";import"./chunk-eqmywwjn.js";import"./chunk-qeqy4res.js";import"./chunk-8fqmxv14.js";import"./chunk-cwsn6mdf.js";import"./chunk-xc4b32zy.js";import"./chunk-b9getfsf.js";import"./chunk-9pt2nr7j.js";import"./chunk-73603qq3.js";import"./chunk-n03wywra.js";import"./chunk-h723y8sa.js";import"./chunk-rhe3yjtx.js";import"./chunk-0nwsa03d.js";import"./chunk-snmng9rv.js";import"./chunk-eveykdxw.js";import{gr}from"./chunk-cetx9evj.js";import"./chunk-29rv67gt.js";var c=25000;function t(){process.exit(0)}function u(o,p){let n=a.CLAUDE_GATEWAY_DRAIN_TIMEOUT_MS||c,i=!1,s=(r)=>{if(p(),i)gr("warn",`${r} received while shutting down: not waiting any longer, closing open requests now and exiting`),o.stop(),t();i=!0,gr("info",`${r} received: shutting down. Refusing new connections; open requests get up to ${n/1000}s to finish (set by CLAUDE_GATEWAY_DRAIN_TIMEOUT_MS)`);let d=n+3000;setTimeout((e)=>{gr("warn",`shutdown still not finished ${e/1000}s after the signal: exiting now. Requests still open are cut and their spend may not be recorded`),t()},d,d).unref(),o.drain(n).then((e)=>{gr(e===0?"info":"warn",e===0?"shutdown complete: every open request finished, none was cut":`drain window over after ${n/1000}s: cut ${e} request(s) still open. Raise CLAUDE_GATEWAY_DRAIN_TIMEOUT_MS and the orchestrator's grace period together to give streams longer`),t()})};process.prependListener("SIGTERM",()=>s("SIGTERM")),process.prependListener("SIGINT",()=>s("SIGINT"))}export{u as drainOnSignal};

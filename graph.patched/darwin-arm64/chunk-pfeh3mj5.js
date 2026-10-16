@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{z}from"./chunk-r0a9v21k.js";import{a}from"./chunk-k4g6y57j.js";import{Ojt,Wgn,Hjt}from"./chunk-e905j6xf.js";import{ZQo}from"./chunk-dyqaqptp.js";import{_r}from"./chunk-p28cak91.js";import{Gn}from"./chunk-rjxv46at.js";import{readFileSync as C}from"fs";import{posix as R}from"path";var u=`${ZQo}toolContainerCpu`,m="anthropic/toolContainerCpu",_=1,M=86400000,E=31*M;function c(n){return Gn(n)&&n[u]===_}var p=new z(()=>({}));function YBr(n,e){if(e!=="tool-container"||!_r()||a.CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE==="self_hosted")return;let t;try{t=C("/proc/self/cgroup","utf8")}catch{return}let r=Wgn(t)===void 0?void 0:s(0);if(r!==void 0)p.of(n).meter={machineMsAtZero:r.cpuMs-r.daemonCpuMs,callsBeingServed:0,atCallsStart:void 0,inCallMs:0,inCallCpuMs:0}}function Q7s(n){let{meter:e}=p.of(n);if(e===void 0)return;if(e.callsBeingServed++===0)e.atCallsStart=s(e.machineMsAtZero);return{[Symbol.dispose](){if(--e.callsBeingServed===0){let t=l(e,s(e.machineMsAtZero));e.inCallMs=t.ms,e.inCallCpuMs=t.cpuMs,e.atCallsStart=void 0}}}}function Z7s(n,e,t){let{meter:r}=p.of(e),o=r!==void 0&&c(t)?s(r.machineMsAtZero):void 0;if(r===void 0||o===void 0)return n;let i=l(r,o),f={start_time_unix_ms:Math.floor(performance.timeOrigin),up_ms:Math.floor(o.upMs),cpu_ms:Math.floor(o.cpuMs),daemon_cpu_ms:Math.floor(o.daemonCpuMs),in_call_ms:Math.floor(i.ms),in_call_cpu_ms:Math.floor(i.cpuMs)},d=n.isError===!0?m:u;return{...n,_meta:{...n._meta,[d]:f}}}function l({atCallsStart:n,inCallMs:e,inCallCpuMs:t},r){return n===void 0||r===void 0?{ms:e,cpuMs:t}:{ms:e+r.upMs-n.upMs,cpuMs:t+Math.max(0,r.cpuMs-n.cpuMs)}}function s(n){let e=Hjt(R.join(Ojt,"cpuacct.usage"));if(e===void 0)return;try{let{user:t,system:r}=process.cpuUsage();return{cpuMs:Math.max(0,e-n),daemonCpuMs:(t+r)/1000,upMs:performance.now()}}catch{return}}
+export{YBr,Q7s,Z7s};

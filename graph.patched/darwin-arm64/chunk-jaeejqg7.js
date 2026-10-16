@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{Fe}from"./chunk-3mdayxq0.js";import{YBt}from"./chunk-xzypj06m.js";import{ble,iyt,mcn,qC,aK}from"./chunk-3c05e83r.js";import{A9,rO}from"./chunk-jn6attna.js";import{ym}from"./chunk-nvk7bh0e.js";import{SOe}from"./chunk-1901fdh6.js";var o=null;function GNs(n){o=n}function qRo(){return o?.credential()??null}function zNs(){return o?.road()??"none_at_claim"}function VNs(n,e){if(e===null)return"none_at_claim";let t=e.kind==="bearer",i=t?"CLAUDE_CODE_OAUTH_TOKEN":"ANTHROPIC_API_KEY",u=t?"CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR":"CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR";return r(n[i])===void 0?YBt(u)??"none":"env_var"}function qNs(n){if(A9()||rO()||d(n,"CLAUDE_CODE_CHILD_SESSION")||d(n,"CLAUDECODE")){let a=r(mcn(ble,"OAuth token")),l=r(mcn(iyt,"API key"));if(a!==void 0&&l!==void 0)return null;return a===void 0?c(l):{kind:"bearer",token:a}}let e=d(n,"CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR"),t=d(n,"CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR"),i=r(n.CLAUDE_CODE_OAUTH_TOKEN)??(e?r(qC()):void 0),u=r(n.ANTHROPIC_API_KEY)??(t?r(aK()):void 0);if(i!==void 0)return{kind:"bearer",token:i};if(u!==void 0)return{kind:"key",key:u};if(e||t)return null;let _=r(qC());if(_!==void 0)return{kind:"bearer",token:_};return c(r(aK()))}function KNs(){let n=o?.env();if(n===void 0)return"no_auth";if([...SOe,"CLAUDE_CODE_USE_GATEWAY"].some((i)=>Fe(n[i])))return"third_party_provider";let t=r(n.ANTHROPIC_BASE_URL);if(t!==void 0&&!ym(t))return"custom_base_url";return qRo()===null?"no_auth":null}var s=["USE_LOCAL_OAUTH","USE_STAGING_OAUTH","CLAUDE_LOCAL_OAUTH_API_BASE","CLAUDE_CODE_CUSTOM_OAUTH_URL"];function YNs(){let n=o?.env()??{};return s.some((e)=>process.env[e]!==n[e])}function d(n,e){return r(n[e])!==void 0}function c(n){return n===void 0?null:{kind:"key",key:n}}function r(n){let e=n?.trim()??"";return e===""?void 0:e}
+export{GNs,qRo,zNs,VNs,qNs,KNs,YNs};

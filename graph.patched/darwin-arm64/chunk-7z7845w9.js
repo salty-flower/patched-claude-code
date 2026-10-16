@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{Qno}from"./chunk-0zs1g2nr.js";import{Ezn}from"./chunk-xjwa602y.js";import{mZo}from"./chunk-kyvb1h2r.js";import{pZo}from"./chunk-04m69yd1.js";import{ol}from"./chunk-b39hwker.js";import{sss}from"./chunk-pf9xewrx.js";import{DS}from"./chunk-5srq0xcq.js";import{fpe}from"./chunk-qhn5sp3q.js";import{Eq}from"./chunk-hmnv0ey7.js";function a(e,r){return Object.entries(e.frameUrls??{}).find(([o,s])=>s?.url!==void 0&&!fpe(o)&&ol(s.url)===r)?.[0]}function l(e){return Object.entries(e.frameUrls??{}).flatMap(([r,o])=>{if(o?.url===void 0||fpe(r))return[];if(o.dismissed===!0)return[];let s=ol(o.url),t=o.routineUnasked===!0||o.commentUnasked===!0;return s===null?[]:[{path:r,slug:s,url:o.url,unasked:t}]})}function d(e,r){return(e.workshopVerifiedSlugs??[]).includes(r)||Object.entries(e.frameUrls??{}).some(([o,s])=>s?.url!==void 0&&ol(s.url)===r&&Ezn(o))}var c=Object.freeze({}),m=Eq("artifactReadConsentSlugs",c),g=Eq("artifactConsentEpoch",0);function a8r(e,r){return{ownPublishes:Qno(e,r),workshopTelemetry:sss(e,r),whiteboardTelemetry:pZo(e,r),prReviewTargets:mZo(e,r),recordedPages:{isWorkshopPage:(o)=>d(e(),o),localSourcePath:(o)=>a(e(),o),heldSourcePages:()=>l(e())},sharedReadConsent:m(e,r),consentEpoch:g(e,r)}}function krt(){let e={};return a8r(()=>e,(r)=>{e=r(e)})}var Crt={assign:()=>DS[0],get:()=>{return}};function _Ve(e){return{assign(r){let o=e.get(),s=o.assignments.get(r);if(s)return s;let t=DS[o.index%DS.length];return e.set((n)=>{if(n.assignments.has(r))return n;let i=new Map(n.assignments);return i.set(r,t),{assignments:i,index:n.index+1}}),t},get(r){return e.get().assignments.get(r)}}}var Xre=Object.freeze({bridge:void 0,channel:void 0});class Wsr{#e=void 0;#r=void 0;get bridge(){return this.#e}get channel(){return this.#r}connectBridge(e){this.#e=e}disconnectBridge(){this.#e=void 0}setChannel(e){this.#r=e}}
+export{a8r,krt,Crt,_Ve,Xre,Wsr};

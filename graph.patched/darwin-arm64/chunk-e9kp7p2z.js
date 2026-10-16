@@ -1,0 +1,14 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{qi,so,Rr}from"./chunk-1901fdh6.js";import{dt,qt,We,It}from"./chunk-1jaxs49d.js";import{Uy}from"./chunk-798vwh4r.js";import{OIr,mm,INs}from"./chunk-5kvhbyg2.js";import{Gko,Yu,hc,wt,vb,S0}from"./chunk-dxfmgtda.js";import{ht}from"./chunk-b8nfa64m.js";import{eIs}from"./chunk-znqd9grm.js";import{Upr,Noe,VO,qO,DHn,Aue,E_r,v_r}from"./chunk-996thspe.js";import{jH}from"./chunk-qhn5sp3q.js";import{Pre}from"./chunk-97n48894.js";import{RN}from"./chunk-zkxzg3nt.js";import{$r}from"./chunk-vswna8r7.js";import{Je}from"./chunk-1rc6bk2z.js";var Zne=()=>Pre({promptSuggestionEnabled:!1});var c=new Set([We,Je,dt,qt,Rr,so,qi,It]),wMe=new Set([Uy]),EMe=Upr;function WZe(e){return`[serve-mode] Stripped client-supplied privilege field(s): ${e.join(", ")}`}function E(e,i){if(e.properties===void 0||i.length===0)return e;let s={...e.properties};for(let n of i)delete s[n];let t=Array.isArray(e.required)?e.required.filter((n)=>!i.includes(n)):e.required;return{...e,properties:s,required:t}}function xjt(e,{skipSearchToolRestore:i=!1}={}){let s=RN(hc(),{skipReplFilter:!0,skipSimpleModeFilter:e}).filter((o)=>!S0(o));if(!e)return s;let t=s.filter((o)=>c.has(o.name));if(i)return t;let n=Noe(),p=[VO,qO].filter((o)=>n.has(o.name)&&c.has(o.name)&&!t.includes(o)&&o.isEnabled());return[...t,...p]}async function s6o(e,i={},s){let t=e==="http",n=hc(),p=xjt(t,i),o=i.agentDefinitions??{activeAgents:[],allAgents:[]},d=t?[]:await Aue(DHn(o.activeAgents,[]),o.allowedAgentTypes,n),T=d.length>0?`Available agent types:
+${d.map((r)=>E_r(r,!1)).join(`
+`)}`:"",m=()=>Promise.all(p.map(async(r)=>{let f=jH(r.inputSchema),{remoteExecution:_,outputSchemaAcrossProcesses:S,...u}=r,l=await r.prompt({getToolPermissionContext:async()=>n,tools:p,agents:o.activeAgents,...s!==void 0&&{model:s.model,leanPrompt:s.leanPrompt,bashFirstTrimmed:!1}});return{...u,description:wt(r,Yu)?eIs(l):wt(r,ht)?l.replace(l.includes(v_r)?v_r:Gko,()=>T):l,inputSchema:E(f,[...t?EMe:[],...vb(r).supported?[$r]:[]]),outputSchema:void 0}}));if(!t)return m();let a=mm();if(a.backgroundTasksDisabled&&a.unsandboxedCommandsDisabled&&!a.backgroundShellsKeptElsewhere)return m();for(let r of p)r.inputSchema;return INs(sjr(),m)}function sjr(e=new OIr){return e.disableBackgroundTasks(),e.disableUnsandboxedCommands(),e}
+export{Zne,wMe,EMe,WZe,xjt,s6o,sjr};

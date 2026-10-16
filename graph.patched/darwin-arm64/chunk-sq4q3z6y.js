@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{Ie}from"./chunk-y2snrdn8.js";import{Dus,dmr,N8t,F8t,v5s,k5s,C5s,tXt}from"./chunk-996thspe.js";import{Xa}from"./chunk-a1afqgfa.js";function m(e,n){let s=e.subagentType===n.agent.agentType?n.agent:n.agents.find((t)=>t.agentType===e.subagentType);if(s!==void 0)return{agent:s};let r=n.agents.map((t)=>t.agentType),g=r.length>0?`available: ${r.join(", ")}`:"none is available";return{deny:`a hook's subagentType '${e.subagentType}' names no agent this call can dispatch (${g})`}}var c=(e)=>({tool_use_id:e.tool_use_id,prompt:e.prompt,description:e.description,subagentType:e.agent.agentType,provider:Dus(e.agent),model:e.model,parentModel:e.parentModel,...e.parentAgentId!==void 0&&{parentAgentId:e.parentAgentId},permissionMode:e.permissionMode,background:e.background,fork:e.fork,...e.isTeammate===!0&&{isTeammate:!0},...e.workflow!==void 0&&{workflow:e.workflow},...e.resume!==void 0&&{resume:e.resume},name:e.name,cwd:e.cwd});var d=(e)=>({started:({agentId:n,model:o,teammateId:s})=>e.done({model:o,agentId:n,...s!==void 0&&{teammateId:s}}),[Symbol.dispose]:e[Symbol.dispose]});var qXr=Object.freeze({started:()=>{return},[Symbol.dispose]:()=>{return}});async function zar(e,n){let{agent:o,agents:s,signal:r,origin:g}=e,t=c(e);if(!Xa("agent.spawn"))return{spawn:t,agent:o,starting:qXr,isRewritten:!1};let a=F8t(C5s),f=await N8t(a,n({signal:r,origin:g,core:{"agent.spawn":dmr(a)}}).agent.spawn(t));if(!f.arrived)return v5s({result:f.answered,input:t,signal:r});let p=f.arrived;k5s({input:t,spawn:p});let i=m(p,{agent:o,agents:s});if(i.deny!==void 0)return a.failed(new Ie(i.deny)),i;return{spawn:p,agent:i.agent,starting:d(a),isRewritten:!tXt({input:t},p)}}export{qXr,zar};

@@ -1,0 +1,16 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{k}from"./chunk-k16gymf7.js";import{a}from"./chunk-xwn0mfnc.js";import{_,t}from"./chunk-cwsn6mdf.js";import{Gs,ne}from"./chunk-b9getfsf.js";import{l}from"./chunk-9pt2nr7j.js";import{Y$e}from"./chunk-38nf1dnm.js";import{jc}from"./chunk-dpk0tdne.js";import{pxs}from"./chunk-mcsdfyqw.js";var T=0.5,M=4,P=1600,g=25000;function u(){let e=a.MAX_MCP_OUTPUT_TOKENS;if(e!==void 0&&e>0)return e;let r=k("tengu_velvet_ibis",{})?.mcp_tool;if(typeof r==="number"&&Number.isFinite(r)&&r>0)return r;return g}function Yde(e){if(!e||typeof e==="string"||!Array.isArray(e))return e;let n=e,r=!1;for(let o of n)if(o?.type==="text"&&"_meta"in o&&o._meta){r=!0;break}if(!r)return e;return n.map((o)=>{if(o?.type==="text"&&"_meta"in o&&o._meta){let{_meta:i,...s}=o;return s}return o})}var C=65536;function m7o(e){if(!Array.isArray(e))return e;let n=0;for(let r of e){if(r?.type!=="text"||!("_meta"in r)||!r._meta)continue;try{n+=_(r._meta).length}catch{n=1/0}if(n>C)return t(`MCP result: text blocks' _meta (over ${C} characters of JSON in all, or not serializable) left off the retained result`),Yde(e)}return e}function p(e){return e.type==="text"}function d(e){return e.type==="image"}function N0e(e){if(!e)return 0;if(typeof e==="string")return jc(e);if(!Array.isArray(e))return 0;return e.reduce((n,r)=>{if(p(r))return n+jc(r.text);else if(d(r))return n+P;return n},0)}function Xde(){return u()*4}var x="[OUTPUT TRUNCATED - exceeded ";function y(){return`
+
+${x}${u()} token limit]
+
+The tool output was truncated. If this MCP server provides pagination or filtering tools, use them to retrieve specific portions of the data. If pagination is not available, inform the user that you are working with truncated output and results may be incomplete.`}async function h(e,n){let r=[],o=0;for(let i of e)if(p(i)){let s=n-o;if(s<=0)break;if(i.text.length<=s)r.push(i),o+=i.text.length;else{let c=ne(i.text,s);if(c){let f={type:"text",text:c};if(i._meta)f._meta=i._meta;r.push(f)}break}}else if(d(i)){let s=P*4;if(o+s<=n)r.push(i),o+=s;else{let c=n-o;if(c>0){let f=Math.floor(c*0.75);try{let m=await pxs(i,f);if(r.push(m),m.source.type==="base64")o+=m.source.data.length;else o+=s}catch{}}}}else r.push(i);return r}async function YKt(e,n){if(!e)return!1;let r=N0e(e);if(r<=u()*T)return!1;if(N0e(typeof e==="string"?e:e.filter(p))>u()*M)return!0;try{return(await Y$e(typeof e==="string"?[{role:"user",content:e}]:[{role:"user",content:e}],[],void 0,{credentials:n})??r)>u()}catch(i){return l(i),r>u()}}async function XKt(e){if(!e)return e;let n=Xde(),r=y();if(typeof e==="string")return Gs(e,n)+r;else{let o=await h(e,n);return o.push({type:"text",text:r}),o}}async function Jde(e,n){if(!await YKt(e,n))return e;return await XKt(e)}
+export{Yde,m7o,N0e,Xde,YKt,XKt,Jde};

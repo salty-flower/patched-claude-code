@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{c}from"./chunk-fr28a3he.js";import{t}from"./chunk-cwsn6mdf.js";import{hOo,MXe,X$t,MDr,Zj,J$t,NA,kn,k}from"./chunk-k16gymf7.js";import{e1t,uBo}from"./chunk-h723y8sa.js";import{ILt}from"./chunk-2nnhrgeh.js";import{MQt}from"./chunk-43bzt7mh.js";var E="tengu_log_datadog_events",d="tengu_quizzical_giraffe",h=new Set(["tengu_started","tengu_oauth_success","tengu_oauth_token_refresh_lock_acquiring","tengu_oauth_token_refresh_starting","tengu_oauth_token_refresh_success","tengu_oauth_token_refresh_failure","tengu_oauth_token_refresh_race_recovered","tengu_oauth_refresh_token_cleared_on_disk","tengu_api_error","tengu_feature_bad","tengu_feature_sad"]);function p(){if(X$t("datadog"))return!1;try{return k(E,!1)}catch{return!1}}function _(e,n){if(!h.has(e))return n;try{let{value:o,source:a}=kn(d,!1),r=a==="fallback"||a==="disabled";return{...n,[d]:c(r?"unset":o===!0?"on":"off")}}catch{return n}}function g(e){return e||Zj()}function f(e,n,o,a){let r=a();if(!g(r))return;let i=_(e,MQt(n)),s=o!==null?{...i,sample_rate:o}:i;if(r)ILt(e,e1t(s));J$t(e,s)}var l=!1;function m(e,n,o){if(l){t(`logEvent reentered while collecting metadata \u2014 dropped ${e}. A getEventMetadata dependency (model/betas/auth) called logEvent synchronously; defer it (queueMicrotask) or move it out of the metadata path.`,{level:"error"});return}l=!0;try{let a=MDr(e);if(a===0)return;if(hOo()){f(e,n,a,o);return}let r=()=>{l=!0;try{f(e,n,a,o)}finally{l=!1}};MXe().then(r,r)}finally{l=!1}}async function v(e,n,o){let a=MDr(e);if(a===0)return;if(!hOo())await MXe();let r=o();if(!g(r))return;let i=_(e,MQt(n)),s=a!==null?{...i,sample_rate:a}:i,u=[];if(r)u.push(ILt(e,e1t(s)));u.push(NA(e,s)),await Promise.all(u)}function BQ(){uBo(y(p))}function y(e){return{logEvent:(n,o)=>m(n,o,e),logEventAsync:(n,o)=>v(n,o,e)}}
+export{BQ};

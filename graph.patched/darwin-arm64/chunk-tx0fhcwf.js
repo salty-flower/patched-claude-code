@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+var Xht="/v2/ccr-sessions/-/meta/mcp",Ud="claude-code-remote",fDo=["list_triggers","create_trigger","update_trigger","delete_trigger","fire_trigger","send_later"],mDo="send_message",gDo=["add_repo","check_repo_access","list_repos"],Jht=[...gDo,"register_repo_root"],x2s="Claude Code Remote",Ake="bf7c680d-5fdc-5ef4-b4a0-abadb619bf0a",hDo="X-MCP-Server-ID";function Qht(e,t){return{type:"http",url:e,headers:{["X-MCP-Server-ID"]:"bf7c680d-5fdc-5ef4-b4a0-abadb619bf0a","X-Session-UUID":t,"anthropic-version":"2023-06-01"},alwaysLoad:!0}}var id="hearthbot",S7=`mcp__${id}__reply`,ILr=`mcp__${id}__fetch_messages`,OLr=`mcp__${id}__fetch_thread`,HLr=`mcp__${id}__fetch_project_timeline`,_We=new Set([ILr,OLr,HLr]);var yDo=/^[A-Za-z0-9_-]{1,160}$/;function _Do(e){return`/v2/ccr-sessions/${e}/hearthbot/mcp`}function P2s(e,t){return{type:"http",url:e,headers:{"X-Session-UUID":t,"anthropic-version":"2023-06-01"},alwaysLoad:!0}}var I2s=new Set(["reply","update_status","no_reply_needed","switch_model","fetch_thread","fetch_project_timeline","fetch_messages","search_channels","set_thread_label","set_thread_resolved","list_thread_sessions","list_thread_connectors","list_project_members","list_project_artifacts","list_project_prs","list_project_files","read_project_file","react","unreact","update_message","get_channel_session_id","get_project_session_id","read_memory","update_memory","report_issue","set_time_zone","pin_artifact","unpin_artifact","suggest_connectors","post_widget","cookie_sign_in_request"]),O2s=new Set(["update_memory","update_message","set_thread_resolved","switch_model","pin_artifact","unpin_artifact","report_issue","set_time_zone","cookie_sign_in_request","post_widget","suggest_connectors"]);
+export{Xht,Ud,fDo,mDo,gDo,Jht,x2s,Ake,hDo,Qht,id,S7,ILr,OLr,HLr,_We,yDo,_Do,P2s,I2s,O2s};

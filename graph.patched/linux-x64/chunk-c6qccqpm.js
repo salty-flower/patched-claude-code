@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.301
+import{we}from"./chunk-eqmywwjn.js";import{c}from"./chunk-fr28a3he.js";import{g,f}from"./chunk-rhe3yjtx.js";import{YY}from"./chunk-38nf1dnm.js";import{ee}from"./chunk-6hv6bqxx.js";import{Hce,xno}from"./chunk-96vzt2w5.js";import{dLe}from"./chunk-7k2kzwkz.js";import{kY}from"./chunk-p3n3t8an.js";var u=32;function x9r(n){if(n.publishContext!=="subagent"||n.context.agentId===void 0||n.context.teammateContext!==void 0)return null;let{publishContext:e}=Hce({agentId:void 0,isNonInteractiveSession:we()});return kY(e)?e:null}function jir(n,e){let t=ee().live.pendingSubagentArms,s=t.get(n)??[],i=s.findIndex((o)=>o.slug===e.slug);if(i===-1)s.push(e);else s[i]=e;t.delete(n),t.set(n,s);let r=0;for(let o of t.values())r+=o.length;while(r>u){let[o,a]=t.entries().next().value;if(a.shift(),a.length===0)t.delete(o);r--,f("artifact_live_subscribe","subagent_arm_evicted")}}function l(n){let e=ee().live.pendingSubagentArms,t=e.get(n)??[];return e.delete(n),t}var d=256;function m(n){let e=ee().live.finishedSubagentAdopters;e.delete(n),e.add(n);while(e.size>d)e.delete(e.values().next().value)}function TZs(n){let{agentId:e,context:t}=n;m(e);let s=l(e);if(s.length===0)return;let{publishContext:i}=Hce({agentId:t.agentId,agentType:t.agentContext?.agentType,isNonInteractiveSession:t.options.isNonInteractiveSession});if(i==="subagent"&&t.agentId!==void 0){let o=YY(t.agentId,t.taskRegistry)===t.agentId||!ee().live.finishedSubagentAdopters.has(t.agentId);for(let a of s)if(o)jir(t.agentId,a);else f("artifact_live_subscribe","subagent_arm_orphaned");return}if(!kY(i))return;let r={...t,abortController:new AbortController};for(let o of s)dLe({...o,publishContext:i,getKnownVer:xno(t.getArtifactReadObservation,o.slug),context:r,adoptedPublish:!0,announceArmlessEnd:!0}).catch(()=>{});g("artifact_live_subscribe",{subagent_publish_adopted:!0,count:s.length,publish_context:c(i)})}
+export{x9r,jir,TZs};

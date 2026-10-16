@@ -3581,7 +3581,7 @@ path = "callee"
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  name = "2.1.301 resolver excludes the previous Darwin effort signature"
   assert_not_contains = "function kE(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:f=O(e),agentOverride:__acc_agentOverride}={})"
 
   [[patches.tests]]
@@ -3597,7 +3597,7 @@ path = "callee"
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  name = "2.1.301 resolver excludes the previous Darwin withHold predicate"
   assert_not_contains = "else if(withHold&&(carriedEffort===void 0||carriedEffort!==null)&&yxt(modelName)!==void 0)nativeTable=void 0;else nativeTable=de(table,slug)"
 
   [[patches.tests]]
@@ -3608,7 +3608,7 @@ path = "callee"
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  name = "2.1.301 resolver excludes the previous Darwin default-effort helper"
   assert_not_contains = 'chosen=INn(modelName,carriedEffort);source="model default"'
 
 [[patches]]
@@ -3717,7 +3717,7 @@ path = "callee"
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  name = "2.1.301 resolver excludes the previous Linux effort signature"
   assert_not_contains = "function Ev(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:f=O(e),agentOverride:__acc_agentOverride}={})"
 
   [[patches.tests]]
@@ -3733,7 +3733,7 @@ path = "callee"
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  name = "2.1.301 resolver excludes the previous Linux withHold predicate"
   assert_not_contains = "else if(withHold&&(carriedEffort===void 0||carriedEffort!==null)&&dxt(modelName)!==void 0)nativeTable=void 0;else nativeTable=de(table,slug)"
 
   [[patches.tests]]
@@ -3744,5 +3744,5 @@ path = "callee"
 
   [[patches.tests]]
   kind = "static"
-  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  name = "2.1.301 resolver excludes the previous Linux default-effort helper"
   assert_not_contains = 'chosen=bNn(modelName,carriedEffort);source="model default"'

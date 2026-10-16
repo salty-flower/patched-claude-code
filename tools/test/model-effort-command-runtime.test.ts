@@ -26,11 +26,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     const currentName = current.ast?.match.function_name
     const source =
       patch.transform?.op === "replace_function_body" && commandName
-        ? "async function " + commandName + "(e,t,o,r=!0,s)" + patch.transform.body
+        ? `async function ${commandName}(e,t,o,r=!0,s)${patch.transform.body}`
         : patch.replacement
     const currentSource =
       current.transform?.op === "replace_function_body" && currentName
-        ? "function " + currentName + "(e,t,o)" + current.transform.body
+        ? `function ${currentName}(e,t,o)${current.transform.body}`
         : current.replacement
     if (!source || !currentSource) throw new Error("command replacements missing")
     const binding = (role: string, pattern: RegExp) => captureIdentifier(source, role, pattern)
@@ -81,27 +81,27 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       return failure ? { message: "Failed to save" } : { message: "Applied", effortUpdate: change }
     }
     const bindings: Record<string, unknown> = {
-      [binding("remote detector", /if\(([\w$]+)\(\)!==null\)return patchedNative/)]: () =>
-        remote ? "remote" : null,
-      [captureIdentifier(currentSource, "active ultracode", /\+\(([\w$]+)\(o,t\)\?/)]: (enabled: boolean) =>
-        enabled,
+      [binding("remote detector", /if\(([\w$]+)\(\)!==null\)return patchedNative/)]: () => (remote ? "remote" : null),
+      [captureIdentifier(currentSource, "active ultracode", /\+\(([\w$]+)\(o,t\)\?/)]: (enabled: boolean) => enabled,
       [binding("active model", /const model=([\w$]+)\(\)/)]: () => "opus",
       [binding("session resolver", /current=([\w$]+)\.session\(model\)/)]: resolver,
       [binding("toggle parser", /if\(([\w$]+)\(e\.trim/)]: parseToggle,
       [binding("native dispatcher", /result=await ([\w$]+)\(e,t/)]: dispatcher,
       [binding("native reset", /ultracode===void 0\)([\w$]+)\(\)/)]: () => {},
-      [binding("native effort constructor", /ultracode===void 0\?([\w$]+)\(u\.value\)/)]: (value?: string) => ({
+      [binding("native effort constructor", /ultracode===void 0\?([\w$]+)\([\w$]+\.value\)/)]: (value?: string) => ({
         kind: "level",
         value,
       }),
-      [binding("native effort equality", /if\(([\w$]+)\(l\.sessionEffort,p\)/)]: (left: unknown, right: unknown) =>
-        JSON.stringify(left) === JSON.stringify(right),
+      [binding("native effort equality", /if\(([\w$]+)\([\w$]+\.sessionEffort,[\w$]+\)/)]: (
+        left: unknown,
+        right: unknown,
+      ) => JSON.stringify(left) === JSON.stringify(right),
     }
     const runtimeCommandName = binding("command", /^async function ([\w$]+)\(/)
     const runtimeCurrentName = captureIdentifier(currentSource, "current reporter", /^function ([\w$]+)\(/)
     const runtime = new Function(
       ...Object.keys(bindings),
-      source + "\n" + currentSource + "\nreturn {command:" + runtimeCommandName + ",current:" + runtimeCurrentName + "}",
+      `${source}\n${currentSource}\nreturn {command:${runtimeCommandName},current:${runtimeCurrentName}}`,
     )(...Object.values(bindings)) as {
       command: (
         text: string,
@@ -173,7 +173,8 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       .map((file) => readFileSync(join(graph, file), "utf8"))
       .filter((source) => source.includes(anchor))
     if (candidates.length !== 1) throw new Error(`expected one native slider module, got ${candidates.length}`)
-    const native = candidates[0]!
+    const native = candidates[0]
+    if (native === undefined) throw new Error("native slider module missing")
     const status = captureIdentifier(
       native,
       "current-status component",

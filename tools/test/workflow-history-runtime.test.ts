@@ -10,7 +10,7 @@ import { hostGraphPlatform, renderRunnableBundle } from "./helpers/render-runnab
 import type { ClassifierProbeResult } from "./helpers/workflow-history-classifier-probe"
 
 const root = resolve(process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "../.."))
-const supportedVersions = ["2.1.285", "2.1.289", "2.1.290", "2.1.293", "2.1.296"] as const
+const supportedVersions = ["2.1.285", "2.1.289", "2.1.290", "2.1.293", "2.1.296", "2.1.301"] as const
 const check = "native classifier preserves genuine answers and coordinator assignment provenance"
 const nativeFilesByVersion = {
   "2.1.285": {
@@ -126,6 +126,34 @@ const nativeFilesByVersion = {
       assignmentWorker: "chunk-ww605x2k.js",
       assignmentWorkerContent: "Se",
       assignmentSynthesis: "Se=o8t({from:T??ca,text:v,summary:a})",
+    },
+  },
+  "2.1.301": {
+    "darwin-arm64": {
+      runner: "chunk-mhnsvpzs.js",
+      framing: "chunk-56q2wccr.js",
+      provenanceGate: "E8r",
+      classifierGate: "mn",
+      // Native 2.1.301 checks original and hook-rewritten prompts on both launch paths.
+      classifierCallCount: 4,
+      historyMessage: /\{content:Un,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:Ee,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-t9tg0q42.js",
+      assignmentWorkerContent: "Ne",
+      assignmentSynthesis: "Ne=_tn({from:T??Ta,text:b,summary:a})",
+    },
+    "linux-x64": {
+      runner: "chunk-8d3pjczs.js",
+      framing: "chunk-1t32ne4j.js",
+      provenanceGate: "i8r",
+      classifierGate: "mn",
+      // Native 2.1.301 checks original and hook-rewritten prompts on both launch paths.
+      classifierCallCount: 4,
+      historyMessage: /\{content:jn,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:_e,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-1kxetdpa.js",
+      assignmentWorkerContent: "Ne",
+      assignmentSynthesis: "Ne=rtn({from:T??Ca,text:v,summary:a})",
     },
   },
 } as const
@@ -255,7 +283,7 @@ test(check, async () => {
     expect(gates).toHaveLength(1)
     expect(functions(patchedRunner, names.classifierGate)).toEqual(gates)
     const calls = classifierCalls(originalRunner, names.classifierGate)
-    expect(calls).toHaveLength(2)
+    expect(calls).toHaveLength("classifierCallCount" in names ? names.classifierCallCount : 2)
     expect(classifierCalls(patchedRunner, names.classifierGate)).toEqual(calls)
     const provenanceGate = functions(originalFraming, names.provenanceGate)
     expect(provenanceGate).toHaveLength(1)

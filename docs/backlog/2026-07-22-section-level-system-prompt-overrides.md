@@ -1,5 +1,9 @@
 # Proposed ADR: Section-Level System Prompt Overrides
 
+The v1 ordinal prototype below is historical and remains the legacy compatibility contract.
+For target 2.1.301 onward, use the [structured selection contract and migration guide](../guides/System-Prompt-Overrides.md).
+Native section identities are now retained before cache partitioning, with per-selected-text validation and final-request hash diagnostics.
+
 ## Governing Split
 
 > Upstream owns prompt composition; this repo owns one post-composition override seam.
@@ -23,9 +27,9 @@ Billing attribution remains controlled by upstream's
 | Release payload and Nix wiring | Passed |
 | Public static prompt catalog | Passed: tar, source tag, workflow, and Nix payload |
 | Cross-version catalog lineage | Passed: registry, version ledger, hierarchical render |
-| Rendered helper-preloaded PTY/TUI | Blocked in current `darwin-overlay`: `openpty` denied |
-| First subsequent target revalidation | Pending next target |
-| Promotion to `docs/rules/` | Blocked by the two pending gates above |
+| Rendered helper-preloaded PTY/TUI | Passed on 2.1.301; see the [target audit](../records/2026-10-16-2.1.301-target-bump.md). The original overlay-only attempt could not create a PTY. |
+| Subsequent target revalidation | Passed on 2.1.301 for the compatible legacy path and the structured successor. |
+| Prototype disposition | Superseded by the supported version-scoped contract in the [configuration guide](../guides/System-Prompt-Overrides.md); the v1 semantics below remain compatibility reference. |
 
 ## Scope
 

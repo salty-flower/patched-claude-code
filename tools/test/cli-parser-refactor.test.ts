@@ -99,7 +99,7 @@ test("stage-target reuses a matching canonical platform merge", () => {
   ).toBe(false)
 })
 
-test("stage-target rejects cached graphs predating text-loader preservation", () => {
+test("stage-target rejects cached graphs predating text-loader and worker URL preservation", () => {
   const args = parseStageTargetArgs(["--version", "2.1.263", "--source", "canonical"], {})
   const manifest = {
     channel: "canonical" as const,
@@ -113,6 +113,8 @@ test("stage-target rejects cached graphs predating text-loader preservation", ()
   }
   expect(stageManifestMatchesArgs(args, manifest)).toBe(false)
   manifest.dualGraph.mergePolicy = "canonical-dual-graph-text-loaders-v2"
+  expect(stageManifestMatchesArgs(args, manifest)).toBe(false)
+  manifest.dualGraph.mergePolicy = "canonical-dual-graph-worker-urls-v3"
   expect(stageManifestMatchesArgs(args, manifest)).toBe(true)
 })
 

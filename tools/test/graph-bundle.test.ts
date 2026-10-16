@@ -1,17 +1,76 @@
 import { expect, test } from "bun:test"
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
   applyPatchEntriesToGraphBundle,
   decodeStandaloneText,
+  dispatcherSource,
   expandZstdTextAsset,
   isZstdFrame,
   materializeStandaloneFileAsset,
+  relocateStandaloneWorkerUrls,
   rewriteBunfsSpecifiers,
   textAssetRuntimePath,
 } from "../lib/graph-bundle"
 import type { PatchEntry } from "../lib/patch-files"
+import { computeRuntimeBundleIntegrity } from "../../runtime/release-integrity"
+
+test("packaged sidecars survive the daemon's argv-only re-exec without BUN_OPTIONS", async () => {
+  const root = mkdtempSync(join(tmpdir(), "dispatcher-reexec-"))
+  try {
+    const platform = process.platform === "darwin" ? "darwin-arm64" : "linux-x64"
+    const graph = join(root, "graph.patched", platform)
+    mkdirSync(graph, { recursive: true })
+    const entry = join(root, "cli.js")
+    writeFileSync(entry, dispatcherSource("rendered"))
+    writeFileSync(
+      join(graph, "cli.js"),
+      `
+if (process.argv.includes("--child")) {
+  console.log(JSON.stringify({ hook: typeof globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v2")], segmenter: typeof Bun.ant?.CellSegmenter }))
+} else {
+  const child = Bun.spawn({ cmd: [process.execPath, process.argv[1], "--child"], env: process.env, stdout: "inherit", stderr: "inherit" })
+  process.exitCode = await child.exited
+}
+`,
+    )
+    const manifest = join(root, "manifest.json")
+    writeFileSync(
+      manifest,
+      JSON.stringify({
+        upstream: { version: "2.1.301" },
+        runtime: { graphDirectory: "graph.patched" },
+        bundle: computeRuntimeBundleIntegrity(entry, "graph.patched"),
+      }),
+    )
+    const env = Object.fromEntries(
+      Object.entries(process.env).filter(
+        ([key]) => key !== "BUN_OPTIONS" && key !== "PATCHED_CLAUDE_CODE_RUNTIME_BOOTSTRAP",
+      ),
+    )
+    const child = Bun.spawn({
+      cmd: [process.execPath, "--preload", join(import.meta.dir, "../../runtime/system-prompt-overrides.ts"), entry],
+      env: {
+        ...env,
+        PATCHED_CLAUDE_CODE_RELEASE_MANIFEST: manifest,
+        PATCHED_CLAUDE_CODE_BUNDLE: entry,
+        PATCHED_CLAUDE_CODE_PROMPT_DIR: join(root, "prompts"),
+      },
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    const [exit, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ])
+    expect(exit, stderr).toBe(0)
+    expect(JSON.parse(stdout)).toEqual({ hook: "function", segmenter: "function" })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
 
 const astPatch: PatchEntry = {
   file: "fixture.toml",
@@ -26,6 +85,20 @@ const astPatch: PatchEntry = {
   ast: { schema: 1, match: { node: "CallExpression", callee_property: "run" } },
   transform: { op: "append_call_arg", arg: "true" },
 }
+
+test("worker URL metadata resolves beside the graph, with its dependency required", () => {
+  const path = "src/plugins/functionHooks/hooks-worker/hooks-worker.js"
+  const text = `const build={HOOKS_WORKER_URL:"./${path}"};const prose='HOOKS_WORKER_URL:"./missing.js"'`
+  expect(relocateStandaloneWorkerUrls(text, "", new Set([path]))).toBe(
+    `const build={HOOKS_WORKER_URL:new URL("./${path}",import.meta.url).pathname};const prose='HOOKS_WORKER_URL:"./missing.js"'`,
+  )
+  expect(relocateStandaloneWorkerUrls(text, "nested", new Set([path]))).toContain(
+    `new URL("../${path}",import.meta.url).pathname`,
+  )
+  expect(() => relocateStandaloneWorkerUrls(text, "", new Set())).toThrow("missing graph file")
+  const absolute = 'const build={HOOKS_WORKER_URL:"/absolute/worker.js"}'
+  expect(relocateStandaloneWorkerUrls(absolute, "", new Set())).toBe(absolute)
+})
 
 test("graph AST application reuses per-file preparation and enforces bundle totals", () => {
   const bundle = {

@@ -33,6 +33,7 @@ import {
   decodeStandaloneText,
   dispatcherSource,
   materializeStandaloneFileAsset,
+  relocateStandaloneWorkerUrls,
   rewriteBunfsSpecifiers,
   sha256HexBytes,
   textAssetRuntimePath,
@@ -69,7 +70,7 @@ type ExtractedFile = {
 type MaterializedFileReport = {
   path: string
   loader: number
-  transformation: "identity" | "bunfs-specifier-rewrite-v2" | "zstd-decompress-v1" | "text-transcode-v1"
+  transformation: "identity" | "bunfs-specifier-rewrite-v3" | "zstd-decompress-v1" | "text-transcode-v1"
   runtimePath?: string
   upstream: { encoding: "identity" | "zstd" | "latin1" | "utf16le"; bytes: number; sha256: string }
   materialized: { encoding: "identity"; bytes: number; sha256: string }
@@ -191,14 +192,18 @@ function materializePlatform(
       const text = decoder.decode(file.contents)
       assertBunfsRefsResolve(text, knownPaths, `${platform}/${targetName}`)
       const fromDir = targetName.includes("/") ? targetName.slice(0, targetName.lastIndexOf("/")) : ""
-      const rewritten = rewriteBunfsSpecifiers(text, fromDir, textAssets)
+      const rewritten = relocateStandaloneWorkerUrls(
+        rewriteBunfsSpecifiers(text, fromDir, textAssets),
+        fromDir,
+        knownPaths,
+      )
       assertParses(platform, targetName, rewritten)
       const bytes = Buffer.from(rewritten, "utf8")
       writeFileSync(target, bytes)
       files.push({
         path: targetName,
         loader: file.loader,
-        transformation: rewritten === text ? "identity" : "bunfs-specifier-rewrite-v2",
+        transformation: rewritten === text ? "identity" : "bunfs-specifier-rewrite-v3",
         upstream,
         materialized: { encoding: "identity", bytes: bytes.byteLength, sha256: sha256HexBytes(bytes) },
       })

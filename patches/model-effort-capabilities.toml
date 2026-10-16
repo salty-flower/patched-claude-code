@@ -1,5 +1,5 @@
 name = "model-effort-capabilities"
-target_version = "2.1.296"
+target_version = "2.1.301"
 applies_to = "=2.1.263"
 
 [[patches]]
@@ -2255,3 +2255,310 @@ kind = "static"
 name = "2.1.296 Linux pending-message generator drains the retry notice"
 assert_contains = "function*Nrt(){if(yrt.__acc_notice!==void 0){const __acc_notice=yrt.__acc_notice;delete yrt.__acc_notice;yield Is({content:__acc_notice,error:\"warning\"})}"
 assert_not_contains = "function*Ret(){if(det.__acc_notice!==void 0){const __acc_notice=det.__acc_notice;delete det.__acc_notice;yield Ss({content:__acc_notice,error:\"warning\"})}"
+
+# Target 2.1.301 scoped binding variants
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-301-darwin-arm64"
+lineage = "custom-model-slot-capabilities"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Preserve custom-model-slot-capabilities behavior for 2.1.301 darwin-arm64. The locator and inserted bindings are scoped to chunk-1901fdh6.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "PU"
+    source_regex = "^function PU\\(e,n\\)\\{if\\(du\\(\\)\\)return;for\\(let r of xU\\)"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Darwin custom slots use the current capability resolver"
+  assert_contains = 'function PU(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+  assert_not_contains = 'function LN(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'function FF(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-301-linux-x64"
+lineage = "custom-model-slot-capabilities"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Preserve custom-model-slot-capabilities behavior for 2.1.301 linux-x64. The locator and inserted bindings are scoped to chunk-k16gymf7.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "$U"
+    source_regex = "^function \\$U\\(e,n\\)\\{if\\(du\\(\\)\\)return;for\\(let r of HU\\)"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Linux custom slots use the current capability resolver"
+  assert_contains = 'function $U(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+  assert_not_contains = 'function KN(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'function HF(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-301-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Preserve explicit-capabilities-first-party behavior for 2.1.301 darwin-arm64. The locator and inserted bindings are scoped to chunk-1901fdh6.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(du())return;for(let r of xU)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of xU){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(du())return;for(let r of xU)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Darwin explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of xU){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of FN){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of NF){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-301-linux-x64"
+lineage = "explicit-capabilities-first-party"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Preserve explicit-capabilities-first-party behavior for 2.1.301 linux-x64. The locator and inserted bindings are scoped to chunk-k16gymf7.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(du())return;for(let r of HU)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of HU){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(du())return;for(let r of HU)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Linux explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of HU){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of HN){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of BF){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-301-darwin-arm64"
+lineage = "effort-reactive-capability"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Preserve effort-reactive-capability behavior for 2.1.301 darwin-arm64. The locator and inserted bindings are scoped to chunk-1qk9hbqf.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Jie(n))r="high";if(r==="xhigh"&&!rft(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Darwin effort resolver preserves selected high levels"
+  assert_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&Cb(r))r=wX(r,n);/* effort capability is learned from backend refusal */return r}'
+  assert_not_contains = 'if(r==="max"&&!Yte(n))r="high";if(r==="xhigh"&&!Hrt(n))r="high";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'function R(e,n){let r=e;if(typeof r==="string"&&CS(r))r=Y9(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-301-linux-x64"
+lineage = "effort-reactive-capability"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Preserve effort-reactive-capability behavior for 2.1.301 linux-x64. The locator and inserted bindings are scoped to chunk-2m9cwk86.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Gie(n))r="high";if(r==="xhigh"&&!Ypt(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Linux effort resolver preserves selected high levels"
+  assert_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&kS(r))r=pX(r,n);/* effort capability is learned from backend refusal */return r}'
+  assert_not_contains = 'if(r==="max"&&!Wte(n))r="high";if(r==="xhigh"&&!Trt(n))r="high";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'function R(e,n){let r=e;if(typeof r==="string"&&Tb(r))r=B5(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-301-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Preserve effort-retry-notice-queue behavior for 2.1.301 darwin-arm64. The locator and inserted bindings are scoped to chunk-996thspe.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(!IG\\(Jn\\)\\)return null;$"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'fct.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Darwin retry notice follows the current refusal classifier"
+  assert_contains = 'if(!IG(Jn))return null;fct.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+  assert_not_contains = 'if(!NH(Gn))return null;GZe.__acc_notice="Model "+Y.model+" rejected the effort parameter.'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'if(!WU(Jn))return null;prt.__acc_notice="Model "+X.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-301-linux-x64"
+lineage = "effort-retry-notice-queue"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Preserve effort-retry-notice-queue behavior for 2.1.301 linux-x64. The locator and inserted bindings are scoped to chunk-38nf1dnm.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(!EG\\(Jn\\)\\)return null;$"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'mct.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Linux retry notice follows the current refusal classifier"
+  assert_contains = 'if(!EG(Jn))return null;mct.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+  assert_not_contains = 'if(!uU(Gn))return null;det.__acc_notice="Model "+Y.model+" rejected the effort parameter.'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'if(!wj(Jn))return null;yrt.__acc_notice="Model "+Y.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-301-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Preserve effort-retry-notice-drain behavior for 2.1.301 darwin-arm64. The locator and inserted bindings are scoped to chunk-996thspe.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Wct"
+    body_statement_count = 1
+    source_regex = "^function\\*Wct\\(\\)\\{if\\(Act!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(fct.__acc_notice!==void 0){const __acc_notice=fct.__acc_notice;delete fct.__acc_notice;yield Hs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Darwin pending-message generator drains the retry notice"
+  assert_contains = 'function*Wct(){if(fct.__acc_notice!==void 0){const __acc_notice=fct.__acc_notice;delete fct.__acc_notice;yield Hs({content:__acc_notice,error:"warning"})}'
+  assert_not_contains = 'function*ket(){if(GZe.__acc_notice!==void 0){const __acc_notice=GZe.__acc_notice;delete GZe.__acc_notice;yield bs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'function*Drt(){if(prt.__acc_notice!==void 0){const __acc_notice=prt.__acc_notice;delete prt.__acc_notice;yield Is({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-301-linux-x64"
+lineage = "effort-retry-notice-drain"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Preserve effort-retry-notice-drain behavior for 2.1.301 linux-x64. The locator and inserted bindings are scoped to chunk-38nf1dnm.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Vct"
+    body_statement_count = 1
+    source_regex = "^function\\*Vct\\(\\)\\{if\\(\\$ct!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(mct.__acc_notice!==void 0){const __acc_notice=mct.__acc_notice;delete mct.__acc_notice;yield Ms({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Linux pending-message generator drains the retry notice"
+  assert_contains = 'function*Vct(){if(mct.__acc_notice!==void 0){const __acc_notice=mct.__acc_notice;delete mct.__acc_notice;yield Ms({content:__acc_notice,error:"warning"})}'
+  assert_not_contains = 'function*Ret(){if(det.__acc_notice!==void 0){const __acc_notice=det.__acc_notice;delete det.__acc_notice;yield Ss({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = 'function*Nrt(){if(yrt.__acc_notice!==void 0){const __acc_notice=yrt.__acc_notice;delete yrt.__acc_notice;yield Is({content:__acc_notice,error:"warning"})}'

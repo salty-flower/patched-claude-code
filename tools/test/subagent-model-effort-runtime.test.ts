@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test"
 import { join, resolve } from "node:path"
+import { parseSync } from "oxc-parser"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
@@ -35,14 +36,36 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     // Execute the shipped initialization, model selection and effort calculation
     // intact. Omit unrelated filesystem/hooks/task-launch work between them.
     const input = binding("Agent input", /agentInput:([\w$]+)/)
-    const initialization = source.slice(source.indexOf("{", source.indexOf(")")) + 1, source.indexOf("let Qe="))
+    const native = parseSync("agent-launcher.js", source).program.body[0]
+    if (native?.type !== "FunctionDeclaration" || !native.body) {
+      throw new Error("shipped Agent launcher is not a function")
+    }
+    const [initializers, coordinatorGuard] = native.body.body
+    if (initializers?.type !== "VariableDeclaration" || coordinatorGuard?.type !== "IfStatement") {
+      throw new Error("shipped Agent effort initialization boundaries changed")
+    }
+    const initialization = source.slice(initializers.start, coordinatorGuard.end)
+    const absolute = binding("absolute effort", /patchedAgentEffort=([\w$]+);if/)
+    const model = binding("requested model", /;if\([^;]+\)([\w$]+)=patchedAgentEffort=/)
+    const relative = binding("relative effort", /patchedAgentEffort=[\w$]+=([\w$]+)=void 0/)
     const effortStart = source.indexOf("if(patchedAgentEffort!==void 0")
-    const effortEnd = source.indexOf("let We=", effortStart)
-    if (effortStart < 0 || effortEnd < 0 || !initialization.includes("patchedAgentEffort=Je")) {
+    const tail = source.slice(effortStart).match(/;([\w$]+)=[\w$]+\?\.agentDefinition\?\?\1;/)
+    if (effortStart < 0 || !tail || tail.index === undefined) {
       throw new Error("shipped Agent effort calculation boundaries changed")
     }
-    const calculation = source.slice(effortStart, effortEnd)
-    const fork = binding("fork predicate", /if\(patchedAgentEffort!==void 0&&!([\w$]+)\)/)
+    const calculation = source.slice(effortStart, effortStart + tail.index + tail[0].length)
+    const definition = tail[1]
+    if (!definition) throw new Error("shipped Agent definition binding missing")
+    const selection = calculation.match(
+      /let ([\w$]+)=([\w$]+)\?"inherit":([\w$]+),([\w$]+)=([\w$]+)\(([\w$]+)\(([\w$]+),([\w$]+)\),\8,\1,([\w$]+)\);/,
+    )
+    if (!selection || selection[7] !== definition) throw new Error("shipped Agent model selection changed")
+    const [, , fork, modelAlias, , modelResolver, definitionReader, , parentModel, permissionMode] = selection
+    if (!fork || !modelAlias || !modelResolver || !definitionReader || !parentModel || !permissionMode) {
+      throw new Error("shipped Agent model selection bindings missing")
+    }
+    const requestEffort = captureIdentifier(calculation, "request effort", /,([\w$]+)=[\w$]+\?void 0:[\w$]+\?\?[\w$]+;/)
+    const remote = captureIdentifier(calculation, "remote predicate", /let [\w$]+=([\w$]+)\?void 0:/)
     const teammateFallback = source.match(/effort:patchedAgentEffort\?\?([\w$]+)\?\.effort/)
     const teammateDefinition = teammateFallback?.[1]
     if (!teammateDefinition) throw new Error("shipped teammate effort fallback missing")
@@ -51,23 +74,22 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       const resolutionEfforts: Array<string | undefined> = []
       const bindings: Record<string, unknown> = {
         [input]: { effort, model: "custom-worker" },
-        [binding("relative effort flag", /pt=([\w$]+)\(\)&&/)]: () => relativeEnabled,
+        [binding("relative effort flag", /,[\w$]+=([\w$]+)\(\)&&/)]: () => relativeEnabled,
         [binding("coordinator guard", /if\(([\w$]+)\(\)&&[\w$]+\.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL/)]:
           () => coordinator,
         [binding("settings", /if\([\w$]+\(\)&&([\w$]+)\.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL/)]: {
           CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL: true,
         },
         [fork]: isFork,
-        [binding("model resolver", /ee=([\w$]+)\(/)]: (_definition: Definition, _parent: string, selected?: string) =>
-          selected ?? "parent-model",
-        [binding("definition model reader", /ee=[\w$]+\(([\w$]+)\(s,wt\)/)]: (definition: Definition) => {
+        [modelResolver]: (_definition: Definition, _parent: string, selected?: string) => selected ?? "parent-model",
+        [definitionReader]: (definition: Definition) => {
           resolutionEfforts.push(definition.effort)
           return definition
         },
-        [binding("permission effort resolver", /:([\w$]+)\(\{agentDefinition:s,isFork:/)]: (options: {
+        [binding("permission effort resolver", /:([\w$]+)\(\{agentDefinition:[\w$]+,isFork:/)]: (options: {
           agentDefinition: Definition
         }) => ({ agentDefinition: options.agentDefinition, subagentEffort: options.agentDefinition.effort }),
-        [binding("native relative adjustment", /\?([\w$]+)\(ee,[\w$]+\.subagentEffort,pt===/)]: (
+        [binding("native relative adjustment", /\?([\w$]+)\([\w$]+,[\w$]+\.subagentEffort,[\w$]+===/)]: (
           _model: string,
           _base: string,
           direction: number,
@@ -80,14 +102,14 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
           permissionLayers: [],
         },
         [teammateDefinition]: { effort: "medium" },
-        s: { effort: "medium" },
-        wt: "parent-model",
-        he: false,
-        [binding("permission mode", /ee=[\w$]+\([\w$]+\(s,wt\),wt,ze,([\w$]+)\)/)]: "default",
+        [definition]: { effort: "medium" },
+        [parentModel]: "parent-model",
+        [remote]: false,
+        [permissionMode]: "default",
       }
       const result = new Function(
         ...Object.keys(bindings),
-        `${initialization}let Qe=Ke;${calculation}return {absolute:Je,relative:pt,override:patchedAgentEffort,model:Ke,definition:s,requestEffort:It,teammateEffort:patchedAgentEffort??${teammateDefinition}?.effort};`,
+        `${initialization}let ${modelAlias}=${model};${calculation}return {absolute:${absolute},relative:${relative},override:patchedAgentEffort,model:${model},definition:${definition},requestEffort:${requestEffort},teammateEffort:patchedAgentEffort??${teammateDefinition}?.effort};`,
       )(...Object.values(bindings)) as Omit<Result, "adjustments" | "resolutionEfforts">
       return { ...result, adjustments, resolutionEfforts }
     }

@@ -1,5 +1,5 @@
 name = "ultracode-opus46-max"
-target_version = "2.1.296"
+target_version = "2.1.301"
 applies_to = ">=2.1.197 <2.1.198"
 
 rationale = """
@@ -10148,4 +10148,81 @@ locator_kind = "ast_transform"
   [[patches.tests]]
   kind = "static"
   name = "2.1.296 linux-x64 excludes the stale 2.1.293 gate"
+  assert_not_contains = "function $P(e){return Gm()&&(e===void 0||ve(e)||Wte(e)&&v3t(e)===null)}"
+
+# Target 2.1.301 scoped binding variants
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-301-darwin"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Preserve ultracode-capability-max-fallback behavior for 2.1.301 darwin-arm64. The locator and inserted bindings are scoped to chunk-1qk9hbqf.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "b0"
+    source = "function b0(e){return $g()&&(e===void 0||Re(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return $g()&&(e===void 0||Re(e)||Jie(e)&&Ion(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 Ultracode accepts uncapped max-capable models"
+  assert_contains = "function b0(e){return $g()&&(e===void 0||Re(e)||Jie(e)&&Ion(e)===null)}"
+  assert_not_contains = "function ZI(e){return dg()&&(e===void 0||ve(e))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = "function ZI(e){return dg()&&(e===void 0||ve(e)||Jre(e)&&E7t(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 excludes the stale 2.1.293 gate"
+  assert_not_contains = "function jP(e){return zm()&&(e===void 0||ve(e)||Yte(e)&&N5t(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-301-linux"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Preserve ultracode-capability-max-fallback behavior for 2.1.301 linux-x64. The locator and inserted bindings are scoped to chunk-2m9cwk86.js; positive current-target and negative previous-target assertions guard the port."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "hM"
+    source = "function hM(e){return Fg()&&(e===void 0||Re(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return Fg()&&(e===void 0||Re(e)||Gie(e)&&hon(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 Ultracode accepts uncapped max-capable models"
+  assert_contains = "function hM(e){return Fg()&&(e===void 0||Re(e)||Gie(e)&&hon(e)===null)}"
+  assert_not_contains = "function XI(e){return dg()&&(e===void 0||ve(e))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 excludes previous 2.1.296 scoped binding"
+  assert_not_contains = "function XI(e){return dg()&&(e===void 0||ve(e)||Gre(e)&&dJt(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 excludes the stale 2.1.293 gate"
   assert_not_contains = "function $P(e){return Gm()&&(e===void 0||ve(e)||Wte(e)&&v3t(e)===null)}"

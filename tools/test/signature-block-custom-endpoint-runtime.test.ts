@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from "bun:test"
+import { afterAll, beforeAll, expect, test } from "bun:test"
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
@@ -13,7 +13,7 @@ const TEST_PROJECT_DIR_NAME = "patched-cc-signature-test"
 
 const tempDirs: string[] = []
 
-afterEach(() => {
+afterAll(() => {
   for (const dir of tempDirs.splice(0)) {
     rmSync(dir, { recursive: true, force: true })
   }
@@ -179,16 +179,22 @@ async function runClaudeUntilMessageRequest(
   }
 }
 
-test("patched custom base URL requests strip stale signed thinking from resumed transcripts", async () => {
-  const dir = makeTempDir("patched-cc-signature-runtime-")
-  const transcript = writeSignedThinkingTranscript(dir)
-  const patchedBundle = await renderRunnableBundle({
+let dir = ""
+let patchedBundle = ""
+
+beforeAll(async () => {
+  dir = makeTempDir("patched-cc-signature-runtime-")
+  patchedBundle = await renderRunnableBundle({
     root: ROOT,
     version: TARGET_VERSION,
     outDir: join(dir, "rendered"),
     patchFiles: ["signature-block-custom-endpoint.toml"],
     platforms: "host",
   })
+}, 300_000)
+
+test("patched custom base URL requests strip stale signed thinking from resumed transcripts", async () => {
+  const transcript = writeSignedThinkingTranscript(dir)
 
   const unpatchedStub = await startClaudeApiStub()
   try {

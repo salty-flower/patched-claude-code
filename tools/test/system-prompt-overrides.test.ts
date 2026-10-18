@@ -147,6 +147,20 @@ test("malformed UTF-8 is rejected during the process-start snapshot", () => {
   })
 })
 
+test("malformed legacy manifest diagnostics do not echo its private content", () => {
+  withPromptRoot((root) => {
+    writeFileSync(join(root, "manifest.json"), "PRIVATE_MEMORY_CONTENT_NOT_JSON")
+    let message = ""
+    try {
+      createSystemPromptOverrideHook({ targetVersion: VERSION, bundleSha256: BUNDLE_SHA256, promptRoot: root })
+    } catch (error) {
+      message = String(error)
+    }
+    expect(message).toContain("invalid manifest JSON")
+    expect(message).not.toContain("PRIVATE_MEMORY_CONTENT_NOT_JSON")
+  })
+})
+
 test("stale override coordinates are rejected during the process-start snapshot", () => {
   withPromptRoot((root) => {
     const manifest = exportPrompt(root, ["# Intro\nOriginal"])

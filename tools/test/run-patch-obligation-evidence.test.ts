@@ -1,12 +1,29 @@
 import { expect, test } from "bun:test"
-import type { PatchEntry } from "../lib/patch-files"
+import { join } from "node:path"
+import { patchApplies } from "../lib/apply-patches"
+import { loadPatchEntriesFromDirectory, type PatchEntry } from "../lib/patch-files"
 import type { PatchObligationLedger, PatchObligationRegistry } from "../lib/patch-obligations"
+import { DEFAULT_TARGET_VERSION } from "../lib/target"
 import type { EmbeddedCheck } from "./helpers/collect-oracle-evidence"
 import type { OracleCheck } from "./helpers/oracle-evidence"
 import { collectPortedOracleEvidence } from "./run-patch-obligation-evidence"
 
 const version = "2.1.268"
 const platform = "linux-x64" as const
+
+test("current target patch tests have unique evidence identities within each entry", () => {
+  const patches = loadPatchEntriesFromDirectory(join(import.meta.dir, "..", ".."))
+  const duplicates: string[] = []
+  for (const patch of patches.filter((patch) => patchApplies(patch, DEFAULT_TARGET_VERSION))) {
+    const seen = new Set<string>()
+    for (const check of patch.tests ?? []) {
+      const identity = `${check.kind}: ${check.name}`
+      if (seen.has(identity)) duplicates.push(`${patch.name}: ${identity}`)
+      seen.add(identity)
+    }
+  }
+  expect(duplicates).toEqual([])
+})
 
 function fixture() {
   const patches: PatchEntry[] = [

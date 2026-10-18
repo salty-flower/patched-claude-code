@@ -1,5 +1,5 @@
 name = "workflow-history"
-target_version = "2.1.296"
+target_version = "2.1.301"
 applies_to = ">=2.1.285 <2.1.286"
 
 [[patches]]
@@ -5778,4 +5778,1156 @@ ${pBr()}`"""
   [[patches.tests]]
   kind = "static"
   name = "2.1.293 linux-x64 target binding is present"
+  assert_contains = "__pccAppendWorkflowPreflight("
+
+[[patches]]
+name = "workflow-history-framing-import-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-framing-import-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope v8r in chunk-56q2wccr.js was inspected against its 2.1.296 predecessor Ijr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "v8r"
+    string = "strictHuman"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {selectWorkflowHistory as __pccSelectWorkflowHistory,renderWorkflowHistory as __pccRenderWorkflowHistory,renderWorkflowTask as __pccRenderWorkflowTask,unwrapWorkflowTask as __pccUnwrapWorkflowTask} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "selectWorkflowHistory as __pccSelectWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-select-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-select-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope v8r in chunk-56q2wccr.js was inspected against its 2.1.296 predecessor Ijr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "v8r"
+    string = "strictHuman"
+
+[patches.ast.captures.messages]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.agentId]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.analyze]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.analyze.select]
+  node = "CallExpression"
+  callee_property = "sW"
+
+[patches.ast.captures.child]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.child.select]
+  node = "CallExpression"
+  callee_property = "b1"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccSelectWorkflowHistory(%%CAPTURE:messages%%,arguments[2],%%CAPTURE:analyze%%,%%CAPTURE:child%%(%%CAPTURE:agentId%%));}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "return __pccSelectWorkflowHistory(e,arguments[2],sW,b1(t));"
+  assert_not_contains = "return __pccSelectWorkflowHistory(e,arguments[2],I3,HW(t));"
+
+[[patches]]
+name = "workflow-history-render-history-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-render-history-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope A8r in chunk-56q2wccr.js was inspected against its 2.1.296 predecessor Mjr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "A8r"
+    string = "referentTail"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowHistory(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "return __pccRenderWorkflowHistory(e);"
+
+[[patches]]
+name = "workflow-history-render-task-2-1-301-darwin-arm64"
+lineage = "workflow-history-render-task"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-render-task-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope Xsr in chunk-56q2wccr.js was inspected against its 2.1.296 predecessor dXn; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Xsr"
+    strings = [ "return s+", "Aoo(e)" ]
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowTask(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 renders the current task-frame function"
+  assert_contains = "function Xsr(e){return __pccRenderWorkflowTask(e);}"
+  assert_not_contains = "function dXn(e){return __pccRenderWorkflowTask(e);}"
+
+[[patches]]
+name = "workflow-history-display-task-2-1-301-darwin-arm64"
+lineage = "workflow-history-display-task"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-display-task-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope CZo in chunk-56q2wccr.js was inspected against its 2.1.296 predecessor nzo; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "CZo"
+    strings = [ "t.slice(s.length+1)", "a.length+1" ]
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccUnwrapWorkflowTask(%%CAPTURE:value%%,a,s);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 unwraps with the current display function and headers"
+  assert_contains = "function CZo(e){return __pccUnwrapWorkflowTask(e,a,s);}"
+  assert_not_contains = "function nzo(e){return __pccUnwrapWorkflowTask(e,a,i);}"
+
+[[patches]]
+name = "workflow-history-runner-import-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-runner-import-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope ar in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor ir; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ar"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {captureWorkflowHistory as __pccCaptureWorkflowHistory,bindWorkflowHistoryOptions as __pccBindWorkflowHistoryOptions} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "captureWorkflowHistory as __pccCaptureWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-snapshot-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-snapshot-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope ar in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor ir; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ar"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __pccWorkflowSnapshot=__pccCaptureWorkflowHistory(e.messages);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "__pccCaptureWorkflowHistory(e.messages);"
+
+[[patches]]
+name = "workflow-history-options-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-options-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope ar in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor ir; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "hPo(u(Y))"
+    parent_node = "VariableDeclarator"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "__pccBindWorkflowHistoryOptions(%%EXPR%%,__pccWorkflowSnapshot)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "__pccBindWorkflowHistoryOptions(hPo(u(Y)),__pccWorkflowSnapshot)"
+  assert_not_contains = "__pccBindWorkflowHistoryOptions(Ugo(u(V)),__pccWorkflowSnapshot)"
+
+[[patches]]
+name = "workflow-history-select-local-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-select-local-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope vr in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor kr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "Pe?v8r(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "Pe?v8r(e.messages,e.agentId):null"
+  value = "Pe?v8r(__pccWorkflowSnapshot,e.agentId,_e?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "Pe?v8r(__pccWorkflowSnapshot,e.agentId,_e?.userHistoryTurns):null"
+  assert_not_contains = "De?Ijr(__pccWorkflowSnapshot,e.agentId,ye?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-select-remote-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-select-remote-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope Cr in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor br; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "ke?v8r(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "ke?v8r(e.messages,e.agentId):null"
+  value = "ke?v8r(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "ke?v8r(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+  assert_not_contains = "_e?Ijr(__pccWorkflowSnapshot,e.agentId,fe?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-human-origin-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-human-origin-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope Or in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor vr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = "{content:Un}"
+    parent_node = "CallExpression"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = 'origin:{kind:"human"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = '{content:Un,origin:{kind:"human"}}'
+  assert_not_contains = '{content:Rn,origin:{kind:"human"}}'
+
+[[patches]]
+name = "workflow-history-assignment-origin-runner-initial-2-1-301-darwin-arm64"
+lineage = "workflow-history-assignment-origin"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-assignment-origin-runner-initial-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope Or in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor vr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Or"
+    string = "promptMessages:Un===null?"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(?<=promptMessages:Un===null\\?\\[Te\\()\\{content:Ee\\}(?=\\)\\]:\\[Te\\({content:Un}\\),Te\\({content:Ee}\\)\\])"
+  value = '{content:Ee,origin:{kind:"coordinator"}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "workflow-history-assignment-origin-runner-initial-2-1-301-darwin-arm64 inserts coordinator origin"
+  assert_contains = 'promptMessages:Un===null?[Te({content:Ee,origin:{kind:"coordinator"}})]:'
+  assert_not_contains = 'promptMessages:Rn===null?[xe({content:Te,origin:{kind:"coordinator"}})]:'
+
+[[patches]]
+name = "workflow-history-assignment-origin-runner-with-history-2-1-301-darwin-arm64"
+lineage = "workflow-history-assignment-origin"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-assignment-origin-runner-with-history-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope Or in chunk-mhnsvpzs.js was inspected against its 2.1.296 predecessor vr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Or"
+    string = "promptMessages:Un===null?"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(?<=\\[Te\\({content:Un}\\),Te\\()\\{content:Ee\\}(?=\\)\\])"
+  value = '{content:Ee,origin:{kind:"coordinator"}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "workflow-history-assignment-origin-runner-with-history-2-1-301-darwin-arm64 inserts coordinator origin"
+  assert_contains = '),Te({content:Ee,origin:{kind:"coordinator"}})]'
+  assert_not_contains = '),xe({content:Te,origin:{kind:"coordinator"}})]'
+
+[[patches]]
+name = "workflow-history-assignment-origin-teammate-transcript-2-1-301-darwin-arm64"
+lineage = "workflow-history-assignment-origin"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-assignment-origin-teammate-transcript-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope Qe in chunk-t9tg0q42.js was inspected against its 2.1.296 predecessor Qe; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Qe"
+    string = "updateTranscript(s"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(?<=Te\\()\\{content:Ne\\}(?=\\)\\))"
+  value = '{content:Ne,origin:{kind:"coordinator"}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "workflow-history-assignment-origin-teammate-transcript-2-1-301-darwin-arm64 inserts coordinator origin"
+  assert_contains = 'messages:m4e(Z,Te({content:Ne,origin:{kind:"coordinator"}}))'
+  assert_not_contains = 'messages:k6e(Z,xe({content:ke,origin:{kind:"coordinator"}}))'
+
+[[patches]]
+name = "workflow-history-classifier-import-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-classifier-import-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope aVt in chunk-996thspe.js was inspected against its 2.1.296 predecessor zLt; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "aVt"
+    string = "harnessMarked"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Darwin classifier import targets the current aVt function body"
+  assert_contains = 'function aVt(e,n,r=!0,s=!0,h=!1,y="unmarked",b=!1,w,M={prefix:0,prose:!1}){e=jHt(e,void 0,w)'
+  assert_not_contains = "function zLt(e,n,r=!0,s=!0,h=!1,y=!1,b=!1,w){e=CTt(e,void 0,w)"
+
+[[patches]]
+name = "workflow-history-classifier-answer-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-classifier-answer-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope BlockStatement in chunk-996thspe.js was inspected against its 2.1.296 predecessor BlockStatement; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior. The native classifier loop owns transcript e, current message Lo, successful tool-result ID Dr/Or.tool_use_id and output accumulator ns. Its original V.has(tool_use_id) and non-error gate stay outside the replaced block."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "BlockStatement"
+    source_regex = "^\\{let [\\w$]+=typeof [\\w$]+\\.content"
+    string = ".startsWith(zHt)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,Lo,Dr.tool_use_id);if(__pccAnswer!==null)ns.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "__pccRenderWorkflowQuestionAnswer(e,Lo,Dr.tool_use_id)"
+  assert_not_contains = "__pccRenderWorkflowQuestionAnswer(e,no,fo.tool_use_id)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 preserves the classifier answer result gate and current local bindings"
+  assert_contains = 'else if(Dr?.type==="tool_result"&&!Dr.is_error&&V.has(Dr.tool_use_id)){const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,Lo,Dr.tool_use_id);if(__pccAnswer!==null)ns.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+  assert_not_contains = 'else if(fo?.type==="tool_result"&&!fo.is_error&&z.has(fo.tool_use_id)){const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,no,fo.tool_use_id);if(__pccAnswer!==null)vo.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+
+[[patches]]
+name = "workflow-history-authoring-import-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-authoring-import-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope v5r in chunk-byrkr4cv.js was inspected against its 2.1.296 predecessor I1r; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "v5r"
+    string = "# Workflow authoring reference"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {appendWorkflowPreflight as __pccAppendWorkflowPreflight} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "appendWorkflowPreflight as __pccAppendWorkflowPreflight"
+
+[[patches]]
+name = "workflow-history-authoring-reference-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-authoring-reference-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope TemplateLiteral in chunk-byrkr4cv.js was inspected against its 2.1.296 predecessor TemplateLiteral; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "TemplateLiteral"
+    string = "# Workflow authoring reference"
+    parent_node = "ReturnStatement"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "__pccAppendWorkflowPreflight("
+
+[[patches]]
+name = "workflow-history-tool-description-2-1-301-darwin-arm64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "darwin-arm64" ]
+rationale = "Port the workflow-history-tool-description-2-1-296-darwin-arm64 behavior to the bounded 2.1.301 darwin-arm64 graph. The target scope ConditionalExpression in chunk-byrkr4cv.js was inspected against its 2.1.296 predecessor ConditionalExpression; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = """
+e?`${t}
+
+${h}`:`${t}
+
+${v5r()}`"""
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 darwin-arm64 target binding is present"
+  assert_contains = "__pccAppendWorkflowPreflight("
+
+[[patches]]
+name = "workflow-history-framing-import-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-framing-import-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope a8r in chunk-1t32ne4j.js was inspected against its 2.1.296 predecessor X1r; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "a8r"
+    string = "strictHuman"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {selectWorkflowHistory as __pccSelectWorkflowHistory,renderWorkflowHistory as __pccRenderWorkflowHistory,renderWorkflowTask as __pccRenderWorkflowTask,unwrapWorkflowTask as __pccUnwrapWorkflowTask} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "selectWorkflowHistory as __pccSelectWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-select-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-select-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope a8r in chunk-1t32ne4j.js was inspected against its 2.1.296 predecessor X1r; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "a8r"
+    string = "strictHuman"
+
+[patches.ast.captures.messages]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.agentId]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.analyze]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.analyze.select]
+  node = "CallExpression"
+  callee_property = "Xj"
+
+[patches.ast.captures.child]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.child.select]
+  node = "CallExpression"
+  callee_property = "pB"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccSelectWorkflowHistory(%%CAPTURE:messages%%,arguments[2],%%CAPTURE:analyze%%,%%CAPTURE:child%%(%%CAPTURE:agentId%%));}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "return __pccSelectWorkflowHistory(e,arguments[2],Xj,pB(t));"
+  assert_not_contains = "return __pccSelectWorkflowHistory(e,arguments[2],kY,wz(t));"
+
+[[patches]]
+name = "workflow-history-render-history-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-render-history-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope c8r in chunk-1t32ne4j.js was inspected against its 2.1.296 predecessor Z1r; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "c8r"
+    string = "referentTail"
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowHistory(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "return __pccRenderWorkflowHistory(e);"
+
+[[patches]]
+name = "workflow-history-render-task-2-1-301-linux-x64"
+lineage = "workflow-history-render-task"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-render-task-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope Osr in chunk-1t32ne4j.js was inspected against its 2.1.296 predecessor B9n; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Osr"
+    strings = [ "return s+", "Jro(e)" ]
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccRenderWorkflowTask(%%CAPTURE:value%%);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 renders the current task-frame function"
+  assert_contains = "function Osr(e){return __pccRenderWorkflowTask(e);}"
+  assert_not_contains = "function B9n(e){return __pccRenderWorkflowTask(e);}"
+
+[[patches]]
+name = "workflow-history-display-task-2-1-301-linux-x64"
+lineage = "workflow-history-display-task"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-display-task-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope rZo in chunk-1t32ne4j.js was inspected against its 2.1.296 predecessor fGo; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "rZo"
+    strings = [ "t.slice(s.length+1)", "a.length+1" ]
+
+[patches.ast.captures.value]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return __pccUnwrapWorkflowTask(%%CAPTURE:value%%,a,s);}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 unwraps with the current display function and headers"
+  assert_contains = "function rZo(e){return __pccUnwrapWorkflowTask(e,a,s);}"
+  assert_not_contains = "function fGo(e){return __pccUnwrapWorkflowTask(e,a,i);}"
+
+[[patches]]
+name = "workflow-history-runner-import-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-runner-import-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope ar in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor ir; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ar"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {captureWorkflowHistory as __pccCaptureWorkflowHistory,bindWorkflowHistoryOptions as __pccBindWorkflowHistoryOptions} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "captureWorkflowHistory as __pccCaptureWorkflowHistory"
+
+[[patches]]
+name = "workflow-history-snapshot-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-snapshot-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope ar in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor ir; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ar"
+    strings = [ "provenanceOn", "workflow_agent_" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __pccWorkflowSnapshot=__pccCaptureWorkflowHistory(e.messages);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "__pccCaptureWorkflowHistory(e.messages);"
+
+[[patches]]
+name = "workflow-history-options-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-options-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope ar in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor ir; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "Bxo(u(Y))"
+    parent_node = "VariableDeclarator"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "__pccBindWorkflowHistoryOptions(%%EXPR%%,__pccWorkflowSnapshot)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "__pccBindWorkflowHistoryOptions(Bxo(u(Y)),__pccWorkflowSnapshot)"
+  assert_not_contains = "__pccBindWorkflowHistoryOptions(ugo(u(j)),__pccWorkflowSnapshot)"
+
+[[patches]]
+name = "workflow-history-select-local-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-select-local-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope vr in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor kr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "Pe?a8r(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "Pe?a8r(e.messages,e.agentId):null"
+  value = "Pe?a8r(__pccWorkflowSnapshot,e.agentId,Te?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "Pe?a8r(__pccWorkflowSnapshot,e.agentId,Te?.userHistoryTurns):null"
+  assert_not_contains = "Fe?X1r(__pccWorkflowSnapshot,e.agentId,ye?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-select-remote-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-select-remote-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope Cr in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor br; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = "ke?a8r(e.messages,e.agentId):null"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "ke?a8r(e.messages,e.agentId):null"
+  value = "ke?a8r(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "ke?a8r(__pccWorkflowSnapshot,e.agentId,me?.userHistoryTurns):null"
+  assert_not_contains = "_e?X1r(__pccWorkflowSnapshot,e.agentId,fe?.userHistoryTurns):null"
+
+[[patches]]
+name = "workflow-history-human-origin-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-human-origin-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope Or in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor vr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = "{content:jn}"
+    parent_node = "CallExpression"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = 'origin:{kind:"human"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = '{content:jn,origin:{kind:"human"}}'
+  assert_not_contains = '{content:Rn,origin:{kind:"human"}}'
+
+[[patches]]
+name = "workflow-history-assignment-origin-runner-initial-2-1-301-linux-x64"
+lineage = "workflow-history-assignment-origin"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-assignment-origin-runner-initial-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope Or in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor vr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Or"
+    string = "promptMessages:jn===null?"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(?<=promptMessages:jn===null\\?\\[Ce\\()\\{content:_e\\}(?=\\)\\]:\\[Ce\\({content:jn}\\),Ce\\({content:_e}\\)\\])"
+  value = '{content:_e,origin:{kind:"coordinator"}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "workflow-history-assignment-origin-runner-initial-2-1-301-linux-x64 inserts coordinator origin"
+  assert_contains = 'promptMessages:jn===null?[Ce({content:_e,origin:{kind:"coordinator"}})]:'
+  assert_not_contains = 'promptMessages:Rn===null?[xe({content:Te,origin:{kind:"coordinator"}})]:'
+
+[[patches]]
+name = "workflow-history-assignment-origin-runner-with-history-2-1-301-linux-x64"
+lineage = "workflow-history-assignment-origin"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-assignment-origin-runner-with-history-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope Or in chunk-8d3pjczs.js was inspected against its 2.1.296 predecessor vr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Or"
+    string = "promptMessages:jn===null?"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(?<=\\[Ce\\({content:jn}\\),Ce\\()\\{content:_e\\}(?=\\)\\])"
+  value = '{content:_e,origin:{kind:"coordinator"}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "workflow-history-assignment-origin-runner-with-history-2-1-301-linux-x64 inserts coordinator origin"
+  assert_contains = '),Ce({content:_e,origin:{kind:"coordinator"}})]'
+  assert_not_contains = '),xe({content:Te,origin:{kind:"coordinator"}})]'
+
+[[patches]]
+name = "workflow-history-assignment-origin-teammate-transcript-2-1-301-linux-x64"
+lineage = "workflow-history-assignment-origin"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-assignment-origin-teammate-transcript-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope Qe in chunk-1kxetdpa.js was inspected against its 2.1.296 predecessor Qe; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Qe"
+    string = "updateTranscript(s"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(?<=Ce\\()\\{content:Ne\\}(?=\\)\\))"
+  value = '{content:Ne,origin:{kind:"coordinator"}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "workflow-history-assignment-origin-teammate-transcript-2-1-301-linux-x64 inserts coordinator origin"
+  assert_contains = 'messages:i6e(Z,Ce({content:Ne,origin:{kind:"coordinator"}}))'
+  assert_not_contains = 'messages:hVe(Z,xe({content:Se,origin:{kind:"coordinator"}}))'
+
+[[patches]]
+name = "workflow-history-classifier-import-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-classifier-import-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope iVt in chunk-38nf1dnm.js was inspected against its 2.1.296 predecessor XLt; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/yoloClassifier.ts#L297-L359"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "iVt"
+    string = "harnessMarked"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "renderWorkflowQuestionAnswer as __pccRenderWorkflowQuestionAnswer"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 Linux classifier import targets the current iVt function body"
+  assert_contains = 'function iVt(e,n,r=!0,s=!0,h=!1,y="unmarked",S=!1,w,H={prefix:0,prose:!1}){e=IHt(e,void 0,w)'
+  assert_not_contains = "function XLt(e,n,r=!0,s=!0,h=!1,y=!1,S=!1,w){e=mCt(e,void 0,w)"
+
+[[patches]]
+name = "workflow-history-classifier-answer-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-classifier-answer-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope BlockStatement in chunk-38nf1dnm.js was inspected against its 2.1.296 predecessor BlockStatement; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior. The native classifier loop owns transcript e, current message Lo, successful tool-result ID Dr/Or.tool_use_id and output accumulator ns. Its original V.has(tool_use_id) and non-error gate stay outside the replaced block."
+rationale_ref = "reference/v2.1.88/sources/src/services/tools/toolExecution.ts#L1456-L1466"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "BlockStatement"
+    source_regex = "^\\{let [\\w$]+=typeof [\\w$]+\\.content"
+    string = ".startsWith(HHt)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,Lo,Or.tool_use_id);if(__pccAnswer!==null)ns.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "__pccRenderWorkflowQuestionAnswer(e,Lo,Or.tool_use_id)"
+  assert_not_contains = "__pccRenderWorkflowQuestionAnswer(e,no,fo.tool_use_id)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 preserves the classifier answer result gate and current local bindings"
+  assert_contains = 'else if(Or?.type==="tool_result"&&!Or.is_error&&V.has(Or.tool_use_id)){const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,Lo,Or.tool_use_id);if(__pccAnswer!==null)ns.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+  assert_not_contains = 'else if(fo?.type==="tool_result"&&!fo.is_error&&G.has(fo.tool_use_id)){const __pccAnswer=__pccRenderWorkflowQuestionAnswer(e,no,fo.tool_use_id);if(__pccAnswer!==null)Eo.push({type:"text",text:__pccAnswer,harnessMarked:!0});}'
+
+[[patches]]
+name = "workflow-history-authoring-import-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-authoring-import-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope i5r in chunk-rhmf3f4f.js was inspected against its 2.1.296 predecessor pBr; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "i5r"
+    string = "# Workflow authoring reference"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = """
+import {appendWorkflowPreflight as __pccAppendWorkflowPreflight} from "./patched-workflow-history.js";
+"""
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "appendWorkflowPreflight as __pccAppendWorkflowPreflight"
+
+[[patches]]
+name = "workflow-history-authoring-reference-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-authoring-reference-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope TemplateLiteral in chunk-rhmf3f4f.js was inspected against its 2.1.296 predecessor TemplateLiteral; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "TemplateLiteral"
+    string = "# Workflow authoring reference"
+    parent_node = "ReturnStatement"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
+  assert_contains = "__pccAppendWorkflowPreflight("
+
+[[patches]]
+name = "workflow-history-tool-description-2-1-301-linux-x64"
+target_version = "2.1.301"
+applies_to = ">=2.1.301 <2.1.302"
+platforms = [ "linux-x64" ]
+rationale = "Port the workflow-history-tool-description-2-1-296-linux-x64 behavior to the bounded 2.1.301 linux-x64 graph. The target scope ConditionalExpression in chunk-rhmf3f4f.js was inspected against its 2.1.296 predecessor ConditionalExpression; local identifier correspondences and the native enclosing control flow bind the inserted code. Preserve the existing feature intent and remove this variant when upstream implements equivalent behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L494-L541"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = """
+e?`${t}
+
+${h}`:`${t}
+
+${i5r()}`"""
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = " __pccAppendWorkflowPreflight(%%EXPR%%)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.301 linux-x64 target binding is present"
   assert_contains = "__pccAppendWorkflowPreflight("

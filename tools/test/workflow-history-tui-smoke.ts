@@ -230,10 +230,11 @@ async function main(): Promise<number> {
     options.version !== "2.1.289" &&
     options.version !== "2.1.290" &&
     options.version !== "2.1.293" &&
-    options.version !== "2.1.296"
+    options.version !== "2.1.296" &&
+    options.version !== "2.1.301"
   ) {
     console.log(
-      `skip: workflow history PTY supports targets 2.1.285, 2.1.289, 2.1.290, 2.1.293 and 2.1.296 (got ${options.version})`,
+      `skip: workflow history PTY supports targets 2.1.285, 2.1.289, 2.1.290, 2.1.293, 2.1.296 and 2.1.301 (got ${options.version})`,
     )
     return 0
   }

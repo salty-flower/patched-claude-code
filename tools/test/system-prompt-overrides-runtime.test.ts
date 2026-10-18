@@ -92,6 +92,10 @@ function requestSystem(request: ClaudeApiRequest): Array<{ type: string; text: s
 }
 
 function diagnosticFromStderr(stderr: string): SystemPromptBridgeOutput {
+  const finalLine = stderr.split("\n").find((candidate) => candidate.startsWith("[system-prompt-request] {"))
+  if (finalLine)
+    return (JSON.parse(finalLine.slice("[system-prompt-request] ".length)) as { vector: SystemPromptBridgeOutput })
+      .vector
   const line = stderr
     .split("\n")
     .find(

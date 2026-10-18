@@ -8,6 +8,8 @@ import { computeRuntimeBundleIntegrity, type RuntimeBundleFile, type RuntimeGrap
 
 export const SYSTEM_PROMPT_BRIDGE = Symbol.for("patched-claude-code.system-prompt-overrides.v1")
 export const SYSTEM_PROMPT_DIAGNOSTICS = Symbol.for("patched-claude-code.system-prompt-overrides.diagnostics.v1")
+export const STRUCTURED_PROMPT_BRIDGE = Symbol.for("patched-claude-code.system-prompt-overrides.v2")
+export const FINAL_PROMPT_DIAGNOSTIC = Symbol.for("patched-claude-code.system-prompt-overrides.request.v2")
 
 const MANIFEST_SCHEMA = 1
 const UPSTREAM_PLACEHOLDER = "{{upstream}}"
@@ -62,6 +64,196 @@ export type SystemPromptOverrideOptions = {
   promptRoot: string
   exportMode?: "export" | "rebase"
   writeDiagnostic?: (diagnostic: SystemPromptBridgeOutput) => void
+}
+
+export type StructuredPromptSection = { id: string; scope: "shared" | "session"; text: string }
+export type StructuredPromptRule = {
+  id: string
+  scope: "shared" | "session"
+  action: "keep" | "replace" | "remove"
+  expectedSha256?: string | string[]
+  file?: string
+}
+type StructuredPromptConfig = { schema: 2; targetVersion: string; rules: StructuredPromptRule[] }
+type StructuredPromptInput = {
+  sections: StructuredPromptSection[]
+  render: (sections: StructuredPromptSection[]) => string[]
+}
+
+// This contract consumes upstream identities before cache partitioning, never text heuristics.
+export function createStructuredPromptHook(options: SystemPromptOverrideOptions) {
+  const configPath = join(options.promptRoot, "config.json")
+  let config: StructuredPromptConfig | undefined
+  const replacements = new Map<StructuredPromptRule, string>()
+  if (existsSync(configPath)) {
+    let value: unknown
+    try {
+      value = JSON.parse(readUtf8(configPath))
+    } catch {
+      fail(configPath, "invalid configuration JSON")
+    }
+    if (
+      !isRecord(value) ||
+      value.schema !== 2 ||
+      value.targetVersion !== options.targetVersion ||
+      !Array.isArray(value.rules)
+    ) {
+      fail(configPath, `expected schema 2, targetVersion ${options.targetVersion}, and rules array`)
+    }
+    const seen = new Set<string>()
+    const rules = value.rules.map((rule: unknown): StructuredPromptRule => {
+      if (
+        !isRecord(rule) ||
+        typeof rule.id !== "string" ||
+        !/^[\w-]+$/.test(rule.id) ||
+        !["shared", "session"].includes(String(rule.scope)) ||
+        !["keep", "replace", "remove"].includes(String(rule.action))
+      ) {
+        fail(configPath, "malformed rule identity, scope, or action")
+      }
+      const key = `${rule.scope}/${rule.id}`
+      if (seen.has(key)) fail(configPath, `duplicate target ${key}`)
+      seen.add(key)
+      const hashes = typeof rule.expectedSha256 === "string" ? [rule.expectedSha256] : rule.expectedSha256
+      if (
+        (rule.action !== "keep" || hashes !== undefined) &&
+        (!Array.isArray(hashes) ||
+          hashes.length === 0 ||
+          hashes.some((h) => typeof h !== "string" || !/^sha256-[A-Za-z0-9+/]{43}=$/.test(h)))
+      ) {
+        fail(configPath, `expectedSha256 is required for ${key}`)
+      }
+      if (rule.action === "replace" && typeof rule.file !== "string") fail(configPath, `file is required for ${key}`)
+      const typed = rule as StructuredPromptRule
+      if (typed.action === "replace") {
+        const path = join(options.promptRoot, typed.file!)
+        const text = readUtf8(path)
+        if (countOccurrences(text, UPSTREAM_PLACEHOLDER) > 1) fail(path, "repeated {{upstream}} placeholder")
+        replacements.set(typed, text)
+      }
+      return typed
+    })
+    config = { schema: 2, targetVersion: options.targetVersion, rules }
+  }
+  if (config && readOverrideSnapshot(options.promptRoot).files.size > 0) {
+    fail(
+      configPath,
+      "config.json and legacy overrides cannot be active together; migrate the selected legacy overrides first",
+    )
+  }
+  // Legacy manifests remain fail-closed and retain their original coordinate semantics.
+  const legacy = createSystemPromptOverrideHook({ ...options, writeDiagnostic: undefined })
+  let exported = false
+  let legacyDiagnostic:
+    | (Pick<SystemPromptBridgeOutput, "effectiveVectorSha256"> & {
+        sectionDiff: Array<Omit<SystemPromptDiffEntry, "displayLabel" | "overrideFile">>
+      })
+    | undefined
+  let lastSections: Array<{
+    id: string
+    scope: string
+    source: string
+    baselineSha256: string
+    effectiveSha256: string | null
+  }> = []
+  const hook = ({ sections, render }: StructuredPromptInput): string[] => {
+    // Bare composition is a separate upstream contract, not a selectable generic body.
+    if (sections.some((section) => section.id === "bare")) {
+      lastSections = []
+      legacyDiagnostic = undefined
+      return render(sections)
+    }
+    const keys = new Set<string>()
+    for (const section of sections) {
+      if (
+        typeof section.id !== "string" ||
+        !["shared", "session"].includes(section.scope) ||
+        typeof section.text !== "string"
+      ) {
+        fail(configPath, "malformed upstream structured section")
+      }
+      const key = `${section.scope}/${section.id}`
+      if (keys.has(key)) fail(configPath, `ambiguous upstream identity ${key}`)
+      keys.add(key)
+    }
+    const byKey = new Map((config?.rules ?? []).map((rule) => [`${rule.scope}/${rule.id}`, rule]))
+    for (const key of byKey.keys()) if (!keys.has(key)) fail(configPath, `selected section is absent: ${key}`)
+    lastSections = []
+    const effective = sections.flatMap((section) => {
+      const rule = byKey.get(`${section.scope}/${section.id}`)
+      const baselineSha256 = hashUtf8(section.text)
+      if (rule?.expectedSha256 !== undefined) {
+        const hashes = Array.isArray(rule.expectedSha256) ? rule.expectedSha256 : [rule.expectedSha256]
+        if (!hashes.includes(baselineSha256))
+          fail(configPath, `baseline SHA-256 mismatch for ${section.scope}/${section.id}`)
+      }
+      const text =
+        rule?.action === "replace"
+          ? replacements.get(rule)!.replace(UPSTREAM_PLACEHOLDER, () => section.text)
+          : section.text
+      lastSections.push({
+        id: section.id,
+        scope: section.scope,
+        source: rule?.action === "replace" ? "user" : rule?.action === "remove" ? "removed" : "upstream",
+        baselineSha256,
+        effectiveSha256: rule?.action === "remove" ? null : hashUtf8(text),
+      })
+      return rule?.action === "remove" ? [] : [{ ...section, text }]
+    })
+    if (options.exportMode && !exported) {
+      for (const section of sections)
+        writeAtomic(
+          join(options.promptRoot, "upstream", `${section.scope}-${encodeURIComponent(section.id)}.md`),
+          section.text,
+        )
+      writeAtomic(
+        join(options.promptRoot, "sections.v2.json"),
+        `${JSON.stringify({ schema: 2, targetVersion: options.targetVersion, sections: lastSections.map(({ source: _source, effectiveSha256: _effective, ...section }) => section) }, null, 2)}\n`,
+      )
+      exported = true
+    }
+    const legacyHook = config ? legacy : (Reflect.get(globalThis, SYSTEM_PROMPT_BRIDGE) ?? legacy)
+    const output: SystemPromptBridgeOutput = legacyHook({ orderedSections: render(config ? effective : sections) })
+    legacyDiagnostic = {
+      effectiveVectorSha256: output.effectiveVectorSha256,
+      sectionDiff: output.sectionDiff.map(({ id, ordinal, changed, baselineSha256, effectiveSha256 }) => ({
+        id,
+        ordinal,
+        changed,
+        baselineSha256,
+        effectiveSha256,
+      })),
+    }
+    return output.effectiveSections
+  }
+  // Called at the main request builder's final return, after styles, steering, and body overrides.
+  const recordRequest = (
+    body: { system?: unknown; messages?: unknown; tools?: unknown },
+    querySource: string,
+  ): void => {
+    if (!/^(repl_main_thread|sdk)/.test(querySource)) return
+    const system = body.system
+    const texts =
+      typeof system === "string"
+        ? [system]
+        : Array.isArray(system)
+          ? system.map((block: { text?: string }) => block.text ?? "")
+          : []
+    const diagnostic = {
+      schema: 2,
+      targetVersion: options.targetVersion,
+      querySource,
+      systemSha256: hashUtf8(JSON.stringify(system ?? null)),
+      systemTextVectorSha256: hashSectionVector(texts),
+      messagesSha256: hashUtf8(JSON.stringify(body.messages ?? null)),
+      toolsSha256: hashUtf8(JSON.stringify(body.tools ?? null)),
+      sections: lastSections,
+      vector: legacyDiagnostic,
+    }
+    Reflect.set(globalThis, SYSTEM_PROMPT_DIAGNOSTICS, diagnostic)
+    if (options.writeDiagnostic) process.stderr.write(`[system-prompt-request] ${JSON.stringify(diagnostic)}\n`)
+  }
+  return { hook, recordRequest }
 }
 
 type OverrideSnapshot = {
@@ -165,8 +357,8 @@ function readPromptManifest(path: string): PromptManifest {
   let value: unknown
   try {
     value = JSON.parse(readUtf8(path))
-  } catch (error) {
-    fail(path, `invalid JSON: ${errorMessage(error)}`)
+  } catch {
+    fail(path, "invalid manifest JSON")
   }
   if (!isRecord(value) || value.schema !== MANIFEST_SCHEMA) fail(path, `schema must be ${MANIFEST_SCHEMA}`)
   if (!isRecord(value.target)) fail(path, "target must be an object")
@@ -217,7 +409,7 @@ function applyOverrides(baseline: PromptManifest, orderedSections: string[], sna
     const upstream = orderedSections[section.ordinal]
     if (upstream === undefined) fail(override.path, `ordinal ${section.ordinal} is outside the current section vector`)
     effective[section.ordinal] =
-      occurrences === 0 ? override.text : override.text.replace(UPSTREAM_PLACEHOLDER, upstream)
+      occurrences === 0 ? override.text : override.text.replace(UPSTREAM_PLACEHOLDER, () => upstream)
   }
   return effective
 }
@@ -399,8 +591,8 @@ function loadReleaseCoordinates(): { targetVersion: string; bundleSha256: string
   let release: ReleaseManifest
   try {
     release = JSON.parse(readUtf8(manifestPath)) as ReleaseManifest
-  } catch (error) {
-    fail(manifestPath, `invalid release manifest JSON: ${errorMessage(error)}`)
+  } catch {
+    fail(manifestPath, "invalid release manifest JSON")
   }
   if (!release.upstream?.version || !release.bundle?.sha256) {
     fail(manifestPath, "release manifest lacks upstream.version or bundle.sha256")
@@ -427,12 +619,32 @@ function installFromEnvironment(): void {
     ...(truthy(process.env.PATCHED_CLAUDE_CODE_PROMPT_DIAGNOSTICS)
       ? {
           writeDiagnostic: (diagnostic: SystemPromptBridgeOutput) => {
-            process.stderr.write(`[system-prompt-overrides] ${JSON.stringify(diagnostic)}\n`)
+            const safe = {
+              effectiveVectorSha256: diagnostic.effectiveVectorSha256,
+              sectionDiff: diagnostic.sectionDiff.map(({ id, ordinal, changed, baselineSha256, effectiveSha256 }) => ({
+                id,
+                ordinal,
+                changed,
+                baselineSha256,
+                effectiveSha256,
+              })),
+            }
+            process.stderr.write(`[system-prompt-overrides] ${JSON.stringify(safe)}\n`)
           },
         }
       : {}),
   })
   Reflect.set(globalThis, SYSTEM_PROMPT_BRIDGE, hook)
+  const structured = createStructuredPromptHook({
+    ...coordinates,
+    promptRoot: process.env.PATCHED_CLAUDE_CODE_PROMPT_DIR || defaultPromptRoot(),
+    ...(exportMode ? { exportMode } : {}),
+    ...(truthy(process.env.PATCHED_CLAUDE_CODE_PROMPT_DIAGNOSTICS) ? { writeDiagnostic: () => {} } : {}),
+  })
+  Reflect.set(globalThis, STRUCTURED_PROMPT_BRIDGE, structured.hook)
+  Reflect.set(globalThis, FINAL_PROMPT_DIAGNOSTIC, structured.recordRequest)
+  // Native daemon re-exec drops execArgv. The repo dispatcher restores these sidecars.
+  process.env.PATCHED_CLAUDE_CODE_RUNTIME_BOOTSTRAP = import.meta.url
 }
 
 installFromEnvironment()

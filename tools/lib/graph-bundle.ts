@@ -15,7 +15,7 @@ import type { PatchEntry } from "./patch-files"
 // plus a small platform-dispatcher at staging/<version>/cli.js.
 
 export const DUAL_GRAPH_SOURCE = "canonical-dual-graph"
-export const DUAL_GRAPH_POLICY = "canonical-dual-graph-text-loaders-v2"
+export const DUAL_GRAPH_POLICY = "canonical-dual-graph-worker-urls-v3"
 
 export const GRAPH_DIR_NAME = "graph"
 export const GRAPH_PATCHED_DIR_NAME = "graph.patched"
@@ -50,6 +50,13 @@ export function dispatcherSource(kind: "staged" | "rendered"): string {
     "// Generated platform dispatcher over dual upstream module graphs.",
     "// Each graph is the upstream Bun standalone module graph materialized to",
     "// disk with /$bunfs/root/ specifiers rewritten to graph-relative paths.",
+    "// Upstream daemon re-exec carries argv[1], but drops Bun's --preload flags.",
+    "// A successfully installed packaged helper supplies its own exact file URL.",
+    "const runtimeBootstrap = process.env.PATCHED_CLAUDE_CODE_RUNTIME_BOOTSTRAP",
+    "if (runtimeBootstrap) {",
+    "  await import(runtimeBootstrap)",
+    '  await import(new URL("./bun-ant-cell-segmenter.ts", runtimeBootstrap).href)',
+    "}",
     'const platformDir = process.platform === "darwin" ? "darwin-arm64" : process.platform === "linux" ? "linux-x64" : null',
     "if (!platformDir) {",
     '  console.error("unsupported platform: " + process.platform)',
@@ -63,6 +70,52 @@ export function dispatcherSource(kind: "staged" | "rendered"): string {
 function graphRelativePrefix(fromDir: string): string {
   const depth = fromDir === "" ? 0 : fromDir.split("/").filter(Boolean).length
   return depth === 0 ? "./" : "../".repeat(depth)
+}
+
+// Native builds resolve this generated value inside Bun's embedded graph.
+// The upstream worker host wraps it in `file://${value}`; a relative value
+// therefore resolves to /src/... on disk instead of the extracted worker.
+// Adapt only executable metadata properties, never matching prose or comments.
+export function relocateStandaloneWorkerUrls(text: string, fromDir: string, knownPaths: Set<string>): string {
+  if (!text.includes("HOOKS_WORKER_URL")) return text
+  const parsed = parseSync("graph.js", text)
+  if (parsed.errors.length) throw new Error("cannot relocate worker URL: invalid module")
+  const edits: Array<{ start: number; end: number; value: string }> = []
+  const visit = (value: unknown): void => {
+    if (!value || typeof value !== "object") return
+    if (Array.isArray(value)) {
+      for (const child of value) visit(child)
+      return
+    }
+    const node = value as Record<string, unknown>
+    if (node.type === "Property") {
+      const key = node.key as Record<string, unknown> | undefined
+      const literal = node.value as Record<string, unknown> | undefined
+      if (
+        (key?.name === "HOOKS_WORKER_URL" || key?.value === "HOOKS_WORKER_URL") &&
+        typeof literal?.value === "string" &&
+        literal.value.startsWith("./") &&
+        typeof literal.start === "number" &&
+        typeof literal.end === "number"
+      ) {
+        const path = literal.value.slice(2)
+        if (!knownPaths.has(path)) throw new Error(`worker metadata references missing graph file: ${path}`)
+        edits.push({
+          start: literal.start,
+          end: literal.end,
+          value: `new URL(${JSON.stringify(graphRelativePrefix(fromDir) + path)},import.meta.url).pathname`,
+        })
+        return
+      }
+    }
+    for (const child of Object.values(node)) visit(child)
+  }
+  visit(parsed.program)
+  let result = text
+  for (const edit of edits.sort((a, b) => b.start - a.start)) {
+    result = result.slice(0, edit.start) + edit.value + result.slice(edit.end)
+  }
+  return result
 }
 
 // Rewrite absolute Bun-standalone specifiers (`/$bunfs/root/<path>`) to

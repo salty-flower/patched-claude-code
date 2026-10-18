@@ -145,6 +145,32 @@ const exportsByVersion = {
       description: "fBr",
     },
   },
+  "2.1.301": {
+    "darwin-arm64": {
+      classifier: "chunk-996thspe.js",
+      serialize: "xps",
+      user: "Te",
+      framing: "chunk-56q2wccr.js",
+      select: "v8r",
+      history: "A8r",
+      task: "Xsr",
+      authoring: "chunk-byrkr4cv.js",
+      reference: "v5r",
+      description: "k5r",
+    },
+    "linux-x64": {
+      classifier: "chunk-38nf1dnm.js",
+      serialize: "zus",
+      user: "Ce",
+      framing: "chunk-1t32ne4j.js",
+      select: "a8r",
+      history: "c8r",
+      task: "Osr",
+      authoring: "chunk-rhmf3f4f.js",
+      reference: "i5r",
+      description: "a5r",
+    },
+  },
 } as const
 
 function nativeFunction<Args extends unknown[], Result>(
@@ -166,7 +192,7 @@ async function main(): Promise<void> {
   const [graphDirectory, version, platform] = process.argv.slice(2)
   if (
     !graphDirectory ||
-    (version !== "2.1.285" && version !== "2.1.289" && version !== "2.1.290" && version !== "2.1.293" && version !== "2.1.296") ||
+    (version !== "2.1.285" && version !== "2.1.289" && version !== "2.1.290" && version !== "2.1.293" && version !== "2.1.296" && version !== "2.1.301") ||
     (platform !== "darwin-arm64" && platform !== "linux-x64")
   ) {
     throw new Error("Expected rendered graph directory, supported target version and native platform")

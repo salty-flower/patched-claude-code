@@ -4,6 +4,67 @@ const modelEffortCheck = (name: string) => `model-effort-session-tui-smoke.ts: $
 const agentsMdNativeHookCheck =
   "agents-md-tui-smoke.ts: parent, project, and child AGENTS.md markers reach the main conversation in native parent-to-child order with no CLAUDE.md"
 
+export const THINKING_REQUEST_RUNTIME_CHECKS = {
+  "resolver-matrix":
+    "thinking-summaries-request.test.ts: real resolver covers settings, explicit preference and interactive/noninteractive output matrix",
+  "settings-isolation":
+    "thinking-summaries-request.test.ts: explicit and noninteractive branches never consult interactive settings",
+  "setting-helper":
+    "thinking-summaries-request.test.ts: shared summary-setting helper retains its original false-by-default semantics",
+  "disabled-caller":
+    "thinking-summaries-request.test.ts: native CLI caller keeps disabled thinking disabled and bypasses the display resolver",
+  "provider-capability-gates":
+    "thinking-summaries-request.test.ts: native provider and capability display gates remain restrictive (separate from resolver)",
+} as const
+
+export const THINKING_BOUNDARY_RUNTIME_CHECKS = {
+  "default/80x24": "thinking-summaries-tui-smoke.ts: default 80x24 preserves summary boundaries and signed history",
+  "default/120x40": "thinking-summaries-tui-smoke.ts: default 120x40 preserves summary boundaries and signed history",
+  "explicit/80x24": "thinking-summaries-tui-smoke.ts: explicit 80x24 preserves summary boundaries and signed history",
+  "explicit/120x40": "thinking-summaries-tui-smoke.ts: explicit 120x40 preserves summary boundaries and signed history",
+} as const
+
+function thinkingHostPlatform(): "darwin-arm64" | "linux-x64" | undefined {
+  if (process.platform === "darwin" && process.arch === "arm64") return "darwin-arm64"
+  if (process.platform === "linux" && process.arch === "x64") return "linux-x64"
+  return undefined
+}
+
+export function recordThinkingRequestRuntimeOracle(
+  check: keyof typeof THINKING_REQUEST_RUNTIME_CHECKS,
+  platform: "darwin-arm64" | "linux-x64",
+): void {
+  if (platform !== thinkingHostPlatform()) return
+  if (!Object.hasOwn(THINKING_REQUEST_RUNTIME_CHECKS, check)) throw new Error("unknown thinking request check")
+  recordOracleCheck({
+    oracleIds: ["thinking-display/thinking-display-interactive-default"],
+    platform,
+    evidenceClass: "runtime",
+    check: THINKING_REQUEST_RUNTIME_CHECKS[check],
+    outcome: "passed",
+  })
+}
+
+export function recordThinkingSummaryBoundaryRuntimeOracle(
+  displayMode: "default" | "explicit",
+  viewport: "80x24" | "120x40",
+): void {
+  const platform = thinkingHostPlatform()
+  if (!platform) {
+    if (process.env.PCC_ORACLE_RESULTS_FILE) throw new Error("unsupported host for thinking boundary evidence")
+    return
+  }
+  const key = `${displayMode}/${viewport}` as keyof typeof THINKING_BOUNDARY_RUNTIME_CHECKS
+  if (!Object.hasOwn(THINKING_BOUNDARY_RUNTIME_CHECKS, key)) throw new Error("unknown thinking boundary scenario")
+  recordOracleCheck({
+    oracleIds: ["thinking-display/thinking-preserve-summary-boundaries"],
+    platform,
+    evidenceClass: "real-os-runtime",
+    check: THINKING_BOUNDARY_RUNTIME_CHECKS[key],
+    outcome: "passed",
+  })
+}
+
 export const MODEL_EFFORT_RUNTIME_CHECKS = {
   "model-effort-current": modelEffortCheck(
     "rendered /effort current reports the active model's effective effort and source",
@@ -103,5 +164,7 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
     "doctor-probe": [materialized, keychain(`rendered ${version} doctor probe never touches the default Keychain`)],
   }))
     result[`explicit-macos-keychain/explicit-macos-keychain-${invariant}`] = checks
+  result["thinking-display/thinking-display-interactive-default"] = Object.values(THINKING_REQUEST_RUNTIME_CHECKS)
+  result["thinking-display/thinking-preserve-summary-boundaries"] = Object.values(THINKING_BOUNDARY_RUNTIME_CHECKS)
   return result
 }

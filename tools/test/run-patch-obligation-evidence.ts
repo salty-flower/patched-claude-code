@@ -15,6 +15,7 @@ import {
   type ObligationPlatform,
   obligationKey,
   type PatchEvidenceReceipt,
+  type PatchObligationLedger,
   verifyPatchObligations,
 } from "../lib/patch-obligations"
 import { captureChecked, runChecked } from "../lib/process"
@@ -24,6 +25,35 @@ import { readOracleChecks } from "./helpers/oracle-evidence"
 import { MODEL_EFFORT_RUNTIME_CHECKS, runtimeOracleChecks } from "./helpers/runtime-oracle-checks"
 
 const ROOT = process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "..", "..")
+
+/** Schedule only active realizations, never infer execution from registry membership. */
+export function thinkingEvidenceCommands(ledger: Pick<PatchObligationLedger, "decisions">, bundle: string): string[][] {
+  const ported = (invariantId: string) =>
+    ledger.decisions.some(
+      (decision) =>
+        decision.familyId === "thinking-display" &&
+        decision.invariantId === invariantId &&
+        decision.disposition === "ported",
+    )
+  const commands: string[][] = []
+  if (ported("thinking-display-interactive-default")) {
+    commands.push(["bun", "test", "--timeout", "0", "tools/test/thinking-summaries-request.test.ts"])
+  }
+  if (ported("thinking-preserve-summary-boundaries")) {
+    commands.push([
+      "bun",
+      "run",
+      "tools/test/thinking-summaries-tui-smoke.ts",
+      "--bundle",
+      bundle,
+      "--display-mode",
+      "all",
+      "--viewport",
+      "both",
+    ])
+  }
+  return commands
+}
 
 type OracleCollectionOptions = Parameters<typeof collectOracleEvidence>[0]
 
@@ -182,6 +212,9 @@ function main(): number {
         cwd: ROOT,
         env: sharedEnv,
       })
+    }
+    for (const command of thinkingEvidenceCommands(ledger, dispatcher)) {
+      runChecked(command, { cwd: ROOT, env: sharedEnv })
     }
     if (args.platform === "darwin-arm64") {
       runChecked(["bun", "test", "--timeout", "0", "tools/test/macos-keychain-bundle-runtime.test.ts"], {

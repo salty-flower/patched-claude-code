@@ -1,12 +1,14 @@
-import { afterAll, afterEach, expect } from "bun:test"
+import { afterAll, afterEach, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir, userInfo } from "node:os"
 import { join } from "node:path"
+import { patchApplies } from "../lib/apply-patches"
+import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { runtimePreloadArguments } from "../lib/runtime-support"
 import { targetVersion } from "../lib/target"
+import { type CapturedCommand, captureCommand } from "./helpers/captured-command"
 import { startClaudeApiStub } from "./helpers/claude-api-stub"
-import { captureCommand, type CapturedCommand } from "./helpers/captured-command"
 import { writeGraphCredentialHarness } from "./helpers/keychain-graph-harness"
 import { keychainOracleTest } from "./helpers/oracle-test"
 import {
@@ -37,6 +39,27 @@ if (process.env.PATCH_OBLIGATION_EVIDENCE_REQUIRED === "1" && (process.platform 
 }
 const MATERIALIZED_ENV = "PATCHED_CLAUDE_CODE_MATERIALIZED_CREDENTIALS"
 const SECURITY_FIXTURE_TIMEOUT_MS = 35_000
+
+test("active Keychain patches preserve the bridge ABI literal across minifier renames", () => {
+  const entries = loadPatchEntriesFromFile(join(ROOT, "patches", "explicit-macos-keychain.toml")).filter(
+    (entry) => patchApplies(entry, targetVersion()) && (!entry.platforms || entry.platforms.includes("darwin-arm64")),
+  )
+  const bridgeKeys = entries.flatMap((entry) => {
+    const snippets = entry.transform ? Object.values(entry.transform) : [entry.replacement]
+    return snippets.flatMap((snippet) =>
+      typeof snippet === "string"
+        ? [...snippet.matchAll(/Symbol\.for\(["'](patched-claude-code\.macos-keychain\.[^"']+)["']\)/g)].map(
+            (match) => ({ entry: entry.name, key: match[1] }),
+          )
+        : [],
+    )
+  })
+  expect(bridgeKeys.length).toBeGreaterThan(0)
+  for (const { entry, key } of bridgeKeys) {
+    // v1 is the repo-owned protocol version, not an upstream minified identifier.
+    expect({ entry, key }).toEqual({ entry, key: "patched-claude-code.macos-keychain.v1" })
+  }
+})
 // Keychain tests own their credential source. Explicit per-case overrides are
 // applied after this object when a test intentionally exercises env credentials.
 const CLEARED_CALLER_AUTH_ENV = {

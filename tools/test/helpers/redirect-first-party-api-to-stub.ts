@@ -8,7 +8,7 @@ const nativeFetch = originalFetch.bind(globalThis)
 
 globalThis.fetch = Object.assign(
   async (input: Parameters<typeof originalFetch>[0], init?: Parameters<typeof originalFetch>[1]) => {
-    const request = input instanceof Request ? input : new Request(input, init)
+    const request = new Request(input, init)
     const destination = new URL(request.url)
 
     if (destination.origin === stubOrigin) return await nativeFetch(request)

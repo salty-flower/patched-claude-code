@@ -10,7 +10,7 @@ import { hostGraphPlatform, renderRunnableBundle } from "./helpers/render-runnab
 import type { ClassifierProbeResult } from "./helpers/workflow-history-classifier-probe"
 
 const root = resolve(process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "../.."))
-const supportedVersions = ["2.1.285", "2.1.289", "2.1.290", "2.1.293", "2.1.296", "2.1.301"] as const
+const supportedVersions = ["2.1.285", "2.1.289", "2.1.290", "2.1.293", "2.1.296", "2.1.301", "2.1.304"] as const
 const check = "native classifier preserves genuine answers and coordinator assignment provenance"
 const nativeFilesByVersion = {
   "2.1.285": {
@@ -154,6 +154,34 @@ const nativeFilesByVersion = {
       assignmentWorker: "chunk-1kxetdpa.js",
       assignmentWorkerContent: "Ne",
       assignmentSynthesis: "Ne=rtn({from:T??Ca,text:v,summary:a})",
+    },
+  },
+  "2.1.304": {
+    "darwin-arm64": {
+      runner: "chunk-0secbt3e.js",
+      framing: "chunk-tf0fp0n0.js",
+      provenanceGate: "meo",
+      classifierGate: "kn",
+      // Native 2.1.304 checks original and hook-rewritten prompts on both launch paths.
+      classifierCallCount: 4,
+      historyMessage: /\{content:Jn,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:ve,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-tag5hhzx.js",
+      assignmentWorkerContent: "Ne",
+      assignmentSynthesis: "Ne=tsn({from:T??Ua,text:b,summary:a})",
+    },
+    "linux-x64": {
+      runner: "chunk-5dxr0hnv.js",
+      framing: "chunk-a7rcfxs3.js",
+      provenanceGate: "GZr",
+      classifierGate: "kn",
+      // Native 2.1.304 checks original and hook-rewritten prompts on both launch paths.
+      classifierCallCount: 4,
+      historyMessage: /\{content:Jn,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:ve,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-ddrvdgq3.js",
+      assignmentWorkerContent: "Ce",
+      assignmentSynthesis: "Ce=Kon({from:T??Ua,text:v,summary:a})",
     },
   },
 } as const

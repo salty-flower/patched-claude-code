@@ -1,5 +1,5 @@
 name = "ultracode-opus46-max"
-target_version = "2.1.301"
+target_version = "2.1.304"
 applies_to = ">=2.1.197 <2.1.198"
 
 rationale = """
@@ -10226,3 +10226,65 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.301 linux-x64 excludes the stale 2.1.293 gate"
   assert_not_contains = "function $P(e){return Gm()&&(e===void 0||ve(e)||Wte(e)&&v3t(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-304-darwin"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.304 Darwin scope audit: chunk-cnymzkdz.js WM uses mm gate and ke max capability; dle and zln are same-scope max capability and organization-cap helpers. Preserve the existing uncapped model fallback."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "WM"
+    source = "function WM(e){return mm()&&(e===void 0||ke(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return mm()&&(e===void 0||ke(e)||dle(e)&&zln(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin ultracode uses current max helpers"
+  assert_contains = "function WM(e){return mm()&&(e===void 0||ke(e)||dle(e)&&zln(e)===null)}"
+  assert_not_contains = "function b0(e){return $g()&&(e===void 0||Re(e)||Jie(e)&&Ion(e)===null)}"
+
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-304-linux"
+lineage = "ultracode-capability-max-fallback"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "2.1.304 Linux scope audit: chunk-45bkz003.js FM uses mm gate and Re capability; rle max support and Pln organization cap are same-scope native helpers. Native bodies and same-scope binding roles match the validated Darwin counterpart; preserve the existing feature behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "FM"
+    source = "function FM(e){return mm()&&(e===void 0||Re(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return mm()&&(e===void 0||Re(e)||rle(e)&&Pln(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux ultracode uses current max helpers"
+  assert_contains = "function FM(e){return mm()&&(e===void 0||Re(e)||rle(e)&&Pln(e)===null)}"
+  assert_not_contains = "function b0(e){return $g()&&(e===void 0||Re(e)||Jie(e)&&Ion(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux ultracode-capability-max-fallback excludes predecessor"
+  assert_not_contains = "function hM(e){return Fg()&&(e===void 0||Re(e)||Gie(e)&&hon(e)===null)}"

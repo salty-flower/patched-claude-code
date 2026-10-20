@@ -574,3 +574,87 @@ path = "params.0"
 kind = "static"
 name = "2.1.301 rejects the previous 2.1.296 binding 0"
 assert_not_contains = "function Jv(e,n){let __acc_model_context_key=\"CLAUDE_CODE_MAX_CONTEXT_TOKENS_\"+e.replace(/\\[1m\\]$/i,\"\").replace(/[^a-zA-Z0-9]/g,\"_\"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??\"\",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(lBn(e,n))return 1e6;"
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-304-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "304 Darwin context resolver iE(e,n) calls x8n(e,n) for native 1m eligibility before qU/yf/Gun context facts. Insert only the captured parameter e and original __acc locals plus process.env; no target-local helper is inserted. Pure target-local carryover of resolve-model-specific-context-window-2-1-301-darwin-arm64."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "iE"
+    source_regex = "^function iE\\(e,n\\)\\{if\\(x8n\\(e,n\\)\\)return 1e6;"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin context resolver uses its current model symbol"
+  assert_contains = 'function iE(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(x8n(e,n))return 1e6;'
+  assert_not_contains = 'function Pv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(vu(e))return 1e6;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = 'function Zv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(C1n(e,n))return 1e6;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 inserted scope 2"
+  assert_not_contains = 'function Mv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(RKn(e,n))return 1e6;'
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-304-linux-x64"
+lineage = "resolve-model-specific-context-window"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "304 Linux context resolver Zv(e,n) calls u8n(e,n) for native 1m eligibility before i0/hf/Cun context facts. Only captured model e plus patch-owned locals and process.env are inserted. Pure target-local carryover of resolve-model-specific-context-window-2-1-301-linux-x64."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Zv"
+    source_regex = "^function Zv\\(e,n\\)\\{if\\(u8n\\(e,n\\)\\)return 1e6;"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux context resolver uses its current model symbol"
+  assert_contains = 'function Zv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(u8n(e,n))return 1e6;'
+  assert_not_contains = 'function Iv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(vu(e))return 1e6;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = 'function Jv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(lBn(e,n))return 1e6;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 Linux context resolver"
+  assert_not_contains = "function Hv(e,n){let __acc_model_context_key="

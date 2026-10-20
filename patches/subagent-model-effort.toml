@@ -1,5 +1,5 @@
 name = "subagent-model-effort"
-target_version = "2.1.301"
+target_version = "2.1.304"
 applies_to = ">=2.1.263 <2.2.0"
 
 [[patches]]
@@ -4064,3 +4064,578 @@ path = "declarations.1.init.arguments.0.arguments.0"
   name = "2.1.301 absolute effort precedes model resolution while native relative effort survives"
   assert_contains = 'if(patchedAgentEffort!==void 0&&!H)s={...s,effort:patchedAgentEffort};let Ge=H?"inherit":et,ee=O1(Rbe(s,Tt),Tt,Ge,Oe)'
   assert_not_contains = 'if(patchedAgentEffort!==void 0&&!j)s={...s,effort:patchedAgentEffort};let ze=j?"inherit":Qe,ee=YU(Dge(s,wt),wt,ze,Re)'
+
+[[patches]]
+name = "agent-teammate-effort-2-1-304-darwin-arm64"
+lineage = "agent-teammate-effort"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.304 scope audit: Agent module chunk-yrqzs6vn.js xo receives model Xe, absolute effort Je and relative effort ft; Xn is the timestamp and Sa/a enforce coordinator inheritance. Fork H, definition s and Ej(Ybe(s,kt),kt,xe,Pe) retain native model resolution. Request chunk-na9nw575.js retains Q options and carried effort bi. Preserve predecessor behavior and captured schema/prompt bindings."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L282-L300"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "modelSource"
+    strings = [
+  "use_splitpane:!0",
+  "invokingRequestId",
+  "agent_type",
+  "agentDefinition"
+]
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "properties.8.value"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = "effort:patchedAgentEffort??%%CAPTURE:agent%%?.effort"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin teammates receive per-call or definition effort"
+  assert_contains = "agentDefinition:M,invokingRequestId:h?.requestId,effort:patchedAgentEffort??M?.effort"
+
+[[patches]]
+name = "agent-model-and-effort-schema-2-1-304-darwin-arm64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.304 scope audit: Agent module chunk-yrqzs6vn.js xo receives model Xe, absolute effort Je and relative effort ft; Xn is the timestamp and Sa/a enforce coordinator inheritance. Fork H, definition s and Ej(Ybe(s,kt),kt,xe,Pe) retain native model resolution. Request chunk-na9nw575.js retains Q options and carried effort bi. Preserve predecessor behavior and captured schema/prompt bindings."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "model"
+    strings = [
+  "Optional model override for this agent.",
+  "Agents run in the background by default;"
+]
+
+[patches.ast.captures.enumeration]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.enumeration.select]
+  node = "CallExpression"
+  source_regex = '^[A-Za-z_$][A-Za-z0-9_$]*\(\["sonnet","opus","haiku","fable"\]\)$'
+
+[patches.ast.captures.string]
+kind = "identifier"
+path = "properties.1.value.callee.object.callee"
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+  [patches.ast.captures.coordinator.select]
+  node = "ConditionalExpression"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+  string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+  [patches.ast.captures.settings.select]
+  node = "MemberExpression"
+  member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = 'model:[A-Za-z_$][A-Za-z0-9_$]*\(\["sonnet","opus","haiku","fable"\]\)\.optional\(\)'
+  value = "model:%%CAPTURE:string%%().optional()"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin schema accepts custom model IDs while retaining native effort"
+  assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin schema uses the current custom model string builder"
+  assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+
+[[patches]]
+name = "agent-model-and-effort-description-2-1-304-darwin-arm64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.304 scope audit: Agent module chunk-yrqzs6vn.js xo receives model Xe, absolute effort Je and relative effort ft; Xn is the timestamp and Sa/a enforce coordinator inheritance. Fork H, definition s and Ej(Ybe(s,kt),kt,xe,Pe) retain native model resolution. Request chunk-na9nw575.js retains Q options and carried effort bi. Preserve predecessor behavior and captured schema/prompt bindings."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "effort"
+    strings = [
+  "Reasoning effort for this agent.",
+  "Optional model override for this agent.",
+  "Agents run in the background by default;"
+]
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+  [patches.ast.captures.coordinator.select]
+  node = "ConditionalExpression"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+  string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+  [patches.ast.captures.settings.select]
+  node = "MemberExpression"
+  member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '("Reasoning effort for this agent\.[^"]*")'
+  value = "$1+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(%%CAPTURE:coordinator%%()&&%%CAPTURE:settings%%.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin native effort field keeps its levels and gains per-call precedence guidance"
+  assert_contains = "effort:N(ua).optional().describe(\"Reasoning effort for this agent. Set this ONLY when the user, or instructions such as CLAUDE.md or a skill, explicitly ask that this agent or delegated work run at a specific effort level, never on your own judgment; otherwise omit it and the agent runs at its usual effort.\"+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(Sa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin native effort field retains its fork-specific suffix"
+  assert_contains = "+(lie()?' Ignored for subagent_type: \"fork\": a fork runs at your own effort.':\"\"))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 agent-model-and-effort-schema excludes predecessor"
+  assert_not_contains = "effort:B(wa).optional().describe(\"Reasoning effort for this agent. Set this ONLY when the user, or instructions such as CLAUDE.md or a skill, explicitly ask that this agent or delegated work run at a specific effort level, never on your own judgment; otherwise omit it and the agent runs at its usual effort.\"+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(oa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+[[patches]]
+name = "agent-effective-effort-2-1-304-darwin-arm64"
+lineage = "agent-effective-effort"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.304 scope audit: Agent module chunk-yrqzs6vn.js xo receives model Xe, absolute effort Je and relative effort ft; Xn is the timestamp and Sa/a enforce coordinator inheritance. Fork H, definition s and Ej(Ybe(s,kt),kt,xe,Pe) retain native model resolution. Request chunk-na9nw575.js retains Q options and carried effort bi. Preserve predecessor behavior and captured schema/prompt bindings."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L239-L253"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "subagent_spawn_hook_retype_unreviewed" ]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(Xn=Date\\.now\\(\\));if\\(Sa\\(\\)&&a\\.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL\\)Xe=void 0;"
+  value = "$1,patchedAgentEffort=Je;if(Sa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Xe=patchedAgentEffort=Je=ft=void 0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 native absolute and relative effort respect coordinator inheritance"
+  assert_contains = "Xn=Date.now(),patchedAgentEffort=Je;if(Sa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Xe=patchedAgentEffort=Je=ft=void 0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 agent-effective-effort excludes predecessor"
+  assert_not_contains = "Jn=Date.now(),patchedAgentEffort=Ue;if(oa()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Qe=patchedAgentEffort=Ue=ft=void 0;"
+
+[[patches]]
+name = "agent-effort-resolver-priority-2-1-304-darwin-arm64"
+lineage = "agent-effort-resolver-priority"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.304 scope audit: Agent module chunk-yrqzs6vn.js xo receives model Xe, absolute effort Je and relative effort ft; Xn is the timestamp and Sa/a enforce coordinator inheritance. Fork H, definition s and Ej(Ybe(s,kt),kt,xe,Pe) retain native model resolution. Request chunk-na9nw575.js retains Q options and carried effort bi. Preserve predecessor behavior and captured schema/prompt bindings."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1559-L1569"
+locator_kind = "ast_transform"
+expected_matches = 2
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "hookEffortValue"
+    source_regex = "^\\{turnEffort:[A-Za-z_$][A-Za-z0-9_$]*\\.turnEffort,hookEffortValue:[A-Za-z_$][A-Za-z0-9_$]*\\.hookEffortValue,carriedEffort:[A-Za-z_$][A-Za-z0-9_$]*\\}$"
+    parent_node = "CallExpression"
+
+[patches.ast.captures.options]
+kind = "identifier"
+path = "object"
+
+  [patches.ast.captures.options.select]
+  node = "MemberExpression"
+  member_property = "hookEffortValue"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = "agentOverride:%%CAPTURE:options%%.agentEffortValue"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin request effort keeps the carried comparison and agent override"
+  assert_contains = "carriedEffort:bi,agentOverride:Q.agentEffortValue"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Darwin carried-effort comparison also receives agent override"
+  assert_contains = "carriedEffort:null,agentOverride:Q.agentEffortValue"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 agent-effort-resolver-priority excludes predecessor"
+  assert_not_contains = "carriedEffort:fs,agentOverride:Q.agentEffortValue"
+
+[[patches]]
+name = "agent-prompt-call-overrides-compact-2-1-304"
+lineage = "agent-prompt-call-overrides"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "2.1.304 scope audit: Agent module chunk-yrqzs6vn.js xo receives model Xe, absolute effort Je and relative effort ft; Xn is the timestamp and Sa/a enforce coordinator inheritance. Fork H, definition s and Ej(Ybe(s,kt),kt,xe,Pe) retain native model resolution. Request chunk-na9nw575.js retains Q options and carried effort bi. Preserve predecessor behavior and captured schema/prompt bindings."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/prompt.ts#L255-L270"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "When to fork",
+  "fork inherits your full conversation context",
+  "Each agent type's model, reasoning effort"
+]
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+  [patches.ast.captures.settings.select]
+  node = "MemberExpression"
+  member_property = "CLAUDE_CODE_SUBAGENT_MODEL_FORCE"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(- Each agent type's model, reasoning effort, and tools come from its definition [^\\n]+)(\\.)"
+  value = "$1${%%CAPTURE:settings%%.CLAUDE_CODE_SUBAGENT_MODEL_FORCE?\"; the `effort` parameter here overrides the definition's reasoning effort for this one call\":\"; the `model` and `effort` parameters here override the definition for this one call\"}$2"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 compact Agent prompt advertises both per-call overrides"
+  assert_contains = ".CLAUDE_CODE_SUBAGENT_MODEL_FORCE?\"; the `effort` parameter here overrides the definition's reasoning effort for this one call\":\"; the `model` and `effort` parameters here override the definition for this one call\""
+
+[[patches]]
+name = "agent-ordinary-effort-2-1-304-darwin-arm64"
+lineage = "agent-ordinary-effort"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.304 scope audit: Agent module chunk-yrqzs6vn.js xo receives model Xe, absolute effort Je and relative effort ft; Xn is the timestamp and Sa/a enforce coordinator inheritance. Fork H, definition s and Ej(Ybe(s,kt),kt,xe,Pe) retain native model resolution. Request chunk-na9nw575.js retains Q options and carried effort bi. Preserve predecessor behavior and captured schema/prompt bindings."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L603-L635"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "VariableDeclaration"
+    strings = [ "xe=H?\"inherit\":et", "Ej(Ybe(s,kt),kt,xe,Pe)" ]
+
+[patches.ast.captures.fork]
+kind = "identifier"
+path = "declarations.0.init.test"
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "declarations.1.init.arguments.0.arguments.0"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = "if(patchedAgentEffort!==void 0&&!%%CAPTURE:fork%%)%%CAPTURE:agent%%={...%%CAPTURE:agent%%,effort:patchedAgentEffort};"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 absolute effort precedes model resolution while native relative effort survives"
+  assert_contains = 'if(patchedAgentEffort!==void 0&&!H)s={...s,effort:patchedAgentEffort};let xe=H?"inherit":et,te=Ej(Ybe(s,kt),kt,xe,Pe)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 agent-ordinary-effort excludes predecessor"
+  assert_not_contains = 'if(patchedAgentEffort!==void 0&&!G)s={...s,effort:patchedAgentEffort};let Ge=G?"inherit":et,ee=jB(MSe(s,Tt),Tt,Ge,Pe)'
+
+
+[[patches]]
+name = "agent-teammate-effort-2-1-304-linux-x64"
+lineage = "agent-teammate-effort"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "2.1.304 Linux scope audit: Agent module chunk-awgtcfkm.js retains model Xe, absolute effort Je, relative effort ft and timestamp Xn; ba/a enforce coordinator inheritance, tie gates fork schema guidance. Definition P is the ninth teammate property; ordinary fork H and definition s feed pj(WSe(s,kt),kt,xe,Pe). Request module chunk-rncrmfyt.js captures options J and carried effort bi. Preserve original per-call precedence and native relative/fork semantics."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L282-L300"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "modelSource"
+    strings = [
+  "use_splitpane:!0",
+  "invokingRequestId",
+  "agent_type",
+  "agentDefinition"
+]
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "properties.8.value"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = "effort:patchedAgentEffort??%%CAPTURE:agent%%?.effort"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux teammates receive per-call or definition effort"
+  assert_contains = "agentDefinition:P,invokingRequestId:h?.requestId,effort:patchedAgentEffort??P?.effort"
+
+[[patches]]
+name = "agent-model-and-effort-schema-2-1-304-linux-x64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "2.1.304 Linux scope audit: Agent module chunk-awgtcfkm.js retains model Xe, absolute effort Je, relative effort ft and timestamp Xn; ba/a enforce coordinator inheritance, tie gates fork schema guidance. Definition P is the ninth teammate property; ordinary fork H and definition s feed pj(WSe(s,kt),kt,xe,Pe). Request module chunk-rncrmfyt.js captures options J and carried effort bi. Preserve original per-call precedence and native relative/fork semantics."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "model"
+    strings = [
+  "Optional model override for this agent.",
+  "Agents run in the background by default;"
+]
+
+[patches.ast.captures.enumeration]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.enumeration.select]
+  node = "CallExpression"
+  source_regex = '^[A-Za-z_$][A-Za-z0-9_$]*\(\["sonnet","opus","haiku","fable"\]\)$'
+
+[patches.ast.captures.string]
+kind = "identifier"
+path = "properties.1.value.callee.object.callee"
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+  [patches.ast.captures.coordinator.select]
+  node = "ConditionalExpression"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+  string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+  [patches.ast.captures.settings.select]
+  node = "MemberExpression"
+  member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = 'model:[A-Za-z_$][A-Za-z0-9_$]*\(\["sonnet","opus","haiku","fable"\]\)\.optional\(\)'
+  value = "model:%%CAPTURE:string%%().optional()"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux schema accepts custom model IDs while retaining native effort"
+  assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux schema uses the current custom model string builder"
+  assert_contains = "model:o().optional().describe(`Optional model override for this agent."
+
+[[patches]]
+name = "agent-model-and-effort-description-2-1-304-linux-x64"
+lineage = "agent-model-and-effort-schema"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "2.1.304 Linux scope audit: Agent module chunk-awgtcfkm.js retains model Xe, absolute effort Je, relative effort ft and timestamp Xn; ba/a enforce coordinator inheritance, tie gates fork schema guidance. Definition P is the ninth teammate property; ordinary fork H and definition s feed pj(WSe(s,kt),kt,xe,Pe). Request module chunk-rncrmfyt.js captures options J and carried effort bi. Preserve original per-call precedence and native relative/fork semantics."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L81-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "effort"
+    strings = [
+  "Reasoning effort for this agent.",
+  "Optional model override for this agent.",
+  "Agents run in the background by default;"
+]
+
+[patches.ast.captures.coordinator]
+kind = "identifier"
+path = "test.callee"
+
+  [patches.ast.captures.coordinator.select]
+  node = "ConditionalExpression"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*\\(\\)\\?"
+  string = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+[patches.ast.captures.settings]
+kind = "identifier"
+path = "object"
+
+  [patches.ast.captures.settings.select]
+  node = "MemberExpression"
+  member_property = "CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '("Reasoning effort for this agent\.[^"]*")'
+  value = "$1+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(%%CAPTURE:coordinator%%()&&%%CAPTURE:settings%%.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux native effort field keeps its levels and gains per-call precedence guidance"
+  assert_contains = "effort:N(ua).optional().describe(\"Reasoning effort for this agent. Set this ONLY when the user, or instructions such as CLAUDE.md or a skill, explicitly ask that this agent or delegated work run at a specific effort level, never on your own judgment; otherwise omit it and the agent runs at its usual effort.\"+\" Takes precedence over the agent definition's effort; otherwise the agent inherits its configured or parent effort.\"+(ba()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL?\" Unavailable on this session: this parameter is ignored — do not set it.\":\"\")"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux native effort field retains its fork-specific suffix"
+  assert_contains = "+(tie()?' Ignored for subagent_type: \"fork\": a fork runs at your own effort.':\"\"))"
+
+[[patches]]
+name = "agent-effective-effort-2-1-304-linux-x64"
+lineage = "agent-effective-effort"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "2.1.304 Linux scope audit: Agent module chunk-awgtcfkm.js retains model Xe, absolute effort Je, relative effort ft and timestamp Xn; ba/a enforce coordinator inheritance, tie gates fork schema guidance. Definition P is the ninth teammate property; ordinary fork H and definition s feed pj(WSe(s,kt),kt,xe,Pe). Request module chunk-rncrmfyt.js captures options J and carried effort bi. Preserve original per-call precedence and native relative/fork semantics."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L239-L253"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "subagent_spawn_hook_retype_unreviewed" ]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "(Xn=Date\\.now\\(\\));if\\(ba\\(\\)&&a\\.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL\\)Xe=void 0;"
+  value = "$1,patchedAgentEffort=Je;if(ba()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Xe=patchedAgentEffort=Je=ft=void 0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 native absolute and relative effort respect coordinator inheritance"
+  assert_contains = "Xn=Date.now(),patchedAgentEffort=Je;if(ba()&&a.CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL)Xe=patchedAgentEffort=Je=ft=void 0;"
+
+[[patches]]
+name = "agent-effort-resolver-priority-2-1-304-linux-x64"
+lineage = "agent-effort-resolver-priority"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "2.1.304 Linux scope audit: Agent module chunk-awgtcfkm.js retains model Xe, absolute effort Je, relative effort ft and timestamp Xn; ba/a enforce coordinator inheritance, tie gates fork schema guidance. Definition P is the ninth teammate property; ordinary fork H and definition s feed pj(WSe(s,kt),kt,xe,Pe). Request module chunk-rncrmfyt.js captures options J and carried effort bi. Preserve original per-call precedence and native relative/fork semantics."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1559-L1569"
+locator_kind = "ast_transform"
+expected_matches = 2
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "hookEffortValue"
+    source_regex = "^\\{turnEffort:[A-Za-z_$][A-Za-z0-9_$]*\\.turnEffort,hookEffortValue:[A-Za-z_$][A-Za-z0-9_$]*\\.hookEffortValue,carriedEffort:[A-Za-z_$][A-Za-z0-9_$]*\\}$"
+    parent_node = "CallExpression"
+
+[patches.ast.captures.options]
+kind = "identifier"
+path = "object"
+
+  [patches.ast.captures.options.select]
+  node = "MemberExpression"
+  member_property = "hookEffortValue"
+
+  [patches.transform]
+  op = "append_object_property"
+  code = "agentOverride:%%CAPTURE:options%%.agentEffortValue"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux request effort keeps the carried comparison and agent override"
+  assert_contains = "carriedEffort:bi,agentOverride:J.agentEffortValue"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 Linux carried-effort comparison also receives agent override"
+  assert_contains = "carriedEffort:null,agentOverride:J.agentEffortValue"
+
+[[patches]]
+name = "agent-ordinary-effort-2-1-304-linux-x64"
+lineage = "agent-ordinary-effort"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+platforms = [ "linux-x64" ]
+rationale = "2.1.304 Linux scope audit: Agent module chunk-awgtcfkm.js retains model Xe, absolute effort Je, relative effort ft and timestamp Xn; ba/a enforce coordinator inheritance, tie gates fork schema guidance. Definition P is the ninth teammate property; ordinary fork H and definition s feed pj(WSe(s,kt),kt,xe,Pe). Request module chunk-rncrmfyt.js captures options J and carried effort bi. Preserve original per-call precedence and native relative/fork semantics."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AgentTool/AgentTool.tsx#L603-L635"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "VariableDeclaration"
+    strings = [ "xe=H?\"inherit\":et", "pj(WSe(s,kt),kt,xe,Pe)" ]
+
+[patches.ast.captures.fork]
+kind = "identifier"
+path = "declarations.0.init.test"
+
+[patches.ast.captures.agent]
+kind = "identifier"
+path = "declarations.1.init.arguments.0.arguments.0"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = "if(patchedAgentEffort!==void 0&&!%%CAPTURE:fork%%)%%CAPTURE:agent%%={...%%CAPTURE:agent%%,effort:patchedAgentEffort};"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 absolute effort precedes model resolution while native relative effort survives"
+  assert_contains = 'if(patchedAgentEffort!==void 0&&!H)s={...s,effort:patchedAgentEffort};let xe=H?"inherit":et,te=pj(WSe(s,kt),kt,xe,Pe)'

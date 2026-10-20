@@ -377,6 +377,29 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 })
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (TARGET_VERSION === "2.1.304") {
+    // Audit each platform owner: thinking subscribes to the same focused stream
+    // and external-store reader as native streamingToolUses, not an AppState hook.
+    for (const [body, signature, subscription] of [
+      [
+        patched,
+        "function Kce(m)",
+        "G=xe((_?C:null)?.stream,lN)??sc,__acc_streamingThinking=xe((_?C:null)?.stream,(C)=>C.streamingThinking),z=D?C:null,",
+      ],
+      [
+        linuxPatched,
+        "function Uce(m)",
+        "W=xe((A?E:null)?.stream,tN)??sc,__acc_streamingThinking=xe((A?E:null)?.stream,(T)=>T.streamingThinking),G=D?E:null,",
+      ],
+    ]) {
+      const owner = getFunctionSourceUntilNextDeclaration(body, signature)
+      expect(owner).toContain(subscription)
+      expect(owner).toContain(
+        '__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})',
+      )
+    }
+    return
+  }
   if (targetUsesVersionLocalThinkingGraph) {
     for (const body of [patched, linuxPatched]) {
       expect(body).toContain("(T)=>T.streamingThinking")
@@ -576,7 +599,9 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     [patched, "darwin-arm64"],
     [linuxPatched, "linux-x64"],
   ] as const) {
-    const markerIndex = body.indexOf("__acc_streamingThinking?.thinking&&e(n,")
+    const markerIndex = body.indexOf(TARGET_VERSION === "2.1.304"
+      ? "__acc_streamingThinking?.thinking?.trim()&&e(n,"
+      : "__acc_streamingThinking?.thinking&&e(n,")
     expect(markerIndex).toBeGreaterThanOrEqual(0)
     const start = body.lastIndexOf("function ", markerIndex)
     const end = body.indexOf("function ", markerIndex)
@@ -606,11 +631,16 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     const stableInputs = [{}, {}, {}, {}, { Provider: "provider" }, jsx, jsx, "text"]
     const firstSnapshot = { thinking: "first", isStreaming: true }
     const first = render(cache, firstSnapshot, ...stableInputs)
-    expect(first.children?.[3]).toMatchObject({ children: "first" })
+    const label = TARGET_VERSION === "2.1.304" ? "∴ Summary\n" : ""
+    expect(first.children?.[3]).toMatchObject({ children: `${label}first` })
     expect(render(cache, firstSnapshot, ...stableInputs)).toBe(first)
     const next = render(cache, { thinking: "first second", isStreaming: true }, ...stableInputs)
     expect(next).not.toBe(first)
-    expect(next.children?.[3]).toMatchObject({ children: "first second" })
+    expect(next.children?.[3]).toMatchObject({ children: `${label}first second` })
+    if (TARGET_VERSION === "2.1.304") {
+      const blank = render(cache, { thinking: " \n\t", isStreaming: true }, ...stableInputs)
+      expect(blank.children?.[3]).toBeFalsy()
+    }
     const cleared = render(cache, null, ...stableInputs)
     expect(cleared.children?.[3]).toBeUndefined()
     expect(cache.length).toBe(expectedAllocation)
@@ -633,7 +663,9 @@ test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
 
 test("live thinking rendering is not suppressed by brief mode", () => {
   if (targetUsesVersionLocalThinkingGraph) {
-    const marker = "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})"
+    const marker = TARGET_VERSION === "2.1.304"
+      ? '__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})'
+      : "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})"
     for (const body of [patched, linuxPatched]) {
       const markerIndex = body.indexOf(marker)
       expect(markerIndex).toBeGreaterThanOrEqual(0)
@@ -963,5 +995,46 @@ test("live thinking is cleared before the next streamed content block", () => {
     expect(patched).not.toContain(
       'case"content_block_start":switch(A?.({type:"content_block_start"}),Y?.(()=>null),H.event.content_block.type){',
     )
+  }
+})
+
+test("304 completed summaries preserve native narration and render every nonblank body", () => {
+  if (TARGET_VERSION !== "2.1.304") return
+  for (const [body, platform, chunk, unwrap, sentinel, markdown, glyph, gate, boundary] of [
+    [patched, "darwin-arm64", "chunk-sv91xa9y.js", "o_", "b", "Ja", "Jjt", "if(!W&&!M){return null}", "ygo(Ie)||Ge!==void 0"],
+    [linuxPatched, "linux-x64", "chunk-45m6sbw9.js", "r_", "S", "Xa", "Fjt", "if(!W&&!b){return null}", "jmo(Ie)||Ge!==void 0"],
+  ]) {
+    const native = readFileSync(join(ROOT, "staging", TARGET_VERSION, "graph", platform, chunk), "utf8")
+    expect(getFunctionSourceUntilNextDeclaration(body, "function li(m)")).toBe(
+      getFunctionSourceUntilNextDeclaration(native, "function li(m)"),
+    )
+    const thinkingCase = body.slice(body.indexOf('case"thinking":{if('))
+    const completed = thinkingCase.slice(0, thinkingCase.indexOf('case"server_tool_use"'))
+    expect(completed).not.toContain(gate)
+    expect(completed).toContain("if(!d.thinking.trim()){return null}")
+    expect(completed.indexOf("param:d,model:")).toBeLessThan(completed.indexOf("if(!d.thinking.trim())"))
+    expect(body).toContain(boundary + ")")
+    expect(body).not.toContain(boundary + "&&")
+
+    const rendererSource = getFunctionSourceUntilNextDeclaration(body, "function Bs(m)")
+    expect(rendererSource).toContain("let Z=!0;")
+    const empty = Symbol("empty memo")
+    const jsx = (type: string, props: Record<string, unknown>) => ({ type, ...props })
+    const renderer = new Function(
+      "w", unwrap, "yn", sentinel, "e", "r", "s", "n", markdown, glyph, "B",
+      rendererSource + ";return Bs;",
+    )(
+      (size: number) => Array<unknown>(size).fill(empty),
+      (text: string) => text,
+      Symbol("continue"), empty, jsx, jsx, "box", "text", "markdown", "thinking-glyph", () => {},
+    ) as (props: { param: { thinking: string }; isTranscriptMode: boolean; verbose: boolean }) => unknown
+    for (const text of ["", " \n\t"]) {
+      expect(renderer({ param: { thinking: text }, isTranscriptMode: false, verbose: false })).toBeNull()
+    }
+    for (const text of ["first reasoning\nsecond line", "later reasoning retained"]) {
+      const output = renderer({ param: { thinking: text }, isTranscriptMode: false, verbose: false })
+      expect(JSON.stringify(output)).toContain(JSON.stringify(text))
+      expect(JSON.stringify(output)).toContain('"type":"markdown"')
+    }
   }
 })

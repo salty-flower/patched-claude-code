@@ -1,0 +1,263 @@
+{
+  "status": "pending-maintainer-approval",
+  "purpose": "Restore completed thinking summary visibility after the pure target bump; retain all other historical retirements unchanged.",
+  "restored": [
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-blocks"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-expanded"
+    }
+  ],
+  "previousRetiredCount": 60,
+  "remainingRetiredCount": 58,
+  "retirementProposal": {
+    "reason": "Retain 58 previously acknowledged retired invariants from 2.1.301 while restoring thinking-display/thinking-render-blocks and thinking-display/thinking-render-expanded for the requested dual-summary TUI feature. No additional retirement or new upstream-equivalence claim. Historical evidence remains authoritative for the unchanged retirement set.",
+    "evidenceRefs": [
+      "docs/records/2026-09-24-2.1.281-obligation-decisions.md",
+      "docs/records/2026-09-09-2.1.266-target-bump.md",
+      "patch-obligations/versions/2.1.273.json",
+      "docs/records/2026-09-30-2.1.285-ultracode-decisions.md",
+      "patch-obligations/versions/2.1.282.json",
+      "patch-obligations/versions/2.1.301.json"
+    ]
+  },
+  "retirements": [
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-additional-directories"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-ancestor-directories"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-file-detection"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "agents-memory-nested-directory"
+    },
+    {
+      "familyId": "agent-memory-discovery",
+      "invariantId": "memory-file-realpath-overlap-dedup"
+    },
+    {
+      "familyId": "anti-trace",
+      "invariantId": "disable-date-environment-fingerprint"
+    },
+    {
+      "familyId": "channel-access",
+      "invariantId": "ask-user-question-channels-gate"
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-focus-effort"
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-hide-adjust-hint"
+    },
+    {
+      "familyId": "custom-model-slots",
+      "invariantId": "custom-model-slot-picker-lock-effort"
+    },
+    {
+      "familyId": "explicit-macos-keychain",
+      "invariantId": "explicit-macos-keychain-require-preload-at-entrypoint"
+    },
+    {
+      "familyId": "fable-model-picker",
+      "invariantId": "api-key-picker-shows-local-fable"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-exact-fire-time"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-attachment-envelope"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-forward-attachments"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-fire-task-attachments"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-scheduler-enable"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-session-scheduler"
+    },
+    {
+      "familyId": "later-command",
+      "invariantId": "later-command-import-team-context"
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-array-text-full"
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-string-full"
+    },
+    {
+      "familyId": "mcp-result-rendering",
+      "invariantId": "mcp-result-render-text-block-full"
+    },
+    {
+      "familyId": "model-effort-ui",
+      "invariantId": "slider-workflow"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "dedupe-opus-alias-1m-suffix"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-allows-same-family-anthropic-model-default"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-detects-1m-after-alias-resolution"
+    },
+    {
+      "familyId": "resume-1m-model-defaults",
+      "invariantId": "resume-imports-resolved-default-model"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-cli-global"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-cli-settings"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-mode-hint-state"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-render-output"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-teammate-spinner-gap"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-footer-control-terminal-columns"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh-effect"
+    },
+    {
+      "familyId": "statusline-footer-control",
+      "invariantId": "statusline-json-clipboard-image-refresh-selector"
+    },
+    {
+      "familyId": "suppress-npm-native-installer-warning",
+      "invariantId": "suppress-npm-native-installer-warning-compute"
+    },
+    {
+      "familyId": "suppress-npm-native-installer-warning",
+      "invariantId": "suppress-npm-native-installer-warning-setup-card"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-clear-live-on-next-block"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-brief"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-main"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-row-input"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-row-output"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-state"
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-render-live-stream"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-effort-command-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-flag-settings-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-label-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-help-text-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-confirm-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-secondary-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-dialog-tertiary-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-slider-menu-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-startup-settings-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "ultracode-typed-arg-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "xhigh-applied-effort-max-fallback"
+    },
+    {
+      "familyId": "ultracode-opus46-max",
+      "invariantId": "xhigh-settings-opus-max-fallback"
+    }
+  ],
+  "proposalSha256": "b981016e6d2218b0104c98e9419949af45bb0430cbc05a6f3bec6e352609e7be",
+  "boundary": "This proposal does not update the active ledger, grant release authority, or approve any additional retirement. If the restored invariant set changes, a new digest requires review."
+}

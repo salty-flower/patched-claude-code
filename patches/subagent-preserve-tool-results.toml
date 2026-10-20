@@ -28,3 +28,8 @@ op = "replace_with_consequent"
 kind = "static"
 name = "replacement is rendered"
 assert_contains = '''preserveToolUseResults=!0'''
+
+[[tests]]
+kind = "static"
+name = "304 does not retain conditional tool-result preservation"
+assert_not_contains = "if(X)nt.preserveToolUseResults=!0"

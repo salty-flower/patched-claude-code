@@ -90,7 +90,9 @@ function patchedFunctions(platform: Platform): FunctionSources {
   const cached = sourceCache.get(platform)
   if (cached) return cached
   const patchFile = resolve(root, "patches/local-prompt-ablation.toml")
-  const patches = loadPatchEntriesFromFile(patchFile).filter((entry) => patchApplies(entry, version))
+  const patches = loadPatchEntriesFromFile(patchFile).filter(
+    (entry) => patchApplies(entry, version) && (entry.platforms === undefined || entry.platforms.includes(platform)),
+  )
   expect(patches).toHaveLength(3)
 
   const graph = loadGraphBundle(resolve(root, `staging/${version}/graph/${platform}`), platform)

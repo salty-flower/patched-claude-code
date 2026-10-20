@@ -150,7 +150,7 @@ test.skipIf(lt(activeTarget, fixture.source.upstreamVersion))(
     expect(fixture.schema).toBe(1)
     expect(fixture.source.upstreamVersion).toBe(targetVersion())
     expect(fixture.source.platform).toBe("darwin-arm64")
-    expect(fixture.source.bunVersion).toBe("1.4.3")
+    expect(fixture.source.bunVersion).toBe("1.4.4")
     expect(fixture.source.nativeBinarySha256).toMatch(/^[0-9a-f]{64}$/)
     expect(fixture.source.captureTool).toBe("tools/debug/capture-bun-ant-cell-segmenter.ts")
   },

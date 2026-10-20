@@ -5000,3 +5000,248 @@ locator_kind = "ast_transform"
 kind = "static"
 name = "2.1.301 rejects the previous 2.1.296 binding 0"
 assert_not_contains = "Ai(pc(f(o.file.filePath)))"
+
+[[patches]]
+name = "read-result-path-image-2-1-304"
+lineage = "read-result-path-image"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "304 Darwin renderer F(o) has no P or Z binding before the shared context injection. The six variants append the injected Z; existing formatter Zt and JSX calls remain target-owned; seeded-path formatting uses ta/Hd/f. Pure target bump of read-result-path-image-2-1-301; preserve its behavior and cleanup condition."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read image ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 image result keeps its current formatter and adds the path suffix"
+  assert_contains = "s=Zt(t)"
+  assert_not_contains = "s=en(t)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 image result has no unwrapped summary"
+  assert_contains = '([...["Read image ("'
+  assert_not_contains = 'children:["Read image (",s,")"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "s=Qt(t)"
+
+[[patches]]
+name = "read-result-path-pdf-2-1-304"
+lineage = "read-result-path-pdf"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "304 Darwin renderer F(o) has no P or Z binding before the shared context injection. The six variants append the injected Z; existing formatter Zt and JSX calls remain target-owned; seeded-path formatting uses ta/Hd/f. Pure target bump of read-result-path-pdf-2-1-301; preserve its behavior and cleanup condition."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read PDF ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 PDF result keeps its current formatter and adds the path suffix"
+  assert_contains = "s=Zt(t)"
+  assert_not_contains = "s=en(t)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 PDF result has no unwrapped summary"
+  assert_contains = '([...["Read PDF ("'
+  assert_not_contains = 'children:["Read PDF (",s,")"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "s=Qt(t)"
+
+[[patches]]
+name = "read-result-path-notebook-2-1-304"
+lineage = "read-result-path-notebook"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "304 Darwin renderer F(o) has no P or Z binding before the shared context injection. The six variants append the injected Z; existing formatter Zt and JSX calls remain target-owned; seeded-path formatting uses ta/Hd/f. Pure target bump of read-result-path-notebook-2-1-301; preserve its behavior and cleanup condition."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = " cells"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 notebook result keeps its current cell-count summary and adds the path suffix"
+  assert_contains = '" cells"],Z])'
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:t.length})," cells"]'
+
+[[patches]]
+name = "read-result-path-parts-2-1-304"
+lineage = "read-result-path-parts"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "304 Darwin renderer F(o) has no P or Z binding before the shared context injection. The six variants append the injected Z; existing formatter Zt and JSX calls remain target-owned; seeded-path formatting uses ta/Hd/f. Pure target bump of read-result-path-parts-2-1-301; preserve its behavior and cleanup condition."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "pages"
+    strings = [ "\"Read \"", ".file.originalSize", ".file.count" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 parts result keeps its current size expression and adds the suffix"
+  assert_contains = 'Zt(o.file.originalSize),")"],Z])'
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Zt(o.file.originalSize),")"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = 'Qt(o.file.originalSize),")"],Z])'
+
+[[patches]]
+name = "read-result-path-text-2-1-304"
+lineage = "read-result-path-text"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "304 Darwin renderer F(o) has no P or Z binding before the shared context injection. The six variants append the injected Z; existing formatter Zt and JSX calls remain target-owned; seeded-path formatting uses ta/Hd/f. Pure target bump of read-result-path-text-2-1-301; preserve its behavior and cleanup condition."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "lines"
+    strings = [ "\"Read \"", "bold:!0", "\"line\"" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 text result keeps its current line-count summary and adds the path suffix"
+  assert_contains = '"lines"],Z])'
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:t})," ",t===1?"line":"lines"]'
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-304-darwin-arm64"
+platforms = [ "darwin-arm64" ]
+lineage = "read-result-path-unchanged"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "304 Darwin renderer F(o) has no P or Z binding before the shared context injection. The six variants append the injected Z; existing formatter Zt and JSX calls remain target-owned; seeded-path formatting uses ta/Hd/f. Pure target bump of read-result-path-unchanged-2-1-301-darwin-arm64; preserve its behavior and cleanup condition."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    string_literal = "Unchanged since last read"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 unchanged result keeps its current seeded-path formatter and adds the suffix"
+  assert_contains = "ta(Hd(f(o.file.filePath)))"
+  assert_not_contains = "_i(Kl(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 unchanged result has no unwrapped children conditional"
+  assert_contains = '"Unchanged since last read",Z])'
+  assert_not_contains = 'children:o.source==="seeded"?'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "Ci(pc(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes previous target bytes 3"
+  assert_not_contains = "Ui(Od(f(o.file.filePath)))"
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-304-linux-x64"
+platforms = [ "linux-x64" ]
+lineage = "read-result-path-unchanged"
+target_version = "2.1.304"
+applies_to = ">=2.1.304 <2.1.305"
+rationale = "304 Linux renderer F(o) matches the Darwin read-result scope; local P/Z are supplied by the shared context patch and seeded-path formatter is ta/Hd/f. Original JSX and formatting expressions are retained. Pure target-local carryover of read-result-path-unchanged-2-1-301-linux-x64."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    string_literal = "Unchanged since last read"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 unchanged result keeps its current seeded-path formatter and adds the suffix"
+  assert_contains = "ta(Hd(f(o.file.filePath)))"
+  assert_not_contains = "_i(Kl(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 unchanged result has no unwrapped children conditional"
+  assert_contains = '"Unchanged since last read",Z])'
+  assert_not_contains = 'children:o.source==="seeded"?'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.304 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "Ai(pc(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 inserted scope 3"
+  assert_not_contains = "Ui(Od(f(o.file.filePath)))"

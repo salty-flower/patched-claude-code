@@ -30,3 +30,8 @@ op = "replace_function_body_with_first_var_initializer_return"
 kind = "static"
 name = "replacement is rendered"
 assert_contains = '''return e.filter('''
+
+[[tests]]
+kind = "static"
+name = "304 no longer enters the Darwin REPL rewrite gate"
+assert_not_contains = 'function GPe(e,n=e){let r=e.filter(Cw);if(Kkr()==="ant")return r;'

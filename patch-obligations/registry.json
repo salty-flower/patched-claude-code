@@ -2163,6 +2163,38 @@
       ]
     },
     {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-display-interactive-default",
+      "introducedVersion": "2.1.304",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/betas.ts#L264-L276"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "thinking-display/thinking-display-interactive-default"
+      ]
+    },
+    {
+      "familyId": "thinking-display",
+      "invariantId": "thinking-preserve-summary-boundaries",
+      "introducedVersion": "2.1.304",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/collapseReadSearch.ts#L918-L944"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "thinking-display/thinking-preserve-summary-boundaries"
+      ]
+    },
+    {
       "familyId": "transcript-preserve-repl-history",
       "invariantId": "transcript-preserve-repl-history",
       "introducedVersion": "2.1.133",
@@ -2634,8 +2666,8 @@
     }
   ],
   "maintainerAcknowledgement": {
-    "approvedBy": "salty-flower",
-    "approvedAt": "2026-10-07",
-    "catalogSha256": "333cda8d53df15930ddab7d31a5d27569b6218a150b6cd574e83e696db16d6ea"
+    "approvedBy": "maintainer (interactive approval)",
+    "approvedAt": "2026-10-20",
+    "catalogSha256": "069724b3d5f4509160fa760a7c9693fcc88b106cc780ac58f727f672c60424fd"
   }
 }

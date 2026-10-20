@@ -20,18 +20,29 @@ const version = targetVersion()
 
 for (const platform of ["darwin-arm64", "linux-x64"]) {
   test(`${platform}: ${version} effort command preserves independent ultracode and transactional model state`, async () => {
-    const patch = activePatch(patches, version, platform, "model-effort-command-")
+    const patch = activePatch(
+      patches.filter((entry) => entry.lineage !== "model-effort-command-import"),
+      version,
+      platform,
+      "model-effort-command-",
+    )
     const current = activePatch(patches, version, platform, "model-effort-current-")
     const commandName = patch.ast?.match.function_name
     const currentName = current.ast?.match.function_name
-    const source =
-      patch.transform?.op === "replace_function_body" && commandName
-        ? `async function ${commandName}(e,t,o,r=!0,s)${patch.transform.body}`
-        : patch.replacement
-    const currentSource =
-      current.transform?.op === "replace_function_body" && currentName
-        ? `function ${currentName}(e,t,o)${current.transform.body}`
-        : current.replacement
+    // Preserve the real signature and native fallback when a target prepends its override.
+    // Reconstructing a body would discard the transactional remote/Ultracode path.
+    let native: string | undefined
+    if (commandName && currentName) {
+      const graph = resolve(import.meta.dir, `../../staging/${version}/graph`, platform)
+      const candidates = readdirSync(graph)
+        .filter((file) => file.endsWith(".js"))
+        .map((file) => readFileSync(join(graph, file), "utf8"))
+        .filter((source) => source.includes(`function ${commandName}(`) && source.includes(`function ${currentName}(`))
+      if (candidates.length !== 1) throw new Error(`expected one native effort module, got ${candidates.length}`)
+      native = candidates[0]
+    }
+    const source = native ? patchedFunction(native, patch).patched : patch.replacement
+    const currentSource = native ? patchedFunction(native, current).patched : current.replacement
     if (!source || !currentSource) throw new Error("command replacements missing")
     const binding = (role: string, pattern: RegExp) => captureIdentifier(source, role, pattern)
     let state: State = {
@@ -81,11 +92,13 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       return failure ? { message: "Failed to save" } : { message: "Applied", effortUpdate: change }
     }
     const bindings: Record<string, unknown> = {
-      [binding("remote detector", /if\(([\w$]+)\(\)!==null\)return patchedNative/)]: () => (remote ? "remote" : null),
-      [captureIdentifier(currentSource, "active ultracode", /\+\(([\w$]+)\(o,t\)\?/)]: (enabled: boolean) => enabled,
+      [binding("remote detector", /if\(([\w$]+)\(\)(?:!==null\)return patchedNative|===null&&)/)]: () =>
+        remote ? "remote" : null,
+      [captureIdentifier(currentSource, "active ultracode", /\+\(([\w$]+)\([\w$]+,t\)\?/)]: (enabled: boolean) =>
+        enabled,
       [binding("active model", /const model=([\w$]+)\(\)/)]: () => "opus",
       [binding("session resolver", /current=([\w$]+)\.session\(model\)/)]: resolver,
-      [binding("toggle parser", /if\(([\w$]+)\(e\.trim/)]: parseToggle,
+      [binding("toggle parser", /([\w$]+)\(e\.trim\(\)\.toLowerCase\(\)\)/)]: parseToggle,
       [binding("native dispatcher", /result=await ([\w$]+)\(e,t/)]: dispatcher,
       [binding("native reset", /ultracode===void 0\)([\w$]+)\(\)/)]: () => {},
       [binding("native effort constructor", /ultracode===void 0\?([\w$]+)\([\w$]+\.value\)/)]: (value?: string) => ({
@@ -140,8 +153,10 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(dispatched).toBe(beforePin)
     await run("ultracode off")
     expect(state.ultracode).toBe(false)
+    expect(persisted).toBe(false)
     await run("ultracode on")
     expect(state.ultracode).toBe(true)
+    expect(persisted).toBe(false)
     expect(state.effortRevision).toBe(2)
     expect(operations).toBe(2)
     expect(state.sessionEffort.value).toBe("medium")
@@ -160,6 +175,17 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(state.effortRevision).toBe(2)
     expect(operations).toBe(2)
     expect(state.ultracode).toBe(true)
+
+    // Native fallback changes state optimistically, then rolls it back on failure.
+    const beforeFailure = structuredClone(state)
+    await run("ultracode off")
+    expect(persisted).toBe(false)
+    expect(state).toEqual(beforeFailure)
+    remote = true
+    await run("max")
+    expect(persisted).toBe(true)
+    expect(state).toEqual(beforeFailure)
+    expect(operations).toBe(2)
   })
 
   test(`${platform}: ${version} slider guard uses the native current-status component`, () => {

@@ -1,6 +1,11 @@
 import { expect, test } from "bun:test"
 import { EventConditions } from "./helpers/event-conditions"
-import { finishThinkingSummaryInput, type LifecycleWait, settleThroughWait } from "./helpers/thinking-summary-lifecycle"
+import {
+  finishThinkingSummaryInput,
+  hasThinkingSummaryExitHint,
+  type LifecycleWait,
+  settleThroughWait,
+} from "./helpers/thinking-summary-lifecycle"
 
 function deadlineWait(milliseconds: number) {
   const events = new EventConditions()
@@ -34,6 +39,7 @@ for (const code of [0, 7]) {
       const completion = finishThinkingSummaryInput(
         () => child.stdin.end(),
         () => exitCode,
+        () => true,
         gate.wait,
         gate.notify,
       )
@@ -66,6 +72,7 @@ test("process which never reports exit is interrupted after EOF", async () => {
       finishThinkingSummaryInput(
         () => 0,
         () => undefined,
+        () => true,
         gate.wait,
         gate.notify,
       ),
@@ -81,6 +88,89 @@ test("stdin rejection is preserved rather than treated as successful settlement"
     await expect(
       settleThroughWait(Promise.reject(new Error("closed input")), gate.wait, gate.notify, "flush"),
     ).rejects.toThrow("closed input")
+  } finally {
+    gate.clear()
+  }
+})
+
+test("CR flush alone cannot close stdin; matching delayed application ACK releases EOF", async () => {
+  const gate = deadlineWait(1000)
+  const session = "11111111-1111-1111-1111-111111111111"
+  let screen = "❯ /exit "
+  let ended = false
+  let code: number | undefined
+  try {
+    const completion = finishThinkingSummaryInput(
+      () => {
+        ended = true
+        code = 0
+        gate.notify()
+      },
+      () => code,
+      () => hasThinkingSummaryExitHint(screen, session),
+      gate.wait,
+      gate.notify,
+    )
+    await Promise.resolve()
+    expect(ended).toBe(false)
+    screen = "Resume this session with:\nclaude --resume 22222222-2222-2222-2222-222222222222"
+    gate.notify()
+    await Promise.resolve()
+    expect(ended).toBe(false)
+    screen = `Resume this session with:\nclaude --resume ${session}`
+    gate.notify()
+    await completion
+    expect(ended).toBe(true)
+  } finally {
+    gate.clear()
+  }
+})
+
+test("missing application ACK times out without sending EOF", async () => {
+  const gate = deadlineWait(20)
+  let ended = false
+  try {
+    await expect(
+      finishThinkingSummaryInput(
+        () => {
+          ended = true
+        },
+        () => undefined,
+        () => false,
+        gate.wait,
+        gate.notify,
+      ),
+    ).rejects.toThrow("deadline: application exit acknowledged")
+    expect(ended).toBe(false)
+  } finally {
+    gate.clear()
+  }
+})
+
+test("hint must precede the current session's complete resume argument", () => {
+  const session = "11111111-1111-1111-1111-111111111111"
+  expect(hasThinkingSummaryExitHint(`${session}\nResume this session with:`, session)).toBe(false)
+  expect(
+    hasThinkingSummaryExitHint(`Resume this session with:\nclaude --resume ${session.slice(0, -1)}`, session),
+  ).toBe(false)
+  expect(hasThinkingSummaryExitHint(`Resume this session with:\nclaude --resume wrong\n${session}`, session)).toBe(
+    false,
+  )
+  expect(hasThinkingSummaryExitHint(`Resume this session with:\nclaude --resume ${session}`, session)).toBe(true)
+})
+
+test("known nonzero process exit never requires UI hint and still fails", async () => {
+  const gate = deadlineWait(1000)
+  try {
+    await expect(
+      finishThinkingSummaryInput(
+        () => 0,
+        () => 7,
+        () => false,
+        gate.wait,
+        gate.notify,
+      ),
+    ).rejects.toThrow("PTY child must exit successfully")
   } finally {
     gate.clear()
   }

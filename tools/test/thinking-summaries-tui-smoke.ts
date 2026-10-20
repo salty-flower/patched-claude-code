@@ -12,7 +12,11 @@ import { shellEnvironment, shellQuote } from "./helpers/pty"
 import { emptyPrompt, submitPtyText } from "./helpers/pty-input"
 import { recordThinkingSummaryBoundaryRuntimeOracle } from "./helpers/runtime-oracle-checks"
 import { thinkingSummaryCancelReady } from "./helpers/thinking-summary-cancel-ready"
-import { finishThinkingSummaryInput, settleThroughWait } from "./helpers/thinking-summary-lifecycle"
+import {
+  finishThinkingSummaryInput,
+  hasThinkingSummaryExitHint,
+  settleThroughWait,
+} from "./helpers/thinking-summary-lifecycle"
 
 type JsonObject = Record<string, unknown>
 type CapturedRequest = Omit<ClaudeApiRequest, "stub">
@@ -356,10 +360,14 @@ async function scenario(options: Options, display: string, cols: number, rows: n
       await settleThroughWait(proc.stdin.flush(), wait, notify, "stdin key flush")
     }
     async function finishInput(): Promise<void> {
-      diagnostic("sending stdin EOF and awaiting exit")
+      diagnostic("awaiting application exit acknowledgement before stdin EOF")
       await finishThinkingSummaryInput(
-        () => proc.stdin.end(),
+        () => {
+          diagnostic("exit acknowledged; sending stdin EOF and awaiting exit")
+          return proc.stdin.end()
+        },
         () => exited,
+        () => hasThinkingSummaryExitHint(screen, sessionId),
         wait,
         notify,
       )

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{p}from"./chunk-949csv87.js";import{mc,A4n}from"./chunk-h3dn4j2q.js";import{rY}from"./chunk-pkf28rpz.js";import{o,oe,u,A}from"./chunk-mqaa2rrp.js";var Lbe="anthropic/devicePassthrough",xei=["get_device_info","device_bash","list_devices","sync_files"],r="Claude_Browser__",n=128,afr=1,_=p(()=>u({v:A(afr),tool:o().min(1).max(n),target:oe().optional()}));function P5t(t){let e=_().safeParse(t);if(!e.success)return;let s=A4n(e.data.target);return s===void 0?void 0:{v:e.data.v,tool:mc(e.data.tool,n),target:s}}var a=xei.map(rY),c=`${rY(r)}_`;function i(t){let e=`${rY(t)}_`;return a.some((s)=>e.startsWith(`${s}_`))}var E=new Set(["computer_request_access","computer_request_full_control","device_request_folder_access","device_request_delete_permission"]),l="device_bash";function lfr(t){let e=t.lastIndexOf("__"),s=e===-1?t:t.slice(e+2);return E.has(s)||t===l||`__${t}`.endsWith("__Claude_Browser__request_access")}function zNe(t){return!i(t)&&!`${rY(t)}_`.startsWith(c)&&!lfr(t)}
+export{Lbe,xei,afr,P5t,lfr,zNe};

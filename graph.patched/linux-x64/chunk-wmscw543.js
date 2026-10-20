@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{ir}from"./chunk-7p6jp6kj.js";import{YPe}from"./chunk-g9wezmnw.js";var t="tengu_harp_forepillar";function g2t(){return ir(t,!1)===!0}function G8o(e,r){if(e===r)return"launch_dir";return YPe(e,r)?"inside_launch_dir":"elsewhere"}
+export{g2t,G8o};

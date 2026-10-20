@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{Ts}from"./chunk-jfr81xvv.js";import{at}from"./chunk-kpqr86hf.js";function p(){return Ts({value:"",active:!1,launchWarning:null,linkSuppliedTexts:new Set,submittedLinkPrefill:null,vimMode:"INSERT",stash:null,cameBack:!1})}var a=new at(()=>p());function KO(n){return a.of(n)}function zTn(n){return KO(n).getState().value}function mNe(n,e){n.setState((t)=>{if(t.value===e)return t;if(t.value!==""&&e===""){let o=t.value.trim(),r=t.launchWarning?.type==="deep-link"&&t.launchWarning.text===void 0?new Set(t.linkSuppliedTexts).add(o):t.linkSuppliedTexts;return{...t,value:e,launchWarning:null,linkSuppliedTexts:r,submittedLinkPrefill:r.has(o)?t.value:null,cameBack:!1}}return{...t,value:e}})}function n7r(n){return KO(n).getState().submittedLinkPrefill}function r7r(n,e,t){KO(n).setState((o)=>{let r=t.trim();if(r===""||o.linkSuppliedTexts.has(r)||!o.linkSuppliedTexts.has(e.trim()))return o;return{...o,linkSuppliedTexts:new Set(o.linkSuppliedTexts).add(r)}})}function Irs(n,e){mNe(KO(n),e)}function o7r(n,e){n.setState((t)=>t.stash===e?t:{...t,stash:e})}function VTn(n,e){n.setState((t)=>t.active===e?t:{...t,active:e})}function edr(n,e){VTn(KO(n),e)}function Ors(n,e){n.setState((t)=>{let o=e&&t.value!=="";return t.cameBack===o?t:{...t,cameBack:o}})}function Hqt(n,e){KO(n).setState((t)=>t.vimMode===e?t:{...t,vimMode:e})}function tdr(n,e){n.setState((t)=>{let o=e.type==="deep-link"?e.text?.trim():void 0,r=o===void 0||t.linkSuppliedTexts.has(o)?t.linkSuppliedTexts:new Set(t.linkSuppliedTexts).add(o),i=t.launchWarning?.type===e.type&&t.launchWarning.prefillLength===e.prefillLength?t.launchWarning:e;return i===t.launchWarning&&r===t.linkSuppliedTexts?t:{...t,launchWarning:i,linkSuppliedTexts:r}})}function s7r(n,e){tdr(KO(n),e)}
+export{KO,zTn,mNe,n7r,r7r,Irs,o7r,VTn,edr,Ors,Hqt,tdr,s7r};

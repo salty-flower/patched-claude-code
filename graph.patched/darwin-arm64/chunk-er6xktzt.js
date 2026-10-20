@@ -1,0 +1,11 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{De}from"./chunk-20v03qyc.js";import{Fbs,lbr,RJt,xJt,Sni,bni,wni,VQt}from"./chunk-na9nw575.js";import{Aa}from"./chunk-npmba379.js";function m(e,n){let s=e.subagentType===n.agent.agentType?n.agent:n.agents.find((t)=>t.agentType===e.subagentType);if(s!==void 0)return{agent:s};let r=n.agents.map((t)=>t.agentType),g=r.length>0?`available: ${r.join(", ")}`:"none is available";return{deny:`a hook's subagentType '${e.subagentType}' names no agent this call can dispatch (${g})`}}var c=(e)=>({tool_use_id:e.tool_use_id,prompt:e.prompt,description:e.description,subagentType:e.agent.agentType,provider:Fbs(e.agent),model:e.model,parentModel:e.parentModel,...e.parentAgentId!==void 0&&{parentAgentId:e.parentAgentId},permissionMode:e.permissionMode,background:e.background,fork:e.fork,...e.isTeammate===!0&&{isTeammate:!0},...e.workflow!==void 0&&{workflow:e.workflow},...e.resume!==void 0&&{resume:e.resume},name:e.name,cwd:e.cwd});var d=(e)=>({started:({agentId:n,model:o,teammateId:s})=>e.done({model:o,agentId:n,...s!==void 0&&{teammateId:s}}),[Symbol.dispose]:e[Symbol.dispose]});var Xto=Object.freeze({started:()=>{return},[Symbol.dispose]:()=>{return}});async function dpr(e,n){let{agent:o,agents:s,signal:r,origin:g}=e,t=c(e);if(!Aa("agent.spawn"))return{spawn:t,agent:o,starting:Xto,isRewritten:!1};let a=xJt(wni),f=await RJt(a,n({signal:r,origin:g,core:{"agent.spawn":lbr(a)}}).agent.spawn(t));if(!f.arrived)return Sni({result:f.answered,input:t,signal:r});let p=f.arrived;bni({input:t,spawn:p});let i=m(p,{agent:o,agents:s});if(i.deny!==void 0)return a.failed(new De(i.deny)),i;return{spawn:p,agent:i.agent,starting:d(a),isRewritten:!VQt({input:t},p)}}export{Xto,dpr};

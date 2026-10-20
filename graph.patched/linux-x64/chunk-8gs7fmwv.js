@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{Hy}from"./chunk-sjx6846d.js";import{a}from"./chunk-cd1a8ced.js";import{Ct,Zme,Yv}from"./chunk-h3dn4j2q.js";import{We}from"./chunk-4qs43hr1.js";import{zd}from"./chunk-h3c350fm.js";import{Pi}from"./chunk-yb4qaat4.js";import{wm}from"./chunk-pja9erbz.js";import{qFs}from"./chunk-pva8dd23.js";import{$ut}from"./chunk-2gh4h0fv.js";import{Izn,xAo,aLs,mon}from"./chunk-0b0qn8vr.js";import{vh}from"./chunk-d6g6rfje.js";import{DAn,urs}from"./chunk-kfs7yvh2.js";import{eEe,Zpt}from"./chunk-4zyyyxzh.js";import{HAn}from"./chunk-8x0mf20w.js";import{BT}from"./chunk-g9wezmnw.js";import{wq}from"./chunk-w3f8f1dm.js";import{to,Ac}from"./chunk-08y6ag9s.js";var c=new Set([wm,Hy]);function eJr(o,e){if(e.length===0)return o;let t=e.map((i)=>[i,to(i)]),n=o.filter((i)=>!t.some(([m,r])=>Ac(i,m,r)));return n.length===o.length?o:n}function f(o){return o.mcpInfo?.cliOwned===!0&&o.mcpInfo.serverName===zd}var p=((...args)=>{const value=import.meta.require(...args);return typeof args[0]==="string"&&args[0].endsWith(".embedded.txt")?value.default:value})("./chunk-2akzj1ss.js");function MAn(){return(process.env.CLAUDE_CODE_COORDINATOR_EXTRA_TOOLS??"").split(",").map((o)=>o.trim()).filter(Boolean)}function tJr(o,e=MAn()){if(eEe(o)||xAo.includes(o.name))return!0;let t=to(o.name);return e.some((n)=>n.startsWith(t))}function Glr(o,e=()=>!1){let t=a.CLAUDE_CODE_BRIEF,n=new Set(MAn()),i=mon(),m=o.some(Zpt);return o.filter((r)=>Izn.has(r.name)||i&&Ct(r,We)&&!vh(r)||aLs(r.name)||f(r)||Zpt(r)||t&&c.has(r.name)||Yv(r,n)||!m&&e(r))}function R4t(o,e,t,n,i){let[m,r]=BT(HAn(Pi($ut([...o,...e]),"name"),n),(l)=>vh(l)||wq(l)),s=[...urs(r).sort(Zme),...DAn(m,n??m).sort(Zme)];if(p.isCoordinatorMode())return Glr(s,i);return s}function x4t(o,e){let t=o.length===1?o[0]:void 0;if(t&&qFs(e,t))return[];return o}
+export{eJr,MAn,tJr,Glr,R4t,x4t};

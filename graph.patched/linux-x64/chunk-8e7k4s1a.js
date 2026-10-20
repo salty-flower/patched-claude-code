@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{Ig}from"./chunk-yb4qaat4.js";import{Fe,Rs}from"./chunk-8nra9hkj.js";import{a}from"./chunk-cd1a8ced.js";import{XVo,vZn}from"./chunk-zjcj7ams.js";import{Ofe}from"./chunk-2gh4h0fv.js";import{s2}from"./chunk-h3dn4j2q.js";var s3t="CLAUDE_CODE_RELAUNCH_PROACTIVITY_BASELINE",i3t="CLAUDE_CODE_RELAUNCH_PROACTIVITY_LEVEL",UCt="CLAUDE_CODE_RELAUNCH_PROACTIVITY_DECIDED",a3t="CLAUDE_CODE_RELAUNCH_PROACTIVITY_EVER_ON";function bus(e){return e.toolPermissionContext.proactivityBaseline===void 0?void 0:e}function AIn({toolPermissionContext:e}){let t=e.proactivityBaseline;return t===void 0?{}:{[s3t]:t.mode}}function CIn({proactivityLevel:e,toolPermissionContext:t}){let n={[i3t]:e};if(t.startupModeDecidedByProactivityLevel!==void 0)n[UCt]="1";if(s2())n[a3t]="1";return n}function Sus({toolPermissionContext:e}){return e.startupModeDecidedByProactivityLevel===void 0?{[UCt]:"0"}:{}}function wus(e){return vZn(e)!=="fresh"||XVo(e).some((t)=>t==="--permission-mode"||t.startsWith("--permission-mode="))}function vus(e){let t=a.CLAUDE_CODE_RELAUNCH_PROACTIVITY_BASELINE;a.unset("CLAUDE_CODE_RELAUNCH_PROACTIVITY_BASELINE");let n=Ig(t);if(n==="bypassPermissions"&&!e)return;return n}function Eus(){let e=a.CLAUDE_CODE_RELAUNCH_PROACTIVITY_LEVEL;if(a.unset("CLAUDE_CODE_RELAUNCH_PROACTIVITY_LEVEL"),Ofe(e))return e;a.unset("CLAUDE_CODE_RELAUNCH_PROACTIVITY_DECIDED"),a.unset("CLAUDE_CODE_RELAUNCH_PROACTIVITY_EVER_ON");return}function kus(){let e=a.CLAUDE_CODE_RELAUNCH_PROACTIVITY_EVER_ON;return a.unset("CLAUDE_CODE_RELAUNCH_PROACTIVITY_EVER_ON"),Fe(e)}function Tus(){return Ofe(a.CLAUDE_CODE_RELAUNCH_PROACTIVITY_LEVEL)&&Fe(a.CLAUDE_CODE_RELAUNCH_PROACTIVITY_EVER_ON)}function RIn(){let e=a.CLAUDE_CODE_RELAUNCH_PROACTIVITY_DECIDED;if(a.unset("CLAUDE_CODE_RELAUNCH_PROACTIVITY_DECIDED"),Fe(e))return!0;if(Rs(e))return!1;return}
+export{s3t,i3t,UCt,a3t,bus,AIn,CIn,Sus,wus,vus,Eus,kus,Tus,RIn};

@@ -1,0 +1,85 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{NK,Z}from"./chunk-dxktn51d.js";import{k,ir}from"./chunk-7p6jp6kj.js";import{a}from"./chunk-cd1a8ced.js";import{I}from"./chunk-nt1g7asm.js";import{sn}from"./chunk-17fr76vj.js";import{We}from"./chunk-4qs43hr1.js";import{QIe}from"./chunk-sxff57pj.js";import{AI}from"./chunk-nxwrba6a.js";import{ri}from"./chunk-7qnqqn8q.js";import{Kht}from"./chunk-sx6k1rkh.js";var b9e=300000,_on=3600000,o=1800000,s=600000;function JIe(){return NK()||Z()?s:o}var l="[Monitor timed out \u2014 re-arm if needed.]";function mae(){return Z()||ir("tengu_breezy_crescent",!0)}function HLt(e){return`${Math.round(e/60000)} minutes`}function vLs(e,t){if(t)return{timeout_ms:Math.min(e.timeout_ms,JIe()),persistent:!1};let n=e.persistent===!0;if(!a.CLAUDE_CODE_REMOTE)return{timeout_ms:e.timeout_ms,persistent:n};return{timeout_ms:n?o:Math.min(e.timeout_ms,o),persistent:!1}}function SPr(e,t,n){if(!n)return l;let i=sn(e,{hideTrailingZeros:!0}),r=Z()?"Re-arm it only if you have more to do before you reply; after your reply a new watch may stop within a minute, so tell the user what to check instead":"Re-arm it if you still need the watch";if(t===0)return`[Monitor expired after ${i} with no events delivered. ${r} \u2014 and widen the filter if silence was unexpected.]`;return`[Monitor expired after ${i} with ${t} ${I(t,"event")} delivered. ${r}.]`}function UAo(){return QIe()?`
+
+When an event lands that the user would want to act on now \u2014 an error appeared, the status they were waiting on flipped \u2014 send a ${AI}. Not every event is worth a push; the ones that change what they'd do next are.`:""}function T5(){return k("tengu_amber_sentinel",!1)}function BAo(){let e=Kht()||Z(),t='- **One** ("tell me when the server is ready / the build finishes") \u2192 '+(e?'run the command in the **foreground with Bash**, exiting when the condition is true, e.g. `until grep -q "Ready in" dev.log; do sleep 0.5; done`.':'use **Bash with `run_in_background`** and a command that exits when the condition is true, e.g. `until grep -q "Ready in" dev.log; do sleep 0.5; done`. You get a single completion notification when it exits.'),n=e?"use a foreground Bash `until` loop instead":"use Bash `run_in_background` with an `until` loop instead (one notification, ends in seconds)";return`Start a background monitor that streams events from a long-running script. Each stdout line is an event \u2014 you keep working and notifications arrive in the chat. Events arrive on their own schedule and are not replies from the user, even if one lands while you're waiting for the user to answer a question.${Z()?` ${u}`:""}
+
+Pick by how many notifications you need:
+${t}
+${Z()?`- **One per occurrence, while you work on this turn** ("show each ERROR line in the dev server's log while you try the change") \u2192 ${ri} with an unbounded command (\`tail -f\`, \`inotifywait -m\`, \`while true\`).
+- **One per occurrence, until a known end, while you work on this turn** ("show each test file's result as the suite you just started runs, stop when it ends") \u2192 ${ri} with a command that emits lines and then exits.`:`- **One per occurrence, ${mae()?"until the monitor expires (re-arm to continue)":"indefinitely"}** ("tell me every time an ERROR line appears") \u2192 Monitor with an unbounded command (\`tail -f\`, \`inotifywait -m\`, \`while true\`).
+- **One per occurrence, until a known end** ("emit each CI step result, stop when the run completes") \u2192 Monitor with a command that emits lines and then exits.`}
+
+Your script's stdout is the event stream. Each line becomes a notification. Exit ends the watch.
+
+  # Each matching log line is an event
+  tail -f /var/log/app.log | grep --line-buffered "ERROR"
+
+  # Each file change is an event
+  inotifywait -m --format '%e %f' /watched/dir
+
+  # Poll GitHub for new PR comments and emit one line per new comment
+  last=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  while true; do
+    now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    gh api "repos/owner/repo/issues/123/comments?since=$last" --jq '.[] | "\\(.user.login): \\(.body)"'
+    last=$now; sleep 30
+  done
+
+  # Node script that emits events as they arrive (e.g. WebSocket listener)
+  node watch-for-events.js
+
+  # Per-occurrence with a natural end: emit each CI check as it lands, exit when the run completes
+  prev=""
+  while true; do
+    s=$(gh pr checks 123 --json name,bucket)
+    cur=$(jq -r '.[] | select(.bucket!="pending") | "\\(.name): \\(.bucket)"' <<<"$s" | sort)
+    comm -13 <(echo "$prev") <(echo "$cur")
+    prev=$cur
+    jq -e 'all(.bucket!="pending")' <<<"$s" >/dev/null && break
+    sleep 30
+  done
+
+**Don't use an unbounded command for a single notification.** \`tail -f\`, \`inotifywait -m\`, and \`while true\` never exit on their own, so the monitor stays armed until timeout even after the event has fired. For "tell me when X is ready," ${n}. Note that \`tail -f log | grep -m 1 ...\` does *not* fix this: if the log goes quiet after the match, \`tail\` never receives SIGPIPE and the pipeline hangs anyway.
+
+**Script quality:**
+- Every pipe stage must flush per line or matches sit in its buffer unseen: \`grep\` needs \`--line-buffered\`, \`awk\` needs \`fflush()\`. \`head\` cannot flush at all \u2014 \`| head -N\` delivers nothing until N matches accumulate, then ends the stream.
+- In poll loops, handle transient failures (\`curl ... || true\`) \u2014 one failed request shouldn't kill the monitor.
+- Poll intervals: 30s+ for remote APIs (rate limits), 0.5-1s for local checks.
+- Write a specific \`description\` \u2014 it appears in every notification ("errors in deploy.log" not "watching logs").
+- Only stdout is the event stream. ${Z()?"Stderr does not trigger notifications; you see only its last lines, in the notice sent when the script ends":"Stderr goes to the output file (readable via Read) but does not trigger notifications"} \u2014 for a command you run directly (e.g. \`python train.py 2>&1 | grep --line-buffered ...\`), merge stderr with \`2>&1\` so its failures reach your filter. (No effect on \`tail -f\` of an existing log \u2014 that file only contains what its writer redirected.)
+
+**Coverage \u2014 silence is not success.** When watching a job or process for an outcome, your filter must match every terminal state, not just the happy path. A monitor that greps only for the success marker stays silent through a crashloop, a hung process, or an unexpected exit \u2014 and silence looks identical to "still running." Before arming, ask: *if this process crashed right now, would my filter emit anything?* If not, widen it.
+
+  # Wrong \u2014 silent on crash, hang, or any non-success exit
+  tail -f run.log | grep --line-buffered "elapsed_steps="
+
+  # Right \u2014 one alternation covering progress + the failure signatures you'd act on
+  tail -f run.log | grep -E --line-buffered "elapsed_steps=|Traceback|Error|FAILED|assert|Killed|OOM"
+
+For poll loops checking job state, emit on every terminal status (\`succeeded|failed|cancelled|timeout\`), not just success. If you cannot confidently enumerate the failure signatures, broaden the grep alternation rather than narrow it \u2014 some extra noise is better than missing a crashloop.
+
+**Output volume**: Every stdout line is a conversation message, so the filter should be selective \u2014 but selective means "the lines you'd act on," not "only good news." Never pipe raw logs; filter to exactly the success and failure signals you care about. Monitors that produce too many events are automatically stopped; restart with a tighter filter if this happens.
+
+Stdout lines within 200ms are batched into a single notification, so multiline output from a single event groups naturally.
+
+The script runs in the same shell environment as Bash. Exit ends the watch (exit code is reported). ${h()} Use TaskStop to cancel early.`}var u=`In this session a monitor can be counted on only while you are working. After your reply it may stop at any time, often within a minute, and you are told so with the user's next message. To wait for one thing before you answer, run a foreground ${We} command that exits when it happens; for anything longer, tell the user what to check and when.`;function h(){if(Z())return`Every monitor expires after \`timeout_ms\` (default ${HLt(b9e)}, at most ${HLt(JIe())}): it is killed and you get one notice with the event count. If it stops after your reply and before it expires, you learn only that it stopped, with the user's next message.`;return mae()?`Every monitor expires after \`timeout_ms\` (default ${HLt(b9e)}, at most ${HLt(JIe())}): it is killed and you get one notice with the event count. Re-arm it if you still need the watch; for a long watch (PR monitoring, log tails) set \`timeout_ms\` to the maximum and re-arm on each expiry, and widen the filter if an expiry with no events was unexpected.`:"Timeout \u2192 killed. Set `persistent: true` for session-length watches (PR monitoring, log tails) \u2014 the monitor runs until you call TaskStop or the session ends."}var jAo=`
+**ws source** \u2014 open a WebSocket and stream each incoming text frame as an event. No shell, no polling: the server pushes, you get notified.
+
+  Monitor({
+    ws: {url: 'wss://events.example.com/stream', protocols: ['v1']},
+    description: 'deploy events',
+  })
+
+Each text frame becomes one notification (multiline frames stay as one event). Binary frames are reported as \`[binary frame, N bytes]\` rather than passed through. Socket close ends the watch with the close code surfaced; errors are surfaced before close. Same rate limiting as bash \u2014 a firehose will be suppressed and eventually stopped, so subscribe to a filtered feed where one exists.
+
+Prefer this over \`command: 'websocat wss://\u2026'\` \u2014 it avoids the extra process and line-buffering pitfalls. Use bash when you need to transform or filter frames with shell tools before they become events.`;
+export{b9e,_on,JIe,mae,HLt,vLs,SPr,UAo,T5,BAo,jAo};

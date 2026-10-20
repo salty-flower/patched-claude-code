@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{Rr}from"./chunk-jjgc4sar.js";import{vO,e6e}from"./chunk-hf1d5ysc.js";import{dW}from"./chunk-d6m9bdw1.js";import{ujn,Htn}from"./chunk-67j9aypn.js";import{sf,KT}from"./chunk-0dfxdbsw.js";import{Ca}from"./chunk-pte4mw8c.js";import{z}from"./chunk-p017vfx2.js";import{readdir as P,stat as w}from"fs/promises";import{basename as ee,join as g}from"path";function S(s){let e=dW(s);return e!==void 0&&Rr(e)?e:void 0}async function wXr(s,e,o,d,a,u){let f=z()&&d!==void 0?S(s):void 0;if(d!==void 0&&f!==void 0){let i=new Map;try{await Ca((r)=>d.listEntries({namespace:"transcript",projectKey:f},{skipScopeStats:!0,...e?{}:{skipKeyStats:!0},...r!==void 0&&{cursor:r}}),(r)=>{for(let t of r){if(t.kind!=="key"||t.key.namespace!=="transcript")continue;let l=vO(t.key.sessionId);if(!l)continue;if(e&&t.mtimeMs===void 0)continue;let m=e?Math.trunc(t.mtimeMs??0):0,p=i.get(l);if(p!==void 0){if(m>p.mtime)p.mtime=m;continue}i.set(l,{sessionId:l,filePath:g(s,`${t.key.sessionId}.jsonl`),mtime:m,projectPath:o,ownWorktrees:u})}},a!==void 0?{budget:a}:void 0)}catch{}return[...i.values()]}let n;try{n=await P(s)}catch{return[]}return(await Promise.all(n.map(async(i)=>{if(!i.endsWith(".jsonl"))return null;let r=vO(i.slice(0,-6));if(!r)return null;let t=g(s,i);if(!e)return{sessionId:r,filePath:t,mtime:0,projectPath:o,ownWorktrees:u};try{let l=await w(t);return{sessionId:r,filePath:t,mtime:l.mtime.getTime(),projectPath:o,ownWorktrees:u}}catch{return null}}))).filter((i)=>i!==null)}var h=32;async function Fns(s,e,o){let d=await wXr(s,!1,void 0,o);for(let a=0;a<d.length;a+=h){let f=(await Promise.all(d.slice(a,a+h).map(async(n)=>{let c=await e6e(n.filePath,KT(sf(n.filePath,o)));return c!==null&&ujn(c.tail)===e&&await Htn(n.filePath,c.head,c.tail,c.size,o)?n.filePath:void 0}))).find((n)=>n!==void 0);if(f!==void 0)return f}return}
+export{wXr,Fns};

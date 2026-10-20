@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.304
+import{Qdo}from"./chunk-k2k2dszj.js";import{C3n}from"./chunk-p59kaxc7.js";import{_as}from"./chunk-rrg723a1.js";import{has}from"./chunk-j73ems44.js";import{el}from"./chunk-rvawj5kr.js";import{$ps}from"./chunk-9zfmqce4.js";import{ob}from"./chunk-2fjhf8xz.js";import{Rwe}from"./chunk-na9nw575.js";import{dq}from"./chunk-jfr81xvv.js";function a(e,r){return Object.entries(e.frameUrls??{}).find(([o,s])=>s?.url!==void 0&&!Rwe(o)&&el(s.url)===r)?.[0]}function l(e){return Object.entries(e.frameUrls??{}).flatMap(([r,o])=>{if(o?.url===void 0||Rwe(r))return[];if(o.dismissed===!0)return[];let s=el(o.url),t=o.routineUnasked===!0||o.commentUnasked===!0;return s===null?[]:[{path:r,slug:s,url:o.url,unasked:t}]})}function d(e,r){return(e.workshopVerifiedSlugs??[]).includes(r)||Object.entries(e.frameUrls??{}).some(([o,s])=>s?.url!==void 0&&el(s.url)===r&&C3n(o))}var c=Object.freeze({}),m=dq("artifactReadConsentSlugs",c),g=dq("artifactConsentEpoch",0);function BZr(e,r){return{ownPublishes:Qdo(e,r),workshopTelemetry:$ps(e,r),whiteboardTelemetry:has(e,r),prReviewTargets:_as(e,r),recordedPages:{isWorkshopPage:(o)=>d(e(),o),localSourcePath:(o)=>a(e(),o),heldSourcePages:()=>l(e())},sharedReadConsent:m(e,r),consentEpoch:g(e,r)}}function vst(){let e={};return BZr(()=>e,(r)=>{e=r(e)})}var kst={assign:()=>ob[0],get:()=>{return}};function _qe(e){return{assign(r){let o=e.get(),s=o.assignments.get(r);if(s)return s;let t=ob[o.index%ob.length];return e.set((n)=>{if(n.assignments.has(r))return n;let i=new Map(n.assignments);return i.set(r,t),{assignments:i,index:n.index+1}}),t},get(r){return e.get().assignments.get(r)}}}var ese=Object.freeze({bridge:void 0,channel:void 0});class tur{#e=void 0;#r=void 0;get bridge(){return this.#e}get channel(){return this.#r}connectBridge(e){this.#e=e}disconnectBridge(){this.#e=void 0}setChannel(e){this.#r=e}}
+export{BZr,vst,kst,_qe,ese,tur};

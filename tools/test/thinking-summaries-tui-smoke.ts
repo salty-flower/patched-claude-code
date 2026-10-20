@@ -11,6 +11,8 @@ import { EventConditions } from "./helpers/event-conditions"
 import { shellEnvironment, shellQuote } from "./helpers/pty"
 import { emptyPrompt, submitPtyText } from "./helpers/pty-input"
 import { recordThinkingSummaryBoundaryRuntimeOracle } from "./helpers/runtime-oracle-checks"
+import { thinkingSummaryCancelReady } from "./helpers/thinking-summary-cancel-ready"
+import { finishThinkingSummaryInput, settleThroughWait } from "./helpers/thinking-summary-lifecycle"
 
 type JsonObject = Record<string, unknown>
 type CapturedRequest = Omit<ClaudeApiRequest, "stub">
@@ -332,11 +334,15 @@ async function scenario(options: Options, display: string, cols: number, rows: n
     const output = Promise.all([pump(proc.stdout), pump(proc.stderr)]).catch((error) => {
       if (!closing) fail(error)
     })
+    let activePhase = "launch"
+    const diagnostic = (phase: string) =>
+      console.error(`dual-summary ${display} ${cols}x${rows} ${resume ? "resume" : "main"}: ${phase}`)
     const watchdog = setTimeout(
-      () => fail(new Error(`PTY watchdog: ${display} ${cols}x${rows}`)),
+      () => fail(new Error(`PTY watchdog: ${display} ${cols}x${rows}; phase=${activePhase}`)),
       options.timeoutSeconds * 1000,
     )
     async function wait(predicate: () => boolean, description: string): Promise<void> {
+      activePhase = description
       await events.waitFor(() => Boolean(failure) || predicate() || exited !== undefined, description)
       if (failure)
         throw new Error(
@@ -347,7 +353,17 @@ async function scenario(options: Options, display: string, cols: number, rows: n
     }
     async function key(value: string): Promise<void> {
       proc.stdin.write(value)
-      await proc.stdin.flush()
+      await settleThroughWait(proc.stdin.flush(), wait, notify, "stdin key flush")
+    }
+    async function finishInput(): Promise<void> {
+      diagnostic("sending stdin EOF and awaiting exit")
+      await finishThinkingSummaryInput(
+        () => proc.stdin.end(),
+        () => exited,
+        wait,
+        notify,
+      )
+      diagnostic("child exited successfully")
     }
     function line(): string {
       const buffer = terminal.buffer.active
@@ -359,6 +375,7 @@ async function scenario(options: Options, display: string, cols: number, rows: n
     async function snapshot(phase: string): Promise<string> {
       const text = screen
       phases.push(phase)
+      diagnostic(phase)
       await Bun.write(join(artifacts, `${phase}.txt`), text)
       const buffer = terminal.buffer.active
       await Bun.write(
@@ -419,7 +436,7 @@ async function scenario(options: Options, display: string, cols: number, rows: n
       snapshot,
       dump,
       close,
-      processExit,
+      finishInput,
       screen: () => screen,
       revision: () => revision,
     }
@@ -582,7 +599,7 @@ async function scenario(options: Options, display: string, cols: number, rows: n
       await tui.wait(tui.ready, "cancelled turn restores composer")
       if (!pending.cancelled) pending.emit("ping", {})
       await tui.wait(
-        () => pending.cancelled && !tui.screen().includes("∴ Summary"),
+        () => thinkingSummaryCancelReady(pending.cancelled, tui.ready(), tui.screen(), marker),
         "cancel closes transport and renders live cleanup",
       )
       const cancelled = await tui.snapshot(`09-interrupt-${index}-after`)
@@ -595,8 +612,9 @@ async function scenario(options: Options, display: string, cols: number, rows: n
     recovery.text(0, "RECOVERED-7F2")
     await tui.wait(() => tui.screen().includes("RECOVERED-7F2") && tui.ready(), "recovery complete")
     await verifyTranscript(tui, "10-recovered", [...HISTORY, "RECOVERED-7F2"], false)
+    console.error(`dual-summary ${display} ${cols}x${rows}: submitting main /exit`)
     await submitPtyText(tui, "/exit")
-    assert.equal(await tui.processExit, 0)
+    await tui.finishInput()
     const resumed = await launch(true)
     sessions.push(resumed)
     await resumed.wait(() => resumed.ready() && resumed.screen().includes("RECOVERED-7F2"), "resumed history")
@@ -611,8 +629,9 @@ async function scenario(options: Options, display: string, cols: number, rows: n
     before = resumed.revision()
     await resumed.key("\x0f")
     await resumed.wait(() => resumed.revision() > before && resumed.ready(), "resumed composer")
+    console.error(`dual-summary ${display} ${cols}x${rows}: submitting resumed /exit`)
     await submitPtyText(resumed, "/exit")
-    assert.equal(await resumed.processExit, 0)
+    await resumed.finishInput()
     assert.equal(requests.length, consumed, "resume/exit should not invoke the model")
     success = true
   } catch (error) {

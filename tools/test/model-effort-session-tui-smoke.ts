@@ -8,6 +8,7 @@ import { createCommand, runCli } from "../lib/cli"
 import { targetVersion } from "../lib/target"
 import { type ClaudeApiStub, startClaudeApiStub } from "./helpers/claude-api-stub"
 import { EventConditions } from "./helpers/event-conditions"
+import { ModelEffortCommandFreshness } from "./helpers/model-effort-command-freshness"
 import { shellEnvironment, shellQuote } from "./helpers/pty"
 import { effortCommandResult, emptyPrompt, submitPtyText } from "./helpers/pty-input"
 import { type ModelEffortRuntimeOracle, recordModelEffortRuntimeOracle } from "./helpers/runtime-oracle-checks"
@@ -195,13 +196,17 @@ async function session(
         .join("\n")}`,
     )
   }
+  const commandFreshness = new ModelEffortCommandFreshness()
   async function commandText(text: string, expected: RegExp): Promise<void> {
+    const resultScope = commandFreshness.begin(screen, text)
     await submit(text)
     function commandResult(): string | undefined {
-      if (!text.startsWith("/effort ") || text === "/effort current") return effortCommandResult(screen, text)
-      const position = screen.lastIndexOf(`❯ ${text}`)
+      const current = resultScope(screen)
+      if (current === undefined) return undefined
+      if (!text.startsWith("/effort ") || text === "/effort current") return effortCommandResult(current, text)
+      const position = current.lastIndexOf(`❯ ${text}`)
       if (position === -1) return undefined
-      const result = screen
+      const result = current
         .slice(position + `❯ ${text}`.length)
         .split("\n")
         .map((line) => line.match(/^\s*⎿\s+(.*)$/)?.[1])
@@ -254,6 +259,7 @@ async function session(
       return markerPosition !== -1 && screen.slice(markerPosition + marker.length).includes("effort stub done")
     }, "fresh stub answer missing")
     await waitFor(inputReady, "input prompt not idle after fresh answer")
+    commandFreshness.completeProbe(marker)
     console.log(`ok: rendered interaction sent ${model}/${effort}`)
   }
   function recordOracle(invariantId: ModelEffortRuntimeOracle): void {

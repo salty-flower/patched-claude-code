@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.310
+import{awo}from"./chunk-3k3dctdh.js";import{ows}from"./chunk-4wmp12fq.js";import{ll}from"./chunk-hxm5yqk0.js";import{TTs}from"./chunk-66d5kf74.js";import{JXn}from"./chunk-bk20nxg5.js";import{XS}from"./chunk-t0jzx3ak.js";import{kke}from"./chunk-31gxg38t.js";import{Aoe}from"./chunk-bkvejkkf.js";function a(e,r){return Object.entries(e.frameUrls??{}).find(([o,s])=>s?.url!==void 0&&!kke(o)&&ll(s.url)===r)?.[0]}function l(e){return Object.entries(e.frameUrls??{}).flatMap(([r,o])=>{if(o?.url===void 0||kke(r))return[];if(o.dismissed===!0)return[];let s=ll(o.url),n=o.routineUnasked===!0||o.commentUnasked===!0;return s===null?[]:[{path:r,slug:s,url:o.url,unasked:n}]})}function d(e,r){return(e.workshopVerifiedSlugs??[]).includes(r)||Object.entries(e.frameUrls??{}).some(([o,s])=>s?.url!==void 0&&ll(s.url)===r&&JXn(o))}var c=Object.freeze({}),m=Aoe("artifactReadConsentSlugs",c),g=Aoe("artifactConsentEpoch",0);function Zco(e,r){return{ownPublishes:awo(e,r),workshopTelemetry:TTs(e,r),whiteboardTelemetry:ows(e,r),recordedPages:{isWorkshopPage:(o)=>d(e(),o),localSourcePath:(o)=>a(e(),o),heldSourcePages:()=>l(e())},sharedReadConsent:m(e,r),consentEpoch:g(e,r)}}function vct(){let e={};return Zco(()=>e,(r)=>{e=r(e)})}var kct={assign:()=>XS[0],get:()=>{return}};function P9e(e){return{assign(r){let o=e.get(),s=o.assignments.get(r);if(s)return s;let n=XS[o.index%XS.length];return e.set((t)=>{if(t.assignments.has(r))return t;let i=new Map(t.assignments);return i.set(r,n),{assignments:i,index:t.index+1}}),n},get(r){return e.get().assignments.get(r)}}}var kae=Object.freeze({bridge:void 0,channel:void 0});class Abr{#e=void 0;#r=void 0;get bridge(){return this.#e}get channel(){return this.#r}connectBridge(e){this.#e=e}disconnectBridge(){this.#e=void 0}setChannel(e){this.#r=e}}
+export{Zco,vct,kct,P9e,kae,Abr};

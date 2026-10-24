@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.310
+import{V}from"./chunk-ersar6wn.js";import{i}from"./chunk-9a41hw1t.js";import{_}from"./chunk-d7b0m8qy.js";import{Nc}from"./chunk-we9anmwe.js";import{ofn}from"./chunk-c1rfegja.js";import{pW}from"./chunk-81mpzfkq.js";function c(e,t){var n,o=-1,p=e.length;while(++o<p){var r=t(e[o]);if(r!==void 0)n=n===void 0?r:n+r}return n}var s=c;function u(e,t){return e&&e.length?s(e,pW(t,2)):0}var NHe=u;var QD=20971520,f="application/vnd.ant.frame-refusal+json";function Xc(){return{Accept:`application/json, ${f}`,"X-Frame-CP":"go","X-Frame-Surface":"code","X-Frame-Platform":Nc()?"desktop":"cli","X-Frame-Client-Version":{ISSUES_EXPLAINER:"report the issue at https://github.com/anthropics/claude-code/issues",PACKAGE_URL:"@anthropic-ai/claude-code",README_URL:"https://code.claude.com/docs/en/overview",VERSION:"2.1.310",FEEDBACK_CHANNEL:"https://github.com/anthropics/claude-code/issues",BUILD_TIME:"2026-10-23T17:43:32Z",GIT_SHA:"0d2056ecf42d9452a8cd8e054600024e7c557add",HOOKS_WORKER_URL:new URL("./src/plugins/functionHooks/hooks-worker/hooks-worker.js",import.meta.url).pathname,DD_SOURCEMAP_GROUP:"darwin"}.VERSION,"X-Frame-Session-Id":D$o()??V()}}var E=/^(?:session_|cse_)[A-Za-z0-9_-]{1,184}$/;function D$o(){let e=i.CLAUDE_CODE_REMOTE_SESSION_ID??ofn();return e&&E.test(e)?e:void 0}var m=/^req_[A-Za-z0-9_-]{4,128}$/;function cTe(e){return e!==void 0&&m.test(e)?{request_id:e}:{}}var W_t="create_confirmed=1",x8n="anthropic/frameCreateConfirmed",Sye=/unknown field|not a recognized|not allowlisted/i;function hF(e){if(typeof e==="string")return e;if(e&&typeof e==="object"){if("error"in e&&typeof e.error==="string"){let t="reason"in e&&typeof e.reason==="string"?` [${e.reason}]`:"";return e.error+t}return _(e)??""}return""}function G_t(e,t){return e.includes(`'${t}'`)||new RegExp(`"${t}"(?!\\??:)`).test(e)}function P8n(e,t){let n=hF(e);return Sye.test(n)&&G_t(n,t)}var $3=/^[A-Za-z0-9_-]{1,64}$/;
+export{NHe,QD,Xc,D$o,cTe,W_t,x8n,Sye,hF,G_t,P8n,$3};

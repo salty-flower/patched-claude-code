@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.310
+import{MVe,HVe,As}from"./chunk-27xjmczp.js";import{fe,fr}from"./chunk-32v5ghb4.js";import{Lvn,zZ,ust}from"./chunk-ft7bqgaw.js";function ZUe(){let e=HVe("proxyAuthHelper",(fr()||{}).proxyAuthHelper),r=zZ()!==e;if(Lvn({helper:e,fromProjectOrLocal:fe("projectSettings")?.proxyAuthHelper===e||fe("localSettings")?.proxyAuthHelper===e||MVe("proxyAuthHelper"),trustAccepted:As}),r)ust()}
+export{ZUe};

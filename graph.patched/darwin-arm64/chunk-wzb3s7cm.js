@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.310
+import{Sir,bir}from"./chunk-qnvapa9t.js";import{w}from"./chunk-zqxc4qtb.js";import{s,n}from"./chunk-7car90a2.js";import{ePt}from"./chunk-7xx4c906.js";import{Ilt}from"./chunk-bbmrsakd.js";import{qz}from"./chunk-qwh43rvc.js";import{dw}from"./chunk-tpt8sqdk.js";import{e,r}from"./chunk-f790ajz4.js";import{Gt,Se,j}from"./chunk-s8vmszp2.js";j();j();var HPe=Gt(!1),I8t=Gt(!1);function Dwe(i){let p=w(26),{tone:o,text:a,detail:m,subLines:b,linkify:G}=i,t=G?qz:n,E=Se(I8t)?" ":i.state==="live"&&!i.reducedMotion?bir[i.frame%bir.length]:Sir,T=o==="gold"?"warning":o==="red"?"error":void 0,P=o==="red";const L=o==="dim",R=o==="red"?"error:":o==="gold"?"warning:":void 0,h=o==="dim";let c;if(p[0]!==E||p[1]!==T||p[2]!==L||p[3]!==R||p[4]!==h)c=r(n,{"aria-hidden":L,"aria-label":R,italic:!0,color:T,dimColor:h,children:[E," "]}),p[0]=E,p[1]=T,p[2]=L,p[3]=R,p[4]=h,p[5]=c;else c=p[5];const I=P?"error":void 0,k=!P;let u;if(p[6]!==t||p[7]!==a)u=e(t,{children:a}),p[6]=t,p[7]=a,p[8]=u;else u=p[8];let f;if(p[9]!==t||p[10]!==m)f=m!==void 0&&r(n,{dimColor:!0,children:[" \xB7 ",e(t,{children:m})]}),p[9]=t,p[10]=m,p[11]=f;else f=p[11];let g;if(p[12]!==I||p[13]!==k||p[14]!==u||p[15]!==f)g=r(n,{italic:!0,color:I,dimColor:k,children:[u,f]}),p[12]=I,p[13]=k,p[14]=u,p[15]=f,p[16]=g;else g=p[16];let C;if(p[17]!==t||p[18]!==b)C=b?.map((U,B)=>e(n,{dimColor:!0,children:e(t,{children:U})},B)),p[17]=t,p[18]=b,p[19]=C;else C=p[19];let y;if(p[20]!==g||p[21]!==C)y=r(s,{flexDirection:"column",flexGrow:1,children:[g,C]}),p[20]=g,p[21]=C,p[22]=y;else y=p[22];let S;if(p[23]!==y||p[24]!==c)S=r(s,{flexDirection:"row",children:[c,y]}),p[23]=y,p[24]=c,p[25]=S;else S=p[25];return S}function DE(i){let o=ePt(),a=Ilt()?.isQueued===!0;return!i&&!o&&!a&&dw()}function Zno(i){let o=DE(i),a=Ilt();return a?.isQueued===!0?a.noticeSystemLines:o}
+export{HPe,I8t,Dwe,DE,Zno};

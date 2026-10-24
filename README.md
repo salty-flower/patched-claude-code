@@ -115,6 +115,8 @@ Custom picker rows, deduplication, and effort configuration:
 [`docs/guides/Custom-Model-Slots.md`](docs/guides/Custom-Model-Slots.md).
 Per-process macOS credential isolation: see
 [`docs/guides/macOS-Keychain-Isolation.md`](docs/guides/macOS-Keychain-Isolation.md).
+Independent WebSearch request model:
+[`docs/guides/Web-Search-Model.md`](docs/guides/Web-Search-Model.md).
 Optional Nushell-backed Bash and standalone C# experiments:
 [`docs/guides/Experimental-Code-Tools.md`](docs/guides/Experimental-Code-Tools.md).
 Per-worker history windows, genuine question answers, and advisory delegation checks:

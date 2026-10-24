@@ -54,6 +54,7 @@ _api-stub-smoke-rendered version=target resume_timeout=resume_transcript_timeout
   if bun tools/node_modules/semver/bin/semver.js "{{version}}" --range ">=2.1.281" >/dev/null; then bun run tools/test/agents-md-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"; fi
   bun run tools/test/subagent-model-effort-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
   bun run tools/test/tui-stub-smoke.ts --bundle "staging/{{version}}/cli.patched.js"
+  if bun tools/node_modules/semver/bin/semver.js "{{version}}" --range ">=2.1.310" >/dev/null; then bun run tools/test/web-search-model-tui-smoke.ts --bundle "staging/{{version}}/cli.patched.js"; fi
   bun run tools/test/ask-user-question-tui-smoke.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"
   if bun tools/node_modules/semver/bin/semver.js "{{version}}" --range ">=2.1.285" >/dev/null; then bun run tools/test/workflow-history-tui-smoke.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"; fi
   bun run tools/test/builtin-skill-tui-smoke.ts --version "{{version}}" --bundle "staging/{{version}}/cli.patched.js"

@@ -216,6 +216,14 @@ function main(): number {
     for (const command of thinkingEvidenceCommands(ledger, dispatcher)) {
       runChecked(command, { cwd: ROOT, env: sharedEnv })
     }
+    if (
+      ledger.decisions.some((decision) => decision.familyId === "web-search-model" && decision.disposition === "ported")
+    ) {
+      runChecked(["bun", "run", "tools/test/web-search-model-tui-smoke.ts", "--bundle", dispatcher], {
+        cwd: ROOT,
+        env: sharedEnv,
+      })
+    }
     if (args.platform === "darwin-arm64") {
       runChecked(["bun", "test", "--timeout", "0", "tools/test/macos-keychain-bundle-runtime.test.ts"], {
         cwd: ROOT,

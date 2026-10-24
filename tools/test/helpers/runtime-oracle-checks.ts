@@ -4,6 +4,13 @@ const modelEffortCheck = (name: string) => `model-effort-session-tui-smoke.ts: $
 const agentsMdNativeHookCheck =
   "agents-md-tui-smoke.ts: parent, project, and child AGENTS.md markers reach the main conversation in native parent-to-child order with no CLAUDE.md"
 
+export const WEB_SEARCH_MODEL_RUNTIME_CHECKS = [
+  "web-search-model-tui-smoke.ts: explicit model reaches search HTTP request and PTY exits",
+  "web-search-model-tui-smoke.ts: native sonnet[1m] alias reaches search HTTP request",
+  "web-search-model-tui-smoke.ts: unset override preserves main model routing",
+  "web-search-model-tui-smoke.ts: empty override preserves main model routing",
+]
+
 export const THINKING_REQUEST_RUNTIME_CHECKS = {
   "resolver-matrix":
     "thinking-summaries-request.test.ts: real resolver covers settings, explicit preference and interactive/noninteractive output matrix",
@@ -102,6 +109,7 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
   const materialized = keychain("materialized mode rejects default-Keychain legacy mutations and doctor probes")
   const plugin = keychain("real plugin eval child uses materialized selected-Keychain credentials without preload")
   const result: Record<string, string[]> = {
+    "web-search-model/independent-search-model": WEB_SEARCH_MODEL_RUNTIME_CHECKS,
     "local-prompt-ablation/local-source-admission": [
       "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission",
     ],

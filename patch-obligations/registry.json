@@ -2663,11 +2663,28 @@
       "oracleIds": [
         "local-prompt-ablation/telemetry-unreachable"
       ]
+    },
+    {
+      "familyId": "web-search-model",
+      "invariantId": "independent-search-model",
+      "introducedVersion": "2.1.310",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/tools/WebSearchTool/WebSearchTool.ts#L262-L287",
+        "reference/v2.1.88/sources/src/utils/model/model.ts#L438-L481"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "web-search-model/independent-search-model"
+      ]
     }
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "maintainer (interactive approval)",
-    "approvedAt": "2026-10-20",
-    "catalogSha256": "069724b3d5f4509160fa760a7c9693fcc88b106cc780ac58f727f672c60424fd"
+    "approvedAt": "2026-10-24",
+    "catalogSha256": "bb0d01739b49562a6dd9787701d2614e5c62b765729573ccefe47ece49106054"
   }
 }

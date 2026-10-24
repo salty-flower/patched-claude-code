@@ -1010,7 +1010,7 @@ assert_not_contains = '''return W_t()'''
 
 [[patches]]
 name = "channels-feature-gate"
-target_version = "2.1.301"
+target_version = "2.1.310"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1050,7 +1050,7 @@ assert_not_contains = '''return rn("allow_channels")&&k("tengu_harbor",!1)'''
 
 [[patches]]
 name = "channels-provider-gate"
-target_version = "2.1.301"
+target_version = "2.1.310"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -2061,4 +2061,64 @@ expected_matches = 1
   [[patches.tests]]
   kind = "static"
   name = "2.1.304 rejects the previous Linux gate"
+  assert_not_contains = "isEnabled(){return hV()}"
+
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-310"
+lineage = "ask-user-question-channels-gate"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale = "2.1.310 port; the staged dual-platform scope was rechecked. Current replacement bindings: AST captures and patch-owned locals only. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    string_literal = "tengu_ask_user_question_completed"
+    object_property_direct = "isEnabled"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "isEnabled\\(\\)\\{return [\\w$]+\\(\\)\\}"
+  value = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 AskUserQuestion gate is open"
+  assert_contains = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 AskUserQuestion no longer delegates through the Darwin gate"
+  assert_not_contains = "isEnabled(){return UZ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 AskUserQuestion no longer delegates through the Linux gate"
+  assert_not_contains = "isEnabled(){return OZ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 AskUserQuestion rejects the stale Darwin 2.1.289 gate"
+  assert_not_contains = "isEnabled(){return cJ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 AskUserQuestion rejects the stale Linux 2.1.289 gate"
+  assert_not_contains = "isEnabled(){return n7()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 rejects the previous platform gates"
+  assert_not_contains = "isEnabled(){return CV()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 rejects the previous Linux gate"
   assert_not_contains = "isEnabled(){return hV()}"

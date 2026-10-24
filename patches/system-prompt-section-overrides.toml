@@ -1,6 +1,6 @@
 name = "system-prompt-section-overrides"
 enabled = true
-target_version = "2.1.304"
+target_version = "2.1.310"
 applies_to = ">=2.1.217 <2.2.0"
 
 [[patches]]
@@ -536,3 +536,123 @@ assert_contains = '?.(body,J.querySource),body))($c)'
 kind = "static"
 name = "304 Linux diagnostic excludes stale 301 request binding"
 assert_not_contains = '?.(body,Q.querySource),body))(Rp)'
+
+[[patches]]
+name = "system-prompt-section-override-bridge-2-1-310-darwin-arm64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "The 310 darwin-arm64 PP(e,n,r) constructor awaits structured sections s, then returns Fto(s,MY()?GL:null).map((h)=>aMe(h)). Its third parameter r still owns analysisOnly, teammate and isDetached; the callback s deliberately shadows the outer section list. The bridge retains the exact native renderer and all bypasses."
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "map"
+    parent_node = "ReturnStatement"
+    source_regex = "^Fto\\(s,MY\\(\\)\\?GL:null\\)\\.map\\("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((render)=>r?.analysisOnly||r?.teammate||r?.isDetached?render(s):globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v2")]?.({sections:s,render})??((orderedSections)=>globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v1")]?.({orderedSections})?.effectiveSections??orderedSections)(render(s)))((s)=>%%EXPR%%)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 bridge preserves current section renderer"
+  assert_contains = "Fto(s,MY()?GL:null).map((h)=>aMe(h))"
+  assert_not_contains = "O7n(s,z7()?RD:null).map((h)=>oPe(h))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 structured bridge is installed"
+  assert_contains = 'Symbol.for("patched-claude-code.system-prompt-overrides.v2")'
+
+[[patches]]
+name = "system-prompt-final-request-diagnostic-2-1-310-darwin-arm64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "The 310 darwin-arm64 request-builder closure assigns Yc with normalized messages, system, tools, model and thinking, then sanitizes it and returns it. Q remains its outer options argument and owns querySource. The diagnostic observes this final object immediately before return without changing its identity."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1699-L1729"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ReturnStatement"
+    parent_node = "BlockStatement"
+    source = "return Yc"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'return ((body)=>(globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.request.v2")]?.(body,Q.querySource),body))(Yc)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 diagnostic observes final body and current query source"
+  assert_contains = "?.(body,Q.querySource),body))(Yc)"
+  assert_not_contains = "?.(body,Q.querySource),body))($c)"
+
+[[patches]]
+name = "system-prompt-section-override-bridge-2-1-310-linux-x64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "The 310 linux-x64 CP(e,n,r) constructor awaits structured sections s, then returns Lto(s,T9()?U0:null).map((h)=>tMe(h)). Its third parameter r still owns analysisOnly, teammate and isDetached; the callback s deliberately shadows the outer section list. The bridge retains the exact native renderer and all bypasses."
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "map"
+    parent_node = "ReturnStatement"
+    source_regex = "^Lto\\(s,T9\\(\\)\\?U0:null\\)\\.map\\("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((render)=>r?.analysisOnly||r?.teammate||r?.isDetached?render(s):globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v2")]?.({sections:s,render})??((orderedSections)=>globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v1")]?.({orderedSections})?.effectiveSections??orderedSections)(render(s)))((s)=>%%EXPR%%)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 bridge preserves current section renderer"
+  assert_contains = "Lto(s,T9()?U0:null).map((h)=>tMe(h))"
+  assert_not_contains = "D7n(s,LJ()?kL:null).map((h)=>Jxe(h))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 structured bridge is installed"
+  assert_contains = 'Symbol.for("patched-claude-code.system-prompt-overrides.v2")'
+
+[[patches]]
+name = "system-prompt-final-request-diagnostic-2-1-310-linux-x64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "The 310 linux-x64 request-builder closure assigns Vc with normalized messages, system, tools, model and thinking, then sanitizes it and returns it. Q remains its outer options argument and owns querySource. The diagnostic observes this final object immediately before return without changing its identity."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1699-L1729"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ReturnStatement"
+    parent_node = "BlockStatement"
+    source = "return Vc"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'return ((body)=>(globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.request.v2")]?.(body,Q.querySource),body))(Vc)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 diagnostic observes final body and current query source"
+  assert_contains = "?.(body,Q.querySource),body))(Vc)"
+  assert_not_contains = "?.(body,J.querySource),body))($c)"

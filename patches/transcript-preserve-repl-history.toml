@@ -1,5 +1,5 @@
 name = "transcript-preserve-repl-history"
-target_version = "2.1.301"
+target_version = "2.1.310"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -33,5 +33,10 @@ assert_contains = '''return e.filter('''
 
 [[tests]]
 kind = "static"
-name = "304 no longer enters the Darwin REPL rewrite gate"
-assert_not_contains = 'function GPe(e,n=e){let r=e.filter(Cw);if(Kkr()==="ant")return r;'
+name = "310 no longer enters the Darwin REPL rewrite gate"
+assert_not_contains = 'function ZMe(e,n=e){let r=e.filter(aE);if(J0r()==="ant")return r;'
+
+[[tests]]
+kind = "static"
+name = "310 no longer enters the Linux REPL rewrite gate"
+assert_not_contains = 'function VMe(e,n=e){let r=e.filter(iv);if(IDr()==="ant")return r;'

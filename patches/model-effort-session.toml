@@ -4251,3 +4251,567 @@ path = "callee"
   kind = "static"
   name = "2.1.304 Linux effort-session-resolver excludes predecessor"
   assert_not_contains = "function pw(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:f=R(e),agentOverride:__acc_agentOverride}={})"
+
+[[patches]]
+name = "effort-session-owner-2-1-310-darwin-arm64"
+lineage = "effort-session-owner"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit of chunk-fdkh5k16.js: Rw resolver, Ft model alias, pd default model, TV model key, CF normalizer, l4 label, $Cn owner, se carried state, Be table shape, w2t hold and U2r table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.argument]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.owner]
+kind = "identifier"
+path = "body.body.0.expression.callee.object.object.callee"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    source_regex = "^function\\ \\$Cn\\(e\\)\\{n\\(\\)\\.modelSelection\\.replaceMainLoopEffortState\\(e\\)\\}$"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(%%CAPTURE:argument%%===Symbol.for("patched-cc.effort-session"))return %%CAPTURE:owner%%().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin effort-session owner uses the current model-selection wrapper"
+  assert_contains = 'function $Cn(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 current bindings replace the 2.1.296 scope"
+  assert_contains = 'function $Cn(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-session-owner excludes predecessor binding"
+  assert_not_contains = 'function lmn(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function x_n(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+[[patches]]
+name = "effort-launch-pin-2-1-310-darwin-arm64"
+lineage = "effort-launch-pin"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit of chunk-fdkh5k16.js: Rw resolver, Ft model alias, pd default model, TV model key, CF normalizer, l4 label, $Cn owner, se carried state, Be table shape, w2t hold and U2r table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = "function pwt(e){let n={sessionEffort:ke(M2r(e)),settingsEffortTable:b2t()};return $Cn(n),n}"
+replacement = 'function pwt(e){const launchEffort=M2r(e);let n={sessionEffort:ke(launchEffort),settingsEffortTable:b2t()};if(launchEffort!==void 0)$Cn(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return $Cn(n),n}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin CLI effort pin writes through the current initializer"
+  assert_contains = 'function pwt(e){const launchEffort=M2r(e);let n={sessionEffort:ke(launchEffort),settingsEffortTable:b2t()};if(launchEffort!==void 0)$Cn(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return $Cn(n),n}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-launch-pin excludes predecessor binding"
+  assert_not_contains = 'function dft(e){const launchEffort=$xr(e);let n={sessionEffort:Ve(launchEffort),settingsEffortTable:Vxr()};if(launchEffort!==void 0)lmn(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return lmn(n),n}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function Qgt(e){const launchEffort=lDr(e);let n={sessionEffort:Fe(launchEffort),settingsEffortTable:gDr()};if(launchEffort!==void 0)x_n(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return x_n(n),n}'
+
+[[patches]]
+name = "effort-model-state-selector-2-1-310-darwin-arm64"
+lineage = "effort-model-state-selector"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit of chunk-fdkh5k16.js: Rw resolver, Ft model alias, pd default model, TV model key, CF normalizer, l4 label, $Cn owner, se carried state, Be table shape, w2t hold and U2r table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'function ed(e,n,{withHold:r=!0}={}){let s=e.sessionEffort??_Qn;switch(s.kind){case"level":return s.value;case"default":return;case"inherit":{if(e.settingsEffortTable===void 0)return;if(Be(e.settingsEffortTable)&&!se())return e.settingsEffortTable.default;let d=n??Ft(e.mainLoopModelForSession??e.mainLoopModel??pd());return r&&w2t(d)!==void 0?void 0:U2r(e.settingsEffortTable,d)}}}'
+replacement = "function ed(e,n,{withHold:r=!0}={}){return Rw.session(n??Ft(e.mainLoopModelForSession??e.mainLoopModel??pd()),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin selector forwards native withHold behavior"
+  assert_contains = "function ed(e,n,{withHold:r=!0}={}){return Rw.session(n??Ft(e.mainLoopModelForSession??e.mainLoopModel??pd()),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-model-state-selector excludes predecessor binding"
+  assert_not_contains = "function xd(e,n,{withHold:r=!0}={}){return fw.session(n??e.mainLoopModelForSession??e.mainLoopModel??Fl(),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = "function Od(e,n,{withHold:r=!0}={}){return tk.session(n??Mt(e.mainLoopModelForSession??e.mainLoopModel??Vl()),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+[[patches]]
+name = "effort-effective-suffix-2-1-310-darwin-arm64"
+lineage = "effort-effective-suffix"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit of chunk-fdkh5k16.js: Rw resolver, Ft model alias, pd default model, TV model key, CF normalizer, l4 label, $Cn owner, se carried state, Be table shape, w2t hold and U2r table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.resolver]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.resolver.select]
+  node = "CallExpression"
+  source_regex = "^Rw\\(e,n,\\{turnEffort:r\\}\\)$"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "$gn"
+    source_regex = '^function \$gn\(e,n,r\)\{if\(n===void 0&&r===void 0\)return"";'
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{const actual=%%CAPTURE:resolver%%.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+l4(CF(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin effective suffix reports model-scoped source"
+  assert_contains = 'function $gn(e,n,r){const actual=Rw.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+l4(CF(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-effective-suffix excludes predecessor binding"
+  assert_not_contains = 'function Oon(e,n,r){const actual=fw.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+kq(wL(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function Kln(e,n,r){const actual=tk.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+cq(tN(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+[[patches]]
+name = "effort-session-resolver-2-1-310-darwin-arm64"
+lineage = "effort-session-resolver"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit of chunk-fdkh5k16.js: Rw resolver, Ft model alias, pd default model, TV model key, CF normalizer, l4 label, $Cn owner, se carried state, Be table shape, w2t hold and U2r table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.resolver]
+kind = "identifier"
+path = "id"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.fallback]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.turn]
+kind = "identifier"
+path = "params.2.left.properties.0.value"
+
+[patches.ast.captures.hook]
+kind = "identifier"
+path = "params.2.left.properties.1.value"
+
+[patches.ast.captures.carried]
+kind = "identifier"
+path = "params.2.left.properties.2.value.left"
+
+[patches.ast.captures.carried_helper]
+kind = "identifier"
+path = "params.2.left.properties.2.value.right.callee"
+
+[patches.ast.captures.support]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.support.select]
+  node = "CallExpression"
+  source_regex = "^Tw\\(e\\)$"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.capability.select]
+  node = "CallExpression"
+  source_regex = "^pe\\(e\\)$"
+
+[patches.ast.captures.hook_normalizer]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.hook_normalizer.select]
+  node = "CallExpression"
+  source_regex = "^CF\\(s\\)$"
+
+[patches.ast.captures.environment]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.environment.select]
+  node = "CallExpression"
+  source_regex = "^tA\\(\\)$"
+
+[patches.ast.captures.model_default]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.model_default.select]
+  node = "CallExpression"
+  source_regex = "^EQn\\(e,d\\)$"
+
+[patches.ast.captures.normalize]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.normalize.select]
+  node = "CallExpression"
+  source_regex = "^I\\(m,e\\)$"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Rw"
+    source_regex = "^function Rw\\(e,n,\\{turnEffort:r,hookEffortValue:s,carriedEffort:d=R\\(e\\)\\}=\\{\\}\\)\\{if\\(!Tw\\(e\\)\\)return;"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'function %%CAPTURE:resolver%%(%%CAPTURE:model%%,%%CAPTURE:fallback%%,{turnEffort:%%CAPTURE:turn%%,hookEffortValue:%%CAPTURE:hook%%,carriedEffort:%%CAPTURE:carried%%=%%CAPTURE:carried_helper%%(%%CAPTURE:model%%),agentOverride:__acc_agentOverride}={}){if(!%%CAPTURE:support%%(%%CAPTURE:model%%))return;let __acc_numeric=%%CAPTURE:capability%%(%%CAPTURE:model%%)!==null;if(%%CAPTURE:hook%%!==void 0){let __acc_hook=typeof %%CAPTURE:hook%%==="number"&&__acc_numeric?%%CAPTURE:hook_normalizer%%(%%CAPTURE:hook%%):%%CAPTURE:hook%%;return %%CAPTURE:normalize%%(__acc_hook,%%CAPTURE:model%%)}return %%CAPTURE:resolver%%.session(%%CAPTURE:model%%,void 0,void 0,%%CAPTURE:fallback%%,!0,__acc_agentOverride??%%CAPTURE:turn%%,%%CAPTURE:carried%%).value}%%CAPTURE:resolver%%.session=function(model,operation,value,fallback,honorLaunchPin=!0,agentOverride,carriedEffort,withHold=!0){const owner=$Cn(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},modelName=model??Ft(state.mainLoopModelForSession??state.mainLoopModel??pd()),slug=TV(modelName);owner.effortByModel??=new Map();const __acc_session_numeric=%%CAPTURE:capability%%(modelName)!==null;const cli=owner.effortLaunchValue!==void 0;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}const own=owner.effortByModel.get(slug);let slot;for(let slotIndex=1;slotIndex<=10;slotIndex++){const key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(slotIndex===1?"":"_"+slotIndex),configuredModel=process.env[key]?.trim();if(configuredModel&&TV(configuredModel)===slug){const configuredEffort=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(configuredEffort??"")){slot=configuredEffort;break}}}const session=state.sessionEffort??{kind:"inherit"};let nativeLevel,nativeTable;if(session.kind==="level")nativeLevel=session.value;else if(session.kind==="inherit"&&state.settingsEffortTable!==void 0){const table=state.settingsEffortTable,hasCarried=carriedEffort===void 0?se():carriedEffort!==null;if(Be(table)&&!hasCarried)nativeTable=table.default;else if(withHold&&(carriedEffort===void 0||carriedEffort!==null)&&w2t(modelName)!==void 0)nativeTable=void 0;else nativeTable=U2r(table,slug)}let chosen,source;if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==void 0){chosen=agentOverride;source="agent override"}else if(own!==void 0){chosen=own;source="this session"}else if(session.kind==="level"&&nativeLevel!==void 0){chosen=nativeLevel;source="session effort"}else if(slot!==void 0){chosen=slot;source="configured default"}else{const configured=%%CAPTURE:environment%%();if(configured!==void 0){if(configured===null){if(__acc_session_numeric){chosen=%%CAPTURE:model_default%%(modelName,carriedEffort);source="model default"}else{chosen=void 0;source="effort omitted by environment"}}else{chosen=configured;source="environment default"}}else if(fallback!==void 0){chosen=fallback;source="session fallback"}else if(nativeTable!==void 0){chosen=nativeTable;source=Object.hasOwn(state.settingsEffortTable.byModel??{},slug)?"configured model default":"configured default"}else{chosen=%%CAPTURE:model_default%%(modelName,carriedEffort);source=carriedEffort!==void 0&&carriedEffort!==null?"session fallback":"model default"}}if(!%%CAPTURE:support%%(modelName)){chosen=void 0;source="backend default (effort not supported)"}else if(chosen!==void 0){if(typeof chosen==="number"&&__acc_session_numeric)chosen=%%CAPTURE:hook_normalizer%%(chosen);const normalized=%%CAPTURE:normalize%%(chosen,modelName);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin request resolver preserves native carried-effort and CLI-agent priority"
+  assert_contains = "function Rw(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:d=R(e),agentOverride:__acc_agentOverride}={})"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin session preserves CLI then agent override priority"
+  assert_contains = 'if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==void 0){chosen=agentOverride;source="agent override"}else if(own!==void 0){chosen=own;source="this session"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin session resolver keeps withHold and the live carrier fallback"
+  assert_contains = "else if(withHold&&(carriedEffort===void 0||carriedEffort!==null)&&w2t(modelName)!==void 0)nativeTable=void 0;else nativeTable=U2r(table,slug)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin resolver uses the native carried-effort fallback"
+  assert_contains = 'chosen=EQn(modelName,carriedEffort);source="model default"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-session-resolver excludes predecessor binding"
+  assert_not_contains = "function fw(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:d=R(e),agentOverride:__acc_agentOverride}={})"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = "function tk(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:d=R(e),agentOverride:__acc_agentOverride}={})"
+
+[[patches]]
+name = "effort-session-owner-2-1-310-linux-x64"
+lineage = "effort-session-owner"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit of chunk-hhgrzgnb.js: Cw resolver, $t model alias, fd default model, gV model key, w$ normalizer, JY label, vTn owner, se carried state, Be table shape, dGt hold and bGr table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.argument]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.owner]
+kind = "identifier"
+path = "body.body.0.expression.callee.object.object.callee"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    source_regex = "^function\\ vTn\\(e\\)\\{n\\(\\)\\.modelSelection\\.replaceMainLoopEffortState\\(e\\)\\}$"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(%%CAPTURE:argument%%===Symbol.for("patched-cc.effort-session"))return %%CAPTURE:owner%%().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-session owner uses the current model-selection wrapper"
+  assert_contains = 'function vTn(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 current bindings replace the 2.1.296 scope"
+  assert_contains = 'function vTn(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-session-owner excludes predecessor"
+  assert_not_contains = 'function Kfn(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function m_n(e){if(e===Symbol.for("patched-cc.effort-session"))return n().modelSelection;'
+
+[[patches]]
+name = "effort-launch-pin-2-1-310-linux-x64"
+lineage = "effort-launch-pin"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit of chunk-hhgrzgnb.js: Cw resolver, $t model alias, fd default model, gV model key, w$ normalizer, JY label, vTn owner, se carried state, Be table shape, dGt hold and bGr table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = "function swt(e){let n={sessionEffort:Fe(fGr(e)),settingsEffortTable:lGt()};return vTn(n),n}"
+replacement = 'function swt(e){const launchEffort=fGr(e);let n={sessionEffort:Fe(launchEffort),settingsEffortTable:lGt()};if(launchEffort!==void 0)vTn(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return vTn(n),n}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux CLI effort pin writes through the current initializer"
+  assert_contains = 'function swt(e){const launchEffort=fGr(e);let n={sessionEffort:Fe(launchEffort),settingsEffortTable:lGt()};if(launchEffort!==void 0)vTn(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return vTn(n),n}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-launch-pin excludes predecessor"
+  assert_not_contains = 'function tft(e){const launchEffort=yxr(e);let n={sessionEffort:Te(launchEffort),settingsEffortTable:kxr()};if(launchEffort!==void 0)Kfn(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return Kfn(n),n}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function Ggt(e){const launchEffort=UDr(e);let n={sessionEffort:Ve(launchEffort),settingsEffortTable:VDr()};if(launchEffort!==void 0)m_n(Symbol.for("patched-cc.effort-session")).effortLaunchValue=launchEffort;return m_n(n),n}'
+
+[[patches]]
+name = "effort-model-state-selector-2-1-310-linux-x64"
+lineage = "effort-model-state-selector"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit of chunk-hhgrzgnb.js: Cw resolver, $t model alias, fd default model, gV model key, w$ normalizer, JY label, vTn owner, se carried state, Be table shape, dGt hold and bGr table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'function ed(e,n,{withHold:r=!0}={}){let s=e.sessionEffort??e7n;switch(s.kind){case"level":return s.value;case"default":return;case"inherit":{if(e.settingsEffortTable===void 0)return;if(Be(e.settingsEffortTable)&&!se())return e.settingsEffortTable.default;let f=n??$t(e.mainLoopModelForSession??e.mainLoopModel??fd());return r&&dGt(f)!==void 0?void 0:bGr(e.settingsEffortTable,f)}}}'
+replacement = "function ed(e,n,{withHold:r=!0}={}){return Cw.session(n??$t(e.mainLoopModelForSession??e.mainLoopModel??fd()),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux selector forwards native withHold behavior"
+  assert_contains = "function ed(e,n,{withHold:r=!0}={}){return Cw.session(n??$t(e.mainLoopModelForSession??e.mainLoopModel??fd()),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-model-state-selector excludes predecessor"
+  assert_not_contains = "function xd(e,n,{withHold:r=!0}={}){return pw.session(n??e.mainLoopModelForSession??e.mainLoopModel??Nl(),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = "function Od(e,n,{withHold:r=!0}={}){return ek.session(n??Mt(e.mainLoopModelForSession??e.mainLoopModel??zl()),void 0,void 0,void 0,!0,void 0,void 0,r).value;}"
+
+[[patches]]
+name = "effort-effective-suffix-2-1-310-linux-x64"
+lineage = "effort-effective-suffix"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit of chunk-hhgrzgnb.js: Cw resolver, $t model alias, fd default model, gV model key, w$ normalizer, JY label, vTn owner, se carried state, Be table shape, dGt hold and bGr table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L185-L200"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.resolver]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.resolver.select]
+  node = "CallExpression"
+  source_regex = "^Cw\\(e,n,\\{turnEffort:r\\}\\)$"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "kgn"
+    source_regex = '^function kgn\(e,n,r\)\{if\(n===void 0&&r===void 0\)return"";'
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{const actual=%%CAPTURE:resolver%%.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+JY(w$(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effective suffix reports model-scoped source"
+  assert_contains = 'function kgn(e,n,r){const actual=Cw.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+JY(w$(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-effective-suffix excludes predecessor"
+  assert_not_contains = 'function yon(e,n,r){const actual=pw.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+mq(yL(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function Oln(e,n,r){const actual=ek.session(e,void 0,void 0,n,!0,r);return actual.value===void 0?"":" with "+e4(Q0(actual.value))+" effort ("+actual.source+" for "+actual.slug+")"}'
+
+[[patches]]
+name = "effort-session-resolver-2-1-310-linux-x64"
+lineage = "effort-session-resolver"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit of chunk-hhgrzgnb.js: Cw resolver, $t model alias, fd default model, gV model key, w$ normalizer, JY label, vTn owner, se carried state, Be table shape, dGt hold and bGr table lookup. Corresponding native function bodies and their imports establish each helper role. Preserve CLI pinning, per-model session values, custom-slot defaults, inherited settings and backend capability precedence."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.resolver]
+kind = "identifier"
+path = "id"
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.fallback]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.turn]
+kind = "identifier"
+path = "params.2.left.properties.0.value"
+
+[patches.ast.captures.hook]
+kind = "identifier"
+path = "params.2.left.properties.1.value"
+
+[patches.ast.captures.carried]
+kind = "identifier"
+path = "params.2.left.properties.2.value.left"
+
+[patches.ast.captures.carried_helper]
+kind = "identifier"
+path = "params.2.left.properties.2.value.right.callee"
+
+[patches.ast.captures.support]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.support.select]
+  node = "CallExpression"
+  source_regex = "^Tw\\(e\\)$"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.capability.select]
+  node = "CallExpression"
+  source_regex = "^ae\\(e\\)$"
+
+[patches.ast.captures.hook_normalizer]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.hook_normalizer.select]
+  node = "CallExpression"
+  source_regex = "^w\\$\\(s\\)$"
+
+[patches.ast.captures.environment]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.environment.select]
+  node = "CallExpression"
+  source_regex = "^QA\\(\\)$"
+
+[patches.ast.captures.model_default]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.model_default.select]
+  node = "CallExpression"
+  source_regex = "^o7n\\(e,f\\)$"
+
+[patches.ast.captures.normalize]
+kind = "identifier"
+path = "callee"
+
+  [patches.ast.captures.normalize.select]
+  node = "CallExpression"
+  source_regex = "^I\\(m,e\\)$"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Cw"
+    source_regex = "^function Cw\\(e,n,\\{turnEffort:r,hookEffortValue:s,carriedEffort:f=R\\(e\\)\\}=\\{\\}\\)\\{if\\(!Tw\\(e\\)\\)return;"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'function %%CAPTURE:resolver%%(%%CAPTURE:model%%,%%CAPTURE:fallback%%,{turnEffort:%%CAPTURE:turn%%,hookEffortValue:%%CAPTURE:hook%%,carriedEffort:%%CAPTURE:carried%%=%%CAPTURE:carried_helper%%(%%CAPTURE:model%%),agentOverride:__acc_agentOverride}={}){if(!%%CAPTURE:support%%(%%CAPTURE:model%%))return;let __acc_numeric=%%CAPTURE:capability%%(%%CAPTURE:model%%)!==null;if(%%CAPTURE:hook%%!==void 0){let __acc_hook=typeof %%CAPTURE:hook%%==="number"&&__acc_numeric?%%CAPTURE:hook_normalizer%%(%%CAPTURE:hook%%):%%CAPTURE:hook%%;return %%CAPTURE:normalize%%(__acc_hook,%%CAPTURE:model%%)}return %%CAPTURE:resolver%%.session(%%CAPTURE:model%%,void 0,void 0,%%CAPTURE:fallback%%,!0,__acc_agentOverride??%%CAPTURE:turn%%,%%CAPTURE:carried%%).value}%%CAPTURE:resolver%%.session=function(model,operation,value,fallback,honorLaunchPin=!0,agentOverride,carriedEffort,withHold=!0){const owner=vTn(Symbol.for("patched-cc.effort-session")),state=owner.mainLoopEffortState()??{},modelName=model??$t(state.mainLoopModelForSession??state.mainLoopModel??fd()),slug=gV(modelName);owner.effortByModel??=new Map();const __acc_session_numeric=%%CAPTURE:capability%%(modelName)!==null;const cli=owner.effortLaunchValue!==void 0;if(!cli&&(operation==="set"||operation==="clear")){const next=new Map(owner.effortByModel);if(operation==="clear")next.delete(slug);else next.set(slug,value);owner.effortByModel=next}const own=owner.effortByModel.get(slug);let slot;for(let slotIndex=1;slotIndex<=10;slotIndex++){const key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(slotIndex===1?"":"_"+slotIndex),configuredModel=process.env[key]?.trim();if(configuredModel&&gV(configuredModel)===slug){const configuredEffort=process.env[key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(configuredEffort??"")){slot=configuredEffort;break}}}const session=state.sessionEffort??{kind:"inherit"};let nativeLevel,nativeTable;if(session.kind==="level")nativeLevel=session.value;else if(session.kind==="inherit"&&state.settingsEffortTable!==void 0){const table=state.settingsEffortTable,hasCarried=carriedEffort===void 0?se():carriedEffort!==null;if(Be(table)&&!hasCarried)nativeTable=table.default;else if(withHold&&(carriedEffort===void 0||carriedEffort!==null)&&dGt(modelName)!==void 0)nativeTable=void 0;else nativeTable=bGr(table,slug)}let chosen,source;if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==void 0){chosen=agentOverride;source="agent override"}else if(own!==void 0){chosen=own;source="this session"}else if(session.kind==="level"&&nativeLevel!==void 0){chosen=nativeLevel;source="session effort"}else if(slot!==void 0){chosen=slot;source="configured default"}else{const configured=%%CAPTURE:environment%%();if(configured!==void 0){if(configured===null){if(__acc_session_numeric){chosen=%%CAPTURE:model_default%%(modelName,carriedEffort);source="model default"}else{chosen=void 0;source="effort omitted by environment"}}else{chosen=configured;source="environment default"}}else if(fallback!==void 0){chosen=fallback;source="session fallback"}else if(nativeTable!==void 0){chosen=nativeTable;source=Object.hasOwn(state.settingsEffortTable.byModel??{},slug)?"configured model default":"configured default"}else{chosen=%%CAPTURE:model_default%%(modelName,carriedEffort);source=carriedEffort!==void 0&&carriedEffort!==null?"session fallback":"model default"}}if(!%%CAPTURE:support%%(modelName)){chosen=void 0;source="backend default (effort not supported)"}else if(chosen!==void 0){if(typeof chosen==="number"&&__acc_session_numeric)chosen=%%CAPTURE:hook_normalizer%%(chosen);const normalized=%%CAPTURE:normalize%%(chosen,modelName);if(normalized!==chosen)source+="; limited by organization";chosen=normalized}return{slug,value:chosen,source,cli,effortByModel:owner.effortByModel,configuredDefault:slot}};'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux request resolver preserves native carried-effort and CLI-agent priority"
+  assert_contains = "function Cw(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:f=R(e),agentOverride:__acc_agentOverride}={})"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux session preserves CLI then agent override priority"
+  assert_contains = 'if(cli){chosen=owner.effortLaunchValue;source="CLI --effort"}else if(agentOverride!==void 0){chosen=agentOverride;source="agent override"}else if(own!==void 0){chosen=own;source="this session"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux session resolver keeps withHold and the live carrier fallback"
+  assert_contains = "else if(withHold&&(carriedEffort===void 0||carriedEffort!==null)&&dGt(modelName)!==void 0)nativeTable=void 0;else nativeTable=bGr(table,slug)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux resolver uses the native carried-effort fallback"
+  assert_contains = 'chosen=o7n(modelName,carriedEffort);source="model default"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-session-resolver excludes predecessor"
+  assert_not_contains = "function pw(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:f=R(e),agentOverride:__acc_agentOverride}={})"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = "function ek(e,n,{turnEffort:r,hookEffortValue:s,carriedEffort:f=R(e),agentOverride:__acc_agentOverride}={})"

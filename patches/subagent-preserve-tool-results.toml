@@ -1,5 +1,5 @@
 name = "subagent-preserve-tool-results"
-target_version = "2.1.301"
+target_version = "2.1.310"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -31,5 +31,5 @@ assert_contains = '''preserveToolUseResults=!0'''
 
 [[tests]]
 kind = "static"
-name = "304 does not retain conditional tool-result preservation"
-assert_not_contains = "if(X)nt.preserveToolUseResults=!0"
+name = "310 does not retain conditional tool-result preservation"
+assert_not_contains = "if(Y)lt.preserveToolUseResults=!0"

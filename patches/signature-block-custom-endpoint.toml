@@ -1,5 +1,5 @@
 name = "signature-block-custom-endpoint"
-target_version = "2.1.304"
+target_version = "2.1.310"
 applies_to = ">=2.1.150 <2.2.0"
 
 rationale = """
@@ -1510,3 +1510,59 @@ assert_not_contains = "y=Ie()===\"firstParty\"&&Ei()?hln(e,s,h):(()=>{let __pccC
 kind = "static"
 name = "304 Linux excludes 301 normalizer bindings"
 assert_not_contains = 'y=Pe()==="firstParty"&&Ci()?iEn(e,s,h):(()=>{let __pccChanged=!1'
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-310-darwin-arm64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "In 310 darwin-arm64 chunk-31gxg38t.js, iSn binds canonical body model s and keepForeignThinking h before y=CSn(e,s,h). The native helper filters foreign-model signatures with o0e/htt. Imports from chunk-psq3t7gj.js bind Te to the provider selector and Ai to the explicit first-party assumption or api.anthropic.com host check. Preserve native handling only for official endpoints; callback names remain patch-owned."
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "messagesPreNormalize:", "y=CSn(e,s,h)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "y=CSn(e,s,h),"
+  value = 'y=Te()==="firstParty"&&Ai()?CSn(e,s,h):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 official endpoint retains native foreign-thinking policy"
+  assert_contains = 'y=Te()==="firstParty"&&Ai()?CSn(e,s,h):(()=>{let __pccChanged=!1'
+  assert_not_contains = 'y=Pe()==="firstParty"&&Ri()?fgn(e,s,h):(()=>{let __pccChanged=!1'
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-310-linux-x64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "In 310 linux-x64 chunk-j0tbz6ra.js, tSn binds canonical body model s and keepForeignThinking h before y=wSn(e,s,h). The native helper filters foreign-model signatures with QMe/gtt. Imports from chunk-dvghjmtr.js bind Ae to the provider selector and Ci to the explicit first-party assumption or api.anthropic.com host check. Preserve native handling only for official endpoints; callback names remain patch-owned."
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "messagesPreNormalize:", "y=wSn(e,s,h)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "y=wSn(e,s,h),"
+  value = 'y=Ae()==="firstParty"&&Ci()?wSn(e,s,h):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 official endpoint retains native foreign-thinking policy"
+  assert_contains = 'y=Ae()==="firstParty"&&Ci()?wSn(e,s,h):(()=>{let __pccChanged=!1'
+  assert_not_contains = 'y=Pe()==="firstParty"&&Ri()?ygn(e,s,h):(()=>{let __pccChanged=!1'

@@ -1,5 +1,5 @@
 name = "thinking-display"
-target_version = "2.1.304"
+target_version = "2.1.310"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1575,7 +1575,7 @@ assert_not_contains = '''__acc_streamingThinking?.thinking&&!y'''
 
 [[patches]]
 name = "thinking-render-live-complete"
-target_version = "2.1.304"
+target_version = "2.1.310"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -9596,3 +9596,559 @@ value = 'jmo(Ie)||Ge!==void 0'
 kind = "static"
 name = "thinking-preserve-summary-boundaries 304 linux-x64 replacement is present"
 assert_contains = 'jmo(Ie)||Ge!==void 0'
+
+[[patches]]
+name = "thinking-render-live-output-2-1-310-darwin"
+lineage = "thinking-render-live-output"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin Afe reads streamingToolUses through xe on the focused live turn stream. Subscribe to streamingThinking through the same external-store reader and stream, preserving hook order."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Afe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "W=xe((D?_:null)?.stream,rP)??Ec,z=L?_:null,"
+  value = "W=xe((D?_:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((D?_:null)?.stream,(state)=>state.streamingThinking),z=L?_:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-output uses the current darwin-arm64 scope"
+  assert_contains = "W=xe((D?_:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((D?_:null)?.stream,(state)=>state.streamingThinking),z=L?_:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 darwin-arm64 live output subscribes to the current thinking snapshot"
+  assert_not_contains = "G=xe((_?C:null)?.stream,lN)??sc,__acc_streamingThinking=xe((_?C:null)?.stream,(C)=>C.streamingThinking),z=D?C:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-310-darwin"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin Afe allocates 50 memo slots. Expand to 51, reserving slot 49 for the thinking snapshot and slot 50 for provider output."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = "function Afe(m){let h=w(50),"
+replacement = "function Afe(m){let h=w(51),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-row-cache-allocation uses the current darwin-arm64 scope"
+  assert_contains = "function Afe(m){let h=w(51),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 darwin-arm64 live row allocates its thinking snapshot cache slot"
+  assert_not_contains = "function Kce(m){let h=w(47),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-310-darwin"
+lineage = "thinking-render-live-row"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin Afe now renders four native children, including the focused-turn tool-progress row. Preserve all four children and provider value at, add the summary row, and include thinking snapshot slot 49 in cache invalidation with output at slot 50."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Afe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let Mt;if(h[44]!==Et||h[45]!==Rt||h[46]!==st||h[47]!==Tt||h[48]!==at)Mt=r(j9t.Provider,{value:at,children:[Rt,st,Tt,Et]}),h[44]=Et,h[45]=Rt,h[46]=st,h[47]=Tt,h[48]=at,h[49]=Mt;else Mt=h[49];return Mt"
+  value = 'let Mt;if(h[44]!==Et||h[45]!==Rt||h[46]!==st||h[47]!==Tt||h[48]!==at||h[49]!==__acc_streamingThinking)Mt=r(j9t.Provider,{value:at,children:[Rt,st,Tt,Et,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[44]=Et,h[45]=Rt,h[46]=st,h[47]=Tt,h[48]=at,h[49]=__acc_streamingThinking,h[50]=Mt;else Mt=h[50];return Mt'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-row uses the current darwin-arm64 scope"
+  assert_contains = 'let Mt;if(h[44]!==Et||h[45]!==Rt||h[46]!==st||h[47]!==Tt||h[48]!==at||h[49]!==__acc_streamingThinking)Mt=r(j9t.Provider,{value:at,children:[Rt,st,Tt,Et,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[44]=Et,h[45]=Rt,h[46]=st,h[47]=Tt,h[48]=at,h[49]=__acc_streamingThinking,h[50]=Mt;else Mt=h[50];return Mt'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 darwin-arm64 live row invalidates and renders the thinking snapshot"
+  assert_not_contains = 'let lt;if(h[41]!==Ze||h[42]!==at||h[43]!==pt||h[44]!==Ve||h[45]!==__acc_streamingThinking)lt=r(iVt.Provider,{value:Ve,children:[at,pt,Ze,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[41]=Ze,h[42]=at,h[43]=pt,h[44]=Ve,h[45]=__acc_streamingThinking,h[46]=lt;else lt=h[46];return lt'
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-310-darwin"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin handler lIo receives callback options n, event e, metrics h and delta Se. Stream nonempty thinking text through n.onStreamingThinking while preserving estimated-token accounting through aIo."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "lIo"
+    strings = [
+  "authoringProgressSurface",
+  "thinking_delta",
+  "onStreamingText"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:Se}=e.event;if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if("thinking"in Se&&typeof Se.thinking==="string"&&Se.thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:aIo(Se.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:Se}=e.event,thinking=typeof Se.thinking==="string"?Se.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:aIo(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-delta uses the current darwin-arm64 scope"
+  assert_contains = 'case"thinking_delta":{let{delta:Se}=e.event,thinking=typeof Se.thinking==="string"?Se.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:aIo(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 darwin-arm64 thinking deltas update live state and preserve token estimation"
+  assert_not_contains = 'case"thinking_delta":{let{delta:_e}=e.event,thinking=typeof _e.thinking==="string"?_e.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in _e&&typeof _e.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:_e.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:jSo(thinking)});return}'
+
+[[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-310"
+lineage = "thinking-clear-live-on-interrupt"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+rationale = "2.1.310 interrupt cleanup retains the thinkingStartedAt virtual-message branch. Clear the owning stream thinking snapshot immediately afterward so an interrupted summary does not remain mounted."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "thinkingStartedAt!==null", "isVirtual:!0", "signature:\"\"" ]
+    parent_node = "BlockStatement"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = "this.stream.setStreamingThinking(null);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 interrupt clears thinking after preserving the append event"
+  assert_contains = "isVirtual:!0})]});this.stream.setStreamingThinking(null);let{salvage:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 interrupt excludes the previous message-array boundary"
+  assert_not_contains = "isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:"
+
+[[patches]]
+name = "thinking-render-live-output-2-1-310-linux"
+lineage = "thinking-render-live-output"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux Spe reads streamingToolUses through xe on the focused live turn stream. Subscribe to streamingThinking through the same external-store reader and stream, preserving hook order."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Spe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "W=xe((A?D:null)?.stream,rP)??Ec,z=L?D:null,"
+  value = "W=xe((A?D:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((A?D:null)?.stream,(state)=>state.streamingThinking),z=L?D:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-output uses the current linux-x64 scope"
+  assert_contains = "W=xe((A?D:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((A?D:null)?.stream,(state)=>state.streamingThinking),z=L?D:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 linux-x64 live output subscribes to the current thinking snapshot"
+  assert_not_contains = "W=xe((A?E:null)?.stream,tN)??sc,__acc_streamingThinking=xe((A?E:null)?.stream,(T)=>T.streamingThinking),G=D?E:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-310-linux"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux Spe allocates 50 memo slots. Expand to 51, reserving slot 49 for the thinking snapshot and slot 50 for provider output."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = "function Spe(m){let h=w(50),"
+replacement = "function Spe(m){let h=w(51),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-row-cache-allocation uses the current linux-x64 scope"
+  assert_contains = "function Spe(m){let h=w(51),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 linux-x64 live row allocates its thinking snapshot cache slot"
+  assert_not_contains = "function Uce(m){let h=w(47),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-310-linux"
+lineage = "thinking-render-live-row"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux Spe now renders four native children, including the focused-turn tool-progress row. Preserve all four children and provider value at, add the summary row, and include thinking snapshot slot 49 in cache invalidation with output at slot 50."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Spe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let Ct;if(h[44]!==It||h[45]!==vt||h[46]!==it||h[47]!==Rt||h[48]!==at)Ct=r(x3t.Provider,{value:at,children:[vt,it,Rt,It]}),h[44]=It,h[45]=vt,h[46]=it,h[47]=Rt,h[48]=at,h[49]=Ct;else Ct=h[49];return Ct"
+  value = 'let Ct;if(h[44]!==It||h[45]!==vt||h[46]!==it||h[47]!==Rt||h[48]!==at||h[49]!==__acc_streamingThinking)Ct=r(x3t.Provider,{value:at,children:[vt,it,Rt,It,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[44]=It,h[45]=vt,h[46]=it,h[47]=Rt,h[48]=at,h[49]=__acc_streamingThinking,h[50]=Ct;else Ct=h[50];return Ct'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-row uses the current linux-x64 scope"
+  assert_contains = 'let Ct;if(h[44]!==It||h[45]!==vt||h[46]!==it||h[47]!==Rt||h[48]!==at||h[49]!==__acc_streamingThinking)Ct=r(x3t.Provider,{value:at,children:[vt,it,Rt,It,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[44]=It,h[45]=vt,h[46]=it,h[47]=Rt,h[48]=at,h[49]=__acc_streamingThinking,h[50]=Ct;else Ct=h[50];return Ct'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 linux-x64 live row invalidates and renders the thinking snapshot"
+  assert_not_contains = 'let lt;if(h[41]!==Ze||h[42]!==at||h[43]!==mt||h[44]!==We||h[45]!==__acc_streamingThinking)lt=r(VKt.Provider,{value:We,children:[at,mt,Ze,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[41]=Ze,h[42]=at,h[43]=mt,h[44]=We,h[45]=__acc_streamingThinking,h[46]=lt;else lt=h[46];return lt'
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-310-linux"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux handler MPo receives callback options n, event e, metrics h and delta Se. Stream nonempty thinking text through n.onStreamingThinking while preserving estimated-token accounting through OPo."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "MPo"
+    strings = [
+  "authoringProgressSurface",
+  "thinking_delta",
+  "onStreamingText"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:Se}=e.event;if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if("thinking"in Se&&typeof Se.thinking==="string"&&Se.thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:OPo(Se.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:Se}=e.event,thinking=typeof Se.thinking==="string"?Se.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:OPo(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-live-delta uses the current linux-x64 scope"
+  assert_contains = 'case"thinking_delta":{let{delta:Se}=e.event,thinking=typeof Se.thinking==="string"?Se.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:OPo(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: 2.1.304 linux-x64 thinking deltas update live state and preserve token estimation"
+  assert_not_contains = 'case"thinking_delta":{let{delta:_e}=e.event,thinking=typeof _e.thinking==="string"?_e.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in _e&&typeof _e.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:_e.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:fbo(thinking)});return}'
+
+[[patches]]
+name = "thinking-display-interactive-default-2-1-310-darwin-arm64"
+lineage = "thinking-display-interactive-default"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin resolver Kqo uses settings accessor mt. Default interactive sessions to summarized unless showThinkingSummaries is explicitly false; preserve explicit flag precedence and native noninteractive behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/betas.ts#L264-L276"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Kqo"
+    strings = [
+  "explicitDisplay",
+  "isNonInteractive",
+  "outputFormat",
+  "verbose"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(!n)return j_n()?"summarized":void 0'
+  value = 'if(!n)return mt().showThinkingSummaries===!1?void 0:"summarized"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-display-interactive-default uses the current darwin-arm64 scope"
+  assert_contains = 'if(!n)return mt().showThinkingSummaries===!1?void 0:"summarized"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-display-interactive-default excludes the previous darwin-arm64 scope"
+  assert_not_contains = 'if(!n)return ft().showThinkingSummaries===!1?void 0:"summarized"'
+
+[[patches]]
+name = "thinking-display-interactive-default-2-1-310-linux-x64"
+lineage = "thinking-display-interactive-default"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux resolver _4o uses settings accessor pt. Default interactive sessions to summarized unless showThinkingSummaries is explicitly false; preserve explicit flag precedence and native noninteractive behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/betas.ts#L264-L276"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "_4o"
+    strings = [
+  "explicitDisplay",
+  "isNonInteractive",
+  "outputFormat",
+  "verbose"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(!n)return T_n()?"summarized":void 0'
+  value = 'if(!n)return pt().showThinkingSummaries===!1?void 0:"summarized"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-display-interactive-default uses the current linux-x64 scope"
+  assert_contains = 'if(!n)return pt().showThinkingSummaries===!1?void 0:"summarized"'
+
+[[patches]]
+name = "thinking-render-blocks-2-1-310-darwin-arm64"
+lineage = "thinking-render-blocks"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin completed-thinking switch keeps native narration predicate JXe ahead of the summary path. Replace only the transcript/verbose suppression with an empty-body guard so nonblank summaries remain visible."
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L539-L558"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "SwitchCase"
+    strings = [
+  "case\"thinking\":{if(JXe(d))",
+  "if(!H&&!x){return null}",
+  "param:d,isTranscriptMode:H"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!H&&!x){return null}"
+  value = "if(!d.thinking.trim()){return null}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-blocks uses the current darwin-arm64 scope"
+  assert_contains = "if(!d.thinking.trim()){return null}"
+
+[[patches]]
+name = "thinking-render-expanded-2-1-310-darwin-arm64"
+lineage = "thinking-render-expanded"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin summary renderer Ds unwraps thinking into V, uses native continuation sentinel En, and selects prose with X. Reject blank text and force the native expanded prose branch without changing narration."
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L33-L77"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ds"
+    strings = [ "\"aria-label\":\"thinking:\"", "capProseWidth", "verbose" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!V){v=null;break Y}let X=g||h;"
+  value = "if(!V?.trim()){v=null;break Y}let X=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-expanded uses the current darwin-arm64 scope"
+  assert_contains = "if(!V?.trim()){v=null;break Y}let X=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: thinking-render-expanded 304 darwin-arm64 replacement is present"
+  assert_not_contains = "if(!K?.trim()){v=null;break Y}let Z=!0;"
+
+[[patches]]
+name = "thinking-preserve-summary-boundaries-2-1-310-darwin-arm64"
+lineage = "thinking-preserve-summary-boundaries"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 Darwin collapse handler MTo retains completed summary Ge across native message predicate HTo. Flush every completed thinking boundary instead of merging later reasoning into one summary."
+rationale_ref = "reference/v2.1.88/sources/src/utils/collapseReadSearch.ts#L918-L944"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "MTo"
+    strings = [ "latestThinkingSummary", "transcriptV2" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "HTo(Me)||Ge!==void 0&&ZLt(Ge.message)"
+  value = "HTo(Me)||Ge!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-preserve-summary-boundaries uses the current darwin-arm64 scope"
+  assert_contains = "HTo(Me)||Ge!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: thinking-preserve-summary-boundaries 304 darwin-arm64 replacement is present"
+  assert_not_contains = "ygo(Ie)||Ge!==void 0"
+
+[[patches]]
+name = "thinking-render-blocks-2-1-310-linux-x64"
+lineage = "thinking-render-blocks"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux completed-thinking switch keeps native narration predicate WXe ahead of the summary path. Replace only the transcript/verbose suppression with an empty-body guard so nonblank summaries remain visible."
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L539-L558"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "SwitchCase"
+    strings = [
+  "case\"thinking\":{if(WXe(d))",
+  "if(!W&&!x){return null}",
+  "param:d,isTranscriptMode:W"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!W&&!x){return null}"
+  value = "if(!d.thinking.trim()){return null}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-blocks uses the current linux-x64 scope"
+  assert_contains = "if(!d.thinking.trim()){return null}"
+
+[[patches]]
+name = "thinking-render-expanded-2-1-310-linux-x64"
+lineage = "thinking-render-expanded"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux summary renderer Ds unwraps thinking into q, uses native continuation sentinel vn, and selects prose with X. Reject blank text and force the native expanded prose branch without changing narration."
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L33-L77"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ds"
+    strings = [ "\"aria-label\":\"thinking:\"", "capProseWidth", "verbose" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!q){E=null;break Y}let X=f||h;"
+  value = "if(!q?.trim()){E=null;break Y}let X=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-render-expanded uses the current linux-x64 scope"
+  assert_contains = "if(!q?.trim()){E=null;break Y}let X=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: thinking-render-expanded 304 linux-x64 replacement is present"
+  assert_not_contains = "if(!q?.trim()){E=null;break Y}let Z=!0;"
+
+[[patches]]
+name = "thinking-preserve-summary-boundaries-2-1-310-linux-x64"
+lineage = "thinking-preserve-summary-boundaries"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 Linux collapse handler oAo retains completed summary Ge across native message predicate sAo. Flush every completed thinking boundary instead of merging later reasoning into one summary."
+rationale_ref = "reference/v2.1.88/sources/src/utils/collapseReadSearch.ts#L918-L944"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "oAo"
+    strings = [ "latestThinkingSummary", "transcriptV2" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "sAo(Me)||Ge!==void 0&&B0t(Ge.message)"
+  value = "sAo(Me)||Ge!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 thinking-preserve-summary-boundaries uses the current linux-x64 scope"
+  assert_contains = "sAo(Me)||Ge!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 excludes previous: thinking-preserve-summary-boundaries 304 linux-x64 replacement is present"
+  assert_not_contains = "jmo(Ie)||Ge!==void 0"

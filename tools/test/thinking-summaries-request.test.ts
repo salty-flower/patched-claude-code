@@ -15,8 +15,8 @@ const prefix = "thinking-display-interactive-default-"
 const entries = loadPatchEntriesFromFile(join(root, "patches/thinking-display.toml"))
 const featureEntries = entries.filter((entry) => entry.name.startsWith(prefix) && patchApplies(entry, version))
 
-// Exact 304 owners: this is a native-function unit contract, not an HTTP request oracle.
-const owners = {
+// Exact versioned owners: this is a native-function unit contract, not an HTTP request oracle.
+const owners304 = {
   "darwin-arm64": {
     file: "chunk-bvn0epzr.js",
     resolver: "S$o",
@@ -40,6 +40,32 @@ const owners = {
     displayGate: "rEr",
   },
 } as const
+
+const owners310 = {
+  "darwin-arm64": {
+    file: "chunk-27xjmczp.js",
+    resolver: "Kqo",
+    settings: "mt",
+    summarySetting: "j_n",
+    noninteractive: "RKr",
+    caller: "chunk-jbe4pes4.js",
+    request: "chunk-31gxg38t.js",
+    capability: "vMr",
+    displayGate: "vMr",
+  },
+  "linux-x64": {
+    file: "chunk-ajtyjx88.js",
+    resolver: "_4o",
+    settings: "pt",
+    summarySetting: "T_n",
+    noninteractive: "aqr",
+    caller: "chunk-6d8swme1.js",
+    request: "chunk-j0tbz6ra.js",
+    capability: "rMr",
+    displayGate: "rMr",
+  },
+} as const
+const owners = version === "2.1.310" ? owners310 : owners304
 
 type Display = "summarized" | "omitted" | "highlights"
 type Input = { explicitDisplay?: Display; isNonInteractive: boolean; outputFormat: string; verbose: boolean }
@@ -94,7 +120,7 @@ if (version === "2.1.301" && featureEntries.length === 0) {
   })
 } else {
   test("current target must include the interactive summary feature on both platforms", () => {
-    expect(version).toBe("2.1.304")
+    expect(["2.1.304", "2.1.310"]).toContain(version)
     for (const platform of Object.keys(owners)) expect(activePatch(entries, version, platform, prefix)).toBeDefined()
   })
 
@@ -198,34 +224,143 @@ if (version === "2.1.301" && featureEntries.length === 0) {
           input: Input,
         ) => boolean
         for (const setting of [undefined, true, false])
-          for (const explicitDisplay of [undefined, "summarized", "omitted", "highlights"] as const) {
-            let calls = 0
-            const display = resolver(setting)
-            const bindings = {
-              [required(budget)]: { type: "disabled" },
-              [required(explicit)]: explicitDisplay,
-              [required(mark)]: () => {},
-              [required(mode)]: () => false,
-              [required(format)]: "text",
-              [required(verbose)]: false,
-              [owner.resolver]: (input: Input) => {
-                calls++
-                return display(input)
-              },
-              [owner.noninteractive]: noninteractive,
-            }
-            const result = new Function(...Object.keys(bindings), `${guard};return ${budget}`)(
-              ...Object.values(bindings),
-            )
-            expect(result).toEqual({ type: "disabled" })
-            expect(calls).toBe(0)
-          }
+          for (const explicitDisplay of [undefined, "summarized", "omitted", "highlights"] as const)
+            for (const isNonInteractive of [false, true])
+              for (const outputFormat of ["text", "json", "stream-json"])
+                for (const verboseValue of [false, true]) {
+                  let calls = 0
+                  const display = resolver(setting)
+                  const bindings = {
+                    [required(budget)]: { type: "disabled" },
+                    [required(explicit)]: explicitDisplay,
+                    [required(mark)]: () => {},
+                    [required(mode)]: () => isNonInteractive,
+                    [required(format)]: outputFormat,
+                    [required(verbose)]: verboseValue,
+                    [owner.resolver]: (input: Input) => {
+                      calls++
+                      return display(input)
+                    },
+                    [owner.noninteractive]: noninteractive,
+                  }
+                  const result = new Function(...Object.keys(bindings), `${guard};return ${budget}`)(
+                    ...Object.values(bindings),
+                  )
+                  expect(result).toEqual(
+                    isNonInteractive &&
+                      (outputFormat === "text" || (outputFormat === "json" && !verboseValue))
+                      ? { type: "disabled", display: "omitted", displayExplicit: false }
+                      : { type: "disabled" },
+                  )
+                  expect(calls).toBe(0)
+                }
         recordThinkingRequestRuntimeOracle("disabled-caller", platform)
       })
 
       test("native provider and capability display gates remain restrictive (separate from resolver)", () => {
         const request = readFileSync(join(graph, owner.request), "utf8")
         const parsedRequest = nodes(request)
+        if (version === "2.1.310") {
+          const gate = declaration(request, parsedRequest, owner.displayGate)
+          const [blocked, supports, direct, alternate] = capture(
+            gate,
+            /return!([\w$]+)\(\)&&([\w$]+)\(e\)&&\(([\w$]+)\(\)\|\|([\w$]+)\(e\)\)/,
+          )
+          for (const blockedValue of [false, true])
+            for (const supported of [false, true])
+              for (const directValue of [false, true])
+                for (const alternateValue of [false, true]) {
+                  const bindings = {
+                    [required(blocked)]: () => blockedValue,
+                    [required(supports)]: () => supported,
+                    [required(direct)]: () => directValue,
+                    [required(alternate)]: () => alternateValue,
+                  }
+                  const run = new Function(...Object.keys(bindings), `${gate};return ${owner.displayGate}`)(
+                    ...Object.values(bindings),
+                  ) as (model: string) => boolean
+                  expect(run("fixture-model")).toBe(!blockedValue && supported && (directValue || alternateValue))
+                }
+          const eligibility = unique(
+            request,
+            parsedRequest,
+            "VariableDeclarator",
+            (text) =>
+              /^[\w$]+=[\w$]+&&/.test(text) &&
+              text.includes(`&&${owner.displayGate}(`) &&
+              text.includes('==="withoutUpdates"'),
+          )
+          const [
+            eligibleName,
+            enabledBinding,
+            gateBinding,
+            modelBinding,
+            cachedBinding,
+            cacheBinding,
+            keyBinding,
+            retryBinding,
+          ] = capture(
+            eligibility,
+            /^([\w$]+)=([\w$]+)&&([\w$]+)\(([\w$]+)\)&&!([\w$]+)\(([\w$]+),([\w$]+)\)&&\(([\w$]+)==="idle"\|\|\8==="withoutUpdates"\)$/,
+          )
+          const display = unique(
+            request,
+            parsedRequest,
+            "VariableDeclarator",
+            (text) =>
+              /^[\w$]+=![\w$]+\?void 0:/.test(text) &&
+              text.includes(`=!${eligibleName}?void 0:`) &&
+              text.includes('.display==="highlights"'),
+          )
+          const [displayName, configBinding, highlightsBinding] = capture(
+            display,
+            /^([\w$]+)=![\w$]+\?void 0:([\w$]+)\.display==="highlights"&&([\w$]+)\(\)\?"omitted":/,
+          )
+          for (const thinkingEnabled of [false, true])
+            for (const allowed of [false, true])
+              for (const cached of [false, true])
+                for (const retry of ["idle", "withoutUpdates", "withoutField", "spent"])
+                  for (const preference of ["summarized", "highlights", "omitted"])
+                    for (const suppressHighlights of [false, true]) {
+                      const bindings = {
+                        [required(enabledBinding)]: thinkingEnabled,
+                        [required(gateBinding)]: () => allowed,
+                        [required(modelBinding)]: "fixture-model",
+                        [required(cachedBinding)]: () => cached,
+                        [required(cacheBinding)]: {},
+                        [required(keyBinding)]: "display-rejected",
+                        [required(retryBinding)]: retry,
+                        [required(configBinding)]: { display: preference },
+                        [required(highlightsBinding)]: () => suppressHighlights,
+                      }
+                      const run = new Function(
+                        ...Object.keys(bindings),
+                        `let ${eligibility},${display};return ${displayName}`,
+                      )
+                      expect(run(...Object.values(bindings))).toBe(
+                        thinkingEnabled && allowed && !cached && (retry === "idle" || retry === "withoutUpdates")
+                          ? preference === "highlights" && suppressHighlights
+                            ? "omitted"
+                            : preference
+                          : undefined,
+                      )
+                    }
+          const enabled = unique(request, parsedRequest, "VariableDeclarator", (text) =>
+            /^[\w$]+=[\w$]+\.type!=="disabled"&&!/.test(text),
+          )
+          const [enabledName, config, disabledEnv] = capture(
+            enabled,
+            /^([\w$]+)=([\w$]+)\.type!=="disabled"&&!([\w$]+)$/,
+          )
+          expect(enabledName).toBe(enabledBinding)
+          for (const type of ["disabled", "adaptive", "enabled"])
+            for (const disabled of [false, true]) {
+              const run = new Function(required(config), required(disabledEnv), `let ${enabled};return ${enabledName}`)
+              expect(run({ type, display: "summarized" }, disabled)).toBe(type !== "disabled" && !disabled)
+            }
+          recordThinkingRequestRuntimeOracle("provider-capability-gates", platform)
+          return
+        }
         const capability = declaration(request, parsedRequest, owner.capability)
         const displayGate = declaration(request, parsedRequest, owner.displayGate)
         const [blocked, supports, direct, alternate, provider] = capture(

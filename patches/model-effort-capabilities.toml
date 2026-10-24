@@ -2859,3 +2859,359 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.304 Linux effort-retry-notice-drain excludes predecessor"
   assert_not_contains = 'function*Vct(){if(mct.__acc_notice!==void 0){const __acc_notice=mct.__acc_notice;delete mct.__acc_notice;yield Ms({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-310-darwin-arm64"
+lineage = "custom-model-slot-capabilities"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit: chunk-27xjmczp.js GH/bu/$H capability resolver/provider/table; chunk-fdkh5k16.js I/Hce/iwt normalization; chunk-31gxg38t.js Rq refusal classifier, v_t retry closure with Q model options, j_t/$_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "GH"
+    source_regex = "^function GH\\(e,n\\)\\{if\\(bu\\(\\)\\)return;for\\(let r of \\$H\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin custom slots use the current capability resolver"
+  assert_contains = 'function GH(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 custom-model-slot-capabilities excludes 301 binding"
+  assert_not_contains = 'function PU(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function QU(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-310-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit: chunk-27xjmczp.js GH/bu/$H capability resolver/provider/table; chunk-fdkh5k16.js I/Hce/iwt normalization; chunk-31gxg38t.js Rq refusal classifier, v_t retry closure with Q model options, j_t/$_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(bu())return;for(let r of $H)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of $H){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(bu())return;for(let r of $H)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of $H){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 explicit-capabilities-first-party excludes 301 binding"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of xU){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of JU){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-310-darwin-arm64"
+lineage = "effort-reactive-capability"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit: chunk-27xjmczp.js GH/bu/$H capability resolver/provider/table; chunk-fdkh5k16.js I/Hce/iwt normalization; chunk-31gxg38t.js Rq refusal classifier, v_t retry closure with Q model options, j_t/$_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Hce(n))r="high";if(r==="xhigh"&&!iwt(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin effort resolver preserves selected high levels"
+  assert_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&Aw(r))r=xQ(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-reactive-capability excludes 301 binding"
+  assert_not_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&Cb(r))r=wX(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&qb(r))r=b7(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-310-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit: chunk-27xjmczp.js GH/bu/$H capability resolver/provider/table; chunk-fdkh5k16.js I/Hce/iwt normalization; chunk-31gxg38t.js Rq refusal classifier, v_t retry closure with Q model options, j_t/$_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(!Rq\\(Qn\\)\\)return null;$"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'v_t.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin retry notice follows the current refusal classifier"
+  assert_contains = 'if(!Rq(Qn))return null;v_t.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-retry-notice-queue excludes 301 binding"
+  assert_not_contains = 'if(!IG(Jn))return null;fct.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'if(!zq(eo))return null;Ogt.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-310-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 native scope audit: chunk-27xjmczp.js GH/bu/$H capability resolver/provider/table; chunk-fdkh5k16.js I/Hce/iwt normalization; chunk-31gxg38t.js Rq refusal classifier, v_t retry closure with Q model options, j_t/$_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "j_t"
+    body_statement_count = 1
+    source_regex = "^function\\*j_t\\(\\)\\{if\\(\\$_t!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(v_t.__acc_notice!==void 0){const __acc_notice=v_t.__acc_notice;delete v_t.__acc_notice;yield Xs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin pending-message generator drains the retry notice"
+  assert_contains = 'function*j_t(){if(v_t.__acc_notice!==void 0){const __acc_notice=v_t.__acc_notice;delete v_t.__acc_notice;yield Xs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 effort-retry-notice-drain excludes 301 binding"
+  assert_not_contains = 'function*Wct(){if(fct.__acc_notice!==void 0){const __acc_notice=fct.__acc_notice;delete fct.__acc_notice;yield Hs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function*Ygt(){if(Ogt.__acc_notice!==void 0){const __acc_notice=Ogt.__acc_notice;delete Ogt.__acc_notice;yield $s({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-310-linux-x64"
+lineage = "custom-model-slot-capabilities"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit: chunk-ajtyjx88.js $H/bu/KH capability resolver/provider/table; chunk-hhgrzgnb.js I/Cce/ZSt normalization; chunk-j0tbz6ra.js $K refusal classifier, x_t retry closure with Q model options, U_t/F_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "$H"
+    source_regex = "^function \\$H\\(e,n\\)\\{if\\(bu\\(\\)\\)return;for\\(let r of KH\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux custom slots use the current capability resolver"
+  assert_contains = 'function $H(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux custom-model-slot-capabilities excludes predecessor"
+  assert_not_contains = 'function $U(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function l0(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-310-linux-x64"
+lineage = "explicit-capabilities-first-party"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit: chunk-ajtyjx88.js $H/bu/KH capability resolver/provider/table; chunk-hhgrzgnb.js I/Cce/ZSt normalization; chunk-j0tbz6ra.js $K refusal classifier, x_t retry closure with Q model options, U_t/F_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(bu())return;for(let r of KH)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of KH){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(bu())return;for(let r of KH)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of KH){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux explicit-capabilities-first-party excludes predecessor"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of HU){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of a0){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-310-linux-x64"
+lineage = "effort-reactive-capability"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit: chunk-ajtyjx88.js $H/bu/KH capability resolver/provider/table; chunk-hhgrzgnb.js I/Cce/ZSt normalization; chunk-j0tbz6ra.js $K refusal classifier, x_t retry closure with Q model options, U_t/F_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Cce(n))r="high";if(r==="xhigh"&&!ZSt(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort resolver preserves selected high levels"
+  assert_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&Aw(r))r=w7(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-reactive-capability excludes predecessor"
+  assert_not_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&kS(r))r=pX(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&VS(r))r=uJ(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-310-linux-x64"
+lineage = "effort-retry-notice-queue"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit: chunk-ajtyjx88.js $H/bu/KH capability resolver/provider/table; chunk-hhgrzgnb.js I/Cce/ZSt normalization; chunk-j0tbz6ra.js $K refusal classifier, x_t retry closure with Q model options, U_t/F_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(!\\$K\\(Qn\\)\\)return null;$"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'x_t.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux retry notice follows the current refusal classifier"
+  assert_contains = 'if(!$K(Qn))return null;x_t.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-retry-notice-queue excludes predecessor"
+  assert_not_contains = 'if(!EG(Jn))return null;mct.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'if(!wK(eo))return null;Ogt.__acc_notice="Model "+J.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-310-linux-x64"
+lineage = "effort-retry-notice-drain"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 native scope audit: chunk-ajtyjx88.js $H/bu/KH capability resolver/provider/table; chunk-hhgrzgnb.js I/Cce/ZSt normalization; chunk-j0tbz6ra.js $K refusal classifier, x_t retry closure with Q model options, U_t/F_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "U_t"
+    body_statement_count = 1
+    source_regex = "^function\\*U_t\\(\\)\\{if\\(F_t!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(x_t.__acc_notice!==void 0){const __acc_notice=x_t.__acc_notice;delete x_t.__acc_notice;yield Xs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux pending-message generator drains the retry notice"
+  assert_contains = 'function*U_t(){if(x_t.__acc_notice!==void 0){const __acc_notice=x_t.__acc_notice;delete x_t.__acc_notice;yield Xs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux effort-retry-notice-drain excludes predecessor"
+  assert_not_contains = 'function*Vct(){if(mct.__acc_notice!==void 0){const __acc_notice=mct.__acc_notice;delete mct.__acc_notice;yield Ms({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = 'function*Ygt(){if(Ogt.__acc_notice!==void 0){const __acc_notice=Ogt.__acc_notice;delete Ogt.__acc_notice;yield Fs({content:__acc_notice,error:"warning"})}'

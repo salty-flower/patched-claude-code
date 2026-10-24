@@ -866,7 +866,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       TARGET_VERSION === "2.1.293" ||
       TARGET_VERSION === "2.1.296" ||
       TARGET_VERSION === "2.1.301" ||
-      TARGET_VERSION === "2.1.304"
+      TARGET_VERSION === "2.1.304" ||
+      TARGET_VERSION === "2.1.310"
     ) {
       const versionSuffix = TARGET_VERSION.replaceAll(".", "-")
       const effortMemoSlot = activeStatuslineMemoIndex(
@@ -903,6 +904,19 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
             expect(bundle).toContain(`let ${selector}=V((state)=>state.settings.statusLine`)
             expect(bundle).not.toContain(`let ${selector}=Re(`)
           }
+        }
+        if (TARGET_VERSION === "2.1.310") {
+          const constructor = platform === "darwin-arm64" ? "ls" : "as"
+          expect(bundle).toContain(`new ${constructor}("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")`)
+          const currentEffort = platform === "darwin-arm64"
+            ? "effort_level:Tw(We)?AV(We,we)??null:null,...Tw(We)&&{effort:{level:AV(We,we)}}"
+            : "effort_level:Tw(je)?hV(je,we)??null:null,...Tw(je)&&{effort:{level:hV(je,we)}}"
+          expect(bundle).toContain(currentEffort)
+          for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
+            expect(bundle).toContain(`let ${selector}=K((state)=>state.settings.statusLine`)
+            expect(bundle).not.toContain(`let ${selector}=xe(`)
+          }
+          expect(bundle).not.toContain("[406]?.[3]!==__acc_hide_effort_level")
         }
         if (TARGET_VERSION === "2.1.304") {
           expect(bundle).toContain('new ls("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
@@ -966,7 +980,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
           TARGET_VERSION === "2.1.293" ||
           TARGET_VERSION === "2.1.296" ||
           TARGET_VERSION === "2.1.301" ||
-          TARGET_VERSION === "2.1.304"
+          TARGET_VERSION === "2.1.304" ||
+          TARGET_VERSION === "2.1.310"
         ) {
           expect(bundle).toMatch(
             /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\(\2,([\w$]+)\)\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\(\2,\4\)}}/,

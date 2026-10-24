@@ -38,7 +38,7 @@ assert_contains = '''arguments[2]?.input?.file_path'''
 
 [[patches]]
 name = "read-result-path-context-2-1-281"
-target_version = "2.1.301"
+target_version = "2.1.310"
 applies_to = ">=2.1.281 <2.2.0"
 
 rationale = """
@@ -5245,3 +5245,269 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "304 excludes 301 inserted scope 3"
   assert_not_contains = "Ui(Od(f(o.file.filePath)))"
+
+
+[[patches]]
+name = "read-result-path-image-2-1-310"
+lineage = "read-result-path-image"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale = "2.1.310 port; the staged dual-platform scope was rechecked. Current replacement bindings: Zt -> en, ta -> Sa, Hd -> nc. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L80-L88"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read image ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 image result has no unwrapped summary"
+  assert_contains = '([...["Read image ("'
+  assert_not_contains = 'children:["Read image (",s,")"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "s=Qt(t)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects the previous target binding 2"
+  assert_not_contains = "s=Zt(t)"
+
+[[patches]]
+name = "read-result-path-pdf-2-1-310"
+lineage = "read-result-path-pdf"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale = "2.1.310 port; the staged dual-platform scope was rechecked. Current replacement bindings: Zt -> en, ta -> Sa, Hd -> nc. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L112"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "Read PDF ("
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 PDF result has no unwrapped summary"
+  assert_contains = '([...["Read PDF ("'
+  assert_not_contains = 'children:["Read PDF (",s,")"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "s=Qt(t)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects the previous target binding 2"
+  assert_not_contains = "s=Zt(t)"
+
+[[patches]]
+name = "read-result-path-notebook-2-1-310"
+lineage = "read-result-path-notebook"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale = "2.1.310 port; the staged dual-platform scope was rechecked. Current replacement bindings: Zt -> en, ta -> Sa, Hd -> nc. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L90-L102"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = " cells"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 notebook result keeps its current cell-count summary and adds the path suffix"
+  assert_contains = '" cells"],Z])'
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:t.length})," cells"]'
+
+[[patches]]
+name = "read-result-path-parts-2-1-310"
+lineage = "read-result-path-parts"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale = "2.1.310 port; the staged dual-platform scope was rechecked. Current replacement bindings: Zt -> en, ta -> Sa, Hd -> nc. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L104-L116"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "pages"
+    strings = [ "\"Read \"", ".file.originalSize", ".file.count" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 parts result keeps its current size expression and adds the suffix"
+  assert_contains = 'en(o.file.originalSize),")"],Z])'
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:o.file.count})," ",o.file.count===1?"page":"pages"," (",Zt(o.file.originalSize),")"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = 'Qt(o.file.originalSize),")"],Z])'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects the previous target binding 2"
+  assert_not_contains = 'Zt(o.file.originalSize),")"],Z])'
+
+[[patches]]
+name = "read-result-path-text-2-1-310"
+lineage = "read-result-path-text"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale = "2.1.310 port; the staged dual-platform scope was rechecked. Current replacement bindings: Zt -> en, ta -> Sa, Hd -> nc. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L118-L127"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    string_literal = "lines"
+    strings = [ "\"Read \"", "bold:!0", "\"line\"" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([...%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 text result keeps its current line-count summary and adds the path suffix"
+  assert_contains = '"lines"],Z])'
+  assert_not_contains = 'children:["Read ",e(n,{bold:!0,children:t})," ",t===1?"line":"lines"]'
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-310-darwin-arm64"
+lineage = "read-result-path-unchanged"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 port; the staged darwin-arm64 scope was rechecked. Current replacement bindings: Zt -> en, ta -> Sa, Hd -> nc. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    string_literal = "Unchanged since last read"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 unchanged result keeps its current seeded-path formatter and adds the suffix"
+  assert_contains = "Sa(nc(f(o.file.filePath)))"
+  assert_not_contains = "_i(Kl(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 unchanged result has no unwrapped children conditional"
+  assert_contains = '"Unchanged since last read",Z])'
+  assert_not_contains = 'children:o.source==="seeded"?'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "Ci(pc(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous target bytes 3"
+  assert_not_contains = "Ui(Od(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects the previous target binding 4"
+  assert_not_contains = "ta(Hd(f(o.file.filePath)))"
+
+[[patches]]
+name = "read-result-path-unchanged-2-1-310-linux-x64"
+lineage = "read-result-path-unchanged"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 port; the staged linux-x64 scope was rechecked. Current replacement bindings: Zt -> en, ta -> _a, Hd -> nc. Preserve the existing feature semantics and reference boundary."
+rationale_ref = "reference/v2.1.88/sources/src/tools/FileReadTool/UI.tsx#L128-L137"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    string_literal = "Unchanged since last read"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = "([%%EXPR%%,Z])"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 unchanged result keeps its current seeded-path formatter and adds the suffix"
+  assert_contains = "_a(nc(f(o.file.filePath)))"
+  assert_not_contains = "_i(Kl(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 unchanged result has no unwrapped children conditional"
+  assert_contains = '"Unchanged since last read",Z])'
+  assert_not_contains = 'children:o.source==="seeded"?'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = "Ai(pc(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes 301 inserted scope 3"
+  assert_not_contains = "Ui(Od(f(o.file.filePath)))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects the previous target binding 4"
+  assert_not_contains = "ta(Hd(f(o.file.filePath)))"

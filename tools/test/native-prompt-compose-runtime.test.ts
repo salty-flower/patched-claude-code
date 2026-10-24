@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { targetVersion } from "../lib/target"
@@ -10,13 +10,21 @@ const ROOT = join(import.meta.dir, "..", "..")
 const MARKER = "native-compose-runtime-original-test-body"
 
 test("extracted native compose worker preserves no-op requests, edits by identity, and falls back after hook errors", async () => {
-  const work = mkdtempSync(join(tmpdir(), "patched-cc-native-compose-"))
+  const work = realpathSync(mkdtempSync(join(tmpdir(), "patched-cc-native-compose-")))
   const stub = await startClaudeApiStub({ text: "native compose stub ok" })
   try {
     const home = join(work, "home")
     const config = join(home, ".claude")
     const plugin = join(work, "plugin")
     mkdirSync(config, { recursive: true })
+    // Memory keys can resolve from either cwd or a discovered repository root.
+    // Give every capture the same root, independent of ancestor .git markers
+    // and asynchronous repository discovery during native startup.
+    const initialized = Bun.spawnSync({ cmd: ["git", "init", "--quiet", "--template=", home] })
+    expect(initialized.exitCode).toBe(0)
+    const repositoryRoot = Bun.spawnSync({ cmd: ["git", "rev-parse", "--show-toplevel"], cwd: home })
+    expect(repositoryRoot.exitCode).toBe(0)
+    expect(repositoryRoot.stdout.toString().trim()).toBe(home)
     mkdirSync(join(plugin, ".claude-plugin"), { recursive: true })
     mkdirSync(join(plugin, "hooks"), { recursive: true })
     writeFileSync(join(plugin, ".claude-plugin", "plugin.json"), JSON.stringify({ name: "compose-runtime-test" }))

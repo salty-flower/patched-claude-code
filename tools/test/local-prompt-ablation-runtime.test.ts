@@ -21,6 +21,10 @@ type FunctionSources = {
   rewriteName: string
   emitName: string
   parserName: string
+  environmentName: string
+  warningName: string
+  analyticsName: string
+  errorName: string
   cacheName: string
   cacheKeyName: string
   skipName: string
@@ -97,9 +101,10 @@ function patchedFunctions(platform: Platform): FunctionSources {
 
   const graph = loadGraphBundle(resolve(root, `staging/${version}/graph/${platform}`), platform)
   const rendered = applyPatchEntriesToGraphBundle(graph, patches, version)
-  const graphFiles = graph.files.filter((file) =>
-    file.text.includes("CLAUDE_CODE_REMOVE_PROMPT_STRINGS") &&
-    file.text.includes("tengu_remove_prompt_strings_applied"),
+  const graphFiles = graph.files.filter(
+    (file) =>
+      file.text.includes("CLAUDE_CODE_REMOVE_PROMPT_STRINGS") &&
+      file.text.includes("tengu_remove_prompt_strings_applied"),
   )
   expect(graphFiles).toHaveLength(1)
   const graphFile = graphFiles[0]!
@@ -111,9 +116,17 @@ function patchedFunctions(platform: Platform): FunctionSources {
   const nodes = declarations(source)
   const config = uniqueFunction(nodes, (body) => body.includes("CLAUDE_CODE_REMOVE_PROMPT_STRINGS"))
   const rewrite = uniqueFunction(nodes, (body) => body.includes("promptAblation") && body.includes("replaceAll"))
-  const nativeEmit = uniqueFunction(declarations(graphFile.text), (body) => body.includes("tengu_remove_prompt_strings_applied"))
+  const nativeEmit = uniqueFunction(declarations(graphFile.text), (body) =>
+    body.includes("tengu_remove_prompt_strings_applied"),
+  )
   const emit = uniqueFunction(nodes, (body) => body.startsWith(`function ${nativeEmit.name}(`))
-  const [parserName] = capture(config.source, /([\w$]+)\(a\.CLAUDE_CODE_REMOVE_PROMPT_STRINGS,!1\)/)
+  const [parserName, environmentName] = capture(
+    config.source,
+    /([\w$]+)\(([\w$]+)\.CLAUDE_CODE_REMOVE_PROMPT_STRINGS,!1\)/,
+  )
+  const [warningName] = capture(config.source, /([\w$]+)\(`prompt ablation: ignoring /)
+  const [analyticsName] = capture(nativeEmit.source, /([\w$]+)\("tengu_remove_prompt_strings_applied",/)
+  const [errorName] = capture(rewrite.source, /matched:new Set\},([\w$]+)\([\w$]+\),e\}\}$/)
   const [cacheName, cacheKeyName] = capture(config.source, /([\w$]+)\(\)\?\.\[([\w$]+)\]/)
   const [skipName, sentinelName] = capture(rewrite.source, /if\(([\w$]+)\(n\)\|\|e===([\w$]+)\)return e;/)
   const [stateName] = capture(rewrite.source, /let [\w$]+=([\w$]+)\(\);try\{/)
@@ -125,6 +138,10 @@ function patchedFunctions(platform: Platform): FunctionSources {
     rewrite: rewrite.source,
     emit: emit.source,
     parserName: parserName!,
+    environmentName: environmentName!,
+    warningName: warningName!,
+    analyticsName: analyticsName!,
+    errorName: errorName!,
     cacheName: cacheName!,
     cacheKeyName: cacheKeyName!,
     skipName: skipName!,
@@ -152,14 +169,14 @@ function instantiate(
     return { remove_prompt_strings: scenario.cachedRemoteStrings }
   }
   const factory = new Function(
-    "a",
+    sources.environmentName,
     "process",
     sources.parserName,
     sources.cacheName,
     sources.cacheKeyName,
-    "t",
-    "i",
-    "c",
+    sources.warningName,
+    sources.analyticsName,
+    sources.errorName,
     sources.skipName,
     sources.sentinelName,
     sources.stateName,
@@ -183,12 +200,7 @@ function instantiate(
   return { bindings, state, cacheReads: () => cacheReads, analyticsCalls }
 }
 
-function withOracle(
-  oracleId: string,
-  check: string,
-  platform: Platform,
-  action: () => void,
-): void {
+function withOracle(oracleId: string, check: string, platform: Platform, action: () => void): void {
   let outcome: "passed" | "failed" = "failed"
   try {
     action()
@@ -204,8 +216,10 @@ function withOracle(
   }
 }
 
-const sourceAdmissionCheck = "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission"
-const telemetryCheck = "local-prompt-ablation-runtime.test.ts: native prompt deletion never records matching strings or emits analytics"
+const sourceAdmissionCheck =
+  "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission"
+const telemetryCheck =
+  "local-prompt-ablation-runtime.test.ts: native prompt deletion never records matching strings or emits analytics"
 
 // Cold dual-graph parsing has its own setup budget; scenario deadlines stay unchanged.
 beforeAll(() => {

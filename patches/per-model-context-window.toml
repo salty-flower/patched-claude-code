@@ -658,3 +658,77 @@ path = "params.0"
   kind = "static"
   name = "304 excludes 301 Linux context resolver"
   assert_not_contains = "function Hv(e,n){let __acc_model_context_key="
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-310-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 rewrites native context calculation behind Vm in chunk-27xjmczp.js. Prepend the model-specific declaration to the public wrapper, before the global disable-compaction override, compaction cap and native context resolver; capture its first model argument. The recovered reference still governs the context override policy."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Vm"
+    source_regex = "^function Vm\\(e,n\\)\\{let r=Gk\\(\\);"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 model override precedes native context resolution"
+  assert_contains = "function Vm(e,n){let __acc_model_context_key="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects stale context function"
+  assert_not_contains = 'function iE(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(x8n(e,n))return 1e6;'
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-310-linux-x64"
+lineage = "resolve-model-specific-context-window"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 rewrites native context calculation behind Km in chunk-ajtyjx88.js. Prepend the model-specific declaration to the public wrapper, before the global disable-compaction override, compaction cap and native context resolver; capture its first model argument. The recovered reference still governs the context override policy."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Km"
+    source_regex = "^function Km\\(e,n\\)\\{let r=\\$k\\(\\);"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 model override precedes native context resolution"
+  assert_contains = "function Km(e,n){let __acc_model_context_key="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects stale context function"
+  assert_not_contains = 'function Zv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(u8n(e,n))return 1e6;'

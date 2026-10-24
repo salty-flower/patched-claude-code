@@ -1,5 +1,5 @@
 name = "anti-trace"
-target_version = "2.1.304"
+target_version = "2.1.310"
 applies_to = ">=2.1.197 <2.1.198"
 
 rationale = """
@@ -5851,3 +5851,414 @@ expected_matches = 1
   kind = "static"
   name = "2.1.304 free-form served text preserves v_e suppression and compiled fallback"
   assert_contains = '''function v_e(){if(OJ()||!["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim()))return SVt;'''
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-310-darwin"
+lineage = "require-explicit-assistant-response-otel"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = """
+Require explicit assistant-response OTel opt-in in 2.1.310 Darwin.
+Upstream still inherits OTEL_LOG_USER_PROMPTS when the assistant-response
+setting is absent; keep response logging independent from prompt logging.
+Drop this variant when upstream removes the fallback.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    strings = [ "OTEL_LOG_ASSISTANT_RESPONSES", "OTEL_LOG_USER_PROMPTS" ]
+
+[patches.ast.captures.env]
+kind = "identifier"
+path = "body.body.0.argument.left.object"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return %%CAPTURE:env%%.OTEL_LOG_ASSISTANT_RESPONSES===!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 assistant telemetry requires explicit opt-in"
+  assert_contains = "function _Js(){return i.OTEL_LOG_ASSISTANT_RESPONSES===!0}"
+  assert_not_contains = "OTEL_LOG_ASSISTANT_RESPONSES??i.OTEL_LOG_USER_PROMPTS"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 assistant-response opt-in helper"
+  assert_not_contains = "function xGs(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}"
+
+[[patches]]
+name = "disable-raw-api-request-body-otel-2-1-310-darwin"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = """
+Disable 2.1.310 Darwin raw API request-body OTel capture.
+The current gate controls request-body capture; returning false prevents its
+call into the raw-body serializer. The response helper has a separate entry.
+Drop this variant when upstream removes the raw request-body path.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    strings = [ ".mode!==\"disabled\"" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return!1}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 raw request gate is disabled"
+  assert_contains = "function Dgr(){return!1}"
+  assert_not_contains = 'function Dgr(){return WJe().mode!=="disabled"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 request capture still uses the disabled gate"
+  assert_contains = "if(!Dgr())return;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 request-body gate declaration"
+  assert_not_contains = "function jdr(){return!1}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 request-body gate call"
+  assert_not_contains = "if(!jdr())return;"
+
+[[patches]]
+name = "disable-raw-api-response-body-otel-2-1-310-darwin"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = """
+Disable the separate 2.1.310 Darwin raw API response-body OTel path.
+The response helper reads capture mode directly and writes full response
+bodies without consulting the request gate, so replace its telemetry-only
+body with an immediate return.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 4
+    strings = [ "api_response_body", "response_file", ".mode===\"disabled\"" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 raw response helper returns before serialization"
+  assert_contains = "function hhn(e,n){return}"
+  assert_not_contains = '"api_response_body"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 response-body logger"
+  assert_not_contains = "function jcn(e,n){return}"
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-web-search-2-1-310-darwin"
+lineage = "require-local-opt-in-for-served-tool-text"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = """
+Keep WebSearch served mode_description, system_hint, and web_search_addendum
+behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.310 Darwin.
+The local fast-argument branch remains first; gate only the served lookup.
+Drop the patch when upstream removes these served values or makes their
+availability explicitly local.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/WebSearchTool/prompt.ts#L5-L33"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    direct_string_literal = "tengu_sleepy_shore"
+    parent_node = "ConditionalExpression"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?%%EXPR%%:null'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 WebSearch served lookup requires local opt-in"
+  assert_contains = '?Wn("tengu_sleepy_shore",null):null'
+  assert_not_contains = '{enabled:i.CLAUDE_CODE_WEB_SEARCH_FAST_ARG}:Wn("tengu_sleepy_shore",null)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 preserves local WebSearch fast argument"
+  assert_contains = "i.CLAUDE_CODE_WEB_SEARCH_FAST_ARG!==void 0?{enabled:i.CLAUDE_CODE_WEB_SEARCH_FAST_ARG}:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 served WebSearch lookup"
+  assert_not_contains = '?ir("tengu_sleepy_shore",null):null'
+
+[[patches]]
+name = "neutralize-project-thread-author-marker-2-1-310"
+lineage = "neutralize-project-thread-author-marker"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+rationale = "Keep project-thread author markers neutral in both 2.1.310 graphs. The shared formatter S still encodes author_kind and author_id into returned and relayed timeline markers, using the current Ge identifier check; replace its body with the fixed user label."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L1615-L1636"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "S"
+    body_statement_count = 2
+    strings = [
+  "author_kind",
+  "author_id",
+  "the project owner",
+  "a member of the project"
+]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = '{return"the user"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 project marker uses neutral formatter"
+  assert_contains = 'function S(e){return"the user"}'
+  assert_not_contains = "function S(e){let t=e.author_kind==="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 returned timeline uses neutral formatter"
+  assert_contains = "by ${S(e)}, returned by"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 relayed timeline uses neutral formatter"
+  assert_contains = "by ${S(e)}, relayed by the coordinator session"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 author label helper"
+  assert_not_contains = 'function v(e){return"the user"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 author label in returned results"
+  assert_not_contains = "by ${v(e)}, returned by"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 author label in coordinator relay"
+  assert_not_contains = "by ${v(e)}, relayed by the coordinator session"
+
+[[patches]]
+name = "require-explicit-assistant-response-otel-2-1-310-linux"
+lineage = "require-explicit-assistant-response-otel"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = """
+Require explicit assistant-response OTel opt-in in 2.1.310 Linux.
+Upstream still inherits OTEL_LOG_USER_PROMPTS when the assistant-response
+setting is absent; keep response logging independent from prompt logging.
+Drop this variant when upstream removes the fallback.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/events.ts#L13-L19"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    strings = [ "OTEL_LOG_ASSISTANT_RESPONSES", "OTEL_LOG_USER_PROMPTS" ]
+
+[patches.ast.captures.env]
+kind = "identifier"
+path = "body.body.0.argument.left.object"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return %%CAPTURE:env%%.OTEL_LOG_ASSISTANT_RESPONSES===!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 assistant telemetry requires explicit opt-in"
+  assert_contains = "function DJs(){return i.OTEL_LOG_ASSISTANT_RESPONSES===!0}"
+  assert_not_contains = "OTEL_LOG_ASSISTANT_RESPONSES??i.OTEL_LOG_USER_PROMPTS"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 assistant-response opt-in helper"
+  assert_not_contains = "function _Ws(){return a.OTEL_LOG_ASSISTANT_RESPONSES===!0}"
+
+[[patches]]
+name = "disable-raw-api-request-body-otel-2-1-310-linux"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = """
+Disable 2.1.310 Linux raw API request-body OTel capture.
+The current gate controls request-body capture; returning false prevents its
+call into the raw-body serializer. The response helper has a separate entry.
+Drop this variant when upstream removes the raw request-body path.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    strings = [ ".mode!==\"disabled\"" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return!1}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 raw request gate is disabled"
+  assert_contains = "function Hgr(){return!1}"
+  assert_not_contains = 'function Hgr(){return QQe().mode!=="disabled"}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 request capture still uses the disabled gate"
+  assert_contains = "if(!Hgr())return;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 request-body gate declaration"
+  assert_not_contains = "function jdr(){return!1}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 request-body gate call"
+  assert_not_contains = "if(!jdr())return;"
+
+[[patches]]
+name = "disable-raw-api-response-body-otel-2-1-310-linux"
+lineage = "disable-raw-api-body-otel"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = """
+Disable the separate 2.1.310 Linux raw API response-body OTel path.
+The response helper reads capture mode directly and writes full response
+bodies without consulting the request gate, so replace its telemetry-only
+body with an immediate return.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/telemetry/instrumentation.ts#L324-L326"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 4
+    strings = [ "api_response_body", "response_file", ".mode===\"disabled\"" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 raw response helper returns before serialization"
+  assert_contains = "function ghn(e,n){return}"
+  assert_not_contains = '"api_response_body"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 response-body logger"
+  assert_not_contains = "function Ucn(e,n){return}"
+
+[[patches]]
+name = "require-local-opt-in-for-served-tool-text-web-search-2-1-310-linux"
+lineage = "require-local-opt-in-for-served-tool-text"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = """
+Keep WebSearch served mode_description, system_hint, and web_search_addendum
+behind CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT in 2.1.310 Linux.
+The local fast-argument branch remains first; gate only the served lookup.
+Drop the patch when upstream removes these served values or makes their
+availability explicitly local.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/tools/WebSearchTool/prompt.ts#L5-L33"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    direct_string_literal = "tengu_sleepy_shore"
+    parent_node = "ConditionalExpression"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '["1","true","yes","on"].includes(String(process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT??"").toLowerCase().trim())?%%EXPR%%:null'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 WebSearch served lookup requires local opt-in"
+  assert_contains = '?Wn("tengu_sleepy_shore",null):null'
+  assert_not_contains = '{enabled:i.CLAUDE_CODE_WEB_SEARCH_FAST_ARG}:Wn("tengu_sleepy_shore",null)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 preserves local WebSearch fast argument"
+  assert_contains = "i.CLAUDE_CODE_WEB_SEARCH_FAST_ARG!==void 0?{enabled:i.CLAUDE_CODE_WEB_SEARCH_FAST_ARG}:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 rejects previous 304 served WebSearch lookup"
+  assert_not_contains = '?ir("tengu_sleepy_shore",null):null'

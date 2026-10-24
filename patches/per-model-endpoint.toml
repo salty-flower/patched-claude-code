@@ -1,5 +1,5 @@
 name = "per-model-endpoint"
-target_version = "2.1.304"
+target_version = "2.1.310"
 applies_to = ">=2.1.168 <2.2.0"
 
 rationale = """
@@ -64,7 +64,7 @@ Note on header naming:
 
 [[patches]]
 name = "disable-default-base-url-guard"
-target_version = "2.1.301"
+target_version = "2.1.310"
 applies_to = ">=2.1.168 <2.2.0"
 rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L1-L50"
 locator_kind = "literal"
@@ -4403,3 +4403,283 @@ path = "arguments.1.properties.0.value"
 kind = "static"
 name = "2.1.304 unpatched transport body is absent"
 assert_not_contains = "this._client.post(\"/v1/messages/count_tokens\",{body:y,...n"
+
+[[patches]]
+name = "inject-per-model-into-beta-create-2-1-310-darwin-arm64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-beta-create"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+rationale = "Route the 2.1.310 darwin-arm64 SDK request using captured normalized body w. chunk-7pf88165.js destructures metadata before posting this body; caller options are r and the header merge helper is T. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "darwin-arm64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages?beta=true",{body:w,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages?beta=true",{body:w,timeout:'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages?beta=true"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-create-2-1-310-darwin-arm64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-nonbeta-create"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+rationale = "Route the 2.1.310 darwin-arm64 SDK request using captured normalized body b. chunk-7pf88165.js destructures metadata before posting this body; caller options are r and the header merge helper is T. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "darwin-arm64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages",{body:b,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages",{body:b,timeout:'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-beta-count-tokens-2-1-310-darwin-arm64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-beta-count-tokens"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
+rationale = "Route the 2.1.310 darwin-arm64 SDK request using captured normalized body w. chunk-7pf88165.js destructures metadata before posting this body; caller options are r and the header merge helper is T. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "darwin-arm64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages/count_tokens?beta=true",{body:w,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages/count_tokens?beta=true",{body:w,...r'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages/count_tokens?beta=true"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-count-tokens-2-1-310-darwin-arm64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-nonbeta-count-tokens"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
+rationale = "Route the 2.1.310 darwin-arm64 SDK request using captured normalized body b. chunk-7pf88165.js destructures metadata before posting this body; caller options are r and the header merge helper is T. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "darwin-arm64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages/count_tokens",{body:b,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages/count_tokens",{body:b,...r'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages/count_tokens"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-beta-create-2-1-310-linux-x64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-beta-create"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L100-L200"
+rationale = "Route the 2.1.310 linux-x64 SDK request using captured normalized body S. chunk-bbw420pv.js destructures metadata before posting this body; caller options are r and the header merge helper is O. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "linux-x64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages?beta=true",{body:S,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages?beta=true",{body:S,timeout:'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages?beta=true"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-create-2-1-310-linux-x64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-nonbeta-create"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L200-L300"
+rationale = "Route the 2.1.310 linux-x64 SDK request using captured normalized body y. chunk-bbw420pv.js destructures metadata before posting this body; caller options are r and the header merge helper is O. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "linux-x64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages",{body:y,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages",{body:y,timeout:'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-beta-count-tokens-2-1-310-linux-x64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-beta-count-tokens"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L300-L400"
+rationale = "Route the 2.1.310 linux-x64 SDK request using captured normalized body S. chunk-bbw420pv.js destructures metadata before posting this body; caller options are r and the header merge helper is O. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "linux-x64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages/count_tokens?beta=true",{body:S,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages/count_tokens?beta=true",{body:S,...r'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages/count_tokens?beta=true"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'
+
+[[patches]]
+name = "inject-per-model-into-nonbeta-count-tokens-2-1-310-linux-x64"
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+lineage = "inject-per-model-into-nonbeta-count-tokens"
+expected_matches = 1
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L400-L500"
+rationale = "Route the 2.1.310 linux-x64 SDK request using captured normalized body y. chunk-bbw420pv.js destructures metadata before posting this body; caller options are r and the header merge helper is O. Inserted code uses the captured body and fresh arrow arguments only. The body binding is unchanged from 304, so the negative assertion excludes the current unpatched transport call."
+locator_kind = "ast_transform"
+platforms = [ "linux-x64" ]
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 captured normalized model routes the SDK request"
+  assert_contains = 'this._client.post("/v1/messages/count_tokens",{body:y,...((__acc_url)'
+  assert_not_contains = 'this._client.post("/v1/messages/count_tokens",{body:y,...r'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "post"
+    direct_string_literal = "/v1/messages/count_tokens"
+    source_regex = "^this\\._client\\.post\\("
+
+[patches.ast.captures.body]
+kind = "identifier"
+path = "arguments.1.properties.0.value"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "^(.*?\\{body:[A-Za-z_$][A-Za-z0-9_$]*,)(.*?headers:[A-Za-z_$][A-Za-z0-9_$]*\\(\\[)(.*)(\\]\\).*)$"
+  value = '$1...((__acc_url)=>__acc_url?{defaultBaseURL:__acc_url}:{})(process.env["ANTHROPIC_MODEL_BASE_URL_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),$2$3,...((__acc_key)=>__acc_key?[{"x-api-key":__acc_key}]:[])(process.env["ANTHROPIC_MODEL_API_KEY_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")]),...((__acc_token)=>__acc_token?[{Authorization:"Bearer "+__acc_token}]:[])(process.env["ANTHROPIC_MODEL_AUTH_TOKEN_"+%%CAPTURE:body%%.model?.replace(/[^a-zA-Z0-9]/g,"_")])$4'

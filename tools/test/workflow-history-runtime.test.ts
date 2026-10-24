@@ -10,7 +10,7 @@ import { hostGraphPlatform, renderRunnableBundle } from "./helpers/render-runnab
 import type { ClassifierProbeResult } from "./helpers/workflow-history-classifier-probe"
 
 const root = resolve(process.env.PATCHED_CC_ROOT ?? join(import.meta.dir, "../.."))
-const supportedVersions = ["2.1.285", "2.1.289", "2.1.290", "2.1.293", "2.1.296", "2.1.301", "2.1.304"] as const
+const supportedVersions = ["2.1.285", "2.1.289", "2.1.290", "2.1.293", "2.1.296", "2.1.301", "2.1.304", "2.1.310"] as const
 const check = "native classifier preserves genuine answers and coordinator assignment provenance"
 const nativeFilesByVersion = {
   "2.1.285": {
@@ -182,6 +182,34 @@ const nativeFilesByVersion = {
       assignmentWorker: "chunk-ddrvdgq3.js",
       assignmentWorkerContent: "Ce",
       assignmentSynthesis: "Ce=Kon({from:T??Ua,text:v,summary:a})",
+    },
+  },
+  "2.1.310": {
+    "darwin-arm64": {
+      runner: "chunk-6tba9dwk.js",
+      framing: "chunk-15ezny5j.js",
+      provenanceGate: "Auo",
+      classifierGate: "Sn",
+      // Native 2.1.310 checks original and hook-rewritten prompts on both launch paths.
+      classifierCallCount: 4,
+      historyMessage: /\{content:zn,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:Ae,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-byn6r3tk.js",
+      assignmentWorkerContent: "ke",
+      assignmentSynthesis: "ke=aun({from:T??Xa,text:b,summary:i})",
+    },
+    "linux-x64": {
+      runner: "chunk-2pjf4p7s.js",
+      framing: "chunk-svcn34tw.js",
+      provenanceGate: "ruo",
+      classifierGate: "Sn",
+      // Native 2.1.310 checks original and hook-rewritten prompts on both launch paths.
+      classifierCallCount: 4,
+      historyMessage: /\{content:zn,origin:\{kind:"human"\}\}/g,
+      taskMessage: /\{content:Ae,origin:\{kind:"coordinator"\}\}/g,
+      assignmentWorker: "chunk-wj6mgys4.js",
+      assignmentWorkerContent: "ke",
+      assignmentSynthesis: "ke=Kcn({from:T??Ya,text:v,summary:i})",
     },
   },
 } as const

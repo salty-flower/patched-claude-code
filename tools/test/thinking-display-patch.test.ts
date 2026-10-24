@@ -2,6 +2,7 @@ import { afterAll, beforeAll, expect, test } from "bun:test"
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { parseSync } from "oxc-parser"
 import { patchApplies } from "../lib/apply-patches"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
@@ -9,6 +10,7 @@ import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
+const targetLabelsThinkingSummaries = TARGET_VERSION === "2.1.304" || TARGET_VERSION === "2.1.310"
 const activeThinkingPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "thinking-display.toml")).filter((patch) =>
   patchApplies(patch, TARGET_VERSION),
 )
@@ -377,6 +379,18 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 })
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (TARGET_VERSION === "2.1.310") {
+    for (const [body, signature, subscription] of [
+      [patched, "function Afe(m)", "W=xe((D?_:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((D?_:null)?.stream,(state)=>state.streamingThinking),z=L?_:null,"],
+      [linuxPatched, "function Spe(m)", "W=xe((A?D:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((A?D:null)?.stream,(state)=>state.streamingThinking),z=L?D:null,"],
+    ]) {
+      const owner = getFunctionSourceUntilNextDeclaration(body, signature)
+      expect(owner).toContain(subscription)
+      expect(owner).toContain('__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})')
+      expect(owner).toContain("hasToolsInProgress:x.focused.inProgressToolUseIDs.size>0")
+    }
+    return
+  }
   if (TARGET_VERSION === "2.1.304") {
     // Audit each platform owner: thinking subscribes to the same focused stream
     // and external-store reader as native streamingToolUses, not an AppState hook.
@@ -599,7 +613,7 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     [patched, "darwin-arm64"],
     [linuxPatched, "linux-x64"],
   ] as const) {
-    const markerIndex = body.indexOf(TARGET_VERSION === "2.1.304"
+    const markerIndex = body.indexOf(targetLabelsThinkingSummaries
       ? "__acc_streamingThinking?.thinking?.trim()&&e(n,"
       : "__acc_streamingThinking?.thinking&&e(n,")
     expect(markerIndex).toBeGreaterThanOrEqual(0)
@@ -611,15 +625,17 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     if (!allocation || !row) throw new Error("Missing live thinking memo allocation or output row")
     const expectedAllocation = liveThinkingCacheSize(platform)
     expect(Number(allocation[2])).toBe(expectedAllocation)
-    const inputs = /children:\[([\w$]+),([\w$]+),([\w$]+),__acc_streamingThinking/.exec(row[0])
+    const inputs = /children:\[((?:[\w$]+,)+)__acc_streamingThinking/.exec(row[0])
     const provider = /r\(([\w$]+)\.Provider,\{value:([\w$]+),/.exec(row[0])
     if (!inputs || !provider) throw new Error("Missing live row inputs")
+    const nativeInputs = inputs[1].slice(0, -1).split(",")
+    expect(nativeInputs.length).toBe(TARGET_VERSION === "2.1.310" ? 4 : 3)
     type Element = { children?: unknown[] | string }
     const jsx = (_type: unknown, props: Element) => props
     const render = new Function(
       allocation[1],
       "__acc_streamingThinking",
-      ...inputs.slice(1),
+      ...nativeInputs,
       provider[2],
       provider[1],
       "r",
@@ -628,21 +644,21 @@ test("live thinking memo updates its row when only the stream snapshot changes",
       row[0],
     ) as (...args: unknown[]) => Element
     const cache = Array<unknown>(expectedAllocation)
-    const stableInputs = [{}, {}, {}, {}, { Provider: "provider" }, jsx, jsx, "text"]
+    const stableInputs = [...nativeInputs.map(() => ({})), {}, { Provider: "provider" }, jsx, jsx, "text"]
     const firstSnapshot = { thinking: "first", isStreaming: true }
     const first = render(cache, firstSnapshot, ...stableInputs)
-    const label = TARGET_VERSION === "2.1.304" ? "∴ Summary\n" : ""
-    expect(first.children?.[3]).toMatchObject({ children: `${label}first` })
+    const label = targetLabelsThinkingSummaries ? "∴ Summary\n" : ""
+    expect(first.children?.[nativeInputs.length]).toMatchObject({ children: `${label}first` })
     expect(render(cache, firstSnapshot, ...stableInputs)).toBe(first)
     const next = render(cache, { thinking: "first second", isStreaming: true }, ...stableInputs)
     expect(next).not.toBe(first)
-    expect(next.children?.[3]).toMatchObject({ children: `${label}first second` })
-    if (TARGET_VERSION === "2.1.304") {
+    expect(next.children?.[nativeInputs.length]).toMatchObject({ children: `${label}first second` })
+    if (targetLabelsThinkingSummaries) {
       const blank = render(cache, { thinking: " \n\t", isStreaming: true }, ...stableInputs)
-      expect(blank.children?.[3]).toBeFalsy()
+      expect(blank.children?.[nativeInputs.length]).toBeFalsy()
     }
     const cleared = render(cache, null, ...stableInputs)
-    expect(cleared.children?.[3]).toBeUndefined()
+    expect(cleared.children?.[nativeInputs.length]).toBeUndefined()
     expect(cache.length).toBe(expectedAllocation)
   }
 })
@@ -663,7 +679,7 @@ test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
 
 test("live thinking rendering is not suppressed by brief mode", () => {
   if (targetUsesVersionLocalThinkingGraph) {
-    const marker = TARGET_VERSION === "2.1.304"
+    const marker = targetLabelsThinkingSummaries
       ? '__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})'
       : "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})"
     for (const body of [patched, linuxPatched]) {
@@ -998,15 +1014,22 @@ test("live thinking is cleared before the next streamed content block", () => {
   }
 })
 
-test("304 completed summaries preserve native narration and render every nonblank body", () => {
-  if (TARGET_VERSION !== "2.1.304") return
-  for (const [body, platform, chunk, unwrap, sentinel, markdown, glyph, gate, boundary] of [
+test("completed summaries preserve native narration and render every nonblank body", () => {
+  if (!targetLabelsThinkingSummaries) return
+  const fixtures = TARGET_VERSION === "2.1.310" ? [
+    [patched, "darwin-arm64", "chunk-cz421hr0.js", "F_", "b", "sl", "xKt", "if(!H&&!x){return null}", "HTo(Me)||Ge!==void 0"],
+    [linuxPatched, "linux-x64", "chunk-92hm4yb6.js", "N_", "S", "ol", "hqt", "if(!W&&!x){return null}", "sAo(Me)||Ge!==void 0"],
+  ] : [
     [patched, "darwin-arm64", "chunk-sv91xa9y.js", "o_", "b", "Ja", "Jjt", "if(!W&&!M){return null}", "ygo(Ie)||Ge!==void 0"],
     [linuxPatched, "linux-x64", "chunk-45m6sbw9.js", "r_", "S", "Xa", "Fjt", "if(!W&&!b){return null}", "jmo(Ie)||Ge!==void 0"],
-  ]) {
+  ]
+  for (const [body, platform, chunk, unwrap, sentinel, markdown, glyph, gate, boundary] of fixtures) {
+    const narration = TARGET_VERSION === "2.1.310" ? (platform === "darwin-arm64" ? "pi" : "ci") : "li"
+    const rendererName = TARGET_VERSION === "2.1.310" ? "Ds" : "Bs"
+    const continuation = TARGET_VERSION === "2.1.310" ? (platform === "darwin-arm64" ? "En" : "vn") : "yn"
     const native = readFileSync(join(ROOT, "staging", TARGET_VERSION, "graph", platform, chunk), "utf8")
-    expect(getFunctionSourceUntilNextDeclaration(body, "function li(m)")).toBe(
-      getFunctionSourceUntilNextDeclaration(native, "function li(m)"),
+    expect(getFunctionSourceUntilNextDeclaration(body, `function ${narration}(m)`)).toBe(
+      getFunctionSourceUntilNextDeclaration(native, `function ${narration}(m)`),
     )
     const thinkingCase = body.slice(body.indexOf('case"thinking":{if('))
     const completed = thinkingCase.slice(0, thinkingCase.indexOf('case"server_tool_use"'))
@@ -1016,13 +1039,18 @@ test("304 completed summaries preserve native narration and render every nonblan
     expect(body).toContain(boundary + ")")
     expect(body).not.toContain(boundary + "&&")
 
-    const rendererSource = getFunctionSourceUntilNextDeclaration(body, "function Bs(m)")
-    expect(rendererSource).toContain("let Z=!0;")
+    const rendererRegion = getFunctionSourceUntilNextDeclaration(body, `function ${rendererName}(m)`)
+    const rendererAst = parseSync("thinking-renderer.js", rendererRegion, { sourceType: "module" })
+    expect(rendererAst.errors).toEqual([])
+    const rendererNode = rendererAst.program.body[0]
+    expect(rendererNode.type).toBe("FunctionDeclaration")
+    const rendererSource = rendererRegion.slice(rendererNode.start, rendererNode.end)
+    expect(rendererSource).toContain(TARGET_VERSION === "2.1.310" ? "let X=!0;" : "let Z=!0;")
     const empty = Symbol("empty memo")
     const jsx = (type: string, props: Record<string, unknown>) => ({ type, ...props })
     const renderer = new Function(
-      "w", unwrap, "yn", sentinel, "e", "r", "s", "n", markdown, glyph, "B",
-      rendererSource + ";return Bs;",
+      "w", unwrap, continuation, sentinel, "e", "r", "s", "n", markdown, glyph, "B",
+      rendererSource + `;return ${rendererName};`,
     )(
       (size: number) => Array<unknown>(size).fill(empty),
       (text: string) => text,

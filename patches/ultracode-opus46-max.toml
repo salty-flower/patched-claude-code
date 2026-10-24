@@ -10288,3 +10288,76 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.304 Linux ultracode-capability-max-fallback excludes predecessor"
   assert_not_contains = "function hM(e){return Fg()&&(e===void 0||Re(e)||Gie(e)&&hon(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-310-darwin"
+lineage = "ultracode-capability-max-fallback"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.310 chunk-fdkh5k16.js sH ultracode eligibility calls jm feature gate and Oe model gate; Hce is max-effort support and Lgn organization cap. Preserve max-effort fallback only when organization policy allows it."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "sH"
+    source = "function sH(e){return jm()&&(e===void 0||Oe(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return jm()&&(e===void 0||Oe(e)||Hce(e)&&Lgn(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Darwin ultracode uses current max helpers"
+  assert_contains = "function sH(e){return jm()&&(e===void 0||Oe(e)||Hce(e)&&Lgn(e)===null)}"
+  assert_not_contains = "function b0(e){return $g()&&(e===void 0||Re(e)||Jie(e)&&Ion(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = "function WM(e){return mm()&&(e===void 0||ke(e)||dle(e)&&zln(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-310-linux"
+lineage = "ultracode-capability-max-fallback"
+enabled = true
+target_version = "2.1.310"
+applies_to = ">=2.1.310 <2.1.311"
+platforms = [ "linux-x64" ]
+rationale = "2.1.310 chunk-hhgrzgnb.js tH ultracode eligibility calls jm feature gate and De model gate; Cce is max-effort support and wgn organization cap. Preserve max-effort fallback only when organization policy allows it."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "tH"
+    source = "function tH(e){return jm()&&(e===void 0||De(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return jm()&&(e===void 0||De(e)||Cce(e)&&wgn(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux ultracode uses current max helpers"
+  assert_contains = "function tH(e){return jm()&&(e===void 0||De(e)||Cce(e)&&wgn(e)===null)}"
+  assert_not_contains = "function b0(e){return $g()&&(e===void 0||Re(e)||Jie(e)&&Ion(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.310 Linux ultracode-capability-max-fallback excludes predecessor"
+  assert_not_contains = "function hM(e){return Fg()&&(e===void 0||Re(e)||Gie(e)&&hon(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 excludes previous inserted scope"
+  assert_not_contains = "function FM(e){return mm()&&(e===void 0||Re(e)||rle(e)&&Pln(e)===null)}"

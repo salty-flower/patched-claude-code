@@ -107,6 +107,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       [binding("model identity", /\{model:([\w$]+)\(/)]: (model: string) => model,
       [binding("debug logger", /return ([\w$]+)\(`/)]: () => {},
       [binding("retry telemetry", /,([\w$]+)\("tengu_effort_unsupported_retry"/)]: () => {},
+      [binding("effort beta descriptor", /\$\{([\w$]+)\.header\}/)]: { header: "effort-test-beta" },
       [captureIdentifier(
         drain.patched,
         "warning factory",
@@ -133,8 +134,9 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     const messages = [...run.drain()]
     expect(messages).toHaveLength(1)
     expect(messages[0]?.level).toBe("warning")
-    expect(messages[0]?.text).toContain("Model alias rejected")
-    expect(messages[0]?.text).toContain("backend default is unknown")
+    expect(messages[0]?.text).toBe(
+      "Model alias rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.",
+    )
     expect([...run.drain()]).toEqual([])
   }, 20_000)
 }

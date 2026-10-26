@@ -1,10 +1,11 @@
-import { expect, test } from "bun:test"
+import { expect, spyOn, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
   createStructuredPromptHook,
+  SYSTEM_PROMPT_DIAGNOSTICS,
   SYSTEM_PROMPT_BRIDGE,
   type StructuredPromptSection,
   type StructuredPromptRule,
@@ -76,16 +77,81 @@ test("structured selectors survive dynamic context and cache layout changes and 
     ])
   }))
 
-test("selected upstream semantics and absent identities fail closed", () =>
+test("unreviewed variants retain native text and absence while independent replacements continue", () =>
   fixture((root) => {
-    config(root, [rule])
+    config(root, [
+      rule,
+      {
+        id: "future_section",
+        scope: "session",
+        action: "replace",
+        expectedSha256: hash(sections[2]!.text),
+        file: "body.md",
+      },
+    ])
     writeFileSync(join(root, "body.md"), "user rules")
-    const { hook } = createStructuredPromptHook(options(root))
-    expect(() => hook({ sections: sections.slice(1), render })).toThrow("selected section is absent: shared/intro")
-    expect(() => hook({ sections: [{ ...sections[0]!, text: "upstream behavior changed" }], render })).toThrow(
-      "baseline SHA-256 mismatch",
-    )
-    expect(() => hook({ sections: [...sections, sections[0]!], render })).toThrow("ambiguous upstream identity")
+    const originalConfig = readFileSync(join(root, "config.json"), "utf8")
+    const stderr = spyOn(process.stderr, "write").mockReturnValue(true)
+    try {
+      const { hook, recordRequest } = createStructuredPromptHook(options(root))
+      const changed = [{ ...sections[0]!, text: "unreviewed native model variant" }, ...sections.slice(1)]
+      const expected = [changed[0]!.text, sections[1]!.text, "user rules"]
+      expect(hook({ sections, render })).toEqual(["user rules", sections[1]!.text, "user rules"])
+      expect(hook({ sections: changed, render })).toEqual(expected)
+      expect(hook({ sections: changed, render })).toEqual(expected)
+      expect(stderr).toHaveBeenCalledTimes(1)
+      expect(stderr.mock.calls[0]![0]).toContain("shared/intro hash_mismatch")
+      recordRequest({ system: expected, tools: [], messages: [] }, "sdk")
+      expect(Reflect.get(globalThis, SYSTEM_PROMPT_DIAGNOSTICS)).toMatchObject({
+        recoveries: [{ id: "intro", scope: "shared", reason: "hash_mismatch" }],
+        sections: [
+          {
+            id: "intro",
+            source: "upstream",
+            baselineSha256: hash(changed[0]!.text),
+            effectiveSha256: hash(changed[0]!.text),
+          },
+          { id: "memory", source: "upstream" },
+          { id: "future_section", source: "user" },
+        ],
+      })
+      expect(hook({ sections: sections.slice(1), render })).toEqual([sections[1]!.text, "user rules"])
+      recordRequest({}, "sdk")
+      expect(Reflect.get(globalThis, SYSTEM_PROMPT_DIAGNOSTICS).recoveries).toEqual([
+        { id: "intro", scope: "shared", reason: "absent" },
+      ])
+      expect(stderr).toHaveBeenCalledTimes(2)
+      expect(hook({ sections, render })).toEqual(["user rules", sections[1]!.text, "user rules"])
+      recordRequest({}, "sdk")
+      expect(Reflect.get(globalThis, SYSTEM_PROMPT_DIAGNOSTICS).recoveries).toEqual([])
+      expect(readFileSync(join(root, "config.json"), "utf8")).toBe(originalConfig)
+      expect(stderr.mock.calls.flat().join("")).not.toContain(changed[0]!.text)
+      expect(stderr.mock.calls.flat().join("")).not.toContain(sections[1]!.text)
+      expect(() => hook({ sections: [...sections, sections[0]!], render })).toThrow("ambiguous upstream identity")
+    } finally {
+      stderr.mockRestore()
+    }
+  }))
+
+test("stale removal and checked keep rules preserve native text and export the actual variant", () =>
+  fixture((root) => {
+    config(root, [
+      { ...rule, action: "remove", file: undefined },
+      { id: "memory", scope: "session", action: "keep", expectedSha256: hash("old memory") },
+    ])
+    const stderr = spyOn(process.stderr, "write").mockReturnValue(true)
+    try {
+      const { hook } = createStructuredPromptHook({ ...options(root), exportMode: "export" })
+      const changed = [{ ...sections[0]!, text: "new upstream rules" }, ...sections.slice(1)]
+      expect(hook({ sections: changed, render })).toEqual(render(changed))
+      expect(readFileSync(join(root, "upstream/shared-intro.md"), "utf8")).toBe(changed[0]!.text)
+      expect(JSON.parse(readFileSync(join(root, "sections.v2.json"), "utf8")).sections[0].baselineSha256).toBe(
+        hash(changed[0]!.text),
+      )
+      expect(stderr).toHaveBeenCalledTimes(2)
+    } finally {
+      stderr.mockRestore()
+    }
   }))
 
 test("removal, literal upstream substitution, and immutable file snapshots", () =>

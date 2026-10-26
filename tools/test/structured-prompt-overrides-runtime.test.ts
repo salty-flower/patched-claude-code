@@ -22,6 +22,7 @@ type Diagnostic = {
   messagesSha256: string
   toolsSha256: string
   sections: Array<Section & { source: string }>
+  recoveries: Array<{ id: string; scope: string; reason: string }>
 }
 function system(request: ClaudeApiRequest): Array<{ type: string; text: string; cache_control?: unknown }> {
   return (request.jsonBody as { system: Array<{ type: string; text: string }> }).system
@@ -143,6 +144,7 @@ test("real request matrix preserves memory and runtime context across cache, pro
       export?: boolean
       plugin?: string
       full?: boolean
+      model?: string
     }) {
       writeFileSync(
         join(configDir, "settings.json"),
@@ -157,7 +159,7 @@ test("real request matrix preserves memory and runtime context across cache, pro
               ...(options.helper === false ? [process.execPath, bundle] : helperCommand),
               "--print",
               "--model",
-              "sonnet",
+              options.model ?? "sonnet",
               "--max-turns",
               "1",
               ...(options.plugin ? ["--plugin-dir", options.plugin] : []),
@@ -476,14 +478,64 @@ test("real request matrix preserves memory and runtime context across cache, pro
         join(promptRoot, "config.json"),
         JSON.stringify({ ...config, rules: [{ ...config.rules[0], ...mutation }] }),
       )
-      const rejected = await run({ root: promptRoot })
-      expect(rejected.exitCode).not.toBe(0)
-      expect(rejected.allRequests).toHaveLength(0)
-      expect(`${rejected.stdout}\n${rejected.stderr}`).toContain(
-        mutation.id ? "selected section is absent" : "baseline SHA-256 mismatch",
-      )
+      const recovered = await run({ root: promptRoot })
+      expect(recovered.exitCode, recovered.stderr).toBe(0)
+      expect(recovered.request).toBeDefined()
+      expect(system(recovered.request!)).toEqual(system(direct.request!))
+      const nativeBody = direct.request!.jsonBody as { messages: unknown; tools: unknown }
+      const recoveredBody = recovered.request!.jsonBody as { messages: unknown; tools: unknown }
+      expect(recoveredBody.messages).toEqual(nativeBody.messages)
+      expect(recoveredBody.tools).toEqual(nativeBody.tools)
+      expect(diagnostics(recovered.stderr).recoveries).toEqual([
+        { id: mutation.id ?? selected.id, scope: selected.scope, reason: mutation.id ? "absent" : "hash_mismatch" },
+      ])
     }
     writeFileSync(join(promptRoot, "config.json"), JSON.stringify(config))
+    // Opus refusal fallback changes the lean body's system-message guidance.
+    // Bind only the initial model's actual export, then compose the fallback model.
+    const initialRoot = join(work, "opus-initial")
+    const initial = await run({ root: initialRoot, model: "claude-opus-5-5", export: true })
+    expect(initial.exitCode, initial.stderr).toBe(0)
+    const initialSection = diagnostics(initial.stderr).sections.find(
+      (section) => section.scope === "shared" && section.id === "lean_body",
+    )!
+    expect(initialSection).toBeDefined()
+    writeFileSync(join(initialRoot, "body.md"), replacement)
+    writeFileSync(
+      join(initialRoot, "config.json"),
+      JSON.stringify({
+        ...config,
+        rules: [
+          {
+            id: initialSection.id,
+            scope: initialSection.scope,
+            action: "replace",
+            expectedSha256: initialSection.baselineSha256,
+            file: "body.md",
+          },
+        ],
+      }),
+    )
+    const fallbackNative = await run({ root: join(work, "fallback-native"), model: "claude-opus-4-8" })
+    expect(fallbackNative.exitCode, fallbackNative.stderr).toBe(0)
+    const fallback = await run({ root: initialRoot, model: "claude-opus-4-8" })
+    expect(fallback.exitCode, fallback.stderr).toBe(0)
+    expect(system(fallback.request!)).toEqual(system(fallbackNative.request!))
+    expect(diagnostics(fallback.stderr).recoveries).toEqual([
+      { id: "lean_body", scope: "shared", reason: "hash_mismatch" },
+    ])
+    const fallbackBody = fallback.request!.jsonBody as { messages: unknown; tools: unknown }
+    const fallbackNativeBody = fallbackNative.request!.jsonBody as { messages: unknown; tools: unknown }
+    expect(fallbackBody.messages).toEqual(fallbackNativeBody.messages)
+    expect(fallbackBody.tools).toEqual(fallbackNativeBody.tools)
+    const restored = await run({ root: initialRoot, model: "claude-opus-5-5" })
+    expect(restored.exitCode, restored.stderr).toBe(0)
+    expect(diagnostics(restored.stderr).recoveries).toEqual([])
+    expect(
+      system(restored.request!)
+        .map((block) => block.text)
+        .join("\n"),
+    ).toContain(replacement)
     writeFileSync(join(promptRoot, "body.md"), replacement)
     const genericBody = await run({ root: promptRoot, style: true })
     expect(genericBody.exitCode, `${genericBody.stdout}\n${genericBody.stderr}`).toBe(0)

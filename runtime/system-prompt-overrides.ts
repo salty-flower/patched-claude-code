@@ -79,6 +79,11 @@ type StructuredPromptInput = {
   sections: StructuredPromptSection[]
   render: (sections: StructuredPromptSection[]) => string[]
 }
+type PromptRecovery = {
+  id: string
+  scope: StructuredPromptSection["scope"]
+  reason: "absent" | "hash_mismatch"
+}
 
 // This contract consumes upstream identities before cache partitioning, never text heuristics.
 export function createStructuredPromptHook(options: SystemPromptOverrideOptions) {
@@ -156,7 +161,19 @@ export function createStructuredPromptHook(options: SystemPromptOverrideOptions)
     baselineSha256: string
     effectiveSha256: string | null
   }> = []
+  let recoveries: PromptRecovery[] = []
+  const reportedRecoveries = new Set<string>()
+  const recover = (rule: StructuredPromptRule, reason: PromptRecovery["reason"]): void => {
+    recoveries.push({ id: rule.id, scope: rule.scope, reason })
+    const key = `${rule.scope}/${rule.id}:${reason}`
+    if (reportedRecoveries.has(key)) return
+    reportedRecoveries.add(key)
+    process.stderr.write(
+      `[system-prompt-overrides] ${rule.scope}/${rule.id} ${reason}; preserving native ${reason === "absent" ? "absence" : "text"}, skipping this rule.\n`,
+    )
+  }
   const hook = ({ sections, render }: StructuredPromptInput): string[] => {
+    recoveries = []
     // Bare composition is a separate upstream contract, not a selectable generic body.
     if (sections.some((section) => section.id === "bare")) {
       lastSections = []
@@ -177,15 +194,17 @@ export function createStructuredPromptHook(options: SystemPromptOverrideOptions)
       keys.add(key)
     }
     const byKey = new Map((config?.rules ?? []).map((rule) => [`${rule.scope}/${rule.id}`, rule]))
-    for (const key of byKey.keys()) if (!keys.has(key)) fail(configPath, `selected section is absent: ${key}`)
+    for (const [key, rule] of byKey) if (!keys.has(key)) recover(rule, "absent")
     lastSections = []
     const effective = sections.flatMap((section) => {
-      const rule = byKey.get(`${section.scope}/${section.id}`)
+      let rule = byKey.get(`${section.scope}/${section.id}`)
       const baselineSha256 = hashUtf8(section.text)
       if (rule?.expectedSha256 !== undefined) {
         const hashes = Array.isArray(rule.expectedSha256) ? rule.expectedSha256 : [rule.expectedSha256]
-        if (!hashes.includes(baselineSha256))
-          fail(configPath, `baseline SHA-256 mismatch for ${section.scope}/${section.id}`)
+        if (!hashes.includes(baselineSha256)) {
+          recover(rule, "hash_mismatch")
+          rule = undefined
+        }
       }
       const text =
         rule?.action === "replace"
@@ -248,6 +267,7 @@ export function createStructuredPromptHook(options: SystemPromptOverrideOptions)
       messagesSha256: hashUtf8(JSON.stringify(body.messages ?? null)),
       toolsSha256: hashUtf8(JSON.stringify(body.tools ?? null)),
       sections: lastSections,
+      recoveries,
       vector: legacyDiagnostic,
     }
     Reflect.set(globalThis, SYSTEM_PROMPT_DIAGNOSTICS, diagnostic)

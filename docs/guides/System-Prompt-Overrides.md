@@ -29,7 +29,10 @@ No rule matches English prose, array positions, or cache boundary markers.
 Replacement/removal rules require `expectedSha256`: an SRI SHA-256 string or explicit array of accepted text hashes.
 Keep rules may optionally supply the same check.
 Only selected hashes are checked, so another project's memory path or changing token state does not invalidate an unrelated static rule.
-Missing selected IDs, changed selected text, duplicate targets, malformed files, and unsupported versions fail before the main request.
+Missing selected IDs preserve native absence; changed selected text retains the complete native section and skips that rule.
+Other independently matched rules still apply, and a later matching composition applies the reviewed rule again.
+Each selection/reason emits one warning per process, without prompt text or private paths.
+Duplicate targets, malformed files, unreadable resources, unsupported versions, and ambiguous upstream identities still fail before the main request.
 The launcher separately verifies the complete packaged graph inventory and hash.
 
 ## Export and minimal machine-state configuration
@@ -118,6 +121,7 @@ PATCHED_CLAUDE_CODE_PROMPT_DIAGNOSTICS=1 claude-patched
 ```
 
 `[system-prompt-request]` contains version, request source, final `system`, `messages`, and `tools` hashes, final system text-vector hash, and section IDs/provenance/hashes.
+`recoveries` lists current-composition selection IDs/scopes and `absent` or `hash_mismatch` reasons; retained sections keep `upstream` provenance.
 `systemSha256` hashes UTF-8 `JSON.stringify(request.system)`, including cache metadata.
 `messagesSha256` and `toolsSha256` use the same JSON hashing, including styles/instructions delivered as message context and the final tool definitions.
 `systemTextVectorSha256` hashes length-prefixed block text.

@@ -1,0 +1,12 @@
+// @bun @bytecode
+// Claude Code is a Beta product per Anthropic's Commercial Terms of Service.
+// By using Claude Code, you agree that all code acceptance or rejection decisions you make,
+// and the associated conversations in context, constitute Feedback under Anthropic's Commercial Terms,
+// and may be used to improve Anthropic's products, including training models.
+// You are responsible for reviewing any code suggestions before use.
+
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.310
+import{c}from"./chunk-ydpbzmt4.js";import{a,Zs}from"./chunk-wq923bwc.js";import{HL,ER}from"./chunk-cg45s1mf.js";import{use}from"./chunk-zmrs49f3.js";var n="tengu_org_policy_denied";function r(i,o){let e=ER(i);if(e===null||e==="unregistered")return null;return{org_policy_key:c(i),org_policy_deny_kind:c(e),org_policy_taint_named:use(HL()).length>0,surface:c(o)}}function Ex(i,o){let e=r(i,o);if(e)a(n,e)}async function EU(i,o){let e=r(i,o);if(e)await Zs(n,e)}
+export{Ex,EU};

@@ -1,5 +1,5 @@
 name = "transcript-preserve-repl-history"
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -40,3 +40,13 @@ assert_not_contains = 'function ZMe(e,n=e){let r=e.filter(aE);if(J0r()==="ant")r
 kind = "static"
 name = "310 no longer enters the Linux REPL rewrite gate"
 assert_not_contains = 'function VMe(e,n=e){let r=e.filter(iv);if(IDr()==="ant")return r;'
+
+[[tests]]
+kind = "static"
+name = "2.1.318 darwin-arm64 removes the native conditional path"
+assert_not_contains = 'function bBe(e,n=e){let r=e.filter(ev).map((h)=>YOt(whe(h)));if(AZr()==="ant")return r;if(ae()&&_u().project?.currentSessionCodeMode===!0)return r;let s=n instanceof Set?n:typeof n==="function"?n():$5t(n);return K_o(r,s)}'
+
+[[tests]]
+kind = "static"
+name = "2.1.318 linux-x64 removes the native conditional path"
+assert_not_contains = 'function m1e(e,n=e){let r=e.filter(Zv).map((h)=>HOt(fhe(h)));if(iZr()==="ant")return r;if(ae()&&_u().project?.currentSessionCodeMode===!0)return r;let s=n instanceof Set?n:typeof n==="function"?n():C6t(n);return k_o(r,s)}'

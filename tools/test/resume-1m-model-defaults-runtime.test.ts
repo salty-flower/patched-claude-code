@@ -11,7 +11,9 @@ const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
 const TEST_SESSION_ID = "11111111-1111-4111-8111-111111111111"
 const TEST_PROJECT_DIR_NAME = "patched-cc-resume-1m-test"
-const TRANSCRIPT_MODEL = "claude-opus-5-5"
+// Native-1M models no longer send this beta in 2.1.318. Use a beta-gated
+// model to check request preservation and the explicit disable policy.
+const TRANSCRIPT_MODEL = "claude-opus-4-6"
 const DEFAULT_OPUS_MODEL = `${TRANSCRIPT_MODEL}[1m]`
 
 const tempDirs: string[] = []
@@ -71,7 +73,12 @@ function writeResumeTranscript(home: string): void {
   )
 }
 
-async function runResumedRequest(bundle: string, stub: ClaudeApiStub, home: string): Promise<ClaudeApiRequest> {
+async function runResumedRequest(
+  bundle: string,
+  stub: ClaudeApiStub,
+  home: string,
+  options: { disable1m?: boolean } = {},
+): Promise<ClaudeApiRequest> {
   const configDir = join(home, ".claude")
   mkdirSync(configDir, { recursive: true })
   writeResumeTranscript(home)
@@ -117,6 +124,7 @@ async function runResumedRequest(bundle: string, stub: ClaudeApiStub, home: stri
       CLAUDE_API_STUB_BASE_URL: stub.baseUrl,
       ANTHROPIC_API_KEY: "test-api-key",
       ANTHROPIC_DEFAULT_OPUS_MODEL: DEFAULT_OPUS_MODEL,
+      CLAUDE_CODE_DISABLE_1M_CONTEXT: options.disable1m ? "1" : undefined,
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
       CLAUDE_CODE_SKIP_ONBOARDING: "1",
       CLAUDE_CODE_SKIP_PROMPT_HISTORY: "1",
@@ -173,7 +181,7 @@ function hasLongContextBeta(request: ClaudeApiRequest): boolean {
 }
 
 test.skipIf(!gte(TARGET_VERSION, "2.1.281"))(
-  "resume preserves the configured Opus 1m environment default",
+  "resume preserves configured Opus 1m requests and respects the disable policy",
   async () => {
     const dir = makeTempDir("patched-cc-resume-1m-runtime-")
     const unpatchedBundle = await renderRunnableBundle({
@@ -194,9 +202,17 @@ test.skipIf(!gte(TARGET_VERSION, "2.1.281"))(
     stubs.push(unpatchedStub)
     const unpatchedRequest = await runResumedRequest(unpatchedBundle, unpatchedStub, join(dir, "home-unpatched"))
 
+    const controlStub = await startClaudeApiStub()
+    stubs.push(controlStub)
+    const controlRequest = await runResumedRequest(patchedBundle, controlStub, join(dir, "home-disabled-1m"), {
+      disable1m: true,
+    })
+
     const patchedStub = await startClaudeApiStub()
     stubs.push(patchedStub)
     const patchedRequest = await runResumedRequest(patchedBundle, patchedStub, join(dir, "home-patched"))
+    expect(requestBody(controlRequest).model).toBe(TRANSCRIPT_MODEL)
+    expect(hasLongContextBeta(controlRequest)).toBe(false)
     expect(requestBody(unpatchedRequest).model).toBe(TRANSCRIPT_MODEL)
     expect(hasLongContextBeta(unpatchedRequest)).toBe(true)
     expect(requestBody(patchedRequest).model).toBe(TRANSCRIPT_MODEL)

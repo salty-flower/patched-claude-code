@@ -94,6 +94,8 @@ test("real request matrix preserves memory and runtime context across cache, pro
     const projects = [join(work, "project-a"), join(work, "project-b")]
     for (const project of projects) {
       mkdirSync(project, { recursive: true })
+      const initialized = Bun.spawnSync({ cmd: ["git", "init", "--quiet", "--template=", project] })
+      expect(initialized.exitCode, new TextDecoder().decode(initialized.stderr)).toBe(0)
       writeFileSync(join(project, "CLAUDE.md"), "PROJECT_INSTRUCTION_MATRIX_MARKER\n")
     }
     writeFileSync(
@@ -242,6 +244,7 @@ test("real request matrix preserves memory and runtime context across cache, pro
     }
     writeFileSync(join(promptRoot, "config.json"), JSON.stringify(config))
     const memoryPaths = new Set<string>()
+    const observedMemoryPaths = new Map<string, string[]>()
     for (const cache of [false, true])
       for (const project of projects)
         for (const style of [false, true])
@@ -259,6 +262,10 @@ test("real request matrix preserves memory and runtime context across cache, pro
             expect(text).toContain(replacement)
             expect(JSON.stringify(result.request!.jsonBody).includes("OUTPUT_STYLE_MATRIX_MARKER")).toBe(style)
             const directory = text.match(/(?:\/[^\s`<>]+)+\/memory\//)?.[0]
+            observedMemoryPaths.set(
+              project,
+              [...text.matchAll(/(?:\/[^\s`<>]+)+\/memory\//g)].map((match) => match[0]),
+            )
             expect(directory, text).toBeDefined()
             memoryPaths.add(directory!)
             assertMemoryPromptContract(text, { directory: directory!, profile: "lean" })
@@ -282,8 +289,16 @@ test("real request matrix preserves memory and runtime context across cache, pro
             )
             expect(JSON.stringify(result.request!.jsonBody)).toContain("PROJECT_INSTRUCTION_MATRIX_MARKER")
           }
-    expect(memoryPaths.size).toBe(2)
-    const removable = catalog.sections.find((section) => section.scope === "session" && section.id === "communication")!
+    expect(memoryPaths.size, JSON.stringify([...observedMemoryPaths])).toBe(2)
+    const removable = catalog.sections.find(
+      (section) =>
+        section.scope === "session" &&
+        section.id !== "memory" &&
+        readFileSync(
+          join(promptRoot, "upstream", `${section.scope}-${encodeURIComponent(section.id)}.md`),
+          "utf8",
+        ).trim().length > 0,
+    )!
     expect(removable).toBeDefined()
     writeFileSync(
       join(promptRoot, "config.json"),
@@ -300,10 +315,12 @@ test("real request matrix preserves memory and runtime context across cache, pro
     const removedText = system(removed.request!)
       .map((block) => block.text)
       .join("\n")
-    expect(removedText).not.toContain(readFileSync(join(promptRoot, "upstream", "session-communication.md"), "utf8"))
+    expect(removedText).not.toContain(
+      readFileSync(join(promptRoot, "upstream", `session-${encodeURIComponent(removable.id)}.md`), "utf8"),
+    )
     expect(
       diagnostics(removed.stderr).sections.find(
-        (section) => section.scope === "session" && section.id === "communication",
+        (section) => section.scope === removable.scope && section.id === removable.id,
       )?.source,
     ).toBe("removed")
     assertMemoryPromptContract(removedText, { directory: [...memoryPaths][0], profile: "lean" })

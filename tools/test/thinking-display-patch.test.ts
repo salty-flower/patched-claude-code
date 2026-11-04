@@ -10,7 +10,7 @@ import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const targetLabelsThinkingSummaries = TARGET_VERSION === "2.1.304" || TARGET_VERSION === "2.1.310"
+const targetLabelsThinkingSummaries = ["2.1.304", "2.1.310", "2.1.318"].includes(TARGET_VERSION)
 const activeThinkingPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "thinking-display.toml")).filter((patch) =>
   patchApplies(patch, TARGET_VERSION),
 )
@@ -40,9 +40,17 @@ let patched = ""
 let linuxPatched = ""
 
 beforeAll(async () => {
-  const entrypoint = await renderRunnableBundle({ root: ROOT, version: TARGET_VERSION, outDir: tempDir, patchFiles: ["thinking-display.toml"] })
+  const entrypoint = await renderRunnableBundle({
+    root: ROOT,
+    version: TARGET_VERSION,
+    outDir: tempDir,
+    patchFiles: ["thinking-display.toml"],
+  })
   const graphDir = join(entrypoint, "..", "graph.patched", "darwin-arm64")
-  patched = readdirSync(graphDir).filter((file) => file.endsWith(".js")).map((file) => readFileSync(join(graphDir, file), "utf8")).join("\n")
+  patched = readdirSync(graphDir)
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => readFileSync(join(graphDir, file), "utf8"))
+    .join("\n")
   const linuxGraphDir = join(entrypoint, "..", "graph.patched", "linux-x64")
   linuxPatched = readdirSync(linuxGraphDir)
     .filter((file) => file.endsWith(".js"))
@@ -103,12 +111,14 @@ function getStreamingThinkingState(body: string): string {
   const setters = [...body.matchAll(/onStreamingThinking:([A-Za-z_$][\w$]*)/g)].map((match) => match[1])
   const setter = setters.at(-1)
   expect(setter).toBeDefined()
+  if (setter === undefined) throw new Error("Missing streaming thinking setter")
 
   const state = body.match(
-    new RegExp(`\\[([A-Za-z_$][\\w$]*),${escapeRegExp(setter!)}\\]=[A-Za-z_$][\\w$]*\\.useState\\(null\\)`),
+    new RegExp(`\\[([A-Za-z_$][\\w$]*),${escapeRegExp(setter)}\\]=[A-Za-z_$][\\w$]*\\.useState\\(null\\)`),
   )?.[1]
   expect(state).toBeDefined()
-  return state!
+  if (state === undefined) throw new Error("Missing streaming thinking state")
+  return state
 }
 
 function getThinkingDeltaCaseAt(body: string, deltaIndex: number): string {
@@ -170,11 +180,12 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
         /,([A-Za-z_$][\w$]*)=typeof [A-Za-z_$][\w$]*\.thinking==="string"\?[A-Za-z_$][\w$]*\.thinking:""/,
       )?.[1]
       expect(thinkingDelta).toBeDefined()
+      if (thinkingDelta === undefined) throw new Error("Missing thinking delta binding")
       const callbackUpdate = deltaCase.match(
         /\.onStreamingThinking\?\.\(\(([\w$]+)\)=>\(\{thinking:\(\1\?\.thinking\?\?""\)\+([\w$]+),isStreaming:!0}\)\)/,
       )
       expect(callbackUpdate?.[2]).toBe(thinkingDelta)
-      expect(deltaCase).toMatch(new RegExp(`estimatedTokensDelta:[\\w$]+\\(${escapeRegExp(thinkingDelta!)}\\)`))
+      expect(deltaCase).toMatch(new RegExp(`estimatedTokensDelta:[\\w$]+\\(${escapeRegExp(thinkingDelta)}\\)`))
     }
     return
   }
@@ -185,16 +196,17 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
     ]) {
       expect(body).toContain(`function ${dispatcher}(e,n){let{onMessage:r,onTombstone:o,onStreamingThinking:d`)
       expect(body).toContain(`${handler}(e,n)`)
-      expect(body).toContain(
-        'n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))',
-      )
+      expect(body).toContain('n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))')
       expect(body).toContain(`estimatedTokensDelta:${estimator}(w)`)
       expect(body).not.toContain(`estimatedTokensDelta:${staleEstimator}(w)`)
     }
     return
   }
   if (targetUses266ThinkingSymbols) {
-    for (const [body, dispatcher, handler] of [[patched, "Tve", "dft"], [linuxPatched, "_Ae", "yft"]]) {
+    for (const [body, dispatcher, handler] of [
+      [patched, "Tve", "dft"],
+      [linuxPatched, "_Ae", "yft"],
+    ]) {
       expect(body).toContain(`function ${dispatcher}(e,n){let{onMessage:r,onTombstone:o,onStreamingThinking:d`)
       expect(body).toContain(`${handler}(e,n)`)
       expect(body).toContain('n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))')
@@ -202,7 +214,10 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
     return
   }
   if (targetUses263ThinkingSymbols) {
-    for (const [body, handler, stale] of [[patched, "aut", "$it"], [linuxPatched, "put", "Git"]]) {
+    for (const [body, handler, stale] of [
+      [patched, "aut", "$it"],
+      [linuxPatched, "put", "Git"],
+    ]) {
       expect(body).toContain(`${handler}(e,{...t,onStreamingThinking:d})`)
       expect(body).toContain('t.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))')
       expect(body).not.toContain(`${stale}(e,{...n,onStreamingThinking:d})`)
@@ -210,13 +225,13 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
     return
   }
   if (TARGET_VERSION === "2.1.250") {
-    expect(patched).toContain('onStreamingText:T,onStreamingThinking:S,onCompactEvent:E')
+    expect(patched).toContain("onStreamingText:T,onStreamingThinking:S,onCompactEvent:E")
     expect(patched).toContain('S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))')
-    expect(patched).toContain('estimatedTokensDelta:con(N.thinking)')
+    expect(patched).toContain("estimatedTokensDelta:con(N.thinking)")
     return
   }
   if (targetUses251ThinkingSymbols) {
-    expect(patched).toContain('onStreamingText:C,onStreamingThinking:S,onCompactEvent:A')
+    expect(patched).toContain("onStreamingText:C,onStreamingThinking:S,onCompactEvent:A")
     expect(patched).toContain('S?.((B)=>({thinking:(B?.thinking??"")+w,isStreaming:!0}))')
     return
   }
@@ -231,7 +246,7 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
     return
   }
   if (targetUses258ThinkingSymbols) {
-    expect(patched).toContain('onStreamingThinking:d')
+    expect(patched).toContain("onStreamingThinking:d")
     expect(patched).toContain('n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+w,isStreaming:!0}))')
     return
   }
@@ -379,14 +394,40 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 })
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (TARGET_VERSION === "2.1.318") {
+    for (const [body, signature, toolSelector] of [
+      [patched, "function Kbe(m)", "sU"],
+      [linuxPatched, "function FSe(m)", "uU"],
+    ]) {
+      const owner = getFunctionSourceUntilNextDeclaration(body, signature)
+      expect(owner).toContain(
+        `X=He((V?H:null)?.stream,${toolSelector})??su,__acc_streamingThinking=He((V?H:null)?.stream,(state)=>state.streamingThinking),Z=W?H:null,`,
+      )
+      expect(owner).toContain(
+        '__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})',
+      )
+      expect(owner).toContain("children:[se,te,ve,eo,dt,__acc_streamingThinking")
+    }
+    return
+  }
   if (TARGET_VERSION === "2.1.310") {
     for (const [body, signature, subscription] of [
-      [patched, "function Afe(m)", "W=xe((D?_:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((D?_:null)?.stream,(state)=>state.streamingThinking),z=L?_:null,"],
-      [linuxPatched, "function Spe(m)", "W=xe((A?D:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((A?D:null)?.stream,(state)=>state.streamingThinking),z=L?D:null,"],
+      [
+        patched,
+        "function Afe(m)",
+        "W=xe((D?_:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((D?_:null)?.stream,(state)=>state.streamingThinking),z=L?_:null,",
+      ],
+      [
+        linuxPatched,
+        "function Spe(m)",
+        "W=xe((A?D:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((A?D:null)?.stream,(state)=>state.streamingThinking),z=L?D:null,",
+      ],
     ]) {
       const owner = getFunctionSourceUntilNextDeclaration(body, signature)
       expect(owner).toContain(subscription)
-      expect(owner).toContain('__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})')
+      expect(owner).toContain(
+        '__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})',
+      )
       expect(owner).toContain("hasToolsInProgress:x.focused.inProgressToolUseIDs.size>0")
     }
     return
@@ -441,14 +482,21 @@ test("main-screen thinking display uses the same live state as transcript render
       [linuxPatched, "__acc_streamingThinking=De((Qet?W2:null)?.stream,(T)=>T.streamingThinking)"],
     ]) {
       expect(body).toContain(subscription)
-      expect(body).toContain("__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})")
+      expect(body).toContain(
+        "__acc_streamingThinking?.thinking&&e(n,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+      )
     }
     return
   }
   if (targetUses263ThinkingSymbols) {
-    for (const [body, stream] of [[patched, "nA"], [linuxPatched, "aA"]]) {
+    for (const [body, stream] of [
+      [patched, "nA"],
+      [linuxPatched, "aA"],
+    ]) {
       expect(body).toContain(`__acc_streamingThinking=Me(${stream}?.stream,(T)=>T.streamingThinking)`)
-      expect(body).toContain("__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})")
+      expect(body).toContain(
+        "__acc_streamingThinking?.thinking&&e(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
+      )
     }
     return
   }
@@ -491,13 +539,9 @@ test("main-screen thinking display uses the same live state as transcript render
   }
   if (TARGET_VERSION === "2.1.238") {
     expect(patched).toContain("onStreamingThinking:en.stream.setStreamingThinking")
-    expect(patched).toContain(
-      "streamingToolUses:$o,streamingThinking:__acc_streamingThinking,userInputOnProcessing:po",
-    )
+    expect(patched).toContain("streamingToolUses:$o,streamingThinking:__acc_streamingThinking,userInputOnProcessing:po")
     expect(patched).toContain("streamingThinking:wi.isMain?__acc_streamingThinking:null")
-    expect(patched).toContain(
-      "streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1",
-    )
+    expect(patched).toContain("streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1")
     expect(patched).toContain(
       '__acc_streamingThinking?.thinking&&_L.jsx(P,{marginTop:1,children:_L.jsx(Fsn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:k})})',
     )
@@ -509,9 +553,7 @@ test("main-screen thinking display uses the same live state as transcript render
     expect(streamingThinkingState).toBe("ds")
     expect(patched).toContain("onStreamingThinking:Js")
     expect(patched).toContain("streamingThinking:gR.isMain?ds:null")
-    expect(patched).toContain(
-      "streamingPreview:S,streamingThinking:__acc_streamingThinking,isBriefOnly:v=!1",
-    )
+    expect(patched).toContain("streamingPreview:S,streamingThinking:__acc_streamingThinking,isBriefOnly:v=!1")
     expect(patched).toContain(
       '__acc_streamingThinking?.thinking&&XD.jsx(x,{marginTop:1,children:XD.jsx(fXr,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:n})})',
     )
@@ -520,13 +562,9 @@ test("main-screen thinking display uses the same live state as transcript render
 
   if (TARGET_VERSION === "2.1.241") {
     expect(patched).toContain("onStreamingThinking:Zr.stream.setStreamingThinking")
-    expect(patched).toContain(
-      "streamingToolUses:Qi,streamingThinking:__acc_streamingThinking,userInputOnProcessing:is",
-    )
+    expect(patched).toContain("streamingToolUses:Qi,streamingThinking:__acc_streamingThinking,userInputOnProcessing:is")
     expect(patched).toContain("streamingThinking:Yn.isMain?__acc_streamingThinking:null")
-    expect(patched).toContain(
-      "streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1",
-    )
+    expect(patched).toContain("streamingPreview:h,streamingThinking:__acc_streamingThinking,isBriefOnly:g=!1")
     expect(patched).toContain(
       '__acc_streamingThinking?.thinking&&HL.jsx(P,{marginTop:1,children:HL.jsx(rpn,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:k})})',
     )
@@ -539,16 +577,12 @@ test("main-screen thinking display uses the same live state as transcript render
       "streamingToolUses:Jn,streamingThinking:__acc_streamingThinking,userInputOnProcessing:Pr,toolProgress:pe",
     )
     expect(patched).toContain("streamingThinking:Ti.isMain?__acc_streamingThinking:null")
-    expect(patched).toContain(
-      "streamingPreview:C,streamingThinking:__acc_streamingThinking,isBriefOnly:U=!1",
-    )
+    expect(patched).toContain("streamingPreview:C,streamingThinking:__acc_streamingThinking,isBriefOnly:U=!1")
     expect(patched).toContain(
       "__acc_streamingThinking?.thinking&&r(p,{marginTop:1,children:r(c,{dimColor:!0,children:__acc_streamingThinking.thinking})})",
     )
     expect(patched).not.toContain("__acc_streamingThinking?.thinking&&o(P,{marginTop:1")
-    expect(patched).not.toContain(
-      "children:o(t,{dimColor:!0,children:__acc_streamingThinking.thinking})",
-    )
+    expect(patched).not.toContain("children:o(t,{dimColor:!0,children:__acc_streamingThinking.thinking})")
     return
   }
 
@@ -556,12 +590,8 @@ test("main-screen thinking display uses the same live state as transcript render
     const streamingThinkingState = getStreamingThinkingState(patched)
     expect(streamingThinkingState).toBe("hl")
     expect(patched).toContain("onStreamingThinking:El")
-    expect(patched).toContain(
-      `streamingThinking:zE.isMain?${streamingThinkingState}:null`,
-    )
-    expect(patched).toContain(
-      "streamingPreview:v,streamingThinking:__acc_streamingThinking,isBriefOnly:S=!1",
-    )
+    expect(patched).toContain(`streamingThinking:zE.isMain?${streamingThinkingState}:null`)
+    expect(patched).toContain("streamingPreview:v,streamingThinking:__acc_streamingThinking,isBriefOnly:S=!1")
     expect(patched).toContain(
       '__acc_streamingThinking?.thinking&&dD.jsx(x,{marginTop:1,children:dD.jsx(OVr,{param:{type:"thinking",thinking:__acc_streamingThinking.thinking},addMargin:!1,isTranscriptMode:!0,verbose:n})})',
     )
@@ -613,9 +643,11 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     [patched, "darwin-arm64"],
     [linuxPatched, "linux-x64"],
   ] as const) {
-    const markerIndex = body.indexOf(targetLabelsThinkingSummaries
-      ? "__acc_streamingThinking?.thinking?.trim()&&e(n,"
-      : "__acc_streamingThinking?.thinking&&e(n,")
+    const markerIndex = body.indexOf(
+      targetLabelsThinkingSummaries
+        ? "__acc_streamingThinking?.thinking?.trim()&&e(n,"
+        : "__acc_streamingThinking?.thinking&&e(n,",
+    )
     expect(markerIndex).toBeGreaterThanOrEqual(0)
     const start = body.lastIndexOf("function ", markerIndex)
     const end = body.indexOf("function ", markerIndex)
@@ -629,7 +661,7 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     const provider = /r\(([\w$]+)\.Provider,\{value:([\w$]+),/.exec(row[0])
     if (!inputs || !provider) throw new Error("Missing live row inputs")
     const nativeInputs = inputs[1].slice(0, -1).split(",")
-    expect(nativeInputs.length).toBe(TARGET_VERSION === "2.1.310" ? 4 : 3)
+    expect(nativeInputs.length).toBe(TARGET_VERSION === "2.1.318" ? 5 : TARGET_VERSION === "2.1.310" ? 4 : 3)
     type Element = { children?: unknown[] | string }
     const jsx = (_type: unknown, props: Element) => props
     const render = new Function(
@@ -666,9 +698,7 @@ test("live thinking memo updates its row when only the stream snapshot changes",
 test("2.1.259 Linux live thinking stays inside the wrapper scope", () => {
   if (!targetUses259ThinkingSymbols) return
 
-  expect(linuxPatched).toContain(
-    "__acc_streamingThinking=Fe((AYe?Pq:null)?.stream,(T)=>T.streamingThinking)",
-  )
+  expect(linuxPatched).toContain("__acc_streamingThinking=Fe((AYe?Pq:null)?.stream,(T)=>T.streamingThinking)")
   expect(linuxPatched).not.toContain("streamingThinking:__acc_streamingThinking")
 
   const liveRowFunction = getFunctionSourceUntilNextDeclaration(linuxPatched, "function V4(PYe)")
@@ -713,7 +743,7 @@ test("live thinking rendering is not suppressed by brief mode", () => {
       [patched, "function o9(Get)", "YU", "Qbe,Ybe,Xbe"],
       [linuxPatched, "function Y3(Ket)", "lH", "$be,Wbe,qbe"],
     ]) {
-      const wrapper = getFunctionSourceUntilNextDeclaration(body!, signature!)
+      const wrapper = getFunctionSourceUntilNextDeclaration(body, signature)
       expect(wrapper).toContain("(39)")
       expect(wrapper).toContain(`children:[${children},__acc_streamingThinking?.thinking`)
       expect(wrapper).toContain(`${memo}[37]=__acc_streamingThinking,${memo}[38]=`)
@@ -726,7 +756,7 @@ test("live thinking rendering is not suppressed by brief mode", () => {
       [patched, "function jz(g7e)", "MU", "Qhe,Yhe,Jhe"],
       [linuxPatched, "function D4(m7e)", "$U", "eye,oye,nye"],
     ]) {
-      const wrapper = getFunctionSourceUntilNextDeclaration(body!, signature!)
+      const wrapper = getFunctionSourceUntilNextDeclaration(body, signature)
       expect(wrapper).toContain("(39)")
       expect(wrapper).toContain(`children:[${children},__acc_streamingThinking?.thinking`)
       expect(wrapper).toContain(`${memo}[37]=__acc_streamingThinking,${memo}[38]=`)
@@ -775,8 +805,8 @@ test("live thinking rendering is not suppressed by brief mode", () => {
     return
   }
   if (TARGET_VERSION === "2.1.238") {
-    expect(patched).toContain('if(!1){return null}let h6;if(Yqt[38]')
-    expect(patched).not.toContain('if(!Vqt&&!kge){return null}let h6;if(Yqt[38]')
+    expect(patched).toContain("if(!1){return null}let h6;if(Yqt[38]")
+    expect(patched).not.toContain("if(!Vqt&&!kge){return null}let h6;if(Yqt[38]")
     expect(patched).toContain("let ZeM=!0;")
     expect(patched).not.toContain("let ZeM=vDh||TDh;")
     return
@@ -791,17 +821,17 @@ test("live thinking rendering is not suppressed by brief mode", () => {
   }
 
   if (TARGET_VERSION === "2.1.241") {
-    expect(patched).toContain('if(!1){return null}let B6;if(fGt[38]')
+    expect(patched).toContain("if(!1){return null}let B6;if(fGt[38]")
     expect(patched).not.toContain('case"thinking":{if(!dGt&&!xye){return null}')
-    expect(patched).not.toContain('if(!Vqt&&!kge){return null}let B6;if(fGt[38]')
+    expect(patched).not.toContain("if(!Vqt&&!kge){return null}let B6;if(fGt[38]")
     expect(patched).toContain("let BWM=!0;")
     expect(patched).not.toContain("let BWM=OKh||DKh;")
     return
   }
 
   if (TARGET_VERSION === "2.1.246") {
-    expect(patched).toContain('if(!1){return null}let eo;if(mi[42]')
-    expect(patched).not.toContain('if(!li&&!et){return null}let eo;if(mi[42]')
+    expect(patched).toContain("if(!1){return null}let eo;if(mi[42]")
+    expect(patched).not.toContain("if(!li&&!et){return null}let eo;if(mi[42]")
     expect(patched).toContain("let Nce=!0;")
     expect(patched).not.toContain("let Nce=FO||$O;")
     return
@@ -950,32 +980,32 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
   if (!isVersionAtLeast(TARGET_VERSION, "2.1.233")) return
 
   if (TARGET_VERSION === "2.1.238") {
-    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}=')
-    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:p}=')
+    expect(patched).toContain("isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}=")
+    expect(patched).not.toContain("isVirtual:!0})]);let{salvage:p}=")
     return
   }
 
   if (TARGET_VERSION === "2.1.234") {
-    expect(patched).toContain('isVirtual:!0})]);Js(null);let{salvage:')
-    expect(patched).not.toContain('isVirtual:!0})]);El(null);let{salvage:')
+    expect(patched).toContain("isVirtual:!0})]);Js(null);let{salvage:")
+    expect(patched).not.toContain("isVirtual:!0})]);El(null);let{salvage:")
     return
   }
 
   if (TARGET_VERSION === "2.1.241") {
-    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}=')
-    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
+    expect(patched).toContain("isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:p}=")
+    expect(patched).not.toContain("isVirtual:!0})]);let{salvage:")
     return
   }
 
   if (TARGET_VERSION === "2.1.246") {
-    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:d}=')
-    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:d}=')
+    expect(patched).toContain("isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:d}=")
+    expect(patched).not.toContain("isVirtual:!0})]);let{salvage:d}=")
     return
   }
 
   if (TARGET_VERSION === "2.1.250") {
-    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
-    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
+    expect(patched).toContain("isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:")
+    expect(patched).not.toContain("isVirtual:!0})]);let{salvage:")
     return
   }
 
@@ -987,13 +1017,13 @@ test("interrupt replaces 2.1.233 live thinking with one preserved message", () =
       }
       return
     }
-    expect(patched).toContain('isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:')
-    expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
+    expect(patched).toContain("isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:")
+    expect(patched).not.toContain("isVirtual:!0})]);let{salvage:")
     return
   }
 
-  expect(patched).toContain('isVirtual:!0})]);El(null);let{salvage:')
-  expect(patched).not.toContain('isVirtual:!0})]);let{salvage:')
+  expect(patched).toContain("isVirtual:!0})]);El(null);let{salvage:")
+  expect(patched).not.toContain("isVirtual:!0})]);let{salvage:")
 })
 
 test("live thinking is cleared before the next streamed content block", () => {
@@ -1016,17 +1046,108 @@ test("live thinking is cleared before the next streamed content block", () => {
 
 test("completed summaries preserve native narration and render every nonblank body", () => {
   if (!targetLabelsThinkingSummaries) return
-  const fixtures = TARGET_VERSION === "2.1.310" ? [
-    [patched, "darwin-arm64", "chunk-cz421hr0.js", "F_", "b", "sl", "xKt", "if(!H&&!x){return null}", "HTo(Me)||Ge!==void 0"],
-    [linuxPatched, "linux-x64", "chunk-92hm4yb6.js", "N_", "S", "ol", "hqt", "if(!W&&!x){return null}", "sAo(Me)||Ge!==void 0"],
-  ] : [
-    [patched, "darwin-arm64", "chunk-sv91xa9y.js", "o_", "b", "Ja", "Jjt", "if(!W&&!M){return null}", "ygo(Ie)||Ge!==void 0"],
-    [linuxPatched, "linux-x64", "chunk-45m6sbw9.js", "r_", "S", "Xa", "Fjt", "if(!W&&!b){return null}", "jmo(Ie)||Ge!==void 0"],
-  ]
+  const fixtures =
+    TARGET_VERSION === "2.1.318"
+      ? [
+          [
+            patched,
+            "darwin-arm64",
+            "chunk-dfyaw1n7.js",
+            "kb",
+            "w",
+            "Bl",
+            "Won",
+            "if(!F&&!C){return null}",
+            "t7o(Ae)||Ke!==void 0",
+          ],
+          [
+            linuxPatched,
+            "linux-x64",
+            "chunk-wjygkcr4.js",
+            "ES",
+            "w",
+            "Bl",
+            "Pon",
+            "if(!F&&!T){return null}",
+            "TXo(Re)||Ve!==void 0",
+          ],
+        ]
+      : TARGET_VERSION === "2.1.310"
+        ? [
+            [
+              patched,
+              "darwin-arm64",
+              "chunk-cz421hr0.js",
+              "F_",
+              "b",
+              "sl",
+              "xKt",
+              "if(!H&&!x){return null}",
+              "HTo(Me)||Ge!==void 0",
+            ],
+            [
+              linuxPatched,
+              "linux-x64",
+              "chunk-92hm4yb6.js",
+              "N_",
+              "S",
+              "ol",
+              "hqt",
+              "if(!W&&!x){return null}",
+              "sAo(Me)||Ge!==void 0",
+            ],
+          ]
+        : [
+            [
+              patched,
+              "darwin-arm64",
+              "chunk-sv91xa9y.js",
+              "o_",
+              "b",
+              "Ja",
+              "Jjt",
+              "if(!W&&!M){return null}",
+              "ygo(Ie)||Ge!==void 0",
+            ],
+            [
+              linuxPatched,
+              "linux-x64",
+              "chunk-45m6sbw9.js",
+              "r_",
+              "S",
+              "Xa",
+              "Fjt",
+              "if(!W&&!b){return null}",
+              "jmo(Ie)||Ge!==void 0",
+            ],
+          ]
   for (const [body, platform, chunk, unwrap, sentinel, markdown, glyph, gate, boundary] of fixtures) {
-    const narration = TARGET_VERSION === "2.1.310" ? (platform === "darwin-arm64" ? "pi" : "ci") : "li"
-    const rendererName = TARGET_VERSION === "2.1.310" ? "Ds" : "Bs"
-    const continuation = TARGET_VERSION === "2.1.310" ? (platform === "darwin-arm64" ? "En" : "vn") : "yn"
+    const narration =
+      TARGET_VERSION === "2.1.318"
+        ? platform === "darwin-arm64"
+          ? "Cl"
+          : "Sl"
+        : TARGET_VERSION === "2.1.310"
+          ? platform === "darwin-arm64"
+            ? "pi"
+            : "ci"
+          : "li"
+    const rendererName =
+      TARGET_VERSION === "2.1.318"
+        ? platform === "darwin-arm64"
+          ? "dr"
+          : "mr"
+        : TARGET_VERSION === "2.1.310"
+          ? "Ds"
+          : "Bs"
+    const continuation =
+      TARGET_VERSION === "2.1.318"
+        ? "xn"
+        : TARGET_VERSION === "2.1.310"
+          ? platform === "darwin-arm64"
+            ? "En"
+            : "vn"
+          : "yn"
     const native = readFileSync(join(ROOT, "staging", TARGET_VERSION, "graph", platform, chunk), "utf8")
     expect(getFunctionSourceUntilNextDeclaration(body, `function ${narration}(m)`)).toBe(
       getFunctionSourceUntilNextDeclaration(native, `function ${narration}(m)`),
@@ -1036,8 +1157,8 @@ test("completed summaries preserve native narration and render every nonblank bo
     expect(completed).not.toContain(gate)
     expect(completed).toContain("if(!d.thinking.trim()){return null}")
     expect(completed.indexOf("param:d,model:")).toBeLessThan(completed.indexOf("if(!d.thinking.trim())"))
-    expect(body).toContain(boundary + ")")
-    expect(body).not.toContain(boundary + "&&")
+    expect(body).toContain(`${boundary})`)
+    expect(body).not.toContain(`${boundary}&&`)
 
     const rendererRegion = getFunctionSourceUntilNextDeclaration(body, `function ${rendererName}(m)`)
     const rendererAst = parseSync("thinking-renderer.js", rendererRegion, { sourceType: "module" })
@@ -1045,16 +1166,36 @@ test("completed summaries preserve native narration and render every nonblank bo
     const rendererNode = rendererAst.program.body[0]
     expect(rendererNode.type).toBe("FunctionDeclaration")
     const rendererSource = rendererRegion.slice(rendererNode.start, rendererNode.end)
-    expect(rendererSource).toContain(TARGET_VERSION === "2.1.310" ? "let X=!0;" : "let Z=!0;")
+    expect(rendererSource).toContain(
+      TARGET_VERSION === "2.1.318" ? "let ee=!0;" : TARGET_VERSION === "2.1.310" ? "let X=!0;" : "let Z=!0;",
+    )
     const empty = Symbol("empty memo")
     const jsx = (type: string, props: Record<string, unknown>) => ({ type, ...props })
     const renderer = new Function(
-      "w", unwrap, continuation, sentinel, "e", "r", "s", "n", markdown, glyph, "B",
-      rendererSource + `;return ${rendererName};`,
+      TARGET_VERSION === "2.1.318" ? (platform === "darwin-arm64" ? "b" : "S") : "w",
+      unwrap,
+      continuation,
+      sentinel,
+      "e",
+      "r",
+      "s",
+      "n",
+      markdown,
+      glyph,
+      "B",
+      `${rendererSource};return ${rendererName};`,
     )(
       (size: number) => Array<unknown>(size).fill(empty),
       (text: string) => text,
-      Symbol("continue"), empty, jsx, jsx, "box", "text", "markdown", "thinking-glyph", () => {},
+      Symbol("continue"),
+      empty,
+      jsx,
+      jsx,
+      "box",
+      "text",
+      "markdown",
+      "thinking-glyph",
+      () => {},
     ) as (props: { param: { thinking: string }; isTranscriptMode: boolean; verbose: boolean }) => unknown
     for (const text of ["", " \n\t"]) {
       expect(renderer({ param: { thinking: text }, isTranscriptMode: false, verbose: false })).toBeNull()

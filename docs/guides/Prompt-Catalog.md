@@ -68,6 +68,12 @@ Candidates are ranked evidence, not decisions.
 Copy a candidate lineage into a reviewed `carry` rule only after inspecting the prompt diff.
 No candidate or a low score does not prove the prompt is new.
 
+When an occurrence returns after an extraction gap, an explicit maintainer `carry` may reference an older finalized ledger.
+Declare `historicalPredecessors: [{ upstreamVersion, ledgerSha256 }]` in the draft and use the historical occurrence ID as its predecessor.
+The lineage must be absent from the immediately previous ledger and match the historical occurrence exactly.
+Each referenced ledger must predate the immediately previous version, pass its hash and lineage checks, and supply a used predecessor.
+The finalized ledger retains these hash-bound references; automatic matching remains limited to the immediately previous ledger.
+
 Duplicate text does not collapse callsites into one lineage:
 
 | Transition | Decision |

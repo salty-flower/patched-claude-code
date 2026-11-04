@@ -1,5 +1,5 @@
 name = "per-model-context-window"
-target_version = "2.1.301"
+target_version = "2.1.318"
 applies_to = ">=2.1.238 <2.2.0"
 
 rationale = """
@@ -732,3 +732,81 @@ path = "params.0"
   kind = "static"
   name = "310 rejects stale context function"
   assert_not_contains = 'function Zv(e,n){let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;if(u8n(e,n))return 1e6;'
+
+
+
+
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-318-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 public context wrapper pg resolves the global disable-compaction override through OA, then native compaction and model windows. Prepend the per-model override before those branches, capturing the first argument."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "pg"
+    source_regex = "^function pg\\(e,n\\)\\{let r=OA\\(\\);"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 model override precedes native context resolution"
+  assert_contains = "function pg(e,n){let __acc_model_context_key="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = "function Vm(e,n){let __acc_model_context_key="
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-318-linux-x64"
+lineage = "resolve-model-specific-context-window"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 public context wrapper fg resolves the global disable-compaction override through RA, then native compaction and model windows. Prepend the per-model override before those branches, capturing the first argument."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "fg"
+    source_regex = "^function fg\\(e,n\\)\\{let r=RA\\(\\);"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 model override precedes native context resolution"
+  assert_contains = "function fg(e,n){let __acc_model_context_key="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = "function Km(e,n){let __acc_model_context_key="

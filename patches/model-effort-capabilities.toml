@@ -2864,7 +2864,7 @@ locator_kind = "ast_transform"
 name = "custom-model-slot-capabilities-2-1-310-darwin-arm64"
 lineage = "custom-model-slot-capabilities"
 enabled = true
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.310 <2.1.311"
 platforms = [ "darwin-arm64" ]
 rationale = "2.1.310 native scope audit: chunk-27xjmczp.js GH/bu/$H capability resolver/provider/table; chunk-fdkh5k16.js I/Hce/iwt normalization; chunk-31gxg38t.js Rq refusal classifier, v_t retry closure with Q model options, j_t/$_t pending generator and Xs warning constructor. Preserve explicit model capabilities, reactive backend rejection and visible retry notices."
@@ -3215,3 +3215,309 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "310 excludes previous inserted scope"
   assert_not_contains = 'function*Ygt(){if(Ogt.__acc_notice!==void 0){const __acc_notice=Ogt.__acc_notice;delete Ogt.__acc_notice;yield Fs({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-318-darwin-arm64"
+lineage = "custom-model-slot-capabilities"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port custom-model-slot-capabilities to 2.1.318; audited corresponding lexical scope in chunk-axsjfnwn.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "h$"
+    source_regex = "^function h\\$\\(e,n\\)\\{if\\(Iu\\(\\)\\)return;for\\(let r of _\\$\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin custom slots use the current capability resolver"
+  assert_contains = 'function h$(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'function GH(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-318-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port explicit-capabilities-first-party to 2.1.318; audited corresponding lexical scope in chunk-axsjfnwn.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(Iu())return;for(let r of _$)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of _$){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Iu())return;for(let r of _$)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of _$){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of $H){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-318-darwin-arm64"
+lineage = "effort-reactive-capability"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port effort-reactive-capability to 2.1.318; audited corresponding lexical scope in chunk-efj9m2dc.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Kce(n))r="high";if(r==="xhigh"&&!d2e(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin effort resolver preserves selected high levels"
+  assert_contains = 'function cLn(e,n){let r=e;if(typeof r==="string"&&_k(r))r=Hoe(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&Aw(r))r=xQ(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-318-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port effort-retry-notice-queue to 2.1.318; audited corresponding lexical scope in chunk-0x9x817t.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative. The unsupported-effort guard delegates organization-cap failures to a separate retry route; queue this notice only after that guard admits an unsupported-effort retry."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source = "if(!$V(zn))return nZn(zn);"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'pbt.__acc_notice="Model "+ne.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin retry notice follows the current refusal classifier"
+  assert_contains = 'if(!$V(zn))return nZn(zn);pbt.__acc_notice="Model "+ne.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'if(!Rq(Qn))return null;v_t.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-318-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port effort-retry-notice-drain to 2.1.318; audited corresponding lexical scope in chunk-0x9x817t.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "xbt"
+    body_statement_count = 1
+    source_regex = "^function\\*xbt\\(\\)\\{if\\(vbt!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(pbt.__acc_notice!==void 0){const __acc_notice=pbt.__acc_notice;delete pbt.__acc_notice;yield Vs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin pending-message generator drains the retry notice"
+  assert_contains = 'function*xbt(){if(pbt.__acc_notice!==void 0){const __acc_notice=pbt.__acc_notice;delete pbt.__acc_notice;yield Vs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'function*j_t(){if(v_t.__acc_notice!==void 0){const __acc_notice=v_t.__acc_notice;delete v_t.__acc_notice;yield Xs({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-318-linux-x64"
+lineage = "custom-model-slot-capabilities"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port custom-model-slot-capabilities to 2.1.318; audited corresponding lexical scope in chunk-exfmq47h.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "r$"
+    source_regex = "^function r\\$\\(e,n\\)\\{if\\(Iu\\(\\)\\)return;for\\(let r of n\\$\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux custom slots use the current capability resolver"
+  assert_contains = 'function r$(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'function $H(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-318-linux-x64"
+lineage = "explicit-capabilities-first-party"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port explicit-capabilities-first-party to 2.1.318; audited corresponding lexical scope in chunk-exfmq47h.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(Iu())return;for(let r of n$)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of n$){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Iu())return;for(let r of n$)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of n$){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of KH){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-318-linux-x64"
+lineage = "effort-reactive-capability"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port effort-reactive-capability to 2.1.318; audited corresponding lexical scope in chunk-bc4jcw5z.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Lce(n))r="high";if(r==="xhigh"&&!rGe(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux effort resolver preserves selected high levels"
+  assert_contains = 'function WLn(e,n){let r=e;if(typeof r==="string"&&yv(r))r=Toe(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'function I(e,n){let r=e;if(typeof r==="string"&&Aw(r))r=w7(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-318-linux-x64"
+lineage = "effort-retry-notice-queue"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port effort-retry-notice-queue to 2.1.318; audited corresponding lexical scope in chunk-5xgkngpb.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative. The unsupported-effort guard delegates organization-cap failures to a separate retry route; queue this notice only after that guard admits an unsupported-effort retry."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source = "if(!X2(zn))return JJn(zn);"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'ZSt.__acc_notice="Model "+ne.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux retry notice follows the current refusal classifier"
+  assert_contains = 'if(!X2(zn))return JJn(zn);ZSt.__acc_notice="Model "+ne.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'if(!$K(Qn))return null;x_t.__acc_notice="Model "+Q.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-318-linux-x64"
+lineage = "effort-retry-notice-drain"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port effort-retry-notice-drain to 2.1.318; audited corresponding lexical scope in chunk-5xgkngpb.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Abt"
+    body_statement_count = 1
+    source_regex = "^function\\*Abt\\(\\)\\{if\\(Sbt!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(ZSt.__acc_notice!==void 0){const __acc_notice=ZSt.__acc_notice;delete ZSt.__acc_notice;yield zs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux pending-message generator drains the retry notice"
+  assert_contains = 'function*Abt(){if(ZSt.__acc_notice!==void 0){const __acc_notice=ZSt.__acc_notice;delete ZSt.__acc_notice;yield zs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'function*U_t(){if(x_t.__acc_notice!==void 0){const __acc_notice=x_t.__acc_notice;delete x_t.__acc_notice;yield Xs({content:__acc_notice,error:"warning"})}'

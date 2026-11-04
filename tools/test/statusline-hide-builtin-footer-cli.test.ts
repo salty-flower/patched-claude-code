@@ -140,6 +140,69 @@ test("footer visibility invalidates notification memo callbacks and effect depen
       ["statusline-footer-control-effort-level", "__acc_hide_effort_level", true],
       ["statusline-footer-control-effort-notification", "__acc_hide_effort", false],
     ] as const) {
+      if (TARGET_VERSION === "2.1.318" && focused) {
+        for (const variant of ["focused", "default"] as const) {
+          const selected = [variant, `${variant}-deps`].map((suffix) => {
+            const entry = activeStatuslinePatches.find((candidate) => candidate.name === `${lineage}-2-1-318-${suffix}`)
+            if (!entry?.ast || !entry.transform) throw new Error(`Missing split effort effect ${suffix}`)
+            return { name: entry.name, ast: entry.ast, transform: entry.transform }
+          })
+          const [callbackBlock, dependencyBlock] = selected.map((patch) => {
+            const prepared = prepareAstTransformPatches(source, [patch])
+            const result = prepared.results[0]
+            if (!result.ok || result.start === undefined || result.end === undefined) throw new Error(result.message)
+            return prepared.source.slice(result.start, prepared.source.length - (source.length - result.end))
+          })
+          if (!callbackBlock || !dependencyBlock) throw new Error(`Missing ${variant} effect cache`)
+          const memo = /^if\(([\w$]+)\[/.exec(callbackBlock)?.[1]
+          const callback = /\)([\w$]+)=\(\)=>/.exec(callbackBlock)?.[1]
+          const dependencies = /\)([\w$]+)=\[([^\]]+)\]/.exec(dependencyBlock)
+          const text = /text:([\w$]+)/.exec(callbackBlock)?.[1]
+          const key = /key:([\w$]+)/.exec(callbackBlock)?.[1]
+          if (!memo || !callback || !dependencies || !text || !key) throw new Error("Missing split effort bindings")
+          const events: string[] = []
+          const inputs = dependencies[2].split(",").filter((name) => name !== visibility)
+          const values: unknown[] =
+            variant === "focused"
+              ? [
+                  true,
+                  { getState: () => ({ notifications: { current: {}, queue: [] } }) },
+                  () => events.push("add"),
+                  () => events.push("remove"),
+                ]
+              : ["effort message", () => events.push("add"), () => events.push("remove")]
+          const bindings: Record<string, unknown> = Object.fromEntries(
+            inputs.map((name, index) => [name, values[index]]),
+          )
+          bindings[text] = "effort message"
+          bindings[key] = "effort-key"
+          const predicate = /\.some\(([\w$]+)\)/.exec(callbackBlock)?.[1]
+          if (predicate) bindings[predicate] = () => true
+          const render = new Function(
+            memo,
+            visibility,
+            ...Object.keys(bindings),
+            `let ${callback},${dependencies[1]};${callbackBlock};${dependencyBlock};return {callback:${callback},deps:${dependencies[1]}}`,
+          ) as (...args: unknown[]) => { callback: () => void; deps: unknown[] }
+          const slots: unknown[] = []
+          const run = (hidden: boolean) => render(slots, hidden, ...Object.values(bindings))
+          const visible = run(false)
+          visible.callback()
+          expect(events.at(-1)).toBe("add")
+          const hidden = run(true)
+          expect(hidden.callback).not.toBe(visible.callback)
+          expect(hidden.deps.at(-1)).toBe(true)
+          hidden.callback()
+          expect(events.at(-1)).toBe("remove")
+          const unchanged = run(true)
+          expect(unchanged.callback).toBe(hidden.callback)
+          expect(unchanged.deps).toBe(hidden.deps)
+          const restored = run(false)
+          restored.callback()
+          expect(events.at(-1)).toBe("add")
+        }
+        continue
+      }
       const patch = activeStatuslinePatches.find(
         (entry) =>
           entry.name.startsWith(`${lineage}-2-`) &&
@@ -164,12 +227,13 @@ test("footer visibility invalidates notification memo callbacks and effect depen
       const remove = () => events.push("remove")
       const inputValues = focused ? ["effort message", add, remove] : [add, remove, ["ultrathink"]]
       const additionalName = focused ? /key:([\w$]+),/.exec(block)?.[1] : /\.length&&([\w$]+)\(\)/.exec(block)?.[1]
-      if (!additionalName) throw new Error(`Missing native notification input: ${patch.name}`)
+      if (!additionalName && TARGET_VERSION !== "2.1.318")
+        throw new Error(`Missing native notification input: ${patch.name}`)
       const render = new Function(
         memo,
         visibility,
         ...inputNames,
-        additionalName,
+        additionalName ?? "unusedNativeGate",
         `let ${callback},${dependencies[1]};${block};return {callback:${callback},deps:${dependencies[1]}}`,
       ) as (...args: unknown[]) => { callback: () => void; deps: unknown[] }
       const slots: unknown[] = []
@@ -648,7 +712,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -695,7 +759,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -735,7 +799,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         expect(bundle).not.toContain("__acc_hide_mode=U((Bn)=>")
         expect(bundle).not.toContain('disabledFooter:T(Y(["footer"')
         for (const item of ["footer", "permission_mode", "mode", "effort_notification", "rate_limit_warning"]) {
-          expect(bundle).toContain('disabledFooter?.includes("' + item + '")')
+          expect(bundle).toContain(`disabledFooter?.includes("${item}")`)
         }
         // The clipboard hint is the one item 2.1.273 gates on the repo-owned
         // global directly instead of a statusLine selector.
@@ -854,7 +918,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -867,13 +931,11 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
       TARGET_VERSION === "2.1.296" ||
       TARGET_VERSION === "2.1.301" ||
       TARGET_VERSION === "2.1.304" ||
-      TARGET_VERSION === "2.1.310"
+      TARGET_VERSION === "2.1.310" ||
+      TARGET_VERSION === "2.1.318"
     ) {
       const versionSuffix = TARGET_VERSION.replaceAll(".", "-")
-      const effortMemoSlot = activeStatuslineMemoIndex(
-        `statusline-footer-control-effort-level-${versionSuffix}`,
-        370,
-      )
+      const effortMemoSlot = activeStatuslineMemoIndex(`statusline-footer-control-effort-level-${versionSuffix}`, 370)
       const ultrathinkMemoSlot = activeStatuslineMemoIndex(
         `statusline-footer-control-effort-notification-${versionSuffix}`,
         117,
@@ -888,17 +950,16 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         ["linux-x64", linuxPatched],
       ] as const) {
         if (TARGET_VERSION === "2.1.293") {
-          expect(bundle).toContain(
-            'new cs("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")',
-          )
+          expect(bundle).toContain('new cs("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
           expect(bundle).not.toContain('new os("--hide-builtin-footer [items]"')
         }
         if (TARGET_VERSION === "2.1.296") {
           expect(bundle).toContain('new ds("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
           expect(bundle).not.toContain('new cs("--hide-builtin-footer [items]"')
-          const effort = platform === "darwin-arm64"
-            ? "effort_level:Vb(Me)?qC(Me,ke)??null:null,...Vb(Me)&&{effort:{level:qC(Me,ke)}}"
-            : "effort_level:GS(Fe)?GA(Fe,ke)??null:null,...GS(Fe)&&{effort:{level:GA(Fe,ke)}}"
+          const effort =
+            platform === "darwin-arm64"
+              ? "effort_level:Vb(Me)?qC(Me,ke)??null:null,...Vb(Me)&&{effort:{level:qC(Me,ke)}}"
+              : "effort_level:GS(Fe)?GA(Fe,ke)??null:null,...GS(Fe)&&{effort:{level:GA(Fe,ke)}}"
           expect(bundle).toContain(effort)
           for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
             expect(bundle).toContain(`let ${selector}=V((state)=>state.settings.statusLine`)
@@ -906,11 +967,14 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
           }
         }
         if (TARGET_VERSION === "2.1.310") {
-          const constructor = platform === "darwin-arm64" ? "ls" : "as"
-          expect(bundle).toContain(`new ${constructor}("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")`)
-          const currentEffort = platform === "darwin-arm64"
-            ? "effort_level:Tw(We)?AV(We,we)??null:null,...Tw(We)&&{effort:{level:AV(We,we)}}"
-            : "effort_level:Tw(je)?hV(je,we)??null:null,...Tw(je)&&{effort:{level:hV(je,we)}}"
+          const optionConstructor = platform === "darwin-arm64" ? "ls" : "as"
+          expect(bundle).toContain(
+            `new ${optionConstructor}("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")`,
+          )
+          const currentEffort =
+            platform === "darwin-arm64"
+              ? "effort_level:Tw(We)?AV(We,we)??null:null,...Tw(We)&&{effort:{level:AV(We,we)}}"
+              : "effort_level:Tw(je)?hV(je,we)??null:null,...Tw(je)&&{effort:{level:hV(je,we)}}"
           expect(bundle).toContain(currentEffort)
           for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
             expect(bundle).toContain(`let ${selector}=K((state)=>state.settings.statusLine`)
@@ -918,12 +982,26 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
           }
           expect(bundle).not.toContain("[406]?.[3]!==__acc_hide_effort_level")
         }
+        if (TARGET_VERSION === "2.1.318") {
+          expect(bundle).toContain('new vs("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
+          const currentEffort =
+            platform === "darwin-arm64"
+              ? "effort_level:lw(Ke)?sN(Ke,Ce)??null:null,...lw(Ke)&&{effort:{level:sN(Ke,Ce)}}"
+              : "effort_level:iw(Ve)?nN(Ve,Ee)??null:null,...iw(Ve)&&{effort:{level:nN(Ve,Ee)}}"
+          expect(bundle).toContain(currentEffort)
+          for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
+            expect(bundle).toContain(`let ${selector}=z((state)=>state.settings.statusLine`)
+            expect(bundle).not.toContain(`let ${selector}=He(`)
+          }
+          expect(bundle).not.toContain("[407]?.[3]!==__acc_hide_effort_level")
+        }
         if (TARGET_VERSION === "2.1.304") {
           expect(bundle).toContain('new ls("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
           expect(bundle).not.toContain('new ps("--hide-builtin-footer [items]"')
-          const currentEffort = platform === "darwin-arm64"
-            ? "effort_level:Kb(Fe)?Ez(Fe,Se)??null:null,...Kb(Fe)&&{effort:{level:Ez(Fe,Se)}}"
-            : "effort_level:KS($e)?p2($e,be)??null:null,...KS($e)&&{effort:{level:p2($e,be)}}"
+          const currentEffort =
+            platform === "darwin-arm64"
+              ? "effort_level:Kb(Fe)?Ez(Fe,Se)??null:null,...Kb(Fe)&&{effort:{level:Ez(Fe,Se)}}"
+              : "effort_level:KS($e)?p2($e,be)??null:null,...KS($e)&&{effort:{level:p2($e,be)}}"
           expect(bundle).toContain(currentEffort)
           const appStateHook = platform === "darwin-arm64" ? "V" : "K"
           for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
@@ -934,9 +1012,10 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         if (TARGET_VERSION === "2.1.301") {
           expect(bundle).toContain('new ps("--hide-builtin-footer [items]","Hide built-in footer items").preset("all")')
           expect(bundle).not.toContain('new ds("--hide-builtin-footer [items]"')
-          const currentEffort = platform === "darwin-arm64"
-            ? "effort_level:BS(De)?QT(De,Se)??null:null,...BS(De)&&{effort:{level:QT(De,Se)}}"
-            : "effort_level:Ub(De)?YC(De,Se)??null:null,...Ub(De)&&{effort:{level:YC(De,Se)}}"
+          const currentEffort =
+            platform === "darwin-arm64"
+              ? "effort_level:BS(De)?QT(De,Se)??null:null,...BS(De)&&{effort:{level:QT(De,Se)}}"
+              : "effort_level:Ub(De)?YC(De,Se)??null:null,...Ub(De)&&{effort:{level:YC(De,Se)}}"
           expect(bundle).toContain(currentEffort)
           for (const selector of ["__acc_hide_effort_level", "__acc_hide_effort"]) {
             expect(bundle).toContain(`let ${selector}=V((state)=>state.settings.statusLine`)
@@ -959,9 +1038,15 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
           )
           expect(bundle).toContain(`,${selector}]`)
         }
-        expect(bundle).toContain(`[${effortMemoSlot}]?.[3]!==__acc_hide_effort_level`)
+        if (TARGET_VERSION === "2.1.318") {
+          expect(bundle.match(/if\(__acc_hide_effort_level\|\|!/g)).toHaveLength(2)
+          expect(bundle.match(/,__acc_hide_effort_level\]/g)).toHaveLength(2)
+          expect(bundle).toMatch(/if\(__acc_hide_effort_level\|\|![\w$]+\)\{[\w$]+\([\w$]+\);return}/)
+        } else {
+          expect(bundle).toContain(`[${effortMemoSlot}]?.[3]!==__acc_hide_effort_level`)
+          expect(bundle).toMatch(/if\(![\w$]+\|\|__acc_hide_effort_level\)\{[\w$]+\([\w$]+\);return}/)
+        }
         expect(bundle).toContain(`[${ultrathinkMemoSlot}]?.[3]!==__acc_hide_effort`)
-        expect(bundle).toMatch(/if\(![\w$]+\|\|__acc_hide_effort_level\)\{[\w$]+\([\w$]+\);return}/)
         expect(bundle).toContain("if(!__acc_hide_effort&&")
         expect(bundle).toMatch(/else [\w$]+\("ultrathink-active"\)/)
         expect(bundle).toMatch(
@@ -981,7 +1066,8 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
           TARGET_VERSION === "2.1.296" ||
           TARGET_VERSION === "2.1.301" ||
           TARGET_VERSION === "2.1.304" ||
-          TARGET_VERSION === "2.1.310"
+          TARGET_VERSION === "2.1.310" ||
+          TARGET_VERSION === "2.1.318"
         ) {
           expect(bundle).toMatch(
             /effort_level:([\w$]+)\(([\w$]+)\)\?([\w$]+)\(\2,([\w$]+)\)\?\?null:null,\.\.\.\1\(\2\)&&\{effort:\{level:\3\(\2,\4\)}}/,
@@ -1111,7 +1197,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -1157,7 +1243,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -1192,7 +1278,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -1227,7 +1313,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -1262,7 +1348,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -1294,7 +1380,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -1315,7 +1401,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }
@@ -1334,7 +1420,7 @@ test("patched bundle exposes --hide-builtin-footer and wires it into statusLine.
         "rate_limit_warning",
         "clipboard_image_hint",
       ]) {
-        expect(patched).toContain('disabledFooter?.includes("' + item + '")')
+        expect(patched).toContain(`disabledFooter?.includes("${item}")`)
       }
       return
     }

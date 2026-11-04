@@ -207,9 +207,10 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       /o==="current"\|\|o==="status"\)return e\(([\w$]+),/,
     )
     const guarded = patchedFunction(native, guard).patched
+    const memo = captureIdentifier(guarded, "slider memo allocator", /\{let [\w$]+=([\w$]+)\(4\);/)
     let effective: { cli: boolean; value?: string } = { cli: true, value: "low" }
     const onDone = () => {}
-    const render = new Function("w", "patchedEffort", "e", status, `${guarded};return ${wrapper};`)(
+    const render = new Function(memo, "patchedEffort", "e", status, `${guarded};return ${wrapper};`)(
       () => [],
       { session: () => effective },
       (component: string, props: unknown) => ({ component, props }),

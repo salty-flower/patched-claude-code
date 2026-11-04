@@ -10293,7 +10293,7 @@ locator_kind = "ast_transform"
 name = "ultracode-capability-max-fallback-2-1-310-darwin"
 lineage = "ultracode-capability-max-fallback"
 enabled = true
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.310 <2.1.311"
 platforms = [ "darwin-arm64" ]
 rationale = "2.1.310 chunk-fdkh5k16.js sH ultracode eligibility calls jm feature gate and Oe model gate; Hce is max-effort support and Lgn organization cap. Preserve max-effort fallback only when organization policy allows it."
@@ -10361,3 +10361,69 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "310 excludes previous inserted scope"
   assert_not_contains = "function FM(e){return mm()&&(e===void 0||Re(e)||rle(e)&&Pln(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-318-darwin"
+lineage = "ultracode-capability-max-fallback"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port ultracode-capability-max-fallback to 2.1.318; audited corresponding lexical scope in chunk-efj9m2dc.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "rN"
+    source = "function rN(e){return qf()&&(e===void 0||Ve(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return qf()&&(e===void 0||Ve(e)||Kce(e)&&CZt(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin ultracode uses current max helpers"
+  assert_contains = "function rN(e){return qf()&&(e===void 0||Ve(e)||Kce(e)&&CZt(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "function sH(e){return jm()&&(e===void 0||Oe(e)||Hce(e)&&Lgn(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-318-linux"
+lineage = "ultracode-capability-max-fallback"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port ultracode-capability-max-fallback to 2.1.318; audited corresponding lexical scope in chunk-bc4jcw5z.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "eN"
+    source = "function eN(e){return qp()&&(e===void 0||Ve(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return qp()&&(e===void 0||Ve(e)||Lce(e)&&lZt(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux ultracode uses current max helpers"
+  assert_contains = "function eN(e){return qp()&&(e===void 0||Ve(e)||Lce(e)&&lZt(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "function tH(e){return jm()&&(e===void 0||De(e)||Cce(e)&&wgn(e)===null)}"

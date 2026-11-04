@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { lt, valid } from "semver"
 
 export const PROMPT_IDENTITY_SCHEMA_VERSION = 2 as const
 
@@ -51,6 +52,12 @@ export type PromptOccurrenceLedger = {
   inventorySha256: string
   lineageSetSha256: string
   occurrences: PromptOccurrenceDecision[]
+  historicalPredecessors?: PromptHistoricalPredecessor[]
+  ledgerSha256: string
+}
+
+export type PromptHistoricalPredecessor = {
+  upstreamVersion: string
   ledgerSha256: string
 }
 
@@ -92,6 +99,7 @@ export type PromptIdentityDraft = {
   previousVersion: string
   inventorySha256: string
   registrySha256: string
+  historicalPredecessors?: PromptHistoricalPredecessor[]
   decisions: PromptIdentityDraftDecision[]
   summary: {
     carried: number
@@ -318,6 +326,19 @@ export function finalizePromptIdentityDraft(
   ) {
     throw new Error(`invalid prompt identity draft: ${draftPath}`)
   }
+  if (
+    typeof draft.upstreamVersion !== "string" ||
+    valid(draft.upstreamVersion) !== draft.upstreamVersion ||
+    typeof draft.previousVersion !== "string" ||
+    valid(draft.previousVersion) !== draft.previousVersion
+  ) {
+    throw new Error("prompt identity draft requires canonical target and previous versions")
+  }
+  if (!lt(draft.previousVersion, draft.upstreamVersion)) {
+    throw new Error(
+      `previous prompt identity version must be older than target: ${draft.previousVersion} -> ${draft.upstreamVersion}`,
+    )
+  }
   const registryPath = join(identityRoot, "registry.json")
   const ledgerPath = join(identityRoot, "versions", `${draft.upstreamVersion}.json`)
   if (existsSync(ledgerPath)) throw new Error(`refusing to overwrite prompt occurrence ledger: ${ledgerPath}`)
@@ -329,7 +350,11 @@ export function finalizePromptIdentityDraft(
   if (previous.upstreamVersion !== draft.previousVersion) {
     throw new Error(`previous prompt occurrence ledger version mismatch: expected ${draft.previousVersion}`)
   }
-  const previousOccurrenceIds = new Set(previous.occurrences.map(({ occurrenceId }) => occurrenceId))
+  const previousOccurrences = new Map(previous.occurrences.map((occurrence) => [occurrence.occurrenceId, occurrence]))
+  const previousOccurrenceIds = new Set(previousOccurrences.keys())
+  const previousLineageIds = new Set(previous.occurrences.map(({ lineageId }) => lineageId))
+  const historicalOccurrences = readHistoricalPredecessors(identityRoot, draft, registry, previousOccurrenceIds)
+  const usedHistoricalOccurrences = new Set<string>()
   const priorByFingerprint = groupBy(previous.occurrences, matchFingerprint)
   const currentByFingerprint = groupBy(draft.decisions, matchFingerprint)
   const existingLineageIds = new Set(registry.lineages.map(({ lineageId }) => lineageId))
@@ -344,12 +369,38 @@ export function finalizePromptIdentityDraft(
     }
     for (const predecessor of decision.predecessors) {
       if (!previousOccurrenceIds.has(predecessor)) {
-        throw new Error(`prompt identity decision has unknown predecessor: ${decision.occurrenceId} -> ${predecessor}`)
+        const historical = historicalOccurrences.get(predecessor)
+        if (!historical) {
+          throw new Error(
+            `prompt identity decision has unknown predecessor: ${decision.occurrenceId} -> ${predecessor}`,
+          )
+        }
+        if (decision.relation !== "carry" || decision.evidence !== "maintainer-rule") {
+          throw new Error(`historical prompt predecessor requires a maintainer-rule carry: ${decision.occurrenceId}`)
+        }
+        if (decision.lineageId !== historical.lineageId) {
+          throw new Error(`historical prompt carry lineage mismatch: ${decision.occurrenceId} -> ${predecessor}`)
+        }
+        if (previousLineageIds.has(historical.lineageId)) {
+          throw new Error(
+            `historical prompt carry must use the immediate predecessor for lineage: ${historical.lineageId}`,
+          )
+        }
+        usedHistoricalOccurrences.add(predecessor)
       }
     }
     if (decision.relation === "carry") {
       if (!decision.lineageId || !existingLineageIds.has(decision.lineageId)) {
         throw new Error(`carried prompt identity requires an existing lineage: ${decision.occurrenceId}`)
+      }
+      if (
+        decision.evidence === "maintainer-rule" &&
+        decision.predecessors.some((predecessor) => {
+          const prior = previousOccurrences.get(predecessor) ?? historicalOccurrences.get(predecessor)
+          return prior?.lineageId !== decision.lineageId
+        })
+      ) {
+        throw new Error(`maintainer prompt carry lineage mismatch: ${decision.occurrenceId}`)
       }
       if (decision.evidence === "unique-exact-observation") {
         const fingerprint = matchFingerprint(decision)
@@ -403,6 +454,13 @@ export function finalizePromptIdentityDraft(
   if (new Set(occurrences.map(({ occurrenceId }) => occurrenceId)).size !== occurrences.length) {
     throw new Error(`prompt identity draft contains duplicate occurrences: ${draftPath}`)
   }
+  for (const reference of draft.historicalPredecessors ?? []) {
+    if (
+      ![...usedHistoricalOccurrences].some((occurrenceId) => occurrenceId.startsWith(`v${reference.upstreamVersion}-`))
+    ) {
+      throw new Error(`unused historical prompt predecessor ledger: ${reference.upstreamVersion}`)
+    }
+  }
 
   const updatedRegistry = withSelfHash(
     { ...registry, lineages: [...registry.lineages, ...appendedLineages], registrySha256: undefined },
@@ -418,6 +476,7 @@ export function finalizePromptIdentityDraft(
       inventorySha256: draft.inventorySha256,
       lineageSetSha256: lineageSetSha256(currentLineages),
       occurrences,
+      ...(draft.historicalPredecessors?.length ? { historicalPredecessors: draft.historicalPredecessors } : {}),
     },
     "ledgerSha256",
   ) as PromptOccurrenceLedger
@@ -425,6 +484,62 @@ export function finalizePromptIdentityDraft(
   mkdirSync(dirname(ledgerPath), { recursive: true })
   writeFileSync(ledgerPath, canonicalJson(ledger), { mode: 0o644 })
   return { registry: updatedRegistry, ledger }
+}
+
+function readHistoricalPredecessors(
+  identityRoot: string,
+  draft: PromptIdentityDraft,
+  registry: PromptLineageRegistry,
+  previousOccurrenceIds: Set<string>,
+): Map<string, PromptOccurrenceDecision> {
+  const occurrences = new Map<string, PromptOccurrenceDecision>()
+  if (draft.historicalPredecessors === undefined) return occurrences
+  if (!Array.isArray(draft.historicalPredecessors)) {
+    throw new Error("historical prompt predecessors must be an array")
+  }
+  const versions = new Set<string>()
+  const lineageById = new Map(registry.lineages.map((lineage) => [lineage.lineageId, lineage]))
+  for (const reference of draft.historicalPredecessors) {
+    if (
+      !reference ||
+      typeof reference.upstreamVersion !== "string" ||
+      valid(reference.upstreamVersion) !== reference.upstreamVersion ||
+      typeof reference.ledgerSha256 !== "string" ||
+      !reference.ledgerSha256
+    ) {
+      throw new Error("historical prompt predecessor requires a valid version and ledger SHA-256")
+    }
+    const version = reference.upstreamVersion
+    if (!valid(draft.previousVersion) || !lt(version, draft.previousVersion)) {
+      throw new Error(`historical prompt predecessor must be older than ${draft.previousVersion}: ${version}`)
+    }
+    if (versions.has(version)) throw new Error(`duplicate historical prompt predecessor version: ${version}`)
+    versions.add(version)
+    const ledger = readPromptIdentityLedger(identityRoot, version)
+    if (ledger.upstreamVersion !== version) {
+      throw new Error(`historical prompt occurrence ledger version mismatch: expected ${version}`)
+    }
+    if (ledger.ledgerSha256 !== reference.ledgerSha256) {
+      throw new Error(`historical prompt predecessor ledger SHA-256 mismatch: ${version}`)
+    }
+    const lineages = ledger.occurrences.map((occurrence) => {
+      const lineage = lineageById.get(occurrence.lineageId)
+      if (!lineage) throw new Error(`historical prompt predecessor references unknown lineage: ${occurrence.lineageId}`)
+      if (
+        !occurrence.occurrenceId.startsWith(`v${version}-`) ||
+        previousOccurrenceIds.has(occurrence.occurrenceId) ||
+        occurrences.has(occurrence.occurrenceId)
+      ) {
+        throw new Error(`invalid or duplicate historical prompt occurrence: ${occurrence.occurrenceId}`)
+      }
+      occurrences.set(occurrence.occurrenceId, occurrence)
+      return lineage
+    })
+    if (ledger.lineageSetSha256 !== lineageSetSha256(lineages)) {
+      throw new Error(`historical prompt occurrence ledger is stale for its lineage set: ${version}`)
+    }
+  }
+  return occurrences
 }
 
 function readRegistry(path: string): PromptLineageRegistry {

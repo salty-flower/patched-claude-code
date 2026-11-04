@@ -66,12 +66,18 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     }
     const requestEffort = captureIdentifier(calculation, "request effort", /,([\w$]+)=[\w$]+\?void 0:[\w$]+\?\?[\w$]+;/)
     const remote = captureIdentifier(calculation, "remote predicate", /let [\w$]+=([\w$]+)\?void 0:/)
+    const toolContext = binding("tool context", /effortState:([\w$]+)\.getAppState/)
+    const pickedEffortModel = calculation.match(/pickedEffortModel:([\w$]+)\(([\w$]+)\)/)
+    if (pickedEffortModel && pickedEffortModel[2] !== toolContext) {
+      throw new Error("shipped Agent picked-effort model uses an unexpected context")
+    }
     const teammateFallback = source.match(/effort:patchedAgentEffort\?\?([\w$]+)\?\.effort/)
     const teammateDefinition = teammateFallback?.[1]
     if (!teammateDefinition) throw new Error("shipped teammate effort fallback missing")
     const run = (effort?: string, coordinator = false, relativeEnabled = true, isFork = false): Result => {
       const adjustments: number[] = []
       const resolutionEfforts: Array<string | undefined> = []
+      const context = { getAppState: () => ({}), permissionLayers: [] }
       const bindings: Record<string, unknown> = {
         [input]: { effort, model: "custom-worker" },
         [binding("relative effort flag", /,[\w$]+=([\w$]+)\(\)&&/)]: () => relativeEnabled,
@@ -88,7 +94,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
         },
         [binding("permission effort resolver", /:([\w$]+)\(\{agentDefinition:[\w$]+,isFork:/)]: (options: {
           agentDefinition: Definition
-        }) => ({ agentDefinition: options.agentDefinition, subagentEffort: options.agentDefinition.effort }),
+          pickedEffortModel?: string
+        }) => {
+          if (pickedEffortModel) expect(options.pickedEffortModel).toBe("parent-model")
+          return { agentDefinition: options.agentDefinition, subagentEffort: options.agentDefinition.effort }
+        },
         [binding("native relative adjustment", /\?([\w$]+)\([\w$]+,[\w$]+\.subagentEffort,[\w$]+===/)]: (
           _model: string,
           _base: string,
@@ -97,15 +107,18 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
           adjustments.push(direction)
           return direction === 1 ? "high" : "low"
         },
-        [binding("tool context", /effortState:([\w$]+)\.getAppState/)]: {
-          getAppState: () => ({}),
-          permissionLayers: [],
-        },
+        [toolContext]: context,
         [teammateDefinition]: { effort: "medium" },
         [definition]: { effort: "medium" },
         [parentModel]: "parent-model",
         [remote]: false,
         [permissionMode]: "default",
+      }
+      if (pickedEffortModel?.[1]) {
+        bindings[pickedEffortModel[1]] = (actualContext: unknown) => {
+          expect(actualContext).toBe(context)
+          return "parent-model"
+        }
       }
       const result = new Function(
         ...Object.keys(bindings),

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict"
+import type { IBuffer } from "@xterm/headless"
 
 export type LifecycleWait = (predicate: () => boolean, description: string) => Promise<void>
 
@@ -33,12 +34,25 @@ export async function settleThroughWait<T>(
 
 // This fixture uses a persistent interactive TTY session; other CLI modes need
 // their own acknowledgement. Require this session ID in the command after the hint.
-export function hasThinkingSummaryExitHint(screen: string, sessionId: string): boolean {
+export function hasThinkingSummaryExitHint(screen: string | IBuffer, sessionId: string): boolean {
+  let text: string
+  if (typeof screen === "string") text = screen
+  else {
+    text = ""
+    for (let index = 0; index < screen.length; index++) {
+      const row = screen.getLine(index)
+      if (!row) continue
+      if (index > 0 && !row.isWrapped) text += "\n"
+      // Keep every cell before a soft wrap: trimming would merge words, while
+      // adding a space would corrupt an option or session ID wrapped mid-token.
+      text += row.translateToString(!screen.getLine(index + 1)?.isWrapped)
+    }
+  }
   const hint = "Resume this session with:"
-  const at = screen.lastIndexOf(hint)
+  const at = text.lastIndexOf(hint)
   if (at < 0) return false
   const command =
-    screen
+    text
       .slice(at + hint.length)
       .trimStart()
       .split(/\r?\n/, 1)[0] ?? ""

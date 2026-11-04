@@ -1,6 +1,6 @@
 name = "agents-md-native-hook-native-host-path"
 enabled = true
-target_version = "2.1.301"
+target_version = "2.1.318"
 applies_to = ">=2.1.281 <2.1.282"
 
 [[patches]]
@@ -578,3 +578,157 @@ path = "arguments.2.body.callee"
   kind = "static"
   name = "310 removes only the agents-md native descriptor callback"
   assert_not_contains = "import.meta.dir,h,()=>oe()),userConfig:U"
+
+[[patches]]
+name = "agents-md-native-hook-host-path-2-1-318-darwin-arm64"
+lineage = "agents-md-native-hook-host-path"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Expose the native AGENTS.md hook module and scan callback through the extracted host descriptor. Capture both identifiers from the current descriptor rather than retaining bundle-local names.\nAudited 2.1.318 scopes: darwin-arm64/chunk-7wcdxgnf.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/plugins/loadPluginHooks.ts#L123-L148"
+locator_kind = "ast_transform"
+expected_matches = 1
+platforms = [ "darwin-arm64" ]
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.module]
+kind = "identifier"
+path = "arguments.1"
+
+  [patches.ast.captures.module.select]
+  node = "CallExpression"
+  source_regex = "^[$\\w]+\\(import\\.meta\\.dir,"
+
+[patches.ast.captures.scan]
+kind = "identifier"
+path = "arguments.2.body.callee"
+
+  [patches.ast.captures.scan.select]
+  node = "CallExpression"
+  source_regex = "^[$\\w]+\\(import\\.meta\\.dir,"
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "hooksModule"
+    source_regex = "userConfig:[A-Za-z_$][A-Za-z0-9_$]*\\}$"
+    strings = [ "userConfig:", "import.meta.dir" ]
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "hooksModule"
+  value = "{module:%%CAPTURE:module%%,scan:%%CAPTURE:scan%%().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 agents-md carries the current module and scan bindings"
+  assert_contains = "hooksModule:{module:_,scan:fe().scan,files:{}},userConfig:H"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin agents-md rejects the stale 2.1.289 module binding"
+  assert_not_contains = "hooksModule:{module:I,scan:Le().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux agents-md rejects the stale 2.1.289 module binding"
+  assert_not_contains = "hooksModule:{module:S,scan:Le().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 rejects the previous descriptor bindings"
+  assert_not_contains = "hooksModule:{module:M,scan:ke().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 does not rewrite the easel autoCharts hook descriptor"
+  assert_not_contains = "hooksModule:{module:n,scan:u().scan,files:{}},userConfig:{autoCharts:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 removes only the agents-md native descriptor callback"
+  assert_not_contains = "import.meta.dir,h,()=>oe()),userConfig:U"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 6"
+  assert_not_contains = "hooksModule:{module:O,scan:oe().scan,files:{}},userConfig:U"
+
+[[patches]]
+name = "agents-md-native-hook-host-path-2-1-318-linux-x64"
+lineage = "agents-md-native-hook-host-path"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Expose the native AGENTS.md hook module and scan callback through the extracted host descriptor. Capture both identifiers from the current descriptor rather than retaining bundle-local names.\nAudited 2.1.318 scopes: linux-x64/chunk-pyd7te4t.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/plugins/loadPluginHooks.ts#L123-L148"
+locator_kind = "ast_transform"
+expected_matches = 1
+platforms = [ "linux-x64" ]
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.module]
+kind = "identifier"
+path = "arguments.1"
+
+  [patches.ast.captures.module.select]
+  node = "CallExpression"
+  source_regex = "^[$\\w]+\\(import\\.meta\\.dir,"
+
+[patches.ast.captures.scan]
+kind = "identifier"
+path = "arguments.2.body.callee"
+
+  [patches.ast.captures.scan.select]
+  node = "CallExpression"
+  source_regex = "^[$\\w]+\\(import\\.meta\\.dir,"
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    object_property_direct = "hooksModule"
+    source_regex = "userConfig:[A-Za-z_$][A-Za-z0-9_$]*\\}$"
+    strings = [ "userConfig:", "import.meta.dir" ]
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "hooksModule"
+  value = "{module:%%CAPTURE:module%%,scan:%%CAPTURE:scan%%().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 agents-md carries the current module and scan bindings"
+  assert_contains = "hooksModule:{module:S,scan:fe().scan,files:{}},userConfig:H"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin agents-md rejects the stale 2.1.289 module binding"
+  assert_not_contains = "hooksModule:{module:I,scan:Le().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux agents-md rejects the stale 2.1.289 module binding"
+  assert_not_contains = "hooksModule:{module:S,scan:Le().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 rejects the previous descriptor bindings"
+  assert_not_contains = "hooksModule:{module:M,scan:ke().scan,files:{}}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 does not rewrite the easel autoCharts hook descriptor"
+  assert_not_contains = "hooksModule:{module:n,scan:u().scan,files:{}},userConfig:{autoCharts:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 removes only the agents-md native descriptor callback"
+  assert_not_contains = "import.meta.dir,h,()=>oe()),userConfig:U"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 6"
+  assert_not_contains = "hooksModule:{module:O,scan:oe().scan,files:{}},userConfig:U"

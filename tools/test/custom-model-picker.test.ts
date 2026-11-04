@@ -5,7 +5,7 @@ import { applyAstTransformPatches } from "../lib/ast-transform-patches"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 
-type Row = { value: string; label?: string; description?: string; sessionTail?: boolean }
+type Row = { value: string; label?: string; description?: string; sessionTail?: boolean; disabled?: boolean }
 type Environment = Record<string, string | undefined>
 const entries = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches/custom-model-slots.toml"))
 const pickerPatches = entries.filter((entry) => entry.name.startsWith("append-second-custom-model-option"))
@@ -13,6 +13,11 @@ const TARGET_VERSION = targetVersion()
 
 function pickerSource(patch: PatchEntry): string {
   if (typeof patch.ast?.match.source === "string") return patch.ast.match.source
+  if (patch.ast?.captures?.replace) {
+    // The native picker can replace a disabled row instead of appending one.
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: this string is JavaScript fixture source.
+    return "if(slot&&(existingIndex===-1||replaceDisabled)){let entry={value:slot,label:settings.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME??labelForModel(slot)??slot,description:settings.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION??`Custom model (${slot})`,sessionTail:!0};if(replaceDisabled)rows[existingIndex]=entry;else rows.push(entry)}"
+  }
   // Structural locators must capture these fixture bindings and preserve the
   // upstream first-slot statement before adding the second slot.
   // Deliberately use names distinct from the staged bundle's minified bindings.
@@ -32,6 +37,11 @@ function picker(patch: PatchEntry): (rows: Row[], environment: Environment) => R
   const helpers = [...new Set([...source.matchAll(/\?\?([\w$]+)\(/g)].map((match) => match[1]))]
   const declarations = [
     `const ${rowsName}=inputRows,${slotName}=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION;`,
+    ...(patch.ast.captures?.replace
+      ? [
+          `const existingIndex=${rowsName}.findIndex((row)=>row.value===${slotName}),replaceDisabled=existingIndex!==-1&&${rowsName}[existingIndex]?.disabled===true&&process.env.TEST_NATIVE_REPLACEMENT==="1";`,
+        ]
+      : []),
     ...namespaces.map(
       (name) =>
         `const ${name}=Object.freeze({ANTHROPIC_CUSTOM_MODEL_OPTION_NAME:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME,ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION:process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION});`,
@@ -162,6 +172,25 @@ for (const patch of pickerPatches) {
 }
 
 for (const patch of pickerPatches.filter((entry) => patchApplies(entry, TARGET_VERSION))) {
+  if (patch.ast?.captures?.replace) {
+    test(`${patch.name}: native disabled-row replacement survives custom-slot deduplication`, () => {
+      const rows = [{ value: "provider/one", disabled: true, label: "Unavailable" }]
+      const environment = {
+        ANTHROPIC_CUSTOM_MODEL_OPTION: "provider/one",
+        ANTHROPIC_CUSTOM_MODEL_OPTION_NAME: "Configured model",
+        ANTHROPIC_CUSTOM_MODEL_OPTION_2: "provider/one",
+      }
+      expect(picker(patch)(rows, environment)).toEqual(rows)
+      expect(picker(patch)(rows, { ...environment, TEST_NATIVE_REPLACEMENT: "1" })).toEqual([
+        {
+          value: "provider/one",
+          label: "Configured model",
+          description: "Custom model (provider/one)",
+          sessionTail: true,
+        },
+      ])
+    })
+  }
   test(`${patch.name}: ten slots retain order and metadata, skipping empty and duplicate models`, () => {
     const environment: Environment = {}
     for (let slot = 1; slot <= 11; slot += 1) {

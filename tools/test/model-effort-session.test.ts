@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test"
 import { join, resolve } from "node:path"
+import { gte } from "semver"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
@@ -34,6 +35,35 @@ const patches = loadPatchEntriesFromFile(resolve(import.meta.dir, "../../patches
 const root = join(import.meta.dir, "..", "..")
 
 for (const platform of ["darwin-arm64", "linux-x64"]) {
+  test(`${platform}: effective suffix reports resolved effort without losing its model-scoped source`, () => {
+    const version = targetVersion()
+    const patch = activePatch(patches, version, platform, "effort-effective-suffix-")
+    const { patched: source } = patchedEntryFunction({
+      graph: join(root, "staging", version, "graph", platform),
+      entries: patches,
+      version,
+      platform,
+      patch,
+    })
+    const name = captureIdentifier(source, "suffix function", /^function ([\w$]+)\(/)
+    const resolver = captureIdentifier(source, "suffix resolver", /const actual=([\w$]+)\.session\(/)
+    const label = captureIdentifier(source, "effort label", /" with "\+([\w$]+)\(/)
+    const normalize = captureIdentifier(source, "effort normalization", /" with "\+[\w$]+\(([\w$]+)\(/)
+    let selected: string | undefined = "medium"
+    const suffix = new Function(resolver, label, normalize, `${source};return ${name};`)(
+      { session: () => ({ value: selected, source: "this session", slug: "custom-model" }) },
+      (value: string) => value,
+      (value: string) => value,
+    ) as (model: string, fallback?: string, turn?: string, resolved?: string | null) => string
+    expect(suffix("custom-model", "high", "low")).toBe(" with medium effort (this session for custom-model)")
+    if (gte(version, "2.1.318")) {
+      expect(suffix("custom-model", "high", "low", "xhigh")).toBe(" with xhigh effort (this session for custom-model)")
+      expect(suffix("custom-model", "high", "low", null)).toBe(" with medium effort (this session for custom-model)")
+    }
+    selected = undefined
+    expect(suffix("custom-model")).toBe("")
+  }, 120_000)
+
   test(`${platform}: shipped resolver enforces model/session precedence and truthful unsupported state`, () => {
     const patch = activePatch(patches, targetVersion(), platform, "effort-session-resolver-")
     // AST entries have no replacement text; read the patched function from the

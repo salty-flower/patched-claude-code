@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { Terminal } from "@xterm/headless"
 import { EventConditions } from "./helpers/event-conditions"
 import {
   finishThinkingSummaryInput,
@@ -158,6 +159,31 @@ test("hint must precede the current session's complete resume argument", () => {
   )
   expect(hasThinkingSummaryExitHint(`Resume this session with:\nclaude --resume ${session}`, session)).toBe(true)
 })
+
+for (const cols of [40, 80, 120]) {
+  test(`exit acknowledgement reconstructs soft-wrapped commands at ${cols} columns`, async () => {
+    const terminal = new Terminal({ allowProposedApi: true, cols, rows: 24 })
+    const session = "40b9f4a8-05d3-4bd5-b639-fea7870b560b"
+    const prefix =
+      "Resume this session with:\r\nclaude --bare --hide-builtin-footer --model claude-opus-4-7 --thinking adaptive --tools Read --allowedTools Read --resume "
+    const write = (text: string) => new Promise<void>((done) => terminal.write(text, done))
+    try {
+      await write(prefix + session.slice(0, -1))
+      expect(hasThinkingSummaryExitHint(terminal.buffer.active, session)).toBe(false)
+      await write(`${session.slice(-1)}\r\n`)
+      expect(hasThinkingSummaryExitHint(terminal.buffer.active, session)).toBe(true)
+      expect(hasThinkingSummaryExitHint(terminal.buffer.active, `${session}x`)).toBe(false)
+
+      // A second hard line is unrelated output, even when it supplies a valid ID.
+      await write(`Resume this session with:\r\nclaude --resume wrong\r\n${session}\r\n`)
+      expect(hasThinkingSummaryExitHint(terminal.buffer.active, session)).toBe(false)
+      await write(`Resume this session with:\r\nclaude --bare\r\n--resume ${session}\r\n`)
+      expect(hasThinkingSummaryExitHint(terminal.buffer.active, session)).toBe(false)
+    } finally {
+      terminal.dispose()
+    }
+  })
+}
 
 test("known nonzero process exit never requires UI hint and still fails", async () => {
   const gate = deadlineWait(1000)

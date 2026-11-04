@@ -1,5 +1,5 @@
 name = "resume-1m-model-defaults"
-target_version = "2.1.301"
+target_version = "2.1.318"
 applies_to = ">=2.1.170 <2.1.172"
 
 rationale = """
@@ -2610,3 +2610,158 @@ path = "init.callee"
   kind = "static"
   name = "310 excludes previous inserted scope"
   assert_not_contains = ",__acc_resume_model=r??xy(),n=__acc_resume_model?Mt(__acc_resume_model):void 0"
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-318-darwin-arm64"
+lineage = "resume-detects-default-1m-after-alias-resolution"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Resolve the current model when resume has no explicit model, then normalize the selected alias before testing 1M context compatibility. Capture the existing current-model getter and normalizer from this function.\nAudited 2.1.318 scopes: darwin-arm64/chunk-59d5q6pa.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.initial]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.normalized]
+kind = "identifier"
+path = "body.body.0.declarations.1.id"
+
+[patches.ast.captures.normalize]
+kind = "identifier"
+path = "body.body.0.declarations.1.init.consequent.callee"
+
+[patches.ast.captures.current]
+kind = "identifier"
+path = "init.callee"
+
+  [patches.ast.captures.current.select]
+  node = "VariableDeclarator"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\(\\)$"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "kind:\"mode_dependent_setting\"",
+  "\"unknown_family\"",
+  "modelId",
+  "[1m]"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = ",[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\?[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\):void 0,"
+  value = ",__acc_resume_model=%%CAPTURE:initial%%??%%CAPTURE:current%%(),%%CAPTURE:normalized%%=__acc_resume_model?%%CAPTURE:normalize%%(__acc_resume_model):void 0,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin resolves current model before alias normalization"
+  assert_contains = ",__acc_resume_model=r??BS(),n=__acc_resume_model?Gt(__acc_resume_model):void 0"
+  assert_not_contains = ",__acc_resume_model=o??Gy(),n=__acc_resume_model?Pt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = ",__acc_resume_model=r??Ah(),n=__acc_resume_model?Dt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes previous target bytes 2"
+  assert_not_contains = ",__acc_resume_model=r??dy(),n=__acc_resume_model?xt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes previous target bytes 3"
+  assert_not_contains = ",__acc_resume_model=r??Iy(),n=__acc_resume_model?xt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 excludes previous inserted scope"
+  assert_not_contains = ",__acc_resume_model=r??Iy(),n=__acc_resume_model?Mt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 5"
+  assert_not_contains = ",__acc_resume_model=r??l_(),n=__acc_resume_model?Ft(__acc_resume_model):void 0"
+
+[[patches]]
+name = "resume-detects-default-1m-after-alias-resolution-2-1-318-linux-x64"
+lineage = "resume-detects-default-1m-after-alias-resolution"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Resolve the current model when resume has no explicit model, then normalize the selected alias before testing 1M context compatibility. Capture the existing current-model getter and normalizer from this function.\nAudited 2.1.318 scopes: linux-x64/chunk-2snqx25v.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L508-L533"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.initial]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.normalized]
+kind = "identifier"
+path = "body.body.0.declarations.1.id"
+
+[patches.ast.captures.normalize]
+kind = "identifier"
+path = "body.body.0.declarations.1.init.consequent.callee"
+
+[patches.ast.captures.current]
+kind = "identifier"
+path = "init.callee"
+
+  [patches.ast.captures.current.select]
+  node = "VariableDeclarator"
+  source_regex = "^[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\(\\)$"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [
+  "kind:\"mode_dependent_setting\"",
+  "\"unknown_family\"",
+  "modelId",
+  "[1m]"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = ",[A-Za-z_$][A-Za-z0-9_$]*=[A-Za-z_$][A-Za-z0-9_$]*\\?[A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\):void 0,"
+  value = ",__acc_resume_model=%%CAPTURE:initial%%??%%CAPTURE:current%%(),%%CAPTURE:normalized%%=__acc_resume_model?%%CAPTURE:normalize%%(__acc_resume_model):void 0,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux resolves current model before alias normalization"
+  assert_contains = ",__acc_resume_model=r??$b(),n=__acc_resume_model?Gt(__acc_resume_model):void 0"
+  assert_not_contains = ",__acc_resume_model=o??Wy(),n=__acc_resume_model?Pt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 rejects the previous 2.1.296 binding 0"
+  assert_not_contains = ",__acc_resume_model=r??Eh(),n=__acc_resume_model?Dt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 inserted scope 2"
+  assert_not_contains = ",__acc_resume_model=r??ay(),n=__acc_resume_model?xt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 excludes previous inserted scope"
+  assert_not_contains = ",__acc_resume_model=r??xy(),n=__acc_resume_model?Mt(__acc_resume_model):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 4"
+  assert_not_contains = ",__acc_resume_model=r??i_(),n=__acc_resume_model?$t(__acc_resume_model):void 0"

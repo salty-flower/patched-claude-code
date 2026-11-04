@@ -1,6 +1,6 @@
 name = "web-search-model"
 enabled = true
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.310 <2.1.311"
 
 [[patches]]
@@ -58,3 +58,91 @@ replacement = 'x=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(
 kind = "static"
 name = "Linux resolves the override before the untouched feature flag fallback"
 assert_contains = 'x=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(process.env.CLAUDE_CODE_WEB_SEARCH_MODEL):k("tengu_plum_vx3",!1)?yb():y.mainLoopModel()'
+
+[[patches]]
+name = "web-search-model-parser-darwin-arm64-2-1-318"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 Gt is the exported native model parser in chunk-axsjfnwn.js, wrapping the internal YG alias/[1m] parser and native context-suffix normalization. Expose the public parser in WebSearch for the independent override."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L438-L481"
+locator_kind = "literal"
+locator_pattern = 'Qu,Fn,Oi,Ia,HE,it,i_,et,Ayo,JHt,Gl,yn,k,an,pR}from"./chunk-axsjfnwn.js"'
+replacement = 'Gt as patchedWebSearchModel,Qu,Fn,Oi,Ia,HE,it,i_,et,Ayo,JHt,Gl,yn,k,an,pR}from"./chunk-axsjfnwn.js"'
+lineage = "web-search-model-parser"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 imports the native alias parser"
+  assert_contains = 'Gt as patchedWebSearchModel,Qu,Fn,Oi,Ia,HE,it,i_,et,Ayo,JHt,Gl,yn,k,an,pR}from"./chunk-axsjfnwn.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = '_S,Ft as patchedWebSearchModel,it,Dh,Xe,Xqo,Dvt,_l,kn,k,dT}from"./chunk-27xjmczp.js"'
+
+[[patches]]
+name = "web-search-model-select-darwin-arm64-2-1-318"
+platforms = [ "darwin-arm64" ]
+rationale = "Resolve CLAUDE_CODE_WEB_SEARCH_MODEL through the imported public Gt parser before the native tengu_plum_vx3/mainLoopModel fallback. The 2.1.318 selection binds F; preserve unset and empty override behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/WebSearchTool/WebSearchTool.ts#L262-L287"
+locator_kind = "literal"
+locator_pattern = 'F=k("tengu_plum_vx3",!1)?HE():y.mainLoopModel()'
+replacement = 'F=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(process.env.CLAUDE_CODE_WEB_SEARCH_MODEL):k("tengu_plum_vx3",!1)?HE():y.mainLoopModel()'
+lineage = "web-search-model-select"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 override precedes untouched feature-flag fallback"
+  assert_contains = 'F=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(process.env.CLAUDE_CODE_WEB_SEARCH_MODEL):k("tengu_plum_vx3",!1)?HE():y.mainLoopModel()'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = 'x=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(process.env.CLAUDE_CODE_WEB_SEARCH_MODEL):k("tengu_plum_vx3",!1)?_S():y.mainLoopModel()'
+
+[[patches]]
+name = "web-search-model-parser-linux-x64-2-1-318"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 Gt is the exported native model parser in chunk-exfmq47h.js, wrapping the internal IG alias/[1m] parser and native context-suffix normalization. Expose the public parser in WebSearch for the independent override."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/model.ts#L438-L481"
+locator_kind = "literal"
+locator_pattern = 'Ju,$n,Ii,Oa,LE,it,i_,et,syo,z0t,Gl,yn,v,an,IO}from"./chunk-exfmq47h.js"'
+replacement = 'Gt as patchedWebSearchModel,Ju,$n,Ii,Oa,LE,it,i_,et,syo,z0t,Gl,yn,v,an,IO}from"./chunk-exfmq47h.js"'
+lineage = "web-search-model-parser"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 imports the native alias parser"
+  assert_contains = 'Gt as patchedWebSearchModel,Ju,$n,Ii,Oa,LE,it,i_,et,syo,z0t,Gl,yn,v,an,IO}from"./chunk-exfmq47h.js"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = 'yb,$t as patchedWebSearchModel,st,Hh,Xe,w4o,REt,yl,kn,k,$x}from"./chunk-ajtyjx88.js"'
+
+[[patches]]
+name = "web-search-model-select-linux-x64-2-1-318"
+platforms = [ "linux-x64" ]
+rationale = "Resolve CLAUDE_CODE_WEB_SEARCH_MODEL through the imported public Gt parser before the native tengu_plum_vx3/mainLoopModel fallback. The 2.1.318 selection binds F; preserve unset and empty override behavior."
+rationale_ref = "reference/v2.1.88/sources/src/tools/WebSearchTool/WebSearchTool.ts#L262-L287"
+locator_kind = "literal"
+locator_pattern = 'F=v("tengu_plum_vx3",!1)?LE():y.mainLoopModel()'
+replacement = 'F=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(process.env.CLAUDE_CODE_WEB_SEARCH_MODEL):v("tengu_plum_vx3",!1)?LE():y.mainLoopModel()'
+lineage = "web-search-model-select"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 override precedes untouched feature-flag fallback"
+  assert_contains = 'F=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(process.env.CLAUDE_CODE_WEB_SEARCH_MODEL):v("tengu_plum_vx3",!1)?LE():y.mainLoopModel()'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = 'x=process.env.CLAUDE_CODE_WEB_SEARCH_MODEL?patchedWebSearchModel(process.env.CLAUDE_CODE_WEB_SEARCH_MODEL):k("tengu_plum_vx3",!1)?yb():y.mainLoopModel()'

@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{E1n}from"./chunk-gbez09mv.js";import{t}from"./chunk-5nh49npx.js";import{Ms,S$t}from"./chunk-h21zbzen.js";import{JHe}from"./chunk-12pfgfes.js";import{_bo,KX}from"./chunk-fepmab31.js";import{L4,Pf}from"./chunk-9x7xhvaz.js";import{wXt}from"./chunk-mak507j9.js";function yOn(n){return n!==void 0&&S$t(n)}function Qct(n,r){if(yOn(n)){if(JHe().some((l)=>l.toUpperCase()==="BUN_OPTIONS"))return"--install=disable";let e=KX(r,"BUN_OPTIONS"),i=r[e],o=Ms(wXt(),"BUN_OPTIONS"),d=Ms(Pf()??{},"BUN_OPTIONS"),a=i===void 0||i===o||o===void 0&&(i===d||!L4(e,i))&&i!==_bo("BUN_OPTIONS"),s=o??d,u=a?i:s!==void 0&&!E1n("BUN_OPTIONS",s)?s:void 0;return u?`--install=disable ${u}`:"--install=disable"}return}function Ods(n,r){for(let e of Object.keys(n))if(e.toUpperCase()==="BUN_OPTIONS")delete n[e];n.BUN_OPTIONS=r}function Gre(n,r,e){{let i=Qct(n,e);if(i===void 0)return;if(r[KX(r,"BUN_OPTIONS")]!==e[KX(e,"BUN_OPTIONS")])t(`Plugin ${n} set BUN_OPTIONS for a program it starts; Claude Code replaced it, because programs of Anthropic Directory plugins run with Bun's automatic install off and must ship the packages they import`);Ods(r,i)}}
+export{yOn,Qct,Ods,Gre};

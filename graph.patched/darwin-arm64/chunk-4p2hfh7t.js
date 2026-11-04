@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{oF}from"./chunk-ecyypctx.js";import{j$i,na}from"./chunk-mepdbp5z.js";import{NY}from"./chunk-qh5azzym.js";function QYn(t,r){na("user_prompt",{prompt_length:String(r?.length??0),...j$i(r),...t.attributes})}function Pw(t){let r=t.trim();if(!r.startsWith("/"))return null;let{name:e,args:n}=NY(r);if(!e)return null;let o="(MCP)";if(n===o)return{commandName:`${e} ${o}`,args:"",isMcp:!0};if(n.startsWith(o)&&/\s/.test(n.charAt(o.length)))return{commandName:`${e} ${o}`,args:n.slice(o.length).trimStart(),isMcp:!0};return{commandName:e,args:n,isMcp:!1}}function F$e(t,r){if(!t.subcommands)return;let e=r.trimStart(),n=e.search(/\s/),o=n===-1?e:e.slice(0,n),s=o?t.subcommands[o.toLowerCase()]:void 0;if(s===void 0)return;let m=n===-1?"":e.slice(n+1).trim();if(t.subcommandsBareOnly&&m!=="")return;return{targetName:s,consumedToken:o,remainingArgs:m}}function Whn(t,r){let e=oF();if(r===void 0){QYn(t,t.text);return}r({text:t.text,attributes:{...e&&{"prompt.id":e},...t.attributes}})}var tzt=(t)=>typeof t==="string"?t:t.map((r)=>({...r}));
+export{Pw,F$e,QYn,Whn,tzt};

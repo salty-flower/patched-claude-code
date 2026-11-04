@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{f}from"./chunk-tkh9f09d.js";import{ze,Ase}from"./chunk-4htczzfy.js";import{jc,Fe}from"./chunk-97je7cvf.js";function Fuo(e,n){return e!==void 0&&Number.isInteger(e)&&e>=6&&e<=n?e:6}var KQt={first:5,permissionRequestRenames:6,readAllowLarge:7,editOriginalFile:8,containerSearchTools:9,managedHookCall:10,keptBackgroundCommands:11,readCallsByToolUseId:12,repoRulesReadHere:13,repoRulesOnRenders:14,repoRulesOnUploads:15,whichCopyAsk:16,runAnswersKept:17,repoHooksListing:18,readOutputDropsFileUnchanged:19,shellDirectoryHeld:20,pluginHttpHookCall:21,hookConditionCall:22,attachedComputerPermissionRequest:23},r=Math.max(...Object.values(KQt)),d={[ze]:{[Ase]:KQt.readAllowLarge}};var PDn={version:r,min_version:Fuo(void 0,r)},jye={version:PDn.version,min_version:1},qQt=f(()=>Fe({version:jc().min(1),min_version:jc().min(1)}).refine(({version:e,min_version:n})=>n<=e));function eDt(e){return qQt().safeParse(e).data}function tDt(e,n){if(n.version<e.min_version)return{kind:"peer_too_old"};return e.version<n.min_version?{kind:"self_too_old"}:{kind:"agreed",version:Math.min(e.version,n.version)}}
+export{Fuo,KQt,PDn,jye,qQt,eDt,tDt};

@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{G,fSt}from"./chunk-ecyypctx.js";import{KWe,B0t,$Xe,j0t,W0t}from"./chunk-6hd729pr.js";import{g,c}from"./chunk-ad5ya8vz.js";import{mW}from"./chunk-106sk3sk.js";import{E8,gat,w3t,J1e,Ft,EV,MS}from"./chunk-0x9x817t.js";import{bur,wur}from"./chunk-6008db7g.js";import{qut}from"./chunk-2zrhegt6.js";import{lG}from"./chunk-ww6gdqh9.js";import{P9}from"./chunk-e3j1pnat.js";import{BVn}from"./chunk-sasbvv10.js";import{bbr}from"./chunk-j4n78hh2.js";import{zXe}from"./chunk-2qwabm08.js";function UVn(e,o,m,a){lG("conversation_reset"),mW("conversation_reset"),MS(EV),j0t(),$Xe(),KWe(),W0t(),B0t(),qut();let r=G();for(let s of zXe(e.sessionHooksRegistry,r))e.sessionHooksRegistry.remove(r,"Stop",s);m(),gat(),e.markConversationRemote?.(),bbr(e.readFileState),E8(e.memorySelector),fSt(),J1e(o);let t=wur(o);if(t)c("teleport_resume_history","summarized_rows_absent");else g("teleport_resume_history");let i=t?[Ft(bur,"warning")]:[];BVn(a,r,[...o,...i].map((s)=>s.uuid)),e.applyMessageOp({type:"replace-all",messages:[...w3t(o),...i]}),P9(!0)}
+export{UVn};

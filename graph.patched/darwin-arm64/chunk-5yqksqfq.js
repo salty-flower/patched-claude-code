@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{YWn}from"./chunk-ancbs95t.js";import{$Ut}from"./chunk-fytzccvn.js";import{je}from"./chunk-tngcxdsg.js";import{ge}from"./chunk-77hsvag5.js";import{userInfo as n}from"os";var t="com.anthropic.claudecode",mOr="HKLM\\SOFTWARE\\Policies\\ClaudeCode",hOr="HKCU\\SOFTWARE\\Policies\\ClaudeCode",j1n="Settings",kOs="/usr/bin/plutil",cqi=["-convert","json","-o","-","--"],uqi=["-lint","-s","--"],pqi=5000,Hwo=2097152,VQe="/mnt/c/Windows/System32/reg.exe",fqi="unable to find the specified registry key or value",M0="/mnt/c/Program Files/ClaudeCode",r=ge({isCoworkCloud:void 0},(e)=>{e.isCoworkCloud=void 0});function Lon(){if(r.isCoworkCloud===void 0){let e=process.env.CLAUDE_CODE_ENTRYPOINT;r.isCoworkCloud=YWn.some((o)=>o===e)}return r.isCoworkCloud}function mqi(){r.isCoworkCloud=void 0,Lon()}function Hon(){return!1}function hqi(){let e="";try{e=n().username}catch{}let o=[];if(e)o.push({path:`/Library/Managed Preferences/${e}/${t}.plist`,label:"per-user managed preferences"});return o.push({path:`/Library/Managed Preferences/${t}.plist`,label:"device-level managed preferences"}),o}
+export{mOr,hOr,j1n,kOs,cqi,uqi,pqi,Hwo,VQe,fqi,M0,Lon,mqi,Hon,hqi};

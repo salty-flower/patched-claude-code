@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{F}from"./chunk-ecyypctx.js";import{W}from"./chunk-8915xd28.js";import{t}from"./chunk-5nh49npx.js";import{a}from"./chunk-87y2sp93.js";import{gi}from"./chunk-nf0b7sdf.js";var Ewr="in-process";class cLi{captured=null;cliOverride=null;setCliOverride(e){this.cliOverride=e}capture(e){this.captured=e}replaceWith(e){this.captured=e,this.cliOverride=null}}var Iea=new W(()=>new cLi);function o(){return Iea.of(F().host)}function eua(e){o().setCliOverride(e)}function Ugs(){return o().cliOverride}function Bgs(e){o().replaceWith(e),t(`[TeammateModeSnapshot] CLI override cleared, new mode: ${e}`)}function jgs(){return o().captured!==null}function nuo(){let e=o();if(e.cliOverride)e.capture(e.cliOverride),t(`[TeammateModeSnapshot] Captured from CLI override: ${e.captured}`);else e.capture(gi("teammateMode",Ewr).value),t(`[TeammateModeSnapshot] Captured from config: ${e.captured}`)}function IQt(){let e=o();if(e.captured===null)a(Error("getTeammateModeFromSnapshot called before capture - this indicates an initialization bug")),nuo();return e.captured??Ewr}
+export{Ewr,cLi,Iea,eua,Ugs,Bgs,jgs,nuo,IQt};

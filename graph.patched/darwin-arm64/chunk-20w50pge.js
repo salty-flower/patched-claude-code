@@ -1,0 +1,10 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{Lt}from"./chunk-zmmnrc9r.js";import{b}from"./chunk-6r9k9nrd.js";import{s,n}from"./chunk-v5qk8x3w.js";import{S_}from"./chunk-t3navwm5.js";import{Ke}from"./chunk-2j18wt5c.js";import{e,r}from"./chunk-6n4z8qxn.js";import{Ai,KTn}from"./chunk-hz4cb5f8.js";import{zDt,BDe}from"./chunk-j9cfdsj6.js";import{ml}from"./chunk-ftfajy6t.js";function swt(p){return p.replace(/<sandbox_violations>[\s\S]*?<\/sandbox_violations>/g,"")}function L(p){let o=p.flatMap((t)=>{if(!BDe(t))return[];let u=ml(t.text);return[KTn(u)??u]}).join(`
+`);return o.trim()===""?void 0:o}function Jg(p){let l=b(28),{result:o,verbose:t,verbatim:u}=p,V=u===void 0?!1:u,v,g,y,T,h,k,I;if(l[0]!==o||l[1]!==V||l[2]!==t){let a;let P=Array.isArray(o);let m;if(l[10]!==P||l[11]!==o)m=typeof o==="string"?o:P?L(o):void 0,l[10]=P,l[11]=o,l[12]=m;else m=l[12];let B=m;let S=V||P;if(B===void 0)a="Tool execution failed";else{let d=(S?ml(B):swt(ml(Ai(B,"tool_use_error")??B)).replace(/<\/?error>/g,"")).trim();if(!t&&!S&&d.startsWith("InputValidationError: "))a="Invalid tool parameters";else if(d.startsWith("Error: ")||d.startsWith("Cancelled: "))a=d;else a=`Error: ${d}`}T=Lt(a,`
+`)+1-zDt;y=Ke;g=s;I="column";v=n;h="error";k=t?a:a.split(`
+`).slice(0,zDt).join(`
+`);l[0]=o,l[1]=V,l[2]=t,l[3]=v,l[4]=g,l[5]=y,l[6]=T,l[7]=h,l[8]=k,l[9]=I}else v=l[3],g=l[4],y=l[5],T=l[6],h=l[7],k=l[8],I=l[9];let m;if(l[13]!==v||l[14]!==h||l[15]!==k)m=e(v,{color:h,children:k}),l[13]=v,l[14]=h,l[15]=k,l[16]=m;else m=l[16];let W;if(l[17]!==T||l[18]!==t)W=!t&&e(S_,{count:T,expandable:!0}),l[17]=T,l[18]=t,l[19]=W;else W=l[19];let j;if(l[20]!==g||l[21]!==I||l[22]!==m||l[23]!==W)j=r(g,{flexDirection:I,children:[m,W]}),l[20]=g,l[21]=I,l[22]=m,l[23]=W,l[24]=j;else j=l[24];let U;if(l[25]!==y||l[26]!==j)U=e(y,{children:j}),l[25]=y,l[26]=j,l[27]=U;else U=l[27];return U}
+export{swt,Jg};

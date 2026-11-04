@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{Wo}from"./chunk-fx3z0wwe.js";import{ef,Dk,L0}from"./chunk-h21zbzen.js";import{be}from"./chunk-gbez09mv.js";var V4=["userSettings","flagSettings","policySettings"];function dTe(t){let i=new Set(Wo()),e=H_e(t),n,r;for(let s of V4){if(!i.has(s))continue;let g=be(s)?.pluginConfigs;for(let u of e){let o=g?.[u];if(o?.options)n={...n,...o.options};if(o?.mcpServers){r=r??{};for(let[l,c]of Object.entries(o.mcpServers))r[l]={...r[l],...c}}}}return{options:n,mcpServers:r}}function H_e(t){let i=L0(t);if(i.length>0)return[...i.toReversed(),t];let e=`@${ef}`,n=t.endsWith(e)?t.slice(0,-e.length):"";return n!==""&&!n.includes("@")?[n,t]:[t]}function gTr(t){let i=new Set(Wo()),e;for(let n of V4){if(!i.has(n))continue;let r=JZ(be(n)?.enabledPlugins,t);if(r!==void 0)e=r}return e}function ptn(t,i){let e=Dk(i),n=L0(e);if(n.length===0)return{deciding:i,written:i,replaced:[]};let r=n.filter((s)=>t?.[s]!==void 0);return{deciding:t?.[e]===void 0?r[0]??e:e,written:e,replaced:r}}function JZ(t,i){let e=Dk(i);return[e,...L0(e),i].map((n)=>t?.[n]).find((n)=>n!==void 0)}
+export{V4,dTe,H_e,gTr,ptn,JZ};

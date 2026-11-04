@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{Kz}from"./chunk-72phbcv2.js";import{dIs,sEo,iEo,cIs}from"./chunk-h21zbzen.js";var n={marks:["claude","anthropic","anthropics"],builtinLead:"cc-plugin",products:["claude-code","claude-mods"]},c=[...n.marks,n.builtinLead],E=[...n.marks,...n.products],l=(e)=>new Set(e.map((s)=>iEo(s).join(""))),p=l(c),u=l(E),m=Math.max(...[...p,...u].map((e)=>e.length)),a=(e)=>new Intl.ListFormat("en",{type:"disjunction"}).format(e.map((s)=>`"${s}"`)),d="Name it for what it does.",VYs="If this is one of Anthropic's own plugins, validate the marketplace that lists it.";function zrt(e){let s=sEo.test(e),o=(s?Kz(e):e).toLowerCase(),r=s?`"${e}" (read as "${o}")`:`"${e}"`,i=iEo(o);if([...cIs(o,m)].some(({joined:t,isWhole:g})=>(g?u:p).has(t))||dIs.test(o)||dIs.test(i.join("")))return{severity:"error",message:`Plugin name ${r} is reserved: it passes as one of Anthropic's own. A third party's plugin name cannot start with ${a(c.map((t)=>`${t}-`))}, be ${a(E)}, or put "official" beside "claude" or "anthropic". `+d};return n.marks.some((t)=>i.includes(t))?{severity:"warning",message:`Plugin name ${r} reads as one of Anthropic's own. `+d}:void 0}
+export{VYs,zrt};

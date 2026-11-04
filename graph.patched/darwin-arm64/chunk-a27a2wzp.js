@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{_qr}from"./chunk-b94nt89k.js";import{t}from"./chunk-5nh49npx.js";import{Xi}from"./chunk-rgk3en6x.js";function qia(e){let r=Xi(),d=r.lastSentPreferredDeviceId,i=r.browserHints!==void 0&&r.browserHints.preferredDeviceId===void 0&&d!==void 0&&e.preferredDeviceId===d;r.lastSentPreferredDeviceId=e.preferredDeviceId,r.browserHints=e.preferredDeviceId===void 0&&e.localDeviceIds.length===0?void 0:i?{...e,preferredDeviceId:void 0}:e,t(`[Claude in Chrome] browser hints: preferred=${e.preferredDeviceId?.slice(0,8)??"none"} local=${e.localDeviceIds.length}${i?" (re-send; in-session pick stands)":""}`);let n=r.bridgeBinding;if(n&&e.preferredDeviceId!==void 0&&e.preferredDeviceId!==d&&n.socketClient.getSelectedDeviceId?.()!==e.preferredDeviceId)_qr(n.socketClient)}function W1o(e){let r=Xi(),d=r.browserHints;if(!d||d.preferredDeviceId===void 0||d.preferredDeviceId===e)return;r.browserHints={...d,preferredDeviceId:void 0}}function G1o(e){return Xi().browserHints?.preferredDeviceId??e()}function z1o(){let e=Xi().browserHints;if(!e)return;return new Map(e.localDeviceIds.map((r)=>[r,"live"]))}function V1o(){return Xi().browserHints?.hostPlatform}
+export{qia,W1o,G1o,z1o,V1o};

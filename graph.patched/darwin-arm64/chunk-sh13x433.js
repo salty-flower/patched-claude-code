@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{E3n}from"./chunk-8n1d4f6t.js";import{b}from"./chunk-6r9k9nrd.js";import{Kk,X2}from"./chunk-v5qk8x3w.js";import{ne,e}from"./chunk-6n4z8qxn.js";import{Qt,Zt,j}from"./chunk-rt5zqm44.js";import{Kn}from"./chunk-ftfajy6t.js";j();import{PassThrough as u}from"stream";function m(){}var rWt=Qt(!1);function aH(r){let i=b(5),{children:t}=r,{exit:n}=Kk(),a,o;if(i[0]!==n)a=()=>{let d=setTimeout(n,0);return()=>clearTimeout(d)},o=[n],i[0]=n,i[1]=a,i[2]=o;else a=i[1],o=i[2];Zt(a,o);let c;if(i[3]!==t)c=e(ne,{children:t}),i[3]=t,i[4]=c;else c=i[4];return c}async function lH(r,t){r.render(e(aH,{children:t})),await r.waitUntilExit()}async function $nt(r,{columns:t,storageV5:n}){let i="",a=!1,o=new u;if(t!==void 0)o.columns=t;return o.on("data",(c)=>{if(a)return;a=!0,i=c.toString()}),await(await X2(e(aH,{children:e(rWt.Provider,{value:!0,children:e(E3n,{value:m,children:r})})}),{stdout:o,patchConsole:!1},{storageV5:n})).waitUntilExit(),i}async function Uqn(r,t){let n=await $nt(r,t);return Kn(n)}
+export{rWt,aH,lH,$nt,Uqn};

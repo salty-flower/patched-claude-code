@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{vB,da}from"./chunk-y4qg9nre.js";async function iKn(r,i,a){if(!(r instanceof Error)||!r.message.startsWith("SDK auth failed: ")||!(r.cause instanceof Error))return!1;let{cause:e}=r,s=((...args)=>{const value=import.meta.require(...args);return typeof args[0]==="string"&&args[0].endsWith(".embedded.txt")?value.default:value})("./chunk-4c6tqfaw.js").mcpAuthModule().classifySdkAuthFailure(r.message,e);if(s!=="dcr_failed"&&s!=="dcr_rejected")return!1;if(!("status"in e)&&!("errorCode"in e))return e.message==="Incompatible auth server: does not support dynamic client registration";if(!((await vB())?.[da(i,a)]?.discoveryState?.oauthMetadataFound??a.oauth?.authServerMetadataUrl!==void 0))return!1;let t="status"in e?e.status:Number(/^HTTP (\d{3}): Invalid OAuth error response: /.exec(e.message)?.[1]);if(typeof t==="number"&&Number.isFinite(t))return t>=400&&t<500&&t!==408&&t!==429;switch("errorCode"in e?e.errorCode:void 0){case"invalid_client_metadata":case"invalid_client":case"unauthorized_client":return!0;default:return!1}}
+export{iKn};

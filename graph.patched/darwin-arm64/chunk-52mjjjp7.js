@@ -1,0 +1,5 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import"./chunk-w5484khd.js";import"./chunk-sr5zgxjs.js";import"./chunk-h58p4vvs.js";import"./chunk-sktwb66b.js";import"./chunk-wrh0fk6w.js";import"./chunk-qedh1vmm.js";import"./chunk-8915xd28.js";import"./chunk-ycp5r4r6.js";import{H}from"./chunk-wk0mg61r.js";import{br}from"./chunk-tngcxdsg.js";var E={};br(E,{CCR_AGENT_PROXY_TOKEN_FILE_DESCRIPTOR:()=>p,CLAUDE_CODE_MCP_SERVE_AUTH_TOKEN:()=>o,CLAUDE_CODE_MCP_SERVE_ENABLED_PLUGINS:()=>C,CLAUDE_CODE_MCP_SERVE_INTERFACE_MIN_VERSION:()=>_,CLAUDE_CODE_MCP_SERVE_SETTINGS:()=>e,CLAUDE_CODE_MCP_SERVE_TOOL_OUTPUT:()=>r,CLAUDE_CODE_MCP_SERVE_TUNNEL_BINARY_FRAMES:()=>S,CLAUDE_CODE_MCP_SERVE_WORKSPACE_ROOT:()=>t});var o=H.rawStr(),r=H.bool(),e=H.rawStr(),t=H.str(),_=H.int({min:1,digitsOnly:!0}),C=H.rawStr(),S=H.bool(),p=H.str();var O={...E};export{O as toolServerShape};

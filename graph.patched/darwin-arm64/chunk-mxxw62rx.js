@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{ot,Rl,On}from"./chunk-ecyypctx.js";import{Es}from"./chunk-39j7k06t.js";import{kt,dn,nr,Xv,jt}from"./chunk-axsjfnwn.js";import{lP,DC}from"./chunk-0x9x817t.js";import{randomUUID as o}from"crypto";function t(e,r){switch(e){case"pro":return"pro";case"max":switch(r){case"default_claude_max_5x":return"max_5x";case"default_claude_max_20x":return"max_20x";default:return"max_other"}default:return"other"}}var i="You can continue now. Continue the task you were working on when the usage limit was reached; do not repeat work that is already complete.";function xme(){return kt()&&dn()?.billingType!=="usage_based"&&Es()&&Rl()&&!On()&&!jt()}function aot(e){return xme()&&lP(e)&&e.rateLimitType==="five_hour"}var n=["five_hour","seven_day","seven_day_overage_included","seven_day_opus","seven_day_sonnet"];function Rhn(e){return xme()&&lP(e)&&e.rateLimitType!==void 0&&n.includes(e.rateLimitType)}function fPe(){return t(nr(),Xv())}function Ckt(){DC({agentId:ot(),mode:"prompt",priority:"later",value:i,uuid:o(),origin:{kind:"auto-continuation"},isMeta:!0,skipSlashCommands:!0})}
+export{xme,aot,Rhn,fPe,Ckt};

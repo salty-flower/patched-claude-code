@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{nr,k,pR}from"./chunk-axsjfnwn.js";import{QQe}from"./chunk-h21zbzen.js";import{ae}from"./chunk-6y108fxb.js";import{as}from"./chunk-91tadxqx.js";import{Ni}from"./chunk-wv7b91vf.js";import{FS}from"./chunk-c03xntfd.js";import{cB}from"./chunk-5bch7dnv.js";import{At}from"./chunk-d7jbzjft.js";var t={enabled:!1,pixelValidation:!1,clipboardPasteMultiline:!0,mouseAnimation:!0,hideBeforeAction:!0,autoTargetDisplay:!0,clipboardGuard:!0,maskFailClosed:!0,adaptiveResolution:!1,coordinateMode:"pixels"};function o(){return{...t,...pR("tengu_malort_pedway",t)}}function n(){let e=nr();return e==="max"||e==="pro"}function hZn(){if(as("hipaa"))return!1;return n()&&o().enabled}function Vri(){return QQe()&&!cB()&&!as("hipaa")&&!(ae()&&Ni())&&k("tengu_dapper_acorn",!1)}function vqr(){return At("tengu_clever_yeti",{safe:!0})}function Cqr(){let{enabled:e,coordinateMode:a,...r}=o();return r}function oCt(){let e=FS();return e.frozenCoordinateMode??=o().coordinateMode,e.frozenCoordinateMode}
+export{hZn,Vri,vqr,Cqr,oCt};

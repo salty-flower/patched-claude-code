@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{Ut}from"./chunk-d50ak5jt.js";import{i}from"./chunk-n1cpnz94.js";import{mon,n1n,EFt,WPr,$se}from"./chunk-pbhb4gc5.js";import{Sc,Dee}from"./chunk-h21zbzen.js";import{ohe}from"./chunk-vbq02v5n.js";import{Aqo}from"./chunk-svdq3d7n.js";import{$gr}from"./chunk-zns1yc3x.js";import{UWe}from"./chunk-m3xkkr56.js";var oqo=["Docs"],t=new Set(["claudedocs","claudepages"]);function h3r(e){return e.tier==="core"&&oqo.some((o)=>ohe(e.title)===ohe(o))}var Toi="The Docs type is filled only through the first-party Claude Docs connector, which is not attached in this session: for a document, make a page instead of starting from that type.";function vCt(e){return e.config.type==="claudeai-proxy"&&Dee(e.config)&&$gr(e.config)||bSn(e)||Aqo()&&e.config.type==="sdk"&&Ut(e.name)!==null&&t.has($se(e.serverInfo?.name??""))||i.CLAUDE_CODE_REMOTE===!0&&e.config.type==="http"&&e.config.scope==="dynamic"&&(!Sc(e.config)||$gr(e.config))&&(WPr(e.config)||mon.has(e.name))}function bSn(e){return e.config.type==="sdk"&&UWe(e,{path:EFt,serverId:n1n})}function g3r(e){return e.some((o)=>(o.type==="connected"||o.type==="pending"||o.type==="cached")&&vCt(o))}
+export{oqo,h3r,Toi,vCt,bSn,g3r};

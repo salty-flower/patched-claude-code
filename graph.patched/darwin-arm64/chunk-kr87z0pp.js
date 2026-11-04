@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.318
+import{nt}from"./chunk-e7w4xcnz.js";import{f}from"./chunk-tkh9f09d.js";import{ae}from"./chunk-6y108fxb.js";import{zv}from"./chunk-2nq6197y.js";import{o,E,Rt,C}from"./chunk-97je7cvf.js";var l=f(()=>Rt({eval:E().refine(Number.isSafeInteger),status:o().optional().catch(void 0)})),v=f(()=>Rt({kind:C(zv),fields:l()}));function Wyn(n,r){if(!ae())return;let t=v().safeParse(r);if(t.success)return u(t.data.fields);let a=/^<event\b([^>]*)>(?:\n(\{[^\n]*\})\n<\/event(?: nonce="([A-Za-z0-9_-]+)")?>$)?/,[,e,d,c]=a.exec(n)??[];if(e===void 0||!e.includes(` kind="${zv}"`))return;let s=/ eval="(\d+)"/.exec(e)?.[1];if(s!==void 0)return{evalId:Number(s),status:/ status="([^"]*)"/.exec(e)?.[1]};if(d===void 0||c!==/ nonce="([A-Za-z0-9_-]+)"/.exec(e)?.[1])return;let i=l().safeParse(nt(d,!1));return i.success?u(i.data):void 0}function Eni(n){if(!ae())return[];let r=/<event\b[^>]*>(?:\n\{[^\n]*\}\n<\/event(?: nonce="[A-Za-z0-9_-]+")?>)?/g,t=[];for(let[a]of n.matchAll(r)){let e=Wyn(a,void 0);if(e!==void 0)t.push(e)}return t}function u(n){return{evalId:n.eval,status:n.status}}
+export{Wyn,Eni};

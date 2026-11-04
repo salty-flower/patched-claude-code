@@ -1,5 +1,5 @@
 name = "thinking-display"
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -10152,3 +10152,556 @@ expected_matches = 1
   kind = "static"
   name = "2.1.310 excludes previous: thinking-preserve-summary-boundaries 304 linux-x64 replacement is present"
   assert_not_contains = "jmo(Ie)||Ge!==void 0"
+
+[[patches]]
+name = "thinking-render-live-output-2-1-318-darwin"
+lineage = "thinking-render-live-output"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 Kbe reads focused tool uses through He. Subscribe to thinking through the same external-store reader and focused stream without changing hook order."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Kbe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "X=He((V?H:null)?.stream,sU)??su,Z=W?H:null,"
+  value = "X=He((V?H:null)?.stream,sU)??su,__acc_streamingThinking=He((V?H:null)?.stream,(state)=>state.streamingThinking),Z=W?H:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-output-2-1-318-darwin current scope"
+  assert_contains = "X=He((V?H:null)?.stream,sU)??su,__acc_streamingThinking=He((V?H:null)?.stream,(state)=>state.streamingThinking),Z=W?H:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-output-2-1-318-darwin excludes stale scope"
+  assert_not_contains = "W=xe((D?_:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((D?_:null)?.stream,(state)=>state.streamingThinking),z=L?_:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-318-darwin"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 Kbe uses 84 memo slots. Reserve slot 83 for the thinking snapshot and move only the final provider output to slot 84."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = "function Kbe(m){let h=b(84),"
+replacement = "function Kbe(m){let h=b(85),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-cache-allocation-2-1-318-darwin current scope"
+  assert_contains = "function Kbe(m){let h=b(85),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-cache-allocation-2-1-318-darwin excludes stale scope"
+  assert_not_contains = "function Afe(m){let h=w(51),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-318-darwin"
+lineage = "thinking-render-live-row"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 Kbe renders five native children under the focused stream provider. Preserve all five, append the summary using imported JSX e and Text n, and invalidate provider output on the thinking snapshot."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Kbe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let Pe;if(h[77]!==eo||h[78]!==Kt||h[79]!==se||h[80]!==te||h[81]!==ve||h[82]!==dt)Pe=r(Dcn.Provider,{value:Kt,children:[se,te,ve,eo,dt]}),h[77]=eo,h[78]=Kt,h[79]=se,h[80]=te,h[81]=ve,h[82]=dt,h[83]=Pe;else Pe=h[83];return Pe"
+  value = 'let Pe;if(h[77]!==eo||h[78]!==Kt||h[79]!==se||h[80]!==te||h[81]!==ve||h[82]!==dt||h[83]!==__acc_streamingThinking)Pe=r(Dcn.Provider,{value:Kt,children:[se,te,ve,eo,dt,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[77]=eo,h[78]=Kt,h[79]=se,h[80]=te,h[81]=ve,h[82]=dt,h[83]=__acc_streamingThinking,h[84]=Pe;else Pe=h[84];return Pe'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-2-1-318-darwin current scope"
+  assert_contains = 'let Pe;if(h[77]!==eo||h[78]!==Kt||h[79]!==se||h[80]!==te||h[81]!==ve||h[82]!==dt||h[83]!==__acc_streamingThinking)Pe=r(Dcn.Provider,{value:Kt,children:[se,te,ve,eo,dt,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[77]=eo,h[78]=Kt,h[79]=se,h[80]=te,h[81]=ve,h[82]=dt,h[83]=__acc_streamingThinking,h[84]=Pe;else Pe=h[84];return Pe'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-2-1-318-darwin excludes stale scope"
+  assert_not_contains = 'let Mt;if(h[44]!==Et||h[45]!==Rt||h[46]!==st||h[47]!==Tt||h[48]!==at||h[49]!==__acc_streamingThinking)Mt=r(j9t.Provider,{value:at,children:[Rt,st,Tt,Et,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[44]=Et,h[45]=Rt,h[46]=st,h[47]=Tt,h[48]=at,h[49]=__acc_streamingThinking,h[50]=Mt;else Mt=h[50];return Mt'
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-318-darwin"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 Fes retains callback options n and metrics h. Stream nonempty thinking deltas through n while retaining the native estimated-token branch and estimator."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Fes"
+    strings = [ "thinking_delta", "onStreamingText", "onApiMetrics" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:we}=e.event;if("estimated_tokens"in we&&typeof we.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:we.estimated_tokens});else if("thinking"in we&&typeof we.thinking==="string"&&we.thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:Nes(we.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:we}=e.event,thinking=typeof we.thinking==="string"?we.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in we&&typeof we.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:we.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:Nes(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-delta-2-1-318-darwin current scope"
+  assert_contains = 'case"thinking_delta":{let{delta:we}=e.event,thinking=typeof we.thinking==="string"?we.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in we&&typeof we.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:we.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:Nes(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-delta-2-1-318-darwin excludes stale scope"
+  assert_not_contains = 'case"thinking_delta":{let{delta:Se}=e.event,thinking=typeof Se.thinking==="string"?Se.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:aIo(thinking)});return}'
+
+[[patches]]
+name = "thinking-clear-live-on-interrupt-2-1-318"
+lineage = "thinking-clear-live-on-interrupt"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale_ref = "reference/v2.1.88/sources/src/screens/REPL.tsx#L2106-L2130"
+locator_kind = "ast_transform"
+rationale = "2.1.310 interrupt cleanup retains the thinkingStartedAt virtual-message branch. Clear the owning stream thinking snapshot immediately afterward so an interrupted summary does not remain mounted."
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "thinkingStartedAt!==null", "isVirtual:!0", "signature:\"\"" ]
+    parent_node = "BlockStatement"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = "this.stream.setStreamingThinking(null);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 interrupt clears thinking after preserving the append event"
+  assert_contains = "isVirtual:!0})]});this.stream.setStreamingThinking(null);let{salvage:"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 interrupt excludes the previous message-array boundary"
+  assert_not_contains = "isVirtual:!0})]);this.stream.setStreamingThinking(null);let{salvage:"
+
+[[patches]]
+name = "thinking-render-live-output-2-1-318-linux"
+lineage = "thinking-render-live-output"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 FSe reads focused tool uses through He. Subscribe to thinking through the same external-store reader and focused stream without changing hook order."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "FSe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "X=He((V?H:null)?.stream,uU)??su,Z=W?H:null,"
+  value = "X=He((V?H:null)?.stream,uU)??su,__acc_streamingThinking=He((V?H:null)?.stream,(state)=>state.streamingThinking),Z=W?H:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-output-2-1-318-linux current scope"
+  assert_contains = "X=He((V?H:null)?.stream,uU)??su,__acc_streamingThinking=He((V?H:null)?.stream,(state)=>state.streamingThinking),Z=W?H:null,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-output-2-1-318-linux excludes stale scope"
+  assert_not_contains = "W=xe((A?D:null)?.stream,rP)??Ec,__acc_streamingThinking=xe((A?D:null)?.stream,(state)=>state.streamingThinking),z=L?D:null,"
+
+[[patches]]
+name = "thinking-render-live-row-cache-allocation-2-1-318-linux"
+lineage = "thinking-render-live-row-cache-allocation"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 FSe uses 84 memo slots. Reserve slot 83 for the thinking snapshot and move only the final provider output to slot 84."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "literal"
+locator_pattern = "function FSe(m){let h=S(84),"
+replacement = "function FSe(m){let h=S(85),"
+expected_matches = 1
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-cache-allocation-2-1-318-linux current scope"
+  assert_contains = "function FSe(m){let h=S(85),"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-cache-allocation-2-1-318-linux excludes stale scope"
+  assert_not_contains = "function Spe(m){let h=w(51),"
+
+[[patches]]
+name = "thinking-render-live-row-2-1-318-linux"
+lineage = "thinking-render-live-row"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 FSe renders five native children under the focused stream provider. Preserve all five, append the summary using imported JSX e and Text n, and invalidate provider output on the thinking snapshot."
+rationale_ref = "reference/v2.1.88/sources/src/components/Messages.tsx#L714-L718"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "FSe"
+    strings = [ "streamingToolUses", "hidePlaceholder" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let Ie;if(h[77]!==eo||h[78]!==Kt||h[79]!==se||h[80]!==te||h[81]!==ve||h[82]!==dt)Ie=r(wcn.Provider,{value:Kt,children:[se,te,ve,eo,dt]}),h[77]=eo,h[78]=Kt,h[79]=se,h[80]=te,h[81]=ve,h[82]=dt,h[83]=Ie;else Ie=h[83];return Ie"
+  value = 'let Ie;if(h[77]!==eo||h[78]!==Kt||h[79]!==se||h[80]!==te||h[81]!==ve||h[82]!==dt||h[83]!==__acc_streamingThinking)Ie=r(wcn.Provider,{value:Kt,children:[se,te,ve,eo,dt,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[77]=eo,h[78]=Kt,h[79]=se,h[80]=te,h[81]=ve,h[82]=dt,h[83]=__acc_streamingThinking,h[84]=Ie;else Ie=h[84];return Ie'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-2-1-318-linux current scope"
+  assert_contains = 'let Ie;if(h[77]!==eo||h[78]!==Kt||h[79]!==se||h[80]!==te||h[81]!==ve||h[82]!==dt||h[83]!==__acc_streamingThinking)Ie=r(wcn.Provider,{value:Kt,children:[se,te,ve,eo,dt,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[77]=eo,h[78]=Kt,h[79]=se,h[80]=te,h[81]=ve,h[82]=dt,h[83]=__acc_streamingThinking,h[84]=Ie;else Ie=h[84];return Ie'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-row-2-1-318-linux excludes stale scope"
+  assert_not_contains = 'let Ct;if(h[44]!==It||h[45]!==vt||h[46]!==it||h[47]!==Rt||h[48]!==at||h[49]!==__acc_streamingThinking)Ct=r(x3t.Provider,{value:at,children:[vt,it,Rt,It,__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\u2234 Summary\n"+__acc_streamingThinking.thinking})]}),h[44]=It,h[45]=vt,h[46]=it,h[47]=Rt,h[48]=at,h[49]=__acc_streamingThinking,h[50]=Ct;else Ct=h[50];return Ct'
+
+[[patches]]
+name = "thinking-render-live-delta-2-1-318-linux"
+lineage = "thinking-render-live-delta"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 les retains callback options n and metrics h. Stream nonempty thinking deltas through n while retaining the native estimated-token branch and estimator."
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L2995-L3077"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "les"
+    strings = [ "thinking_delta", "onStreamingText", "onApiMetrics" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'case"thinking_delta":{let{delta:we}=e.event;if("estimated_tokens"in we&&typeof we.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:we.estimated_tokens});else if("thinking"in we&&typeof we.thinking==="string"&&we.thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:aes(we.thinking)});return}'
+  value = 'case"thinking_delta":{let{delta:we}=e.event,thinking=typeof we.thinking==="string"?we.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in we&&typeof we.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:we.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:aes(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-delta-2-1-318-linux current scope"
+  assert_contains = 'case"thinking_delta":{let{delta:we}=e.event,thinking=typeof we.thinking==="string"?we.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in we&&typeof we.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:we.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:aes(thinking)});return}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-live-delta-2-1-318-linux excludes stale scope"
+  assert_not_contains = 'case"thinking_delta":{let{delta:Se}=e.event,thinking=typeof Se.thinking==="string"?Se.thinking:"";if(thinking)n.onStreamingThinking?.((j)=>({thinking:(j?.thinking??"")+thinking,isStreaming:!0}));if("estimated_tokens"in Se&&typeof Se.estimated_tokens==="number")h?.({type:"thinking_progress",estimatedTokensDelta:Se.estimated_tokens});else if(thinking.length>0)h?.({type:"thinking_progress",estimatedTokensDelta:OPo(thinking)});return}'
+
+[[patches]]
+name = "thinking-display-interactive-default-2-1-318-darwin-arm64"
+lineage = "thinking-display-interactive-default"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 gvs uses settings accessor gt in its native summary preference gate. Default interactive summaries on while preserving explicit flags, explicit false and noninteractive behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/betas.ts#L264-L276"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "gvs"
+    strings = [
+  "explicitDisplay",
+  "isNonInteractive",
+  "outputFormat",
+  "verbose"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(!n)return iFn()?"summarized":void 0'
+  value = 'if(!n)return gt().showThinkingSummaries===!1?void 0:"summarized"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-display-interactive-default-2-1-318-darwin-arm64 current scope"
+  assert_contains = 'if(!n)return gt().showThinkingSummaries===!1?void 0:"summarized"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-display-interactive-default-2-1-318-darwin-arm64 excludes stale scope"
+  assert_not_contains = 'if(!n)return mt().showThinkingSummaries===!1?void 0:"summarized"'
+
+[[patches]]
+name = "thinking-display-interactive-default-2-1-318-linux-x64"
+lineage = "thinking-display-interactive-default"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 Uvs uses settings accessor gt in its native summary preference gate. Default interactive summaries on while preserving explicit flags, explicit false and noninteractive behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/betas.ts#L264-L276"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Uvs"
+    strings = [
+  "explicitDisplay",
+  "isNonInteractive",
+  "outputFormat",
+  "verbose"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = 'if(!n)return jNn()?"summarized":void 0'
+  value = 'if(!n)return gt().showThinkingSummaries===!1?void 0:"summarized"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-display-interactive-default-2-1-318-linux-x64 current scope"
+  assert_contains = 'if(!n)return gt().showThinkingSummaries===!1?void 0:"summarized"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-display-interactive-default-2-1-318-linux-x64 excludes stale scope"
+  assert_not_contains = 'if(!n)return pt().showThinkingSummaries===!1?void 0:"summarized"'
+
+[[patches]]
+name = "thinking-render-blocks-2-1-318-darwin-arm64"
+lineage = "thinking-render-blocks"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 completed-thinking switch preserves the native narration branch and replaces only transcript/verbose suppression with a blank-body guard."
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L539-L558"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "SwitchCase"
+    strings = [
+  "case\"thinking\":{if(Iat(d))",
+  "if(!F&&!C){return null}",
+  "param:d,isTranscriptMode:"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!F&&!C){return null}"
+  value = "if(!d.thinking.trim()){return null}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-blocks-2-1-318-darwin-arm64 current scope"
+  assert_contains = "if(!d.thinking.trim()){return null}"
+
+[[patches]]
+name = "thinking-render-expanded-2-1-318-darwin-arm64"
+lineage = "thinking-render-expanded"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 dr unwraps summary text into q and chooses prose with ee. Reject blank summaries and force the native expanded prose renderer."
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L33-L77"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "dr"
+    strings = [ "\"aria-label\":\"thinking:\"", "capProseWidth", "verbose" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!q){I=null;break K}let ee=c||g;"
+  value = "if(!q?.trim()){I=null;break K}let ee=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-expanded-2-1-318-darwin-arm64 current scope"
+  assert_contains = "if(!q?.trim()){I=null;break K}let ee=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-expanded-2-1-318-darwin-arm64 excludes stale scope"
+  assert_not_contains = "if(!V?.trim()){v=null;break Y}let X=!0;"
+
+[[patches]]
+name = "thinking-preserve-summary-boundaries-2-1-318-darwin-arm64"
+lineage = "thinking-preserve-summary-boundaries"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.318 darwin-arm64 e7o retains the completed-thinking observation in Ke. Flush each completed summary boundary while preserving the native message predicate."
+rationale_ref = "reference/v2.1.88/sources/src/utils/collapseReadSearch.ts#L918-L944"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "e7o"
+    strings = [ "latestThinkingSummary", "transcriptV2" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "t7o(Ae)||Ke!==void 0&&W3t(Ke.message)"
+  value = "t7o(Ae)||Ke!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-preserve-summary-boundaries-2-1-318-darwin-arm64 current scope"
+  assert_contains = "t7o(Ae)||Ke!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-preserve-summary-boundaries-2-1-318-darwin-arm64 excludes stale scope"
+  assert_not_contains = "HTo(Me)||Ge!==void 0"
+
+[[patches]]
+name = "thinking-render-blocks-2-1-318-linux-x64"
+lineage = "thinking-render-blocks"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 completed-thinking switch preserves the native narration branch and replaces only transcript/verbose suppression with a blank-body guard."
+rationale_ref = "reference/v2.1.88/sources/src/components/Message.tsx#L539-L558"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "SwitchCase"
+    strings = [
+  "case\"thinking\":{if(Aat(d))",
+  "if(!F&&!T){return null}",
+  "param:d,isTranscriptMode:"
+]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!F&&!T){return null}"
+  value = "if(!d.thinking.trim()){return null}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-blocks-2-1-318-linux-x64 current scope"
+  assert_contains = "if(!d.thinking.trim()){return null}"
+
+[[patches]]
+name = "thinking-render-expanded-2-1-318-linux-x64"
+lineage = "thinking-render-expanded"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 mr unwraps summary text into q and chooses prose with ee. Reject blank summaries and force the native expanded prose renderer."
+rationale_ref = "reference/v2.1.88/sources/src/components/messages/AssistantThinkingMessage.tsx#L33-L77"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "mr"
+    strings = [ "\"aria-label\":\"thinking:\"", "capProseWidth", "verbose" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(!q){I=null;break K}let ee=g||f;"
+  value = "if(!q?.trim()){I=null;break K}let ee=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-expanded-2-1-318-linux-x64 current scope"
+  assert_contains = "if(!q?.trim()){I=null;break K}let ee=!0;"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-render-expanded-2-1-318-linux-x64 excludes stale scope"
+  assert_not_contains = "if(!q?.trim()){E=null;break Y}let X=!0;"
+
+[[patches]]
+name = "thinking-preserve-summary-boundaries-2-1-318-linux-x64"
+lineage = "thinking-preserve-summary-boundaries"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "2.1.318 linux-x64 kXo retains the completed-thinking observation in Ke. Flush each completed summary boundary while preserving the native message predicate."
+rationale_ref = "reference/v2.1.88/sources/src/utils/collapseReadSearch.ts#L918-L944"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "kXo"
+    strings = [ "latestThinkingSummary", "transcriptV2" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "TXo(Re)||Ve!==void 0&&IYt(Ve.message)"
+  value = "TXo(Re)||Ve!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-preserve-summary-boundaries-2-1-318-linux-x64 current scope"
+  assert_contains = "TXo(Re)||Ve!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 thinking-preserve-summary-boundaries-2-1-318-linux-x64 excludes stale scope"
+  assert_not_contains = "sAo(Me)||Ge!==void 0"

@@ -1,5 +1,5 @@
 name = "signature-block-custom-endpoint"
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.150 <2.2.0"
 
 rationale = """
@@ -1566,3 +1566,71 @@ locator_kind = "ast_transform"
   name = "310 official endpoint retains native foreign-thinking policy"
   assert_contains = 'y=Ae()==="firstParty"&&Ci()?wSn(e,s,h):(()=>{let __pccChanged=!1'
   assert_not_contains = 'y=Pe()==="firstParty"&&Ri()?ygn(e,s,h):(()=>{let __pccChanged=!1'
+
+
+
+
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-318-darwin-arm64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "2.1.318 request normalizer now uses canonical model h=Gn(s), foreign-thinking policy y, and b=ySn(e,h,y). Te selects the provider; ci checks the explicit first-party assumption or official host. Preserve native handling only for official endpoints."
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "messagesPreNormalize:", "b=ySn(e,h,y)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "b=ySn(e,h,y),"
+  value = 'b=Te()==="firstParty"&&ci()?ySn(e,h,y):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 official endpoint retains native foreign-thinking policy"
+  assert_contains = 'b=Te()==="firstParty"&&ci()?ySn(e,h,y):(()=>{let __pccChanged=!1'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = 'y=Te()==="firstParty"&&Ai()?CSn(e,s,h):(()=>{let __pccChanged=!1'
+
+[[patches]]
+name = "strip-signatures-for-custom-base-url-2-1-318-linux-x64"
+lineage = "strip-signatures-for-custom-base-url"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale_ref = "reference/v2.1.88/sources/src/utils/messages.ts#L5061-L5065"
+rationale = "2.1.318 request normalizer now uses canonical model h=Gn(s), foreign-thinking policy y, and S=gSn(e,h,y). Ae selects the provider; ci checks the explicit first-party assumption or official host. Preserve native handling only for official endpoints."
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "messagesPreNormalize:", "S=gSn(e,h,y)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "S=gSn(e,h,y),"
+  value = 'S=Ae()==="firstParty"&&ci()?gSn(e,h,y):(()=>{let __pccChanged=!1,__pccMessages=e.map((__pccMessage)=>{if(__pccMessage.type!=="assistant"||!Array.isArray(__pccMessage.message.content))return __pccMessage;let __pccContent=__pccMessage.message.content.filter((__pccBlock)=>!(__pccBlock.type==="redacted_thinking"||__pccBlock.type==="thinking"&&"signature"in __pccBlock&&__pccBlock.signature));if(__pccContent.length===__pccMessage.message.content.length)return __pccMessage;__pccChanged=!0;return{...__pccMessage,message:{...__pccMessage.message,content:__pccContent}}});return __pccChanged?__pccMessages:e})(),'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 official endpoint retains native foreign-thinking policy"
+  assert_contains = 'S=Ae()==="firstParty"&&ci()?gSn(e,h,y):(()=>{let __pccChanged=!1'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 rejects predecessor inserted bindings"
+  assert_not_contains = 'y=Ae()==="firstParty"&&Ci()?wSn(e,s,h):(()=>{let __pccChanged=!1'

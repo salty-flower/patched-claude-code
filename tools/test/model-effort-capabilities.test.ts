@@ -105,7 +105,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       [binding("unsupported error classifier", /if\(!([\w$]+)\(/)]: (error: string) => error === "unsupported",
       [binding("unsupported model latch", /([\w$]+)\([\w$]+\.model\),/)]: (model: string) => latched.push(model),
       [binding("model identity", /\{model:([\w$]+)\(/)]: (model: string) => model,
-      [binding("debug logger", /return ([\w$]+)\(`/)]: () => {},
+      [binding("debug logger", /return ([\w$]+)\(`\[effort\]/)]: () => {},
       [binding("retry telemetry", /,([\w$]+)\("tengu_effort_unsupported_retry"/)]: () => {},
       [binding("effort beta descriptor", /\$\{([\w$]+)\.header\}/)]: { header: "effort-test-beta" },
       [captureIdentifier(
@@ -118,6 +118,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       }),
       [captureIdentifier(drain.original, "pending upstream warning", /if\(([\w$]+)!==void 0\)/)]: undefined,
     }
+    const organizationRecovery = callback.match(/if\(![\w$]+\([\w$]+\)\)return ([\w$]+)\([\w$]+\);/)?.[1]
+    if (organizationRecovery) {
+      native[organizationRecovery] = (error: string) =>
+        error === "organization-cap" ? "retry:org-effort-cap:high" : null
+    }
     const drainName = captureIdentifier(drain.patched, "warning drain", /^function\*([\w$]+)\(/)
     const run = new Function(
       ...Object.keys(native),
@@ -129,6 +134,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     expect(run.retry("unrelated")).toBeNull()
     expect(latched).toEqual([])
     expect([...run.drain()]).toEqual([])
+    if (organizationRecovery) {
+      expect(run.retry("organization-cap")).toBe("retry:org-effort-cap:high")
+      expect(latched).toEqual([])
+      expect([...run.drain()]).toEqual([])
+    }
     expect(run.retry("unsupported")).toBe("retry:effort-unsupported")
     expect(latched).toEqual(["alias", "resolved-model"])
     const messages = [...run.drain()]

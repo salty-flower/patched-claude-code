@@ -1,5 +1,5 @@
 name = "channel-access"
-target_version = "2.1.301"
+target_version = "2.1.318"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -1047,6 +1047,15 @@ assert_contains = '''return!0}'''
 kind = "static"
 name = "channels feature does not retain policy and feature conjunction"
 assert_not_contains = '''return rn("allow_channels")&&k("tengu_harbor",!1)'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.318 darwin-arm64 removes the native conditional path"
+assert_not_contains = 'function nG(){return mn("allow_channels")&&k("tengu_harbor",!1)}'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.318 linux-x64 removes the native conditional path"
+assert_not_contains = 'function QG(){return mn("allow_channels")&&v("tengu_harbor",!1)}'
 
 [[patches]]
 name = "channels-provider-gate"
@@ -1088,6 +1097,15 @@ assert_contains = '''if(!1)return{action:"skip",kind:"provider",reason:"channels
 kind = "static"
 name = "channels provider short circuit is disabled"
 assert_not_contains = '''if(Pe()!=="firstParty")return{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"}'''
+[[patches.tests]]
+kind = "static"
+name = "2.1.318 darwin-arm64 removes the native conditional path"
+assert_not_contains = 'if(Te()!=="firstParty")return{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"};'
+
+[[patches.tests]]
+kind = "static"
+name = "2.1.318 linux-x64 removes the native conditional path"
+assert_not_contains = 'if(Ae()!=="firstParty")return{action:"skip",kind:"provider",reason:"channels are not available on third-party providers"};'
 
 [[patches]]
 name = "ask-user-question-channels-gate-2-1-228"
@@ -2122,3 +2140,72 @@ expected_matches = 1
   kind = "static"
   name = "2.1.310 rejects the previous Linux gate"
   assert_not_contains = "isEnabled(){return hV()}"
+
+[[patches]]
+name = "ask-user-question-channels-gate-2-1-318"
+lineage = "ask-user-question-channels-gate"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Keep AskUserQuestion available to channel sessions by replacing its current availability predicate with true.\nAudited 2.1.318 scopes: darwin-arm64/chunk-v5d8s1b8.js, linux-x64/chunk-zxdsqmea.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/tools/AskUserQuestionTool/AskUserQuestionTool.tsx#L135-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    string_literal = "tengu_ask_user_question_completed"
+    object_property_direct = "isEnabled"
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "isEnabled\\(\\)\\{return [\\w$]+\\(\\)\\}"
+  value = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 AskUserQuestion gate is open"
+  assert_contains = "isEnabled(){return!0}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 AskUserQuestion no longer delegates through the Darwin gate"
+  assert_not_contains = "isEnabled(){return UZ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 AskUserQuestion no longer delegates through the Linux gate"
+  assert_not_contains = "isEnabled(){return OZ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 AskUserQuestion rejects the stale Darwin 2.1.289 gate"
+  assert_not_contains = "isEnabled(){return cJ()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 AskUserQuestion rejects the stale Linux 2.1.289 gate"
+  assert_not_contains = "isEnabled(){return n7()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 rejects the previous platform gates"
+  assert_not_contains = "isEnabled(){return CV()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 rejects the previous Linux gate"
+  assert_not_contains = "isEnabled(){return hV()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 no longer delegates through Darwin availability"
+  assert_not_contains = "isEnabled(){return HEe()}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 no longer delegates through Linux availability"
+  assert_not_contains = "isEnabled(){return PEe()}"

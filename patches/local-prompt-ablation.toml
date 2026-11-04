@@ -1,5 +1,5 @@
 name = "local-prompt-ablation"
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.293 <2.1.294"
 
 [[patches]]
@@ -804,3 +804,159 @@ expected_matches = 1
 kind = "static"
 name = "310 ablation emitter excludes the previous 304 binding"
 assert_not_contains = "function RYt({strings:e,matched:n}){}"
+
+[[patches]]
+name = "local-prompt-ablation-local-source-admission-2-1-318"
+lineage = "local-prompt-ablation-local-source-admission"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Allow explicit local prompt deletion while gating served fallback and removing matched-string telemetry. Capture the native local-source flag and retain the native deletion expression.\nAudited 2.1.318 scopes: darwin-arm64/chunk-0x9x817t.js, linux-x64/chunk-5xgkngpb.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.nativee]
+kind = "identifier"
+path = "test"
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source_regex = "^\\w\\?\\w+\\(\\w+\\.CLAUDE_CODE_REMOVE_PROMPT_STRINGS,!1\\):\\w+\\(\\)\\?\\.\\[\\w+\\]$"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '(%%CAPTURE:nativee%%||process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT==="1"?%%EXPR%%:void 0)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 local JSON keeps precedence over gated served fallback"
+  assert_contains = 'process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT==="1"?e?nt(i.CLAUDE_CODE_REMOVE_PROMPT_STRINGS,!1):'
+  assert_not_contains = 'process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT==="1"?e?dt(a.CLAUDE_CODE_REMOVE_PROMPT_STRINGS,!1):'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 preserves local source presence check"
+  assert_contains = "i.CLAUDE_CODE_REMOVE_PROMPT_STRINGS!==void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 2"
+  assert_not_contains = 'process.env.CLAUDE_CODE_ALLOW_SERVED_TOOL_TEXT==="1"?e?ot(i.CLAUDE_CODE_REMOVE_PROMPT_STRINGS,!1):'
+
+[[patches]]
+name = "local-prompt-ablation-telemetry-bookkeeping-2-1-318"
+lineage = "local-prompt-ablation-telemetry-unreachable"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Allow explicit local prompt deletion while gating served fallback and removing matched-string telemetry. Capture the native local-source flag and retain the native deletion expression.\nAudited 2.1.318 scopes: darwin-arm64/chunk-0x9x817t.js, linux-x64/chunk-5xgkngpb.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/services/analytics/index.ts#L80-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ ".replaceAll(", ".matched.has(", ".matched.add(" ]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = '^if\((\w+=\w+\.replaceAll\(\w+,""\)),!\w+\.matched\.has\(\w+\)\)\w+\.matched\.add\(\w+\),[\w$]+\(\w+\)$'
+  value = "$1"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 preserves deletion and disables matched bookkeeping"
+  assert_contains = 'h=h.replaceAll(y,"")'
+  assert_not_contains = "s.matched.has(y)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 matched values are not collected"
+  assert_not_contains = "s.matched.add(y)"
+
+[[patches]]
+name = "local-prompt-ablation-telemetry-emitter-noop-2-1-318-darwin"
+lineage = "local-prompt-ablation-telemetry-unreachable"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Allow explicit local prompt deletion while gating served fallback and removing matched-string telemetry. Capture the native local-source flag and retain the native deletion expression.\nAudited 2.1.318 scopes: darwin-arm64/chunk-0x9x817t.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/services/analytics/index.ts#L80-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    strings = [ "tengu_remove_prompt_strings_applied" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 emitter retains parameters without queuing an event"
+  assert_contains = "function PJt({strings:e,matched:n}){}"
+  assert_not_contains = "tengu_remove_prompt_strings_applied"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 ablation emitter excludes the previous 304 binding"
+  assert_not_contains = "function CYt({strings:e,matched:n}){}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 2"
+  assert_not_contains = "function k9t({strings:e,matched:n}){}"
+
+[[patches]]
+name = "local-prompt-ablation-telemetry-emitter-noop-2-1-318-linux"
+lineage = "local-prompt-ablation-telemetry-unreachable"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Allow explicit local prompt deletion while gating served fallback and removing matched-string telemetry. Capture the native local-source flag and retain the native deletion expression.\nAudited 2.1.318 scopes: linux-x64/chunk-5xgkngpb.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/services/analytics/index.ts#L80-L146"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    body_statement_count = 1
+    strings = [ "tengu_remove_prompt_strings_applied" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 emitter retains parameters without queuing an event"
+  assert_contains = "function GJt({strings:e,matched:n}){}"
+  assert_not_contains = "tengu_remove_prompt_strings_applied"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "318 ablation emitter excludes the previous 304 binding"
+  assert_not_contains = "function RYt({strings:e,matched:n}){}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 2"
+  assert_not_contains = "function h9t({strings:e,matched:n}){}"

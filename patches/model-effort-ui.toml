@@ -1,6 +1,6 @@
 name = "model-effort-ui"
 enabled = true
-target_version = "2.1.310"
+target_version = "2.1.318"
 applies_to = ">=2.1.263 <2.1.264"
 
 [[patches]]
@@ -16223,3 +16223,1549 @@ expected_matches = 1
   kind = "static"
   name = "310 excludes stale predecessor scope"
   assert_not_contains = '(re)=>{const prior=h.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??pS(),target=s??pS(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=M!==void 0?patchedEffort.session(target,"set",M):patchedEffort.session(target);A=!!re.fastMode;I=jo()?zI(s,re.fastMode):A;return{...re,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:M!==void 0?vte(M):changed?{kind:"inherit"}:re.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(re.effortRevision??0)+1,ultracode:re.ultracode??!1,...I!==A&&{fastMode:I}}}'
+
+[[patches]]
+name = "model-effort-picker-import-2-1-318-darwin"
+lineage = "model-effort-picker-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-import to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{wDt,Epo,qNi,YNi,MCe,lw,Kce,d2e,lg,Rpo,xpo,DCe,Hoe,TZt,P_s,vft,eX,dw,qce,I_s,lLn,dB,vl,qye,Foe,c2e,Yye,lFi,$oe,a7e,sN,cS,oL,uLn}from"./chunk-efj9m2dc.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Rw as patchedEffort}from"./chunk-fdkh5k16.js";'
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-318-darwin"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-cli-hint to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "LogicalExpression"
+    source = '(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '!patchedEffort.session(Yn).cli&&(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-cli-hint uses audited current scope"
+  assert_contains = '!patchedEffort.session(Yn).cli&&(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '!patchedEffort.session(jn).cli&&(!ho||vo==="")&&r(n,{color:"subtle",children:[" ",e(q,{chord:["left","right"],action:"adjust"})]})'
+
+[[patches]]
+name = "model-effort-picker-hotkey-echo-2-1-318-darwin"
+lineage = "model-effort-picker-hotkey-echo"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-hotkey-echo to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Model set to ",
+  "model-switched",
+  "tengu_model_picker_hotkey"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "let Ew=([^;]+);if\\(Ew=Ew\\+aUe\\(qB,\\$B,sb\\)"
+  value = 'const effective=patchedEffort.session(sb);let Ew=$1+" with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")";if(Ew=Ew+aUe(qB,$B,sb)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-hotkey-echo uses audited current scope"
+  assert_contains = "const effective=patchedEffort.session(sb);let Ew="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "const effective=patchedEffort.session(Ak);let Mk="
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-318-darwin"
+lineage = "model-effort-picker-initial"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-initial to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "Bp(Yo!==void 0?oL(Yo):void 0)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "Bp((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?oL(initial):Yo!==void 0?oL(Yo):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-initial uses audited current scope"
+  assert_contains = "Bp((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?oL(initial):Yo!==void 0?oL(Yo):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "lu((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?CF(initial):Bn!==void 0?CF(Bn):void 0})())"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-318-darwin"
+lineage = "model-effort-picker-state-setter"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-state-setter to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "modelPicker:increaseEffort", "modelPicker:thisSessionOnly" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __acc_set_state=(value)=>In(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-state-setter uses audited current scope"
+  assert_contains = "const __acc_set_state=(value)=>In(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "const __acc_set_state=(value)=>wo(value);"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-318-darwin"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-arrows to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(Zr\\)=>\\{let ii=to\\(\\),Ci=rr\\.find\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(Zr)=>{let selected=to(),row=rr.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=$w(selected),config=k2(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=Pze(current.value??config.defaultEffort,Zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?oL(effective.value):Bpe(selected));En(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-arrows uses audited current scope"
+  assert_contains = '(Zr)=>{let selected=to(),row=rr.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=$w(selected),config=k2(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=Pze(current.value??config.defaultEffort,Zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?oL(effective.value):Bpe(selected));En(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '(nr)=>{let selected=qt(),row=Hn.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=Xb(selected),config=$2(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=AVe(current.value??config.defaultEffort,nr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?CF(effective.value):kue(selected));qo(!0)}'
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-318-darwin"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-focus to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(Zr\\)=>\\{if\\(Jt\\(Zr\\),pn\\(\\)\\)return;let ii=vl\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = "(Zr)=>{if(Jt(Zr),pn())return;let effective=patchedEffort.session($w(Zr));In(effective.value!==void 0?oL(effective.value):Bpe(Zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-focus uses audited current scope"
+  assert_contains = "(Zr)=>{if(Jt(Zr),pn())return;let effective=patchedEffort.session($w(Zr));In(effective.value!==void 0?oL(effective.value):Bpe(Zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "(nr)=>{if(Ht(nr),Wo())return;let effective=patchedEffort.session(Xb(nr));wo(effective.value!==void 0?CF(effective.value):kue(nr))}"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-318-darwin"
+lineage = "model-effort-picker-select"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-select to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Rr"
+    strings = [ "tengu_model_command_menu_effort", "lw(ii)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let da=Xs&&ii&&lw(ii)?Ei:void 0"
+  value = "let effective=ii?patchedEffort.session(ii):void 0,da=Xs&&ii&&lw(ii)&&!effective.cli?(effective.value??Ei):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-select uses audited current scope"
+  assert_contains = "let effective=ii?patchedEffort.session(ii):void 0,da=Xs&&ii&&lw(ii)&&!effective.cli?(effective.value??Ei):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "let effective=Dr?patchedEffort.session(Dr):void 0,Rs=as&&Dr&&Tw(Dr)&&!effective.cli?(effective.value??Ks):void 0"
+
+[[patches]]
+name = "model-effort-picker-source-2-1-318-darwin"
+lineage = "model-effort-picker-source"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-picker-source to 2.1.318; audited corresponding lexical scope in chunk-p2q3ejfg.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = 'kr===jn?" (default)":""'
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'patchedEffort.session($w($n)).source==="default"?" (default)":" ("+patchedEffort.session($w($n)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin picker-source uses audited current scope"
+  assert_contains = 'patchedEffort.session($w($n)).source==="default"?" (default)":" ("+patchedEffort.session($w($n)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'patchedEffort.session(Xb(rr)).source==="default"?" (default)":" ("+patchedEffort.session(Xb(rr)).source+")"'
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-318-darwin"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-slider-guard to 2.1.318; audited corresponding lexical scope in chunk-k62h87aw.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ro"
+    strings = [ "let o=b(4);", "e(ao,{...u})", "e(lo,{...u})" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "function ro(u){let o=b(4);"
+  value = "function ro(u){let o=b(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin slider-guard uses audited current scope"
+  assert_contains = "function ro(u){let o=b(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 current status component takes only onDone"
+  assert_contains = "function on(u){let{onDone:l}=u"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 status route is not typed command"
+  assert_contains = 'o==="current"||o==="status")return e(on,{onDone:u});'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "function ko(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(Ao,{onDone:d.onDone});"
+
+[[patches]]
+name = "model-effort-slider-import-2-1-318-darwin"
+lineage = "model-effort-slider-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-slider-import to 2.1.318; audited corresponding lexical scope in chunk-k62h87aw.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{MCe,ikr,Kce,rN,CZt,o7e,sFi,eX,dw,pkr,Foe,a7e,hkr}from"./chunk-efj9m2dc.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin slider-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Rw as patchedEffort}from"./chunk-fdkh5k16.js";'
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-318-darwin"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-slider-initial to 2.1.318; audited corresponding lexical scope in chunk-k62h87aw.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Re"
+    strings = [ "o.levels.findIndex", "a7e(u,c)??Foe(u)" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let f=a7e(u,__acc_selectedEffort)??Foe(u),m=o.levels.findIndex((i)=>i.value===f);return m===-1?Gn:m}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin slider-initial uses audited current scope"
+  assert_contains = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let f=a7e(u,__acc_selectedEffort)??Foe(u),m=o.levels.findIndex((i)=>i.value===f);return m===-1?Gn:m}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "{let __acc_selectedEffort=patchedEffort.session(d).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let u=y6e(d,__acc_selectedEffort)??PQ(d),g=o.levels.findIndex((i)=>i.value===u);return g===-1?br:g}"
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-318-darwin"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-slider-scope to 2.1.318; audited corresponding lexical scope in chunk-k62h87aw.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    source = '[gt," for this session only"]'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin slider-scope uses audited current scope"
+  assert_contains = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '[Je," for this model, this session"]'
+
+[[patches]]
+name = "model-effort-command-import-2-1-318-darwin"
+lineage = "model-effort-command-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-command-import to 2.1.318; audited corresponding lexical scope in chunk-smwxrsxa.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{skr,akr,rN,lg,o7e,DCe,Hoe,eX,oN,NDe,dw,ADt,Noe,pkr,$oe,a7e,cS,H_s,PDt,uLn}from"./chunk-efj9m2dc.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 command imports resolver alias"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Rw as patchedEffort}from"./chunk-fdkh5k16.js";'
+
+[[patches]]
+name = "model-effort-command-2-1-318-darwin"
+lineage = "model-effort-command"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-command to 2.1.318; audited corresponding lexical scope in chunk-smwxrsxa.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Rwe"
+    strings = [
+  "effortUpdate",
+  "await N(e,t,r",
+  "sessionEffort:u.sessionEffort"
+]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(tr()===null&&M(e.trim().toLowerCase())===void 0){const model=it(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await N(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},f);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin command uses audited current scope"
+  assert_contains = 'if(tr()===null&&M(e.trim().toLowerCase())===void 0){const model=it(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await N(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},f);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 local Ultracode disables persistence but retains native callback and rollback"
+  assert_contains = "if(tr()===null)r=!1;let s=!1,o=null,c=await N(e,t,r,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'if(tr()===null&&A(e.trim().toLowerCase())===void 0){const model=it(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await P(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+[[patches]]
+name = "model-effort-current-2-1-318-darwin"
+lineage = "model-effort-current"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-current to 2.1.318; audited corresponding lexical scope in chunk-smwxrsxa.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "xhn"
+    strings = [ "Current effort level:", "Effort level: auto", "Ultracode" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(lg(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin current uses audited current scope"
+  assert_contains = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(lg(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 remote auto status retains the native absent-default branch"
+  assert_contains = "return{message:`Effort level: auto${r}`}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(Bm(n,t)?" · Ultracode on":"")}}'
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-318-darwin"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-inline-echo to 2.1.318; audited corresponding lexical scope in chunk-xcmxgsxp.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = '^Got\(_,G,\(\)=>u\.getState\(\),L,xe,"command",Re,f,'
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '%%EXPR%%.then((message)=>{const effective=patchedEffort.session(G);return message+"\nCurrent model runs with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")"})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin inline-echo uses audited current scope"
+  assert_contains = ".then((message)=>{const effective=patchedEffort.session(G);"
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-318-darwin"
+lineage = "model-effort-inline-model-state-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-inline-model-state-import to 2.1.318; audited corresponding lexical scope in chunk-n8cc72pv.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{j_,TRe,RGn}from"./chunk-ecyypctx.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin inline-model-state-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Rw as patchedEffort}from"./chunk-fdkh5k16.js";'
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-318-darwin"
+lineage = "model-effort-inline-model-state"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-inline-model-state to 2.1.318; audited corresponding lexical scope in chunk-n8cc72pv.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(b)=>({...b,mainLoopModel:o,mainLoopModelForSession:null})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??NE(),from=previous,target=o??NE(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin inline-model-state uses audited current scope"
+  assert_contains = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??NE(),from=previous,target=o??NE(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '(k)=>{const previous=k.mainLoopModelForSession??k.mainLoopModel??Wb(),from=previous,target=o??Wb(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&k.sessionEffort?.kind==="level")patchedEffort.session(from,"set",k.sessionEffort.value);const effective=patchedEffort.session(target);return{...k,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:k.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(k.effortRevision??0)+(changed?1:0),ultracode:k.ultracode??!1}}'
+
+[[patches]]
+name = "model-effort-model-import-2-1-318-darwin"
+lineage = "model-effort-model-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-model-import to 2.1.318; audited corresponding lexical scope in chunk-xcmxgsxp.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{tr,Ct,Fl,AR}from"./chunk-90nskyyy.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin model-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Rw as patchedEffort}from"./chunk-fdkh5k16.js";'
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-318-darwin"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-model-no-persist to 2.1.318; audited corresponding lexical scope in chunk-xcmxgsxp.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "$oe(h,$me(s),I,i)"
+
+  [patches.transform]
+  op = "set_call_arg"
+  index = 2
+  value = "!1"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin model-no-persist uses audited current scope"
+  assert_contains = "$oe(h,$me(s),!1,i)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 model default still persists independently"
+  assert_contains = "x?await l6t(s,i):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "IQ(M,Sme(s),!1,i)"
+
+[[patches]]
+name = "model-effort-model-echo-2-1-318-darwin"
+lineage = "model-effort-model-echo"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-model-echo to 2.1.318; audited corresponding lexical scope in chunk-xcmxgsxp.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "effort" ]
+    source_regex = "^if\\(h!==void 0\\)de\\+="
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const effective=patchedEffort.session(s);if(h!==void 0)de+=ve&&(!I||NDe(h)===void 0)?" · "+Kb(h)+" effort for this session only":" with "+Kb(h)+" effort";else de+=" with "+(effective.value??"backend default")+" effort";de+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin model-echo uses audited current scope"
+  assert_contains = '{const effective=patchedEffort.session(s);if(h!==void 0)de+=ve&&(!I||NDe(h)===void 0)?" · "+Kb(h)+" effort for this session only":" with "+Kb(h)+" effort";else de+=" with "+(effective.value??"backend default")+" effort";de+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '{const effective=patchedEffort.session(s);if(M!==void 0)te+=xe&&(!B||aAe(M)===void 0)?" · "+iS(M)+" effort for this session only":" with "+iS(M)+" effort";else te+=" with "+(effective.value??"backend default")+" effort";te+=" ("+effective.source+" for "+effective.slug+")";}'
+
+[[patches]]
+name = "model-effort-model-state-2-1-318-darwin"
+lineage = "model-effort-model-state"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "darwin-arm64" ]
+rationale = "Port model-effort-model-state to 2.1.318; audited corresponding lexical scope in chunk-xcmxgsxp.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(Se)=>(D=!!Se.fastMode,Y=Hs()?uL(s,Se.fastMode):D,{...Se,mainLoopModel:s,mainLoopModelForSession:null,...h!==void 0&&{sessionEffort:qce(h)},...Y!==D&&{fastMode:Y}})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(Se)=>{const prior=f.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??NE(),target=s??NE(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=h!==void 0?patchedEffort.session(target,"set",h):patchedEffort.session(target);D=!!Se.fastMode;Y=Hs()?uL(s,Se.fastMode):D;return{...Se,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:h!==void 0?qce(h):changed?{kind:"inherit"}:Se.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(Se.effortRevision??0)+1,ultracode:Se.ultracode??!1,...Y!==D&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Darwin model-state uses audited current scope"
+  assert_contains = '(Se)=>{const prior=f.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??NE(),target=s??NE(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=h!==void 0?patchedEffort.session(target,"set",h):patchedEffort.session(target);D=!!Se.fastMode;Y=Hs()?uL(s,Se.fastMode):D;return{...Se,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:h!==void 0?qce(h):changed?{kind:"inherit"}:Se.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(Se.effortRevision??0)+1,ultracode:Se.ultracode??!1,...Y!==D&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '(re)=>{const prior=h.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??Wb(),target=s??Wb(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=M!==void 0?patchedEffort.session(target,"set",M):patchedEffort.session(target);_=!!re.fastMode;V=Xo()?sM(s,re.fastMode):_;return{...re,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:M!==void 0?noe(M):changed?{kind:"inherit"}:re.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(re.effortRevision??0)+1,ultracode:re.ultracode??!1,...V!==_&&{fastMode:V}}}'
+
+[[patches]]
+name = "model-effort-picker-import-2-1-318-linux"
+lineage = "model-effort-picker-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-import to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{mLt,Xuo,aNi,lNi,ATe,iw,Lce,rGe,lg,nfo,rfo,CTe,Toe,dZt,Zys,bpt,U9,aw,Hce,t_s,BLn,i1,kl,Uye,Coe,oGe,Bye,wNi,Roe,QXe,nN,db,eH,GLn}from"./chunk-bc4jcw5z.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Cw as patchedEffort}from"./chunk-hhgrzgnb.js";'
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-318-linux"
+lineage = "model-effort-picker-cli-hint"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-cli-hint to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "LogicalExpression"
+    source = '(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '!patchedEffort.session(Yn).cli&&(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-cli-hint uses audited current scope"
+  assert_contains = '!patchedEffort.session(Yn).cli&&(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '!patchedEffort.session(jn).cli&&(!ho||Po==="")&&r(n,{color:"subtle",children:[" ",e(V,{chord:["left","right"],action:"adjust"})]})'
+
+[[patches]]
+name = "model-effort-picker-hotkey-echo-2-1-318-linux"
+lineage = "model-effort-picker-hotkey-echo"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-hotkey-echo to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Model set to ",
+  "model-switched",
+  "tengu_model_picker_hotkey"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "let Ew=([^;]+);if\\(Ew=Ew\\+tUe\\(KB,GB,gb\\)"
+  value = 'const effective=patchedEffort.session(gb);let Ew=$1+" with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")";if(Ew=Ew+tUe(KB,GB,gb)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-hotkey-echo uses audited current scope"
+  assert_contains = "const effective=patchedEffort.session(gb);let Ew="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "const effective=patchedEffort.session(Lk);let Fk="
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-318-linux"
+lineage = "model-effort-picker-initial"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-initial to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "jf(Yo!==void 0?eH(Yo):void 0)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "jf((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?eH(initial):Yo!==void 0?eH(Yo):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-initial uses audited current scope"
+  assert_contains = "jf((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?eH(initial):Yo!==void 0?eH(Yo):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "au((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?w$(initial):Bn!==void 0?w$(Bn):void 0})())"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-318-linux"
+lineage = "model-effort-picker-state-setter"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-state-setter to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "modelPicker:increaseEffort", "modelPicker:thisSessionOnly" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __acc_set_state=(value)=>On(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-state-setter uses audited current scope"
+  assert_contains = "const __acc_set_state=(value)=>On(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "const __acc_set_state=(value)=>wo(value);"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-318-linux"
+lineage = "model-effort-picker-arrows"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-arrows to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(Zr\\)=>\\{let ii=to\\(\\),Ti=nr\\.find\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(Zr)=>{let selected=to(),row=nr.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=Vw(selected),config=t5(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=Cze(current.value??config.defaultEffort,Zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?eH(effective.value):Ype(selected));In(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-arrows uses audited current scope"
+  assert_contains = '(Zr)=>{let selected=to(),row=nr.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=Vw(selected),config=t5(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=Cze(current.value??config.defaultEffort,Zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?eH(effective.value):Ype(selected));In(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '(or)=>{let selected=qt(),row=Hn.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=Zb(selected),config=aY(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=OVe(current.value??config.defaultEffort,or,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?w$(effective.value):vue(selected));Go(!0)}'
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-318-linux"
+lineage = "model-effort-picker-focus"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-focus to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(Zr\\)=>\\{if\\(Jt\\(Zr\\),fn\\(\\)\\)return;let ii=kl\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = "(Zr)=>{if(Jt(Zr),fn())return;let effective=patchedEffort.session(Vw(Zr));On(effective.value!==void 0?eH(effective.value):Ype(Zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-focus uses audited current scope"
+  assert_contains = "(Zr)=>{if(Jt(Zr),fn())return;let effective=patchedEffort.session(Vw(Zr));On(effective.value!==void 0?eH(effective.value):Ype(Zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "(or)=>{if(Ht(or),Vo())return;let effective=patchedEffort.session(Zb(or));wo(effective.value!==void 0?w$(effective.value):vue(or))}"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-318-linux"
+lineage = "model-effort-picker-select"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-select to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Rr"
+    strings = [ "tengu_model_command_menu_effort", "iw(ii)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let da=Ys&&ii&&iw(ii)?Ei:void 0"
+  value = "let effective=ii?patchedEffort.session(ii):void 0,da=Ys&&ii&&iw(ii)&&!effective.cli?(effective.value??Ei):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-select uses audited current scope"
+  assert_contains = "let effective=ii?patchedEffort.session(ii):void 0,da=Ys&&ii&&iw(ii)&&!effective.cli?(effective.value??Ei):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "let effective=Dr?patchedEffort.session(Dr):void 0,As=is&&Dr&&Tw(Dr)&&!effective.cli?(effective.value??Vs):void 0"
+
+[[patches]]
+name = "model-effort-picker-source-2-1-318-linux"
+lineage = "model-effort-picker-source"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-picker-source to 2.1.318; audited corresponding lexical scope in chunk-czq1j3j2.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = 'vr===Wn?" (default)":""'
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'patchedEffort.session(Vw(jn)).source==="default"?" (default)":" ("+patchedEffort.session(Vw(jn)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux picker-source uses audited current scope"
+  assert_contains = 'patchedEffort.session(Vw(jn)).source==="default"?" (default)":" ("+patchedEffort.session(Vw(jn)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'patchedEffort.session(Zb(nr)).source==="default"?" (default)":" ("+patchedEffort.session(Zb(nr)).source+")"'
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-318-linux"
+lineage = "model-effort-slider-guard"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-slider-guard to 2.1.318; audited corresponding lexical scope in chunk-n2cdp9nk.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ro"
+    strings = [ "let o=S(4);", "e(ao,{...u})", "e(lo,{...u})" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "function ro(u){let o=S(4);"
+  value = "function ro(u){let o=S(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux slider-guard uses audited current scope"
+  assert_contains = "function ro(u){let o=S(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 current status component takes only onDone"
+  assert_contains = "function on(u){let{onDone:l}=u"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 status route is not typed command"
+  assert_contains = 'o==="current"||o==="status")return e(on,{onDone:u});'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "function ko(d){let o=w(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(Ao,{onDone:d.onDone});"
+
+[[patches]]
+name = "model-effort-slider-import-2-1-318-linux"
+lineage = "model-effort-slider-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-slider-import to 2.1.318; audited corresponding lexical scope in chunk-n2cdp9nk.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{ATe,LEr,Lce,eN,lZt,YXe,_Ni,U9,aw,BEr,Coe,QXe,GEr}from"./chunk-bc4jcw5z.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux slider-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Cw as patchedEffort}from"./chunk-hhgrzgnb.js";'
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-318-linux"
+lineage = "model-effort-slider-initial"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-slider-initial to 2.1.318; audited corresponding lexical scope in chunk-n2cdp9nk.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Ae"
+    strings = [ "o.levels.findIndex", "QXe(u,c)??Coe(u)" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let f=QXe(u,__acc_selectedEffort)??Coe(u),m=o.levels.findIndex((i)=>i.value===f);return m===-1?Gn:m}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux slider-initial uses audited current scope"
+  assert_contains = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let f=QXe(u,__acc_selectedEffort)??Coe(u),m=o.levels.findIndex((i)=>i.value===f);return m===-1?Gn:m}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "{let __acc_selectedEffort=patchedEffort.session(d).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let u=aKe(d,__acc_selectedEffort)??v7(d),g=o.levels.findIndex((i)=>i.value===u);return g===-1?br:g}"
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-318-linux"
+lineage = "model-effort-slider-scope"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-slider-scope to 2.1.318; audited corresponding lexical scope in chunk-n2cdp9nk.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    source = '[gt," for this session only"]'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux slider-scope uses audited current scope"
+  assert_contains = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '[Je," for this model, this session"]'
+
+[[patches]]
+name = "model-effort-command-import-2-1-318-linux"
+lineage = "model-effort-command-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-command-import to 2.1.318; audited corresponding lexical scope in chunk-5dqwe9kx.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{DEr,HEr,eN,lg,YXe,CTe,Toe,U9,tN,ILe,aw,SLt,Aoe,BEr,Roe,QXe,db,s_s,vLt,GLn}from"./chunk-bc4jcw5z.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 command imports resolver alias"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Cw as patchedEffort}from"./chunk-hhgrzgnb.js";'
+
+[[patches]]
+name = "model-effort-command-2-1-318-linux"
+lineage = "model-effort-command"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-command to 2.1.318; audited corresponding lexical scope in chunk-5dqwe9kx.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "wwe"
+    strings = [
+  "effortUpdate",
+  "await N(e,t,r",
+  "sessionEffort:d.sessionEffort"
+]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(tr()===null&&M(e.trim().toLowerCase())===void 0){const model=it(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await N(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux command uses audited current scope"
+  assert_contains = 'if(tr()===null&&M(e.trim().toLowerCase())===void 0){const model=it(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await N(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 local Ultracode disables persistence but retains native callback and rollback"
+  assert_contains = "if(tr()===null)r=!1;let u=!1,o=null,E=await N(e,t,r,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'if(tr()===null&&A(e.trim().toLowerCase())===void 0){const model=st(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await P(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+[[patches]]
+name = "model-effort-current-2-1-318-linux"
+lineage = "model-effort-current"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-current to 2.1.318; audited corresponding lexical scope in chunk-5dqwe9kx.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "mhn"
+    strings = [ "Current effort level:", "Effort level: auto", "Ultracode" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(lg(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux current uses audited current scope"
+  assert_contains = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(lg(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 remote auto status retains the native absent-default branch"
+  assert_contains = "return{message:`Effort level: auto${r}`}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(Bm(n,t)?" · Ultracode on":"")}}'
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-318-linux"
+lineage = "model-effort-inline-echo"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-inline-echo to 2.1.318; audited corresponding lexical scope in chunk-ny1a8wws.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = '^\$ot\(_,G,\(\)=>u\.getState\(\),L,xe,"command",Re,p,'
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '%%EXPR%%.then((message)=>{const effective=patchedEffort.session(G);return message+"\nCurrent model runs with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")"})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux inline-echo uses audited current scope"
+  assert_contains = ".then((message)=>{const effective=patchedEffort.session(G);"
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-318-linux"
+lineage = "model-effort-inline-model-state-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-inline-model-state-import to 2.1.318; audited corresponding lexical scope in chunk-wefvmrb3.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{B_,SRe,czn}from"./chunk-5ythzcas.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux inline-model-state-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Cw as patchedEffort}from"./chunk-hhgrzgnb.js";'
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-318-linux"
+lineage = "model-effort-inline-model-state"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-inline-model-state to 2.1.318; audited corresponding lexical scope in chunk-wefvmrb3.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(b)=>({...b,mainLoopModel:o,mainLoopModelForSession:null})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??HE(),from=previous,target=o??HE(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux inline-model-state uses audited current scope"
+  assert_contains = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??HE(),from=previous,target=o??HE(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??jS(),from=previous,target=o??jS(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+[[patches]]
+name = "model-effort-model-import-2-1-318-linux"
+lineage = "model-effort-model-import"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-model-import to 2.1.318; audited corresponding lexical scope in chunk-ny1a8wws.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{tr,Tt,$l,vR}from"./chunk-sbrfdm61.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux model-import uses audited current scope"
+  assert_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = 'import{Cw as patchedEffort}from"./chunk-hhgrzgnb.js";'
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-318-linux"
+lineage = "model-effort-model-no-persist"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-model-no-persist to 2.1.318; audited corresponding lexical scope in chunk-ny1a8wws.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "Roe(h,Pme(s),I,i)"
+
+  [patches.transform]
+  op = "set_call_arg"
+  index = 2
+  value = "!1"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux model-no-persist uses audited current scope"
+  assert_contains = "Roe(h,Pme(s),!1,i)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 model default still persists independently"
+  assert_contains = "x?await tKt(s,i):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = "E7(M,pme(s),!1,i)"
+
+[[patches]]
+name = "model-effort-model-echo-2-1-318-linux"
+lineage = "model-effort-model-echo"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-model-echo to 2.1.318; audited corresponding lexical scope in chunk-ny1a8wws.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    strings = [ "effort" ]
+    source_regex = "^if\\(h!==void 0\\)de\\+="
+
+  [patches.transform]
+  op = "replace_node"
+  value = '{const effective=patchedEffort.session(s);if(h!==void 0)de+=ve&&(!I||ILe(h)===void 0)?" · "+KS(h)+" effort for this session only":" with "+KS(h)+" effort";else de+=" with "+(effective.value??"backend default")+" effort";de+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux model-echo uses audited current scope"
+  assert_contains = '{const effective=patchedEffort.session(s);if(h!==void 0)de+=ve&&(!I||ILe(h)===void 0)?" · "+KS(h)+" effort for this session only":" with "+KS(h)+" effort";else de+=" with "+(effective.value??"backend default")+" effort";de+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '{const effective=patchedEffort.session(s);if(M!==void 0)te+=xe&&(!B||tCe(M)===void 0)?" · "+sb(M)+" effort for this session only":" with "+sb(M)+" effort";else te+=" with "+(effective.value??"backend default")+" effort";te+=" ("+effective.source+" for "+effective.slug+")";}'
+
+[[patches]]
+name = "model-effort-model-state-2-1-318-linux"
+lineage = "model-effort-model-state"
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+platforms = [ "linux-x64" ]
+rationale = "Port model-effort-model-state to 2.1.318; audited corresponding lexical scope in chunk-ny1a8wws.js. Preserve the predecessor behavior and organization policy; original rationale reference remains authoritative."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(Se)=>(D=!!Se.fastMode,Y=Ls()?aH(s,Se.fastMode):D,{...Se,mainLoopModel:s,mainLoopModelForSession:null,...h!==void 0&&{sessionEffort:Hce(h)},...Y!==D&&{fastMode:Y}})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(Se)=>{const prior=p.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??HE(),target=s??HE(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=h!==void 0?patchedEffort.session(target,"set",h):patchedEffort.session(target);D=!!Se.fastMode;Y=Ls()?aH(s,Se.fastMode):D;return{...Se,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:h!==void 0?Hce(h):changed?{kind:"inherit"}:Se.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(Se.effortRevision??0)+1,ultracode:Se.ultracode??!1,...Y!==D&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 Linux model-state uses audited current scope"
+  assert_contains = '(Se)=>{const prior=p.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??HE(),target=s??HE(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=h!==void 0?patchedEffort.session(target,"set",h):patchedEffort.session(target);D=!!Se.fastMode;Y=Ls()?aH(s,Se.fastMode):D;return{...Se,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:h!==void 0?Hce(h):changed?{kind:"inherit"}:Se.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(Se.effortRevision??0)+1,ultracode:Se.ultracode??!1,...Y!==D&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '(re)=>{const prior=h.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??jS(),target=s??jS(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=M!==void 0?patchedEffort.session(target,"set",M):patchedEffort.session(target);A=!!re.fastMode;V=Yo()?ZO(s,re.fastMode):A;return{...re,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:M!==void 0?Xre(M):changed?{kind:"inherit"}:re.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(re.effortRevision??0)+1,ultracode:re.ultracode??!1,...V!==A&&{fastMode:V}}}'

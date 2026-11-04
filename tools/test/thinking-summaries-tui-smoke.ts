@@ -367,7 +367,7 @@ async function scenario(options: Options, display: string, cols: number, rows: n
           return proc.stdin.end()
         },
         () => exited,
-        () => hasThinkingSummaryExitHint(screen, sessionId),
+        () => hasThinkingSummaryExitHint(terminal.buffer.active, sessionId),
         wait,
         notify,
       )

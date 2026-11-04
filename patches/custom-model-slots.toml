@@ -1,5 +1,5 @@
 name = "custom-model-slots"
-target_version = "2.1.301"
+target_version = "2.1.318"
 applies_to = ">=2.1.234 <2.1.238"
 
 rationale = """
@@ -3313,5 +3313,192 @@ path = "test.left"
   [[patches.tests]]
   kind = "static"
   name = "2.1.310 skips probes for configured custom slots 2 through 10"
+  assert_contains = "if(__acc_model&&r===__acc_model)return{valid:!0};"
+  assert_not_contains = "if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};"
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-318-darwin-arm64"
+lineage = "append-second-custom-model-option"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Support configured custom model slots 2 through 10 while preserving exact native model validation and alias deduplication. Current identifiers are captured from the model picker or validation branch.\nAudited 2.1.318 scopes: darwin-arm64/chunk-106sk3sk.js.\nPreserve the native disabled-row replacement predicate before applying append-only alias deduplication.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+platforms = [ "darwin-arm64" ]
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.rows]
+kind = "identifier"
+path = "consequent.body.1.alternate.expression.callee.object"
+
+[patches.ast.captures.slot]
+kind = "identifier"
+path = "test.left"
+
+[patches.ast.captures.replace]
+kind = "identifier"
+path = "consequent.body.1.test"
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\("
+    strings = [
+  "ANTHROPIC_CUSTOM_MODEL_OPTION_NAME",
+  "ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION",
+  "sessionTail:!0"
+]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(%%CAPTURE:replace%%||!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot,__acc_model=process.env[__acc_key]?.trim();if(__acc_model&&!__acc_dup(%%CAPTURE:rows%%,__acc_model))%%CAPTURE:rows%%.push({value:__acc_model,label:process.env[__acc_key+"_NAME"]??__acc_model,description:process.env[__acc_key+"_DESCRIPTION"]??`Custom model ${__acc_slot} (${__acc_model})`});}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 picker uses the captured slot-one row and adds configured slots"
+  assert_contains = "if(w||!__acc_dup(s,b)){"
+  assert_not_contains = "for(let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 picker adds slots 2 through 10 with alias deduplication"
+  assert_contains = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot,__acc_model=process.env[__acc_key]?.trim();'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 retains native disabled-row replacement"
+  assert_contains = "if(w)s[y]=Y;else s.push(Y)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 3"
+  assert_not_contains = "if(!__acc_dup(s,h)){"
+
+[[patches]]
+name = "append-second-custom-model-option-2-1-318-linux-x64"
+lineage = "append-second-custom-model-option"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Support configured custom model slots 2 through 10 while preserving exact native model validation and alias deduplication. Current identifiers are captured from the model picker or validation branch.\nAudited 2.1.318 scopes: linux-x64/chunk-vn3g7zt8.js.\nPreserve the native disabled-row replacement predicate before applying append-only alias deduplication.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelOptions.ts#L464-L477"
+locator_kind = "ast_transform"
+platforms = [ "linux-x64" ]
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.rows]
+kind = "identifier"
+path = "consequent.body.1.alternate.expression.callee.object"
+
+[patches.ast.captures.slot]
+kind = "identifier"
+path = "test.left"
+
+[patches.ast.captures.replace]
+kind = "identifier"
+path = "consequent.body.1.test"
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\("
+    strings = [
+  "ANTHROPIC_CUSTOM_MODEL_OPTION_NAME",
+  "ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION",
+  "sessionTail:!0"
+]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '{const __acc_alias_env={fable:"ANTHROPIC_DEFAULT_FABLE_MODEL",opus:"ANTHROPIC_DEFAULT_OPUS_MODEL",sonnet:"ANTHROPIC_DEFAULT_SONNET_MODEL",haiku:"ANTHROPIC_DEFAULT_HAIKU_MODEL"};const __acc_norm=(v)=>typeof v==="string"?v.trim().replace(/\[1m\]/gi,"").toLowerCase():void 0;const __acc_dup=(rows,slug)=>rows.some((row)=>{if(__acc_norm(row.value)===__acc_norm(slug))return!0;const key=__acc_alias_env[__acc_norm(row.value)];return typeof key==="string"&&__acc_norm(process.env[key])===__acc_norm(slug)});if(%%CAPTURE:replace%%||!__acc_dup(%%CAPTURE:rows%%,%%CAPTURE:slot%%)){%%EXPR%%}for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot,__acc_model=process.env[__acc_key]?.trim();if(__acc_model&&!__acc_dup(%%CAPTURE:rows%%,__acc_model))%%CAPTURE:rows%%.push({value:__acc_model,label:process.env[__acc_key+"_NAME"]??__acc_model,description:process.env[__acc_key+"_DESCRIPTION"]??`Custom model ${__acc_slot} (${__acc_model})`});}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 picker uses the captured slot-one row and adds configured slots"
+  assert_contains = "if(w||!__acc_dup(s,y)){"
+  assert_not_contains = "for(let __acc_custom_model_2=process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 picker adds slots 2 through 10 with alias deduplication"
+  assert_contains = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot,__acc_model=process.env[__acc_key]?.trim();'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 retains native disabled-row replacement"
+  assert_contains = "if(w)s[S]=Y;else s.push(Y)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes previous insertion 3"
+  assert_not_contains = "if(!__acc_dup(s,h)){"
+
+[[patches]]
+name = "recognize-second-custom-model-option-2-1-318"
+lineage = "recognize-second-custom-model-option"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Support configured custom model slots 2 through 10 while preserving exact native model validation and alias deduplication. Current identifiers are captured from the model picker or validation branch.\nAudited 2.1.318 scopes: darwin-arm64/chunk-7fv02std.js, linux-x64/chunk-nh1pvp1m.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "test.arguments.0"
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\([A-Za-z_$][A-Za-z0-9_$]*\\([A-Za-z_$][A-Za-z0-9_$]*\\)\\)return\\{recognized:!0\\};$"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_model=process.env["ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot]?.trim();if(__acc_model&&%%CAPTURE:model%%===__acc_model)return{recognized:!0};}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 recognizes configured custom slots through the captured model"
+  assert_contains = "if(__acc_model&&n===__acc_model)return{recognized:!0};"
+  assert_not_contains = "if(Dcr(n))return{recognized:!0};"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 recognition does not retain the Linux 2.1.290 helper"
+  assert_not_contains = "if(mcr(n))return{recognized:!0};"
+
+[[patches]]
+name = "validate-second-custom-model-option-without-probe-2-1-318"
+lineage = "validate-second-custom-model-option-without-probe"
+enabled = true
+target_version = "2.1.318"
+applies_to = ">=2.1.318 <2.1.319"
+rationale = "Support configured custom model slots 2 through 10 while preserving exact native model validation and alias deduplication. Current identifiers are captured from the model picker or validation branch.\nAudited 2.1.318 scopes: darwin-arm64/chunk-471wht77.js, linux-x64/chunk-bjbvd2mw.js.\nRetain the predecessor cleanup boundary: remove this override when upstream provides the same behavior through a supported setting.\n"
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/validateModel.ts#L44-L48"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "test.left"
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\([A-Za-z_$][A-Za-z0-9_$]*===[A-Za-z_$][A-Za-z0-9_$]*\\.ANTHROPIC_CUSTOM_MODEL_OPTION\\)return\\{valid:!0\\};$"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'for(let __acc_slot=2;__acc_slot<=10;__acc_slot++){const __acc_model=process.env["ANTHROPIC_CUSTOM_MODEL_OPTION_"+__acc_slot]?.trim();if(__acc_model&&%%CAPTURE:model%%===__acc_model)return{valid:!0};}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 skips probes for configured custom slots 2 through 10"
   assert_contains = "if(__acc_model&&r===__acc_model)return{valid:!0};"
   assert_not_contains = "if(n===process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_2?.trim())return{valid:!0};"

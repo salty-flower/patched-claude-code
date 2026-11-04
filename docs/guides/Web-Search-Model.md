@@ -22,7 +22,7 @@ This patch changes the model for the internal model-backed search path; upstream
 ```sh
 bun test tools/test/web-search-model.test.ts
 just render
-bun run tools/test/web-search-model-tui-smoke.ts --bundle staging/2.1.310/cli.patched.js
+bun run tools/test/web-search-model-tui-smoke.ts --bundle staging/2.1.318/cli.patched.js
 ```
 
 The smoke test uses an isolated config and local API stub.

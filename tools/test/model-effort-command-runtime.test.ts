@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import { readdirSync, readFileSync } from "node:fs"
 import { join, resolve } from "node:path"
+import { gte } from "semver"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
@@ -9,7 +10,7 @@ import { patchedFunction } from "./helpers/patched-function"
 type Update = { value?: string; ultracode?: boolean }
 type Result = { message: string; effortUpdate?: Update }
 type State = {
-  sessionEffort: { kind: string; value?: string }
+  sessionEffort: { kind: string; value?: string; steppedFrom?: string }
   ultracode: boolean
   effortByModel: Map<string, string>
   effortRevision: number
@@ -57,6 +58,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     let dispatched = 0
     let persisted: boolean | undefined
     let operations = 0
+    const nativeEffortCalls: Array<{ value?: string; steppedFrom?: string }> = []
     const parseToggle = (text: string): boolean | undefined => {
       if (text === "ultracode" || text === "ultracode on") return true
       if (text === "ultracode off") return false
@@ -101,14 +103,27 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       [binding("toggle parser", /([\w$]+)\(e\.trim\(\)\.toLowerCase\(\)\)/)]: parseToggle,
       [binding("native dispatcher", /result=await ([\w$]+)\(e,t/)]: dispatcher,
       [binding("native reset", /ultracode===void 0\)([\w$]+)\(\)/)]: () => {},
-      [binding("native effort constructor", /ultracode===void 0\?([\w$]+)\([\w$]+\.value\)/)]: (value?: string) => ({
-        kind: "level",
-        value,
-      }),
-      [binding("native effort equality", /if\(([\w$]+)\([\w$]+\.sessionEffort,[\w$]+\)/)]: (
-        left: unknown,
-        right: unknown,
-      ) => JSON.stringify(left) === JSON.stringify(right),
+      [binding("native effort constructor", /ultracode===void 0\?([\w$]+)\([\w$]+\.value(?:,[\w$]+\.steppedFrom)?\)/)]:
+        (value?: string, steppedFrom?: string) => {
+          nativeEffortCalls.push({ value, steppedFrom })
+          return value === undefined
+            ? { kind: "default" }
+            : { kind: "level", value, ...(steppedFrom && { steppedFrom }) }
+        },
+      [binding(
+        "native effort equality",
+        /(?:if\(|return )([\w$]+)\([\w$]+(?:\.sessionEffort,[\w$]+|,\{sessionEffort:)/,
+      )]: (left: unknown, right: unknown) => {
+        if (gte(version, "2.1.325")) {
+          const previous = left as State
+          const next = right as Pick<State, "sessionEffort" | "ultracode">
+          return (
+            JSON.stringify(previous.sessionEffort) === JSON.stringify(next.sessionEffort) &&
+            (previous.ultracode ?? false) === (next.ultracode ?? false)
+          )
+        }
+        return JSON.stringify(left) === JSON.stringify(right)
+      },
     }
     const runtimeCommandName = binding("command", /^async function ([\w$]+)\(/)
     const runtimeCurrentName = captureIdentifier(currentSource, "current reporter", /^function ([\w$]+)\(/)
@@ -127,7 +142,7 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     const run = (text: string) =>
       runtime.command(
         text,
-        { effort: "medium", ultracode: state.ultracode },
+        { effort: "medium", ultracode: state.ultracode, steppedFrom: "xhigh" },
         (update) => {
           state = update(state)
         },
@@ -165,6 +180,11 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     await run("low")
     expect(persisted).toBe(true)
     expect(state.sessionEffort.value).toBe("low")
+    // The native 2.1.325 constructor also records where an effort adjustment began.
+    // Verify the real command forwards that context while predecessor targets keep their one-argument contract.
+    const steppedFrom = gte(version, "2.1.325") ? "xhigh" : undefined
+    expect(nativeEffortCalls.at(-1)).toEqual({ value: "low", steppedFrom })
+    expect(state.sessionEffort.steppedFrom).toBe(steppedFrom)
     expect(state.effortRevision).toBe(2)
     expect(operations).toBe(2)
     remote = false

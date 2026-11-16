@@ -3521,3 +3521,347 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.318 excludes predecessor inserted bindings"
   assert_not_contains = 'function*U_t(){if(x_t.__acc_notice!==void 0){const __acc_notice=x_t.__acc_notice;delete x_t.__acc_notice;yield Xs({content:__acc_notice,error:"warning"})}'
+
+
+
+
+
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-325-darwin-arm64"
+lineage = "custom-model-slot-capabilities"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-e44qnbvj.js; h$ -> O1, Iu -> Df, _$ -> R1. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "O1"
+    source_regex = "^function O1\\(e,n\\)\\{if\\(Df\\(\\)\\)return;for\\(let r of R1\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin custom slots use the current capability resolver"
+  assert_contains = 'function O1(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'function h$(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-325-darwin-arm64"
+lineage = "explicit-capabilities-first-party"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-e44qnbvj.js; Iu -> Df, _$ -> R1. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "literal"
+locator_pattern = "if(Df())return;for(let r of R1)"
+replacement = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of R1){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(e))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===n)}if(Df())return;for(let r of R1)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of R1){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of _$){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+[[patches]]
+name = "effort-reactive-capability-2-1-325-darwin-arm64"
+lineage = "effort-reactive-capability"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-44yzsqrf.js; Kce -> Uge, d2e -> JKe, cLn -> Tmn, _k -> nT, Hoe -> gce. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Uge(n))r="high";if(r==="xhigh"&&!JKe(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin effort resolver preserves selected high levels"
+  assert_contains = 'function Tmn(e,n){let r=e;if(typeof r==="string"&&nT(r))r=gce(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'function cLn(e,n){let r=e;if(typeof r==="string"&&_k(r))r=Hoe(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-325-darwin-arm64"
+lineage = "effort-retry-notice-queue"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-wqb2b4v0.js; $V -> Bae, zn -> eo, nZn -> k0o, pbt -> S0o, ne -> Ee. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source = "if(!Bae(eo))return k0o(eo);"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'S0o.__acc_notice="Model "+Ee.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin retry notice follows the current refusal classifier"
+  assert_contains = 'if(!Bae(eo))return k0o(eo);S0o.__acc_notice="Model "+Ee.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'if(!$V(zn))return nZn(zn);pbt.__acc_notice="Model "+ne.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-325-darwin-arm64"
+lineage = "effort-retry-notice-drain"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-wqb2b4v0.js; xbt -> VLt, vbt -> zLt, pbt -> S0o, Vs -> Bs. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "VLt"
+    body_statement_count = 1
+    source_regex = "^function\\*VLt\\(\\)\\{if\\(zLt!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(S0o.__acc_notice!==void 0){const __acc_notice=S0o.__acc_notice;delete S0o.__acc_notice;yield Bs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin pending-message generator drains the retry notice"
+  assert_contains = 'function*VLt(){if(S0o.__acc_notice!==void 0){const __acc_notice=S0o.__acc_notice;delete S0o.__acc_notice;yield Bs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'function*xbt(){if(pbt.__acc_notice!==void 0){const __acc_notice=pbt.__acc_notice;delete pbt.__acc_notice;yield Vs({content:__acc_notice,error:"warning"})}'
+
+[[patches]]
+name = "custom-model-slot-capabilities-2-1-325-linux-x64"
+lineage = "custom-model-slot-capabilities"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-a5a37ds7.js; r$ -> K1, Iu -> Mf, n$ -> $1. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "K1"
+    source_regex = "^function K1\\(e,n\\)\\{if\\(Mf\\(\\)\\)return;for\\(let r of \\$1\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++){const __acc_key="ANTHROPIC_CUSTOM_MODEL_OPTION"+(__acc_slot===1?"":"_"+__acc_slot),__acc_model=process.env[__acc_key];if(!__acc_model?.trim()||__acc_norm(__acc_model)!==__acc_norm(%%CAPTURE:model%%))continue;const __acc_effort=process.env[__acc_key+"_EFFORT_LEVEL"]?.trim().toLowerCase();if(["low","medium","high","xhigh","max"].includes(__acc_effort??"")&&(%%CAPTURE:capability%%==="effort"||%%CAPTURE:capability%%==="max_effort"&&__acc_effort==="max"||%%CAPTURE:capability%%==="xhigh_effort"&&__acc_effort==="xhigh"))return true;const __acc_caps=process.env[__acc_key+"_SUPPORTED_CAPABILITIES"];if(__acc_caps!==undefined)return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux custom slots use the current capability resolver"
+  assert_contains = 'function K1(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'function r$(e,n){const __acc_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(let __acc_slot=1;__acc_slot<=10;__acc_slot++)'
+
+[[patches]]
+name = "explicit-capabilities-first-party-2-1-325-linux-x64"
+lineage = "explicit-capabilities-first-party"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = """
+2.1.325 minified-symbol variant, audited in chunk-a5a37ds7.js; Iu -> Mf, n$ -> $1. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior.
+Capture table, model, capability, provider gate, and loop binding rather than spelling the current $1 table identifier in inserted text; emitted runtime bytes remain unchanged.
+"""
+rationale_ref = "reference/v2.1.88/sources/src/utils/model/modelSupportOverrides.ts#L11-L50"
+locator_kind = "ast_transform"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux explicit capabilities use the current first-party table"
+  assert_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of $1){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'for(const {modelEnvVar,capabilitiesEnvVar} of n$){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;'
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "K1"
+    strings = [ "if(Mf())return;for(let r of $1)" ]
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+[patches.ast.captures.capability]
+kind = "identifier"
+path = "params.1"
+
+[patches.ast.captures.table]
+kind = "identifier"
+path = "body.body.1.right"
+
+[patches.ast.captures.gate]
+kind = "identifier"
+path = "body.body.0.test.callee"
+
+[patches.ast.captures.row]
+kind = "identifier"
+path = "body.body.1.left.declarations.0.id"
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "if(Mf())return;for(let r of $1)"
+  value = 'const __acc_fp_norm=(s)=>s.trim().replace(/\[1m\]/gi,"").toLowerCase();for(const {modelEnvVar,capabilitiesEnvVar} of %%CAPTURE:table%%){if(modelEnvVar==="ANTHROPIC_CUSTOM_MODEL_OPTION")continue;const __acc_model=process.env[modelEnvVar],__acc_caps=process.env[capabilitiesEnvVar];if(__acc_model?.trim()&&__acc_caps!==void 0&&__acc_fp_norm(__acc_model)===__acc_fp_norm(%%CAPTURE:model%%))return __acc_caps.toLowerCase().split(",").some((s)=>s.trim()===%%CAPTURE:capability%%)}if(%%CAPTURE:gate%%())return;for(let %%CAPTURE:row%% of %%CAPTURE:table%%)'
+[[patches]]
+name = "effort-reactive-capability-2-1-325-linux-x64"
+lineage = "effort-reactive-capability"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-k1rnnwp7.js; Lce -> Oge, rGe -> V3e, WLn -> dmn, yv -> ZE, Toe -> lce. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L169"
+locator_kind = "literal"
+locator_pattern = 'if(r==="max"&&!Oge(n))r="high";if(r==="xhigh"&&!V3e(n))r="high";'
+replacement = "/* effort capability is learned from backend refusal */"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux effort resolver preserves selected high levels"
+  assert_contains = 'function dmn(e,n){let r=e;if(typeof r==="string"&&ZE(r))r=lce(r,n);/* effort capability is learned from backend refusal */return r}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'function WLn(e,n){let r=e;if(typeof r==="string"&&yv(r))r=Toe(r,n);/* effort capability is learned from backend refusal */return r}'
+
+[[patches]]
+name = "effort-retry-notice-queue-2-1-325-linux-x64"
+lineage = "effort-retry-notice-queue"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-zaxe68t4.js; X2 -> Hle, zn -> eo, JJn -> n0o, ZSt -> o0o, ne -> ke. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L147-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source = "if(!Hle(eo))return n0o(eo);"
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'o0o.__acc_notice="Model "+ke.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux retry notice follows the current refusal classifier"
+  assert_contains = 'if(!Hle(eo))return n0o(eo);o0o.__acc_notice="Model "+ke.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'if(!X2(zn))return JJn(zn);ZSt.__acc_notice="Model "+ne.model+" rejected the effort parameter. Retrying without effort; the backend default is unknown. Effort stays disabled for this model in this session.";'
+
+[[patches]]
+name = "effort-retry-notice-drain-2-1-325-linux-x64"
+lineage = "effort-retry-notice-drain"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-zaxe68t4.js; Abt -> qLt, Sbt -> WLt, ZSt -> o0o, zs -> Bs. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L172-L180"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "qLt"
+    body_statement_count = 1
+    source_regex = "^function\\*qLt\\(\\)\\{if\\(WLt!==void 0\\)"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(o0o.__acc_notice!==void 0){const __acc_notice=o0o.__acc_notice;delete o0o.__acc_notice;yield Bs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux pending-message generator drains the retry notice"
+  assert_contains = 'function*qLt(){if(o0o.__acc_notice!==void 0){const __acc_notice=o0o.__acc_notice;delete o0o.__acc_notice;yield Bs({content:__acc_notice,error:"warning"})}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'function*Abt(){if(ZSt.__acc_notice!==void 0){const __acc_notice=ZSt.__acc_notice;delete ZSt.__acc_notice;yield zs({content:__acc_notice,error:"warning"})}'

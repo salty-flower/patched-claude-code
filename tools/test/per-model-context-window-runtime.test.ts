@@ -17,7 +17,7 @@ afterAll(() => {
 function injectContextWindowHarness(source: string): string {
   if (source.includes("__acc_model_context_key") && source.includes("export{")) {
     const resolverMatch = source.match(
-      /function ([A-Za-z_$][\w$]*)\([A-Za-z_$][\w$]*,[A-Za-z_$][\w$]*\)\{let __acc_model_context_key=/,
+      /function ([A-Za-z_$][\w$]*)\([A-Za-z_$][\w$]*,[A-Za-z_$][\w$]*(?:,[A-Za-z_$][\w$]*=\{context1mBeta:[^{}]+\})?\)\{let __acc_model_context_key=/,
     )
     if (!resolverMatch?.[1] || resolverMatch.index === undefined) {
       throw new Error("could not locate graph context-window resolver")
@@ -28,7 +28,8 @@ function injectContextWindowHarness(source: string): string {
     const exportIndex = source.lastIndexOf("export{")
     if (exportIndex === -1) throw new Error("could not locate graph module exports")
     const resolver = resolverMatch[1]
-    const harness = `${initializer ? `${initializer}();` : ""}process.stdout.write(JSON.stringify({alpha:${resolver}("alpha/model",[]),beta:${resolver}("beta-model",[]),tagged:${resolver}("alpha/model[1m]",[]),fallback:${resolver}("unconfigured-model",[])}));process.exit(0);`
+    const policy = gte(TARGET_VERSION, "2.1.325") ? ",{context1mBeta:false,longContextCredits:false}" : ""
+    const harness = `${initializer ? `${initializer}();` : ""}console.log(JSON.stringify({alpha:${resolver}("alpha/model",[]${policy}),beta:${resolver}("beta-model",[]${policy}),tagged:${resolver}("alpha/model[1m]",[]${policy}),fallback:${resolver}("unconfigured-model",[]${policy})}));process.exit(0);`
     return `${source.slice(0, exportIndex)}${harness}${source.slice(exportIndex)}`
   }
 
@@ -44,7 +45,7 @@ function injectContextWindowHarness(source: string): string {
   const start = entrypointMatch.index + entrypointMatch[0].indexOf(entrypointMatch[1])
   const resolveContextWindow = gte(TARGET_VERSION, "2.1.241") ? "W$d" : "jCd"
   const contextWindowModuleThunk = gte(TARGET_VERSION, "2.1.241") ? "qP" : "HP"
-  const harness = `${contextWindowModuleThunk}();process.stdout.write(JSON.stringify({alpha:${resolveContextWindow}("alpha/model",[]),beta:${resolveContextWindow}("beta-model",[]),tagged:${resolveContextWindow}("alpha/model[1m]",[]),fallback:${resolveContextWindow}("unconfigured-model",[])}));process.exit(0);`
+  const harness = `${contextWindowModuleThunk}();console.log(JSON.stringify({alpha:${resolveContextWindow}("alpha/model",[]),beta:${resolveContextWindow}("beta-model",[]),tagged:${resolveContextWindow}("alpha/model[1m]",[]),fallback:${resolveContextWindow}("unconfigured-model",[])}));process.exit(0);`
   return `${source.slice(0, start)}${harness}${source.slice(start + entrypointMatch[1].length)}`
 }
 

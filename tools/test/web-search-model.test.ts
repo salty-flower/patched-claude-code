@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
 import { parseSync } from "oxc-parser"
+import { applyPatchEntries } from "../lib/apply-patches"
 import { loadGraphBundle } from "../lib/graph-bundle"
 import { loadPatchEntriesFromFile, type PatchEntry } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
@@ -19,7 +20,7 @@ function literal(entry: PatchEntry): { locator: string; replacement: string } {
 
 for (const platform of ["darwin-arm64", "linux-x64"] as const) {
   describe(platform, () => {
-    test("native search expression preserves both fallback branches and bypasses the flag for overrides", async () => {
+    test("native search expression preserves fallback branches and native flag bookkeeping", async () => {
       const graphRoot = join(root, "staging", version, "graph", platform)
       const entry = literal(activePatch(entries, version, platform, "web-search-model-select-"))
       const matching = loadGraphBundle(graphRoot, platform).files.filter((file) => file.text.includes(entry.locator))
@@ -27,18 +28,24 @@ for (const platform of ["darwin-arm64", "linux-x64"] as const) {
       const matched = matching[0]
       if (!matched) throw new Error("native WebSearch module missing")
       const source = matched.text
-      const selection = entry.locator.match(
+      const inlineSelection = entry.locator.match(
         /^([\w$]+)=([\w$]+)\("tengu_plum_vx3",!1\)\?([\w$]+)\(\):([\w$]+)\.mainLoopModel\(\)$/,
       )
+      const splitSelection = entry.locator.match(/^([\w$]+)=([\w$]+)\?([\w$]+)\(\):([\w$]+)\.mainLoopModel\(\)$/)
+      const selection = inlineSelection ?? splitSelection
       if (!selection) throw new Error("native WebSearch model selection changed")
-      const [, selected, flagReader, small, context] = selection
+      const [, selected, flag, small, context] = selection
+      const flagAssignment = splitSelection
+        ? source.match(new RegExp(`\\b${flag?.replace(/\$/g, "\\$")}=([\\w$]+)\\("tengu_plum_vx3",!1\\)`))
+        : undefined
+      const flagReader = splitSelection ? flagAssignment?.[1] : flag
       if (!selected || !flagReader || !small || !context) throw new Error("native WebSearch bindings missing")
-      let patched = source
-      for (const prefix of ["web-search-model-parser-", "web-search-model-select-"]) {
-        const entry = literal(activePatch(entries, version, platform, prefix))
-        expect(source.split(entry.locator)).toHaveLength(2)
-        patched = patched.replace(entry.locator, () => entry.replacement)
-      }
+      if (splitSelection) expect(source).toContain(`leavesLimitStateAlone:${flag}?!0:void 0`)
+      const patched = applyPatchEntries(
+        source,
+        entries.filter((entry) => !entry.platforms || entry.platforms.includes(platform)),
+        version,
+      ).source
       const parsed = parseSync("web-search.js", patched, { sourceType: "module" })
       expect(parsed.errors).toEqual([])
       expect(() => new Bun.Transpiler({ loader: "js" }).transformSync(patched)).not.toThrow()
@@ -95,9 +102,14 @@ for (const platform of ["darwin-arm64", "linux-x64"] as const) {
             },
           }
           const run = (expression: string) =>
-            new Function(...Object.keys(bindings), `let ${expression};return ${selected}`)(...Object.values(bindings))
+            new Function(
+              ...Object.keys(bindings),
+              `let ${flagAssignment ? `${flagAssignment[0]},` : ""}${expression};return ${selected}`,
+            )(...Object.values(bindings))
           const result = run(entry.replacement)
-          expect(calls).toEqual(override ? ["parse"] : ["flag", flag ? "small" : "main"])
+          expect(calls).toEqual(
+            override ? [...(splitSelection ? ["flag"] : []), "parse"] : ["flag", flag ? "small" : "main"],
+          )
           expect(result).toBe(override ? `resolved:${override}` : run(entry.locator))
         }
       }

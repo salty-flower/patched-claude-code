@@ -10427,3 +10427,74 @@ locator_kind = "ast_transform"
   kind = "static"
   name = "2.1.318 excludes predecessor inserted bindings"
   assert_not_contains = "function tH(e){return jm()&&(e===void 0||De(e)||Cce(e)&&wgn(e)===null)}"
+
+
+
+
+
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-325-darwin"
+lineage = "ultracode-capability-max-fallback"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-44yzsqrf.js; rN -> S$, qf -> th, Kce -> Uge, CZt -> Emn. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "S$"
+    source = "function S$(e){return th()&&(e===void 0||Ve(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return th()&&(e===void 0||Ve(e)||Uge(e)&&Emn(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin ultracode uses current max helpers"
+  assert_contains = "function S$(e){return th()&&(e===void 0||Ve(e)||Uge(e)&&Emn(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "function rN(e){return qf()&&(e===void 0||Ve(e)||Kce(e)&&CZt(e)===null)}"
+
+[[patches]]
+name = "ultracode-capability-max-fallback-2-1-325-linux"
+lineage = "ultracode-capability-max-fallback"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-k1rnnwp7.js; eN -> _U, qp -> th, Lce -> Oge, lZt -> imn. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/utils/effort.ts#L152-L167"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "_U"
+    source = "function _U(e){return th()&&(e===void 0||Ve(e))}"
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{return th()&&(e===void 0||Ve(e)||Oge(e)&&imn(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux ultracode uses current max helpers"
+  assert_contains = "function _U(e){return th()&&(e===void 0||Ve(e)||Oge(e)&&imn(e)===null)}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "function eN(e){return qp()&&(e===void 0||Ve(e)||Lce(e)&&lZt(e)===null)}"

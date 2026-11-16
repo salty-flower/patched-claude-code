@@ -109,6 +109,9 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
   const materialized = keychain("materialized mode rejects default-Keychain legacy mutations and doctor probes")
   const plugin = keychain("real plugin eval child uses materialized selected-Keychain credentials without preload")
   const result: Record<string, string[]> = {
+    "account-email-context/no-model-context-email": [
+      "account-email-context-runtime.test.ts: account email stays outside main and subagent requests",
+    ],
     "web-search-model/independent-search-model": WEB_SEARCH_MODEL_RUNTIME_CHECKS,
     "local-prompt-ablation/local-source-admission": [
       "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission",

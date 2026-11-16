@@ -2680,11 +2680,28 @@
       "oracleIds": [
         "web-search-model/independent-search-model"
       ]
+    },
+    {
+      "familyId": "account-email-context",
+      "invariantId": "no-model-context-email",
+      "introducedVersion": "2.1.325",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/context.ts#L152-L189",
+        "reference/v2.1.88/sources/src/services/api/claude.ts#L1257-L1285"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "account-email-context/no-model-context-email"
+      ]
     }
   ],
   "maintainerAcknowledgement": {
-    "approvedBy": "maintainer (interactive approval)",
-    "approvedAt": "2026-10-24",
-    "catalogSha256": "bb0d01739b49562a6dd9787701d2614e5c62b765729573ccefe47ece49106054"
+    "approvedBy": "maintainer (explicit interactive approval)",
+    "approvedAt": "2026-11-16",
+    "catalogSha256": "ffc5b257cc64001ec7704426d032896bcfd109f309f0403e1a2f8f4814d9d65b"
   }
 }

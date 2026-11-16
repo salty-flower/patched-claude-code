@@ -1,6 +1,6 @@
 name = "system-prompt-section-overrides"
 enabled = true
-target_version = "2.1.318"
+target_version = "2.1.325"
 applies_to = ">=2.1.217 <2.2.0"
 
 [[patches]]
@@ -776,3 +776,147 @@ locator_kind = "ast_transform"
   name = "318 diagnostic observes final body after native bookkeeping"
   assert_contains = "?.(body,ne.querySource),body))((pA=Zc.effort??null,tM=Zc.now,jf))"
   assert_not_contains = "?.(body,Q.querySource),body))(Vc)"
+
+[[patches]]
+name = "system-prompt-section-override-bridge-2-1-325-darwin-arm64"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.325 darwin-arm64 gL(e,n,r) constructor awaits structured sections s then returns ZHo(s,nee()?eU:null).map((h)=>UVe(h)). Its third parameter r retains analysisOnly, teammate and isDetached. Wrap only the native render expression, preserving replay-aware composition and native bypasses."
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "map"
+    source_regex = "^ZHo\\(s,nee\\(\\)\\?eU:null\\)\\.map\\("
+    parent_node = "ReturnStatement"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((render)=>r?.analysisOnly||r?.teammate||r?.isDetached?render(s):globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v2")]?.({sections:s,render})??((orderedSections)=>globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v1")]?.({orderedSections})?.effectiveSections??orderedSections)(render(s)))((s)=>%%EXPR%%)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 bridge preserves current section renderer"
+  assert_contains = "ZHo(s,nee()?eU:null).map((h)=>UVe(h))"
+  assert_not_contains = "Fto(s,MY()?GL:null).map((h)=>aMe(h))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 structured bridge retains options bypass and sections binding"
+  assert_contains = 'r?.analysisOnly||r?.teammate||r?.isDetached?render(s):globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v2")]?.({sections:s,render})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 excludes predecessor bridge preserves current section renderer"
+  assert_not_contains = "Ueo(s,EX()?tU:null).map((h)=>T1e(h))"
+
+[[patches]]
+name = "system-prompt-final-request-diagnostic-2-1-325-darwin-arm64"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "The 2.1.325 darwin-arm64 request builder normalizes and sanitizes Yp, retains output_config effort bookkeeping, then returns rM=hy.effort??null,lW=hy.now,Yp. Its outer normalized options Ee own querySource, used by the same builder's tracking and permission context. Wrap the complete final sequence without changing its order or returned object."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1699-L1729"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "SequenceExpression"
+    source = "rM=hy.effort??null,lW=hy.now,Yp"
+    parent_node = "ReturnStatement"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((body)=>(globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.request.v2")]?.(body,Ee.querySource),body))((%%EXPR%%))'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 diagnostic observes final body after native bookkeeping"
+  assert_contains = "?.(body,Ee.querySource),body))((rM=hy.effort??null,lW=hy.now,Yp))"
+  assert_not_contains = "?.(body,Q.querySource),body))(Yc)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 excludes predecessor diagnostic observes final body after native bookkeeping"
+  assert_not_contains = "?.(body,ne.querySource),body))((tA=Zc.effort??null,iM=Zc.now,Tf))"
+
+[[patches]]
+name = "system-prompt-section-override-bridge-2-1-325-linux-x64"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.325 linux-x64 pL(e,n,r) constructor awaits structured sections s then returns eBo(s,VZ()?QU:null).map((h)=>Lqe(h)). Its third parameter r retains analysisOnly, teammate and isDetached. Wrap only the native render expression, preserving replay-aware composition and native bypasses."
+rationale_ref = "reference/v2.1.88/sources/src/constants/prompts.ts#L444-L576"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    callee_property = "map"
+    source_regex = "^eBo\\(s,VZ\\(\\)\\?QU:null\\)\\.map\\("
+    parent_node = "ReturnStatement"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((render)=>r?.analysisOnly||r?.teammate||r?.isDetached?render(s):globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v2")]?.({sections:s,render})??((orderedSections)=>globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v1")]?.({orderedSections})?.effectiveSections??orderedSections)(render(s)))((s)=>%%EXPR%%)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 bridge preserves current section renderer"
+  assert_contains = "eBo(s,VZ()?QU:null).map((h)=>Lqe(h))"
+  assert_not_contains = "Lto(s,T9()?U0:null).map((h)=>tMe(h))"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 structured bridge retains options bypass and sections binding"
+  assert_contains = 'r?.analysisOnly||r?.teammate||r?.isDetached?render(s):globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.v2")]?.({sections:s,render})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 excludes predecessor bridge preserves current section renderer"
+  assert_not_contains = "heo(s,cX()?JF:null).map((h)=>SBe(h))"
+
+[[patches]]
+name = "system-prompt-final-request-diagnostic-2-1-325-linux-x64"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "The 2.1.325 linux-x64 request builder normalizes and sanitizes Yp, retains output_config effort bookkeeping, then returns iM=hy.effort??null,rW=hy.now,Yp. Its outer normalized options ke own querySource, used by the same builder's tracking and permission context. Wrap the complete final sequence without changing its order or returned object."
+rationale_ref = "reference/v2.1.88/sources/src/services/api/claude.ts#L1699-L1729"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "SequenceExpression"
+    source = "iM=hy.effort??null,rW=hy.now,Yp"
+    parent_node = "ReturnStatement"
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '((body)=>(globalThis[Symbol.for("patched-claude-code.system-prompt-overrides.request.v2")]?.(body,ke.querySource),body))((%%EXPR%%))'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 diagnostic observes final body after native bookkeeping"
+  assert_contains = "?.(body,ke.querySource),body))((iM=hy.effort??null,rW=hy.now,Yp))"
+  assert_not_contains = "?.(body,Q.querySource),body))(Vc)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 excludes predecessor diagnostic observes final body after native bookkeeping"
+  assert_not_contains = "?.(body,ne.querySource),body))((pA=Zc.effort??null,tM=Zc.now,jf))"

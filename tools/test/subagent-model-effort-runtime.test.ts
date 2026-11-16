@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import { join, resolve } from "node:path"
 import { parseSync } from "oxc-parser"
+import { gte } from "semver"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
 import { targetVersion } from "../lib/target"
 import { activePatch, captureIdentifier } from "./helpers/patch-contract"
@@ -49,18 +50,29 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     const model = binding("requested model", /;if\([^;]+\)([\w$]+)=patchedAgentEffort=/)
     const relative = binding("relative effort", /patchedAgentEffort=[\w$]+=([\w$]+)=void 0/)
     const effortStart = source.indexOf("if(patchedAgentEffort!==void 0")
+    const policyDeclaration = native.body.body.find(
+      (statement) =>
+        statement.type === "VariableDeclaration" &&
+        source.slice(statement.start, statement.end).includes('"inherit"') &&
+        source.slice(statement.start, statement.end).includes("spawnedByWorkflowRunId"),
+    )
+    if (gte(version, "2.1.325")) expect(policyDeclaration).toBeDefined()
     const tail = source.slice(effortStart).match(/;([\w$]+)=[\w$]+\?\.agentDefinition\?\?\1;/)
     if (effortStart < 0 || !tail || tail.index === undefined) {
       throw new Error("shipped Agent effort calculation boundaries changed")
     }
-    const calculation = source.slice(effortStart, effortStart + tail.index + tail[0].length)
+    const calculation = source.slice(policyDeclaration?.start ?? effortStart, effortStart + tail.index + tail[0].length)
     const definition = tail[1]
     if (!definition) throw new Error("shipped Agent definition binding missing")
+    const forkSelection = calculation.match(/let ([\w$]+)=([\w$]+)\?"inherit":([\w$]+),/)
     const selection = calculation.match(
-      /let ([\w$]+)=([\w$]+)\?"inherit":([\w$]+),([\w$]+)=([\w$]+)\(([\w$]+)\(([\w$]+),([\w$]+)\),\8,\1,([\w$]+)\);/,
+      /(?:let |,)([\w$]+)=([\w$]+)\(([\w$]+)\(([\w$]+),([\w$]+)\),\5,([\w$]+),([\w$]+)(,\{agentDef:\4\})?\);/,
     )
-    if (!selection || selection[7] !== definition) throw new Error("shipped Agent model selection changed")
-    const [, , fork, modelAlias, , modelResolver, definitionReader, , parentModel, permissionMode] = selection
+    if (!selection || !forkSelection || selection[4] !== definition || selection[6] !== forkSelection[1]) {
+      throw new Error("shipped Agent model selection changed")
+    }
+    const [, , modelResolver, definitionReader, , parentModel, , permissionMode, definitionOption] = selection
+    const [, , fork, modelAlias] = forkSelection
     if (!fork || !modelAlias || !modelResolver || !definitionReader || !parentModel || !permissionMode) {
       throw new Error("shipped Agent model selection bindings missing")
     }
@@ -74,7 +86,21 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
     const teammateFallback = source.match(/effort:patchedAgentEffort\?\?([\w$]+)\?\.effort/)
     const teammateDefinition = teammateFallback?.[1]
     if (!teammateDefinition) throw new Error("shipped teammate effort fallback missing")
-    const run = (effort?: string, coordinator = false, relativeEnabled = true, isFork = false): Result => {
+    const definitionPolicy =
+      policyDeclaration &&
+      source
+        .slice(policyDeclaration.start, policyDeclaration.end)
+        .match(/:([\w$]+)\(([\w$]+),\{parentModel:([\w$]+)\(([\w$]+)\),callModel:([\w$]+),/)
+    if (policyDeclaration && (!definitionPolicy || definitionPolicy[2] !== definition)) {
+      throw new Error("shipped Agent definition policy changed")
+    }
+    const run = (
+      effort?: string,
+      coordinator = false,
+      relativeEnabled = true,
+      isFork = false,
+      policyEffort?: string,
+    ): Result => {
       const adjustments: number[] = []
       const resolutionEfforts: Array<string | undefined> = []
       const context = { getAppState: () => ({}), permissionLayers: [] }
@@ -87,7 +113,18 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
           CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL: true,
         },
         [fork]: isFork,
-        [modelResolver]: (_definition: Definition, _parent: string, selected?: string) => selected ?? "parent-model",
+        [modelResolver]: (
+          selectedDefinition: Definition,
+          parent: string,
+          selected: string | undefined,
+          mode: string,
+          options?: { agentDef: Definition },
+        ) => {
+          expect(parent).toBe("parent-model")
+          expect(mode).toBe("default")
+          expect(options).toEqual(definitionOption ? { agentDef: selectedDefinition } : undefined)
+          return selected ?? "parent-model"
+        },
         [definitionReader]: (definition: Definition) => {
           resolutionEfforts.push(definition.effort)
           return definition
@@ -113,6 +150,29 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
         [parentModel]: "parent-model",
         [remote]: false,
         [permissionMode]: "default",
+      }
+      if (definitionPolicy?.[1] && definitionPolicy[3]) {
+        bindings[definitionPolicy[1]] = (
+          definition: Definition,
+          options: {
+            parentModel: string
+            callModel: string
+            inheritedLayers: unknown[]
+            isResume: boolean
+          },
+        ) => {
+          expect(options).toMatchObject({
+            parentModel: "parent-model",
+            callModel: isFork ? "inherit" : coordinator ? undefined : "custom-worker",
+            inheritedLayers: context.permissionLayers,
+            isResume: false,
+          })
+          return { definition: { ...definition, effort: policyEffort ?? definition.effort } }
+        }
+        bindings[definitionPolicy[3]] = (actualContext: unknown) => {
+          expect(actualContext).toBe(context)
+          return "parent-model"
+        }
       }
       if (pickedEffortModel?.[1]) {
         bindings[pickedEffortModel[1]] = (actualContext: unknown) => {
@@ -165,6 +225,12 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
       teammateEffort: "medium",
       requestEffort: undefined,
     })
+    if (policyDeclaration) {
+      expect(run(undefined, false, true, false, "low")).toMatchObject({
+        definition: { effort: "low" },
+        resolutionEfforts: ["low"],
+      })
+    }
     for (const effort of ["lower", "higher", "xhigh"]) {
       expect(run(effort, true)).toMatchObject({
         absolute: undefined,

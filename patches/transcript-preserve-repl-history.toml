@@ -1,5 +1,5 @@
 name = "transcript-preserve-repl-history"
-target_version = "2.1.318"
+target_version = "2.1.325"
 applies_to = ">=2.1.133 <2.2.0"
 
 rationale = """
@@ -50,3 +50,13 @@ assert_not_contains = 'function bBe(e,n=e){let r=e.filter(ev).map((h)=>YOt(whe(h
 kind = "static"
 name = "2.1.318 linux-x64 removes the native conditional path"
 assert_not_contains = 'function m1e(e,n=e){let r=e.filter(Zv).map((h)=>HOt(fhe(h)));if(iZr()==="ant")return r;if(ae()&&_u().project?.currentSessionCodeMode===!0)return r;let s=n instanceof Set?n:typeof n==="function"?n():C6t(n);return k_o(r,s)}'
+
+[[tests]]
+kind = "static"
+name = "2.1.325 Darwin omits the native rewrite gate"
+assert_not_contains = 'if(avo()==="ant")return r;'
+
+[[tests]]
+kind = "static"
+name = "2.1.325 Linux omits the native rewrite gate"
+assert_not_contains = 'if(Lvo()==="ant")return r;'

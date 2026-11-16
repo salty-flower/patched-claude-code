@@ -122,13 +122,16 @@ for (const platform of ["darwin-arm64", "linux-x64"]) {
         table.byModel[slug] ?? table.default,
       [binding("carried effort default", /carriedEffort===void 0\?([\w$]+)\(\):carriedEffort!==null/)]: () =>
         carriedEffortValue,
-      [binding("wrapper carried default", /carriedEffort:[\w$]+=([\w$]+)\(e\)/)]: () => carriedEffortValue,
+      [binding("wrapper carried default", /carriedEffort:[\w$]+=([\w$]+)\((?:[\w$]+\()?e\)/)]: () => carriedEffortValue,
       [binding("with-hold predicate", /&&([\w$]+)\(modelName\)!==void 0\)nativeTable=void 0/)]: (model: string) =>
         heldModels.has(normalize(model)) ? "low" : undefined,
       [binding("numeric capability", /let __acc_numeric=([\w$]+)\(e\)!==null/)]: (model: string) =>
         numericModels.has(normalize(model)) ? { numeric: true } : null,
       [binding("hook normalizer", /\?([\w$]+)\(s\):s;return/)]: normalizeNumeric,
       process: { env: environment },
+    }
+    if (gte(targetVersion(), "2.1.325")) {
+      bindings[binding("native model normalization", /e=([\w$]+)\(e\);let __acc_numeric/)] = normalize
     }
     // Execute both the active replacement and its public wrapper, not a reimplementation.
     const { read, turn } = new Function(

@@ -810,3 +810,82 @@ path = "params.0"
   kind = "static"
   name = "318 rejects predecessor inserted bindings"
   assert_not_contains = "function Km(e,n){let __acc_model_context_key="
+
+
+
+
+
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-325-darwin-arm64"
+lineage = "resolve-model-specific-context-window"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-e44qnbvj.js; pg -> Bg, e -> n, n -> r, r -> s, OA -> IC. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior. The public wrapper now accepts context1mBeta and credit policy; the per-model override remains ahead of native policy window selection."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Bg"
+    source_regex = "^function Bg\\(e,n,r=\\{context1mBeta:"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = "function pg(e,n){let __acc_model_context_key="
+
+[[patches]]
+name = "resolve-model-specific-context-window-2-1-325-linux-x64"
+lineage = "resolve-model-specific-context-window"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-a5a37ds7.js; fg -> Bg, e -> n, n -> r, r -> s, RA -> OC. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior. The public wrapper now accepts context1mBeta and credit policy; the per-model override remains ahead of native policy window selection."
+rationale_ref = "reference/v2.1.88/sources/src/utils/context.ts#L51-L98"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+[patches.ast.captures.model]
+kind = "identifier"
+path = "params.0"
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Bg"
+    source_regex = "^function Bg\\(e,n,r=\\{context1mBeta:"
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+%%CAPTURE:model%%.replace(/\[1m\]$/i,"").replace(/[^a-zA-Z0-9]/g,"_"),__acc_model_context=parseInt(process.env[__acc_model_context_key]??"",10);if(Number.isFinite(__acc_model_context)&&__acc_model_context>0)return __acc_model_context;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'let __acc_model_context_key="CLAUDE_CODE_MAX_CONTEXT_TOKENS_"+e.replace'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = "function fg(e,n){let __acc_model_context_key="

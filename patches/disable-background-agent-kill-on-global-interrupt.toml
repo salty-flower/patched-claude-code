@@ -2463,3 +2463,277 @@ expected_matches = 1
   kind = "static"
   name = "318 rejects previous target binding 7"
   assert_not_contains = 'if(Ar||Ce&&Er){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(St.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Ot)||__hadForegroundAgent;return Po.current=Date.now(),a("tengu_cancel",kr),__hadForegroundAgent?setTimeout(()=>{xk.of(Ht).stopRunning(),x()},0):(xk.of(Ht).stopRunning(),x()),!0}'
+
+[[patches]]
+name = "global-interrupt-cancel-only-2-1-325"
+lineage = "global-interrupt-cancel-only"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+rationale = "2.1.325 minified-symbol variant, verified against the both semantic owner scope. Preserve workflow history, question answers, coordinator attribution, and foreground handoff semantics. Local bindings: none; semantic byte locator only."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ObjectExpression"
+    source = '{gesture:"ctrl_c"}'
+
+  [patches.transform]
+  op = "set_object_property"
+  property = "suppressBackgroundAgentKill"
+  value = "!0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 global Ctrl+C suppresses background-agent kills"
+  assert_contains = '{gesture:"ctrl_c",suppressBackgroundAgentKill:!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 has no stale bare global ctrl_c options object"
+  assert_not_contains = '({gesture:"ctrl_c"})'
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-325-darwin-arm64"
+lineage = "foreground-agent-handoff-helper-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, verified against the darwin-arm64 semantic owner scope. Preserve workflow history, question answers, coordinator attribution, and foreground handoff semantics. Local bindings: nce -> xue, LIe -> GFe, ms -> Lr, Ue -> $e, os -> Rs, Ot -> $t, eo -> Jt, Lo -> Po, wr -> er, jT -> $k, Jt -> Yt, D -> P."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "xue"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = 'import {GFe as __pccBackgroundForegroundAgent} from "./chunk-wqb2b4v0.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin imports the current foreground-agent helper"
+  assert_contains = 'import {GFe as __pccBackgroundForegroundAgent} from "./chunk-wqb2b4v0.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin excludes the stale foreground-agent helper import"
+  assert_not_contains = 'import {ame as __pccBackgroundForegroundAgent} from "./chunk-nwqfvmza.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous target: 2.1.296 Darwin imports the current foreground-agent helper"
+  assert_not_contains = 'import {Aze as __pccBackgroundForegroundAgent} from "./chunk-sfn1dbxq.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 inserted scope 3"
+  assert_not_contains = 'import {m3e as __pccBackgroundForegroundAgent} from "./chunk-996thspe.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous: 2.1.304 Darwin imports the current foreground-agent helper"
+  assert_not_contains = 'import {M5e as __pccBackgroundForegroundAgent} from "./chunk-na9nw575.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 rejects previous target binding 6"
+  assert_not_contains = 'import {QXe as __pccBackgroundForegroundAgent} from "./chunk-31gxg38t.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes 2.1.318 inserted scope 7"
+  assert_not_contains = 'import {LIe as __pccBackgroundForegroundAgent} from "./chunk-0x9x817t.js";'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-325-darwin-arm64"
+lineage = "foreground-agent-handoff-before-cancel"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, verified against the darwin-arm64 semantic owner scope. Preserve workflow history, question answers, coordinator attribution, and foreground handoff semantics. Local bindings: nce -> xue, LIe -> GFe, ms -> Lr, Ue -> $e, os -> Rs, Ot -> $t, eo -> Jt, Lo -> Po, wr -> er, jT -> $k, Jt -> Yt, D -> P."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(Lr\\|\\|\\$e&&Rs\\)return"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'if(Lr||$e&&Rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries($t.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Jt)||__hadForegroundAgent;return Po.current=Date.now(),l("tengu_cancel",er),__hadForegroundAgent?setTimeout(()=>{$k.of(Yt).stopRunning(),P()},0):($k.of(Yt).stopRunning(),P()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin hands foreground local agents off before cancellation"
+  assert_contains = 'if(Lr||$e&&Rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries($t.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Jt)||__hadForegroundAgent;return Po.current=Date.now(),l("tengu_cancel",er),__hadForegroundAgent?setTimeout(()=>{$k.of(Yt).stopRunning(),P()},0):($k.of(Yt).stopRunning(),P()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin no longer cancels before foreground handoff"
+  assert_not_contains = 'if(br||Ie&&$r)return ko.current=Date.now(),i("tengu_cancel",Mr),vv.of(Ht).stopRunning(),T(),!0'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin rejects the previous handoff task map"
+  assert_not_contains = 'Object.entries(pt.getState().tasks))if(__agent.type==="local_agent"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous target: 2.1.296 Darwin hands foreground local agents off before cancellation"
+  assert_not_contains = 'if(_r||Te&&ss){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(Ct.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Ft)||__hadForegroundAgent;return Mo.current=Date.now(),i("tengu_cancel",dr),__hadForegroundAgent?setTimeout(()=>{lE.of(Et).stopRunning(),T()},0):(lE.of(Et).stopRunning(),T()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 inserted scope 4"
+  assert_not_contains = 'if(br||Ie&&$r){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(_t.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Nt)||__hadForegroundAgent;return ko.current=Date.now(),i("tengu_cancel",Mr),__hadForegroundAgent?setTimeout(()=>{vv.of(Ht).stopRunning(),T()},0):(vv.of(Ht).stopRunning(),T()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous: 2.1.304 Darwin hands foreground local agents off before cancellation"
+  assert_not_contains = 'if(wr||Ee&&Ar){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(Tt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Nt)||__hadForegroundAgent;return go.current=Date.now(),i("tengu_cancel",Pr),__hadForegroundAgent?setTimeout(()=>{Wv.of(Ht).stopRunning(),R()},0):(Wv.of(Ht).stopRunning(),R()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 rejects previous target binding 7"
+  assert_not_contains = 'if(Ar||Ae&&Er){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(bt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Ot)||__hadForegroundAgent;return vo.current=Date.now(),a("tengu_cancel",kr),__hadForegroundAgent?setTimeout(()=>{Pk.of(Ht).stopRunning(),x()},0):(Pk.of(Ht).stopRunning(),x()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes 2.1.318 inserted scope 8"
+  assert_not_contains = 'if(ms||Ue&&os){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(Ot.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,eo)||__hadForegroundAgent;return Lo.current=Date.now(),l("tengu_cancel",wr),__hadForegroundAgent?setTimeout(()=>{jT.of(Jt).stopRunning(),D()},0):(jT.of(Jt).stopRunning(),D()),!0}'
+
+[[patches]]
+name = "foreground-agent-handoff-helper-import-2-1-325-linux-x64"
+lineage = "foreground-agent-handoff-helper-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, verified against the linux-x64 semantic owner scope. Preserve workflow history, question answers, coordinator attribution, and foreground handoff semantics. Local bindings: ace -> Pue, xOe -> UFe, ms -> Lr, Fe -> $e, os -> Rs, It -> $t, eo -> Jt, Lo -> To, wr -> er, FA -> HE, Jt -> Yt, I -> P."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "Pue"
+    string = "tengu_cancel"
+
+  [patches.transform]
+  op = "insert_before_node"
+  code = 'import {UFe as __pccBackgroundForegroundAgent} from "./chunk-zaxe68t4.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux imports the current foreground-agent helper"
+  assert_contains = 'import {UFe as __pccBackgroundForegroundAgent} from "./chunk-zaxe68t4.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux excludes the stale foreground-agent helper import"
+  assert_not_contains = 'import {tme as __pccBackgroundForegroundAgent} from "./chunk-g263vvvn.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous target: 2.1.296 Linux imports the current foreground-agent helper"
+  assert_not_contains = 'import {y2e as __pccBackgroundForegroundAgent} from "./chunk-kasbfbhj.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 inserted scope 3"
+  assert_not_contains = 'import {iYe as __pccBackgroundForegroundAgent} from "./chunk-38nf1dnm.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous: 2.1.304 Linux imports the current foreground-agent helper"
+  assert_not_contains = 'import {T5e as __pccBackgroundForegroundAgent} from "./chunk-rncrmfyt.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 rejects previous target binding 6"
+  assert_not_contains = 'import {GXe as __pccBackgroundForegroundAgent} from "./chunk-j0tbz6ra.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes 2.1.318 inserted scope 7"
+  assert_not_contains = 'import {xOe as __pccBackgroundForegroundAgent} from "./chunk-5xgkngpb.js";'
+
+[[patches]]
+name = "foreground-agent-handoff-before-cancel-2-1-325-linux-x64"
+lineage = "foreground-agent-handoff-before-cancel"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, verified against the linux-x64 semantic owner scope. Preserve workflow history, question answers, coordinator attribution, and foreground handoff semantics. Local bindings: ace -> Pue, xOe -> UFe, ms -> Lr, Fe -> $e, os -> Rs, It -> $t, eo -> Jt, Lo -> To, wr -> er, FA -> HE, Jt -> Yt, I -> P."
+rationale_ref = "reference/v2.1.88/sources/src/hooks/useCancelRequest.ts#L156-L217"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(Lr\\|\\|\\$e&&Rs\\)return"
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'if(Lr||$e&&Rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries($t.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Jt)||__hadForegroundAgent;return To.current=Date.now(),l("tengu_cancel",er),__hadForegroundAgent?setTimeout(()=>{HE.of(Yt).stopRunning(),P()},0):(HE.of(Yt).stopRunning(),P()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux hands foreground local agents off before cancellation"
+  assert_contains = 'if(Lr||$e&&Rs){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries($t.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Jt)||__hadForegroundAgent;return To.current=Date.now(),l("tengu_cancel",er),__hadForegroundAgent?setTimeout(()=>{HE.of(Yt).stopRunning(),P()},0):(HE.of(Yt).stopRunning(),P()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux no longer cancels before foreground handoff"
+  assert_not_contains = 'if(wr||_e&&Ar)return go.current=Date.now(),i("tengu_cancel",Pr),jE.of(Ht).stopRunning(),R(),!0'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux rejects the previous handoff task map"
+  assert_not_contains = 'Object.entries(pt.getState().tasks))if(__agent.type==="local_agent"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous target: 2.1.296 Linux hands foreground local agents off before cancellation"
+  assert_not_contains = 'if(_r||Ce&&ss){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(vt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,$t)||__hadForegroundAgent;return Io.current=Date.now(),i("tengu_cancel",dr),__hadForegroundAgent?setTimeout(()=>{av.of(Ht).stopRunning(),C()},0):(av.of(Ht).stopRunning(),C()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "304 excludes 301 inserted scope 4"
+  assert_not_contains = 'if(yr||ve&&Wr){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(Pt.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Nt)||__hadForegroundAgent;return ko.current=Date.now(),i("tengu_cancel",Ar),__hadForegroundAgent?setTimeout(()=>{vE.of(Ht).stopRunning(),C()},0):(vE.of(Ht).stopRunning(),C()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes previous: 2.1.304 Linux hands foreground local agents off before cancellation"
+  assert_not_contains = 'if(wr||_e&&Ar){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(_t.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Nt)||__hadForegroundAgent;return go.current=Date.now(),i("tengu_cancel",Pr),__hadForegroundAgent?setTimeout(()=>{jE.of(Ht).stopRunning(),R()},0):(jE.of(Ht).stopRunning(),R()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "325 rejects previous target binding 7"
+  assert_not_contains = 'if(Ar||Ce&&Er){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(St.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,Ot)||__hadForegroundAgent;return Po.current=Date.now(),a("tengu_cancel",kr),__hadForegroundAgent?setTimeout(()=>{xk.of(Ht).stopRunning(),x()},0):(xk.of(Ht).stopRunning(),x()),!0}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes 2.1.318 inserted scope 8"
+  assert_not_contains = 'if(ms||Fe&&os){let __hadForegroundAgent=!1;for(let[__agentId,__agent]of Object.entries(It.getState().tasks))if(__agent.type==="local_agent"&&!__agent.isBackgrounded)__hadForegroundAgent=__pccBackgroundForegroundAgent(__agentId,eo)||__hadForegroundAgent;return Lo.current=Date.now(),l("tengu_cancel",wr),__hadForegroundAgent?setTimeout(()=>{FA.of(Jt).stopRunning(),I()},0):(FA.of(Jt).stopRunning(),I()),!0}'

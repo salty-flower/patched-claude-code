@@ -10,7 +10,7 @@ import { renderRunnableBundle } from "./helpers/render-runnable-bundle"
 
 const ROOT = join(import.meta.dir, "..", "..")
 const TARGET_VERSION = targetVersion()
-const targetLabelsThinkingSummaries = ["2.1.304", "2.1.310", "2.1.318"].includes(TARGET_VERSION)
+const targetLabelsThinkingSummaries = ["2.1.304", "2.1.310", "2.1.318", "2.1.325"].includes(TARGET_VERSION)
 const activeThinkingPatches = loadPatchEntriesFromFile(join(ROOT, "patches", "thinking-display.toml")).filter((patch) =>
   patchApplies(patch, TARGET_VERSION),
 )
@@ -394,6 +394,22 @@ test("thinking deltas update the stream handler's live thinking callback", () =>
 })
 
 test("main-screen thinking display uses the same live state as transcript rendering", () => {
+  if (TARGET_VERSION === "2.1.325") {
+    for (const [body, signature, toolSelector] of [
+      [patched, "function AAe(m)", "_D"],
+      [linuxPatched, "function SCe(m)", "CD"],
+    ]) {
+      const owner = getFunctionSourceUntilNextDeclaration(body, signature)
+      expect(owner).toContain(
+        `Q=Fe((V?H:null)?.stream,${toolSelector})??pc,__acc_streamingThinking=Fe((V?H:null)?.stream,(state)=>state.streamingThinking),Z=W?H:null,`,
+      )
+      expect(owner).toContain(
+        '__acc_streamingThinking?.thinking?.trim()&&e(n,{dimColor:!0,children:"\\u2234 Summary\\n"+__acc_streamingThinking.thinking})',
+      )
+      expect(owner).toContain("children:[oe,ee,ge,oo,ut,__acc_streamingThinking")
+    }
+    return
+  }
   if (TARGET_VERSION === "2.1.318") {
     for (const [body, signature, toolSelector] of [
       [patched, "function Kbe(m)", "sU"],
@@ -661,7 +677,9 @@ test("live thinking memo updates its row when only the stream snapshot changes",
     const provider = /r\(([\w$]+)\.Provider,\{value:([\w$]+),/.exec(row[0])
     if (!inputs || !provider) throw new Error("Missing live row inputs")
     const nativeInputs = inputs[1].slice(0, -1).split(",")
-    expect(nativeInputs.length).toBe(TARGET_VERSION === "2.1.318" ? 5 : TARGET_VERSION === "2.1.310" ? 4 : 3)
+    expect(nativeInputs.length).toBe(
+      ["2.1.318", "2.1.325"].includes(TARGET_VERSION) ? 5 : TARGET_VERSION === "2.1.310" ? 4 : 3,
+    )
     type Element = { children?: unknown[] | string }
     const jsx = (_type: unknown, props: Element) => props
     const render = new Function(
@@ -1047,107 +1065,142 @@ test("live thinking is cleared before the next streamed content block", () => {
 test("completed summaries preserve native narration and render every nonblank body", () => {
   if (!targetLabelsThinkingSummaries) return
   const fixtures =
-    TARGET_VERSION === "2.1.318"
+    TARGET_VERSION === "2.1.325"
       ? [
           [
             patched,
             "darwin-arm64",
-            "chunk-dfyaw1n7.js",
-            "kb",
-            "w",
-            "Bl",
-            "Won",
-            "if(!F&&!C){return null}",
-            "t7o(Ae)||Ke!==void 0",
+            "chunk-m2j2yfav.js",
+            "s_",
+            "v",
+            "_d",
+            "awn",
+            "if(!F&&!T){return null}",
+            "uks(Ne)||tt!==void 0",
           ],
           [
             linuxPatched,
             "linux-x64",
-            "chunk-wjygkcr4.js",
-            "ES",
-            "w",
-            "Bl",
-            "Pon",
+            "chunk-41bjgjv7.js",
+            "s_",
+            "k",
+            "_d",
+            "VSn",
             "if(!F&&!T){return null}",
-            "TXo(Re)||Ve!==void 0",
+            "Cks(Ne)||tt!==void 0",
           ],
         ]
-      : TARGET_VERSION === "2.1.310"
+      : TARGET_VERSION === "2.1.318"
         ? [
             [
               patched,
               "darwin-arm64",
-              "chunk-cz421hr0.js",
-              "F_",
-              "b",
-              "sl",
-              "xKt",
-              "if(!H&&!x){return null}",
-              "HTo(Me)||Ge!==void 0",
+              "chunk-dfyaw1n7.js",
+              "kb",
+              "w",
+              "Bl",
+              "Won",
+              "if(!F&&!C){return null}",
+              "t7o(Ae)||Ke!==void 0",
             ],
             [
               linuxPatched,
               "linux-x64",
-              "chunk-92hm4yb6.js",
-              "N_",
-              "S",
-              "ol",
-              "hqt",
-              "if(!W&&!x){return null}",
-              "sAo(Me)||Ge!==void 0",
+              "chunk-wjygkcr4.js",
+              "ES",
+              "w",
+              "Bl",
+              "Pon",
+              "if(!F&&!T){return null}",
+              "TXo(Re)||Ve!==void 0",
             ],
           ]
-        : [
-            [
-              patched,
-              "darwin-arm64",
-              "chunk-sv91xa9y.js",
-              "o_",
-              "b",
-              "Ja",
-              "Jjt",
-              "if(!W&&!M){return null}",
-              "ygo(Ie)||Ge!==void 0",
-            ],
-            [
-              linuxPatched,
-              "linux-x64",
-              "chunk-45m6sbw9.js",
-              "r_",
-              "S",
-              "Xa",
-              "Fjt",
-              "if(!W&&!b){return null}",
-              "jmo(Ie)||Ge!==void 0",
-            ],
-          ]
+        : TARGET_VERSION === "2.1.310"
+          ? [
+              [
+                patched,
+                "darwin-arm64",
+                "chunk-cz421hr0.js",
+                "F_",
+                "b",
+                "sl",
+                "xKt",
+                "if(!H&&!x){return null}",
+                "HTo(Me)||Ge!==void 0",
+              ],
+              [
+                linuxPatched,
+                "linux-x64",
+                "chunk-92hm4yb6.js",
+                "N_",
+                "S",
+                "ol",
+                "hqt",
+                "if(!W&&!x){return null}",
+                "sAo(Me)||Ge!==void 0",
+              ],
+            ]
+          : [
+              [
+                patched,
+                "darwin-arm64",
+                "chunk-sv91xa9y.js",
+                "o_",
+                "b",
+                "Ja",
+                "Jjt",
+                "if(!W&&!M){return null}",
+                "ygo(Ie)||Ge!==void 0",
+              ],
+              [
+                linuxPatched,
+                "linux-x64",
+                "chunk-45m6sbw9.js",
+                "r_",
+                "S",
+                "Xa",
+                "Fjt",
+                "if(!W&&!b){return null}",
+                "jmo(Ie)||Ge!==void 0",
+              ],
+            ]
   for (const [body, platform, chunk, unwrap, sentinel, markdown, glyph, gate, boundary] of fixtures) {
     const narration =
-      TARGET_VERSION === "2.1.318"
-        ? platform === "darwin-arm64"
-          ? "Cl"
-          : "Sl"
-        : TARGET_VERSION === "2.1.310"
+      TARGET_VERSION === "2.1.325"
+        ? "td"
+        : TARGET_VERSION === "2.1.318"
           ? platform === "darwin-arm64"
-            ? "pi"
-            : "ci"
-          : "li"
+            ? "Cl"
+            : "Sl"
+          : TARGET_VERSION === "2.1.310"
+            ? platform === "darwin-arm64"
+              ? "pi"
+              : "ci"
+            : "li"
     const rendererName =
-      TARGET_VERSION === "2.1.318"
+      TARGET_VERSION === "2.1.325"
         ? platform === "darwin-arm64"
-          ? "dr"
-          : "mr"
-        : TARGET_VERSION === "2.1.310"
-          ? "Ds"
-          : "Bs"
-    const continuation =
-      TARGET_VERSION === "2.1.318"
-        ? "xn"
-        : TARGET_VERSION === "2.1.310"
+          ? "fr"
+          : "gr"
+        : TARGET_VERSION === "2.1.318"
           ? platform === "darwin-arm64"
-            ? "En"
-            : "vn"
-          : "yn"
+            ? "dr"
+            : "mr"
+          : TARGET_VERSION === "2.1.310"
+            ? "Ds"
+            : "Bs"
+    const continuation =
+      TARGET_VERSION === "2.1.325"
+        ? platform === "darwin-arm64"
+          ? "Cn"
+          : "An"
+        : TARGET_VERSION === "2.1.318"
+          ? "xn"
+          : TARGET_VERSION === "2.1.310"
+            ? platform === "darwin-arm64"
+              ? "En"
+              : "vn"
+            : "yn"
     const native = readFileSync(join(ROOT, "staging", TARGET_VERSION, "graph", platform, chunk), "utf8")
     expect(getFunctionSourceUntilNextDeclaration(body, `function ${narration}(m)`)).toBe(
       getFunctionSourceUntilNextDeclaration(native, `function ${narration}(m)`),
@@ -1167,12 +1220,26 @@ test("completed summaries preserve native narration and render every nonblank bo
     expect(rendererNode.type).toBe("FunctionDeclaration")
     const rendererSource = rendererRegion.slice(rendererNode.start, rendererNode.end)
     expect(rendererSource).toContain(
-      TARGET_VERSION === "2.1.318" ? "let ee=!0;" : TARGET_VERSION === "2.1.310" ? "let X=!0;" : "let Z=!0;",
+      TARGET_VERSION === "2.1.325"
+        ? "let Q=!0;"
+        : TARGET_VERSION === "2.1.318"
+          ? "let ee=!0;"
+          : TARGET_VERSION === "2.1.310"
+            ? "let X=!0;"
+            : "let Z=!0;",
     )
     const empty = Symbol("empty memo")
     const jsx = (type: string, props: Record<string, unknown>) => ({ type, ...props })
     const renderer = new Function(
-      TARGET_VERSION === "2.1.318" ? (platform === "darwin-arm64" ? "b" : "S") : "w",
+      TARGET_VERSION === "2.1.325"
+        ? platform === "darwin-arm64"
+          ? "E"
+          : "v"
+        : TARGET_VERSION === "2.1.318"
+          ? platform === "darwin-arm64"
+            ? "b"
+            : "S"
+          : "w",
       unwrap,
       continuation,
       sentinel,

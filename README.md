@@ -117,6 +117,8 @@ Per-process macOS credential isolation: see
 [`docs/guides/macOS-Keychain-Isolation.md`](docs/guides/macOS-Keychain-Isolation.md).
 Independent WebSearch request model:
 [`docs/guides/Web-Search-Model.md`](docs/guides/Web-Search-Model.md).
+Account email isolation from model context:
+[`docs/guides/Account-Email-Privacy.md`](docs/guides/Account-Email-Privacy.md).
 Optional Nushell-backed Bash and standalone C# experiments:
 [`docs/guides/Experimental-Code-Tools.md`](docs/guides/Experimental-Code-Tools.md).
 Per-worker history windows, genuine question answers, and advisory delegation checks:

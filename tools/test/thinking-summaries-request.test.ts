@@ -90,7 +90,32 @@ const owners318 = {
     displayGate: "GRt",
   },
 } as const
-const owners = version === "2.1.318" ? owners318 : version === "2.1.310" ? owners310 : owners304
+const owners325 = {
+  "darwin-arm64": {
+    file: "chunk-e44qnbvj.js",
+    resolver: "KYs",
+    settings: "St",
+    summarySetting: "L7n",
+    noninteractive: "ejo",
+    caller: "chunk-vpz3nf29.js",
+    request: "chunk-wqb2b4v0.js",
+    capability: "U1t",
+    displayGate: "U1t",
+  },
+  "linux-x64": {
+    file: "chunk-a5a37ds7.js",
+    resolver: "g7s",
+    settings: "bt",
+    summarySetting: "uYn",
+    noninteractive: "Rjo",
+    caller: "chunk-zvxd6xpy.js",
+    request: "chunk-zaxe68t4.js",
+    capability: "O$t",
+    displayGate: "O$t",
+  },
+} as const
+const owners =
+  version === "2.1.325" ? owners325 : version === "2.1.318" ? owners318 : version === "2.1.310" ? owners310 : owners304
 
 type Display = "summarized" | "omitted" | "highlights"
 type Input = { explicitDisplay?: Display; isNonInteractive: boolean; outputFormat: string; verbose: boolean }
@@ -145,7 +170,7 @@ if (version === "2.1.301" && featureEntries.length === 0) {
   })
 } else {
   test("current target must include the interactive summary feature on both platforms", () => {
-    expect(["2.1.304", "2.1.310", "2.1.318"]).toContain(version)
+    expect(["2.1.304", "2.1.310", "2.1.318", "2.1.325"]).toContain(version)
     for (const platform of Object.keys(owners)) expect(activePatch(entries, version, platform, prefix)).toBeDefined()
   })
 
@@ -272,8 +297,7 @@ if (version === "2.1.301" && featureEntries.length === 0) {
                     ...Object.values(bindings),
                   )
                   expect(result).toEqual(
-                    isNonInteractive &&
-                      (outputFormat === "text" || (outputFormat === "json" && !verboseValue))
+                    isNonInteractive && (outputFormat === "text" || (outputFormat === "json" && !verboseValue))
                       ? { type: "disabled", display: "omitted", displayExplicit: false }
                       : { type: "disabled" },
                   )
@@ -285,7 +309,7 @@ if (version === "2.1.301" && featureEntries.length === 0) {
       test("native provider and capability display gates remain restrictive (separate from resolver)", () => {
         const request = readFileSync(join(graph, owner.request), "utf8")
         const parsedRequest = nodes(request)
-        if (version === "2.1.310" || version === "2.1.318") {
+        if (version === "2.1.310" || version === "2.1.318" || version === "2.1.325") {
           const gate = declaration(request, parsedRequest, owner.displayGate)
           const [blocked, supports, direct, alternate] = capture(
             gate,

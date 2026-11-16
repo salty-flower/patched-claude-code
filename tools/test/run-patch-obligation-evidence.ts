@@ -213,6 +213,16 @@ function main(): number {
         env: sharedEnv,
       })
     }
+    if (
+      ledger.decisions.some(
+        (decision) => decision.familyId === "account-email-context" && decision.disposition === "ported",
+      )
+    ) {
+      runChecked(["bun", "test", "--timeout", "0", "tools/test/account-email-context-runtime.test.ts"], {
+        cwd: ROOT,
+        env: { ...sharedEnv, PCC_EMAIL_CONTEXT_BUNDLE: dispatcher },
+      })
+    }
     for (const command of thinkingEvidenceCommands(ledger, dispatcher)) {
       runChecked(command, { cwd: ROOT, env: sharedEnv })
     }

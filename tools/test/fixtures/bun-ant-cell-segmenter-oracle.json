@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "source": {
-    "upstreamVersion": "2.1.318",
+    "upstreamVersion": "2.1.325",
     "platform": "linux-x64",
     "bunVersion": "1.4.4",
-    "nativeBinarySha256": "708c77b204db30086ff6f1ed34577bda03e1be74ced80557cbf7b54249ebf0bd",
+    "nativeBinarySha256": "0dc4f4a9a165fc60746d7ae8489712e5fc352f1e7ad4eb22e7141bd0812eb0cf",
     "captureTool": "tools/debug/capture-bun-ant-cell-segmenter.ts"
   },
   "introspection": {
@@ -23,6 +23,7 @@
       "startPlayback",
       "writePlaybackData",
       "windowsFolderSecurity",
+      "mxc",
       "stopPlayback",
       "isPlaying",
       "installSeccompFilter",
@@ -42,7 +43,8 @@
       "windowsProcessList",
       "CellSegmenter",
       "posixFsAt",
-      "withThreadWorkingDirectory"
+      "withThreadWorkingDirectory",
+      "isVmContextGlobal"
     ],
     "constructorLength": 0,
     "prototypeNames": [

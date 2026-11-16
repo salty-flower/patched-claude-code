@@ -30,6 +30,7 @@ type FunctionSources = {
   skipName: string
   sentinelName: string
   stateName: string
+  modelMixStateName?: string
 }
 
 type PromptConfig = { strings: string[]; matched: Set<string> }
@@ -42,6 +43,7 @@ type Scenario = {
   explicitLocalJson?: string
   allowServedToolText?: string
   cachedRemoteStrings: string[]
+  modelMixStrings?: string[]
 }
 
 const sourceCache = new Map<Platform, FunctionSources>()
@@ -97,7 +99,6 @@ function patchedFunctions(platform: Platform): FunctionSources {
   const patches = loadPatchEntriesFromFile(patchFile).filter(
     (entry) => patchApplies(entry, version) && (entry.platforms === undefined || entry.platforms.includes(platform)),
   )
-  expect(patches).toHaveLength(3)
 
   const graph = loadGraphBundle(resolve(root, `staging/${version}/graph/${platform}`), platform)
   const rendered = applyPatchEntriesToGraphBundle(graph, patches, version)
@@ -130,6 +131,10 @@ function patchedFunctions(platform: Platform): FunctionSources {
   const [cacheName, cacheKeyName] = capture(config.source, /([\w$]+)\(\)\?\.\[([\w$]+)\]/)
   const [skipName, sentinelName] = capture(rewrite.source, /if\(([\w$]+)\(n\)\|\|e===([\w$]+)\)return e;/)
   const [stateName] = capture(rewrite.source, /let [\w$]+=([\w$]+)\(\);try\{/)
+  const modelMixStateName = rewrite.source.match(
+    /([\w$]+)\(\)\.modelMix\?\.mix\.removePromptStrings/,
+  )?.[1]
+  expect(patches).toHaveLength(modelMixStateName ? 4 : 3)
   const sources: FunctionSources = {
     configName: config.name,
     rewriteName: rewrite.name,
@@ -147,6 +152,7 @@ function patchedFunctions(platform: Platform): FunctionSources {
     skipName: skipName!,
     sentinelName: sentinelName!,
     stateName: stateName!,
+    modelMixStateName,
   }
   sourceCache.set(platform, sources)
   return sources
@@ -160,10 +166,14 @@ function instantiate(
   state: { promptAblation?: PromptConfig }
   cacheReads: () => number
   analyticsCalls: Array<{ name: unknown; metadata: unknown }>
+  errors: unknown[]
+  modelMixReads: () => number
 } {
   const state: { promptAblation?: PromptConfig } = {}
   const analyticsCalls: Array<{ name: unknown; metadata: unknown }> = []
+  const errors: unknown[] = []
   let cacheReads = 0
+  let modelMixReads = 0
   const remoteCacheRead = () => {
     cacheReads++
     return { remove_prompt_strings: scenario.cachedRemoteStrings }
@@ -180,6 +190,7 @@ function instantiate(
     sources.skipName,
     sources.sentinelName,
     sources.stateName,
+    ...(sources.modelMixStateName ? [sources.modelMixStateName] : []),
     `${sources.config}\n${sources.rewrite}\n${sources.emit}\nreturn { config: ${sources.configName}, rewrite: ${sources.rewriteName} }`,
   ) as (...args: unknown[]) => NativeBindings
 
@@ -191,13 +202,19 @@ function instantiate(
     "remove_prompt_strings",
     () => undefined,
     (name: unknown, metadata: unknown) => analyticsCalls.push({ name, metadata }),
-    () => undefined,
+    (error: unknown) => errors.push(error),
     (context: unknown) => record(context) && context.nativeSkip === true,
     Symbol("native-sentinel"),
     () => state,
+    ...(sources.modelMixStateName
+      ? [() => {
+          modelMixReads++
+          return { modelMix: { mix: { removePromptStrings: scenario.modelMixStrings ?? [] } } }
+        }]
+      : []),
   )
 
-  return { bindings, state, cacheReads: () => cacheReads, analyticsCalls }
+  return { bindings, state, cacheReads: () => cacheReads, analyticsCalls, errors, modelMixReads: () => modelMixReads }
 }
 
 function withOracle(oracleId: string, check: string, platform: Platform, action: () => void): void {
@@ -246,6 +263,7 @@ test(sourceAdmissionCheck, () => {
         cachedRemoteStrings: ["REMOTE"],
       })
       expect(local.bindings.rewrite(explicitLocalInput, {})).toBe(" REMOTE ")
+      expect(local.errors).toEqual([])
       expect(local.cacheReads()).toBe(0)
       expect(local.state.promptAblation?.strings).toEqual(["LOCAL"])
 
@@ -279,6 +297,42 @@ test(sourceAdmissionCheck, () => {
       expect(nativeModeSkipped.bindings.rewrite("REMOTE remains", { nativeSkip: true })).toBe("REMOTE remains")
       expect(nativeModeSkipped.cacheReads()).toBe(0)
       expect(nativeModeSkipped.state.promptAblation).toBeUndefined()
+
+      if (sources.modelMixStateName) {
+        const modelMixInput = "LOCAL MODEL_MIX REMOTE"
+        for (const allowServedToolText of [undefined, "true"]) {
+          const deniedMix = instantiate(sources, {
+            allowServedToolText,
+            cachedRemoteStrings: ["REMOTE"],
+            modelMixStrings: ["MODEL_MIX"],
+          })
+          expect(deniedMix.bindings.rewrite(modelMixInput, {})).toBe(modelMixInput)
+          expect(deniedMix.cacheReads()).toBe(0)
+          expect(deniedMix.modelMixReads()).toBe(0)
+          expect(deniedMix.errors).toEqual([])
+        }
+
+        const localWithModelMix = instantiate(sources, {
+          explicitLocalJson: '["LOCAL"]',
+          cachedRemoteStrings: ["REMOTE"],
+          modelMixStrings: ["MODEL_MIX"],
+        })
+        expect(localWithModelMix.bindings.rewrite(modelMixInput, {})).toBe(" MODEL_MIX REMOTE")
+        expect(localWithModelMix.modelMixReads()).toBe(0)
+        expect(localWithModelMix.errors).toEqual([])
+
+        const admittedMix = instantiate(sources, {
+          allowServedToolText: "1",
+          cachedRemoteStrings: ["REMOTE"],
+          modelMixStrings: ["MODEL_MIX"],
+        })
+        expect(admittedMix.bindings.rewrite(modelMixInput, {})).toBe("LOCAL  ")
+        expect(admittedMix.cacheReads()).toBe(1)
+        expect(admittedMix.modelMixReads()).toBe(1)
+        expect(admittedMix.errors).toEqual([])
+        expect(admittedMix.analyticsCalls).toEqual([])
+        expect(admittedMix.state.promptAblation?.matched.size).toBe(0)
+      }
     })
   }
 }, 60000)
@@ -305,12 +359,24 @@ test(telemetryCheck, () => {
           expected: " and ",
         },
       ]
+      if (sources.modelMixStateName) {
+        scenarios.push({
+          input: "MODEL_MIX and REMOTE",
+          options: {
+            allowServedToolText: "1",
+            cachedRemoteStrings: ["REMOTE"],
+            modelMixStrings: ["MODEL_MIX"],
+          },
+          expected: " and ",
+        })
+      }
       for (const scenario of scenarios) {
         const runtime = instantiate(sources, scenario.options)
         expect(runtime.bindings.rewrite(scenario.input, {})).toBe(scenario.expected)
         expect(runtime.state.promptAblation?.matched).toBeInstanceOf(Set)
         expect(runtime.state.promptAblation?.matched.size).toBe(0)
         expect(runtime.analyticsCalls).toEqual([])
+        expect(runtime.errors).toEqual([])
       }
     })
   }

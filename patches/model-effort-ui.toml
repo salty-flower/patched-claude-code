@@ -17769,3 +17769,1610 @@ expected_matches = 1
   kind = "static"
   name = "2.1.318 excludes predecessor inserted bindings"
   assert_not_contains = '(re)=>{const prior=h.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??jS(),target=s??jS(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=M!==void 0?patchedEffort.session(target,"set",M):patchedEffort.session(target);A=!!re.fastMode;V=Yo()?ZO(s,re.fastMode):A;return{...re,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:M!==void 0?Xre(M):changed?{kind:"inherit"}:re.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(re.effortRevision??0)+1,ultracode:re.ultracode??!1,...V!==A&&{fastMode:V}}}'
+
+
+
+
+
+
+[[patches]]
+name = "model-effort-picker-import-2-1-325-darwin"
+lineage = "model-effort-picker-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; wDt -> $Gt, Epo -> _No, qNi -> HSa, YNi -> NSa, MCe -> QIe, lw -> Ab, Kce -> Uge, d2e -> JKe, lg -> d_, Rpo -> wNo, xpo -> ENo, DCe -> hce, Hoe -> gce, TZt -> vmn, P_s -> W3s, vft -> QKe, eX -> tY, dw -> tb, qce -> Bge, I_s -> z3s, lLn -> yKn, dB -> vW, vl -> ql, qye -> ske, Foe -> yce, c2e -> ike, Yye -> ake, lFi -> QSa, $oe -> Sce, a7e -> Tst, sN -> h0, cS -> Gy, oL -> g0, uLn -> bKn. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{Fmo,ZSs,$mo,tbs,LWi,abs,lbs,dbs,hNt,Wvr,Rtn,hwe,gwe,dxe,YNe,eO,dy,F1,FJ,C6i,eNn,XNe,Dgt,cxe,gbs,bwe,EZe,I6i,Ltn,_bs,tkr,D6i,Ype,W8,vNt,vVe,okr,dho,cho,skr,kNt,$6i,SR,Zq,Ftn,Ebs,W6i,G6i,vbs,CNt,RNt,mho,UJ,z8,LNt,pxe,Ggt,TGi,zbs,Zc,Vbs,Kbs,tWa,oWa,Jbs,Qtn,sWa,Qbs,iWa,aWa,lWa,dWa,cWa,uWa,Rkr,fWa,vNn,pWa,mWa,hWa,Zbs,ews,tws,RVe,Qae,qNt,ngo,DZe,jGi,qgt,hws,WGi,gws,Cws,XV,EA,HNn,Rws,NNn,Tgo,kzi,nFt,dnn,cnn,FNn,$Nn,Bkr,jkr,GJ,yxe,cFe,uFe,_nn,Vh,aG,WNn,jws,zJ,Jgt,GNn,$Ze,zNn,Xkr,VNn,xne,UZe,xwe,Enn,pFe,mFe,XE,MVe,Gws,Tnn,JE,GZe,oFn,sFn,VZe,t_t,oTr,_Fe,aFt,sTr,yFe,mL,NVe,dFn,cFn,uFn,xnn,Pnn,nEs,Xgo,Onn,fFn,iTr,QE,ER,hVi,dTr,i_t,EVi,ole,vVi,aEs,cEs,fTr,pTr,cFt,hFn,Dnn,Lnn,d_o,_Es,Dne,SFe,YJ,Hnn,hTr,a_t,Dwe,_Tr,yEs,wWa,FVe,pFt,hl,XJ,bFe,kFn,MEs,D_o,EFe,dp,Cj,kl,Hne,s4i,i4i,EFt,jVe,f4i,kFe,aB,FEs,Unn,B_o,YS,kxe,dle,PC,X8,HTr,WEs,NT,lB,qnn,rO,KEs,q_o,HFn,T4i,GVe,C4i,A4i,R4i,x4i,YEs,XEs,zVe,WTr,PFt,Knn,OFt,JEs,pme,JJ,H4i,ZZe,Cxe,MFt,Q8,FFn,Gwe,FI,LFt,UFn,nyo,ovs,syo,m_t,XTr,JTr,ule,RFe,oet,z4i,V4i,$I,trn,zwe,hyo,zFn,MFe,Svs,t3i,bvs,y_t,ZJ,YVe,i3i,eCr,jFt,d3i,c3i,yme,DFe,srn,qFn,LFe,fle,w_t,KFt,NFe,bCr,Tyo,wCr,crn,E3i,fg,s1n,MN,Mvs,U1,mle,CCr,FFe,fet,t1t,Ra,UFe,Yyo,f1n,Mxe,o1t,het,eSo,s1t,$k,g1n,B1,K3i,qvs,_1n,KCr,Lxe,Ag,JV,I_t,Crn,ZCr,TSo,rks,iks,rAr,T1n,Jv,hle,dqi,cqi,A1n,Drn,wme,oO,ISo,MSo,pqi,LN,_qi,QV,$xe,$ne,uK,Tet,jSo,$rn,Urn,$1n,wAr,bqi,EAr,N_t,kAr,Eqi,UI,Bne,jrn,Aet,vme,vA,jne,_le,FT,HN,kE,F_t,TE,eEe,Wrn,Grn,Rqi,Ret,nQ,vR,V1n,HAr,gL,Gne,Krn,rQ,Qks,dbo,Gqi,B_t,qqi,f4e,Qv,eTs,E1t,J1n,p4e,j_t,v1t,Jqi,Oet,e$n,Iet,oQ,Bxe,BAr,jAr,ubo,fK,tEe,k1t,IWa,iTs,jxe,T1t,Sle,m4e,A1t,BI,h4e,XAr,ble,nRr,x1t,P1t,lon,rEe,IKi,LKi,HKi,Net,c$n,kme,Bbo,hon,m$n,h$n,g$n,y4e,yon,fB,_S,zxe,Kbo,bRr,H1t,Uet,Y_t,MTs,DTs,X_t,Son,Ele,Vne,Cme,dm,WI,xj,_L,JFe,von,kon,Ame,k$n,ERr,b4e,s5i,Ton,Con,w4e,Vxe,sQ,t4,c5i,Bet,ZTs,xon,Rme,QFe,M$n,x_,DRr,k5i,hG,pB,Yxe,iEe,bwo,Q_t,H$n,V1t,t1e,O5i,dCs,Rwo,Wet,Owo,Vet,qet,tn,$on,k4e,hK,Zwo,n$t,Uk,$Cs,lQ,TM,OC,C4e,_K,z$n,oEo,WCs,GCs,sEo,gG,$Wa,axr,VCs,KCs,h9i,o1e,s1e,g9i,Pj,Oj,fEo,X$n,dQ,XWa,JWa,QWa,ZWa,e6a,cxr,Jne,gxr,SK,Qne,Zv,Bu,Fd,a1e,iyt,Ny,cQ,_G,nUn,ayt,xu,yG,ti,P_,stt,gsn,c1e,h$t,sO,hUn,ZEo,o7,ju,M4e,AM,Mw,H4e,xs,Ssn,ore,pyt,GAs,Xd,Xf,oPe,myt,_l,$xr,ivo,wsn,sPe,iPe,EUn,u1e,hyt,Bk,CUn,hRs,xle,f1e,p1e,fu,ksn,Kxr,VI,AUn,utt,RUn,S$t,m1e,mEe,Csn,ya,Ole,lPe,ptt,yvo,Syt,mtt,Svo,xsn,Ile,AE,sPr,Mle,EK,uy,Dle,Dj,byt,Lme,j1,MUn,LUn,MRs,F4e,HUn,NUn,s4,htt,Osn,Isn,wG,kvo,Msn,LRs,gtt,g1e,$Un,Lj,Mh,Lle,Hme,Nme,zRs,xvo,Dw,Lsn,j4e,W4e,dr,oa,Bo,Hvo,w$t,yEe,Hsn,t8i,n8i,S1e,u8i,ZUn,G1,oxs,vK,$sn,hh,mPr,nBn,Ha,Bs,dPe,Ie,Usn,TA,SEe,qh,Nj,xM,$T,Np,zsn,gB,Jm,S8i,gxs,Ds,vf,C$t,Js,yPr,It,lBn,v8i,qsn,C8i,bxs,SS,q4e,uBn,Fj,Ayt,Ryt,CPr,R8i,APr,RPr,xPr,PPr,OPr,Xsn,pBn,CA,xyt,Pyt,IPr,Cxs,Sc,gQ,TK,Fle,_Q,Zvo,xxs,K4e,Qm,mBn,Mxs,Na,xg,Lxs,x$t,H8i,ktt,N8i,NPr,hPe,Ls}from"./chunk-wqb2b4v0.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-325-darwin"
+lineage = "model-effort-picker-cli-hint"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; No -> Mo, Qo -> No, Yn -> er. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "LogicalExpression"
+    source = '(!Mo||No==="")&&r(n,{dimColor:!0,children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '!patchedEffort.session(er).cli&&(!Mo||No==="")&&r(n,{dimColor:!0,children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = '!patchedEffort.session(er).cli&&(!Mo||No==="")&&r(n,{dimColor:!0,children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = '!patchedEffort.session(Yn).cli&&(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+[[patches]]
+name = "model-effort-picker-hotkey-echo-2-1-325-darwin"
+lineage = "model-effort-picker-hotkey-echo"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; Ew -> mS, aUe -> Mze, qB -> CU, $B -> _U, sb -> cS. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Model set to ",
+  "model-switched",
+  "tengu_model_picker_hotkey"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "let mS=([^;]+);if\\(mS=mS\\+Mze\\(CU,_U,cS\\)"
+  value = 'const effective=patchedEffort.session(cS);let mS=$1+" with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")";if(mS=mS+Mze(CU,_U,cS)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin picker-hotkey-echo uses audited current scope"
+  assert_contains = "const effective=patchedEffort.session(cS);let mS="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "const effective=patchedEffort.session(sb);let Ew="
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-325-darwin"
+lineage = "model-effort-picker-initial"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; Bp -> Au, Yo -> cr, oL -> g0, oo -> ro. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "Au(cr!==void 0?g0(cr):void 0)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "Au((()=>{let initial=patchedEffort.session(ro.value).value;return initial!==void 0?g0(initial):cr!==void 0?g0(cr):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin picker-initial uses audited current scope"
+  assert_contains = "Au((()=>{let initial=patchedEffort.session(ro.value).value;return initial!==void 0?g0(initial):cr!==void 0?g0(cr):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "Bp((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?oL(initial):Yo!==void 0?oL(Yo):void 0})())"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-325-darwin"
+lineage = "model-effort-picker-state-setter"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; In -> On. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "modelPicker:increaseEffort", "modelPicker:thisSessionOnly" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __acc_set_state=(value)=>On(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin picker-state-setter uses audited current scope"
+  assert_contains = "const __acc_set_state=(value)=>On(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "const __acc_set_state=(value)=>In(value);"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-325-darwin"
+lineage = "model-effort-picker-arrows"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; Zr -> zr, ii -> Zs, to -> no, Ci -> Sr, rr -> xn, $w -> ik, k2 -> q5, Pze -> NYe, oL -> g0, Bpe -> Afe, En -> Qn. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(zr\\)=>\\{let Zs=no\\(\\),Sr=xn\\.find\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(zr)=>{let selected=no(),row=xn.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=ik(selected),config=q5(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=NYe(current.value??config.defaultEffort,zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?g0(effective.value):Afe(selected));Qn(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin picker-arrows uses audited current scope"
+  assert_contains = '(zr)=>{let selected=no(),row=xn.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=ik(selected),config=q5(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=NYe(current.value??config.defaultEffort,zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?g0(effective.value):Afe(selected));Qn(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = '(Zr)=>{let selected=to(),row=rr.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=$w(selected),config=k2(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=Pze(current.value??config.defaultEffort,Zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?oL(effective.value):Bpe(selected));En(!0)}'
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-325-darwin"
+lineage = "model-effort-picker-focus"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; Zr -> zr, Jt -> oo, pn -> Vn, vl -> ql, $w -> ik, In -> On, oL -> g0, Bpe -> Afe. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior. Preserve the native sentinel-row exclusion in the focus callback."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(zr\\)=>\\{if\\(oo\\(zr\\),zr===jh\\|\\|Vn\\(\\)\\)return;"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "(zr)=>{if(oo(zr),zr===jh||Vn())return;let effective=patchedEffort.session(ik(zr));On(effective.value!==void 0?g0(effective.value):Afe(zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = "(zr)=>{if(oo(zr),zr===jh||Vn())return;let effective=patchedEffort.session(ik(zr));On(effective.value!==void 0?g0(effective.value):Afe(zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = "(Zr)=>{if(Jt(Zr),pn())return;let effective=patchedEffort.session($w(Zr));In(effective.value!==void 0?oL(effective.value):Bpe(Zr))}"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-325-darwin"
+lineage = "model-effort-picker-select"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; Rr -> gr, lw -> Ab, ii -> Zs, da -> ws, Xs -> Ur, Ei -> mi. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "gr"
+    strings = [ "tengu_model_command_menu_effort", "Ab(Zs)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let ws=Ur&&Zs&&Ab(Zs)?mi:void 0"
+  value = "let effective=Zs?patchedEffort.session(Zs):void 0,ws=Ur&&Zs&&Ab(Zs)&&!effective.cli?(effective.value??mi):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin picker-select uses audited current scope"
+  assert_contains = "let effective=Zs?patchedEffort.session(Zs):void 0,ws=Ur&&Zs&&Ab(Zs)&&!effective.cli?(effective.value??mi):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "let effective=ii?patchedEffort.session(ii):void 0,da=Xs&&ii&&lw(ii)&&!effective.cli?(effective.value??Ei):void 0"
+
+[[patches]]
+name = "model-effort-picker-source-2-1-325-darwin"
+lineage = "model-effort-picker-source"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-rz2q8akm.js; kr -> fi, jn -> us, $w -> ik, $n -> wr. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = 'fi===us?" (default)":""'
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'patchedEffort.session(ik(wr)).source==="default"?" (default)":" ("+patchedEffort.session(ik(wr)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin picker-source uses audited current scope"
+  assert_contains = 'patchedEffort.session(ik(wr)).source==="default"?" (default)":" ("+patchedEffort.session(ik(wr)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'patchedEffort.session($w($n)).source==="default"?" (default)":" ("+patchedEffort.session($w($n)).source+")"'
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-325-darwin"
+lineage = "model-effort-slider-guard"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-tp2pm5vn.js; b -> E. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ro"
+    strings = [ "let o=E(4);", "e(ao,{...u})", "e(lo,{...u})" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "function ro(u){let o=E(4);"
+  value = "function ro(u){let o=E(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin slider-guard uses audited current scope"
+  assert_contains = "function ro(u){let o=E(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 current status component takes only onDone"
+  assert_contains = "function on(u){let{onDone:a}=u"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 status route is not typed command"
+  assert_contains = 'o==="current"||o==="status")return e(on,{onDone:u});'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "function ro(u){let o=b(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+[[patches]]
+name = "model-effort-slider-import-2-1-325-darwin"
+lineage = "model-effort-slider-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-tp2pm5vn.js; MCe -> QIe, ikr -> Ljr, Kce -> Uge, rN -> S$, CZt -> Emn, o7e -> Est, sFi -> YSa, eX -> tY, pkr -> Bjr, Foe -> yce, a7e -> Tst, hkr -> Gjr. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{QIe,Ljr,Uge,S$,Emn,Est,YSa,tY,_ce,Bjr,yce,Tst,Gjr}from"./chunk-44yzsqrf.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-325-darwin"
+lineage = "model-effort-slider-initial"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-tp2pm5vn.js; Re -> be, a7e -> Tst, c -> l, Foe -> yce, m -> f, f -> c. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "be"
+    strings = [ "o.levels.findIndex", "Tst(u,l)??yce(u)" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((f)=>f.value===__acc_selectedEffort);if(i!==-1)return i}let c=Tst(u,__acc_selectedEffort)??yce(u),f=o.levels.findIndex((i)=>i.value===c);return f===-1?Gn:f}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin slider-initial uses audited current scope"
+  assert_contains = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((f)=>f.value===__acc_selectedEffort);if(i!==-1)return i}let c=Tst(u,__acc_selectedEffort)??yce(u),f=o.levels.findIndex((i)=>i.value===c);return f===-1?Gn:f}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let f=a7e(u,__acc_selectedEffort)??Foe(u),m=o.levels.findIndex((i)=>i.value===f);return m===-1?Gn:m}"
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-325-darwin"
+lineage = "model-effort-slider-scope"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-tp2pm5vn.js; . Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    source = '[gt," for this session only"]'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin slider-scope uses audited current scope"
+  assert_contains = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '[Je," for this model, this session"]'
+
+[[patches]]
+name = "model-effort-command-import-2-1-325-darwin"
+lineage = "model-effort-command-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-dqqgks87.js; skr -> Djr, akr -> Hjr, rN -> S$, lg -> d_, o7e -> Est, DCe -> hce, Hoe -> gce, eX -> tY, oN -> b$, NDe -> HBe, dw -> tb, ADt -> zGt, Noe -> x, pkr -> Bjr, $oe -> Sce, a7e -> Tst, cS -> Gy, H_s -> Y3s, PDt -> KGt, uLn -> bKn. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{Djr,Hjr,S$,d_,Est,hce,gce,tY,b$,HBe,tb,_ce,zGt,Mkt,jge,Bjr,Sce,Tst,Gy,Y3s,KGt,bKn}from"./chunk-44yzsqrf.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+[[patches]]
+name = "model-effort-command-2-1-325-darwin"
+lineage = "model-effort-command"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-dqqgks87.js; Rwe -> gRe, N -> W, u -> d, tr -> mr, M -> P, it -> at, f -> s, s -> u, c -> E. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "gRe"
+    strings = [
+  "effortUpdate",
+  "await W(e,t,r",
+  "sessionEffort:d.sessionEffort"
+]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(mr()===null&&P(e.trim().toLowerCase())===void 0){const model=at(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await W(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(mr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin command uses audited current scope"
+  assert_contains = 'if(mr()===null&&P(e.trim().toLowerCase())===void 0){const model=at(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await W(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(mr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 local Ultracode disables persistence but retains native callback and rollback"
+  assert_contains = "if(mr()===null)r=!1;let u=!1,o=null,E=await W(e,t,r,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'if(tr()===null&&M(e.trim().toLowerCase())===void 0){const model=it(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await N(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},f);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+[[patches]]
+name = "model-effort-current-2-1-325-darwin"
+lineage = "model-effort-current"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-dqqgks87.js; xhn -> s0n, tr -> mr, lg -> d_. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "s0n"
+    strings = [ "Current effort level:", "Effort level: auto", "Ultracode" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(mr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(d_(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin current uses audited current scope"
+  assert_contains = 'if(mr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(d_(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 remote auto status retains the native absent-default branch"
+  assert_contains = "return{message:`Effort level: auto${r}`}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(lg(n,t)?" · Ultracode on":"")}}'
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-325-darwin"
+lineage = "model-effort-inline-echo"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-xyaydvtm.js; Got -> ght, _ -> A, G -> ie, u -> i, L -> F, xe -> De, Re -> Be, f -> k. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = '^ght\(A,ie,\(\)=>i\.getState\(\),F,De,"command",Be,k,'
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '%%EXPR%%.then((message)=>{const effective=patchedEffort.session(ie);return message+"\nCurrent model runs with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")"})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin inline-echo uses audited current scope"
+  assert_contains = ".then((message)=>{const effective=patchedEffort.session(ie);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = ".then((message)=>{const effective=patchedEffort.session(G);"
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-325-darwin"
+lineage = "model-effort-inline-model-state-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-z1152z97.js; j_ -> fb, TRe -> YDe, RGn -> Krr. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{k2e,U8n,ZZ,Vs,$g,rH,h2,TY,ep,RF,xF,I2e,NW,io,Q5,Z5,t9,rb,F$,H_e,WA,cw,_at,y4t,Ud,lt,eue,pTe,k0,ks,Ut,uD,Ug,GA,Dt,jt}from"./chunk-e44qnbvj.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-325-darwin"
+lineage = "model-effort-inline-model-state"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-z1152z97.js; NE -> cw. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(b)=>({...b,mainLoopModel:o,mainLoopModelForSession:null})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??cw(),from=previous,target=o??cw(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin inline-model-state uses audited current scope"
+  assert_contains = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??cw(),from=previous,target=o??cw(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??NE(),from=previous,target=o??NE(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+[[patches]]
+name = "model-effort-model-import-2-1-325-darwin"
+lineage = "model-effort-model-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-xyaydvtm.js; tr -> mr, Ct -> wt, Fl -> wl, AR -> uA. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{Mze,RC,Dze,JP,wm,Wq,ght,LZt,HZt,Wps,Gps,TJ,Ouo,mDn,bSr,Qbe}from"./chunk-z1152z97.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-44yzsqrf.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-efj9m2dc.js";'
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-325-darwin"
+lineage = "model-effort-model-no-persist"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-xyaydvtm.js; $oe -> Sce, h -> w, $me -> TJ, I -> T, i -> u, x -> b, l6t -> LZt. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "Sce(w,TJ(s),T,u)"
+
+  [patches.transform]
+  op = "set_call_arg"
+  index = 2
+  value = "!1"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin model-no-persist uses audited current scope"
+  assert_contains = "Sce(w,TJ(s),!1,u)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 model default still persists independently"
+  assert_contains = "b?await LZt(s,u):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "$oe(h,$me(s),!1,i)"
+
+[[patches]]
+name = "model-effort-model-echo-2-1-325-darwin"
+lineage = "model-effort-model-echo"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-xyaydvtm.js; h -> w, de -> z, ve -> Fe, I -> T, Kb -> TE. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior. Retain native saved-effort and organization-limit notices, appending the session resolver diagnostic."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(w!==void 0\\)\\{let "
+    strings = [ "effort for this session only" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '{%%EXPR%%const effective=patchedEffort.session(s);if(w===void 0)z+=" with "+(effective.value??"backend default")+" effort";z+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = "const effective=patchedEffort.session(s);if(w===void 0)z+="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = '{const effective=patchedEffort.session(s);if(h!==void 0)de+=ve&&(!I||NDe(h)===void 0)?" · "+Kb(h)+" effort for this session only":" with "+Kb(h)+" effort";else de+=" with "+(effective.value??"backend default")+" effort";de+=" ("+effective.source+" for "+effective.slug+")";}'
+
+[[patches]]
+name = "model-effort-model-state-2-1-325-darwin"
+lineage = "model-effort-model-state"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "darwin-arm64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-xyaydvtm.js; Se -> me, D -> R, Hs -> Vs, uL -> rH, h -> w, qce -> Bge, f -> k, NE -> cw. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(me)=>(R=!!me.fastMode,Y=Vs()?rH(s,me.fastMode):R,{...me,mainLoopModel:s,mainLoopModelForSession:null,...w!==void 0&&{sessionEffort:Bge(w)},...Y!==R&&{fastMode:Y}})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(me)=>{const prior=k.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??cw(),target=s??cw(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=w!==void 0?patchedEffort.session(target,"set",w):patchedEffort.session(target);R=!!me.fastMode;Y=Vs()?rH(s,me.fastMode):R;return{...me,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:w!==void 0?Bge(w):changed?{kind:"inherit"}:me.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(me.effortRevision??0)+1,ultracode:me.ultracode??!1,...Y!==R&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Darwin model-state uses audited current scope"
+  assert_contains = '(me)=>{const prior=k.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??cw(),target=s??cw(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=w!==void 0?patchedEffort.session(target,"set",w):patchedEffort.session(target);R=!!me.fastMode;Y=Vs()?rH(s,me.fastMode):R;return{...me,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:w!==void 0?Bge(w):changed?{kind:"inherit"}:me.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(me.effortRevision??0)+1,ultracode:me.ultracode??!1,...Y!==R&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = '(Se)=>{const prior=f.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??NE(),target=s??NE(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=h!==void 0?patchedEffort.session(target,"set",h):patchedEffort.session(target);D=!!Se.fastMode;Y=Hs()?uL(s,Se.fastMode):D;return{...Se,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:h!==void 0?qce(h):changed?{kind:"inherit"}:Se.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(Se.effortRevision??0)+1,ultracode:Se.ultracode??!1,...Y!==D&&{fastMode:Y}}}'
+
+[[patches]]
+name = "model-effort-picker-import-2-1-325-linux"
+lineage = "model-effort-picker-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; mLt -> Pzt, Xuo -> zHo, aNi -> qya, lNi -> Kya, ATe -> KOe, iw -> AS, Lce -> Oge, rGe -> V3e, lg -> d_, nfo -> YHo, rfo -> XHo, CTe -> ace, Toe -> lce, dZt -> amn, Zys -> c4s, bpt -> q3e, U9 -> zY, aw -> eS, Hce -> Mge, t_s -> f4s, BLn -> X6n, i1 -> w2, kl -> ql, Uye -> Jke, Coe -> cce, oGe -> Qke, Bye -> Zke, wNi -> dba, Roe -> uce, QXe -> hst, nN -> fM, db -> Wy, eH -> pM, GLn -> Q6n. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L1-L40"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{fmo,hbs,pmo,_bs,FWi,kbs,Ebs,Tbs,aNt,ukr,ltn,awe,lwe,oxe,zNe,JP,dy,H$,xJ,x2i,OHn,VNe,Agt,sxe,Obs,fwe,pZe,L2i,htn,Mbs,kkr,N2i,Bpe,M9,hNt,yqe,Akr,Nmo,Fmo,Ckr,gNt,j2i,_R,G6,ytn,Fbs,V2i,q2i,$bs,yNt,SNt,jmo,IJ,L9,CNt,lxe,Hgt,RGi,aSs,Zc,lSs,cSs,pWa,gWa,pSs,Otn,_Wa,mSs,yWa,bWa,SWa,wWa,vWa,kWa,Xkr,EWa,tNn,TWa,AWa,CWa,hSs,gSs,_Ss,kqe,Gae,$Nt,Pho,TZe,zGi,$gt,ISs,VGi,OSs,jSs,qq,SC,mNn,GSs,hNn,Zho,Czi,KNt,Wtn,Gtn,gNn,_Nn,dEr,cEr,LJ,pxe,iFe,aFe,Jtn,Vh,sz,wNn,ows,HJ,Wgt,vNn,PZe,kNn,yEr,ENn,bne,IZe,wwe,nnn,dFe,cFe,Yv,Rqe,iws,snn,Xv,LZe,HNn,NNn,NZe,qgt,AEr,pFe,ZNt,CEr,mFe,uL,Oqe,BNn,jNn,WNn,dnn,cnn,yws,Ego,unn,GNn,REr,Jv,SR,yVi,IEr,Qgt,TVi,Xae,AVi,kws,Aws,DEr,LEr,nFt,qNn,mnn,hnn,Ngo,Mws,Ene,hFe,UJ,gnn,NEr,Zgt,Awe,$Er,Dws,MWa,Mqe,sFt,hl,BJ,gFe,nFn,Yws,l_o,yFe,cp,kW,El,Ane,lqi,dqi,mFt,Nqe,hqi,SFe,oB,evs,Snn,h_o,Kb,bxe,tle,CA,U9,oTr,svs,DT,sB,Cnn,eI,cvs,w_o,mFn,Rqi,$qe,xqi,Pqi,Iqi,Oqi,uvs,fvs,Uqe,uTr,vFt,Rnn,kFt,pvs,sme,jJ,$qi,GZe,wxe,TFt,j9,gFn,Hwe,LO,CFt,yFn,P_o,Svs,M_o,i_t,yTr,bTr,rle,EFe,YZe,Kqi,Yqi,HO,Lnn,Nwe,W_o,kFn,xFe,Lvs,oKi,Hvs,c_t,GJ,Gqe,dKi,vTr,DFt,fKi,pKi,cme,PFe,$nn,TFn,IFe,ole,p_t,UFt,MFe,jTr,Z_o,WTr,Gnn,TKi,fg,NFn,PN,Yvs,F$,ile,KTr,DFe,net,qFt,Ra,HFe,kyo,GFn,Rxe,XFt,set,Ryo,JFt,HE,KFn,$$,JKi,dks,YFn,gAr,Pxe,Cg,Kq,E_t,irn,wAr,Zyo,bks,vks,TAr,r$n,Yk,ale,f4i,p4i,s$n,mrn,pme,tI,ibo,abo,g4i,ON,S4i,Yq,Dxe,xne,n3,het,gbo,brn,Srn,_$n,WAr,k4i,GAr,x_t,VAr,T4i,NO,Ine,vrn,_et,hme,wC,One,dle,LT,MN,kv,P_t,Ev,Vwe,krn,Ern,I4i,yet,qJ,wR,E$n,oCr,pL,Dne,Rrn,KJ,mEs,Nbo,q4i,M_t,X4i,aKe,Xk,gEs,m$t,x$n,lKe,D_t,h$t,e6i,vet,O$n,ket,YJ,Hxe,dCr,cCr,$bo,r3,qwe,g$t,GWa,vEs,Nxe,_$t,ule,dKe,b$t,FO,cKe,yCr,fle,ECr,w$t,v$t,jrn,Ywe,L6i,F6i,$6i,Ret,j$n,gme,hSo,Yrn,V$n,q$n,K$n,pKe,Qrn,dB,gb,Uxe,vSo,jCr,R$t,Iet,B_t,YEs,XEs,j_t,Zrn,mle,Hne,yme,dm,UO,AW,mL,qFe,ron,oon,bme,nUn,GCr,hKe,l3i,son,ion,gKe,Bxe,XJ,Qq,p3i,Oet,hTs,don,Sme,KFe,uUn,x_,nRr,C3i,pz,cB,Gxe,Qwe,KSo,G_t,mUn,F$t,JFe,D3i,TTs,nwo,Det,swo,Net,Fet,en,bon,bKe,i3,Cwo,K$t,NE,tAs,ZJ,k0,RA,wKe,l3,kUn,Owo,sAs,iAs,Mwo,mz,JWa,xRr,lAs,cAs,y5i,e$e,t$e,b5i,CW,RW,Uwo,RUn,eQ,l2a,d2a,c2a,u2a,f2a,ORr,Bne,FRr,c3,jne,Jk,Bu,$d,r$e,Q_t,Hy,tQ,hz,DUn,Z_t,Ru,gz,ti,P_,Xet,Xon,i$e,aUt,nI,qUn,Cvo,K9,ju,RKe,T0,Ow,IKe,xs,Zon,Kne,syt,iCs,Jd,Xf,Zxe,iyt,_l,axr,Dvo,tsn,ePe,tPe,e1n,a$e,ayt,FE,o1n,ICs,wle,l$e,d$e,fu,osn,gxr,WO,s1n,ntt,i1n,uUt,c$e,ive,isn,ya,kle,rPe,ott,Vvo,uyt,stt,qvo,dsn,Ele,Av,Cxr,Tle,p3,uy,Ale,IW,fyt,Cme,U$,u1n,p1n,YCs,MKe,m1n,h1n,nK,itt,usn,fsn,bz,Qvo,psn,JCs,att,f$e,_1n,OW,Oh,Cle,Rme,xme,aRs,rko,Mw,hsn,NKe,FKe,lr,oa,Bo,cko,pUt,cve,gsn,o8i,s8i,h$e,m8i,I1n,j$,SRs,m3,bsn,hh,Hxr,D1n,Ha,Bs,oPe,Oe,Ssn,kC,uve,qh,DW,C0,HT,Np,Tsn,pB,Jm,v8i,ORs,Ds,vf,yUt,Js,Uxr,Ot,U1n,A8i,Csn,x8i,HRs,yb,jKe,W1n,LW,byt,Syt,Kxr,I8i,Yxr,Xxr,Jxr,Qxr,Zxr,Psn,z1n,EC,wyt,vyt,ePr,jRs,bc,aQ,g3,Ple,lQ,Cko,zRs,WKe,Qm,V1n,YRs,Na,xg,JRs,wUt,$8i,htt,U8i,sPr,cPe,Ls}from"./chunk-zaxe68t4.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+[[patches]]
+name = "model-effort-picker-cli-hint-2-1-325-linux"
+lineage = "model-effort-picker-cli-hint"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; No -> Po, Qo -> Do, Yn -> er. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "LogicalExpression"
+    source = '(!Po||Do==="")&&r(n,{dimColor:!0,children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '!patchedEffort.session(er).cli&&(!Po||Do==="")&&r(n,{dimColor:!0,children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = '!patchedEffort.session(er).cli&&(!Po||Do==="")&&r(n,{dimColor:!0,children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = '!patchedEffort.session(Yn).cli&&(!No||Qo==="")&&r(n,{color:"subtle",children:[" ",e(Y,{chord:["left","right"],action:"adjust"})]})'
+
+[[patches]]
+name = "model-effort-picker-hotkey-echo-2-1-325-linux"
+lineage = "model-effort-picker-hotkey-echo"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; Ew -> SS, tUe -> RVe, KB -> TU, GB -> xU, gb -> yS. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    strings = [
+  "Model set to ",
+  "model-switched",
+  "tengu_model_picker_hotkey"
+]
+
+  [patches.transform]
+  op = "replace_substring_regex"
+  find = "let SS=([^;]+);if\\(SS=SS\\+RVe\\(TU,xU,yS\\)"
+  value = 'const effective=patchedEffort.session(yS);let SS=$1+" with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")";if(SS=SS+RVe(TU,xU,yS)'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux picker-hotkey-echo uses audited current scope"
+  assert_contains = "const effective=patchedEffort.session(yS);let SS="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "const effective=patchedEffort.session(gb);let Ew="
+
+[[patches]]
+name = "model-effort-picker-initial-2-1-325-linux"
+lineage = "model-effort-picker-initial"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; jf -> Au, Yo -> ur, eH -> pM, oo -> no. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "Au(ur!==void 0?pM(ur):void 0)"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "Au((()=>{let initial=patchedEffort.session(no.value).value;return initial!==void 0?pM(initial):ur!==void 0?pM(ur):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux picker-initial uses audited current scope"
+  assert_contains = "Au((()=>{let initial=patchedEffort.session(no.value).value;return initial!==void 0?pM(initial):ur!==void 0?pM(ur):void 0})())"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "jf((()=>{let initial=patchedEffort.session(oo.value).value;return initial!==void 0?eH(initial):Yo!==void 0?eH(Yo):void 0})())"
+
+[[patches]]
+name = "model-effort-picker-state-setter-2-1-325-linux"
+lineage = "model-effort-picker-state-setter"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; On -> In. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    strings = [ "modelPicker:increaseEffort", "modelPicker:thisSessionOnly" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = "const __acc_set_state=(value)=>In(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux picker-state-setter uses audited current scope"
+  assert_contains = "const __acc_set_state=(value)=>In(value);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "const __acc_set_state=(value)=>On(value);"
+
+[[patches]]
+name = "model-effort-picker-arrows-2-1-325-linux"
+lineage = "model-effort-picker-arrows"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; Zr -> zr, ii -> Zs, to -> oo, Ti -> wr, nr -> xn, Vw -> ak, t5 -> H5, Cze -> KYe, eH -> pM, Ype -> Ofe, In -> Qn. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L187-L224"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(zr\\)=>\\{let Zs=oo\\(\\),wr=xn\\.find\\("
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(zr)=>{let selected=oo(),row=xn.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=ak(selected),config=H5(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=KYe(current.value??config.defaultEffort,zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?pM(effective.value):Ofe(selected));Qn(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux picker-arrows uses audited current scope"
+  assert_contains = '(zr)=>{let selected=oo(),row=xn.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=ak(selected),config=H5(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=KYe(current.value??config.defaultEffort,zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?pM(effective.value):Ofe(selected));Qn(!0)}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = '(Zr)=>{let selected=to(),row=nr.find((item)=>item.value===selected);if(row===void 0||row.disabled===!0)return;let model=Vw(selected),config=t5(selected);if(!config.supportsEffort)return;let current=patchedEffort.session(model);if(current.cli)return;let next=Cze(current.value??config.defaultEffort,Zr,config.capLevels,config.supportsMax,config.supportsXHigh),effective=patchedEffort.session(model,"set",next);__acc_set_state(effective.value!==void 0?eH(effective.value):Ype(selected));In(!0)}'
+
+[[patches]]
+name = "model-effort-picker-focus-2-1-325-linux"
+lineage = "model-effort-picker-focus"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; Zr -> zr, Jt -> Zt, fn -> Vn, kl -> ql, Vw -> ak, On -> In, eH -> pM, Ype -> Ofe. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior. Preserve the native sentinel-row exclusion in the focus callback."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L170-L184"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source_regex = "^\\(zr\\)=>\\{if\\(Zt\\(zr\\),zr===jh\\|\\|Vn\\(\\)\\)return;"
+
+  [patches.transform]
+  op = "replace_node"
+  value = "(zr)=>{if(Zt(zr),zr===jh||Vn())return;let effective=patchedEffort.session(ak(zr));In(effective.value!==void 0?pM(effective.value):Ofe(zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = "(zr)=>{if(Zt(zr),zr===jh||Vn())return;let effective=patchedEffort.session(ak(zr));In(effective.value!==void 0?pM(effective.value):Ofe(zr))}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = "(Zr)=>{if(Jt(Zr),fn())return;let effective=patchedEffort.session(Vw(Zr));On(effective.value!==void 0?eH(effective.value):Ype(Zr))}"
+
+[[patches]]
+name = "model-effort-picker-select-2-1-325-linux"
+lineage = "model-effort-picker-select"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; Rr -> gr, iw -> AS, ii -> Zs, da -> Ss, Ys -> Ur, Ei -> mi. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L225-L249"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "gr"
+    strings = [ "tengu_model_command_menu_effort", "AS(Zs)" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "let Ss=Ur&&Zs&&AS(Zs)?mi:void 0"
+  value = "let effective=Zs?patchedEffort.session(Zs):void 0,Ss=Ur&&Zs&&AS(Zs)&&!effective.cli?(effective.value??mi):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux picker-select uses audited current scope"
+  assert_contains = "let effective=Zs?patchedEffort.session(Zs):void 0,Ss=Ur&&Zs&&AS(Zs)&&!effective.cli?(effective.value??mi):void 0"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "let effective=ii?patchedEffort.session(ii):void 0,da=Ys&&ii&&iw(ii)&&!effective.cli?(effective.value??Ei):void 0"
+
+[[patches]]
+name = "model-effort-picker-source-2-1-325-linux"
+lineage = "model-effort-picker-source"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-nbmdtavf.js; vr -> fi, Wn -> us, Vw -> ak, jn -> br. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/components/ModelPicker.tsx#L328-L328"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ConditionalExpression"
+    source = 'fi===us?" (default)":""'
+
+  [patches.transform]
+  op = "replace_node"
+  value = 'patchedEffort.session(ak(br)).source==="default"?" (default)":" ("+patchedEffort.session(ak(br)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux picker-source uses audited current scope"
+  assert_contains = 'patchedEffort.session(ak(br)).source==="default"?" (default)":" ("+patchedEffort.session(ak(br)).source+")"'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'patchedEffort.session(Vw(jn)).source==="default"?" (default)":" ("+patchedEffort.session(Vw(jn)).source+")"'
+
+[[patches]]
+name = "model-effort-slider-guard-2-1-325-linux"
+lineage = "model-effort-slider-guard"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-48masyhc.js; S -> v. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "ro"
+    strings = [ "let o=v(4);", "e(ao,{...u})", "e(lo,{...u})" ]
+
+  [patches.transform]
+  op = "replace_substring"
+  find = "function ro(u){let o=v(4);"
+  value = "function ro(u){let o=v(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux slider-guard uses audited current scope"
+  assert_contains = "function ro(u){let o=v(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 current status component takes only onDone"
+  assert_contains = "function on(u){let{onDone:a}=u"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 status route is not typed command"
+  assert_contains = 'o==="current"||o==="status")return e(on,{onDone:u});'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "function ro(u){let o=S(4);const effective=patchedEffort.session();if(effective.cli||effective.value===void 0)return e(on,{onDone:u.onDone});"
+
+[[patches]]
+name = "model-effort-slider-import-2-1-325-linux"
+lineage = "model-effort-slider-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-48masyhc.js; ATe -> KOe, LEr -> cWr, Lce -> Oge, eN -> _U, lZt -> imn, YXe -> fst, _Ni -> iba, U9 -> zY, BEr -> gWr, Coe -> cce, QXe -> hst, GEr -> bWr. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{KOe,cWr,Oge,_U,imn,fst,iba,zY,dce,gWr,cce,hst,bWr}from"./chunk-k1rnnwp7.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+[[patches]]
+name = "model-effort-slider-initial-2-1-325-linux"
+lineage = "model-effort-slider-initial"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-48masyhc.js; Ae -> be, QXe -> hst, c -> l, Coe -> cce, m -> f, f -> c. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "be"
+    strings = [ "o.levels.findIndex", "hst(u,l)??cce(u)" ]
+
+  [patches.transform]
+  op = "replace_function_body"
+  body = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((f)=>f.value===__acc_selectedEffort);if(i!==-1)return i}let c=hst(u,__acc_selectedEffort)??cce(u),f=o.levels.findIndex((i)=>i.value===c);return f===-1?Gn:f}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux slider-initial uses audited current scope"
+  assert_contains = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((f)=>f.value===__acc_selectedEffort);if(i!==-1)return i}let c=hst(u,__acc_selectedEffort)??cce(u),f=o.levels.findIndex((i)=>i.value===c);return f===-1?Gn:f}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "{let __acc_selectedEffort=patchedEffort.session(u).value;if(__acc_selectedEffort!==void 0){let i=o.levels.findIndex((m)=>m.value===__acc_selectedEffort);if(i!==-1)return i}let f=QXe(u,__acc_selectedEffort)??Coe(u),m=o.levels.findIndex((i)=>i.value===f);return m===-1?Gn:m}"
+
+[[patches]]
+name = "model-effort-slider-scope-2-1-325-linux"
+lineage = "model-effort-slider-scope"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-48masyhc.js; . Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L130-L170"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrayExpression"
+    source = '[gt," for this session only"]'
+
+  [patches.transform]
+  op = "replace_node"
+  value = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux slider-scope uses audited current scope"
+  assert_contains = '[gt," for this model, this session"]'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.318 excludes predecessor inserted bindings"
+  assert_not_contains = '[Je," for this model, this session"]'
+
+[[patches]]
+name = "model-effort-command-import-2-1-325-linux"
+lineage = "model-effort-command-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-e475zkzn.js; DEr -> dWr, HEr -> uWr, eN -> _U, lg -> d_, YXe -> fst, CTe -> ace, Toe -> lce, U9 -> zY, tN -> yU, ILe -> MBe, aw -> eS, SLt -> Hzt, Aoe -> U, BEr -> gWr, Roe -> uce, QXe -> hst, db -> Wy, s_s -> g4s, vLt -> $zt, GLn -> Q6n. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{dWr,uWr,_U,d_,fst,ace,lce,zY,yU,MBe,eS,dce,Hzt,REt,Dge,gWr,uce,hst,Wy,g4s,$zt,Q6n}from"./chunk-k1rnnwp7.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+[[patches]]
+name = "model-effort-command-2-1-325-linux"
+lineage = "model-effort-command"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-e475zkzn.js; wwe -> cRe, N -> W, tr -> mr, M -> P, it -> at. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L17-L129"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "cRe"
+    strings = [
+  "effortUpdate",
+  "await W(e,t,r",
+  "sessionEffort:d.sessionEffort"
+]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(mr()===null&&P(e.trim().toLowerCase())===void 0){const model=at(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await W(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(mr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux command uses audited current scope"
+  assert_contains = 'if(mr()===null&&P(e.trim().toLowerCase())===void 0){const model=at(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await W(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(mr()===null)r=!1;'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 local Ultracode disables persistence but retains native callback and rollback"
+  assert_contains = "if(mr()===null)r=!1;let u=!1,o=null,E=await W(e,t,r,"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'if(tr()===null&&M(e.trim().toLowerCase())===void 0){const model=it(),current=patchedEffort.session(model);if(current.cli)return{message:"Not applied: CLI --effort holds "+current.slug+" at "+(current.value??"backend default")+" this session."};let update;const result=await N(e,t,!1,(value)=>{if(Object.hasOwn(value,"value"))update=value},s);if(update&&result.effortUpdate){const effective=update.value===void 0?patchedEffort.session(model,"clear"):patchedEffort.session(model,"set",update.value);n((state)=>({...state,effortByModel:effective.effortByModel,effortRevision:(state.effortRevision??0)+1}));if(result.message.includes("CLAUDE_CODE_EFFORT_LEVEL="))result.message="Effective effort for "+effective.slug+": "+(effective.value??"backend default")+" ("+effective.source+")."}return result}if(tr()===null)r=!1;'
+
+[[patches]]
+name = "model-effort-current-2-1-325-linux"
+lineage = "model-effort-current"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-e475zkzn.js; mhn -> WOn, tr -> mr, lg -> d_. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/effort/effort.tsx#L72-L87"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "FunctionDeclaration"
+    function_name = "WOn"
+    strings = [ "Current effort level:", "Effort level: auto", "Ultracode" ]
+
+  [patches.transform]
+  op = "prepend_function_body"
+  code = 'if(mr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(d_(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux current uses audited current scope"
+  assert_contains = 'if(mr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(d_(n,t)?" · Ultracode on":"")}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 remote auto status retains the native absent-default branch"
+  assert_contains = "return{message:`Effort level: auto${r}`}"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = 'if(tr()===null){const effective=patchedEffort.session(t);return{message:"Current effort level: "+(effective.value??"backend default")+" for "+effective.slug+" ("+effective.source+")."+(lg(n,t)?" · Ultracode on":"")}}'
+
+[[patches]]
+name = "model-effort-inline-echo-2-1-325-linux"
+lineage = "model-effort-inline-echo"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-w08a123e.js; $ot -> cht, _ -> S, G -> ie, u -> i, L -> F, xe -> De, Re -> Be, p -> w. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source_regex = '^cht\(S,ie,\(\)=>i\.getState\(\),F,De,"command",Be,w,'
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '%%EXPR%%.then((message)=>{const effective=patchedEffort.session(ie);return message+"\nCurrent model runs with "+(effective.value??"backend default")+" effort ("+effective.source+" for "+effective.slug+")"})'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux inline-echo uses audited current scope"
+  assert_contains = ".then((message)=>{const effective=patchedEffort.session(ie);"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = ".then((message)=>{const effective=patchedEffort.session(G);"
+
+[[patches]]
+name = "model-effort-inline-model-state-import-2-1-325-linux"
+lineage = "model-effort-inline-model-state-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-09nmf5ad.js; B_ -> uS, SRe -> qDe, czn -> Arr. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{wje,g9n,WZ,Vs,$g,eH,fj,h7,ep,EF,TF,xje,L2,io,G5,z5,q5,nS,HU,R_e,BC,dw,aat,dKt,Bd,lt,Vce,sTe,wM,Es,Ut,dD,Ug,jC,Dt,jt}from"./chunk-a5a37ds7.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+[[patches]]
+name = "model-effort-inline-model-state-2-1-325-linux"
+lineage = "model-effort-inline-model-state"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-09nmf5ad.js; HE -> dw. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L143-L229"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(b)=>({...b,mainLoopModel:o,mainLoopModelForSession:null})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??dw(),from=previous,target=o??dw(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux inline-model-state uses audited current scope"
+  assert_contains = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??dw(),from=previous,target=o??dw(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = '(b)=>{const previous=b.mainLoopModelForSession??b.mainLoopModel??HE(),from=previous,target=o??HE(),changed=patchedEffort.session(from).slug!==patchedEffort.session(target).slug;if(changed&&b.sessionEffort?.kind==="level")patchedEffort.session(from,"set",b.sessionEffort.value);const effective=patchedEffort.session(target);return{...b,mainLoopModel:o,mainLoopModelForSession:null,sessionEffort:changed?{kind:"inherit"}:b.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(b.effortRevision??0)+(changed?1:0),ultracode:b.ultracode??!1}}'
+
+[[patches]]
+name = "model-effort-model-import-2-1-325-linux"
+lineage = "model-effort-model-import"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-w08a123e.js; tr -> mr, Tt -> wt, $l -> wl, vR -> dC. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ImportDeclaration"
+    source = 'import{RVe,TA,xVe,KP,Sm,L6,cht,EZt,TZt,gps,_ps,gJ,cuo,Q0n,Jyr,GSe}from"./chunk-09nmf5ad.js";'
+
+  [patches.transform]
+  op = "insert_after_node"
+  code = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = 'import{Jh as patchedEffort}from"./chunk-k1rnnwp7.js";'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = 'import{Dg as patchedEffort}from"./chunk-bc4jcw5z.js";'
+
+[[patches]]
+name = "model-effort-model-no-persist-2-1-325-linux"
+lineage = "model-effort-model-no-persist"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-w08a123e.js; Roe -> uce, h -> A, Pme -> gJ, I -> T, i -> u, x -> L, tKt -> EZt. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "CallExpression"
+    source = "uce(A,gJ(s),T,u)"
+
+  [patches.transform]
+  op = "set_call_arg"
+  index = 2
+  value = "!1"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux model-no-persist uses audited current scope"
+  assert_contains = "uce(A,gJ(s),!1,u)"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "310 model default still persists independently"
+  assert_contains = "L?await EZt(s,u):null"
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = "Roe(h,Pme(s),!1,i)"
+
+[[patches]]
+name = "model-effort-model-echo-2-1-325-linux"
+lineage = "model-effort-model-echo"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-w08a123e.js; h -> A, de -> z, ve -> Fe, I -> T, KS -> Ev. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior. Retain native saved-effort and organization-limit notices, appending the session resolver diagnostic."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "IfStatement"
+    source_regex = "^if\\(A!==void 0\\)\\{let "
+    strings = [ "effort for this session only" ]
+
+  [patches.transform]
+  op = "wrap_expression"
+  template = '{%%EXPR%%const effective=patchedEffort.session(s);if(A===void 0)z+=" with "+(effective.value??"backend default")+" effort";z+=" ("+effective.source+" for "+effective.slug+")";}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 renders current scope insertion"
+  assert_contains = "const effective=patchedEffort.session(s);if(A===void 0)z+="
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 rejects previous insertion"
+  assert_not_contains = '{const effective=patchedEffort.session(s);if(h!==void 0)de+=ve&&(!I||ILe(h)===void 0)?" · "+KS(h)+" effort for this session only":" with "+KS(h)+" effort";else de+=" with "+(effective.value??"backend default")+" effort";de+=" ("+effective.source+" for "+effective.slug+")";}'
+
+[[patches]]
+name = "model-effort-model-state-2-1-325-linux"
+lineage = "model-effort-model-state"
+enabled = true
+target_version = "2.1.325"
+applies_to = ">=2.1.325 <2.1.326"
+platforms = [ "linux-x64" ]
+rationale = "2.1.325 minified-symbol variant, audited in chunk-w08a123e.js; Se -> me, D -> R, Ls -> Vs, aH -> eH, h -> A, Hce -> Mge, p -> w, HE -> dw. Preserve the existing feature and reference boundary; keep until upstream supplies the same behavior."
+rationale_ref = "reference/v2.1.88/sources/src/commands/model/model.tsx#L47-L68"
+locator_kind = "ast_transform"
+expected_matches = 1
+
+  [patches.ast]
+  schema = 1
+
+    [patches.ast.match]
+    node = "ArrowFunctionExpression"
+    source = "(me)=>(R=!!me.fastMode,Y=Vs()?eH(s,me.fastMode):R,{...me,mainLoopModel:s,mainLoopModelForSession:null,...A!==void 0&&{sessionEffort:Mge(A)},...Y!==R&&{fastMode:Y}})"
+
+  [patches.transform]
+  op = "replace_node"
+  value = '(me)=>{const prior=w.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??dw(),target=s??dw(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=A!==void 0?patchedEffort.session(target,"set",A):patchedEffort.session(target);R=!!me.fastMode;Y=Vs()?eH(s,me.fastMode):R;return{...me,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:A!==void 0?Mge(A):changed?{kind:"inherit"}:me.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(me.effortRevision??0)+1,ultracode:me.ultracode??!1,...Y!==R&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 Linux model-state uses audited current scope"
+  assert_contains = '(me)=>{const prior=w.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??dw(),target=s??dw(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=A!==void 0?patchedEffort.session(target,"set",A):patchedEffort.session(target);R=!!me.fastMode;Y=Vs()?eH(s,me.fastMode):R;return{...me,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:A!==void 0?Mge(A):changed?{kind:"inherit"}:me.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(me.effortRevision??0)+1,ultracode:me.ultracode??!1,...Y!==R&&{fastMode:Y}}}'
+
+  [[patches.tests]]
+  kind = "static"
+  name = "2.1.325 excludes predecessor insertion"
+  assert_not_contains = '(Se)=>{const prior=p.getState(),previous=prior.mainLoopModelForSession??prior.mainLoopModel??HE(),target=s??HE(),changed=patchedEffort.session(previous).slug!==patchedEffort.session(target).slug;if(changed&&prior.sessionEffort?.kind==="level")patchedEffort.session(previous,"set",prior.sessionEffort.value);const effective=h!==void 0?patchedEffort.session(target,"set",h):patchedEffort.session(target);D=!!Se.fastMode;Y=Ls()?aH(s,Se.fastMode):D;return{...Se,mainLoopModel:s,mainLoopModelForSession:null,sessionEffort:h!==void 0?Hce(h):changed?{kind:"inherit"}:Se.sessionEffort,effortByModel:effective.effortByModel,effortRevision:(Se.effortRevision??0)+1,ultracode:Se.ultracode??!1,...Y!==D&&{fastMode:Y}}}'

@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{no,wr,Jt}from"./chunk-e44qnbvj.js";import{UH,kr,gn}from"./chunk-cxygx051.js";import{Ns,dt,Bt}from"./chunk-42sx5v11.js";import{pc}from"./chunk-10x71q5q.js";import{m$}from"./chunk-dm9evvhe.js";import{Be}from"./chunk-thq7bw7a.js";var r=new Set([Be,dt,Bt,Ns,no,wr,m$,pc]),n=new Set([dt,Bt,Ns]);function Dvt(e,o){return`${n.has(o)?`lets ${o} run without asking only in the working directories`:`adds nothing to ${o}'s default, which already runs without asking in the working directories`}. "${o}" alone allows every path. Older versions of Claude Code treat "${e}" as "${o}", and this version will too if Anthropic turns this change off.`}function YB(e){return e.ruleContent==="*"&&r.has(e.toolName)&&CBr()}function CBr(){return Jt("bot_protected_tengu_amber_plover",!0)}function Lg(e,o){if(o==="allow"){let t=ZGs(e);if(t!==void 0&&CBr())return{toolName:t,ruleContent:"*"}}return kr(e)}function ZGs(e){if(typeof e!=="string"||!(e.endsWith("(*)")||e.endsWith("()")))return;let o=UH(e);return o.kind==="call"&&(o.rawContent==="*"||o.rawContent==="")&&r.has(o.toolName)?o.toolName:void 0}function mZ(e){return gn(kr(e))}
+export{Dvt,YB,CBr,Lg,ZGs,mZ};

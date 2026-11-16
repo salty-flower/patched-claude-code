@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{dh}from"./chunk-gg7nabmz.js";import{g,c}from"./chunk-f8g4f3e3.js";import{Jt}from"./chunk-e44qnbvj.js";import{$r}from"./chunk-gywtf5sd.js";import{nAo,dMr,cMr,QMs}from"./chunk-9mmtb1jf.js";import{P}from"./chunk-8txsa0tf.js";function Jfo(e,t){if(t)return"program";return nAo(e)?"modelOfAppTool":"model"}function a(){return Jt("tengu_expressive_quail",!1)===!0}function i(e){if(e==="modelOfAppTool"&&a())return!0;return dh()&&Jt("tengu_eventual_noodle",!1)===!0}function d(e){return typeof e==="object"&&e!==null&&"type"in e&&e.type==="text"}async function Dgs(e,t,m){let n=typeof t==="function"?t():t;if(!i(n))return;if(n==="modelOfAppTool"&&!i("model")&&(QMs(e.structuredContent,cMr)!==void 0||P(e._meta)&&$r(e._meta,dMr)!==void 0))return;let o=await m([...e.content.filter((r)=>!d(r)),...e.content.filter(d)]),u=n==="modelOfAppTool",p=o.content.filter((r)=>r.type!=="text"||r.text.trim()!=="");if(p.length===0){if(o.content.length>0)c("mcp_content_over_structured","blank_text",{isAppTool:u});return}return g("mcp_content_over_structured",{isAppTool:u}),n!=="program"&&a()?{...o,content:p}:o}
+export{Jfo,Dgs};

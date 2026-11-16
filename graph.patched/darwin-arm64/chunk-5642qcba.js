@@ -1,0 +1,7 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{Pe}from"./chunk-5p4f0tx0.js";import{ry,POt}from"./chunk-yhrwhqfb.js";import{he}from"./chunk-0cvfymxt.js";import{kt}from"./chunk-28n1q6sq.js";import{d2}from"./chunk-b8p5ky61.js";var l=1000;function hgn(e=process.argv.slice(2)){return POt(e)&&ry("--output-format",e)==="stream-json"}function R0e(){return Pe(process.env.CLAUDE_CODE_STARTUP_FAILURE_RESULTS)}var d=new Set(["org_config_required_unavailable","org_config_refused","config_file_invalid"]);function f(e){return d.has(e)||R0e()}function ggn(e,t=process.argv.slice(2)){let r=ry("--session-id",t);return(ry("--sdk-url",t)===void 0?kt(r):r)||e}function P5e({sessionId:e,message:t,reason:r,invalidConfigFile:i,resultIndex:n=0}){return{...d2(e,[t]),...r!==void 0&&{startup_failure_reason:r},...i!==void 0&&{invalid_config_file:i},...n!==null&&{result_index:n}}}async function l2(e){if(f(e.reason))await $Tt([P5e({...e,sessionId:ggn(e.sessionId)})])}async function $Tt(e,{goesOn:t=!1}={}){let r=process.stdout;if(!hgn()||r.writableEnded||r.destroyed)return!1;let i=e.map((o)=>JSON.stringify(o)+`
+`).join(""),n=(o)=>{},u=new Promise((o)=>{n=o}),s=()=>n(!1);r.once("error",s);try{r.write(i,(o)=>n(!o))}catch{return!1}let a=await he(u,l)??!1;if(t&&a)r.off("error",s);return a}
+export{hgn,R0e,ggn,P5e,l2,$Tt};

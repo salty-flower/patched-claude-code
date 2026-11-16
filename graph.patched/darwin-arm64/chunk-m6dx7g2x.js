@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{Pe}from"./chunk-5p4f0tx0.js";import{Cte,WP,kt}from"./chunk-28n1q6sq.js";var r="3ab19d7e-9f35-45c2-926e-75e271cc60b3";function ROt(s){return WP(s.trim(),r)}function K9t(){let s=process.env.CLAUDE_CODE_REMOTE_SESSION_ID?.trim();return s?WP(s,r):null}function J4a(){if(!Pe(process.env.CLAUDE_CODE_CHILD_SESSION)||K9t()===null)return!1;let s=process.argv??[],e=s.indexOf("--");return!s.slice(0,e===-1?void 0:e).some((n,l)=>n==="--sdk-url"?Boolean(s[l+1]):n.startsWith("--sdk-url=")&&n!=="--sdk-url=")&&!(s[2]==="mcp"&&s[3]==="serve")}function gor(){return J4a()&&!Pe(process.env.CLAUDE_CODE_DISABLE_NESTED_SESSION_ID)?null:K9t()}function j5o(s){if(s.toLowerCase().endsWith(".jsonl"))return{sessionId:Cte(),ingressUrl:null,isUrl:!1,jsonlFile:s,isJsonlFile:!0};if(kt(s))return{sessionId:s,ingressUrl:null,isUrl:!1,jsonlFile:null,isJsonlFile:!1};try{let e=new URL(s);return{sessionId:K9t()??WP(e.href,r),ingressUrl:e.href,isUrl:!0,jsonlFile:null,isJsonlFile:!1}}catch{}return null}
+export{ROt,K9t,J4a,gor,j5o};

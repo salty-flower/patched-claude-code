@@ -1,0 +1,12 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{aR,xt}from"./chunk-b5xhmzas.js";import{E}from"./chunk-xysnb9s9.js";import{yu}from"./chunk-1f8jcja6.js";import{s,n}from"./chunk-b2f7pn4f.js";import{Ae}from"./chunk-bwmknbfj.js";import{Xe}from"./chunk-hm975b5a.js";import{II}from"./chunk-18x247zq.js";import{MAe}from"./chunk-m2bvwtr5.js";import{e,r}from"./chunk-zrhzz8fw.js";import{nn}from"./chunk-sjk3kdyw.js";import{al}from"./chunk-1fk1dcgw.js";import{v}from"./chunk-fn3dzsec.js";var L=5,H=5;function PXe(b){let t=E(27),{output:m,fullOutput:p,elapsedTimeSeconds:i,totalLines:l,totalBytes:u,timeoutMs:o,verbose:a}=b,{columns:c}=Ae(),z;if(t[0]!==c||t[1]!==m||t[2]!==a)z=a?null:w(m,c),t[0]=c,t[1]=m,t[2]=a,t[3]=z;else z=t[3];let g=z,A;if(t[4]!==p||t[5]!==g)A=g?g.text:al(p.trim()),t[4]=p,t[5]=g,t[6]=A;else A=t[6];let y=A;if(!y){let d;if(t[7]===v)d=e(n,{dimColor:!0,children:"Running\u2026 "}),t[7]=d;else d=t[7];let f;if(t[8]!==i||t[9]!==o)f=e(Xe,{children:r(II,{children:[d,e(MAe,{elapsedTimeSeconds:i,timeoutMs:o})]})}),t[8]=i,t[9]=o,t[10]=f;else f=t[10];return f}let _=g?L:xt(p,`
+`)+1,F=(l?Math.max(0,l-_):0)+(g?.dropped??0),x="";if(u&&l)x=`~${l} lines`;else if(F>0)x=`+${F} lines`;let d;if(t[11]!==y)d=e(n,{dimColor:!0,children:y}),t[11]=y,t[12]=d;else d=t[12];let f;if(t[13]!==x)f=x?e(n,{dimColor:!0,children:x}):null,t[13]=x,t[14]=f;else f=t[14];let M;if(t[15]!==i||t[16]!==o)M=e(MAe,{elapsedTimeSeconds:i,timeoutMs:o}),t[15]=i,t[16]=o,t[17]=M;else M=t[17];let B;if(t[18]!==u)B=u?e(n,{dimColor:!0,children:nn(u)}):null,t[18]=u,t[19]=B;else B=t[19];let O;if(t[20]!==f||t[21]!==M||t[22]!==B)O=r(s,{flexDirection:"row",gap:1,children:[f,M,B]}),t[20]=f,t[21]=M,t[22]=B,t[23]=O;else O=t[23];let G;if(t[24]!==d||t[25]!==O)G=e(Xe,{children:e(II,{children:r(s,{flexDirection:"column",children:[d,O]})})}),t[24]=d,t[25]=O,t[26]=G;else G=t[26];return G}function uJo({output:b,fullOutput:m,totalLines:p},i){if(!m.trim())return!1;return(p??0)>L||w(b,i).clipped}function w(b,m){let p=Math.max(1,m-H),i=al(b.trim()).replace(/\r\n?/g,`
+`).split(`
+`).filter((a)=>a),l=[],u=0,o=i.length;while(o>0&&u<L){let a=i[--o],c=yu(a,p,{hard:!0,trim:!1}).split(`
+`),t=L-u;if(c.length>t)return l.unshift(aR(c.slice(-t).join("")," ")),{text:l.join(`
+`),clipped:!0,dropped:o};l.unshift(a),u+=c.length}return{text:l.join(`
+`),clipped:o>0,dropped:o}}
+export{PXe,uJo};

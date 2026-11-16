@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+var eBr=["mcp__Claude_Preview__","mcp__Claude_Browser__","mcp__remote-devices__Claude_Browser__"];var gzs="mcp__claude-device__chrome_",ioe=["mcp__claude-in-chrome__","mcp__Claude_in_Chrome__","mcp__remote-devices__claude-in-chrome__","mcp__remote-devices__Claude_in_Chrome__","mcp__claude-device__chrome_",...eBr];function o(_){if(!_.startsWith("mcp__claude-device__chrome_"))return null;let e=_.slice(27);return e===""||e.startsWith("_")||e.includes("__")?null:e}function _zs(_){let e=o(_);return e===null?_:"mcp__claude-in-chrome__"+e}function Bha(_,e){let r=o(_);return r!==null&&e==="chrome_"+r?r:e}var t=new RegExp("(?<![\\w-])mcp__claude-device__chrome_[\\w-]*","g");function PDo(_){return _.replace(t,(e)=>e==="mcp__claude-device__chrome_"?"mcp__claude-in-chrome__":_zs(e))}function mk(_){return ioe.some((e)=>_.startsWith(e))}var n=["mcp__remote-devices__Claude_Preview__","mcp__claude-for-chrome__","mcp__remote-devices__claude-for-chrome__"];function IDo(_){return mk(_)||n.some((e)=>_.startsWith(e))}function vGt(_){return eBr.some((e)=>_.startsWith(e))}
+export{eBr,gzs,ioe,_zs,Bha,PDo,mk,IDo,vGt};

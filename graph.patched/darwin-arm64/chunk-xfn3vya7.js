@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{Bdr}from"./chunk-s57j1qf8.js";import{E}from"./chunk-xysnb9s9.js";import{DT,TV}from"./chunk-b2f7pn4f.js";import{ne,e}from"./chunk-zrhzz8fw.js";import{rn,an,j}from"./chunk-07a1744w.js";import{pr}from"./chunk-1fk1dcgw.js";j();import{PassThrough as u}from"stream";function m(){}var J7t=rn(!1);function b1(r){let i=E(5),{children:t}=r,{exit:n}=DT(),a,o;if(i[0]!==n)a=()=>{let d=setTimeout(n,0);return()=>clearTimeout(d)},o=[n],i[0]=n,i[1]=a,i[2]=o;else a=i[1],o=i[2];an(a,o);let c;if(i[3]!==t)c=e(ne,{children:t}),i[3]=t,i[4]=c;else c=i[4];return c}async function pN(r,t){r.render(e(b1,{children:t})),await r.waitUntilExit()}async function Qft(r,{columns:t,storageV5:n}){let i="",a=!1,o=new u;if(t!==void 0)o.columns=t;return o.on("data",(c)=>{if(a)return;a=!0,i=c.toString()}),await(await TV(e(b1,{children:e(J7t.Provider,{value:!0,children:e(Bdr,{value:m,children:r})})}),{stdout:o,patchConsole:!1},{storageV5:n})).waitUntilExit(),i}async function Klr(r,t){let n=await Qft(r,t);return pr(n)}
+export{J7t,b1,pN,Qft,Klr};

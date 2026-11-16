@@ -1,0 +1,7 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{Pe}from"./chunk-732yb76j.js";import{ry,EIt}from"./chunk-6t7191sd.js";import{he}from"./chunk-3rgses43.js";import{Et}from"./chunk-pjehsasc.js";import{ij}from"./chunk-xby1511v.js";var l=1000;function Zhn(e=process.argv.slice(2)){return EIt(e)&&ry("--output-format",e)==="stream-json"}function EMe(){return Pe(process.env.CLAUDE_CODE_STARTUP_FAILURE_RESULTS)}var d=new Set(["org_config_required_unavailable","org_config_refused","config_file_invalid"]);function f(e){return d.has(e)||EMe()}function egn(e,t=process.argv.slice(2)){let r=ry("--session-id",t);return(ry("--sdk-url",t)===void 0?Et(r):r)||e}function T5e({sessionId:e,message:t,reason:r,invalidConfigFile:i,resultIndex:n=0}){return{...ij(e,[t]),...r!==void 0&&{startup_failure_reason:r},...i!==void 0&&{invalid_config_file:i},...n!==null&&{result_index:n}}}async function sj(e){if(f(e.reason))await DTt([T5e({...e,sessionId:egn(e.sessionId)})])}async function DTt(e,{goesOn:t=!1}={}){let r=process.stdout;if(!Zhn()||r.writableEnded||r.destroyed)return!1;let i=e.map((o)=>JSON.stringify(o)+`
+`).join(""),n=(o)=>{},u=new Promise((o)=>{n=o}),s=()=>n(!1);r.once("error",s);try{r.write(i,(o)=>n(!o))}catch{return!1}let a=await he(u,l)??!1;if(t&&a)r.off("error",s);return a}
+export{Zhn,EMe,egn,T5e,sj,DTt};

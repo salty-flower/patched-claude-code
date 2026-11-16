@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{bye}from"./chunk-77eek6nm.js";import{QLn,pji,mji,hji,gji}from"./chunk-k8j4k6xc.js";import{wH}from"./chunk-bj5dxabz.js";import{ld}from"./chunk-374g520d.js";import{IGn}from"./chunk-z3nybbcp.js";import{P}from"./chunk-8txsa0tf.js";function rvr(){return IGn()&&bye("allow_mcp_task_worker_wake")}function ovr(e){return e.type==="http"&&e.scope==="dynamic"&&!ld(e)&&e.headersHelper===void 0&&wH(e.url)!==null&&rvr()}function svr(e,r){{let o=P(e)?e[pji]:void 0,t=P(o)&&o[hji]===r?o[mji]:void 0;if(typeof t==="boolean")return t?"service":"client"}return}function fji(e,r,o){return{[QLn]:`${e}.${r??""}.${o}`}}class ays{#o=!0;#r=Date.now();#e;#t;constructor(e){this.#e=!e}isInForce(){return!this.#e}async untilPoll(e){if(!e.aborted&&!this.#e&&!this.#o){let r=Promise.withResolvers(),o=()=>r.resolve();this.#t=o,e.addEventListener("abort",o,{once:!0}),await r.promise,e.removeEventListener("abort",o)}}polled(){this.#o=!1}look(){if(Date.now()-this.#r<gji)return!1;return this.#r=Date.now(),this.pollAgain(),!0}pollAgain(){this.#o=!0,this.#t?.()}begin(){this.#e=!1,this.#o=!0,this.#r=Date.now()}end(){this.#e=!0,this.#t?.()}}
+export{rvr,ovr,svr,fji,ays};

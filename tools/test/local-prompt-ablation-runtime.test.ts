@@ -1,12 +1,12 @@
 import { beforeAll, expect, test } from "bun:test"
 import { resolve } from "node:path"
 import { parseSync } from "oxc-parser"
-import { applyPatchEntriesToGraphBundle, loadGraphBundle } from "../lib/graph-bundle"
-import { targetVersion } from "../lib/target"
 import { patchApplies } from "../lib/apply-patches"
+import { applyPatchEntriesToGraphBundle, loadGraphBundle } from "../lib/graph-bundle"
 import { loadPatchEntriesFromFile } from "../lib/patch-files"
-import { recordOracleCheck } from "./helpers/oracle-evidence"
 import { evaluateStaticPatchTests, type StaticPatchTest } from "../lib/patch-tests"
+import { targetVersion } from "../lib/target"
+import { recordOracleCheck } from "./helpers/oracle-evidence"
 
 const root = resolve(process.env.PATCHED_CC_ROOT ?? resolve(import.meta.dir, "../.."))
 const version = targetVersion()
@@ -83,13 +83,14 @@ function uniqueFunction(
 ): { name: string; source: string } {
   const matches = nodes.filter((node) => predicate(node.source))
   expect(matches).toHaveLength(1)
-  return matches[0]!
+  return matches[0]
 }
 
 function capture(source: string, pattern: RegExp): string[] {
   const match = source.match(pattern)
   expect(match).not.toBeNull()
-  return match!.slice(1)
+  if (!match) throw new Error(`Missing native binding: ${pattern}`)
+  return match.slice(1)
 }
 
 function patchedFunctions(platform: Platform): FunctionSources {
@@ -101,14 +102,16 @@ function patchedFunctions(platform: Platform): FunctionSources {
   )
 
   const graph = loadGraphBundle(resolve(root, `staging/${version}/graph/${platform}`), platform)
-  const rendered = applyPatchEntriesToGraphBundle(graph, patches, version)
   const graphFiles = graph.files.filter(
     (file) =>
       file.text.includes("CLAUDE_CODE_REMOVE_PROMPT_STRINGS") &&
       file.text.includes("tengu_remove_prompt_strings_applied"),
   )
   expect(graphFiles).toHaveLength(1)
-  const graphFile = graphFiles[0]!
+  const graphFile = graphFiles[0]
+  // The runtime oracle exercises this owner module; full-graph locator uniqueness
+  // is checked separately by verification and the rendered patch suite.
+  const rendered = applyPatchEntriesToGraphBundle({ ...graph, files: [graphFile] }, patches, version)
   const source = rendered.texts.get(graphFile.path) ?? graphFile.text
   const renderedBundle = graph.files.map((file) => rendered.texts.get(file.path) ?? file.text).join("\n")
   const staticTests = patches.flatMap((entry) => (entry.tests ?? []).filter((test) => test.kind === "static"))
@@ -131,9 +134,7 @@ function patchedFunctions(platform: Platform): FunctionSources {
   const [cacheName, cacheKeyName] = capture(config.source, /([\w$]+)\(\)\?\.\[([\w$]+)\]/)
   const [skipName, sentinelName] = capture(rewrite.source, /if\(([\w$]+)\(n\)\|\|e===([\w$]+)\)return e;/)
   const [stateName] = capture(rewrite.source, /let [\w$]+=([\w$]+)\(\);try\{/)
-  const modelMixStateName = rewrite.source.match(
-    /([\w$]+)\(\)\.modelMix\?\.mix\.removePromptStrings/,
-  )?.[1]
+  const modelMixStateName = rewrite.source.match(/([\w$]+)\(\)\.modelMix\?\.mix\.removePromptStrings/)?.[1]
   expect(patches).toHaveLength(modelMixStateName ? 4 : 3)
   const sources: FunctionSources = {
     configName: config.name,
@@ -142,16 +143,16 @@ function patchedFunctions(platform: Platform): FunctionSources {
     config: config.source,
     rewrite: rewrite.source,
     emit: emit.source,
-    parserName: parserName!,
-    environmentName: environmentName!,
-    warningName: warningName!,
-    analyticsName: analyticsName!,
-    errorName: errorName!,
-    cacheName: cacheName!,
-    cacheKeyName: cacheKeyName!,
-    skipName: skipName!,
-    sentinelName: sentinelName!,
-    stateName: stateName!,
+    parserName: parserName,
+    environmentName: environmentName,
+    warningName: warningName,
+    analyticsName: analyticsName,
+    errorName: errorName,
+    cacheName: cacheName,
+    cacheKeyName: cacheKeyName,
+    skipName: skipName,
+    sentinelName: sentinelName,
+    stateName: stateName,
     modelMixStateName,
   }
   sourceCache.set(platform, sources)
@@ -207,10 +208,12 @@ function instantiate(
     Symbol("native-sentinel"),
     () => state,
     ...(sources.modelMixStateName
-      ? [() => {
-          modelMixReads++
-          return { modelMix: { mix: { removePromptStrings: scenario.modelMixStrings ?? [] } } }
-        }]
+      ? [
+          () => {
+            modelMixReads++
+            return { modelMix: { mix: { removePromptStrings: scenario.modelMixStrings ?? [] } } }
+          },
+        ]
       : []),
   )
 
@@ -238,7 +241,7 @@ const sourceAdmissionCheck =
 const telemetryCheck =
   "local-prompt-ablation-runtime.test.ts: native prompt deletion never records matching strings or emits analytics"
 
-// Cold dual-graph parsing has its own setup budget; scenario deadlines stay unchanged.
+// Cold dual-graph owner preparation has its own setup budget; scenario deadlines stay unchanged.
 beforeAll(() => {
   for (const platform of platforms) patchedFunctions(platform)
 }, 120_000)

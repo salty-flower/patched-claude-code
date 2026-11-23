@@ -11,6 +11,11 @@ export const WEB_SEARCH_MODEL_RUNTIME_CHECKS = [
   "web-search-model-tui-smoke.ts: empty override preserves main model routing",
 ]
 
+export const AUTO_MODE_CLASSIFIER_RUNTIME_CHECKS = {
+  firstParty: "auto-mode-local-classifier-tui-smoke.ts: missing verdict falls back and server review resumes in the first-party session",
+  customEndpoint: "auto-mode-local-classifier-tui-smoke.ts: custom endpoint fallback allows only a verified allow",
+}
+
 export const THINKING_REQUEST_RUNTIME_CHECKS = {
   "resolver-matrix":
     "thinking-summaries-request.test.ts: real resolver covers settings, explicit preference and interactive/noninteractive output matrix",
@@ -113,6 +118,7 @@ export function runtimeOracleChecks(version: string): Record<string, string[]> {
       "account-email-context-runtime.test.ts: account email stays outside main and subagent requests",
     ],
     "web-search-model/independent-search-model": WEB_SEARCH_MODEL_RUNTIME_CHECKS,
+    "auto-mode-local-classifier/per-call-classifier-fallback": Object.values(AUTO_MODE_CLASSIFIER_RUNTIME_CHECKS),
     "local-prompt-ablation/local-source-admission": [
       "local-prompt-ablation-runtime.test.ts: native prompt deletion respects local source admission",
     ],

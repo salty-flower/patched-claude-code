@@ -2697,11 +2697,28 @@
       "oracleIds": [
         "account-email-context/no-model-context-email"
       ]
+    },
+    {
+      "familyId": "auto-mode-local-classifier",
+      "invariantId": "per-call-classifier-fallback",
+      "introducedVersion": "2.1.325",
+      "rationaleRefs": [
+        "reference/v2.1.88/sources/src/utils/permissions/permissions.ts#L688-L704",
+        "reference/v2.1.88/sources/src/utils/permissions/permissions.ts#L843-L868"
+      ],
+      "requiredPlatforms": [
+        "darwin-arm64",
+        "linux-x64"
+      ],
+      "evidenceClass": "runtime",
+      "oracleIds": [
+        "auto-mode-local-classifier/per-call-classifier-fallback"
+      ]
     }
   ],
   "maintainerAcknowledgement": {
     "approvedBy": "maintainer (explicit interactive approval)",
-    "approvedAt": "2026-11-16",
-    "catalogSha256": "ffc5b257cc64001ec7704426d032896bcfd109f309f0403e1a2f8f4814d9d65b"
+    "approvedAt": "2026-11-23",
+    "catalogSha256": "b14e1aa3983868a74d1aa5276bb68918a29c260abaf072a6d8944d677940436d"
   }
 }

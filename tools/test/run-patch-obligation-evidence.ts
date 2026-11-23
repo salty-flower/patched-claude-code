@@ -240,6 +240,16 @@ function main(): number {
         env: { ...sharedEnv, PATCH_OBLIGATION_EVIDENCE_REQUIRED: "1" },
       })
     }
+    if (
+      ledger.decisions.some(
+        (decision) => decision.familyId === "auto-mode-local-classifier" && decision.disposition === "ported",
+      )
+    ) {
+      runChecked(["bun", "run", "tools/test/auto-mode-local-classifier-tui-smoke.ts", "--bundle", dispatcher], {
+        cwd: ROOT,
+        env: sharedEnv,
+      })
+    }
 
     const evidenceClass: EvidenceClass = args.platform === "darwin-arm64" ? "real-os-runtime" : "runtime"
     if (

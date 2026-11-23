@@ -1435,6 +1435,20 @@
         "account-email-context-omit",
         "account-email-context-omit-replayed-section"
       ]
+    },
+    {
+      "familyId": "auto-mode-local-classifier",
+      "invariantId": "per-call-classifier-fallback",
+      "disposition": "ported",
+      "patchEntries": [
+        "keep-server-review-after-missing-response",
+        "keep-server-review-after-missing-call",
+        "mark-local-classifier-fallback",
+        "permit-local-classifier-for-missing-verdict",
+        "queue-missing-verdict-fallback-linux-x64",
+        "queue-missing-verdict-fallback-darwin-arm64",
+        "deny-when-local-fallback-has-no-verdict"
+      ]
     }
   ],
   "retirementProposal": {

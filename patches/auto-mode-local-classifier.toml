@@ -130,7 +130,7 @@ platforms = ["darwin-arm64"]
 rationale = """
 Run the local classifier in the existing tool-review queue for normal auto-mode calls with a missing server verdict.
 In 2.1.325, ei marks an active server role, Xe is the permission context,
-cr marks withheld context, An marks a manual approval path, Es marks flagged handback,
+cr marks withheld context, Cn marks a manual approval path, Es marks flagged handback,
 and t2 detects delegated sessions.
 Use to and Phe to read the settled verdict and ep to classify the same call locally.
 LVn validates a real local verdict, Ice marks no result, and Kyt marks interruption.
@@ -140,7 +140,7 @@ rationale_ref = "reference/v2.1.88/sources/src/utils/permissions/permissions.ts#
 locator_kind = "literal"
 locator_pattern = '''hi?Ym:Lf'''
 replacement = '''async(progress)=>{
-if(ei&&Xe.mode==="auto"&&!cr&&!An&&!Es&&!t2()&&!i.CLAUDE_CODE_USER_DELEGATED_SESSION_DIRECT_API){
+if(ei&&Xe.mode==="auto"&&!cr&&!Cn&&!Es&&!t2()&&!i.CLAUDE_CODE_USER_DELEGATED_SESSION_DIRECT_API){
   const reason=Phe(await to(),h);
   if(["server_no_result","server_unsupported","server_thread_unsupported"].includes(reason)){
     Gi="missing_server_verdict";
@@ -164,6 +164,12 @@ return (hi?Ym:Lf)(progress);
 kind = "static"
 name = "queue-missing-verdict-fallback-darwin-arm64 is rendered"
 assert_contains = '''const reason=Phe(await to(),h)'''
+
+[[patches.tests]]
+kind = "static"
+name = "Darwin fallback uses the Darwin manual-approval binding"
+assert_contains = '''Xe.mode==="auto"&&!cr&&!Cn&&!Es'''
+assert_not_contains = '''Xe.mode==="auto"&&!cr&&!An&&!Es'''
 
 [[patches]]
 name = "deny-when-local-fallback-has-no-verdict"

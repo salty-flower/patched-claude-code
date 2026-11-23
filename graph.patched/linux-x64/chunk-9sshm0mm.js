@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{t}from"./chunk-ray9kegj.js";import{r8}from"./chunk-a5a37ds7.js";import{Oe}from"./chunk-zaxe68t4.js";import{RSe}from"./chunk-18h9wtep.js";import{es}from"./chunk-7k96963f.js";import{Bp,_vt}from"./chunk-7r5ge1mb.js";function kio(e,a,s){if(s.get(e)?.status!=="running")return;s.updateTranscript(e,(n)=>({...n,messages:_vt(n.messages,a)}))}function HJt(e,a,s,n){let o=s.get(e);if(!o||es(o.status)){t(`Dropping message for teammate task ${e}: task status is "${o?.status}"`);return}let i=Oe({content:a,origin:n});s.update(e,(r)=>({...r,pendingUserMessages:[...r.pendingUserMessages,{text:a,origin:n,shownAs:i.uuid}]})),s.updateTranscript(e,(r)=>({...r,messages:_vt(r.messages,i)}))}function Pis(e,a){let s=a.get(e);if(!Bp(s)||!s.awaitingPlanApproval)return;a.update(e,(n)=>({...n,awaitingPlanApproval:!1,pendingPlanApproval:void 0})),HJt(e,"The person moved you out of plan mode. Continue your work.",a,{kind:"task-notification"})}function Iis(e,a,s){let n=RSe(r8(a,s),e);if(n?.status==="running")n.retryWake?.emit()}
+export{kio,HJt,Pis,Iis};

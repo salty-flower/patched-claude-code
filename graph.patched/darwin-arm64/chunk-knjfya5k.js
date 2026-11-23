@@ -1,0 +1,5 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{yt}from"./chunk-rs1brma6.js";var Q="./package-validate.mjs-3a0e4e2a.txt.zst";var e=yt(Q,import.meta.dirname);export{e as default};

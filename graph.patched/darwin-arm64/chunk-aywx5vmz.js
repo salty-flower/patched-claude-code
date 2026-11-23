@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{vD}from"./chunk-qgq3te1p.js";import{tt,s,n,Da}from"./chunk-b2f7pn4f.js";import{BU}from"./chunk-s57j1qf8.js";import{_s}from"./chunk-gywtf5sd.js";import{yi}from"./chunk-99tnmqd7.js";import{Yf}from"./chunk-krpg5gaq.js";import{ap}from"./chunk-0ebrjsyq.js";import{e}from"./chunk-zrhzz8fw.js";import{ce,M,x,j}from"./chunk-07a1744w.js";j();var d=500,m=5000;function QIt(){let t=tt(),r=BU(),o=yi();return ce(()=>{if(!t)return;let l=vD.of(o),c=Date.now();if(c-l.lastBellAt<d)return;l.lastBellAt=c,r.notifyBell()},[t,r,o])}j();var B=600;function p(t,r=B){let o=Yf(),[l,c]=Da(t&&o?r:null);if(!t||!o)return[l,!0];let i=Math.floor(c/r)%2===0;return[l,i]}function E8({isError:t,isNeutral:r=!1,isUnresolved:o,shouldAnimate:l}){let c=tt(),i=ap(),[L,R]=p(l&&!c&&!i),a=o&&l&&i&&!c,f=QIt(),u=x(null);return M(()=>{if(o)u.current??=Date.now();else if(u.current!==null){if(Date.now()-u.current>m)f();u.current=null}},[o,f]),e(s,{ref:L,minWidth:2,children:e(n,{"aria-label":t&&!r?"tool error:":"tool:",color:a?"text":o||r?void 0:t?"error":"success",dimColor:o&&!a||r,children:!l||R||t||!o?_s:" "})})}
+export{QIt,E8};

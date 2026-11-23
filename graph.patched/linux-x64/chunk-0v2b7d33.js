@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{p}from"./chunk-q8mq1ny3.js";import{Ztr}from"./chunk-3x18nsrw.js";import{Ko}from"./chunk-5y050cdx.js";import{Zy}from"./chunk-a82ctk1k.js";function vZs(e){return e.hookCaller}function lT(e){return e.agentId===void 0&&e.forRemoteExecution!==!0&&e.forPromptShellCommand===void 0?e.hookCaller:void 0}function Qy(e){return e.hookCaller!==void 0||e.pluginSteered===!0}function I6r(e){let n=vZs(e);if(n!==void 0)return Ztr(n)?n:"";return Qy(e)?"":void 0}function bWe(e){return e?.type==="remote-agent"||e?.type==="plugin"}function yXn(e,n){return[...e.filter((r)=>r.value===n),...e.filter((r)=>r.value!==n)]}function _Go(e){if(!Array.isArray(e))return null;try{return e.filter((n)=>typeof n==="object"&&n!==null&&("type"in n)&&n.type==="addDirectories")}catch{return null}}var SWe=Ko({kind:"permission_prompt",payload:p(()=>Zy((e)=>typeof e==="object"&&e!==null&&("requestId"in e)&&("toolName"in e)&&("permissionResult"in e))),result:p(()=>Zy((e)=>typeof e==="object"&&e!==null&&("behavior"in e))),default:{behavior:"cancelled"}});
+export{vZs,lT,Qy,I6r,bWe,yXn,_Go,SWe};

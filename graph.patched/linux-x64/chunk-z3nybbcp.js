@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{S}from"./chunk-a5a37ds7.js";import{ge,dte,Gt}from"./chunk-r3adsed5.js";import{i}from"./chunk-5g5ea6r9.js";import{N5t,ol,$S}from"./chunk-acx2qgbr.js";import{bye}from"./chunk-77eek6nm.js";var pIe=5000;function WT(){if(i.CLAUDE_CODE_DISABLE_MCP_TASKS)return!1;return S("tengu_glowing_lark",ol()===N5t&&!i.CLAUDE_CODE_REMOTE&&!Gt())}function XLr(){return WT()&&S("tengu_mcp_task_worker_wake",!1)}var o=120000;function Hsa(){{let e=S("tengu_nested_acorn",0);return typeof e==="number"&&Number.isFinite(e)&&e>0?Math.min(e,o):0}return 0}function Ejt(){let e=i.CLAUDE_CODE_ENVIRONMENT_KIND;return i.CLAUDE_CODE_REMOTE===!0&&(e===void 0||e==="anthropic_cloud")&&!Gt()&&!$S()}function IGn(){return WT()&&S("tengu_zippy_piglet",!1)&&Ejt()}function iFs(){return IGn()&&S("tengu_mossy_ferry",!1)}function Nsa(){return iFs()&&bye("allow_mcp_task_worker_wake")}function aFs(){return i.CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND}function Fsa(){return WT()&&!aFs()&&i.CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS!==0&&(!ge()||i.CLAUDE_AUTO_BACKGROUND_TASKS===!0)&&!dte()}
+export{pIe,WT,XLr,Hsa,Ejt,IGn,iFs,Nsa,aFs,Fsa};

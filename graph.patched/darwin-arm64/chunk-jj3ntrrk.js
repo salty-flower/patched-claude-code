@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{Kn,b,_P}from"./chunk-e44qnbvj.js";import{sdt}from"./chunk-gywtf5sd.js";import{le}from"./chunk-gwh19369.js";import{ao}from"./chunk-yyx3r3ec.js";import{na}from"./chunk-xjqp3eha.js";import{vS}from"./chunk-pbp1w3ha.js";import{bF}from"./chunk-7z1bwaem.js";import{Je}from"./chunk-xynpsnk2.js";var t={enabled:!1,pixelValidation:!1,clipboardPasteMultiline:!0,mouseAnimation:!0,hideBeforeAction:!0,autoTargetDisplay:!0,clipboardGuard:!0,maskFailClosed:!0,adaptiveResolution:!1,coordinateMode:"pixels"};function o(){return{...t,..._P("tengu_malort_pedway",t)}}function n(){let e=Kn();return e==="max"||e==="pro"}function Mbr(){if(ao("hipaa"))return!1;return n()&&o().enabled}function SUi(){return sdt()&&!bF()&&!ao("hipaa")&&!(le()&&na())&&b("tengu_dapper_acorn",!1)}function bUi(){return Je("tengu_clever_yeti",{safe:!0})}function wUi(){return Je("tengu_foamy_whistle",{safe:!0})}function rgs(){return Je("tengu_graceful_fiddle",{safe:!0})}function $fo(){let{enabled:e,coordinateMode:a,...r}=o();return r}function fHt(){let e=vS();return e.frozenCoordinateMode??=o().coordinateMode,e.frozenCoordinateMode}
+export{Mbr,SUi,bUi,wUi,rgs,$fo,fHt};

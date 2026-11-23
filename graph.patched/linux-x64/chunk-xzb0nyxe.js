@@ -1,0 +1,5 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{LP,Rn}from"./chunk-r3adsed5.js";import{rr}from"./chunk-fn5hkvxe.js";import{i}from"./chunk-5g5ea6r9.js";import{ht}from"./chunk-8c4ttmk8.js";import{Ee}from"./chunk-n61dvy9z.js";import{IP,xtr,jb}from"./chunk-acx2qgbr.js";import{jd,Kce,Vi}from"./chunk-a5a37ds7.js";import{yn}from"./chunk-rb5kx98w.js";import{KJt}from"./chunk-cjwbv39y.js";import{OSt}from"./chunk-6had63hd.js";var gas=(o)=>o.find((m)=>m!==!1)||void 0;function d(){let{source:o}=Vi();return o==="CLAUDE_CODE_OAUTH_TOKEN"||o==="CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR"}var p=()=>Vi().source==="CCR_OAUTH_TOKEN_FILE"&&LP()&&jd();var u=()=>xtr()&&!jb()&&jd()&&(d()||p());var Fmr=()=>Kce()&&!Rn()&&(IP()&&Vi().source==="CLAUDE_CODE_OAUTH_TOKEN"||u());var l=()=>OSt()||Fmr();var UMi=()=>i.CLAUDE_CODE_REMOTE?"cloud-session":"signed-out";var $mr=()=>gas([Ee()!=="firstParty"&&"third-party",rr()&&"bare",ht()&&"traffic-off",!yn(KJt)&&"policy",!l()&&UMi()]);export{gas,Fmr,UMi,$mr};

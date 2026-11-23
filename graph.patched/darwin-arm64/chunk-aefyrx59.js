@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{y_}from"./chunk-29cd2nzs.js";import{De}from"./chunk-fn3dzsec.js";var s=De(y_(),1),i=["dev","engine","aot"];function G0t(n){return i.find((e)=>n.includes(`-${e}.`))??null}function gxn(n){return G0t(n)!==null}function z0t(n,e){if(!n)return!1;let t=G0t(n),r=G0t(e);return t!==null&&r!==null&&t!==r}var o=new RegExp(`-(?:${i.join("|")})\\.(\\d{8})\\.t(\\d{6})(?:\\.|$)`,"g");function V0t(n){let e;for(let u of n.matchAll(o))e=u;let t=e?.[1],r=e?.[2];if(!t||!r)return null;let l=Date.UTC(Number(t.slice(0,4)),Number(t.slice(4,6))-1,Number(t.slice(6,8)),Number(r.slice(0,2)),Number(r.slice(2,4)),Number(r.slice(4,6)));return new Date(l).toISOString().slice(0,19).replace(/[-:]/g,"").replace("T","t")===`${t}t${r}`?l:null}function xki(n,e){let t=V0t(n),r=V0t(e);return t!==null&&r!==null&&r<t}function eJe(n,e){let t=V0t(n),r=V0t(e);if(t!==null&&r!==null){if(G0t(n)!==G0t(e))return!1;return t>r}if(gxn(n)||gxn(e))return!1;return s.valid(n)!==null&&s.valid(e)!==null&&s.gt(n,e)}function _xn(n,e,t){if(!n)return!1;if(n===t)return!0;let r=V0t(n);if(r!==null)return r>=e.commitMs;if(gxn(n))return!1;return s.valid(n)!==null&&s.gte(n,e.release)}
+export{G0t,gxn,z0t,V0t,xki,eJe,_xn};

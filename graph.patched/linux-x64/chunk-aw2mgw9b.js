@@ -1,0 +1,9 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import"./chunk-732yb76j.js";import"./chunk-pjehsasc.js";import"./chunk-acdxrrxc.js";import"./chunk-r3adsed5.js";import"./chunk-ka3gamjb.js";import"./chunk-zt4gdxqw.js";import"./chunk-5p3mkpyy.js";import"./chunk-3rgses43.js";import"./chunk-e5p1adf2.js";import"./chunk-a8se3wxy.js";import"./chunk-8c4ttmk8.js";import"./chunk-fn5hkvxe.js";import"./chunk-gymgq1qj.js";import"./chunk-ray9kegj.js";import"./chunk-4hm1w9gs.js";import"./chunk-tcx7rcpg.js";import"./chunk-h4js79s0.js";import"./chunk-3x18nsrw.js";import"./chunk-k0dvm1am.js";import"./chunk-185wxkmr.js";import"./chunk-5g5ea6r9.js";import"./chunk-xezjycv8.js";import"./chunk-09czkwbz.js";import"./chunk-77eek6nm.js";import"./chunk-a29z5vnb.js";import"./chunk-7657t3ve.js";import"./chunk-acx2qgbr.js";import"./chunk-dv3m75rz.js";import{Ua}from"./chunk-ykf94k84.js";import"./chunk-nd02r7dv.js";import"./chunk-vdyz1t0g.js";import{qr}from"./chunk-yt3wqde7.js";import"./chunk-8m59mbsr.js";import"./chunk-2xv5yvxr.js";function c(t,o,a,d){let e=(i,r)=>typeof i==="string"&&typeof r==="string"&&i===a(r),s=e(t.saved_pages_dir,o)?`[A quickstart in this conversation saved reference pages of this type on disk in ${qr([t.saved_pages_dir])}; its result lists them, so those are not attached here.]`:"";if(t.not_listed===!0)return s===""?"":`
+
+${s}`;let n=s===""?"":` ${s}`;if(typeof t.saved_system==="string"&&e(t.saved_system_dir,t.saved_system))return`
+
+[A quickstart in this conversation already listed the design systems and saved the files of ${Ua(t.saved_system,"(unrecognized address)")} on disk \u2014 skip the instructions' step that lists them and reads that README; its result lists the saved files.]${n}`;return s===""?null:`${d}${n}`}export{c as afterQuickstartSavedLine};

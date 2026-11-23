@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{F}from"./chunk-m8nhymg4.js";import{qe}from"./chunk-hqh4zzjp.js";class e{announcementSlotWinner=null;announcementSlotGovernance=null;announcementSlotReleased=!1;countedNoticeImpressions=new Set;startupAnnouncementPick=void 0;idePrivacyCheckup=void 0;companyAnnouncement=null;fotwContent=null;ccCeMigrateGroup=void 0;experimentLines=void 0;promoAllowance=null;savedModelSuccessorDrawnAt=null;emergencyTipShown=null;voiceFooterHintCounted=!1;voiceFooterHintUnderCap=void 0;isLogoRetired=!1;reset(){this.announcementSlotWinner=null,this.announcementSlotGovernance=null,this.announcementSlotReleased=!1,this.countedNoticeImpressions.clear(),this.startupAnnouncementPick=void 0,this.idePrivacyCheckup=void 0,this.companyAnnouncement=null,this.fotwContent=null,this.ccCeMigrateGroup=void 0,this.experimentLines=void 0,this.promoAllowance=null,this.savedModelSuccessorDrawnAt=null}}var gms=new qe(()=>new e);function EE(){return gms.of(F())}
+export{gms,EE};

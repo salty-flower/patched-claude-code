@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{Pe}from"./chunk-732yb76j.js";import{l}from"./chunk-hs29jdk6.js";import{Krr}from"./chunk-6t7191sd.js";import{t}from"./chunk-ray9kegj.js";import{BDe}from"./chunk-tcx7rcpg.js";import{Uh,Rm}from"./chunk-wmpv0fyt.js";import{UNi}from"./chunk-6fc35bqx.js";import{openSync as o}from"fs";import{ReadStream as a}from"tty";function s(){if(process.stdin.isTTY)return{kind:"stdin"};if(Pe(!1))return{kind:"unavailable",reason:"ci"};if(Krr()==="mcp")return{kind:"unavailable",reason:"mcp"};try{let n=o("/dev/tty","r"),e=new a(n);return BDe(e),e.on("error",(r)=>{l("tengu_tty_stream_error",Uh(r)),t(`/dev/tty stream error: ${r}`,{level:"debug"})}),e.isTTY=!0,{kind:"override",stream:e}}catch(n){return t(`Could not open /dev/tty for stdin override: ${n}`,{level:"error"}),{kind:"unavailable",reason:"tty_unavailable"}}}class i{input=null;get(){return this.input??=s()}reset(){this.input=null}}var jSe=new i;function MT(n=!1){UNi();let e=jSe.get(),r={exitOnCtrlC:n};if(e.kind==="override")r.stdin=e.stream;return r.isScreenReaderEnabled=Rm(),r}
+export{jSe,MT};

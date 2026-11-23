@@ -1,0 +1,5 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import"./chunk-732yb76j.js";import"./chunk-ka3gamjb.js";import"./chunk-zt4gdxqw.js";import"./chunk-5p3mkpyy.js";import"./chunk-3rgses43.js";import"./chunk-e5p1adf2.js";import"./chunk-a8se3wxy.js";import"./chunk-fn5hkvxe.js";import{H}from"./chunk-185wxkmr.js";import{Cr}from"./chunk-jxn7cbw7.js";var E={};Cr(E,{CCR_AGENT_PROXY_TOKEN_FILE_DESCRIPTOR:()=>n,CLAUDE_CODE_MCP_SERVE_AUTH_TOKEN:()=>_,CLAUDE_CODE_MCP_SERVE_ENABLED_PLUGINS:()=>C,CLAUDE_CODE_MCP_SERVE_GARBAGE_COLLECTIONS:()=>p,CLAUDE_CODE_MCP_SERVE_INTERFACE_MIN_VERSION:()=>e,CLAUDE_CODE_MCP_SERVE_SETTINGS:()=>r,CLAUDE_CODE_MCP_SERVE_TOOL_OUTPUT:()=>o,CLAUDE_CODE_MCP_SERVE_TUNNEL_BINARY_FRAMES:()=>S,CLAUDE_CODE_MCP_SERVE_WORKSPACE_ROOT:()=>t});var _=H.rawStr(),o=H.bool(),r=H.rawStr(),t=H.str(),e=H.int({min:1,digitsOnly:!0}),C=H.rawStr(),S=H.bool(),p=H.str(),n=H.str();var s={...E};export{s as toolServerShape};

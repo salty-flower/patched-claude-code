@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{N}from"./chunk-wryttfdq.js";import{i}from"./chunk-428zme0n.js";import{a}from"./chunk-mddke2ke.js";import{ke,Ni,s6,gc,Wd}from"./chunk-tbvds061.js";import{Kl,mP}from"./chunk-e44qnbvj.js";import{$Ce}from"./chunk-pdder716.js";import{Dce}from"./chunk-0rxs30cc.js";function Y7(r=ke()){if(r!=="firstParty"||!Ni())return!1;if(s6())return!0;return n()}function FBr(r=ke()){if(r!=="firstParty"||!gc())return!1;return n()}function g$(r=ke()){if(r!=="firstParty"||!gc())return!1;if(i.ANTHROPIC_BASE_URL!==void 0||!Kl()||!mP())return!0;let t=Dce(),e=t===void 0?$Ce()??null:t;return e===null||Wd(e)}function n(){if(i.ANTHROPIC_BASE_URL!==void 0||!mP())return!0;let r=Dce();return r===null||r!==void 0&&Wd(r)}function o(){try{return ke()==="firstParty"&&i.ANTHROPIC_UNIX_SOCKET===void 0&&gc()&&!mP()}catch(r){a(N(r));return}}function q6t(){return o()??!1}function $Br(){return o()??!0}function y_a(r){return Wd(r.baseURL)&&!(r.fetchOptions&&("unix"in r.fetchOptions))}function gLo(){if(i.ANTHROPIC_BASE_URL!==void 0)return i.ANTHROPIC_BASE_URL;try{if(mP()){let r=Dce();if(typeof r==="string")return r}}catch{}return"https://api.anthropic.com"}
+export{Y7,FBr,g$,q6t,$Br,y_a,gLo};

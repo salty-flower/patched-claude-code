@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{ydr}from"./chunk-zamjm98b.js";import{v}from"./chunk-mfqtr69m.js";import{IT,kq}from"./chunk-bzk3ayzm.js";import{ne,e}from"./chunk-zrhzz8fw.js";import{rn,an,j}from"./chunk-mp0bjfh5.js";import{pr}from"./chunk-8m59mbsr.js";j();import{PassThrough as u}from"stream";function m(){}var YYt=rn(!1);function y$(r){let i=v(5),{children:t}=r,{exit:n}=IT(),a,o;if(i[0]!==n)a=()=>{let d=setTimeout(n,0);return()=>clearTimeout(d)},o=[n],i[0]=n,i[1]=a,i[2]=o;else a=i[1],o=i[2];an(a,o);let c;if(i[3]!==t)c=e(ne,{children:t}),i[3]=t,i[4]=c;else c=i[4];return c}async function cN(r,t){r.render(e(y$,{children:t})),await r.waitUntilExit()}async function Yft(r,{columns:t,storageV5:n}){let i="",a=!1,o=new u;if(t!==void 0)o.columns=t;return o.on("data",(c)=>{if(a)return;a=!0,i=c.toString()}),await(await kq(e(y$,{children:e(YYt.Provider,{value:!0,children:e(ydr,{value:m,children:r})})}),{stdout:o,patchConsole:!1},{storageV5:n})).waitUntilExit(),i}async function Hlr(r,t){let n=await Yft(r,t);return pr(n)}
+export{YYt,y$,cN,Yft,Hlr};

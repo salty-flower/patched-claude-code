@@ -1,0 +1,6 @@
+// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.325
+import{F}from"./chunk-m8nhymg4.js";import{t}from"./chunk-bdfv2ky4.js";import{a}from"./chunk-mddke2ke.js";import{Hi}from"./chunk-wjq2t4wj.js";import{W}from"./chunk-z1a5ffdv.js";var RBr="in-process";class Vga{captured=null;cliOverride=null;setCliOverride(e){this.cliOverride=e}capture(e){this.captured=e}replaceWith(e){this.captured=e,this.cliOverride=null}}var lza=new W(()=>new Vga);function o(){return lza.of(F().host)}function gYa(e){o().setCliOverride(e)}function ozs(){return o().cliOverride}function szs(e){o().replaceWith(e),t(`[TeammateModeSnapshot] CLI override cleared, new mode: ${e}`)}function izs(){return o().captured!==null}function oLo(){let e=o();if(e.cliOverride)e.capture(e.cliOverride),t(`[TeammateModeSnapshot] Captured from CLI override: ${e.captured}`);else e.capture(Hi("teammateMode",RBr).value),t(`[TeammateModeSnapshot] Captured from config: ${e.captured}`)}function hpn(){let e=o();if(e.captured===null)a(Error("getTeammateModeFromSnapshot called before capture - this indicates an initialization bug")),oLo();return e.captured??RBr}
+export{RBr,Vga,lza,gYa,ozs,szs,izs,oLo,hpn};
